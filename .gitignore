@@ -1,0 +1,32 @@
+# --- Pesos y checkpoints (no versionar binarios pesados) ---
+*.pth
+*.pt
+*.ckpt
+*.onnx
+
+# --- Datos (los datasets viven en Kaggle / UNAB, NO en el repo) ---
+data/
+datasets/
+*.jpg
+*.png
+!docs/**/*.png
+*.csv
+!docs/**/*.csv
+
+# --- Secretos (NUNCA commitear) ---
+.env
+*.key
+kaggle.json
+*credentials*
+
+# --- Python / Jupyter ---
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# --- SO / editor ---
+.DS_Store
+.idea/
+.vscode/
