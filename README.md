@@ -14,7 +14,7 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 | Rol | Persona |
 |---|---|
 | Autor | Nicolás Santiago Moreno Monroy |
-| Co-autora | María Paula Saavedra |
+| autora | María Paula Saavedra |
 | Director | Andrés Jerez |
 | Asesora | Karen Sánchez (KAUST) |
 | Institución | Universidad Autónoma de Bucaramanga (UNAB) — Ing. de Sistemas |
