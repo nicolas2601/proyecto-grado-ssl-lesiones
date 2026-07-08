@@ -24,7 +24,7 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 - **Objetivo 1 (EDA):** ✅ Completado (notebook + 13 figuras 300 DPI + Tabla I).
 - **Objetivo 2 (algoritmo SSL):** ✅ **Corrida de referencia ejecutada** (Kaggle T4 x2). Modelo
   entrenado, demo de inferencia OK, **4/4 KPIs clínicos cumplidos**. Ver
-  [**Informe para el director**](INFORME-DIRECTOR.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
+  [**Informe**](INFORME.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
 - **Siguiente hito:** validación externa cross-dataset + envío al director → gestionar acceso a GPUs
   de la UNAB para el entrenamiento definitivo.
 
@@ -49,14 +49,14 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 | [11 — Resultados finales](docs/11-resultados-finales.md) | **Informe técnico completo + figuras** |
 | [12 — Model card](docs/12-model-card.md) | Ficha del modelo + cómo servirlo |
 | [13 — ¿Por qué estas decisiones?](docs/13-por-que-estas-decisiones.md) | **Por qué ResNet-50, SimSiam, etc.** |
-| [Informe para el director](INFORME-DIRECTOR.md) | Resumen ejecutivo para Andrés Jerez |
+| [Informe](INFORME.md) | Resumen ejecutivo del avance |
 
 ## Estructura
 
 ```
 proyecto-grado-ssl-lesiones/
 ├── README.md
-├── INFORME-DIRECTOR.md          # Resumen ejecutivo para el director
+├── INFORME.md                   # Resumen ejecutivo del avance
 ├── docs/                        # Documentación 01..13
 ├── data/
 │   └── RESULTS_SUMMARY.json     # Datos crudos de la corrida
@@ -67,8 +67,9 @@ proyecto-grado-ssl-lesiones/
     └── proyecto_ssl_lesiones_v2.ipynb   # Pipeline Objetivo 2 (Kaggle)
 ```
 
-> El modelo entrenado (`best_resnet50_ssl.pth`, ~90–100 MB) no va en el repo (límite de 100 MB de
-> GitHub): se publica como asset en **Releases**.
+> El modelo entrenado (`best_resnet50_ssl.pth`, ~90 MB) no va en el repo (límite de 100 MB de
+> GitHub): está publicado como asset en el
+> [**Release `modelo-v1-preliminar`**](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v1-preliminar).
 
 ## Regla de oro del proyecto
 

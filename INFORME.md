@@ -100,4 +100,4 @@ estado del arte; la vía viable de *masked image modeling* en 2D sería MAE/SimM
 - **Decisiones técnicas (ADR):** [`docs/04-decisiones-tecnicas.md`](docs/04-decisiones-tecnicas.md)
 - **Ficha del modelo:** [`docs/12-model-card.md`](docs/12-model-card.md)
 - **Notebook reproducible:** [`notebooks/proyecto_ssl_lesiones_v2.ipynb`](notebooks/proyecto_ssl_lesiones_v2.ipynb)
-- **Modelo entrenado** (`.pth`): adjunto en la sección *Releases* del repositorio.
+- **Modelo entrenado** (`.pth`): [Release `modelo-v1-preliminar`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v1-preliminar).

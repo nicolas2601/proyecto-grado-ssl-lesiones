@@ -18,6 +18,7 @@ Ficha técnica del modelo entrenado, siguiendo el formato *Model Cards* (Mitchel
 | Umbral screening melanoma | 0.0541 (guardado en el checkpoint) |
 | Autores | Nicolás Santiago Moreno Monroy · María Paula Saavedra |
 | Fecha | 2026-07-07 |
+| **Descarga** | [Release `modelo-v1-preliminar`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v1-preliminar) |
 
 > Nota: el modelo servido (`best_resnet50_ssl.pth`) es el fine-tune construido **sobre el backbone
 > SSL domain-adaptive** — es el artefacto central de la tesis. La ablación contra la inicialización

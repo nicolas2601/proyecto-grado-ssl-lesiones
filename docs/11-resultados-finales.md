@@ -147,6 +147,8 @@ pasar un melanoma).
 
 ### 6.1 Calibración
 
+![Diagrama de fiabilidad](../assets/figuras/reliability_diagram.png)
+
 ![Efecto de la calibración](../assets/figuras/fig6_calibracion.png)
 
 - ECE **0.1665 → 0.0598** con temperature scaling (T = 0.6757). El T < 1 indica que el modelo estaba
@@ -182,6 +184,8 @@ deriva a especialista. Este es el comportamiento correcto de una herramienta de 
 ### 6.5 Grad-CAM — ¿mira la lesión o hace trampa?
 
 Mapa de calor sobre melanomas reales:
+
+![Grad-CAM sobre melanomas](../assets/figuras/gradcam_melanomas.png)
 
 | Imagen | p(mel) | Dónde cae el calor | Veredicto |
 |---|---|---|---|
