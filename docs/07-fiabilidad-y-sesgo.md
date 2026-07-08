@@ -3,6 +3,13 @@
 Una herramienta médica de **apoyo** (no da diagnóstico final) se defiende con 5 evidencias, todas
 implementadas en la sección 6c del notebook.
 
+> **Resultados reales de la corrida 2026-07-07** (detalle en [11](11-resultados-finales.md) §6):
+> - Calibración: ECE **0.1665 → 0.0598** (temperature scaling, T = 0.6757). ✅ meta ≤ 0.10.
+> - IC95 % (bootstrap): macro-F1 **[0.7005, 0.7807]**; sens. mel **[0.5429, 0.6682]**.
+> - Abstención: a confianza ≥ 0.8 → cubre **83.7 %** con **91.8 %** de exactitud.
+> - Validación externa: ⚠️ **omitida** (falta ground truth externo mapeado) → pendiente #1.
+> - Grad-CAM: ✅ el calor cae **sobre la lesión**, no en pelos/reglas → **sin shortcut learning**.
+
 ## 1. Calibración (¿la confianza es honesta?)
 
 - **Reliability diagram:** cuando el modelo dice "80% seguro", debería acertar ~80%.

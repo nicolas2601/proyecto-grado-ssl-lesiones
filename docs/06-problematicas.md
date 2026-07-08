@@ -3,19 +3,20 @@
 Registro honesto de los problemas que hemos encontrado. Es el corazón de la defensa: mostrar que
 entendemos los límites.
 
-## 🔴 ABIERTA — Contradicción del linear probe
+## 🟢 CERRADA — Contradicción del linear probe (resuelta 2026-07-07)
 
-El último run mostró un patrón raro **sin resolver**:
+El run anterior mostraba un patrón raro: el linear probe SSL daba **0.264** (colapsado) vs 0.506 de
+ImageNet. Ya está **resuelto y explicado**:
 
-- Full fine-tune SSL "ganó" por +0.035 (macro-F1 0.771) **PERO** el linear probe mostró el SSL
-  **peor** (F1 0.264 vs 0.506 de ImageNet).
-- El +0.035 del fine-tune es probablemente **ruido** (osciló −0.012 → +0.035 entre corridas).
-- **Causa probable:** SSL entrenado a 128px mientras la evaluación/probe era a 224px → **BN drift**
-  (BatchNorm con estadísticas de otra resolución) y posible colapso aparente.
-- **Fix aplicado (sin confirmar aún):** `SSL_RES = 224` (igual que el resto).
-- **Qué falta:** correr y ver si a 224px el linear probe del SSL recupera (dF1 ≥ 0).
-  - Si recupera → contribución del SSL **rescatada** (la figura clave de la tesis).
-  - Si no → reportar como **límite honesto** y quedarse con el mejor modelo + AUC + fiabilidad.
+- **Causa confirmada:** *BN drift*. El SSL corría a 128 px y la evaluación/probe a 224 px → las
+  estadísticas de BatchNorm no coincidían → colapso **aparente** (no real).
+- **Fix aplicado y confirmado:** `SSL_RES = 224` (igual que fine-tune y eval). El linear probe SSL
+  subió de **0.264 → 0.4509** — número sano y coherente. **El colapso desapareció.**
+- **Veredicto final (honesto):** con 224 px la contradicción se disuelve, pero el SSL **no supera** a
+  ImageNet en macro-F1 (queda por debajo en el probe, empate en fine-tune). **SÍ gana en AUC**
+  (fine-tune +0.0087; probe 100 % +0.0132). Conclusión: no era un bug, es el **límite real del SSL
+  con cómputo de estudiante**. Se reporta así — el aporte se reposiciona hacia protocolo + fiabilidad
+  + hallazgo AUC, no hacia "SSL gana". Ver [11 — Resultados finales](11-resultados-finales.md) §9.
 
 ## 🟢 RESUELTA — Fallas graves del notebook v1
 
@@ -34,11 +35,13 @@ backbone random** (0.318). No es un bug — es lo esperado. SSL desde cero neces
 imágenes + batches enormes. **Conclusión:** nunca desde cero; siempre continuar un backbone
 pre-entrenado (domain-adaptive).
 
-## 🟡 VIGILAR — Shortcut learning (artefactos)
+## 🟢 VERIFICADA OK — Shortcut learning (artefactos)
 
-HAM10000 tiene pelos, reglas y marcadores. El modelo puede "hacer trampa" mirando el artefacto en
-vez de la lesión. **Control:** Grad-CAM sobre melanomas — el calor debe caer SOBRE la lesión.
-Si mira artefactos → reportar como riesgo de fiabilidad.
+HAM10000 tiene pelos, reglas y marcadores; el modelo podría "hacer trampa" mirando el artefacto.
+**Control aplicado:** Grad-CAM sobre melanomas. **Resultado (2026-07-07):** el calor cae **SOBRE la
+lesión** (p. ej. ISIC_0026531 p=0.84, ISIC_0032396 p=0.54), **no** en pelos ni reglas. En el caso de
+baja confianza (p=0.20) el modelo duda, que es honesto. **Sin evidencia de shortcut learning** → es
+evidencia positiva de fiabilidad. Ver [07](07-fiabilidad-y-sesgo.md) y [11](11-resultados-finales.md) §6.5.
 
 ## 🟡 VIGILAR — Sesgo por fototipo (fairness)
 

@@ -22,10 +22,15 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 ## Estado actual (rápido)
 
 - **Objetivo 1 (EDA):** ✅ Completado (notebook + 13 figuras 300 DPI + Tabla I).
-- **Objetivo 2 (algoritmo SSL):** 🟡 En curso. Pipeline `v2` corriendo en Kaggle (T4 x2).
-  Corrida de referencia de ~6 h en marcha (SimSiam domain-adaptive + fine-tune + ablación + fiabilidad).
-- **Siguiente hito:** demo de inferencia + envío al director → gestionar acceso a GPUs de la UNAB
-  para el entrenamiento definitivo.
+- **Objetivo 2 (algoritmo SSL):** ✅ **Corrida de referencia ejecutada** (Kaggle T4 x2). Modelo
+  entrenado, demo de inferencia OK, **4/4 KPIs clínicos cumplidos**. Ver
+  [**Informe para el director**](INFORME-DIRECTOR.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
+- **Siguiente hito:** validación externa cross-dataset + envío al director → gestionar acceso a GPUs
+  de la UNAB para el entrenamiento definitivo.
+
+> ⚠️ **Resultados preliminares.** Son pruebas y evidencia con los **recursos actuales** (GPU T4 de
+> estudiante, dataset pequeño) — el **techo alcanzable así**, no el modelo final. El entrenamiento
+> definitivo (más cómputo, más datos, validación externa) se hará con las GPUs de la UNAB.
 
 ## Índice de documentación
 
@@ -38,19 +43,32 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 | [05 — Pipeline Objetivo 2](docs/05-pipeline-objetivo2.md) | El notebook que corre, paso a paso |
 | [06 — Problemáticas abiertas](docs/06-problematicas.md) | Contradicción linear probe, colapso, leakage, etc. |
 | [07 — Fiabilidad y sesgo](docs/07-fiabilidad-y-sesgo.md) | KPIs, calibración, fairness, abstención |
-| [08 — Estado actual y próximos pasos](docs/08-estado-actual-y-next-steps.md) | Run de 6 h, roadmap |
+| [08 — Estado actual y próximos pasos](docs/08-estado-actual-y-next-steps.md) | Resultados, roadmap |
 | [09 — Referencias](docs/09-referencias.md) | Papers, incl. evaluación de MambaMIM |
 | [10 — Glosario ELI5](docs/10-glosario-eli5.md) | Conceptos explicados sencillo |
+| [11 — Resultados finales](docs/11-resultados-finales.md) | **Informe técnico completo + figuras** |
+| [12 — Model card](docs/12-model-card.md) | Ficha del modelo + cómo servirlo |
+| [13 — ¿Por qué estas decisiones?](docs/13-por-que-estas-decisiones.md) | **Por qué ResNet-50, SimSiam, etc.** |
+| [Informe para el director](INFORME-DIRECTOR.md) | Resumen ejecutivo para Andrés Jerez |
 
 ## Estructura
 
 ```
 proyecto-grado-ssl-lesiones/
 ├── README.md
-├── docs/                 # Toda la documentación
+├── INFORME-DIRECTOR.md          # Resumen ejecutivo para el director
+├── docs/                        # Documentación 01..13
+├── data/
+│   └── RESULTS_SUMMARY.json     # Datos crudos de la corrida
+├── assets/figuras/              # 6 figuras explicativas (PNG)
+├── results/
+│   └── generar_figuras.py       # Script reproducible de las figuras
 └── notebooks/
     └── proyecto_ssl_lesiones_v2.ipynb   # Pipeline Objetivo 2 (Kaggle)
 ```
+
+> El modelo entrenado (`best_resnet50_ssl.pth`, ~90–100 MB) no va en el repo (límite de 100 MB de
+> GitHub): se publica como asset en **Releases**.
 
 ## Regla de oro del proyecto
 

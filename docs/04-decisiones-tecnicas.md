@@ -59,6 +59,35 @@ Con split honesto el número baja (~0.74) pero es **real y defendible**.
 BatchNorm no coinciden) → posible colapso aparente del linear probe. Igualar resolución elimina esa
 variable de confusión (ver [06 — Problemáticas](06-problematicas.md)).
 
+**Estado:** ✅ **confirmado en la corrida 2026-07-07** — el linear probe SSL subió de 0.264 a 0.4509;
+el colapso desapareció.
+
+---
+
+## D-08 — Backbone = ResNet-50 (por qué esta arquitectura)
+
+**Decisión:** ResNet-50 pre-entrenada en ImageNet como backbone único, tanto para el baseline como
+para el SSL domain-adaptive.
+
+**Por qué (resumen):** es el estándar de la literatura dermatológica (comparabilidad), cabe en una
+T4, tiene pesos ImageNet probados, es el punto dulce tamaño/costo, y soporta Grad-CAM directo.
+Explicación completa y alternativas descartadas (ViT, EfficientNet, ResNet-18/101) en
+[13 — ¿Por qué estas decisiones?](13-por-que-estas-decisiones.md).
+
+---
+
+## D-09 — Modelo desplegado = fine-tune SSL (no el baseline ImageNet)
+
+**Decisión:** el checkpoint que se sirve (`best_resnet50_ssl.pth`) es el fine-tune construido sobre
+el **backbone SSL domain-adaptive**, no el baseline ImageNet.
+
+**Por qué:** la ablación dio empate en macro-F1 (Δ 0.0007, ruido) y **ventaja del SSL en AUC**
+(+0.0087). Ante empate, se despliega el modelo SSL por ser el **artefacto central de la tesis** y el
+de mejor ranking. La inicialización ImageNet queda documentada como línea base.
+
+**Naturaleza:** ⚠️ modelo **preliminar** — el techo con recursos de estudiante (T4). El definitivo se
+entrenará con GPUs de la UNAB.
+
 ---
 
 ## D-06 — KPIs clínicos como criterio de aceptación

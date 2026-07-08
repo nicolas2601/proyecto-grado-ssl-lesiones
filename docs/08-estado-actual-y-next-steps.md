@@ -1,21 +1,25 @@
 # 08 — Estado actual y próximos pasos
 
-_Última actualización: 2026-07-07._
+_Última actualización: 2026-07-07 (corrida ejecutada)._
+
+> ⚠️ **Los resultados son preliminares** — el techo alcanzable con los recursos actuales (T4 de
+> estudiante, dataset pequeño). No son el modelo definitivo; ese llega con las GPUs de la UNAB.
 
 ## Dónde estamos
 
 - **Objetivo 1 (EDA):** ✅ cerrado.
-- **Objetivo 2 (SSL):** 🟡 pipeline `v2` completo y validado (sintaxis OK, 13 celdas de código).
-  Corrida de **referencia de ~6 h** en marcha en Kaggle (T4 x2), 30 épocas de SSL sobre el pool
-  completo (~33.332 imgs) + fine-tune ablación + fiabilidad.
-- Es la **última corrida de referencia** en Kaggle antes de armar la demo y contactar al director.
+- **Objetivo 2 (SSL):** ✅ **corrida de referencia ejecutada** en Kaggle (T4 x2), 30 épocas de SSL a
+  224 px sobre el pool ~33 k + fine-tune + ablación + fiabilidad. Modelo exportado y demo de
+  inferencia funcionando. Resultados completos en [11 — Resultados finales](11-resultados-finales.md).
 
-## Qué esperamos de esta corrida
+## Qué salió (resumen)
 
-1. Tabla de **ablación** (ImageNet vs SSL, macro-F1 / AUC / ECE).
-2. Tabla de **linear probe** en pocas etiquetas (10/20/50/100%) → ¿el SSL a 224px recupera?
-3. Líneas `out_std` del SSL por época (¿colapsó o no?).
-4. `RESULTS_SUMMARY.json` con todo consolidado (KPIs, IC95%, recall por clase, screening, abstención).
+- **4/4 KPIs clínicos cumplidos** (macro-F1 0.7454, AUC 0.9343, mel sens 0.8018, ECE calib. 0.0598).
+- **Ablación:** empate SSL vs ImageNet en macro-F1; SSL gana en AUC. Desplegamos el modelo SSL.
+- **Linear probe:** el fix de 224 px eliminó el colapso (0.264 → 0.4509); SSL sigue por debajo en F1,
+  gana en AUC al 100 %. Contradicción **cerrada** como límite honesto.
+- **Grad-CAM:** el modelo mira la lesión, no los artefactos → sin shortcut learning.
+- **Validación externa:** ⚠️ omitida (falta ground truth externo mapeado) → next-step #1.
 
 ## Próximos pasos (roadmap)
 
@@ -31,17 +35,21 @@ _Última actualización: 2026-07-07._
 
 ## Pendientes técnicos / seguridad
 
-- [ ] Rotar token de Kaggle (KGAT) expuesto.
+- [ ] **Descargar de Kaggle** `best_resnet50_ssl.pth` + `RESULTS_SUMMARY.json` + PNGs → subir modelo
+      a un **GitHub Release** (el `.pth` no cabe en el repo normal, >100 MB).
+- [ ] 🔐 **Rotar token de Kaggle (KGAT) expuesto** (pendiente arrastrado).
 - [ ] Borrar `~/Descargas/math.so` corrupto.
-- [ ] Adjuntar ISIC2019 `GroundTruth.csv` para validación externa.
-- [ ] Revisar Grad-CAM (¿mira lesión o artefactos?).
+- [ ] Adjuntar ISIC2019 `GroundTruth.csv` y correr **validación externa** (next-step #1).
+- [x] ~~Revisar Grad-CAM~~ → hecho: mira la lesión, sin shortcut.
+- [ ] Agregar a Paula como colaboradora del repo (decidir cuenta: Paulasaah vs mpsaavedra05).
 - [ ] Para futuras corridas: `SSL_EPOCHS=15` + `num_workers=4` → ~3 h en vez de ~6 h.
 
-## Referencia rápida de resultados conocidos
+## Referencia rápida de resultados
 
 | Hito | macro-F1 | Nota |
 |---|---|---|
 | v1 (inflado) | 0.873 | ❌ leakage + SSL desconectado |
 | v2 split honesto | ~0.74 | ✅ real y defendible |
-| Full fine-tune SSL (último) | 0.771 | +0.035 vs baseline, pero es ruido |
-| Linear probe SSL vs ImageNet | 0.264 vs 0.506 | 🔴 contradicción a resolver (fix 224px) |
+| **Corrida final · modelo SSL** | **0.7447** | ✅ AUC 0.9430; 4/4 KPIs |
+| Corrida final · baseline ImageNet | 0.7454 | empate (Δ 0.0007, ruido) |
+| Linear probe SSL vs ImageNet (100 %) | 0.4509 vs 0.5123 | 🟢 colapso resuelto (224 px); SSL gana AUC |

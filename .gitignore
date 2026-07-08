@@ -5,13 +5,18 @@
 *.onnx
 
 # --- Datos (los datasets viven en Kaggle / UNAB, NO en el repo) ---
-data/
 datasets/
 *.jpg
+# Imágenes: ignoradas por defecto, salvo docs, figuras y model card
 *.png
 !docs/**/*.png
+!assets/figuras/*.png
+# CSV: ignorados salvo docs
 *.csv
 !docs/**/*.csv
+# data/: solo versionamos el resumen de resultados, no datasets crudos
+data/*
+!data/RESULTS_SUMMARY.json
 
 # --- Secretos (NUNCA commitear) ---
 .env
@@ -24,6 +29,7 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .venv/
+.venv-charts/
 venv/
 
 # --- SO / editor ---

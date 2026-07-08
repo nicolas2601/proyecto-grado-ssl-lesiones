@@ -1,0 +1,100 @@
+{
+  "run_meta": {
+    "fecha": "2026-07-07",
+    "plataforma": "Kaggle",
+    "gpu": "T4 x2",
+    "notebook": "SSLmodelo liviano (nicorghost/sslmodelo-liviano)",
+    "objetivo": "Objetivo 2 — diseño y evaluacion honesta del algoritmo SSL"
+  },
+  "dataset": {
+    "train_imgs": 8001,
+    "val_imgs": 2014,
+    "classes": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+    "lesion_overlap_train_val": 0,
+    "split": "StratifiedGroupKFold por lesion_id (anti-leakage)"
+  },
+  "ssl": {
+    "metodo": "SimSiam",
+    "backbone": "resnet50",
+    "epochs": 30,
+    "res": 224,
+    "batch": 128,
+    "run": true
+  },
+  "ablacion_full_finetune": {
+    "imagenet": { "macro_f1": 0.7454, "auc": 0.9343, "ece": 0.1665 },
+    "ssl": { "macro_f1": 0.7447, "auc": 0.9430, "ece": 0.1709 }
+  },
+  "winner": "imagenet",
+  "final_metrics": {
+    "macro_f1": 0.7454,
+    "acc": 0.8659,
+    "auc": 0.9343,
+    "ece_raw": 0.1665,
+    "ece_calibrated": 0.0598,
+    "temperature": 0.6757,
+    "macro_f1_ci95": [0.7005, 0.7807],
+    "mel_sens_argmax_ci95": [0.5429, 0.6682]
+  },
+  "recall_por_clase": {
+    "akiec": 0.7941,
+    "bcc": 0.88,
+    "bkl": 0.6927,
+    "df": 0.4091,
+    "mel": 0.6081,
+    "nv": 0.9442,
+    "vasc": 0.8529
+  },
+  "mel_screening": {
+    "threshold": 0.0541,
+    "sensibilidad": 0.8018,
+    "especificidad": 0.8873
+  },
+  "abstencion": {
+    "0.0": { "cobertura": 1.0, "exactitud": 0.8659 },
+    "0.5": { "cobertura": 0.9682, "exactitud": 0.8749 },
+    "0.6": { "cobertura": 0.9439, "exactitud": 0.8816 },
+    "0.7": { "cobertura": 0.9022, "exactitud": 0.8965 },
+    "0.8": { "cobertura": 0.8371, "exactitud": 0.9176 },
+    "0.9": { "cobertura": 0.354, "exactitud": 0.9187 }
+  },
+  "linear_probe": {
+    "imagenet": {
+      "10pct": { "macro_f1": 0.4165, "auc": 0.8481 },
+      "20pct": { "macro_f1": 0.4271, "auc": 0.8503 },
+      "50pct": { "macro_f1": 0.4716, "auc": 0.865 },
+      "100pct": { "macro_f1": 0.5123, "auc": 0.8683 }
+    },
+    "ssl": {
+      "10pct": { "macro_f1": 0.3307, "auc": 0.8093 },
+      "20pct": { "macro_f1": 0.3574, "auc": 0.8304 },
+      "50pct": { "macro_f1": 0.4184, "auc": 0.8615 },
+      "100pct": { "macro_f1": 0.4509, "auc": 0.8815 }
+    }
+  },
+  "validacion_externa": "no ejecutada (falta dataset externo etiquetado mapeado a 7 clases HAM)",
+  "kpis": {
+    "macro_f1>=0.65": true,
+    "auc>=0.85": true,
+    "mel_sens>=0.80": true,
+    "ece_calibrado<=0.10": true
+  },
+  "inferencia_demo": {
+    "input": "melanoma real",
+    "pred": "mel",
+    "conf": 0.9568,
+    "mel_prob": 0.9568,
+    "mel_alert": true,
+    "probs": {
+      "akiec": 0.0034, "bcc": 0.0025, "bkl": 0.0022, "df": 0.0082,
+      "mel": 0.9568, "nv": 0.0132, "vasc": 0.0136
+    }
+  },
+  "artefactos_guardados": [
+    "/kaggle/working/best_resnet50_ssl.pth",
+    "/kaggle/working/backbone_domain_adaptive_r50.pth",
+    "/kaggle/working/reliability_diagram.png",
+    "/kaggle/working/gradcam_melanomas.png",
+    "/kaggle/working/RESULTS_SUMMARY.json"
+  ]
+}
