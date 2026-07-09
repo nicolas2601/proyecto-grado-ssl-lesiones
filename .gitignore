@@ -30,6 +30,7 @@ __pycache__/
 .ipynb_checkpoints/
 .venv/
 .venv-charts/
+.venv-demo/
 venv/
 
 # --- SO / editor ---
