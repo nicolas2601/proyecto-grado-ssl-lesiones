@@ -28,6 +28,13 @@ En una frase: **el aporte de la tesis no es "el SSL gana", sino un protocolo de 
 un pipeline de fiabilidad clínica riguroso**, con un hallazgo matizado sobre dónde ayuda el SSL en
 régimen de bajos recursos.
 
+> **Modelo entregable = SSL.** El pipeline se corrigió para que el modelo que se **evalúa, calibra y
+> exporta** sea el **SSL domain-adaptive** (el núcleo del proyecto), no el ganador numérico de la
+> ablación. Las métricas de la §2 corresponden a la corrida de referencia (brazo evaluado); la
+> corrida SSL-céntrica definitiva se ejecuta en la próxima ventana de GPU (reset de cuota Kaggle) y
+> refrescará esos números con el SSL como entregable. La ablación (empate en macro-F1, SSL gana en
+> AUC) se mantiene como comparación honesta contra el baseline.
+
 ---
 
 ## 2. Resultados clave (val, split honesto por lesión)

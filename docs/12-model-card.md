@@ -8,9 +8,9 @@ Ficha técnica del modelo entrenado, siguiendo el formato *Model Cards* (Mitchel
 |---|---|
 | Nombre | `best_resnet50_ssl.pth` |
 | Arquitectura | ResNet-50 (torchvision) + cabeza lineal de 7 clases |
-| Inicialización del modelo servido | **ImageNet** (según metadato `init` del checkpoint; ganó la ablación por 0.0007) |
-| Backbone SSL (artefacto aparte) | `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive, HAM+ISIC) |
-| Ablación (referencia) | empate técnico con SSL en macro-F1 (Δ 0.0007, ruido); SSL gana en AUC |
+| Inicialización (modelo entregable) | **SSL domain-adaptive** — pipeline corregido para exportar el SSL. ⚠️ El artefacto del Release actual es aún el brazo ImageNet de la corrida 1; se reemplaza por el SSL en la próxima corrida |
+| Backbone SSL base | `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive, HAM+ISIC) |
+| Ablación (referencia) | empate técnico con ImageNet en macro-F1 (Δ 0.0007, ruido); SSL gana en AUC |
 | Metadatos embebidos | `classes`, `temperature`, `mel_screening_threshold`, `norm_mean/std`, `img_size`, `init`, `arch`, `macro_f1` |
 | Tamaño aprox. | ~90–100 MB (`state_dict` de ResNet-50) |
 | Framework | PyTorch |
@@ -21,13 +21,12 @@ Ficha técnica del modelo entrenado, siguiendo el formato *Model Cards* (Mitchel
 | Fecha | 2026-07-07 |
 | **Descarga** | [Release `modelo-v1-preliminar`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v1-preliminar) |
 
-> Nota (verificada leyendo el checkpoint): el archivo `best_resnet50_ssl.pth` se llama así por
-> convención del notebook, pero su metadato interno dice `init = imagenet` y `macro_f1 = 0.7454` →
-> **el peso exportado es el ganador de la ablación = inicialización ImageNet** (ganó por 0.0007). El
-> backbone SSL domain-adaptive se conserva aparte en `backbone_domain_adaptive_r50.pth`. La
-> contribución del SSL vive en la ablación (empate en F1, ventaja en AUC) y en ese backbone, **no**
-> en el nombre del archivo servido. Si se quiere desplegar el modelo SSL-init de verdad, hay que
-> re-exportarlo desde el notebook (fine-tune con `init=ssl`).
+> Nota (verificada leyendo el checkpoint): el `.pth` del **Release actual** (corrida 1) tiene
+> metadato `init = imagenet` — el notebook había exportado el ganador de la ablación (ImageNet, por
+> 0.0007), no el SSL. **Esto ya se corrigió en el pipeline:** el notebook ahora fija `best_name="ssl"`
+> y evalúa + exporta el **modelo SSL** como entregable (ver [D-09](04-decisiones-tecnicas.md)). La
+> próxima corrida (reset de cuota GPU de Kaggle) reemplaza el artefacto por el SSL con sus propias
+> métricas clínicas.
 >
 > ⚠️ **Naturaleza preliminar:** estos pesos son un **resultado de prueba con recursos limitados**
 > (GPU T4 de estudiante, dataset pequeño), no el modelo definitivo. Representan el techo alcanzable

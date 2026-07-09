@@ -99,7 +99,13 @@ calidad de las *features* (el full fine-tune la tapa porque re-entrena todo).
 
 ---
 
-## 4. Métricas clínicas del modelo final (ImageNet, ganador)
+## 4. Métricas clínicas del modelo final
+
+> Estas métricas corresponden al **brazo evaluado en la corrida 1** (que fue el ImageNet, por el
+> empate de 0.0007). **El pipeline ya se corrigió** para que el modelo entregable sea el **SSL**: la
+> próxima corrida (reset de cuota GPU) refresca esta tabla con las métricas clínicas del SSL. Los
+> números del SSL en la ablación (macro-F1 0.7447, AUC 0.9430) están en §2; su evaluación clínica
+> completa (calibración, screening, Grad-CAM) se genera en esa corrida.
 
 | Métrica | Valor | IC95 % |
 |---|---|---|

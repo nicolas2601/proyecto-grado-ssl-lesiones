@@ -9,13 +9,14 @@ _Última actualización: 2026-07-07 (corrida ejecutada)._
 
 - **Objetivo 1 (EDA):** ✅ cerrado.
 - **Objetivo 2 (SSL):** ✅ **corrida de referencia ejecutada** en Kaggle (T4 x2), 30 épocas de SSL a
-  224 px sobre el pool ~33 k + fine-tune + ablación + fiabilidad. Modelo exportado y demo de
-  inferencia funcionando. Resultados completos en [11 — Resultados finales](11-resultados-finales.md).
+  224 px sobre el pool ~33 k + fine-tune + ablación + fiabilidad. **Pipeline corregido** para exportar
+  y evaluar el **modelo SSL** como entregable. Resultados en [11 — Resultados finales](11-resultados-finales.md).
 
 ## Qué salió (resumen)
 
 - **4/4 KPIs clínicos cumplidos** (macro-F1 0.7454, AUC 0.9343, mel sens 0.8018, ECE calib. 0.0598).
-- **Ablación:** empate SSL vs ImageNet en macro-F1; SSL gana en AUC. Desplegamos el modelo SSL.
+- **Ablación:** empate SSL vs ImageNet en macro-F1; SSL gana en AUC. Pipeline corregido para
+  desplegar y evaluar el **modelo SSL** como entregable (la corrida 1 había exportado el brazo ImageNet).
 - **Linear probe:** el fix de 224 px eliminó el colapso (0.264 → 0.4509); SSL sigue por debajo en F1,
   gana en AUC al 100 %. Contradicción **cerrada** como límite honesto.
 - **Grad-CAM:** el modelo mira la lesión, no los artefactos → sin shortcut learning.
@@ -23,20 +24,20 @@ _Última actualización: 2026-07-07 (corrida ejecutada)._
 
 ## Próximos pasos (roadmap)
 
-1. **Leer resultados** de la corrida de 6 h y decidir sobre la contradicción del linear probe
-   (rescatada vs límite honesto — ver [06](06-problematicas.md)).
-2. **Demo de inferencia:** empaquetar `predict_path()` + el `.pth` exportado en algo probable
-   (script o API mínima) para mostrarle al director cómo clasifica una imagen nueva.
-3. **Enviar al director (Andrés Jerez):** resultados + demo → pedir feedback y **acceso a las GPUs
-   de la UNAB** para el entrenamiento definitivo.
+1. **Re-correr el pipeline SSL-céntrico** (próxima semana, al resetear la cuota GPU de Kaggle):
+   exporta el **modelo SSL** como entregable + su `RESULTS_SUMMARY.json` y figuras. No hace falta
+   repetir el pretrain SSL si se reusa `backbone_domain_adaptive_r50.pth`.
+2. **Validación externa** (ISIC2019 `GroundTruth.csv`) — la prueba de generalización más fuerte.
+3. **Enviar al director (Andrés Jerez):** resultados + modelo SSL → pedir feedback y **acceso a las
+   GPUs de la UNAB** para el entrenamiento definitivo.
 4. **Entrenamiento definitivo (con GPUs UNAB):** escalar (más épocas, posible DINOv2/ViT-B como
    plantea el anteproyecto), validación externa con dataset etiquetado, y evaluación de sesgo (BOSQUE).
 5. **Objetivo 3:** evaluación formal contra KPIs + documento.
 
 ## Pendientes técnicos / seguridad
 
-- [ ] **Descargar de Kaggle** `best_resnet50_ssl.pth` + `RESULTS_SUMMARY.json` + PNGs → subir modelo
-      a un **GitHub Release** (el `.pth` no cabe en el repo normal, >100 MB).
+- [ ] **Próxima semana (reset GPU Kaggle):** correr el pipeline corregido → exportar el **modelo SSL**
+      → reemplazar el artefacto del Release + refrescar los números en los docs.
 - [ ] 🔐 **Rotar token de Kaggle (KGAT) expuesto** (pendiente arrastrado).
 - [ ] Borrar `~/Descargas/math.so` corrupto.
 - [ ] Adjuntar ISIC2019 `GroundTruth.csv` y correr **validación externa** (next-step #1).

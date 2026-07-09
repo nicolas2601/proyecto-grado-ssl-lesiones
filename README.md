@@ -23,10 +23,10 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 
 - **Objetivo 1 (EDA):** ✅ Completado (notebook + 13 figuras 300 DPI + Tabla I).
 - **Objetivo 2 (algoritmo SSL):** ✅ **Corrida de referencia ejecutada** (Kaggle T4 x2). Modelo
-  entrenado, demo de inferencia OK, **4/4 KPIs clínicos cumplidos**. Ver
-  [**Informe**](INFORME.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
-- **Siguiente hito:** validación externa cross-dataset + envío al director → gestionar acceso a GPUs
-  de la UNAB para el entrenamiento definitivo.
+  entrenado, **4/4 KPIs clínicos cumplidos**. Pipeline **corregido** para exportar y evaluar el
+  **modelo SSL** como entregable. Ver [**Informe**](INFORME.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
+- **Siguiente hito:** re-correr el pipeline SSL-céntrico (próxima semana, reset de cuota GPU) +
+  validación externa → envío al director → acceso a GPUs de la UNAB.
 
 > ⚠️ **Resultados preliminares.** Son pruebas y evidencia con los **recursos actuales** (GPU T4 de
 > estudiante, dataset pequeño) — el **techo alcanzable así**, no el modelo final. El entrenamiento

@@ -86,10 +86,17 @@ y `macro_f1 = 0.7454` → el peso servido es el **ganador de la ablación = inic
 en el **backbone** `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive), que se conserva como
 artefacto. No en el archivo servido.
 
-**Decisión (Nico):** SÍ servir el modelo SSL de verdad. Se agregó al notebook la celda 9 que exporta
-`best_resnet50_sslinit.pth` (init=ssl) reusando el brazo SSL de la ablación — **sin repetir el
-pretrain de 6 h**. También queda como snippet suelto en `notebooks/exportar_modelo_ssl.py`. El demo
-(`demo/app.py`) sirve automáticamente ese modelo apenas esté en `~/Descargas/`.
+**Decisión (Nico):** el modelo entregable del proyecto **es el SSL**, no el ganador numérico de la
+ablación. Se **corrigió el pipeline** (notebook `proyecto_ssl_lesiones_v2.ipynb`, celda de ablación):
+ahora `best_name = "ssl"`, de modo que **todo el pipeline posterior** —reporte clínico, calibración,
+screening, fiabilidad, Grad-CAM, export (`best_resnet50_ssl.pth`) y `RESULTS_SUMMARY.json`— se ejecuta
+**sobre el modelo SSL**. La ablación se sigue reportando completa (ambos brazos) por honestidad, y el
+resumen guarda `modelo_entregable` (=ssl) y `ablacion_ganador_por_f1` por separado.
+
+**Consecuencia:** en la corrida anterior el archivo servido había quedado como el brazo ImageNet
+(ganó por 0.0007). Con el pipeline corregido, **la próxima corrida exporta el SSL** como entregable,
+con sus propias métricas clínicas. Esa corrida se hará **la próxima semana** (reset de cuota GPU de
+Kaggle). No hace falta repetir el pretrain SSL si se reusa `backbone_domain_adaptive_r50.pth`.
 
 **Naturaleza:** ⚠️ modelo **preliminar** — el techo con recursos de estudiante (T4). El definitivo se
 entrenará con GPUs de la UNAB.
