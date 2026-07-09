@@ -86,8 +86,10 @@ y `macro_f1 = 0.7454` → el peso servido es el **ganador de la ablación = inic
 en el **backbone** `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive), que se conserva como
 artefacto. No en el archivo servido.
 
-**Pendiente si se quiere servir SSL de verdad:** re-exportar desde el notebook el fine-tune con
-`init=ssl` (empatan, así que a efectos prácticos da casi igual; importa para el relato de la tesis).
+**Decisión (Nico):** SÍ servir el modelo SSL de verdad. Se agregó al notebook la celda 9 que exporta
+`best_resnet50_sslinit.pth` (init=ssl) reusando el brazo SSL de la ablación — **sin repetir el
+pretrain de 6 h**. También queda como snippet suelto en `notebooks/exportar_modelo_ssl.py`. El demo
+(`demo/app.py`) sirve automáticamente ese modelo apenas esté en `~/Descargas/`.
 
 **Naturaleza:** ⚠️ modelo **preliminar** — el techo con recursos de estudiante (T4). El definitivo se
 entrenará con GPUs de la UNAB.

@@ -23,9 +23,18 @@ from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-MODEL_PATH = os.environ.get(
-    "MODEL_PATH", os.path.expanduser("~/Descargas/best_resnet50_ssl.pth")
-)
+# Prioridad: variable de entorno > modelo SSL (init=ssl) > modelo por defecto.
+# Apenas descargues best_resnet50_sslinit.pth a ~/Descargas, el demo lo sirve solo.
+def _resolver_modelo():
+    if os.environ.get("MODEL_PATH"):
+        return os.environ["MODEL_PATH"]
+    for cand in ("best_resnet50_sslinit.pth", "best_resnet50_ssl.pth"):
+        p = os.path.expanduser(f"~/Descargas/{cand}")
+        if os.path.exists(p):
+            return p
+    return os.path.expanduser("~/Descargas/best_resnet50_sslinit.pth")
+
+MODEL_PATH = _resolver_modelo()
 
 # Nombres legibles para mostrar
 NOMBRE_LARGO = {
