@@ -8,9 +8,10 @@ Ficha técnica del modelo entrenado, siguiendo el formato *Model Cards* (Mitchel
 |---|---|
 | Nombre | `best_resnet50_ssl.pth` |
 | Arquitectura | ResNet-50 (torchvision) + cabeza lineal de 7 clases |
-| Inicialización del modelo servido | **SSL domain-adaptive** (fine-tune sobre el backbone SimSiam) |
-| Backbone SSL base | `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive, HAM+ISIC) |
-| Ablación (referencia) | empate técnico con ImageNet en macro-F1 (Δ 0.0007, ruido); SSL gana en AUC |
+| Inicialización del modelo servido | **ImageNet** (según metadato `init` del checkpoint; ganó la ablación por 0.0007) |
+| Backbone SSL (artefacto aparte) | `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive, HAM+ISIC) |
+| Ablación (referencia) | empate técnico con SSL en macro-F1 (Δ 0.0007, ruido); SSL gana en AUC |
+| Metadatos embebidos | `classes`, `temperature`, `mel_screening_threshold`, `norm_mean/std`, `img_size`, `init`, `arch`, `macro_f1` |
 | Tamaño aprox. | ~90–100 MB (`state_dict` de ResNet-50) |
 | Framework | PyTorch |
 | Resolución de entrada | 224 × 224 RGB |
@@ -20,11 +21,13 @@ Ficha técnica del modelo entrenado, siguiendo el formato *Model Cards* (Mitchel
 | Fecha | 2026-07-07 |
 | **Descarga** | [Release `modelo-v1-preliminar`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v1-preliminar) |
 
-> Nota: el modelo servido (`best_resnet50_ssl.pth`) es el fine-tune construido **sobre el backbone
-> SSL domain-adaptive** — es el artefacto central de la tesis. La ablación contra la inicialización
-> ImageNet dio un empate técnico en macro-F1 (Δ 0.0007, dentro del ruido) y ventaja del SSL en AUC,
-> por lo que se despliega el modelo SSL. El backbone SSL puro se conserva aparte en
-> `backbone_domain_adaptive_r50.pth`.
+> Nota (verificada leyendo el checkpoint): el archivo `best_resnet50_ssl.pth` se llama así por
+> convención del notebook, pero su metadato interno dice `init = imagenet` y `macro_f1 = 0.7454` →
+> **el peso exportado es el ganador de la ablación = inicialización ImageNet** (ganó por 0.0007). El
+> backbone SSL domain-adaptive se conserva aparte en `backbone_domain_adaptive_r50.pth`. La
+> contribución del SSL vive en la ablación (empate en F1, ventaja en AUC) y en ese backbone, **no**
+> en el nombre del archivo servido. Si se quiere desplegar el modelo SSL-init de verdad, hay que
+> re-exportarlo desde el notebook (fine-tune con `init=ssl`).
 >
 > ⚠️ **Naturaleza preliminar:** estos pesos son un **resultado de prueba con recursos limitados**
 > (GPU T4 de estudiante, dataset pequeño), no el modelo definitivo. Representan el techo alcanzable

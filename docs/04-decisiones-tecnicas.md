@@ -76,14 +76,18 @@ Explicación completa y alternativas descartadas (ViT, EfficientNet, ResNet-18/1
 
 ---
 
-## D-09 — Modelo desplegado = fine-tune SSL (no el baseline ImageNet)
+## D-09 — Modelo desplegado (aclaración verificada)
 
-**Decisión:** el checkpoint que se sirve (`best_resnet50_ssl.pth`) es el fine-tune construido sobre
-el **backbone SSL domain-adaptive**, no el baseline ImageNet.
+**Hecho (leído del checkpoint):** el archivo `best_resnet50_ssl.pth` tiene metadato `init = imagenet`
+y `macro_f1 = 0.7454` → el peso servido es el **ganador de la ablación = inicialización ImageNet**
+(ganó por 0.0007). El nombre "ssl" es solo convención del notebook.
 
-**Por qué:** la ablación dio empate en macro-F1 (Δ 0.0007, ruido) y **ventaja del SSL en AUC**
-(+0.0087). Ante empate, se despliega el modelo SSL por ser el **artefacto central de la tesis** y el
-de mejor ranking. La inicialización ImageNet queda documentada como línea base.
+**Dónde vive el aporte del SSL:** en la **ablación** (empate en macro-F1, ventaja en AUC +0.0087) y
+en el **backbone** `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive), que se conserva como
+artefacto. No en el archivo servido.
+
+**Pendiente si se quiere servir SSL de verdad:** re-exportar desde el notebook el fine-tune con
+`init=ssl` (empatan, así que a efectos prácticos da casi igual; importa para el relato de la tesis).
 
 **Naturaleza:** ⚠️ modelo **preliminar** — el techo con recursos de estudiante (T4). El definitivo se
 entrenará con GPUs de la UNAB.
