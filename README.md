@@ -49,6 +49,7 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 | [11 — Resultados finales](docs/11-resultados-finales.md) | **Informe técnico completo + figuras** |
 | [12 — Model card](docs/12-model-card.md) | Ficha del modelo + cómo servirlo |
 | [13 — ¿Por qué estas decisiones?](docs/13-por-que-estas-decisiones.md) | **Por qué ResNet-50, SimSiam, etc.** |
+| [14 — Mejoras del pipeline](docs/14-mejoras-pipeline.md) | **LP-FT + LLRD + más datos → que el SSL gane** |
 | [Informe](INFORME.md) | Resumen ejecutivo del avance |
 
 ## Estructura
