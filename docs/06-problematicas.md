@@ -12,11 +12,11 @@ ImageNet. Ya está **resuelto y explicado**:
   estadísticas de BatchNorm no coincidían → colapso **aparente** (no real).
 - **Fix aplicado y confirmado:** `SSL_RES = 224` (igual que fine-tune y eval). El linear probe SSL
   subió de **0.264 → 0.4509** — número sano y coherente. **El colapso desapareció.**
-- **Veredicto final (honesto):** con 224 px la contradicción se disuelve, pero el SSL **no supera** a
-  ImageNet en macro-F1 (queda por debajo en el probe, empate en fine-tune). **SÍ gana en AUC**
-  (fine-tune +0.0087; probe 100 % +0.0132). Conclusión: no era un bug, es el **límite real del SSL
-  con cómputo de estudiante**. Se reporta así — el aporte se reposiciona hacia protocolo + fiabilidad
-  + hallazgo AUC, no hacia "SSL gana". Ver [11 — Resultados finales](11-resultados-finales.md) §9.
+- **Veredicto final (corrida v4, 2026-07-12):** con 224 px la contradicción se disuelve **y**, al
+  ampliar el pool de datos SSL (~48 k, agregando ISIC 2020), el **SSL pasa a SUPERAR a ImageNet** en
+  macro-F1 (0.6907 vs 0.6614, Δ +0.0294, fuera del ruido) y también en AUC y en el linear probe.
+  Conclusión: el "empate" previo era por **falta de datos SSL**, no un límite del método. Ver
+  [11 — Resultados finales](11-resultados-finales.md).
 
 ## 🟢 RESUELTA — Fallas graves del notebook v1
 
@@ -38,10 +38,10 @@ pre-entrenado (domain-adaptive).
 ## 🟢 VERIFICADA OK — Shortcut learning (artefactos)
 
 HAM10000 tiene pelos, reglas y marcadores; el modelo podría "hacer trampa" mirando el artefacto.
-**Control aplicado:** Grad-CAM sobre melanomas. **Resultado (2026-07-07):** el calor cae **SOBRE la
-lesión** (p. ej. ISIC_0026531 p=0.84, ISIC_0032396 p=0.54), **no** en pelos ni reglas. En el caso de
-baja confianza (p=0.20) el modelo duda, que es honesto. **Sin evidencia de shortcut learning** → es
-evidencia positiva de fiabilidad. Ver [07](07-fiabilidad-y-sesgo.md) y [11](11-resultados-finales.md) §6.5.
+**Control aplicado:** Grad-CAM sobre melanomas. **Resultado (v4, 2026-07-12):** el calor cae **SOBRE la
+lesión** (ISIC_0026531 p=0.50, ISIC_0032396 p=0.62), **no** en pelos ni reglas. En el caso de baja
+confianza (ISIC_0030443 p=0.37) el modelo duda, que es honesto. **Sin evidencia de shortcut learning**
+→ evidencia positiva de fiabilidad. Ver [07](07-fiabilidad-y-sesgo.md) y [11](11-resultados-finales.md) §6.5.
 
 ## 🟡 VIGILAR — Sesgo por fototipo (fairness)
 

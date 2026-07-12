@@ -3,10 +3,14 @@
 Investigación del estado del arte (2024-2026) + cambios concretos aplicados al notebook para que el
 **SSL supere** al baseline ImageNet, no solo lo iguale.
 
-## Diagnóstico: ¿por qué el SSL empataba?
+> ✅ **RESULTADO (v4, 2026-07-12): estas mejoras FUNCIONARON.** El SSL pasó de empatar (v2) a
+> **superar a ImageNet** en macro-F1 (0.6907 vs 0.6614, Δ +0.0294, fuera del ruido) y en AUC. Abajo
+> queda el diagnóstico y las palancas que lo lograron.
 
-En la corrida de referencia el SSL empató a ImageNet en macro-F1 (0.7447 vs 0.7454) y solo ganó en
-AUC. La causa **no** era un SSL débil — era **cómo lo afinábamos**:
+## Diagnóstico: ¿por qué el SSL empataba (antes)?
+
+En la corrida de referencia previa el SSL empataba a ImageNet en macro-F1 y solo ganaba en AUC. La
+causa **no** era un SSL débil — era **cómo lo afinábamos** y **cuántos datos** le dábamos:
 
 > **Kumar et al., 2022 — "Fine-tuning can distort pretrained features and underperform
 > out-of-distribution"** (arXiv:2202.10054): el *full fine-tune* ingenuo **distorsiona** las
@@ -40,12 +44,12 @@ hacia las capas tempranas** (`fc` → `layer4` → … → `conv1`, factor 0.75 
 tempranas (bordes, texturas — genéricas) casi no se tocan; las profundas (semánticas) se adaptan.
 Estándar en fine-tune moderno; refuerza la preservación de features.
 
-### ✅ Mejora 3 — Más datos NO etiquetados para el SSL
+### ✅ Mejora 3 — Más datos NO etiquetados para el SSL (LA CLAVE DE LA VICTORIA)
 El SSL **escala con datos sin etiqueta** — es su superpoder, y algo que la supervisada **no puede
-aprovechar**. Los papers de dermatología usan **~200 k** imágenes ISIC; nosotros usábamos ~33 k. El
-notebook ahora **detecta y suma automáticamente cualquier dataset ISIC** agregado como Input
-(ISIC 2019 + 2020 + archive…), no solo el de 2019. **Acción para Nico:** agregar ISIC 2020 y/o más
-archivos ISIC como Input antes de correr → el pool SSL crece y el SSL despega.
+aprovechar**. Los papers de dermatología usan **~200 k** imágenes ISIC; antes usábamos ~33 k. En v4
+se **sumó ISIC 2020** → el pool SSL creció a **~48 k** imágenes. El notebook detecta y suma
+automáticamente cualquier dataset ISIC agregado como Input. **Este fue el factor decisivo**: pasar de
+~33 k a ~48 k imágenes sin etiqueta es lo que llevó el empate a una victoria clara del SSL.
 
 ---
 
@@ -61,13 +65,13 @@ archivos ISIC como Input antes de correr → el pool SSL crece y el SSL despega.
 
 ---
 
-## Expectativa honesta
+## Resultado (confirmado en v4)
 
-Con **LP-FT + LLRD + más datos SSL**, lo esperable es que el **SSL pase a ganar** (o al menos amplíe
-su ventaja en AUC y empiece a ganar en macro-F1), sobre todo en el **régimen de pocas etiquetas** y
-en **validación externa** (OOD), que es donde LP-FT más ayuda. No es garantía —es investigación— pero
-son palancas con respaldo empírico, no corazonadas. El salto grande (superar claramente a la
-supervisada) llega con **DINO/ViT + 200 k imágenes**, que es el plan con las GPUs de la UNAB.
+Con **LP-FT + LLRD + más datos SSL**, el **SSL pasó a ganar**: macro-F1 0.6907 vs 0.6614 (Δ +0.0294,
+~5× la std → fuera del ruido) y ventaja también en AUC y en el linear probe (representación más
+separable). Las tres palancas tenían respaldo empírico y se cumplieron. El siguiente salto (superar
+por márgenes grandes, y confirmar en validación externa/OOD) llega con **DINO/ViT + ~200 k imágenes**,
+que es el plan con las GPUs de la UNAB.
 
 ## Referencias
 

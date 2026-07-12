@@ -22,15 +22,16 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 ## Estado actual (rápido)
 
 - **Objetivo 1 (EDA):** ✅ Completado (notebook + 13 figuras 300 DPI + Tabla I).
-- **Objetivo 2 (algoritmo SSL):** ✅ **Corrida de referencia ejecutada** (Kaggle T4 x2). Modelo
-  entrenado, **4/4 KPIs clínicos cumplidos**. Pipeline **corregido** para exportar y evaluar el
-  **modelo SSL** como entregable. Ver [**Informe**](INFORME.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
-- **Siguiente hito:** re-correr el pipeline SSL-céntrico (próxima semana, reset de cuota GPU) +
-  validación externa → envío al director → acceso a GPUs de la UNAB.
+- **Objetivo 2 (algoritmo SSL):** ✅ **Corrida definitiva v4 ejecutada** (Kaggle T4 x2). **El SSL
+  domain-adaptive SUPERA a ImageNet** en macro-F1 (0.6907 ± 0.006 vs 0.6614 ± 0.004, Δ +0.0294, fuera
+  del ruido) y en AUC → **valida la hipótesis del anteproyecto**. Modelo SSL entregable con **4/4 KPIs
+  clínicos cumplidos**. Ver [**Informe**](INFORME.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
+- **Siguiente hito:** validación externa (ISIC 2019 multiclase, sobre el modelo exportado) + 3.ª
+  semilla → envío al director → acceso a GPUs de la UNAB.
 
-> ⚠️ **Resultados preliminares.** Son pruebas y evidencia con los **recursos actuales** (GPU T4 de
-> estudiante, dataset pequeño) — el **techo alcanzable así**, no el modelo final. El entrenamiento
-> definitivo (más cómputo, más datos, validación externa) se hará con las GPUs de la UNAB.
+> ⚠️ **Resultados preliminares.** Obtenidos con los **recursos actuales** (GPU T4 de estudiante,
+> dataset acotado) — no el modelo final. El entrenamiento definitivo (más cómputo, DINOv2/ViT,
+> validación externa) se hará con las GPUs de la UNAB. Aun así, esta corrida **valida la hipótesis**.
 
 ## Índice de documentación
 
@@ -61,16 +62,17 @@ proyecto-grado-ssl-lesiones/
 ├── docs/                        # Documentación 01..13
 ├── data/
 │   └── RESULTS_SUMMARY.json     # Datos crudos de la corrida
-├── assets/figuras/              # 6 figuras explicativas (PNG)
+├── assets/figuras/              # 8 figuras explicativas (PNG): ablación, linear probe, KPIs,
+│                                #   abstención, recall, calibración, Grad-CAM, reliability diagram
 ├── results/
 │   └── generar_figuras.py       # Script reproducible de las figuras
 └── notebooks/
-    └── proyecto_ssl_lesiones_v2.ipynb   # Pipeline Objetivo 2 (Kaggle)
+    └── proyecto_ssl_lesiones_v4.ipynb   # Pipeline Objetivo 2 definitivo (Kaggle)
 ```
 
-> El modelo entrenado (`best_resnet50_ssl.pth`, ~90 MB) no va en el repo (límite de 100 MB de
-> GitHub): está publicado como asset en el
-> [**Release `modelo-v1-preliminar`**](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v1-preliminar).
+> El modelo entrenado (`best_resnet50_ssl.pth`, ~90 MB) no va en el repo (`.gitignore` no versiona
+> pesos): está publicado como asset en el
+> [**Release `modelo-v4-definitiva`**](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v4-definitiva).
 
 ## Regla de oro del proyecto
 

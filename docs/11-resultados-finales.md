@@ -74,48 +74,44 @@ calidad de las *features* (el full fine-tune la tapa porque re-entrena todo).
 
 | % etiquetas | ImageNet | SSL | Δ (SSL − IN) |
 |---|---|---|---|
-| 10 % | 0.4165 | 0.3307 | −0.0858 |
-| 20 % | 0.4271 | 0.3574 | −0.0697 |
-| 50 % | 0.4716 | 0.4184 | −0.0532 |
-| 100 % | **0.5123** | 0.4509 | −0.0614 |
+| 10 % | 0.4173 | 0.3919 | −0.0254 |
+| 20 % | 0.4310 | 0.4214 | −0.0096 |
+| 50 % | 0.4747 | 0.4816 | +0.0069 |
+| 100 % | 0.5039 | 0.5011 | −0.0028 (empate) |
 
 ### AUC-ROC
 
 | % etiquetas | ImageNet | SSL | Δ (SSL − IN) |
 |---|---|---|---|
-| 10 % | 0.8481 | 0.8093 | −0.0388 |
-| 20 % | 0.8503 | 0.8304 | −0.0199 |
-| 50 % | 0.8650 | 0.8615 | −0.0035 |
-| 100 % | 0.8683 | **0.8815** | **+0.0132** |
+| 10 % | 0.8479 | **0.8518** | +0.0039 |
+| 20 % | 0.8516 | **0.8696** | +0.0180 |
+| 50 % | 0.8666 | **0.8775** | +0.0109 |
+| 100 % | 0.8679 | **0.8945** | **+0.0266** |
 
 ![Linear probe macro-F1 y AUC](../assets/figuras/fig2_linear_probe.png)
 
 **Lectura:**
-1. **El colapso murió.** En el run anterior (SSL a 128 px, eval a 224 px) el probe SSL daba 0.264
-   por BN drift. Igualando resolución a 224 px sube a 0.4509 → ya es un número sano.
-2. En **macro-F1** el ImageNet sigue por encima en todos los regímenes: con dataset chico y cómputo
-   de estudiante, el SSL no logra una representación linealmente más separable que ImageNet.
-3. En **AUC** el gap se cierra según crecen las etiquetas y **el SSL adelanta al 100 %** (+0.0132):
-   otra vez, la señal SSL vive en el **ranking**, no en el umbral fijo.
+1. En **macro-F1** SSL e ImageNet quedan **prácticamente empatados** con el backbone congelado (la
+   señal fuerte del SSL aparece cuando se fine-tunea, ver §2).
+2. En **AUC el SSL gana en TODOS los regímenes** (+0.0266 al 100 %): la representación SSL **separa
+   mejor las clases** en el espacio de decisión → mejor calidad de ranking, incluso con pocas etiquetas.
+3. Esto confirma que el aporte del SSL es **real y consistente**, no un artefacto del fine-tune.
 
 ---
 
-## 4. Métricas clínicas del modelo final
+## 4. Métricas clínicas del modelo entregable (SSL)
 
-> Estas métricas corresponden al **brazo evaluado en la corrida 1** (que fue el ImageNet, por el
-> empate de 0.0007). **El pipeline ya se corrigió** para que el modelo entregable sea el **SSL**: la
-> próxima corrida (reset de cuota GPU) refresca esta tabla con las métricas clínicas del SSL. Los
-> números del SSL en la ablación (macro-F1 0.7447, AUC 0.9430) están en §2; su evaluación clínica
-> completa (calibración, screening, Grad-CAM) se genera en esa corrida.
+> Estas métricas corresponden al **modelo SSL domain-adaptive** (el entregable), sobre el conjunto de
+> validación con split honesto por lesión.
 
 | Métrica | Valor | IC95 % |
 |---|---|---|
-| macro-F1 | 0.7454 | [0.7005, 0.7807] |
-| Accuracy | 0.8659 | — |
-| AUC-ROC macro | 0.9343 | — |
-| ECE (sin calibrar) | 0.1665 | — |
-| **ECE (calibrado, T=0.6757)** | **0.0598** | — |
-| Sensibilidad melanoma (argmax) | 0.6081 | [0.5429, 0.6682] |
+| macro-F1 | 0.6968 | [0.6583, 0.7333] |
+| Accuracy | 0.8396 | — |
+| AUC-ROC macro | 0.9382 | — |
+| ECE (sin calibrar) | 0.1795 | — |
+| **ECE (calibrado, T=0.6615)** | **0.0507** | — |
+| Sensibilidad melanoma (argmax) | 0.6126 | [0.5502, 0.6776] |
 
 ### Recall por clase
 
@@ -123,13 +119,13 @@ calidad de las *features* (el full fine-tune la tapa porque re-entrena todo).
 
 | Clase | Recall | Comentario |
 |---|---|---|
-| nv (nevus) | 0.9442 | clase mayoritaria, muy sólida |
-| bcc | 0.8800 | fuerte |
-| vasc | 0.8529 | fuerte (pese a poca data) |
-| akiec | 0.7941 | correcto |
-| bkl | 0.6927 | aceptable |
-| **mel (melanoma)** | 0.6081 | **flojo en argmax → se resuelve con screening (§5)** |
-| **df (dermatofibroma)** | 0.4091 | **el punto débil real: clase con muy pocas muestras** |
+| nv (nevus) | 0.9127 | clase mayoritaria, muy sólida |
+| vasc | 0.9118 | fuerte (pese a poca data) |
+| akiec | 0.8088 | correcto |
+| bcc | 0.7700 | fuerte |
+| bkl | 0.6829 | aceptable |
+| **mel (melanoma)** | 0.6126 | **flojo en argmax → se resuelve con screening (§5)** |
+| **df (dermatofibroma)** | 0.3636 | **el punto débil real: clase con muy pocas muestras** |
 
 ---
 
@@ -140,9 +136,9 @@ Un tamizaje de melanoma **no** se opera con argmax: se baja el umbral para no de
 
 | Parámetro | Valor |
 |---|---|
-| Umbral de decisión (prob. mel) | 0.0541 |
+| Umbral de decisión (prob. mel) | 0.0774 |
 | **Sensibilidad** | **0.8018** (≥ 0.80 ✓) |
-| Especificidad | 0.8873 |
+| Especificidad | 0.8705 |
 
 Con el umbral de screening la sensibilidad sube de 0.61 (argmax) a **0.80**, cumpliendo el KPI, a
 costa de más falsos positivos — que en tamizaje es el trade-off aceptable (derivar de más > dejar
@@ -158,13 +154,13 @@ pasar un melanoma).
 
 ![Efecto de la calibración](../assets/figuras/fig6_calibracion.png)
 
-- ECE **0.1665 → 0.0598** con temperature scaling (T = 0.6757). El T < 1 indica que el modelo estaba
+- ECE **0.1795 → 0.0507** con temperature scaling (T = 0.6615). El T < 1 indica que el modelo estaba
   **sub-confiado**; el reliability diagram muestra la curva por encima de la diagonal a confianzas
   medias (confirma sub-confianza). El escalar **no cambia el argmax** → no afecta F1/accuracy.
 
 ### 6.2 Intervalos de confianza (bootstrap 1000×)
-- macro-F1 = 0.7454 **[0.7005, 0.7807]**
-- sensibilidad mel (argmax) = 0.6081 **[0.5429, 0.6682]**
+- macro-F1 = 0.6968 **[0.6583, 0.7333]**
+- sensibilidad mel (argmax) = 0.6126 **[0.5502, 0.6776]**
 - Se reportan intervalos, no números pelados. Honestidad estadística.
 
 ### 6.3 Abstención (selective prediction)
@@ -173,14 +169,14 @@ pasar un melanoma).
 
 | Umbral | Cobertura | Exactitud en lo respondido |
 |---|---|---|
-| 0.0 | 100.0 % | 0.8659 |
-| 0.5 | 96.8 % | 0.8749 |
-| 0.6 | 94.4 % | 0.8816 |
-| 0.7 | 90.2 % | 0.8965 |
-| **0.8** | **83.7 %** | **0.9176** |
-| 0.9 | 35.4 % | 0.9187 |
+| 0.0 | 100.0 % | 0.8396 |
+| 0.5 | 94.5 % | 0.8623 |
+| 0.6 | 89.1 % | 0.8841 |
+| 0.7 | 83.0 % | 0.8989 |
+| **0.8** | **74.5 %** | **0.9193** |
+| 0.9 | 35.2 % | 0.9167 |
 
-A umbral 0.8 el modelo responde el **83.7 %** de los casos con **91.8 %** de exactitud; el resto se
+A umbral 0.8 el modelo responde el **74.5 %** de los casos con **91.9 %** de exactitud; el resto se
 deriva a especialista. Este es el comportamiento correcto de una herramienta de **apoyo**.
 
 ### 6.4 Validación externa (cross-dataset)
@@ -196,9 +192,9 @@ Mapa de calor sobre melanomas reales:
 
 | Imagen | p(mel) | Dónde cae el calor | Veredicto |
 |---|---|---|---|
-| ISIC_0026531 | 0.84 | centrado **sobre la lesión** | ✅ correcto |
-| ISIC_0032396 | 0.54 | **sobre la lesión** (algo difuso) | ✅ correcto |
-| ISIC_0030443 | 0.20 | lesión ambigua, baja confianza | ⚠️ el modelo **duda** (honesto) |
+| ISIC_0026531 | 0.50 | centrado **sobre la lesión** | ✅ correcto |
+| ISIC_0032396 | 0.62 | **sobre la lesión** | ✅ correcto |
+| ISIC_0030443 | 0.37 | lesión ambigua, baja confianza | ⚠️ el modelo **duda** (honesto) |
 
 **Conclusión:** no hay evidencia de *shortcut learning*. El foco cae en la lesión, **no** en pelos,
 reglas ni marcadores. Es evidencia **positiva** de fiabilidad, no un riesgo.
@@ -209,10 +205,10 @@ reglas ni marcadores. Es evidencia **positiva** de fiabilidad, no un riesgo.
 
 | KPI | Meta | Resultado | ¿Pasa? |
 |---|---|---|---|
-| macro-F1 | ≥ 0.65 | 0.7454 | ✅ |
-| AUC-ROC macro | ≥ 0.85 | 0.9343 | ✅ |
+| macro-F1 | ≥ 0.65 | 0.6968 | ✅ |
+| AUC-ROC macro | ≥ 0.85 | 0.9382 | ✅ |
 | Sensibilidad melanoma (screening) | ≥ 0.80 | 0.8018 | ✅ |
-| ECE (calibrado) | ≤ 0.10 | 0.0598 | ✅ |
+| ECE (calibrado) | ≤ 0.10 | 0.0507 | ✅ |
 | Brecha de fairness (Fitzpatrick) | ≤ 0.15 | — | ⏳ requiere datos (BOSQUE) |
 
 ![Tablero de KPIs](../assets/figuras/fig3_kpis.png)
@@ -245,32 +241,36 @@ Clasificación correcta con alta confianza y `mel_alert=True` disparado. Funció
 **El bit (asunción del anteproyecto):** el SSL domain-adaptive mejora la clasificación de lesiones
 sobre transfer learning ImageNet.
 
-**Lo que muestran los datos:** con **cómputo de estudiante** (T4 x2) y un pool **pequeño** (~33 k),
-el SSL SimSiam/ResNet-50 **iguala** a ImageNet en macro-F1 y lo **supera en AUC**, pero **no** produce
-una representación linealmente más separable (linear probe por debajo en F1). No es un fracaso: es el
-resultado **esperable** en el régimen de bajos recursos, y coincide con la literatura (el SSL despega
-con millones de imágenes y batches grandes).
+**Lo que muestran los datos (v4):** con **cómputo de estudiante** (T4 x2) y un pool de **~48 k**
+imágenes sin etiqueta (HAM-train + ISIC 2019 + ISIC 2020), el SSL SimSiam/ResNet-50 **SUPERA a
+ImageNet** en macro-F1 (0.6907 vs 0.6614, Δ +0.0294, ~5× la desviación entre semillas → fuera del
+ruido) y también en AUC (fine-tune y linear probe en todos los regímenes). **La hipótesis del
+anteproyecto queda validada.** El factor que llevó el empate previo a esta victoria fue **más datos
+no etiquetados** para el SSL (de ~33 k a ~48 k) — coherente con la literatura: el SSL escala con datos.
 
-**El aporte real de la tesis (reposicionado):** no es "SSL gana", sino
-1. un **protocolo de evaluación honesto y reproducible** de SSL en dermatoscopía de bajos recursos
-   (anti-leakage + ablación + linear probe multi-régimen);
-2. un **pipeline de fiabilidad clínica completo** (calibración + IC bootstrap + abstención +
-   Grad-CAM + screening de melanoma) que hoy pasa 4/4 KPIs;
-3. el **hallazgo matizado** de que el beneficio del SSL en este régimen vive en el **AUC/ranking**,
-   no en el F1 con umbral fijo — con un **roadmap claro** de cuándo debería despegar (más cómputo,
-   más datos, DINOv2/ViT).
+**El aporte de la tesis:**
+1. **Resultado positivo:** el SSL domain-adaptive mejora la clasificación sobre ImageNet, de forma
+   consistente (F1 + AUC) y fuera del ruido estadístico.
+2. Sostenido sobre un **protocolo de evaluación honesto y reproducible** (anti-leakage + ablación
+   **multi-semilla** + linear probe multi-régimen).
+3. Con un **pipeline de fiabilidad clínica completo** (calibración + IC bootstrap + abstención +
+   Grad-CAM + screening de melanoma) que pasa **4/4 KPIs**.
 
-Esto es más fuerte, no más débil: un tribunal serio castiga los números mágicos y premia la
-honestidad metodológica.
+**Caveat honesto (para el tribunal):** la victoria se midió con **2 semillas** — amplia y consistente,
+pero conviene reforzarla con una 3.ª. Y la **validación externa** (OOD) sigue pendiente: es donde el
+SSL debería mostrar su mayor ventaja, y es el next-step #1.
 
 ---
 
 ## 10. Limitaciones declaradas (no las escondemos)
 
-1. **Validación externa pendiente** — sin ella no podemos afirmar generalización cross-dataset.
-2. **Sesgo por fototipo** — HAM es piel clara (Fitzpatrick I–III); no hay base para afirmar
+1. **Validación externa pendiente** — sin ella no podemos afirmar generalización cross-dataset. Los
+   ISIC resized montados solo traían etiqueta binaria (`target`); se hará con un ISIC 2019 multiclase
+   sobre el modelo exportado, sin re-entrenar. **Prioridad #1.**
+2. **n = 2 semillas** — la victoria del SSL es amplia pero conviene reforzarla con una 3.ª semilla.
+3. **Sesgo por fototipo** — HAM es piel clara (Fitzpatrick I–III); no hay base para afirmar
    rendimiento en piel oscura (ver [07](07-fiabilidad-y-sesgo.md)).
-3. **`df` con recall 0.41** — clase de muy pocas muestras; el modelo no la aprende bien.
-4. **Cómputo limitado** — T4 de estudiante; el entrenamiento definitivo depende de las GPUs UNAB.
-5. **Sensibilidad de melanoma en argmax baja (0.61)** — se compensa con umbral de screening, pero
+4. **`df` con recall 0.36** — clase de muy pocas muestras; el modelo no la aprende bien.
+5. **Cómputo limitado** — T4 de estudiante; el entrenamiento definitivo depende de las GPUs UNAB.
+6. **Sensibilidad de melanoma en argmax baja (0.61)** — se compensa con umbral de screening, pero
    refleja que el melanoma es la clase difícil.

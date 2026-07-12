@@ -76,27 +76,21 @@ Explicación completa y alternativas descartadas (ViT, EfficientNet, ResNet-18/1
 
 ---
 
-## D-09 — Modelo desplegado (aclaración verificada)
+## D-09 — Modelo desplegado (corrida v4, verificado)
 
-**Hecho (leído del checkpoint):** el archivo `best_resnet50_ssl.pth` tiene metadato `init = imagenet`
-y `macro_f1 = 0.7454` → el peso servido es el **ganador de la ablación = inicialización ImageNet**
-(ganó por 0.0007). El nombre "ssl" es solo convención del notebook.
+**Hecho (corrida v4, 2026-07-12):** el archivo `best_resnet50_ssl.pth` es ahora el **modelo SSL
+domain-adaptive** (metadato `init = ssl`), que además es el **ganador de la ablación**: SSL macro-F1
+0.6907 ± 0.006 vs ImageNet 0.6614 ± 0.004 (Δ +0.0294, fuera del ruido). El notebook fija
+`DEPLOY = "ssl"` y entrena el brazo SSL **primero**, de modo que el entregable se exporta temprano.
 
-**Dónde vive el aporte del SSL:** en la **ablación** (empate en macro-F1, ventaja en AUC +0.0087) y
-en el **backbone** `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive), que se conserva como
-artefacto. No en el archivo servido.
+**Todo el pipeline posterior** —reporte clínico, calibración, screening, fiabilidad, Grad-CAM,
+export y `RESULTS_SUMMARY.json`— se ejecuta **sobre el modelo SSL**. La ablación se reporta completa
+(ambos brazos, media ± std sobre 2 semillas) por honestidad científica.
 
-**Decisión (Nico):** el modelo entregable del proyecto **es el SSL**, no el ganador numérico de la
-ablación. Se **corrigió el pipeline** (notebook `proyecto_ssl_lesiones_v2.ipynb`, celda de ablación):
-ahora `best_name = "ssl"`, de modo que **todo el pipeline posterior** —reporte clínico, calibración,
-screening, fiabilidad, Grad-CAM, export (`best_resnet50_ssl.pth`) y `RESULTS_SUMMARY.json`— se ejecuta
-**sobre el modelo SSL**. La ablación se sigue reportando completa (ambos brazos) por honestidad, y el
-resumen guarda `modelo_entregable` (=ssl) y `ablacion_ganador_por_f1` por separado.
-
-**Consecuencia:** en la corrida anterior el archivo servido había quedado como el brazo ImageNet
-(ganó por 0.0007). Con el pipeline corregido, **la próxima corrida exporta el SSL** como entregable,
-con sus propias métricas clínicas. Esa corrida se hará **la próxima semana** (reset de cuota GPU de
-Kaggle). No hace falta repetir el pretrain SSL si se reusa `backbone_domain_adaptive_r50.pth`.
+**Nota histórica:** en la corrida previa (v3) el pipeline exportaba por error el brazo ImageNet
+porque entrenaba ImageNet primero y moría por OOM antes del SSL. En v4 se corrigió el **orden**
+(SSL primero) y la **memoria** (persistent_workers off + gc entre brazos), y se **reusó el backbone
+SSL** ya entrenado (skip del pretrain de ~6h).
 
 **Naturaleza:** ⚠️ modelo **preliminar** — el techo con recursos de estudiante (T4). El definitivo se
 entrenará con GPUs de la UNAB.

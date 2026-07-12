@@ -15,9 +15,29 @@ Conceptos del proyecto explicados como si fueran para alguien sin fondo técnico
 - **Fine-tune (afinado):** después del SSL, entrenar el modelo con las etiquetas reales (7 clases)
   para que dé el diagnóstico de apoyo.
 
+- **LP-FT (Linear Probe → Fine-Tune):** una forma **cuidadosa** de afinar. Primero se entrena solo el
+  clasificador de arriba con el resto del modelo **congelado** (LP), y recién después se descongela
+  todo con pasos chiquitos (FT). ¿Por qué? Porque afinar de golpe **borra** lo bueno que aprendió el
+  SSL (Kumar 2022). LP-FT lo preserva → es una de las razones por las que el SSL termina ganando.
+
+- **LLRD (decaimiento de learning rate por capa):** darle **pasos más grandes a las capas de arriba**
+  (las que deciden la clase) y más chiquitos a las de abajo (bordes, texturas, que ya son buenas). Así
+  el afinado no destruye lo que ya estaba bien.
+
 - **Ablación:** experimento para **aislar el efecto** de una sola cosa. Aquí: entrenar dos modelos
   idénticos que solo se diferencian en el punto de partida (ImageNet vs SSL) para ver si el SSL
   realmente aporta.
+
+- **Multi-semilla (seeds) y "fuera del ruido":** entrenar varias veces cambiando la **semilla
+  aleatoria** y reportar el promedio ± la variación. Si la diferencia entre SSL e ImageNet es **mucho
+  más grande que esa variación** (aquí ~5×), no es suerte: es un resultado real. Un tribunal lo exige.
+
+- **AUC-ROC:** mide qué tan bien el modelo **ordena** los casos (pone lo sospechoso arriba), sin
+  depender de un umbral fijo. 0.5 = azar, 1.0 = perfecto. El nuestro ~0.94 = muy bueno.
+
+- **Umbral de screening:** en tamizaje de melanoma no se usa la decisión normal (argmax); se **baja el
+  umbral** para no dejar pasar cánceres, aceptando más falsas alarmas. Es el trade-off correcto en
+  medicina de tamizaje.
 
 - **Linear probe:** congelar el modelo y ponerle encima un clasificador chiquito. Mide **qué tan
   buenas son las características** que aprendió, sin dejar que el afinado las tape.

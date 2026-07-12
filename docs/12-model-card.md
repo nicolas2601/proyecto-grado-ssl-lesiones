@@ -8,29 +8,23 @@ Ficha técnica del modelo entrenado, siguiendo el formato *Model Cards* (Mitchel
 |---|---|
 | Nombre | `best_resnet50_ssl.pth` |
 | Arquitectura | ResNet-50 (torchvision) + cabeza lineal de 7 clases |
-| Inicialización (modelo entregable) | **SSL domain-adaptive** — pipeline corregido para exportar el SSL. ⚠️ El artefacto del Release actual es aún el brazo ImageNet de la corrida 1; se reemplaza por el SSL en la próxima corrida |
-| Backbone SSL base | `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive, HAM+ISIC) |
-| Ablación (referencia) | empate técnico con ImageNet en macro-F1 (Δ 0.0007, ruido); SSL gana en AUC |
+| Inicialización (modelo entregable) | **SSL domain-adaptive** (verificado: metadato `init = ssl`). Es el brazo ganador de la ablación. |
+| Backbone SSL base | `backbone_domain_adaptive_r50.pth` (SimSiam domain-adaptive, HAM-train + ISIC 2019 + ISIC 2020) |
+| Ablación (v4) | **el SSL SUPERA a ImageNet** en macro-F1 (0.6907 ± 0.006 vs 0.6614 ± 0.004, Δ +0.0294, fuera del ruido) y en AUC |
 | Metadatos embebidos | `classes`, `temperature`, `mel_screening_threshold`, `norm_mean/std`, `img_size`, `init`, `arch`, `macro_f1` |
 | Tamaño aprox. | ~90–100 MB (`state_dict` de ResNet-50) |
 | Framework | PyTorch |
 | Resolución de entrada | 224 × 224 RGB |
-| Calibración incluida | Temperature scaling, T = 0.6757 (guardada en el checkpoint) |
-| Umbral screening melanoma | 0.0541 (guardado en el checkpoint) |
+| Calibración incluida | Temperature scaling, T = 0.6615 (guardada en el checkpoint) |
+| Umbral screening melanoma | 0.0774 (guardado en el checkpoint) |
 | Autores | Nicolás Santiago Moreno Monroy · María Paula Saavedra |
-| Fecha | 2026-07-07 |
-| **Descarga** | [Release `modelo-v1-preliminar`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v1-preliminar) |
+| Fecha | 2026-07-12 |
+| **Descarga** | [Release `modelo-v4-definitiva`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v4-definitiva) |
 
-> Nota (verificada leyendo el checkpoint): el `.pth` del **Release actual** (corrida 1) tiene
-> metadato `init = imagenet` — el notebook había exportado el ganador de la ablación (ImageNet, por
-> 0.0007), no el SSL. **Esto ya se corrigió en el pipeline:** el notebook ahora fija `best_name="ssl"`
-> y evalúa + exporta el **modelo SSL** como entregable (ver [D-09](04-decisiones-tecnicas.md)). La
-> próxima corrida (reset de cuota GPU de Kaggle) reemplaza el artefacto por el SSL con sus propias
-> métricas clínicas.
->
-> ⚠️ **Naturaleza preliminar:** estos pesos son un **resultado de prueba con recursos limitados**
-> (GPU T4 de estudiante, dataset pequeño), no el modelo definitivo. Representan el techo alcanzable
-> con el cómputo actual; el entrenamiento definitivo se hará con las GPUs de la UNAB.
+> ⚠️ **Naturaleza preliminar:** estos pesos se obtuvieron con **recursos limitados** (GPU T4 de
+> estudiante, dataset acotado). No son el modelo definitivo; el entrenamiento final (más épocas,
+> DINOv2/ViT, validación externa) se hará con las GPUs de la UNAB. Aun así, esta corrida **valida la
+> hipótesis del anteproyecto** (el SSL mejora sobre ImageNet).
 
 ## Uso previsto
 
@@ -43,18 +37,18 @@ Ficha técnica del modelo entrenado, siguiendo el formato *Model Cards* (Mitchel
 ## Datos de entrenamiento
 
 - HAM10000 (Tschandl et al., 2018), 7 clases. Split por `lesion_id` (anti-leakage).
-- Pretrain SSL (domain-adaptive) sobre pool HAM-train + ISIC 2019 (~33 k imágenes, sin etiquetas).
+- Pretrain SSL (domain-adaptive) sobre pool HAM-train + ISIC 2019 + ISIC 2020 (~48 k imágenes, sin etiquetas).
 
-## Métricas de evaluación (val, split honesto)
+## Métricas de evaluación (val, split honesto por lesión) — modelo SSL
 
 | Métrica | Valor |
 |---|---|
-| macro-F1 | 0.7454 [0.7005, 0.7807] |
-| Accuracy | 0.8659 |
-| AUC-ROC macro | 0.9343 |
-| ECE calibrado | 0.0598 |
+| macro-F1 | 0.6968 [0.6583, 0.7333] |
+| Accuracy | 0.8396 |
+| AUC-ROC macro | 0.9382 |
+| ECE calibrado (T=0.66) | 0.0507 |
 | Sensibilidad melanoma (screening) | 0.8018 |
-| Especificidad melanoma (screening) | 0.8873 |
+| Especificidad melanoma (screening) | 0.8705 |
 
 Detalle completo en [11 — Resultados finales](11-resultados-finales.md).
 
@@ -63,7 +57,7 @@ Detalle completo en [11 — Resultados finales](11-resultados-finales.md).
 - **Sesgo por fototipo:** entrenado en piel clara (Fitzpatrick I–III). Rendimiento en piel oscura
   **no garantizado** (la literatura reporta caídas de sensibilidad de 0.69 → 0.23).
 - **Sin validación externa** aún → generalización cross-dataset no confirmada.
-- **`df` (dermatofibroma)** con recall 0.41: clase poco fiable.
+- **`df` (dermatofibroma)** con recall 0.36: clase poco fiable (muy pocas muestras).
 - Debe usarse **siempre** con el mecanismo de abstención activo (derivar casos dudosos).
 
 ## Cómo servir el modelo (inferencia)
@@ -82,8 +76,8 @@ MEL_IDX = CLASSES.index("mel")
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # --- Parametros guardados junto al checkpoint (ver RESULTS_SUMMARY.json) ---
-TEMPERATURE = 0.6757        # temperature scaling (calibracion)
-MEL_THRESHOLD = 0.0541      # umbral de screening de melanoma
+TEMPERATURE = 0.6615        # temperature scaling (calibracion). Ver RESULTS_SUMMARY.json
+MEL_THRESHOLD = 0.0774      # umbral de screening de melanoma. Ver RESULTS_SUMMARY.json
 
 _tf = transforms.Compose([
     transforms.Resize((224, 224)),
