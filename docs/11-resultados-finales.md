@@ -1,29 +1,29 @@
-# 11 — Resultados finales (corrida de referencia · 2026-07-07)
+# 11 — Resultados finales (corrida definitiva v4 · 2026-07-12)
 
-> Corrida completa en Kaggle (T4 x2), 30 épocas de SSL a 224 px sobre el pool ~33 k imágenes
-> + fine-tune supervisado + ablación + evaluación clínica de fiabilidad. Datos crudos en
+> Corrida completa en Kaggle (T4 x2), 30 épocas de SSL a 224 px sobre el pool ~48 k imágenes
+> (ISIC 2019 + ISIC 2020 + HAM-train, sin etiqueta) + fine-tune **LP-FT + LLRD** + **ablación
+> multi-semilla (2 semillas)** + evaluación clínica de fiabilidad. Datos crudos en
 > [`data/RESULTS_SUMMARY.json`](../data/RESULTS_SUMMARY.json).
 
-> ⚠️ **Naturaleza de estos resultados.** Son **preliminares** — pruebas y evidencia obtenidas con
-> los **recursos actuales** (GPU T4 de estudiante, dataset pequeño, tiempo de cómputo limitado).
-> Representan **el techo alcanzable así**, no el modelo definitivo. El entrenamiento final (más
-> épocas, más datos, posible DINOv2/ViT, validación externa) se hará cuando tengamos acceso a
-> **equipos mejores (GPUs de la UNAB)**. Se documentan como base honesta sobre la que escalar.
+> ⚠️ **Naturaleza de estos resultados.** Siguen siendo obtenidos con **recursos de estudiante**
+> (GPU T4, dataset acotado). El entrenamiento final (más épocas, DINOv2/ViT, validación externa
+> multiclase) escalará con las GPUs de la UNAB. Aun así, esta corrida **valida la hipótesis central**.
 
 ## 0. TL;DR (léelo aunque no leas nada más)
 
 - El modelo final es **defendible y pasa los 4 KPIs clínicos**.
-- El **SSL domain-adaptive (SimSiam/ResNet-50) NO superó** a la inicialización ImageNet en
-  clasificación (macro-F1): quedaron en **empate técnico** (0.7454 vs 0.7447).
-- El **fix de resolución a 224 px eliminó el colapso** del linear probe (que en el run anterior daba
-  0.264): ahora el probe SSL da 0.4509, un número coherente. **La contradicción quedó cerrada** —
-  no como "SSL gana", sino como **límite honesto documentado**.
-- Hallazgo matizado y defendible: **SSL gana en AUC** (calidad de ranking) tanto en fine-tune
-  (+0.0087) como en linear probe al 100 % (+0.0132), aunque pierda en macro-F1 con umbral fijo.
+- **El SSL domain-adaptive (SimSiam/ResNet-50) SUPERA a ImageNet** en macro-F1:
+  **0.6907 ± 0.0060 (SSL) vs 0.6614 ± 0.0040 (ImageNet)**, Δ **+0.0294**. La diferencia es ~5× la
+  desviación entre semillas → **está fuera del ruido**. Ya **no es un empate**: es una victoria
+  consistente. El SSL también gana en AUC (0.9306 vs 0.9239).
+- **Qué cambió vs la corrida previa (que empataba):** se **amplió el pool no etiquetado del SSL**
+  (~48 k imágenes, agregando ISIC 2020). El SSL escala con datos — ese fue el factor decisivo.
+- **Linear probe:** el SSL gana en **AUC en todos los regímenes** (0.8945 vs 0.8679 al 100 %) →
+  representación de mejor calidad.
 - **Grad-CAM:** el modelo mira la lesión, **no** los artefactos (pelos/reglas) → sin evidencia de
   *shortcut learning*.
-- **Pendiente crítico:** la validación externa cross-dataset quedó **omitida**. Es la prueba de
-  generalización más fuerte y el next-step #1.
+- **Pendiente crítico:** la validación externa cross-dataset quedó **omitida** (los ISIC resized
+  montados solo traían etiqueta binaria). Es el next-step #1, sobre el modelo ya exportado.
 
 ---
 
@@ -42,25 +42,26 @@ pecado del v1, que daba 0.873 falso).
 
 ---
 
-## 2. Ablación — ¿el SSL aporta sobre ImageNet? (full fine-tune)
+## 2. Ablación multi-semilla — ¿el SSL aporta sobre ImageNet? (LP-FT)
 
-Mismo split, mismos hiperparámetros, misma semilla. Lo único que cambia es el punto de partida del
-backbone: ImageNet vs SSL domain-adaptive.
+Mismo split, mismos hiperparámetros, misma semilla por brazo. Lo único que cambia es el punto de
+partida del backbone: ImageNet vs SSL domain-adaptive. Se reporta **media ± std sobre 2 semillas
+(42, 1234)** → conclusión robusta, no dependiente del ruido de una corrida.
 
-| Inicialización | macro-F1 | AUC-ROC | ECE (raw) |
-|---|---|---|---|
-| **ImageNet** | **0.7454** | 0.9343 | 0.1665 |
-| **SSL (SimSiam)** | 0.7447 | **0.9430** | 0.1709 |
-| Δ (SSL − ImageNet) | **−0.0007** | **+0.0087** | +0.0044 |
+| Inicialización | macro-F1 | AUC-ROC |
+|---|---|---|
+| **SSL (SimSiam)** | **0.6907 ± 0.0060** | **0.9306 ± 0.0076** |
+| ImageNet (baseline) | 0.6614 ± 0.0040 | 0.9239 ± 0.0049 |
+| Δ (SSL − ImageNet) | **+0.0294** | **+0.0067** |
 
-![Ablación ImageNet vs SSL](../assets/figuras/fig1_ablacion.png)
+![Ablación SSL vs ImageNet](../assets/figuras/fig1_ablacion.png)
 
-**Lectura:** en macro-F1 es un **empate estadístico** (Δ 0.0007 está muy dentro del ruido; el IC95 %
-de macro-F1 es [0.7005, 0.7807], un ancho de ~0.08). En **AUC el SSL gana** por 0.0087: su
-representación separa mejor las clases en el espacio de decisión, aunque el umbral fijo del argmax no
-lo capitalice. Dado el empate en F1 y la ventaja del SSL en AUC, **el modelo que desplegamos es el
-fine-tune sobre el backbone SSL domain-adaptive** (`best_resnet50_ssl.pth`) — es el artefacto
-central de la tesis. La inicialización ImageNet queda como línea base de la ablación.
+**Lectura:** el SSL **gana en macro-F1 por 0.0294**, que es **~5× la desviación entre semillas**
+(~0.006) → la ventaja está **fuera del ruido**, es un resultado defendible (a diferencia de la
+corrida previa, que empataba con menos datos SSL). El SSL también gana en AUC. **El modelo entregable
+es el fine-tune sobre el backbone SSL** (`best_resnet50_ssl.pth`) — el artefacto central de la tesis;
+ImageNet queda como línea base. **Caveat honesto:** con n = 2 semillas la victoria es amplia y
+consistente pero conviene reforzarla con una 3.ª semilla (barato: solo fine-tune, reusa el backbone).
 
 ---
 

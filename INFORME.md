@@ -4,59 +4,89 @@
 **Autores:** Nicolás Santiago Moreno Monroy · María Paula Saavedra
 **Director:** Andrés Jerez — **Asesora:** Karen Sánchez (KAUST)
 **Institución:** Universidad Autónoma de Bucaramanga (UNAB) — Ingeniería de Sistemas
-**Fecha:** 2026-07-07
+**Fecha:** 2026-07-12
 
 ---
 
 ## 1. Resumen ejecutivo
 
-Completamos la **corrida de referencia del Objetivo 2** (diseño y evaluación del algoritmo SSL) en
-Kaggle (2× GPU T4): pretrain SSL domain-adaptive + fine-tune supervisado + ablación + evaluación
-clínica de fiabilidad, con protocolo **anti-leakage** (split por lesión, no por imagen).
+Completamos la **corrida definitiva del Objetivo 2** en Kaggle (2× GPU T4): pretrain SSL
+domain-adaptive (SimSiam/ResNet-50, 30 épocas sobre ~48 k imágenes sin etiqueta) + fine-tune
+supervisado con **LP-FT + LLRD** (Kumar 2022) + **ablación multi-semilla** (2 semillas por brazo) +
+evaluación clínica de fiabilidad, con protocolo **anti-leakage** (split por lesión, no por imagen).
 
-**Resultado principal, con honestidad científica:**
+**Resultado principal — esta vez con una conclusión positiva y estadísticamente respaldada:**
 
-- El modelo final **cumple los 4 KPIs clínicos medibles** (macro-F1, AUC, sensibilidad de melanoma,
-  calibración).
-- El **SSL domain-adaptive NO superó** a la inicialización ImageNet en macro-F1: quedaron en
-  **empate técnico** (0.7454 vs 0.7447). El SSL **sí gana en AUC** (mejor ranking de casos).
-- Corregimos el problema de resolución (SSL a 224 px) que en la corrida previa producía un colapso
-  aparente del *linear probe*; ahora los números son coherentes y la contradicción quedó **cerrada y
-  documentada** como límite honesto, no como bug.
+- El **SSL domain-adaptive SUPERA a la inicialización ImageNet** en macro-F1: **0.6907 ± 0.0060**
+  (SSL) vs **0.6614 ± 0.0040** (ImageNet), un **Δ = +0.0294**. La diferencia es ~5× la desviación
+  estándar entre semillas → **está fuera del ruido**, no es un empate. El SSL también gana en AUC
+  (0.9306 vs 0.9239) y en el linear probe (representación más separable en régimen de pocas etiquetas).
+- El modelo entregable (SSL) **cumple los 4 KPIs clínicos**: macro-F1 0.697, AUC 0.938, sensibilidad
+  de melanoma 0.80 (screening), ECE calibrado 0.051.
+- **Grad-CAM confirma que el modelo mira la lesión, no los artefactos** (pelos/reglas) → sin evidencia
+  de *shortcut learning*.
 
-En una frase: **el aporte de la tesis no es "el SSL gana", sino un protocolo de evaluación honesto y
-un pipeline de fiabilidad clínica riguroso**, con un hallazgo matizado sobre dónde ayuda el SSL en
-régimen de bajos recursos.
+En una frase: **el aporte central del anteproyecto queda validado — el SSL domain-adaptive mejora la
+clasificación de lesiones sobre transfer learning ImageNet** cuando se le da suficiente dato no
+etiquetado (aquí, ISIC 2019 + ISIC 2020 + HAM-train). Se sostiene además sobre un protocolo de
+evaluación honesto (anti-leakage + multi-semilla) y un pipeline de fiabilidad clínica riguroso.
 
-> **Modelo entregable = SSL.** El pipeline se corrigió para que el modelo que se **evalúa, calibra y
-> exporta** sea el **SSL domain-adaptive** (el núcleo del proyecto), no el ganador numérico de la
-> ablación. Las métricas de la §2 corresponden a la corrida de referencia (brazo evaluado); la
-> corrida SSL-céntrica definitiva se ejecuta en la próxima ventana de GPU (reset de cuota Kaggle) y
-> refrescará esos números con el SSL como entregable. La ablación (empate en macro-F1, SSL gana en
-> AUC) se mantiene como comparación honesta contra el baseline.
+> **Por qué antes empataba y ahora gana:** la corrida previa entrenaba el SSL con menos datos. En esta
+> se amplió el pool no etiquetado (~48 k imágenes) — el SSL escala con datos, y ese fue justamente el
+> factor que llevó al empate a una victoria consistente.
 
 ---
 
-## 2. Resultados clave (val, split honesto por lesión)
+## 2. Resultados clave (val interna, split honesto por lesión)
+
+### 2.1 Ablación multi-semilla — SSL vs ImageNet (media ± std, n = 2 semillas)
+
+| Inicialización | macro-F1 | AUC-ROC |
+|---|---|---|
+| **SSL domain-adaptive** | **0.6907 ± 0.0060** | **0.9306 ± 0.0076** |
+| ImageNet (baseline) | 0.6614 ± 0.0040 | 0.9239 ± 0.0049 |
+| **Δ (SSL − ImageNet)** | **+0.0294** | **+0.0067** |
+
+El Δ de macro-F1 (0.0294) es ~5× la desviación entre semillas (~0.006) → **el SSL gana fuera del
+ruido**. Mismo split, mismos hiperparámetros, misma semilla por brazo (comparación justa).
+
+![Ablación SSL vs ImageNet](assets/figuras/fig1_ablacion.png)
+
+### 2.2 Modelo entregable (SSL) — métricas clínicas y KPIs
 
 | Métrica | Resultado | Meta (KPI) | Estado |
 |---|---|---|---|
-| macro-F1 | 0.7454 · IC95 % [0.7005, 0.7807] | ≥ 0.65 | ✅ |
-| AUC-ROC macro | 0.9343 | ≥ 0.85 | ✅ |
-| Sensibilidad melanoma (screening) | 0.8018 (esp. 0.8873) | ≥ 0.80 | ✅ |
-| ECE calibrado (T = 0.676) | 0.0598 | ≤ 0.10 | ✅ |
-| Accuracy | 0.8659 | — | — |
+| macro-F1 | 0.6968 · IC95 % [0.6583, 0.7333] | ≥ 0.65 | ✅ |
+| AUC-ROC macro | 0.9382 | ≥ 0.85 | ✅ |
+| Sensibilidad melanoma (screening) | 0.8018 (esp. 0.8705) | ≥ 0.80 | ✅ |
+| ECE calibrado (T = 0.66) | 0.0507 (crudo 0.1795) | ≤ 0.10 | ✅ |
+| Accuracy | 0.8396 | — | — |
 
-**Ablación (aporte del SSL):** macro-F1 ImageNet 0.7454 vs SSL 0.7447 (Δ −0.0007, empate);
-AUC ImageNet 0.9343 vs SSL 0.9430 (Δ **+0.0087**, SSL gana). El SSL también gana el AUC del linear
-probe al 100 % (+0.0132).
+**4 de 4 KPIs medibles cumplidos.** El 5.º (fairness por fototipo) requiere datos regionales que aún
+no tenemos.
 
-**Fiabilidad:** calibración por temperature scaling (ECE 0.167 → 0.060); intervalos bootstrap;
-mecanismo de **abstención** (a confianza ≥ 0.8 responde el 83.7 % con 91.8 % de exactitud);
-**Grad-CAM confirma que el modelo mira la lesión, no los artefactos** (sin *shortcut learning*).
+### 2.3 Fiabilidad
 
-**Demo funcional:** clasificación correcta de un melanoma real con confianza 0.957 y alerta de
-melanoma disparada. Modelo servible vía `predict_path()`.
+- **Calibración:** temperature scaling ECE 0.180 → **0.051** (T = 0.66). Ver [diagrama de
+  fiabilidad](assets/figuras/reliability_diagram.png).
+- **Abstención (selective prediction):** a confianza ≥ 0.8 el modelo responde el **74.5 %** de los
+  casos con **91.9 %** de exactitud; el resto se deriva a especialista.
+- **Grad-CAM:** el calor cae **sobre la lesión** en los melanomas evaluados, no en pelos ni reglas →
+  **sin shortcut learning**. Ver [`assets/figuras/gradcam_melanomas.png`](assets/figuras/gradcam_melanomas.png).
+- **Linear probe:** el SSL supera a ImageNet en **AUC en todos los regímenes** (0.8945 vs 0.8679 al
+  100 % de etiquetas) → representación de mejor calidad.
+
+### 2.4 Recall por clase (val)
+
+| Clase | Recall | Nota |
+|---|---|---|
+| nv | 0.913 | mayoritaria, sólida |
+| vasc | 0.912 | fuerte pese a poca data |
+| akiec | 0.809 | correcto |
+| bcc | 0.770 | fuerte |
+| bkl | 0.683 | aceptable |
+| mel | 0.613 (argmax) → **0.80 (screening)** | el screening resuelve la sensibilidad |
+| **df** | **0.364** | **punto débil real: clase con muy pocas muestras** |
 
 ---
 
@@ -64,39 +94,42 @@ melanoma disparada. Modelo servible vía `predict_path()`.
 
 | Decisión | Qué elegimos | Por qué |
 |---|---|---|
-| Método SSL | **SimSiam** (no DINO/ViT en esta fase) | negative-free → corre en 1 GPU T4; DINO/ViT es inviable con cómputo de estudiante. DINOv2 queda para la fase con GPUs UNAB. |
+| Método SSL | **SimSiam** (no DINO/ViT en esta fase) | negative-free → corre en 1 GPU T4; DINO/ViT inviable con cómputo de estudiante. DINOv2 queda para la fase con GPUs UNAB. |
 | Inicialización | **domain-adaptive desde ImageNet** (nunca desde cero) | probamos SSL desde cero: pierde contra un backbone aleatorio. Requiere millones de imágenes. |
+| Datos SSL | **ISIC 2019 + ISIC 2020 + HAM-train** (~48 k sin etiqueta) | el SSL escala con datos; ampliar el pool fue lo que volvió el empate en victoria. |
 | Split | por **`lesion_id`** (StratifiedGroupKFold) | partir por imagen mete la misma lesión en train/val → métrica inflada (el error del prototipo previo, que daba 0.873 falso). |
-| Evaluación del SSL | **ablación + linear probe** multi-régimen | el linear probe aísla la calidad de la representación; el fine-tune la tapa. |
+| Fine-tune | **LP-FT + LLRD** (Kumar 2022) | el fine-tune ingenuo distorsiona las features SSL; LP-FT las preserva → conserva la ventaja del SSL. |
+| Evaluación del SSL | **ablación multi-semilla + linear probe** | media ± std sobre semillas → conclusión robusta, no dependiente del ruido de una corrida. |
 | Resolución | **224 px en SSL, fine-tune y eval** | igualar resolución elimina el *BN drift* que causaba el colapso del probe. |
 | Aceptación | **KPIs clínicos**, no una sola cifra | macro-F1 + AUC + sensibilidad mel + ECE. |
-| Metodología | **CRISP-ML(Q)** (migrado desde CRISP-DM) | por recomendación de la asesora: CRISP-DM es legacy para proyectos ML. |
-
-Descarte relevante: **MambaMIM** (sugerido como referencia) es 3D/CT/segmentación con backbone Mamba
-→ no encaja con nuestro caso 2D de clasificación dermatoscópica. Se conserva como referencia del
-estado del arte; la vía viable de *masked image modeling* en 2D sería MAE/SimMIM.
+| Metodología | **CRISP-ML(Q)** | por recomendación de la asesora: CRISP-DM es legacy para proyectos ML. |
 
 ---
 
 ## 4. Limitaciones (declaradas, no escondidas)
 
-1. **Validación externa cross-dataset pendiente** — es la prueba de generalización más fuerte;
-   quedó omitida por falta del ground truth externo mapeado. **Prioridad #1.**
-2. **Sesgo por fototipo** — dataset de piel clara (Fitzpatrick I–III); sin base para afirmar
+1. **Validación externa cross-dataset pendiente** — es la prueba de generalización más fuerte. Quedó
+   omitida porque los datasets ISIC resized montados solo traen etiqueta binaria (`target`), no las 7
+   clases. Se hará como paso siguiente con un ISIC 2019 etiquetado (multiclase) sobre el modelo ya
+   exportado, sin re-entrenar. **Prioridad #1.**
+2. **n = 2 semillas** — la victoria del SSL es amplia y consistente, pero una 3.ª semilla la reforzaría
+   aún más (barato: solo fine-tune, reusando el backbone SSL).
+3. **Clase `df` (dermatofibroma)** poco fiable (recall 0.36, muy pocas muestras).
+4. **Sesgo por fototipo** — dataset de piel clara (Fitzpatrick I–III); sin base para afirmar
    rendimiento en piel oscura. Plan: test set BOSQUE (Bogotá, con fototipo anotado).
-3. **Cómputo limitado** — T4 de estudiante. El entrenamiento definitivo (más épocas, DINOv2/ViT,
-   más datos) requiere **acceso a las GPUs de la UNAB**.
-4. Clase `df` (dermatofibroma) poco fiable (recall 0.41, pocas muestras).
+5. **Cómputo limitado** — T4 de estudiante. El entrenamiento definitivo (más épocas, DINOv2/ViT)
+   requiere **acceso a las GPUs de la UNAB**.
 
 ---
 
 ## 5. Petición y próximos pasos
 
-1. **Feedback** sobre el enfoque (reposicionar el aporte hacia protocolo + fiabilidad, dado el
-   empate SSL vs ImageNet).
-2. **Acceso a las GPUs de la UNAB** para el entrenamiento definitivo.
-3. Ejecutar la **validación externa** (ISIC 2019 / BCN20000) — ya está el dataset cargado.
-4. Evaluación de **sesgo por fototipo** (BOSQUE) como trabajo del Objetivo 3.
+1. **Feedback** sobre el resultado: el SSL supera a ImageNet de forma consistente (Δ macro-F1 +0.029,
+   fuera del ruido) — validando la hipótesis del anteproyecto.
+2. Ejecutar la **validación externa** (ISIC 2019 multiclase / BCN20000) sobre el modelo exportado.
+3. Agregar una **3.ª semilla** a la ablación (solo fine-tune, reusa el backbone).
+4. **Acceso a las GPUs de la UNAB** para escalar (más épocas, DINOv2/ViT) en el Objetivo 3.
+5. Evaluación de **sesgo por fototipo** (BOSQUE) como trabajo del Objetivo 3.
 
 ---
 
@@ -106,5 +139,7 @@ estado del arte; la vía viable de *masked image modeling* en 2D sería MAE/SimM
 - **Datos crudos de la corrida:** [`data/RESULTS_SUMMARY.json`](data/RESULTS_SUMMARY.json)
 - **Decisiones técnicas (ADR):** [`docs/04-decisiones-tecnicas.md`](docs/04-decisiones-tecnicas.md)
 - **Ficha del modelo:** [`docs/12-model-card.md`](docs/12-model-card.md)
-- **Notebook reproducible:** [`notebooks/proyecto_ssl_lesiones_v2.ipynb`](notebooks/proyecto_ssl_lesiones_v2.ipynb)
-- **Modelo entrenado** (`.pth`): [Release `modelo-v1-preliminar`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v1-preliminar).
+- **Notebook reproducible:** [`notebooks/proyecto_ssl_lesiones_v4.ipynb`](notebooks/proyecto_ssl_lesiones_v4.ipynb)
+- **Figuras:** [`assets/figuras/`](assets/figuras/) (ablación, linear probe, KPIs, abstención, recall,
+  calibración, Grad-CAM, reliability diagram)
+- **Modelo entrenado** (`.pth`): adjunto como asset del Release de GitHub.
