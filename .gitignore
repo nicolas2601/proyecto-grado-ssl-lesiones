@@ -24,9 +24,15 @@ data/*
 kaggle.json
 *credentials*
 
+# --- Salidas del pipeline v5 (regenerables, no versionar) ---
+out/
+features/
+*.npy
+
 # --- Python / Jupyter ---
 __pycache__/
 *.pyc
+.pytest_cache/
 .ipynb_checkpoints/
 .venv/
 .venv-charts/
