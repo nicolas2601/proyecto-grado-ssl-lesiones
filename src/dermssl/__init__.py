@@ -7,11 +7,20 @@ these files by ``scripts/build_notebook_v5.py`` - so the tested code and the
 executed code are the same code.
 """
 
-from . import data_resolver, feature_cache, label_regimes, metrics, patch_guard, probes
+from . import (
+    data_resolver,
+    feature_cache,
+    gates,
+    label_regimes,
+    metrics,
+    patch_guard,
+    probes,
+)
 
 __all__ = [
     "data_resolver",
     "feature_cache",
+    "gates",
     "label_regimes",
     "metrics",
     "patch_guard",
@@ -25,4 +34,5 @@ MODULE_ORDER = (
     "metrics",
     "probes",
     "feature_cache",
+    "gates",
 )

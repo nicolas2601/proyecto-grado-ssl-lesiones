@@ -44,12 +44,16 @@ BACKBONES = [
     "sup_vit_b16",         # ViT-B/16 ImageNet supervisado - CONTROL de arquitectura
     "sup_resnet50",        # ResNet-50 ImageNet supervisado - linea base de v4
 ]
-PROBES    = ["knn", "prototype", "logreg"]
+# Cinco probes. Los "_balanced" reponderan por frecuencia de clase: se reportan AL
+# LADO de los normales, no en su lugar, porque son estimadores distintos y cual
+# conviene es una pregunta empirica que la corrida responde.
+PROBES    = ["knn", "knn_balanced", "prototype", "logreg", "logreg_balanced"]
 FRACTIONS = (0.01, 0.05, 0.10, 0.20, 0.50, 1.00)
 SEEDS     = [42, 1234, 2026]
 
 if SMOKE:
     BACKBONES = ["ssl_dinov2_vits14", "sup_resnet50"]
+    PROBES    = ["knn", "knn_balanced", "logreg"]
     FRACTIONS = (0.05, 1.00)
     SEEDS     = [42]
     print("*** MODO SMOKE: los numeros NO son validos como resultado. "
@@ -66,7 +70,10 @@ MEAN, STD = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 print("torch:", torch.__version__, "| device:", device, "| GPUs:", torch.cuda.device_count())
 print(f"backbones={BACKBONES}\nprobes={PROBES}\nfracciones={FRACTIONS} | semillas={SEEDS}")'''
 
-DATA_CODE = r'''data = resolve_datasets(backend=DATA_BACKEND, local_root=LOCAL_ROOT)
+DATA_CODE = r'''# index_pool=False: el pool sin etiquetas NO se usa con el backbone congelado, y
+# recorrer las ~48k imagenes de ISIC costo 157 de los 192 s de la corrida del 29-07.
+# Se activa (index_pool=True) recien en el pre-entrenamiento continuo.
+data = resolve_datasets(backend=DATA_BACKEND, local_root=LOCAL_ROOT, index_pool=False)
 print(json.dumps(data.summary(), indent=2))
 
 meta = pd.read_csv(data.ham_metadata_csv)
@@ -321,42 +328,57 @@ agg = (ok.groupby(["backbone", "supervision", "probe", "fraction"])
               n_labels=("n_labels", "max"), seeds=("seed", "nunique"))
          .reset_index().sort_values(["probe", "fraction", "auc_mean"], ascending=[True, True, False]))
 
-pd.set_option("display.width", 160)
-pd.set_option("display.max_rows", 200)
-print("=== macro-F1 y AUC por backbone / probe / regimen ===")
+pd.set_option("display.width", 170)
+pd.set_option("display.max_rows", 300)
+# std con 1 semilla es NaN a proposito: no se puede estimar dispersion de una muestra.
+agg["metrica_titular"] = agg.probe.map(headline_metric)
+print("=== macro-F1 y AUC por backbone / probe / regimen "
+      "(std NaN = una sola semilla) ===")
 print(agg.round(4).to_string(index=False))
 
-knn_full = ok[(ok.probe == "knn") & (ok.fraction == max(FRACTIONS))]
+print("\n=== ADVERTENCIA DE LECTURA ===")
+print(f"  Probes dominados por el prior de clase: {PRIOR_DOMINATED_PROBES}")
+print("  En esos probes el argmax sigue la clase mayoritaria (nv es ~65 %), asi que su")
+print("  macro-F1 NO se cita como resultado: se lee su AUC, que es por ranking.")
+print(f"  Probes sin calibracion real (su ECE no es una afirmacion): {UNCALIBRATED_PROBES}")
 
-# --- compuertas de aceptacion (explicitas, verificables) --------------------
-gates = []
-gates.append({"gate": "G0 resolucion de datos",
-              "criterio": "backend resuelto y HAM10000 localizado",
-              "valor": f"{data.backend} / {len(data.ham_images)} imgs",
-              "pasa": bool(data.ham_metadata_csv and len(data.ham_images) > 0)})
-gates.append({"gate": "G0 anti-leakage",
-              "criterio": "0 lesiones compartidas train/val",
-              "valor": len(overlap), "pasa": len(overlap) == 0})
-gates.append({"gate": "G1 pipeline end-to-end",
-              "criterio": "toda la rejilla corre sin fallos",
-              "valor": f"{len(ok)}/{len(grid)}", "pasa": len(ok) == len(grid)})
-gates.append({"gate": "G1 backbone congelado",
-              "criterio": "0 parametros entrenables en todo backbone usado",
-              "valor": "verificado por assert en la extraccion", "pasa": True})
-knn_auc = float(knn_full.auc.mean()) if len(knn_full) else float("nan")
-gates.append({"gate": "G2 calidad SSL sin entrenar nada",
-              "criterio": "AUC del probe kNN > 0.80 (sanity)",
-              "valor": round(knn_auc, 4), "pasa": bool(knn_auc > 0.80)})
-gates.append({"gate": "G2 control de arquitectura",
-              "criterio": "hay un ViT supervisado en la comparacion",
-              "valor": [b for b in BACKBONES if b == "sup_vit_b16"] or "AUSENTE (solo SMOKE)",
-              "pasa": ("sup_vit_b16" in BACKBONES) or SMOKE})
+# --- delta SSL vs mejor supervisado, la comparacion titular -----------------
+deltas = []
+for probe in sorted(ok.probe.unique()):
+    for frac in sorted(ok.fraction.unique()):
+        sel = agg[(agg.probe == probe) & (agg.fraction == frac)]
+        ssl_rows = sel[sel.supervision == "ssl"]
+        sup_rows = sel[sel.supervision == "supervised"]
+        if ssl_rows.empty or sup_rows.empty:
+            continue
+        metric = f"{headline_metric(probe)}_mean"
+        best_ssl = ssl_rows.loc[ssl_rows[metric].idxmax()]
+        best_sup = sup_rows.loc[sup_rows[metric].idxmax()]
+        deltas.append({"probe": probe, "fraction": frac, "metrica": headline_metric(probe),
+                       "mejor_ssl": best_ssl.backbone, "valor_ssl": round(best_ssl[metric], 4),
+                       "mejor_sup": best_sup.backbone, "valor_sup": round(best_sup[metric], 4),
+                       "delta": round(best_ssl[metric] - best_sup[metric], 4)})
+delta_df = pd.DataFrame(deltas)
+if len(delta_df):
+    print("\n=== SSL vs mejor supervisado (en la metrica titular de cada probe) ===")
+    print(delta_df.to_string(index=False))
+    wins = int((delta_df.delta > 0).sum())
+    print(f"\n  el SSL gana en {wins}/{len(delta_df)} combinaciones probe x regimen")
 
-print("\n=== REPORTE DE COMPUERTAS ===")
-for g in gates:
-    print(f"  [{'PASA' if g['pasa'] else 'FALLA'}] {g['gate']}: {g['valor']}  ({g['criterio']})")
-all_pass = all(g["pasa"] for g in gates)
-print(f"\n{'TODAS LAS COMPUERTAS PASAN' if all_pass else 'HAY COMPUERTAS EN FALLA - revisar arriba'}")
+# --- compuertas de aceptacion (logica en dermssl.gates, cubierta por tests) --
+gate_list = evaluate_gates(
+    backend=data.backend,
+    ham_images=len(data.ham_images),
+    lesion_overlap=len(overlap),
+    rows_total=len(grid),
+    rows_ok=len(ok),
+    frozen_verified=True,          # el assert de la celda de extraccion ya lo garantizo
+    backbones=BACKBONES,
+    grid_rows=json.loads(ok.to_json(orient="records")),
+    smoke=SMOKE,
+)
+print()
+print(report(gate_list))
 
 summary = {
     "mode": "SMOKE (numeros NO validos)" if SMOKE else "corrida real",
@@ -364,14 +386,17 @@ summary = {
     "claim": "ninguna etiqueta toca el extractor de features; backbone congelado",
     "elapsed": elapsed(),
     "data": {"backend": data.backend, "ham_images": len(data.ham_images),
-             "pool_images": len(data.pool_images), "train": len(tr_ids), "val": len(va_ids),
-             "classes": classes, "lesion_overlap": int(len(overlap))},
+             "pool_images": data.summary()["pool_images"], "train": len(tr_ids),
+             "val": len(va_ids), "classes": classes, "lesion_overlap": int(len(overlap))},
     "backbones": {k: {**BACKBONE_SPECS[k], "resolution": RES_BY_BACKBONE[k]} for k in BACKBONES},
+    "reporting_rules": {"prior_dominated_probes": list(PRIOR_DOMINATED_PROBES),
+                        "uncalibrated_probes": list(UNCALIBRATED_PROBES)},
     "extraction": EXTRACTION_LOG,
     "grid": json.loads(grid.to_json(orient="records")),
     "aggregate": json.loads(agg.to_json(orient="records")),
-    "gates": gates,
-    "all_gates_pass": bool(all_pass),
+    "ssl_vs_supervised": deltas,
+    "gates": [g.as_dict() for g in gate_list],
+    "all_gates_pass": bool(all_blocking_pass(gate_list)),
 }
 out_path = WORK / "RESULTS_SUMMARY_v5.json"
 out_path.write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")

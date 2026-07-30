@@ -31,8 +31,14 @@ REQUIRED_API = [
     "describe_regimes",
     "summarize",
     "run_probe",
+    "headline_metric",
+    "PRIOR_DOMINATED_PROBES",
+    "UNCALIBRATED_PROBES",
     "FeatureCache",
     "cache_key",
+    "evaluate_gates",
+    "report",
+    "all_blocking_pass",
 ]
 
 
