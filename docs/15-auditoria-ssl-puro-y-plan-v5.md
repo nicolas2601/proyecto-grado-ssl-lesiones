@@ -325,8 +325,112 @@ El notebook termina imprimiendo un reporte explícito. No hay "listo" sin eviden
 | G0 anti-leakage | **Cero** lesiones compartidas entre entrenamiento y validación |
 | G1 pipeline end-to-end | Toda la rejilla corre sin fallos |
 | G1 backbone congelado | Cero parámetros entrenables en todo backbone usado (verificado por `assert`) |
-| G2 calidad SSL | AUC del probe k-NN por encima de 0.80 **sin entrenar nada** |
-| G2 control de arquitectura | Hay un ViT supervisado en la comparación |
+| G2 calidad SSL | AUC del probe k-NN **del backbone auto-supervisado** por encima de 0.80, sin entrenar nada |
+| G2 control de arquitectura | Cada ViT auto-supervisado tiene un ViT supervisado al lado |
+
+Las de G0 y G1 se exigen siempre, incluso en `SMOKE`: son exactamente lo que un humo debe
+detectar. Las de G2 son de **calidad** y se marcan `OMITIDA` en `SMOKE`, porque medir calidad
+sobre un subconjunto que el propio notebook declara no válido sería incoherente.
+
+---
+
+## 6.4 Primera corrida real (Kaggle, 2026-07-29): resultados y correcciones
+
+Kernel `nicorghost/sslmodelo-liviano`, modo `SMOKE`, GPU T4 x2, **3.2 minutos**, 12 de 12
+combinaciones sin fallos. Las cinco compuertas de pipeline pasaron.
+
+### Los números
+
+Como es `SMOKE`, se usaron 648 imágenes de entrenamiento y 169 de validación, con una sola
+semilla. **Los valores no son resultados válidos**; la señal sí es informativa.
+
+| Probe | Etiquetas | Métrica | DINOv2 (0 etiquetas) | ResNet-50 ImageNet (1.28 M) | Δ |
+|---|---|---|---|---|---|
+| k-NN | 5 % | AUC | 0.7309 | 0.5986 | +0.1323 |
+| k-NN | 100 % | AUC | 0.8005 | 0.7875 | +0.0130 |
+| prototipos | 5 % | AUC | 0.7473 | 0.6219 | +0.1254 |
+| prototipos | 100 % | AUC | 0.8517 | 0.7385 | +0.1133 |
+| linear | 5 % | macro-F1 | 0.2148 | 0.1971 | +0.0177 |
+| linear | 100 % | macro-F1 | 0.5292 | 0.4424 | +0.0868 |
+
+**El backbone auto-supervisado gana en 6 de 6 combinaciones.** Y un punto de referencia
+llamativo: el linear probe de v4, con las 8 001 imágenes de entrenamiento, alcanzó AUC 0.8945;
+v5 con DINOv2 congelado y 648 imágenes (el 8 % de los datos) alcanzó **0.9092**.
+
+**Cautela obligatoria antes de citar esto:** validación de 169 imágenes contra las 2 014 de la
+corrida real, una sola semilla, y sin la validación externa. Es ruidoso. Lo que se puede afirmar
+hoy es la *dirección* y que el pipeline funciona, no la magnitud.
+
+### Hallazgo metodológico: el macro-F1 del k-NN no es una métrica válida acá
+
+En la corrida apareció una combinación llamativa: **accuracy 0.663 junto a macro-F1 0.181** en el
+probe k-NN. Reproduciendo la condición exacta con las proporciones reales de HAM10000
+(648 etiquetas, 7 clases, así que `nv` recibe ~440 muestras y `df` ~10) se confirmó el mecanismo:
+con `k = 20`, una clase con 10 muestras **no puede ganarle una votación** a una con 440, así que
+el probe solo predice 2 de las 7 clases. El AUC aguanta (0.738) porque el orden de los casos
+sigue siendo correcto; lo que se derrumba es el argmax.
+
+La reacción intuitiva —bajar `k`— se midió y **se descartó**:
+
+| k | accuracy | macro-F1 | AUC | clases predichas |
+|---|---|---|---|---|
+| 20 | 0.639 | 0.124 | 0.738 | 2 |
+| 10 | 0.651 | 0.170 | 0.698 | 4 |
+| 7 | 0.639 | 0.183 | 0.674 | 5 |
+| 5 | 0.627 | 0.209 | 0.575 | 5 |
+| 3 | 0.615 | 0.202 | 0.563 | 7 |
+
+Bajar `k` compra un poco de macro-F1 y destruye el AUC. Es un intercambio peor, no un arreglo.
+
+**La conclusión es sobre cómo se reporta, no sobre `k`:** con desbalance 58:1 el argmax de una
+votación de vecinos sin pesos está dominado por la frecuencia de clase. Entonces:
+
+- Del k-NN y de los prototipos se lee el **AUC** (basado en ranking, independiente del prior).
+- El **macro-F1** se lee del probe lineal, que sí admite pesos de clase.
+- Se agregaron `knn_balanced` y `logreg_balanced` (votos y pérdida divididos por la frecuencia de
+  clase) **al lado** de los originales, no en su lugar: son estimadores distintos, y cuál conviene
+  es una pregunta empírica que la corrida responde. En la reproducción, `knn_balanced` recupera
+  las 7 clases y mejora el macro-F1, pero hunde la accuracy — tampoco es gratis.
+- El ECE de los probes basados en similitud (`knn`, `knn_balanced`, `prototype`) **no es una
+  afirmación de calibración**: su temperatura softmax es una elección arbitraria. Quedan marcados
+  como tales en el código y en el JSON de salida.
+
+### Los cinco defectos que la corrida destapó, y su arreglo
+
+| # | Defecto | Causa | Arreglo |
+|---|---|---|---|
+| 1 | La compuerta G2 reportó `0.794 FALLA` cuando el backbone auto-supervisado había sacado **0.8005** y superaba el umbral | El promedio incluía la línea base supervisada: `mean(0.8005, 0.7875) = 0.794` | `ssl_knn_auc()` filtra solo los backbones auto-supervisados |
+| 2 | Se exigía una compuerta de **calidad** en modo `SMOKE`, donde el propio notebook declara que los números no son válidos | Las compuertas no distinguían pipeline de calidad | Tercer estado `OMITIDA`: las de calidad se omiten en `SMOKE`, las de pipeline se exigen siempre |
+| 3 | Salida contradictoria: `[PASA] control de arquitectura: AUSENTE (solo SMOKE)` | Solo existían dos estados | Igual que el anterior, más un criterio real: cada ViT auto-supervisado exige un ViT supervisado al lado |
+| 4 | **157 de los 192 segundos** se fueron indexando 48 442 imágenes del pool que la evaluación con backbone congelado nunca usa | `resolve_datasets` indexaba el pool siempre | `index_pool=False` en v5; se activa recién en el pre-entrenamiento continuo |
+| 5 | macro-F1 del k-NN en el piso junto a accuracy alta | Prior de clase, no un defecto del backbone | Regla de reporte explícita, más los dos probes balanceados (arriba) |
+
+**La causa raíz de los defectos 1 a 3 es una sola: la lógica de compuertas vivía dentro del
+notebook, donde ningún test la cubría.** Se movió a `src/dermssl/gates.py` y ahora tiene 16
+pruebas, incluida una que usa los números textuales de esta corrida y falla si el promedio
+vuelve a mezclar la línea base.
+
+### Verificación del arreglo sobre los datos reales
+
+La lógica del reporte se volvió a ejecutar contra el `probe_grid_v5.csv` de la corrida:
+
+```
+[PASA]    G2 calidad SSL sin entrenar nada: 0.8005   (antes: 0.794 FALLA)
+[OMITIDA] G2 ... en modo SMOKE
+[FALLA]   G2 control de arquitectura en modo real: falta sup_vit_b16
+```
+
+El último no es un error: la corrida `SMOKE` excluye `sup_vit_b16` a propósito, y la compuerta
+**exige** incluirlo en la corrida real. Es el comportamiento correcto.
+
+### Pendientes que la corrida confirmó
+
+- `candidate_label_csvs: []` → no hay ground truth externo montado. La validación externa sigue
+  bloqueada por ese CSV, como ya decía [08](08-estado-actual-y-next-steps.md).
+- Advertencia `HF_TOKEN` no configurado: los pesos se bajan igual, con límite de tasa. Para la
+  corrida real conviene añadirlo como *secret* de Kaggle.
+- Extracción medida: **125.6 img/s** con DINOv2 ViT-S/14 y 189.2 img/s con ResNet-50. Las 10 015
+  imágenes completas son unos 80 segundos. La corrida real no está limitada por la extracción.
 
 ---
 
