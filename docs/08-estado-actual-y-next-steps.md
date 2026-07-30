@@ -24,8 +24,22 @@ _Última actualización: 2026-07-12 (corrida definitiva v4 ejecutada)._
 - **Grad-CAM:** el modelo mira la lesión, no los artefactos → sin shortcut learning.
 - **Validación externa:** ⚠️ omitida (los ISIC resized montados solo traen etiqueta binaria) → next-step #1.
 
+## Auditoría v5 (2026-07-29): el v4 no es SSL puro
+
+El SSL del v4 arranca de `ResNet50_Weights.IMAGENET1K_V2` (celda 7) y el fine-tune descongela
+todo el backbone con etiquetas. Es **adaptación de dominio**, no auto-supervisión pura: el
+Δ +0.0294 mide cuánto aporta adaptar al dominio, no SSL contra supervisado.
+
+Se construyó el pipeline **v5** (`notebooks/proyecto_ssl_lesiones_v5.ipynb`, generado): backbone
+**congelado** (DINOv2, cero etiquetas en el extractor) + probes kNN/prototipos/linear en
+regímenes 1/5/10/20/50/100 %, con control de arquitectura (ViT supervisado) y 101 pruebas
+automáticas que corren sin GPU. Detalle completo en
+[15 — Auditoría SSL puro y plan v5](15-auditoria-ssl-puro-y-plan-v5.md).
+
 ## Próximos pasos (roadmap)
 
+0. **Correr v5 en Kaggle**: `SMOKE = True` → Run All (~5 min, valida el pipeline y las compuertas
+   G0–G2) → `SMOKE = False` → Save & Run All. No necesita el clúster: el backbone va congelado.
 1. **Validación externa** (ISIC 2019 multiclase / BCN20000) sobre el modelo ya exportado — inferencia
    pura, NO requiere re-entrenar. La prueba de generalización más fuerte.
 2. **3.ª semilla** en la ablación (solo fine-tune, reusa `backbone_domain_adaptive_r50.pth`) → reforzar

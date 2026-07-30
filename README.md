@@ -26,8 +26,14 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
   domain-adaptive SUPERA a ImageNet** en macro-F1 (0.6907 ± 0.006 vs 0.6614 ± 0.004, Δ +0.0294, fuera
   del ruido) y en AUC → **valida la hipótesis del anteproyecto**. Modelo SSL entregable con **4/4 KPIs
   clínicos cumplidos**. Ver [**Informe**](INFORME.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
-- **Siguiente hito:** validación externa (ISIC 2019 multiclase, sobre el modelo exportado) + 3.ª
-  semilla → envío al director → acceso a GPUs de la UNAB.
+- **Objetivo 2 · v5 (SSL puro):** 🔧 **construido y verificado, pendiente de correr.** Auditoría
+  del v4: su "SSL" arrancaba de pesos ImageNet supervisados y el fine-tune descongelaba todo, así
+  que **no era auto-supervisado puro**. v5 evalúa con el **backbone congelado** (DINOv2, cero
+  etiquetas en el extractor) + probes kNN/prototipos/linear en regímenes 1–100 %. 101 pruebas
+  automáticas en verde sin GPU. Ver [15 — Auditoría SSL puro y plan v5](docs/15-auditoria-ssl-puro-y-plan-v5.md).
+- **Siguiente hito:** correr v5 en Kaggle (`SMOKE=True` → real) + validación externa (ISIC 2019
+  multiclase, sobre el modelo exportado) → envío al director → pre-entrenamiento continuo de
+  DINOv2 en el clúster de la asesora.
 
 > ⚠️ **Resultados preliminares.** Obtenidos con los **recursos actuales** (GPU T4 de estudiante,
 > dataset acotado) — no el modelo final. El entrenamiento definitivo (más cómputo, DINOv2/ViT,
@@ -51,6 +57,7 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 | [12 — Model card](docs/12-model-card.md) | Ficha del modelo + cómo servirlo |
 | [13 — ¿Por qué estas decisiones?](docs/13-por-que-estas-decisiones.md) | **Por qué ResNet-50, SimSiam, etc.** |
 | [14 — Mejoras del pipeline](docs/14-mejoras-pipeline.md) | **LP-FT + LLRD + más datos → que el SSL gane** |
+| [15 — Auditoría SSL puro y plan v5](docs/15-auditoria-ssl-puro-y-plan-v5.md) | **Por qué v4 no es SSL puro, los cambios de v5, hardware, novedad** |
 | [Informe](INFORME.md) | Resumen ejecutivo del avance |
 
 ## Estructura
@@ -66,9 +73,20 @@ proyecto-grado-ssl-lesiones/
 │                                #   abstención, recall, calibración, Grad-CAM, reliability diagram
 ├── results/
 │   └── generar_figuras.py       # Script reproducible de las figuras
+├── src/dermssl/                 # Núcleo probado del pipeline v5 (solo numpy + stdlib)
+├── tests/                       # 101 pruebas: sin GPU, sin internet, < 1 s
+├── scripts/
+│   ├── notebook_cells_v5.py     # Celdas que dependen de torch
+│   └── build_notebook_v5.py     # Genera el notebook v5 (compila cada celda)
 └── notebooks/
-    └── proyecto_ssl_lesiones_v4.ipynb   # Pipeline Objetivo 2 definitivo (Kaggle)
+    ├── proyecto_ssl_lesiones_v4.ipynb   # Pipeline Objetivo 2 (SSL domain-adaptive + fine-tune)
+    └── proyecto_ssl_lesiones_v5.ipynb   # Evaluación SSL pura, backbone congelado (GENERADO)
 ```
+
+> `proyecto_ssl_lesiones_v5.ipynb` es un **artefacto generado**: no se edita a mano. Se cambia el
+> módulo en `src/dermssl/`, se corre `pytest`, y se regenera con
+> `python scripts/build_notebook_v5.py`. Así el código que corre en Kaggle es exactamente el que
+> está cubierto por las pruebas.
 
 > El modelo entrenado (`best_resnet50_ssl.pth`, ~90 MB) no va en el repo (`.gitignore` no versiona
 > pesos): está publicado como asset en el
