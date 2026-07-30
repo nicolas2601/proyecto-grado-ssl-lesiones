@@ -58,6 +58,7 @@ class ResolvedData:
     ham_metadata_csv: Path | None = None
     ham_images: dict[str, Path] = field(default_factory=dict)
     pool_images: dict[str, Path] = field(default_factory=dict)
+    pool_indexed: bool = True
     candidate_label_csvs: list[Path] = field(default_factory=list)
 
     def summary(self) -> dict:
@@ -66,7 +67,8 @@ class ResolvedData:
             "roots": [str(r) for r in self.roots],
             "ham_metadata_csv": str(self.ham_metadata_csv) if self.ham_metadata_csv else None,
             "ham_images": len(self.ham_images),
-            "pool_images": len(self.pool_images),
+            # Distinguish "indexed and found none" from "deliberately not indexed".
+            "pool_images": len(self.pool_images) if self.pool_indexed else "no indexado",
             "candidate_label_csvs": [str(p) for p in self.candidate_label_csvs],
         }
 
@@ -208,8 +210,15 @@ def resolve_datasets(
     kaggle_input: Path = KAGGLE_INPUT,
     local_root: Path | None = None,
     cache_dir: Path | None = None,
+    index_pool: bool = True,
 ) -> ResolvedData:
     """Locate HAM10000 plus the unlabeled pool, whatever the environment.
+
+    ``index_pool=False`` skips building the path index for the unlabelled pool.
+    That index costs real time: on Kaggle, walking the 48 442 ISIC images took
+    157 of the 192 seconds of a smoke run - and the frozen-backbone evaluation
+    never touches the pool. Only the continual pre-training stage needs it, so it
+    is opt-in per stage rather than always paid.
 
     Returns a :class:`ResolvedData` describing what was found. Raises
     :class:`DataResolutionError` with an actionable message when HAM10000 (the
@@ -237,9 +246,11 @@ def resolve_datasets(
     ham_dir = ham_metadata_csv.parent
 
     ham_images = index_images([ham_dir])
-    # Pool = every other jpg reachable from the roots, minus the HAM images.
-    all_images = index_images(roots)
-    pool_images = {k: v for k, v in all_images.items() if k not in ham_images}
+    pool_images: dict[str, Path] = {}
+    if index_pool:
+        # Pool = every other jpg reachable from the roots, minus the HAM images.
+        all_images = index_images(roots)
+        pool_images = {k: v for k, v in all_images.items() if k not in ham_images}
 
     return ResolvedData(
         backend=backend,
@@ -247,5 +258,6 @@ def resolve_datasets(
         ham_metadata_csv=ham_metadata_csv,
         ham_images=ham_images,
         pool_images=pool_images,
+        pool_indexed=index_pool,
         candidate_label_csvs=find_label_csvs(roots),
     )

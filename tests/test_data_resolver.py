@@ -65,6 +65,34 @@ def test_summary_is_json_friendly(tmp_path):
     assert isinstance(summary["roots"][0], str)
 
 
+def test_skipping_the_pool_index_avoids_the_expensive_walk(tmp_path):
+    """On Kaggle, indexing 48 442 pool images cost 157 s of a 192 s smoke run."""
+    make_ham(tmp_path, n_images=3)
+    make_pool(tmp_path, n_images=5)
+
+    data = dr.resolve_datasets(backend="local", local_root=tmp_path, index_pool=False)
+    assert data.pool_images == {}
+    assert data.pool_indexed is False
+    assert len(data.ham_images) == 3, "the labelled set is still indexed"
+    # An empty dict must not be reported as "we looked and found zero images".
+    assert data.summary()["pool_images"] == "no indexado"
+
+
+def test_indexing_the_pool_is_still_the_default(tmp_path):
+    make_ham(tmp_path, n_images=3)
+    make_pool(tmp_path, n_images=5)
+    data = dr.resolve_datasets(backend="local", local_root=tmp_path)
+    assert data.pool_indexed is True
+    assert len(data.pool_images) == 5
+    assert data.summary()["pool_images"] == 5
+
+
+def test_skipping_the_pool_does_not_hide_a_missing_ham(tmp_path):
+    make_pool(tmp_path)
+    with pytest.raises(dr.DataResolutionError):
+        dr.resolve_datasets(backend="local", local_root=tmp_path, index_pool=False)
+
+
 def test_missing_ham_raises_an_actionable_error(tmp_path):
     make_pool(tmp_path)  # pool present, HAM absent
     with pytest.raises(dr.DataResolutionError) as err:
