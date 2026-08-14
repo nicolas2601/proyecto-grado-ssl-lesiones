@@ -10,6 +10,6 @@ The one invariant this package exists to defend: no label ever reaches the
 backbone. See ``config.assert_label_free`` and the loud gates around it.
 """
 
-from . import budget, color_constancy, config
+from . import budget, color_constancy, config, lesion_guided
 
-__all__ = ["budget", "color_constancy", "config"]
+__all__ = ["budget", "color_constancy", "config", "lesion_guided"]
