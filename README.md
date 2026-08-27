@@ -47,24 +47,18 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 > dataset acotado) — no el modelo final. El entrenamiento definitivo (más cómputo, DINOv2/ViT,
 > validación externa) se hará con las GPUs de la UNAB. Aun así, esta corrida **valida la hipótesis**.
 
-## Pipeline visual
+## Arquitectura del sistema
 
-**Banco de baselines** — 7 modelos evaluados con el mismo protocolo: backbone **congelado**
-(cero fine-tuning), 3 probes (kNN coseno, regresión logística balanceada, prototipos) sobre
-HAM10000 con split anti-fuga por `lesion_id`:
+Vista completa end-to-end: los datos (pool sin etiquetas + HAM10000 etiquetado con split
+anti-fuga), el pre-entrenamiento SSL v6 (DINO continual + SimSiam desde cero, 100 % sin
+etiquetas) y la evaluación con backbone **congelado** (cero fine-tuning, 3 probes, métricas
+completas) contra los 7 baselines:
 
-![Pipeline del banco de baselines](assets/figuras/fig7_pipeline_banco.png)
+![Arquitectura completa del sistema](assets/figuras/fig11_arquitectura_completa.png)
 
-**Baseline vs. propuesta** — los supervisados son solo comparadores; la propuesta es
-**SSL puro**: las etiquetas entran únicamente en la evaluación, nunca al extractor:
-
-![Baseline vs propuesta SSL](assets/figuras/fig8_baseline_vs_proposal.png)
-
-**Arquitecturas v6** (pre-entrenamiento propio, pendiente de clúster):
-
-| DINOv2 continual (brazo principal) | SimSiam desde cero (brazo purista) |
-|---|---|
-| ![v6 DINOv2 continual](assets/figuras/fig9_v6_dino_continual.png) | ![v6 SimSiam](assets/figuras/fig10_v6_simsiam.png) |
+> Figuras de detalle (pipeline del banco de baselines, protocolo de test por modelo y
+> arquitecturas v6 por brazo) en
+> [18 — Estructura visual y tests](docs/18-estructura-visual-y-tests-baseline.md).
 
 ## Índice de documentación
 

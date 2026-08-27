@@ -295,8 +295,115 @@ def fig10():
     save(fig, "fig10_v6_simsiam")
 
 
+# ---------------------------------------------------------------- fig 11
+def fig11():
+    """Master figure: full system — data, SSL training, frozen evaluation."""
+    fig, ax = canvas(15.6, 19.0, 21.6, 26.6,
+                     "Arquitectura completa del sistema — datos, "
+                     "pre-entrenamiento SSL y evaluación",
+                     "propuesta full SSL: el extractor jamás ve una "
+                     "etiqueta; las etiquetas entran únicamente en la "
+                     "evaluación")
+
+    # ---- band 1: data -------------------------------------------------
+    group(ax, 0.3, 20.2, 19.4, 4.6, "1 · DATOS", ec="#1E40AF")
+    box(ax, 0.8, 21.0, 4.6, 3.2, "Pool SSL — SIN etiquetas",
+        ["~48-70k imágenes", "HAM10000 (train) + ISIC 2020",
+         "dermatoscopia de piel", "cero labels al extractor"], key="data")
+    box(ax, 7.0, 21.0, 5.6, 3.2, "Transformación",
+        ["skin tone (Fitzpatrick)", "constancia de color",
+         "crops por lesión", "flips · color-jitter · blur"], key="ssl")
+    box(ax, 13.9, 21.0, 5.3, 3.2, "HAM10000 etiquetado",
+        ["10 015 img · 7 clases", "split StratifiedGroupKFold",
+         "por lesion_id", "assert: 0 lesiones compartidas"], key="data")
+    ax.text(15.9, 20.55, "las etiquetas NUNCA tocan el pre-entrenamiento",
+            ha="center", fontsize=7.8, color="#B91C1C", fontweight="bold")
+    arrow(ax, (5.4, 22.6), (7.0, 22.6))
+
+    # ---- band 2: SSL pre-training ------------------------------------
+    group(ax, 0.3, 8.6, 19.4, 11.0,
+          "2 · PRE-ENTRENAMIENTO SSL (v6) — 100 % sin etiquetas · igual "
+          "presupuesto GPU por brazo · MLflow + checkpoint por época",
+          ec="#15803D")
+    arrow(ax, (9.8, 21.0), (5.0, 18.6), rad=0.25)
+    arrow(ax, (9.8, 21.0), (14.8, 18.6), rad=-0.25)
+
+    group(ax, 0.6, 9.4, 9.3, 9.2, "Brazo A — DINO continual", ec="#94A3B8")
+    box(ax, 0.9, 15.9, 3.6, 2.3, "Multi-crop",
+        ["2 globales 224 px", "6 locales 96 px"], key="feat")
+    box(ax, 5.1, 15.4, 4.4, 2.8, "Estudiante ViT-S/14",
+        ["init: DINOv2 público", "cabeza MLP · 65 536 proto",
+         "ve TODOS los crops", "recibe gradientes"], key="ssl")
+    box(ax, 5.1, 11.9, 4.4, 2.6, "Profesor (EMA)",
+        ["copia EMA del estudiante", "solo crops globales",
+         "centering + sharpening", "sin gradientes"], key="sup")
+    box(ax, 0.9, 9.8, 5.6, 1.7, "Loss DINO — cross-entropy",
+        ["estudiante → profesor · stop-grad"], key="metric",
+        title_size=8.8)
+    arrow(ax, (4.5, 17.05), (5.1, 16.8))
+    arrow(ax, (4.5, 16.5), (5.1, 13.2), rad=-0.2)
+    arrow(ax, (5.9, 15.4), (4.6, 11.5), rad=0.15)
+    arrow(ax, (5.9, 11.9), (5.0, 11.5), rad=-0.1)
+    arrow(ax, (7.3, 15.4), (7.3, 14.5), style="-|>", ls=(0, (4, 2)),
+          color="#7C3AED", lw=1.6)
+    ax.text(7.55, 14.95, "EMA", ha="left", va="center", fontsize=7.8,
+            color="#7C3AED", fontweight="bold")
+
+    group(ax, 10.1, 9.4, 9.3, 9.2, "Brazo B — SimSiam desde cero",
+          ec="#94A3B8")
+    box(ax, 10.4, 15.9, 3.6, 2.3, "2 vistas aumentadas",
+        ["augmentation aleatoria", "independiente"], key="feat")
+    box(ax, 14.6, 15.4, 4.5, 2.8, "ResNet-50 + projector",
+        ["init ALEATORIA", "(cero pesos externos)",
+         "projector MLP 3 capas", "compartido entre vistas"], key="ssl")
+    box(ax, 14.6, 11.9, 4.5, 2.6, "Predictor / stop-grad",
+        ["predictor MLP 2 capas", "(rama activa)",
+         "stop-grad en rama objetivo"], key="sup")
+    box(ax, 10.4, 9.8, 5.6, 1.7, "Loss — cos. negativa simétrica",
+        ["+ detector de colapso (std embeddings)"], key="metric",
+        title_size=8.8)
+    arrow(ax, (14.0, 17.05), (14.6, 16.8))
+    arrow(ax, (16.85, 15.4), (16.85, 14.5))
+    arrow(ax, (15.4, 11.9), (14.2, 11.5), rad=0.15)
+
+    # ---- band 3: frozen evaluation -----------------------------------
+    group(ax, 0.3, 0.9, 19.4, 7.2,
+          "3 · EVALUACIÓN (protocolo v5) — backbone congelado",
+          ec="#B45309")
+    arrow(ax, (3.7, 9.8), (2.9, 7.3), rad=-0.1)
+    arrow(ax, (13.2, 9.8), (3.4, 7.3), rad=0.25)
+    box(ax, 0.8, 4.6, 4.2, 2.7, "Backbone congelado",
+        ["requires_grad = False", "model.eval()",
+         "assert trainable == 0"], key="sup")
+    box(ax, 5.8, 4.6, 3.6, 2.7, "Features",
+        ["GAP / token CLS", "L2-norm coseno", "cache en disco"],
+        key="feat")
+    box(ax, 10.2, 4.6, 3.6, 2.7, "3 probes",
+        ["kNN coseno k=20", "linear (logreg)", "prototipos"], key="probe")
+    box(ax, 14.6, 4.6, 4.6, 2.7, "Métricas",
+        ["balanced acc · F1 macro", "precision · recall macro",
+         "AUC OvR · acc · ECE"], key="metric")
+    arrow(ax, (5.0, 5.95), (5.8, 5.95))
+    arrow(ax, (9.4, 5.95), (10.2, 5.95))
+    arrow(ax, (13.8, 5.95), (14.6, 5.95))
+    ax.plot([18.0, 20.8, 20.8], [21.0, 20.0, 8.9], color="#B91C1C",
+            lw=1.5, ls=(0, (4, 2)), zorder=5)
+    arrow(ax, (20.8, 8.9), (18.4, 7.4), ls=(0, (4, 2)),
+          color="#B91C1C", lw=1.5, rad=-0.15)
+    ax.text(21.15, 14.5, "etiquetas SOLO en evaluación", rotation=90,
+            ha="center", va="center", fontsize=8, color="#B91C1C",
+            fontweight="bold")
+    box(ax, 0.8, 1.5, 18.4, 2.3, "Comparación contra 7 baselines congelados",
+        ["AlexNet · VGG19 · EfficientNet-B0 · ResNet-50 · ViT-B/16 · "
+         "SimSiam · DINOv2", "mismo split, mismos probes, mismas métricas "
+         "→ la diferencia es atribuible al backbone"], key="note",
+        title_size=9.0)
+    save(fig, "fig11_arquitectura_completa")
+
+
 if __name__ == "__main__":
     fig7()
     fig8()
     fig9()
     fig10()
+    fig11()
