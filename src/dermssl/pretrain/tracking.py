@@ -25,6 +25,7 @@ Usage on the cluster (rank 0):
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 
@@ -59,6 +60,10 @@ class MlflowTracker:
 
     def start(self, params: dict[str, Any]) -> None:
         if self._tracking_uri:
+            if self._tracking_uri.startswith("file:"):
+                # MLflow 3.x gates the filesystem backend behind this opt-in;
+                # without it set_experiment raises before the run even starts.
+                os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
             self._mlflow.set_tracking_uri(self._tracking_uri)
         self._mlflow.set_experiment(self._experiment)
         self._mlflow.start_run(run_name=self._run)

@@ -92,7 +92,8 @@ def test_summarize_returns_every_headline_metric():
     y = np.array([0, 1, 1, 0])
     proba = np.array([[0.7, 0.3], [0.2, 0.8], [0.4, 0.6], [0.9, 0.1]])
     out = m.summarize(y, proba, n_classes=2)
-    assert set(out) == {"macro_f1", "accuracy", "auc", "ece"}
+    assert set(out) == {"macro_f1", "accuracy", "balanced_accuracy",
+                        "macro_precision", "macro_recall", "auc", "ece"}
     assert out["accuracy"] == pytest.approx(1.0)
 
 
@@ -124,3 +125,44 @@ def test_mean_std_all_nan_is_safe():
     out = m.mean_std([float("nan")])
     assert out["n"] == 0
     assert np.isnan(out["mean"])
+
+
+def test_precision_per_class_hand_computed():
+    """y=[0,0,1,1], pred=[0,1,1,1] -> prec(class0)=1.0, prec(class1)=2/3."""
+    p = m.precision_per_class([0, 0, 1, 1], [0, 1, 1, 1], n_classes=2)
+    assert p[0] == pytest.approx(1.0)
+    assert p[1] == pytest.approx(2 / 3)
+
+
+def test_precision_class_never_predicted_scores_zero_not_nan():
+    p = m.precision_per_class([0, 0, 1], [0, 0, 0], n_classes=3)
+    assert p[1] == 0.0
+    assert p[2] == 0.0
+    assert not np.isnan(p).any()
+
+
+def test_macro_precision_and_recall():
+    y = [0, 0, 1, 1]
+    p = [0, 1, 1, 1]
+    assert m.macro_precision(y, p, 2) == pytest.approx((1.0 + 2 / 3) / 2)
+    assert m.macro_recall(y, p, 2) == pytest.approx((0.5 + 1.0) / 2)
+
+
+def test_balanced_accuracy_is_mean_recall():
+    """Predictor 'siempre clase 0' sobre clases desbalanceadas: acc alta,
+    balanced accuracy baja - la trampa que la metrica corrige."""
+    y = [0, 0, 0, 0, 0, 0, 1, 2]
+    p = [0, 0, 0, 0, 0, 0, 0, 0]
+    assert m.accuracy(y, p) == pytest.approx(0.75)
+    assert m.balanced_accuracy(y, p, 3) == pytest.approx(1 / 3)
+
+
+def test_summarize_includes_all_headline_metrics():
+    y = np.array([0, 0, 1, 1])
+    proba = np.array([[0.9, 0.1], [0.4, 0.6], [0.2, 0.8], [0.3, 0.7]])
+    out = m.summarize(y, proba, 2)
+    for key in ("macro_f1", "accuracy", "balanced_accuracy", "auc",
+                "macro_precision", "macro_recall", "ece"):
+        assert key in out, f"missing {key}"
+    assert out["balanced_accuracy"] == pytest.approx(
+        m.balanced_accuracy(y, proba.argmax(axis=1), 2))

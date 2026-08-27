@@ -98,3 +98,18 @@ def test_build_tracker_uses_mlflow_on_rank_zero():
         fake, experiment="exp", tracking_uri="", run="r1", rank=0
     )
     assert isinstance(tracker, tr.MlflowTracker)
+
+
+def test_file_store_optin_env_is_set_for_file_uri(monkeypatch):
+    """MLflow 3.x puts the filesystem backend behind MLFLOW_ALLOW_FILE_STORE;
+    without it, set_experiment raises on the cluster. The tracker must opt in
+    when (and only when) the URI is a file store."""
+    import os
+    monkeypatch.delenv("MLFLOW_ALLOW_FILE_STORE", raising=False)
+    fake = FakeMlflow()
+    tr.MlflowTracker(fake, "exp", "file:/scratch/mlruns", "run").start({})
+    assert os.environ.get("MLFLOW_ALLOW_FILE_STORE") == "true"
+
+    monkeypatch.delenv("MLFLOW_ALLOW_FILE_STORE", raising=False)
+    tr.MlflowTracker(fake, "exp", "http://server:5000", "run").start({})
+    assert "MLFLOW_ALLOW_FILE_STORE" not in os.environ

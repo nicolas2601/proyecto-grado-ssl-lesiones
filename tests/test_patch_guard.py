@@ -78,3 +78,12 @@ def test_invalid_mode_and_resolution_are_errors():
         pg.snap_to_patch(224, 14, "sideways")
     with pytest.raises(pg.PatchSizeError):
         pg.snap_to_patch(0, 14)
+
+
+def test_classic_cnns_have_no_patch_constraint():
+    """alexnet/vgg19/efficientnet_b0 are convolutional: any resolution is
+    valid and vgg19's trailing digits must not trigger the name heuristic."""
+    for name in ("alexnet", "vgg19", "efficientnet_b0"):
+        assert pg.patch_size_for(name) is None, name
+        res, _ = pg.resolve_resolution(224, name)
+        assert res == 224

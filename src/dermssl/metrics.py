@@ -66,6 +66,32 @@ def recall_per_class(y_true: np.ndarray, y_pred: np.ndarray, n_classes: int) -> 
         return np.where(support > 0, tp / support, 0.0)
 
 
+def precision_per_class(y_true: np.ndarray, y_pred: np.ndarray, n_classes: int) -> np.ndarray:
+    """Precision per class; classes never predicted score 0, not NaN."""
+    cm = confusion_matrix(y_true, y_pred, n_classes)
+    predicted = cm.sum(axis=0).astype(float)
+    tp = np.diag(cm).astype(float)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return np.where(predicted > 0, tp / predicted, 0.0)
+
+
+def macro_precision(y_true: np.ndarray, y_pred: np.ndarray, n_classes: int) -> float:
+    return float(precision_per_class(y_true, y_pred, n_classes).mean())
+
+
+def macro_recall(y_true: np.ndarray, y_pred: np.ndarray, n_classes: int) -> float:
+    return float(recall_per_class(y_true, y_pred, n_classes).mean())
+
+
+def balanced_accuracy(y_true: np.ndarray, y_pred: np.ndarray, n_classes: int) -> float:
+    """Mean per-class recall: immune to class imbalance, unlike plain accuracy.
+
+    Reference anchor: the official ISIC 2019 winner scored 63.6% on this
+    metric; plain accuracy on HAM10000 can hit 67% by always predicting nv.
+    """
+    return macro_recall(y_true, y_pred, n_classes)
+
+
 def _average_ranks(x: np.ndarray) -> np.ndarray:
     """Ranks starting at 1, with tied values sharing their average rank.
 
@@ -135,6 +161,9 @@ def summarize(y_true: np.ndarray, proba: np.ndarray, n_classes: int) -> dict:
     return {
         "macro_f1": macro_f1(y_true, pred, n_classes),
         "accuracy": accuracy(y_true, pred),
+        "balanced_accuracy": balanced_accuracy(y_true, pred, n_classes),
+        "macro_precision": macro_precision(y_true, pred, n_classes),
+        "macro_recall": macro_recall(y_true, pred, n_classes),
         "auc": auc_ovr_macro(y_true, proba),
         "ece": ece(y_true, proba),
     }

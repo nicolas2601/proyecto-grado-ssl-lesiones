@@ -24,6 +24,9 @@ KNOWN_PATCH_SIZES = {
     "vit_base_patch16_224": 16,
     "vit_small_patch16_224": 16,
     "resnet50": None,  # convolutional: no patch constraint
+    "alexnet": None,
+    "vgg19": None,  # trailing digits must not trip the name heuristic
+    "efficientnet_b0": None,
 }
 
 

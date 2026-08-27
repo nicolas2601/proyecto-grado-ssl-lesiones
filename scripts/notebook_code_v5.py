@@ -43,6 +43,9 @@ BACKBONES = [
     "ssl_dinov2_vits14",   # DINOv2 ViT-S/14 - barato, cabe en T4 de sobra
     "sup_vit_b16",         # ViT-B/16 ImageNet supervisado - CONTROL de arquitectura
     "sup_resnet50",        # ResNet-50 ImageNet supervisado - linea base de v4
+    "sup_alexnet",         # AlexNet 2012 - piso historico de la escalera
+    "sup_vgg19",           # VGG19 2014 - profundidad bruta (sin BN, como el paper)
+    "sup_effnet_b0",       # EfficientNet-B0 2019 - eficiencia (5.3M params)
 ]
 # Cinco probes. Los "_balanced" reponderan por frecuencia de clase: se reportan AL
 # LADO de los normales, no en su lugar, porque son estimadores distintos y cual
@@ -114,7 +117,9 @@ for row in describe_regimes(y_train, build_regimes(y_train, FRACTIONS, seed=SEED
     print(f"  {row['fraction']:>5.0%} -> {row['n_labels']:>5} etiquetas "
           f"({row['pct_of_train']:>5.1f}% del train) | clase mas chica: {row['min_class_count']}")'''
 
-BACKBONE_CODE = r'''from torchvision.models import (ResNet50_Weights, ViT_B_16_Weights, resnet50, vit_b_16)
+BACKBONE_CODE = r'''from torchvision.models import (
+    AlexNet_Weights, EfficientNet_B0_Weights, ResNet50_Weights, VGG19_Weights,
+    ViT_B_16_Weights, alexnet, efficientnet_b0, resnet50, vgg19, vit_b_16)
 
 BACKBONE_SPECS = {
     "ssl_dinov2_vits14": {"patch_name": "dinov2_vits14", "labels_used": 0,
@@ -127,7 +132,19 @@ BACKBONE_SPECS = {
                           "family": "cnn", "pretrain": "ImageNet-1k supervisado"},
     "ssl_simsiam_r50":   {"patch_name": "resnet50", "labels_used": 1_281_167,
                           "family": "cnn", "pretrain": "SimSiam sobre init ImageNet (v4)"},
+    "sup_alexnet":       {"patch_name": "alexnet", "labels_used": 1_281_167,
+                          "family": "cnn", "pretrain": "ImageNet-1k supervisado (variante 2014)"},
+    "sup_vgg19":         {"patch_name": "vgg19", "labels_used": 1_281_167,
+                          "family": "cnn", "pretrain": "ImageNet-1k supervisado"},
+    "sup_effnet_b0":     {"patch_name": "efficientnet_b0", "labels_used": 1_281_167,
+                          "family": "cnn", "pretrain": "ImageNet-1k supervisado (AutoAugment)"},
 }
+
+# Punto de extraccion unico para CNNs sin avgpool+fc integrados: GAP del ultimo
+# bloque convolucional (mismo protocolo que resnet50 con fc=Identity). Mezclar
+# fc7 (4096-d) en unas y pooling en otras compararia protocolos, no modelos.
+def _gap_wrapper(features_module):
+    return nn.Sequential(features_module, nn.AdaptiveAvgPool2d(1), nn.Flatten(1))
 
 def _load_dinov2(name, res):
     """Tres rutas, en orden de preferencia. Devuelve (modelo, como_se_cargo)."""
@@ -176,6 +193,15 @@ def build_frozen_backbone(key, res):
             model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)
             source = "torchvision/IMAGENET1K_V2"
         model.fc = nn.Identity()
+    elif key == "sup_alexnet":
+        model = _gap_wrapper(alexnet(weights=AlexNet_Weights.IMAGENET1K_V1).features)
+        source = "torchvision/IMAGENET1K_V1 (One-weird-trick 2014)"
+    elif key == "sup_vgg19":
+        model = _gap_wrapper(vgg19(weights=VGG19_Weights.IMAGENET1K_V1).features)
+        source = "torchvision/IMAGENET1K_V1 (sin BN, como el paper)"
+    elif key == "sup_effnet_b0":
+        model = _gap_wrapper(efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1).features)
+        source = "torchvision/IMAGENET1K_V1"
     else:
         raise ValueError(f"backbone desconocido: {key}")
 
@@ -201,10 +227,14 @@ print(f"\n[control de la trampa] 256 con parche 14 -> {resolve_resolution(256, '
 
 EXTRACT_CODE = r'''cache = FeatureCache(CACHE_DIR)
 
-def eval_transform(res):
+# EfficientNet-B0 fue entrenado con remuestreo BICUBIC; evaluarlo con BILINEAR
+# lo saca de su distribucion (regla: preprocesamiento por modelo, docs/17).
+INTERP_BY_BACKBONE = {"sup_effnet_b0": transforms.InterpolationMode.BICUBIC}
+
+def eval_transform(res, interp=transforms.InterpolationMode.BILINEAR):
     """Sin aumentos ni aleatoriedad: la extraccion debe ser reproducible."""
     return transforms.Compose([
-        transforms.Resize(int(res * 1.14)),
+        transforms.Resize(int(res * 1.14), interpolation=interp),
         transforms.CenterCrop(res),
         transforms.ToTensor(),
         transforms.Normalize(MEAN, STD),
@@ -227,8 +257,8 @@ class ImageIdDataset(Dataset):
         return self.tf(load_rgb(data.ham_images[image_id])), id2label[image_id]
 
 @torch.no_grad()
-def extract(model, ids, res):
-    dl = DataLoader(ImageIdDataset(ids, eval_transform(res)), batch_size=BATCH,
+def extract(model, ids, res, interp=transforms.InterpolationMode.BILINEAR):
+    dl = DataLoader(ImageIdDataset(ids, eval_transform(res, interp)), batch_size=BATCH,
                     shuffle=False, num_workers=NUM_WORKERS, pin_memory=True)
     feats, labels = [], []
     for images, batch_labels in dl:
@@ -245,6 +275,7 @@ def extract(model, ids, res):
 FEATURES, EXTRACTION_LOG = {}, []
 for key in BACKBONES:
     res = RES_BY_BACKBONE[key]
+    interp = INTERP_BY_BACKBONE.get(key, transforms.InterpolationMode.BILINEAR)
     keys = {s: cache_key(key, s, res, ids) for s, ids in (("train", tr_ids), ("val", va_ids))}
     need_gpu = not all(cache.has(k) for k in keys.values())
 
@@ -259,7 +290,7 @@ for key in BACKBONES:
     for split, ids in (("train", tr_ids), ("val", va_ids)):
         t0 = time.time()
         entry = cache.get_or_extract(
-            keys[split], lambda ids=ids, res=res: extract(model, ids, res),
+            keys[split], lambda ids=ids, res=res, interp=interp: extract(model, ids, res, interp),
             meta={"backbone": key, "split": split, "resolution": res, "source": source},
         )
         took = time.time() - t0
