@@ -49,15 +49,31 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 
 ## Arquitectura del sistema
 
-Vista completa end-to-end: los datos (pool sin etiquetas + HAM10000 etiquetado con split
-anti-fuga), el pre-entrenamiento SSL v6 (DINO continual + SimSiam desde cero, 100 % sin
-etiquetas) y la evaluación con backbone **congelado** (cero fine-tuning, 3 probes, métricas
-completas) contra los 7 baselines:
+![Arquitectura completa del sistema](assets/figuras/fig11_infografia_arquitectura.png)
 
-![Arquitectura completa del sistema](assets/figuras/fig11_arquitectura_completa.png)
+**Cómo leer la figura:**
 
-> Figuras de detalle (pipeline del banco de baselines, protocolo de test por modelo y
-> arquitecturas v6 por brazo) en
+1. **Datos** — el modelo aprende de ~48-70k imágenes de piel **sin diagnóstico**
+   (HAM10000 train + ISIC 2020) tras una etapa de transformación (skin tone Fitzpatrick,
+   constancia de color, crops por lesión, augmentation). Las 10 015 imágenes etiquetadas de
+   HAM10000 quedan reservadas **únicamente para el examen final**, con split anti-fuga por
+   `lesion_id` (cero lesiones compartidas entre train y val).
+2. **Pre-entrenamiento SSL (v6)** — dos estrategias compiten con el mismo presupuesto de
+   GPU: **DINO continual** (refinar el DINOv2 público con estudiante/profesor EMA y
+   multi-crop) vs. **SimSiam desde cero** (torres siamesas ResNet-50 con stop-gradient y
+   detector de colapso). Ninguna ve una sola etiqueta; tracking con MLflow.
+3. **Evaluación (protocolo v5)** — el backbone se **congela** (`requires_grad=False` +
+   `model.eval()` + `assert trainable == 0`) y se examina con 3 clasificadores ligeros
+   (kNN coseno, regresión logística, prototipos) y métricas completas, contra los mismos
+   7 baselines con idéntico split, probes y métricas: **la diferencia es atribuible solo
+   al backbone**.
+
+*Glosario: SSL = aprendizaje auto-supervisado (sin etiquetas) · EMA = promedio móvil
+exponencial · probe = clasificador ligero sobre features congeladas · ECE = error de
+calibración esperado.*
+
+> Figuras técnicas de detalle (pipeline del banco de baselines, protocolo de test por
+> modelo y arquitecturas v6 por brazo) en
 > [18 — Estructura visual y tests](docs/18-estructura-visual-y-tests-baseline.md).
 
 ## Índice de documentación
