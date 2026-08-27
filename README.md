@@ -98,8 +98,3 @@ balanced accuracy** — DINOv2 ViT-B/14 es 2º del banco y supera a todas las CN
 supervisadas. SimSiam-ImageNet, último, muestra que el SSL genérico débil no
 transfiere a dermatoscopia. **La pregunta del proyecto queda afilada: ¿puede el SSL
 específico de piel (v6) cerrar esos 0.011 y superar al supervisado sin etiquetas?**
-
-## Regla de oro del proyecto
-
-**Honestidad científica > número bonito.** Se reportan los límites, no se esconden.
-Es una herramienta de *apoyo*, nunca de diagnóstico final.
