@@ -26,18 +26,45 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
   domain-adaptive SUPERA a ImageNet** en macro-F1 (0.6907 ± 0.006 vs 0.6614 ± 0.004, Δ +0.0294, fuera
   del ruido) y en AUC → **valida la hipótesis del anteproyecto**. Modelo SSL entregable con **4/4 KPIs
   clínicos cumplidos**. Ver [**Informe**](INFORME.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
-- **Objetivo 2 · v5 (SSL puro):** 🔧 **construido y verificado, pendiente de correr.** Auditoría
-  del v4: su "SSL" arrancaba de pesos ImageNet supervisados y el fine-tune descongelaba todo, así
-  que **no era auto-supervisado puro**. v5 evalúa con el **backbone congelado** (DINOv2, cero
-  etiquetas en el extractor) + probes kNN/prototipos/linear en regímenes 1–100 %. 101 pruebas
-  automáticas en verde sin GPU. Ver [15 — Auditoría SSL puro y plan v5](docs/15-auditoria-ssl-puro-y-plan-v5.md).
-- **Siguiente hito:** correr v5 en Kaggle (`SMOKE=True` → real) + validación externa (ISIC 2019
-  multiclase, sobre el modelo exportado) → envío al director → pre-entrenamiento continuo de
-  DINOv2 en el clúster de la asesora.
+- **Objetivo 2 · v5 (SSL puro):** ✅ **corrido en Kaggle — el SSL gana 6/6.** Auditoría del v4:
+  su "SSL" arrancaba de pesos ImageNet supervisados, así que **no era auto-supervisado puro**.
+  v5 evalúa con el **backbone congelado** (DINOv2, cero etiquetas en el extractor) + probes
+  kNN/prototipos/linear: las features de DINOv2 superan a las supervisadas de ImageNet en las
+  6 comparaciones. Ver [15 — Auditoría SSL puro y plan v5](docs/15-auditoria-ssl-puro-y-plan-v5.md).
+- **Objetivo 2 · v6 (pre-entrenamiento propio en GPU):** 🔧 **construido, pendiente de cluster.**
+  Dos brazos 100 % sin etiquetas: DINOv2 continual (principal) + SimSiam desde cero (purista),
+  a igual presupuesto de GPU-horas, con MLflow. Ver [16 — Plan v6](docs/16-plan-v6-pretraining-gpu.md).
+  ⚠️ Fixes DDP pendientes antes de correr multi-GPU (documentados en Engram #1328).
+- **Banco de baselines (tarea de la dirección):** ✅ 7 modelos (AlexNet, VGG19, EfficientNet-B0,
+  ResNet-50, ViT-B/16, SimSiam, DINOv2) con **un notebook de test autocontenido por modelo**,
+  listos para Kaggle: [`notebooks/baselines/`](notebooks/baselines/README.md). Fichas y protocolo
+  en [17 — Modelos baseline](docs/17-modelos-baseline.docx) y
+  [18 — Estructura visual y tests](docs/18-estructura-visual-y-tests-baseline.md).
+- **Siguiente hito:** correr los 7 tests de baseline en Kaggle (`SMOKE` → real) → fixes DDP →
+  pre-entrenamiento v6 en el clúster de la asesora.
 
 > ⚠️ **Resultados preliminares.** Obtenidos con los **recursos actuales** (GPU T4 de estudiante,
 > dataset acotado) — no el modelo final. El entrenamiento definitivo (más cómputo, DINOv2/ViT,
 > validación externa) se hará con las GPUs de la UNAB. Aun así, esta corrida **valida la hipótesis**.
+
+## Pipeline visual
+
+**Banco de baselines** — 7 modelos evaluados con el mismo protocolo: backbone **congelado**
+(cero fine-tuning), 3 probes (kNN coseno, regresión logística balanceada, prototipos) sobre
+HAM10000 con split anti-fuga por `lesion_id`:
+
+![Pipeline del banco de baselines](assets/figuras/fig7_pipeline_banco.png)
+
+**Baseline vs. propuesta** — los supervisados son solo comparadores; la propuesta es
+**SSL puro**: las etiquetas entran únicamente en la evaluación, nunca al extractor:
+
+![Baseline vs propuesta SSL](assets/figuras/fig8_baseline_vs_proposal.png)
+
+**Arquitecturas v6** (pre-entrenamiento propio, pendiente de clúster):
+
+| DINOv2 continual (brazo principal) | SimSiam desde cero (brazo purista) |
+|---|---|
+| ![v6 DINOv2 continual](assets/figuras/fig9_v6_dino_continual.png) | ![v6 SimSiam](assets/figuras/fig10_v6_simsiam.png) |
 
 ## Índice de documentación
 
@@ -58,6 +85,9 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 | [13 — ¿Por qué estas decisiones?](docs/13-por-que-estas-decisiones.md) | **Por qué ResNet-50, SimSiam, etc.** |
 | [14 — Mejoras del pipeline](docs/14-mejoras-pipeline.md) | **LP-FT + LLRD + más datos → que el SSL gane** |
 | [15 — Auditoría SSL puro y plan v5](docs/15-auditoria-ssl-puro-y-plan-v5.md) | **Por qué v4 no es SSL puro, los cambios de v5, hardware, novedad** |
+| [16 — Plan v6 pre-entrenamiento GPU](docs/16-plan-v6-pretraining-gpu.md) | DINOv2 continual + SimSiam desde cero, MLflow, presupuesto GPU |
+| [17 — Modelos baseline](docs/17-modelos-baseline.docx) | Fichas de los 7 modelos del banco de comparación |
+| [18 — Estructura visual y tests baseline](docs/18-estructura-visual-y-tests-baseline.md) | **Figuras del pipeline + protocolo de los tests por modelo** |
 | [Informe](INFORME.md) | Resumen ejecutivo del avance |
 
 ## Estructura
@@ -69,8 +99,9 @@ proyecto-grado-ssl-lesiones/
 ├── docs/                        # Documentación 01..13
 ├── data/
 │   └── RESULTS_SUMMARY.json     # Datos crudos de la corrida
-├── assets/figuras/              # 8 figuras explicativas (PNG): ablación, linear probe, KPIs,
-│                                #   abstención, recall, calibración, Grad-CAM, reliability diagram
+├── assets/figuras/              # 12 figuras (PNG+SVG): ablación, linear probe, KPIs, abstención,
+│                                #   recall, calibración, Grad-CAM, reliability, pipeline del banco
+│                                #   de baselines, baseline vs propuesta, arquitecturas v6
 ├── results/
 │   └── generar_figuras.py       # Script reproducible de las figuras
 ├── src/dermssl/                 # Núcleo probado del pipeline v5 (solo numpy + stdlib)

@@ -1,6 +1,14 @@
 # 08 — Estado actual y próximos pasos
 
-_Última actualización: 2026-07-12 (corrida definitiva v4 ejecutada)._
+_Última actualización: 2026-08-24 (banco de baselines + tests por modelo)._
+
+> **Actualización 2026-08-24.** (1) v5 SSL-puro ya corrió en Kaggle: DINOv2 congelado gana 6/6
+> comparaciones contra ImageNet supervisado. (2) v6 (pre-entrenamiento propio, dos brazos SSL)
+> está construido con 190 tests en verde; pendiente de cluster y de los fixes DDP (Engram #1328).
+> (3) Banco de baselines completo: 7 modelos con un notebook de test autocontenido por modelo en
+> `notebooks/baselines/` (ver docs/17 y docs/18). Métricas ampliadas a todas las de literatura
+> (balanced accuracy, precision/recall macro, además de F1, AUC, accuracy, ECE).
+> Lo que sigue abajo es el estado histórico de la corrida v4.
 
 > ⚠️ **Resultados con recursos de estudiante** (T4, dataset acotado). El modelo definitivo escala con
 > las GPUs de la UNAB. Aun así, esta corrida **valida la hipótesis central del anteproyecto**.
