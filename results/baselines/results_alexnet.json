@@ -1,0 +1,66 @@
+{
+  "modelo": "alexnet",
+  "smoke": false,
+  "n_train": 8001,
+  "n_val": 2014,
+  "dim_features": 256,
+  "resolucion": 224,
+  "semilla": 42,
+  "split": "StratifiedGroupKFold por lesion_id (0 lesiones compartidas)",
+  "probes": {
+    "knn": {
+      "accuracy": 0.7537239324726912,
+      "balanced_accuracy": 0.4021950781394935,
+      "macro_f1": 0.4339538766125028,
+      "macro_precision": 0.5346812562868929,
+      "macro_recall": 0.4021950781394935,
+      "auc_ovr_macro": 0.874336116537865,
+      "ece": 0.027789499537542485,
+      "recall_por_clase": {
+        "akiec": 0.29411764705882354,
+        "bcc": 0.59,
+        "bkl": 0.3804878048780488,
+        "df": 0.0,
+        "mel": 0.35135135135135137,
+        "nv": 0.9347028613352898,
+        "vasc": 0.2647058823529412
+      }
+    },
+    "logreg": {
+      "accuracy": 0.6663356504468719,
+      "balanced_accuracy": 0.5892037935301329,
+      "macro_f1": 0.4928945844907547,
+      "macro_precision": 0.44959202884063393,
+      "macro_recall": 0.5892037935301329,
+      "auc_ovr_macro": 0.8961311591237063,
+      "ece": 0.07925014652199024,
+      "recall_por_clase": {
+        "akiec": 0.5882352941176471,
+        "bcc": 0.71,
+        "bkl": 0.5560975609756098,
+        "df": 0.2727272727272727,
+        "mel": 0.5900900900900901,
+        "nv": 0.7013939838591343,
+        "vasc": 0.7058823529411765
+      }
+    },
+    "prototype": {
+      "accuracy": 0.4940417080436941,
+      "balanced_accuracy": 0.482210854428713,
+      "macro_f1": 0.3512196749075627,
+      "macro_precision": 0.3360307507230411,
+      "macro_recall": 0.482210854428713,
+      "auc_ovr_macro": 0.8260716425490476,
+      "ece": 0.2685044152290369,
+      "recall_por_clase": {
+        "akiec": 0.5,
+        "bcc": 0.58,
+        "bkl": 0.2,
+        "df": 0.18181818181818182,
+        "mel": 0.5405405405405406,
+        "nv": 0.5201760821716801,
+        "vasc": 0.8529411764705882
+      }
+    }
+  }
+}
