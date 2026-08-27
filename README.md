@@ -99,7 +99,7 @@ proyecto-grado-ssl-lesiones/
 ├── docs/                        # Documentación 01..13
 ├── data/
 │   └── RESULTS_SUMMARY.json     # Datos crudos de la corrida
-├── assets/figuras/              # 12 figuras (PNG+SVG): ablación, linear probe, KPIs, abstención,
+├── assets/figuras/              # 12 figuras (PNG 300 DPI): ablación, linear probe, KPIs, abstención,
 │                                #   recall, calibración, Grad-CAM, reliability, pipeline del banco
 │                                #   de baselines, baseline vs propuesta, arquitecturas v6
 ├── results/
