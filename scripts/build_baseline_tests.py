@@ -21,6 +21,7 @@ MODELS = [
     "vit_b16",
     "simsiam_r50",
     "dinov2_vits14",
+    "dinov2_vitb14",
 ]
 
 TITLES = {
@@ -31,12 +32,14 @@ TITLES = {
     "vit_b16": "ViT-B/16 (2021) — supervisado (Attention-Transformer)",
     "simsiam_r50": "SimSiam ResNet-50 (2021) — SSL sobre ImageNet-1k sin etiquetas",
     "dinov2_vits14": "DINOv2 ViT-S/14 (2023) — SSL sobre LVD-142M",
+    "dinov2_vitb14": "DINOv2 ViT-B/14 (2023) — SSL sobre LVD-142M "
+                     "(par justo de tamano vs ViT-B/16 supervisado)",
 }
 
 HEADER_MD = """\
 # Test de baseline: {title}
 
-Protocolo identico para los 7 modelos del banco de pruebas (Objetivo 2):
+Protocolo identico para los 8 modelos del banco de pruebas (Objetivo 2):
 backbone **congelado** (cero fine-tuning) sobre **HAM10000**, split por
 `lesion_id` (anti-fuga), tres probes (kNN, regresion logistica, prototipos)
 y todas las metricas: accuracy, balanced accuracy, F1 macro, precision macro,
@@ -157,6 +160,15 @@ def load_backbone(name):
         except Exception as exc:
             print("timm fallo, uso torch.hub:", exc)
             return torch.hub.load("facebookresearch/dinov2", "dinov2_vits14",
+                                  trust_repo=True)
+    if name == "dinov2_vitb14":
+        try:
+            import timm
+            return timm.create_model("vit_base_patch14_dinov2.lvd142m",
+                                     pretrained=True, num_classes=0, img_size=RES)
+        except Exception as exc:
+            print("timm fallo, uso torch.hub:", exc)
+            return torch.hub.load("facebookresearch/dinov2", "dinov2_vitb14",
                                   trust_repo=True)
     raise ValueError(name)
 

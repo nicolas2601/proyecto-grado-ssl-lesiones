@@ -2,10 +2,10 @@
 
 Una carpeta por modelo de la tabla del equipo. Cada notebook es autocontenido:
 se sube UN archivo a Kaggle y corre el test completo de ese modelo, con el
-mismo protocolo para los siete (asi los numeros son comparables entre si).
+mismo protocolo para los ocho (asi los numeros son comparables entre si).
 
 Generados por `scripts/build_baseline_tests.py` — no editar a mano; para
-cambiar el protocolo se edita el builder y se regeneran los siete.
+cambiar el protocolo se edita el builder y se regeneran los ocho.
 
 ## Modelos
 
@@ -18,6 +18,7 @@ cambiar el protocolo se edita el builder y se regeneran los siete.
 | `vit_b16/` | ViT-B/16 (2021) | Supervisado | ImageNet-1k (torchvision) |
 | `simsiam_r50/` | SimSiam ResNet-50 (2021) | SSL | ImageNet-1k sin etiquetas |
 | `dinov2_vits14/` | DINOv2 ViT-S/14 (2023) | SSL | LVD-142M sin etiquetas |
+| `dinov2_vitb14/` | DINOv2 ViT-B/14 (2023) | SSL | LVD-142M sin etiquetas — par justo de tamano vs ViT-B/16 |
 
 Los supervisados son comparadores congelados. El proposal del proyecto es
 full SSL: las etiquetas solo se usan en la evaluacion (probes y metricas),
@@ -41,7 +42,7 @@ nunca en el preentrenamiento de nuestro modelo.
    la UI en local: `MLFLOW_ALLOW_FILE_STORE=true mlflow ui --backend-store-uri
    file:mlruns` (MLflow 3.x exige ese opt-in para el file store).
 
-## Hiperparametros y configuracion (identicos en los siete tests)
+## Hiperparametros y configuracion (identicos en los ocho tests)
 
 Todos quedan registrados en el JSON de salida y en MLflow por cada corrida.
 
@@ -70,8 +71,9 @@ Checkpoints por modelo (pesos exactos, verificables):
 | ViT-B/16 | torchvision `ViT_B_16_Weights.IMAGENET1K_V1` |
 | SimSiam | oficial Facebook `checkpoint_0099.pth.tar` (100 ep, batch 256) |
 | DINOv2 ViT-S/14 | timm `vit_small_patch14_dinov2.lvd142m` (fallback torch.hub) |
+| DINOv2 ViT-B/14 | timm `vit_base_patch14_dinov2.lvd142m` (fallback torch.hub) |
 
-## Protocolo (identico en los siete — no cambiar por modelo)
+## Protocolo (identico en los ocho — no cambiar por modelo)
 
 - Backbone congelado: `requires_grad=False` + `model.eval()` (BatchNorm no se
   congela solo con requires_grad).
@@ -89,3 +91,29 @@ Checkpoints por modelo (pesos exactos, verificables):
   ground truth real (`andrewmvd/isic-2019`); los datasets "RESIZED" solo traen
   target binario (gotcha documentado en docs/15 y Engram). Se hara como
   variante del builder cuando el equipo confirme el dataset.
+
+## Resultados de la corrida real (2026-08-27, SMOKE=False, seed 42)
+
+Mejor probe = regresion logistica en todos. JSONs completos en `results/baselines/`.
+
+| # | Modelo | Tipo | dims | bal_acc | F1 macro | AUC |
+|---|---|---|---|---|---|---|
+| 1 | ViT-B/16 | Supervisado | 768 | **0.629** | **0.605** | **0.933** |
+| 2 | AlexNet | Supervisado | 256 | 0.589 | 0.493 | 0.896 |
+| 3 | EfficientNet-B0 | Supervisado | 1280 | 0.586 | 0.546 | 0.917 |
+| 4 | DINOv2 ViT-S/14 | SSL | 384 | 0.575 | 0.547 | 0.905 |
+| 5 | ResNet-50 | Supervisado | 2048 | 0.572 | 0.528 | 0.908 |
+| 6 | VGG19 | Supervisado | 512 | 0.515 | 0.415 | 0.870 |
+| 7 | SimSiam R50 | SSL | 2048 | 0.494 | 0.317 | 0.829 |
+
+Ancla de literatura: Gessert (ganador ISIC 2019) = 0.636 balanced accuracy.
+
+Lecturas clave:
+- Ningun backbone generico congelado alcanza el ancla; ViT-B/16 queda a 0.007.
+- DINOv2 ViT-S/14 iguala o supera en F1 a todas las CNN supervisadas siendo 4x
+  mas chico (21M params, 384 dims). La comparacion justa de tamano contra
+  ViT-B/16 (86M) es el test `dinov2_vitb14/` (pendiente de correr).
+- SimSiam-ImageNet es el peor del banco: el SSL generico de ImageNet no
+  transfiere a dermatoscopia. Motiva el v6: pre-entrenar SSL EN piel.
+- kNN colapsa hacia `nv` en todos los modelos (desbalance 58:1); `df` (115
+  imgs) es la clase debil transversal.

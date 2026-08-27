@@ -35,12 +35,12 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
   Dos brazos 100 % sin etiquetas: DINOv2 continual (principal) + SimSiam desde cero (purista),
   a igual presupuesto de GPU-horas, con MLflow. Ver [16 — Plan v6](docs/16-plan-v6-pretraining-gpu.md).
   ⚠️ Fixes DDP pendientes antes de correr multi-GPU (documentados en Engram #1328).
-- **Banco de baselines (tarea de la dirección):** ✅ 7 modelos (AlexNet, VGG19, EfficientNet-B0,
-  ResNet-50, ViT-B/16, SimSiam, DINOv2) con **un notebook de test autocontenido por modelo**,
-  listos para Kaggle: [`notebooks/baselines/`](notebooks/baselines/README.md). Fichas y protocolo
-  en [17 — Modelos baseline](docs/17-modelos-baseline.docx) y
-  [18 — Estructura visual y tests](docs/18-estructura-visual-y-tests-baseline.md).
-- **Siguiente hito:** correr los 7 tests de baseline en Kaggle (`SMOKE` → real) → fixes DDP →
+- **Banco de baselines (tarea de la dirección):** ✅ **CORRIDO en Kaggle (2026-08-27).** 7 modelos
+  evaluados con backbone congelado + un 8º test generado (DINOv2 ViT-B/14, par justo de tamaño).
+  **Mejor baseline: ViT-B/16 (bal_acc 0.629)**, a 0.007 del ancla de Gessert (0.636); SimSiam-ImageNet
+  último → el SSL genérico no transfiere a piel, lo que motiva el v6. Tabla completa abajo y en
+  [`notebooks/baselines/`](notebooks/baselines/README.md); JSONs en `results/baselines/`.
+- **Siguiente hito:** correr `dinov2_vitb14` en Kaggle → fixes DDP →
   pre-entrenamiento v6 en el clúster de la asesora.
 
 > ⚠️ **Resultados preliminares.** Obtenidos con los **recursos actuales** (GPU T4 de estudiante,
@@ -75,6 +75,28 @@ calibración esperado.*
 > Figuras técnicas de detalle (pipeline del banco de baselines, protocolo de test por
 > modelo y arquitecturas v6 por brazo) en
 > [18 — Estructura visual y tests](docs/18-estructura-visual-y-tests-baseline.md).
+
+## Resultados del banco de baselines (Kaggle, 2026-08-27)
+
+Corrida real (SMOKE=False) sobre HAM10000, split anti-fuga por `lesion_id`, seed 42.
+Mejor probe = regresión logística en los 7. Ancla: Gessert, ganador ISIC 2019 = **0.636**.
+
+| # | Modelo | Tipo | bal_acc | F1 macro | AUC |
+|---|---|---|---|---|---|
+| 1 | ViT-B/16 | Supervisado | **0.629** | **0.605** | **0.933** |
+| 2 | AlexNet | Supervisado | 0.589 | 0.493 | 0.896 |
+| 3 | EfficientNet-B0 | Supervisado | 0.586 | 0.546 | 0.917 |
+| 4 | DINOv2 ViT-S/14 | SSL | 0.575 | 0.547 | 0.905 |
+| 5 | ResNet-50 | Supervisado | 0.572 | 0.528 | 0.908 |
+| 6 | VGG19 | Supervisado | 0.515 | 0.415 | 0.870 |
+| 7 | SimSiam R50 | SSL | 0.494 | 0.317 | 0.829 |
+
+Lectura: ningún backbone genérico congelado alcanza el estado del arte. DINOv2 ViT-S/14
+iguala en F1 a los mejores supervisados siendo 4× más pequeño (21M params, 384 dims);
+la comparación justa de tamaño (DINOv2 **ViT-B/14** vs ViT-B/16) está generada en
+`notebooks/baselines/dinov2_vitb14/` y pendiente de correr. SimSiam-ImageNet, último del
+banco, muestra que el SSL genérico no transfiere a dermatoscopia: **la pregunta del
+proyecto es si el SSL específico de piel (v6) cierra la brecha sin etiquetas.**
 
 ## Índice de documentación
 

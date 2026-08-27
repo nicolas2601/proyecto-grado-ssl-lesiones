@@ -79,3 +79,18 @@ automáticas que corren sin GPU. Detalle completo en
 > Nota: los macro-F1 de v4 (~0.69) no son comparables 1-a-1 con los de v2 (~0.74) — v4 usa 15 épocas
 > de fine-tune (LP-FT) vs 20 del full fine-tune de v2. Lo que importa es la **comparación pareada**
 > SSL vs ImageNet en las MISMAS condiciones, donde el SSL gana.
+
+## Actualización 2026-08-27 — banco de baselines corrido
+
+Los 7 tests del banco corrieron en Kaggle (SMOKE=False, HAM10000, split por
+`lesion_id`, seed 42). Resultados completos en `results/baselines/` y tabla en
+el README principal y en `notebooks/baselines/README.md`.
+
+Titulares: ViT-B/16 supervisado gana (bal_acc 0.629, a 0.007 del ancla Gessert
+0.636); DINOv2 ViT-S/14 es el mejor SSL (0.575, F1 0.547 igualando a los
+supervisados grandes con 4x menos parámetros); SimSiam-ImageNet es el peor del
+banco (0.494) — el SSL genérico no transfiere a dermatoscopia, lo que refuerza
+la hipótesis del v6 (pre-entrenar SSL en piel).
+
+Nuevo: test `dinov2_vitb14` generado (par justo de tamaño vs ViT-B/16),
+pendiente de correr en Kaggle.
