@@ -94,3 +94,11 @@ la hipótesis del v6 (pre-entrenar SSL en piel).
 
 Nuevo: test `dinov2_vitb14` generado (par justo de tamaño vs ViT-B/16),
 pendiente de correr en Kaggle.
+
+### Corrida del 8º test (dinov2_vitb14, mismo día)
+
+DINOv2 ViT-B/14 (SSL, 86M params — mismo tamaño que el ganador supervisado):
+bal_acc 0.618, F1 0.595, AUC 0.907 → **2º del banco**. A igual tamaño, el
+supervisado ViT-B/16 retiene el 1º por solo 0.011 de balanced accuracy. El SSL
+genérico casi empata sin haber visto una etiqueta; la brecha que el v6 debe
+cerrar con SSL específico de piel es mínima y medible.

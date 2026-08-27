@@ -94,25 +94,26 @@ Checkpoints por modelo (pesos exactos, verificables):
 
 ## Resultados de la corrida real (2026-08-27, SMOKE=False, seed 42)
 
-Mejor probe = regresion logistica en todos. JSONs completos en `results/baselines/`.
+Mejor probe = regresion logistica en los 8. JSONs completos en `results/baselines/`.
 
 | # | Modelo | Tipo | dims | bal_acc | F1 macro | AUC |
 |---|---|---|---|---|---|---|
 | 1 | ViT-B/16 | Supervisado | 768 | **0.629** | **0.605** | **0.933** |
-| 2 | AlexNet | Supervisado | 256 | 0.589 | 0.493 | 0.896 |
-| 3 | EfficientNet-B0 | Supervisado | 1280 | 0.586 | 0.546 | 0.917 |
-| 4 | DINOv2 ViT-S/14 | SSL | 384 | 0.575 | 0.547 | 0.905 |
-| 5 | ResNet-50 | Supervisado | 2048 | 0.572 | 0.528 | 0.908 |
-| 6 | VGG19 | Supervisado | 512 | 0.515 | 0.415 | 0.870 |
-| 7 | SimSiam R50 | SSL | 2048 | 0.494 | 0.317 | 0.829 |
+| 2 | DINOv2 ViT-B/14 | SSL | 0.618 | 0.595 | 0.907 |
+| 3 | AlexNet | Supervisado | 256 | 0.589 | 0.493 | 0.896 |
+| 4 | EfficientNet-B0 | Supervisado | 1280 | 0.586 | 0.546 | 0.917 |
+| 5 | DINOv2 ViT-S/14 | SSL | 384 | 0.575 | 0.547 | 0.905 |
+| 6 | ResNet-50 | Supervisado | 2048 | 0.572 | 0.528 | 0.908 |
+| 7 | VGG19 | Supervisado | 512 | 0.515 | 0.415 | 0.870 |
+| 8 | SimSiam R50 | SSL | 2048 | 0.494 | 0.317 | 0.829 |
 
 Ancla de literatura: Gessert (ganador ISIC 2019) = 0.636 balanced accuracy.
 
 Lecturas clave:
 - Ningun backbone generico congelado alcanza el ancla; ViT-B/16 queda a 0.007.
-- DINOv2 ViT-S/14 iguala o supera en F1 a todas las CNN supervisadas siendo 4x
-  mas chico (21M params, 384 dims). La comparacion justa de tamano contra
-  ViT-B/16 (86M) es el test `dinov2_vitb14/` (pendiente de correr).
+- A igual tamano (86M), DINOv2 ViT-B/14 (SSL) queda a 0.011 del ViT-B/16
+  supervisado y supera a todas las CNN supervisadas. El ViT-S/14 (21M, 384d)
+  iguala en F1 a los supervisados grandes siendo 4x mas chico.
 - SimSiam-ImageNet es el peor del banco: el SSL generico de ImageNet no
   transfiere a dermatoscopia. Motiva el v6: pre-entrenar SSL EN piel.
 - kNN colapsa hacia `nv` en todos los modelos (desbalance 58:1); `df` (115
