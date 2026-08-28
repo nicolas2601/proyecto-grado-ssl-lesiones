@@ -30,10 +30,39 @@ logistica, compuertas G0-G2.
    lesion y artefactos del dermatoscopio supera al generalista congelado que
    gano en v5.
 
-2. Brazo purista, SimSiam desde inicializacion aleatoria. ResNet-50 sin ningun
-   peso externo, entrenado solo con el pool. Se espera que pierda (48-70 mil
-   imagenes contra 142 millones); reportarlo con numeros es parte del aporte,
-   porque acota que consigue el SSL con recursos y datos propios unicamente.
+2. Brazo purista, DINO desde inicializacion aleatoria (`dino_scratch`).
+   El mismo ViT-S/14 y el mismo objetivo DINO del brazo principal, pero sin
+   ningun peso externo. Al compartir arquitectura y objetivo, la comparacion
+   contra el brazo 1 aisla UNA sola variable: los pesos de partida. La
+   diferencia medida es entonces atribuible exactamente a lo que aportan las
+   142M de imagenes externas, con todo lo demas constante. Se espera que
+   pierda (48-70 mil imagenes contra 142 millones); reportarlo con numeros es
+   parte del aporte, porque acota que consigue el SSL con recursos y datos
+   propios unicamente. Nota de decision: este brazo reemplaza al SimSiam
+   ResNet-50 como purista principal a sugerencia del director. La razon
+   defendible no es que ResNet "no sea SSL" (con init aleatoria es
+   estrictamente libre de etiquetas); es que SimSiam-ResNet diferia del brazo
+   1 en tres variables a la vez (arquitectura, objetivo e inicializacion) y
+   la comparacion quedaba confundida. Riesgo asumido: un ViT desde cero con
+   este pool entrena mal (el DINO original uso 1.28M de imagenes); el
+   indicador de colapso en MLflow lo hace visible temprano.
+
+3. Brazo de ablacion opcional, SimSiam desde inicializacion aleatoria.
+   ResNet-50 sin pesos externos (la receta validada de Chen & He 2021 a
+   pequena escala). Se corre solo si sobra presupuesto de GPU-horas; aporta
+   un segundo punto purista con otra familia de arquitectura y otro objetivo.
+
+4. Metodo propuesto de la tesis (`simsiam_dinov2`, tabla del documento 17):
+   el objetivo SimSiam sobre el backbone DINOv2 ViT-S/14, partiendo de los
+   pesos publicos libres de etiquetas. La apuesta: un objetivo de dos vistas
+   (sin multi-crop, sin cabeza teacher) hace la adaptacion continua mas
+   barata en computo que DINO completo, con la misma garantia libre de
+   etiquetas de punta a punta. Comparado contra el brazo 1 a igual
+   presupuesto, la pregunta es si el objetivo simple alcanza al complejo
+   cuando ambos parten de los mismos pesos. Riesgo declarado: SimSiam sin
+   teacher-EMA ni centering es mas propenso al colapso sobre ViT; el
+   indicador de desviacion estandar del embedding en MLflow lo detecta
+   temprano, y un colapso documentado tambien es resultado.
 
 La condicion de comparacion es a igual presupuesto de computo (GPU-horas), no
 a igual numero de epocas. Cada corrida guarda checkpoints del backbone en

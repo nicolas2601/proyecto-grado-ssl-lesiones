@@ -23,8 +23,10 @@ tabla con el mismo protocolo.
 
 Flujo de cada test de baseline (Input -> Classifier congelado -> Output ->
 metricas) y flujo del proposal (Input sin etiquetas -> Transformation Skin
-Tone -> Classifier SSL de dos brazos -> Output). La invariante: el proposal
-es 100% auto-supervisado; las etiquetas existen unicamente en la evaluacion.
+Tone -> Pre-entrenamiento SSL -> Output). El metodo propuesto es SimSiam
+sobre DINOv2 (`simsiam_dinov2`); DINO continual y los brazos desde cero son
+la comparacion (doc 16, seccion 2). La invariante: el proposal es 100%
+auto-supervisado; las etiquetas existen unicamente en la evaluacion.
 
 ## 3. Estructura de la red v6 - brazo principal (DINO continual)
 
@@ -35,14 +37,18 @@ Estudiante y profesor comparten arquitectura (DINOv2 ViT-S/14 + cabeza DINO
 el profesor es un EMA del estudiante con centering + sharpening (la receta
 DINO contra el colapso). El entregable es el backbone del estudiante.
 
-## 4. Estructura de la red v6 - brazo purista (SimSiam)
+## 4. Estructura de la red v6 - metodo propuesto (SimSiam sobre DINOv2)
 
-![SimSiam](../assets/figuras/fig10_v6_simsiam.png)
+![SimSiam sobre DINOv2](../assets/figuras/fig10_v6_simsiam.png)
 
-ResNet-50 desde inicializacion aleatoria (cero pesos externos), projector de
-3 capas y predictor con cuello de botella. Loss de coseno negativo
-simetrizada con stop-gradient. Se monitorea el indicador de colapso (std del
-embedding L2-normalizado, sano ~0.022) desde la epoca 1.
+El metodo propuesto de la tesis: backbone DINOv2 ViT-S/14 con los pesos
+publicos libres de etiquetas, projector de 3 capas y predictor con cuello de
+botella (la receta SimSiam). Loss de coseno negativo simetrizada con
+stop-gradient. Se monitorea el indicador de colapso (std del embedding
+L2-normalizado) desde la epoca 1 — SimSiam sin teacher-EMA es mas propenso
+al colapso que DINO. La ablacion opcional usa la misma estructura con
+ResNet-50 aleatorio (cero pesos externos); el brazo `dino_scratch` usa la
+estructura de la figura 9 con init aleatoria (doc 16, seccion 2).
 
 ## 5. Tests por modelo, listos para Kaggle
 
