@@ -96,16 +96,20 @@ Checkpoints por modelo (pesos exactos, verificables):
 
 Mejor probe = regresion logistica en los 8. JSONs completos en `results/baselines/`.
 
-| # | Modelo | Tipo | dims | bal_acc | F1 macro | AUC |
-|---|---|---|---|---|---|---|
-| 1 | ViT-B/16 | Supervisado | 768 | **0.629** | **0.605** | **0.933** |
-| 2 | DINOv2 ViT-B/14 | SSL | 0.618 | 0.595 | 0.907 |
-| 3 | AlexNet | Supervisado | 256 | 0.589 | 0.493 | 0.896 |
-| 4 | EfficientNet-B0 | Supervisado | 1280 | 0.586 | 0.546 | 0.917 |
-| 5 | DINOv2 ViT-S/14 | SSL | 384 | 0.575 | 0.547 | 0.905 |
-| 6 | ResNet-50 | Supervisado | 2048 | 0.572 | 0.528 | 0.908 |
-| 7 | VGG19 | Supervisado | 512 | 0.515 | 0.415 | 0.870 |
-| 8 | SimSiam R50 | SSL | 2048 | 0.494 | 0.317 | 0.829 |
+| # | Modelo | Tipo | dims | acc | bal_acc | F1 macro | Prec macro | Recall macro | AUC | ECE |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | ViT-B/16 | Supervisado | 768 | 0.761 | **0.629** | **0.605** | 0.601 | 0.629 | **0.933** | 0.115 |
+| 2 | DINOv2 ViT-B/14 | SSL | 768 | 0.747 | 0.618 | 0.595 | 0.598 | 0.618 | 0.907 | 0.162 |
+| 3 | AlexNet | Supervisado | 256 | 0.666 | 0.589 | 0.493 | 0.450 | 0.589 | 0.896 | 0.079 |
+| 4 | EfficientNet-B0 | Supervisado | 1280 | 0.734 | 0.586 | 0.546 | 0.519 | 0.586 | 0.917 | 0.125 |
+| 5 | DINOv2 ViT-S/14 | SSL | 384 | 0.711 | 0.575 | 0.547 | 0.543 | 0.575 | 0.905 | 0.149 |
+| 6 | ResNet-50 | Supervisado | 2048 | 0.731 | 0.572 | 0.528 | 0.498 | 0.572 | 0.908 | 0.097 |
+| 7 | VGG19 | Supervisado | 512 | 0.618 | 0.515 | 0.415 | 0.377 | 0.515 | 0.870 | 0.071 |
+| 8 | SimSiam R50 | SSL | 2048 | 0.490 | 0.494 | 0.317 | 0.335 | 0.494 | 0.829 | 0.247 |
+
+Tablas de bal_acc por probe (kNN/logreg/prototipos) y recall por las 7 clases:
+ver la seccion de resultados del README principal del repo. Fuente de todo:
+los JSON de `results/baselines/`.
 
 Ancla de literatura: Gessert (ganador ISIC 2019) = 0.636 balanced accuracy.
 

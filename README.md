@@ -78,19 +78,49 @@ calibración esperado.*
 
 ## Resultados del banco de baselines (Kaggle, 2026-08-27)
 
-Corrida real (SMOKE=False) sobre HAM10000, split anti-fuga por `lesion_id`, seed 42.
-Mejor probe = regresión logística en los 8. Ancla: Gessert, ganador ISIC 2019 = **0.636**.
+Corrida real (SMOKE=False) sobre HAM10000 (8.001 train / 2.014 val, resolución 224,
+split anti-fuga `StratifiedGroupKFold` por `lesion_id` con 0 lesiones compartidas),
+seed 42. Mejor probe = regresión logística en los 8. Ancla: Gessert, ganador
+ISIC 2019 = **0.636**. JSONs completos en `results/baselines/`.
 
-| # | Modelo | Tipo | bal_acc | F1 macro | AUC |
-|---|---|---|---|---|---|
-| 1 | ViT-B/16 | Supervisado | **0.629** | **0.605** | **0.933** |
-| 2 | DINOv2 ViT-B/14 | SSL | 0.618 | 0.595 | 0.907 |
-| 3 | AlexNet | Supervisado | 0.589 | 0.493 | 0.896 |
-| 4 | EfficientNet-B0 | Supervisado | 0.586 | 0.546 | 0.917 |
-| 5 | DINOv2 ViT-S/14 | SSL | 0.575 | 0.547 | 0.905 |
-| 6 | ResNet-50 | Supervisado | 0.572 | 0.528 | 0.908 |
-| 7 | VGG19 | Supervisado | 0.515 | 0.415 | 0.870 |
-| 8 | SimSiam R50 | SSL | 0.494 | 0.317 | 0.829 |
+### Métricas completas (mejor probe: regresión logística)
+
+| # | Modelo | Tipo | dims | acc | bal_acc | F1 macro | Prec macro | Recall macro | AUC | ECE |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | ViT-B/16 | Supervisado | 768 | 0.761 | **0.629** | **0.605** | 0.601 | 0.629 | **0.933** | 0.115 |
+| 2 | DINOv2 ViT-B/14 | SSL | 768 | 0.747 | 0.618 | 0.595 | 0.598 | 0.618 | 0.907 | 0.162 |
+| 3 | AlexNet | Supervisado | 256 | 0.666 | 0.589 | 0.493 | 0.450 | 0.589 | 0.896 | 0.079 |
+| 4 | EfficientNet-B0 | Supervisado | 1280 | 0.734 | 0.586 | 0.546 | 0.519 | 0.586 | 0.917 | 0.125 |
+| 5 | DINOv2 ViT-S/14 | SSL | 384 | 0.711 | 0.575 | 0.547 | 0.543 | 0.575 | 0.905 | 0.149 |
+| 6 | ResNet-50 | Supervisado | 2048 | 0.731 | 0.572 | 0.528 | 0.498 | 0.572 | 0.908 | 0.097 |
+| 7 | VGG19 | Supervisado | 512 | 0.618 | 0.515 | 0.415 | 0.377 | 0.515 | 0.870 | 0.071 |
+| 8 | SimSiam R50 | SSL | 2048 | 0.490 | 0.494 | 0.317 | 0.335 | 0.494 | 0.829 | 0.247 |
+
+### Balanced accuracy por probe (los tres evaluadores congelados)
+
+| Modelo | kNN | LogReg | Prototipos |
+|---|---|---|---|
+| ViT-B/16 | 0.312 | 0.629 | 0.514 |
+| DINOv2 ViT-B/14 | 0.311 | 0.618 | 0.458 |
+| AlexNet | 0.402 | 0.589 | 0.482 |
+| EfficientNet-B0 | 0.328 | 0.586 | 0.475 |
+| DINOv2 ViT-S/14 | 0.318 | 0.575 | 0.499 |
+| ResNet-50 | 0.328 | 0.572 | 0.437 |
+| VGG19 | 0.265 | 0.515 | 0.405 |
+| SimSiam R50 | 0.338 | 0.494 | 0.491 |
+
+### Recall por clase (regresión logística)
+
+| Modelo | akiec | bcc | bkl | df | mel | nv | vasc |
+|---|---|---|---|---|---|---|---|
+| ViT-B/16 | 0.618 | 0.700 | 0.629 | 0.318 | 0.608 | 0.826 | 0.706 |
+| DINOv2 ViT-B/14 | 0.574 | 0.770 | 0.615 | 0.273 | 0.545 | 0.814 | 0.735 |
+| AlexNet | 0.588 | 0.710 | 0.556 | 0.273 | 0.590 | 0.701 | 0.706 |
+| EfficientNet-B0 | 0.603 | 0.760 | 0.580 | 0.136 | 0.505 | 0.810 | 0.706 |
+| DINOv2 ViT-S/14 | 0.515 | 0.640 | 0.580 | 0.273 | 0.532 | 0.782 | 0.706 |
+| ResNet-50 | 0.412 | 0.670 | 0.571 | 0.182 | 0.631 | 0.801 | 0.735 |
+| VGG19 | 0.471 | 0.520 | 0.478 | 0.182 | 0.514 | 0.674 | 0.765 |
+| SimSiam R50 | 0.647 | 0.610 | 0.151 | 0.273 | 0.459 | 0.525 | 0.794 |
 
 Lectura: ningún backbone genérico congelado alcanza el estado del arte. **A igual
 tamaño (86M params), el ViT supervisado aún gana al SSL genérico por solo 0.011 de
@@ -98,3 +128,16 @@ balanced accuracy** — DINOv2 ViT-B/14 es 2º del banco y supera a todas las CN
 supervisadas. SimSiam-ImageNet, último, muestra que el SSL genérico débil no
 transfiere a dermatoscopia. **La pregunta del proyecto queda afilada: ¿puede el SSL
 específico de piel (v6) cerrar esos 0.011 y superar al supervisado sin etiquetas?**
+
+Lecturas adicionales de las tablas completas:
+
+- **kNN colapsa en todos los modelos** (bal_acc 0.26–0.40): con desbalance 58:1
+  el vecindario lo domina `nv`. La regresión logística con pesos de clase es el
+  probe informativo; los prototipos quedan en el medio.
+- **`df` es la clase débil transversal** (115 imágenes): recall ≤ 0.32 en todos.
+  `mel` (melanoma, la clase clínicamente crítica) queda entre 0.46 y 0.63 —
+  ResNet-50 curiosamente es el mejor en melanoma (0.631) pese a ser 6º global.
+- **Calibración (ECE)**: las CNN supervisadas están mejor calibradas
+  (VGG19 0.071, AlexNet 0.079) que los ViT (0.115–0.162); SimSiam R50 es el
+  peor también en calibración (0.247). Relevante para la lectura clínica: un
+  modelo mal calibrado sobreestima su confianza.
