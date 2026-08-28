@@ -189,8 +189,8 @@ def fig8():
         ["skin tone (Fitzpatrick)", "constancia de color · crops por lesión"],
         key="ssl")
     box(ax, 10.6, 1.8, 4.2, 1.9, "3 · Pre-entrenamiento SSL",
-        ["DINOv2 continual", "SimSiam desde cero"], key="ssl",
-        title_size=9.0)
+        ["propuesto: SimSiam sobre DINOv2", "comparación: DINO continual ·"
+         " desde cero"], key="ssl", title_size=9.0)
     box(ax, 15.5, 1.8, 3.7, 1.9, "4 · Evaluación",
         ["MISMOS probes y métricas", "que la fila baseline"], key="probe")
     arrow(ax, (4.2, 2.75), (5.3, 2.75))
@@ -222,7 +222,7 @@ def fig9():
         ["init: DINOv2 público", "ve TODOS los crops",
          "(globales + locales)"], key="ssl")
     box(ax, 9.2, 5.6, 3.7, 2.5, "Cabeza DINO",
-        ["MLP 3 capas", "prototipos 65 536", "salida softmax"], key="ssl")
+        ["MLP 3 capas", "prototipos 4 096", "salida softmax"], key="ssl")
     arrow(ax, (8.8, 6.85), (9.2, 6.85))
 
     group(ax, 4.6, 1.0, 8.6, 3.6, "PROFESOR — sin gradientes (EMA)",
@@ -257,17 +257,18 @@ def fig9():
 # ---------------------------------------------------------------- fig 10
 def fig10():
     fig, ax = canvas(15, 6.6, 20, 8.6,
-                     "v6 — brazo purista: SimSiam desde inicialización "
-                     "aleatoria",
-                     "cero pesos externos: responde qué logra el SSL solo "
-                     "con nuestro pool de piel")
+                     "v6 — método propuesto: SimSiam sobre DINOv2",
+                     "objetivo SimSiam (2 vistas, sin teacher) sobre el "
+                     "ViT-S/14 de DINOv2 — 100 % libre de etiquetas de "
+                     "punta a punta")
 
     box(ax, 0.5, 3.4, 3.0, 2.4, "Imagen del pool",
         ["2 vistas aumentadas", "(augmentation aleatoria", "independiente)"],
         key="data")
 
-    box(ax, 4.6, 3.4, 3.6, 2.4, "Backbone ResNet-50",
-        ["init ALEATORIA", "compartido entre vistas"], key="ssl")
+    box(ax, 4.6, 3.4, 3.6, 2.4, "Backbone DINOv2 ViT-S/14",
+        ["init: pesos públicos SSL", "(LVD-142M, sin etiquetas)",
+         "compartido entre vistas"], key="ssl")
     box(ax, 9.2, 3.4, 3.3, 2.4, "Projector",
         ["MLP 3 capas", "BN + ReLU · 2048d"], key="ssl")
     box(ax, 13.5, 5.3, 3.3, 2.0, "Predictor",
@@ -288,10 +289,11 @@ def fig10():
     arrow(ax, (16.8, 2.6), (18.1, 3.4), rad=-0.12)
 
     ax.text(10.0, 0.55, "Detector de colapso: std de los embeddings "
-            "normalizados ≈ 1/√d → colapso; se monitorea cada época con "
-            "MLflow.  ENTREGABLE: el backbone ResNet-50, congelado y "
-            "evaluado con el mismo protocolo v5.", ha="center",
-            fontsize=8.6, color="#475569")
+            "normalizados → 0 = colapso; se monitorea cada época con "
+            "MLflow.  ENTREGABLE: el backbone ViT-S/14 (21M, 384d), "
+            "congelado y evaluado con el protocolo v5.  Ablación: misma "
+            "estructura con ResNet-50 aleatorio (cero pesos externos).",
+            ha="center", fontsize=8.6, color="#475569")
     save(fig, "fig10_v6_simsiam")
 
 
@@ -332,7 +334,7 @@ def fig11():
     box(ax, 0.9, 15.9, 3.6, 2.3, "Multi-crop",
         ["2 globales 224 px", "6 locales 96 px"], key="feat")
     box(ax, 5.1, 15.4, 4.4, 2.8, "Estudiante ViT-S/14",
-        ["init: DINOv2 público", "cabeza MLP · 65 536 proto",
+        ["init: DINOv2 público", "cabeza MLP · 4 096 proto",
          "ve TODOS los crops", "recibe gradientes"], key="ssl")
     box(ax, 5.1, 11.9, 4.4, 2.6, "Profesor (EMA)",
         ["copia EMA del estudiante", "solo crops globales",
@@ -349,12 +351,12 @@ def fig11():
     ax.text(7.55, 14.95, "EMA", ha="left", va="center", fontsize=7.8,
             color="#7C3AED", fontweight="bold")
 
-    group(ax, 10.1, 9.4, 9.3, 9.2, "Brazo B — SimSiam desde cero",
-          ec="#94A3B8")
+    group(ax, 10.1, 9.4, 9.3, 9.2,
+          "Brazo B — PROPUESTO: SimSiam sobre DINOv2", ec="#94A3B8")
     box(ax, 10.4, 15.9, 3.6, 2.3, "2 vistas aumentadas",
         ["augmentation aleatoria", "independiente"], key="feat")
-    box(ax, 14.6, 15.4, 4.5, 2.8, "ResNet-50 + projector",
-        ["init ALEATORIA", "(cero pesos externos)",
+    box(ax, 14.6, 15.4, 4.5, 2.8, "DINOv2 ViT-S/14 + projector",
+        ["init: pesos públicos SSL", "(LVD-142M, sin etiquetas)",
          "projector MLP 3 capas", "compartido entre vistas"], key="ssl")
     box(ax, 14.6, 11.9, 4.5, 2.6, "Predictor / stop-grad",
         ["predictor MLP 2 capas", "(rama activa)",
