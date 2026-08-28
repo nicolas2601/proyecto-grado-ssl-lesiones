@@ -87,10 +87,15 @@ Checkpoints por modelo (pesos exactos, verificables):
 
 ## Pendiente
 
-- Evaluacion sobre ISIC 2019 multiclase: requiere agregar un dataset con el
-  ground truth real (`andrewmvd/isic-2019`); los datasets "RESIZED" solo traen
-  target binario (gotcha documentado en docs/15 y Engram). Se hara como
-  variante del builder cuando el equipo confirme el dataset.
+- Bancos sobre ISIC 2019 y 2020 RESIZED (pedido de la direccion, 2026-08-28):
+  generados en `notebooks/baselines_isic2019/` y `notebooks/baselines_isic2020/`
+  como tarea BINARIA (benigno/maligno) — los datasets RESIZED solo traen
+  `target` binario. Split: ISIC 2020 agrupa por `patient_id` real; ISIC 2019
+  RESIZED trae `patient_id` sintetico, asi que va estratificado simple y se
+  reporta como limite. Ademas los 3 bancos ahora sacan precision/F1 por clase,
+  matriz de confusion e IC bootstrap 95% (re-correr el de HAM10000 para
+  obtenerlas). La variante multiclase de ISIC 2019 sigue pendiente: requiere
+  `andrewmvd/isic-2019` (ground truth real de 8 clases).
 
 ## Resultados de la corrida real (2026-08-27, SMOKE=False, seed 42)
 
