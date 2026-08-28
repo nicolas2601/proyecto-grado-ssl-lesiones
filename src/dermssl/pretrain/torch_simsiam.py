@@ -1,15 +1,20 @@
-"""SimSiam from RANDOM initialization - the purist SSL arm.
+"""SimSiam - the ablation arm (ResNet from scratch) and the PROPOSED method.
 
-This arm answers one question for the thesis: what does SSL achieve using our
-skin pool ALONE, with zero external weights of any kind? It is expected to
-lose to continual DINOv2 (48-70k images vs 142M), and reporting that honestly
-is part of the contribution (docs/15, option A).
+Two configurations share this module:
 
-Architecture follows Chen & He 2021: ResNet-50 encoder (weights=None - that
-single argument is what makes this arm purist), a 3-layer projection MLP and
-a 2-layer prediction MLP with a bottleneck. The loss is symmetrized negative
-cosine similarity with stop-gradient on the target branch; the stop-gradient
-is what prevents collapse without negative pairs or momentum encoders.
+* ``simsiam`` (ablation): ResNet-50 with weights=None - zero external weights,
+  trained on the skin pool alone. Expected to lose to the ViT arms (48-70k
+  images vs 142M); reporting that honestly bounds what own-data SSL achieves.
+* ``simsiam_dinov2`` (proposed): the SimSiam objective over the DINOv2
+  ViT-S/14 backbone, starting from the public label-free weights. The thesis'
+  proposed method: a 2-view objective (no multi-crop, no teacher head) makes
+  the continual adaptation cheaper than full DINO at the same label-free
+  guarantee.
+
+Heads follow Chen & He 2021: a 3-layer projection MLP and a 2-layer
+prediction MLP with a bottleneck. The loss is symmetrized negative cosine
+similarity with stop-gradient on the target branch; the stop-gradient is what
+prevents collapse without negative pairs or momentum encoders.
 """
 
 from __future__ import annotations
@@ -23,12 +28,25 @@ PROJ_DIM = 2048
 PRED_HIDDEN = 512
 
 
-class SimSiam(nn.Module):
-    def __init__(self) -> None:
-        super().__init__()
+def _build_backbone(backbone_name: str, pretrained: bool) -> tuple[nn.Module, int]:
+    """(backbone, feature_dim) for either backbone family."""
+    if backbone_name == "resnet50":
         backbone = resnet50(weights=None)  # random init: the purist guarantee
         feat_dim = backbone.fc.in_features
         backbone.fc = nn.Identity()
+        return backbone, feat_dim
+    backbone = torch.hub.load(
+        "facebookresearch/dinov2", backbone_name, pretrained=pretrained
+    )
+    return backbone, backbone.embed_dim
+
+
+class SimSiam(nn.Module):
+    def __init__(
+        self, backbone_name: str = "resnet50", pretrained: bool = False
+    ) -> None:
+        super().__init__()
+        backbone, feat_dim = _build_backbone(backbone_name, pretrained)
         self.backbone = backbone
 
         self.projector = nn.Sequential(

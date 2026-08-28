@@ -25,8 +25,20 @@ from pathlib import Path
 
 from dermssl import patch_guard
 
-METHODS = ("simsiam", "dino_continual")
-DEFAULT_BACKBONES = {"simsiam": "resnet50", "dino_continual": "dinov2_vits14"}
+METHODS = ("simsiam", "simsiam_dinov2", "dino_continual", "dino_scratch")
+# dino_scratch: same ViT and objective as dino_continual, random init. The
+# purist arm with a single isolated variable (the starting weights); SimSiam
+# stays available as a secondary ablation (docs/16, section 2).
+# simsiam_dinov2: the thesis' PROPOSED method - SimSiam objective over the
+# DINOv2 ViT-S/14 backbone starting from the public label-free weights.
+DINO_METHODS = ("dino_continual", "dino_scratch")
+SIMSIAM_METHODS = ("simsiam", "simsiam_dinov2")
+DEFAULT_BACKBONES = {
+    "simsiam": "resnet50",
+    "simsiam_dinov2": "dinov2_vits14",
+    "dino_continual": "dinov2_vits14",
+    "dino_scratch": "dinov2_vits14",
+}
 PRECISIONS = ("bf16", "fp16", "fp32")
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
 
@@ -37,7 +49,9 @@ IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
 # config of a real DINOv2 run (see docs/16, pending item 1).
 LR_RULES = {
     "simsiam": (0.05, 256),
+    "simsiam_dinov2": (5e-4, 1024),  # converged-weights rule, like continual
     "dino_continual": (5e-4, 1024),
+    "dino_scratch": (5e-4, 256),  # the DINO paper's from-scratch rule
 }
 
 # Any config field whose name or value smells like supervision trips the gate.
@@ -89,7 +103,7 @@ def validate(cfg: PretrainConfig) -> PretrainConfig:
 
     backbone = cfg.backbone or DEFAULT_BACKBONES[cfg.method]
     patch_guard.assert_compatible(cfg.resolution, backbone)
-    if cfg.method == "dino_continual":
+    if cfg.method in DINO_METHODS:
         patch_guard.assert_compatible(cfg.local_resolution, backbone)
 
     normalized = dataclasses.replace(cfg, backbone=backbone)

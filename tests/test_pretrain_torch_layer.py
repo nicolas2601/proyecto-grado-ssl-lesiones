@@ -67,6 +67,61 @@ def test_launch_script_validates_config_before_importing_torch():
     assert main_body.index("validate(cfg)") < main_body.index("torch_loop")
 
 
+def test_torch_loop_gates_dino_paths_by_family_not_exact_method():
+    """dino_scratch must inherit the EMA update and multi-crop path; a literal
+    == "dino_continual" gate would silently skip the teacher update."""
+    source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_loop.py").read_text()
+    assert 'if cfg.method == "dino_continual"' not in source
+
+
+def test_dino_model_exposes_a_pretrained_switch():
+    """The scratch arm reuses DinoContinual with pretrained=False; the switch
+    must exist in the constructor signature."""
+    tree = ast.parse(
+        (ROOT / "src" / "dermssl" / "pretrain" / "torch_dino.py").read_text()
+    )
+    cls = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, ast.ClassDef) and n.name == "DinoContinual"
+    )
+    init = next(
+        n
+        for n in ast.walk(cls)
+        if isinstance(n, ast.FunctionDef) and n.name == "__init__"
+    )
+    assert "pretrained" in [a.arg for a in init.args.args + init.args.kwonlyargs]
+
+
+def test_simsiam_model_exposes_backbone_and_pretrained_switches():
+    """simsiam_dinov2 reuses the SimSiam class with a DINOv2 backbone; the
+    constructor must accept the backbone name and a pretrained switch."""
+    tree = ast.parse(
+        (ROOT / "src" / "dermssl" / "pretrain" / "torch_simsiam.py").read_text()
+    )
+    cls = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, ast.ClassDef) and n.name == "SimSiam"
+    )
+    init = next(
+        n
+        for n in ast.walk(cls)
+        if isinstance(n, ast.FunctionDef) and n.name == "__init__"
+    )
+    args = [a.arg for a in init.args.args + init.args.kwonlyargs]
+    assert "backbone_name" in args
+    assert "pretrained" in args
+
+
+def test_torch_loop_gates_simsiam_paths_by_family():
+    """simsiam_dinov2 must inherit the pair-dataset and loss path; literal
+    == "simsiam" gates would route it into the DINO branch instead."""
+    source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_loop.py").read_text()
+    assert "SIMSIAM_METHODS" in source
+    assert 'if cfg.method == "simsiam":' not in source
+
+
 def test_smoke_budget_is_small():
     import importlib.util
 

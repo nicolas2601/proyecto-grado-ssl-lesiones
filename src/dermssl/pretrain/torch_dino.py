@@ -1,11 +1,15 @@
-"""Continual DINO pretraining of DINOv2 on the skin pool - the main arm.
+"""DINO pretraining on the skin pool - both ViT arms live here.
 
-Starts from the released DINOv2 ViT-S/14 weights (trained WITHOUT labels on
-LVD-142M, so the label-free invariant holds) and continues the DINO
-self-distillation objective on dermoscopic images. The hypothesis: adapting
-the encoder to skin texture, lesion borders and dermatoscope artifacts beats
-both the frozen generalist (v5's winner) and from-scratch SimSiam, at equal
-compute.
+The continual arm starts from the released DINOv2 ViT-S/14 weights (trained
+WITHOUT labels on LVD-142M, so the label-free invariant holds) and continues
+the DINO self-distillation objective on dermoscopic images. The hypothesis:
+adapting the encoder to skin texture, lesion borders and dermatoscope
+artifacts beats the frozen generalist (v5's winner) at equal compute.
+
+The scratch arm (``pretrained=False``) is the purist counterpart: identical
+architecture and objective with random init, so the comparison against the
+continual arm isolates ONE variable - the starting weights - and quantifies
+exactly what the 142M external images contribute (docs/16, section 2).
 
 Student and teacher share the architecture; only the student receives
 gradients. The teacher is an exponential moving average of the student
@@ -53,10 +57,19 @@ class DinoHead(nn.Module):
 
 
 class DinoContinual(nn.Module):
-    def __init__(self, backbone_name: str, head_out_dim: int = 4096) -> None:
+    """DINO student-teacher pair over a DINOv2 backbone.
+
+    ``pretrained=True`` is the continual arm (public LVD-142M weights);
+    ``pretrained=False`` is the purist arm: identical architecture and
+    objective, random init, so the two runs differ in exactly one variable.
+    """
+
+    def __init__(
+        self, backbone_name: str, head_out_dim: int = 4096, pretrained: bool = True
+    ) -> None:
         super().__init__()
         self.student_backbone = torch.hub.load(
-            "facebookresearch/dinov2", backbone_name
+            "facebookresearch/dinov2", backbone_name, pretrained=pretrained
         )
         embed_dim = self.student_backbone.embed_dim
         self.student_head = DinoHead(embed_dim, head_out_dim)

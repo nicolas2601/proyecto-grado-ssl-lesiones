@@ -50,17 +50,27 @@ def _autocast(precision: str, device: torch.device):
 def _build(cfg: config_mod.PretrainConfig, device: torch.device):
     """(model, loss_fn, optimizer, dataset, collate) for the configured method."""
     paths = config_mod.collect_images(cfg.image_root)
-    if cfg.method == "simsiam":
-        model = torch_simsiam.SimSiam().to(device)
+    if cfg.method in config_mod.SIMSIAM_METHODS:
+        pretrained = cfg.method == "simsiam_dinov2"
+        model = torch_simsiam.SimSiam(cfg.backbone, pretrained=pretrained).to(device)
         dataset = torch_data.SimSiamPairDataset(
             paths, cfg.resolution, cfg.color_constancy_probs, cfg.seed
         )
-        optimizer = torch.optim.SGD(
-            model.parameters(), lr=0.0, momentum=0.9, weight_decay=cfg.weight_decay
-        )
+        if pretrained:
+            # Converged ViT weights: AdamW, like the continual DINO arm.
+            optimizer = torch.optim.AdamW(
+                model.parameters(), lr=0.0, weight_decay=cfg.weight_decay
+            )
+        else:
+            # Chen & He 2021 from-scratch recipe: SGD with momentum.
+            optimizer = torch.optim.SGD(
+                model.parameters(), lr=0.0, momentum=0.9, weight_decay=cfg.weight_decay
+            )
         return model, None, optimizer, dataset, None
 
-    model = torch_dino.DinoContinual(cfg.backbone).to(device)
+    model = torch_dino.DinoContinual(
+        cfg.backbone, pretrained=cfg.method == "dino_continual"
+    ).to(device)
     loss_fn = torch_dino.DinoLoss().to(device)
     dataset = torch_data.DinoMultiCropDataset(
         paths,
@@ -97,7 +107,11 @@ def _save_checkpoint(
 def _export_backbone(path: Path, model, method: str) -> None:
     """Backbone-only weights in the shape the v5 evaluation loads."""
     raw = model.module if isinstance(model, DDP) else model
-    backbone = raw.backbone if method == "simsiam" else raw.student_backbone
+    backbone = (
+        raw.backbone
+        if method in config_mod.SIMSIAM_METHODS
+        else raw.student_backbone
+    )
     torch.save(backbone.state_dict(), path)
 
 
@@ -181,7 +195,7 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
 
             optimizer.zero_grad(set_to_none=True)
             with _autocast(cfg.precision, device):
-                if cfg.method == "simsiam":
+                if cfg.method in config_mod.SIMSIAM_METHODS:
                     v1, v2 = batch[0].to(device, non_blocking=True), batch[1].to(
                         device, non_blocking=True
                     )
@@ -207,7 +221,7 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
             scaler.step(optimizer)
             scaler.update()
 
-            if cfg.method == "dino_continual":
+            if cfg.method in config_mod.DINO_METHODS:
                 raw = model.module if isinstance(model, DDP) else model
                 raw.ema_update(schedules.ema_momentum_at(fraction, cfg.momentum_teacher))
 
