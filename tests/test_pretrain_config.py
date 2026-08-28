@@ -82,6 +82,57 @@ def test_effective_lr_scales_linearly_with_total_batch():
     assert cfg_mod.effective_lr(dino, world_size=2) == pytest.approx(5e-4 * 128 / 1024)
 
 
+def test_dino_scratch_shares_architecture_with_continual():
+    """Variable isolation: same ViT, same objective, only the starting
+    weights differ - so the default backbone must match the continual arm."""
+    scratch = cfg_mod.validate(make_config(method="dino_scratch"))
+    continual = cfg_mod.validate(make_config(method="dino_continual"))
+    assert scratch.backbone == continual.backbone == "dinov2_vits14"
+
+
+def test_dino_scratch_uses_the_from_scratch_lr_rule():
+    scratch = cfg_mod.validate(
+        make_config(method="dino_scratch", batch_size_per_gpu=64)
+    )
+    # From-scratch DINO rule: 5e-4 x total_batch / 256 (the paper's), NOT the
+    # deliberately small continual rule that assumes converged weights.
+    assert cfg_mod.effective_lr(scratch, world_size=2) == pytest.approx(
+        5e-4 * 128 / 256
+    )
+
+
+def test_dino_scratch_local_crops_hit_the_patch_guard():
+    # Same ViT-S/14 grid as the continual arm: 96 is invalid, 98 = 7 x 14.
+    with pytest.raises(Exception, match="98"):
+        cfg_mod.validate(make_config(method="dino_scratch", local_resolution=96))
+
+
+def test_simsiam_dinov2_is_the_proposed_method():
+    """The thesis' proposed method: SimSiam objective over the DINOv2 ViT.
+    Backbone must default to the same ViT as the dino arms."""
+    proposed = cfg_mod.validate(make_config(method="simsiam_dinov2"))
+    assert proposed.backbone == "dinov2_vits14"
+    assert "simsiam_dinov2" in cfg_mod.SIMSIAM_METHODS
+    assert "simsiam" in cfg_mod.SIMSIAM_METHODS
+
+
+def test_simsiam_dinov2_resolution_hits_the_patch_guard():
+    # ViT-S/14 grid applies: 256 is not a multiple of 14.
+    with pytest.raises(Exception, match="252"):
+        cfg_mod.validate(make_config(method="simsiam_dinov2", resolution=256))
+
+
+def test_simsiam_dinov2_uses_the_converged_weights_lr_rule():
+    proposed = cfg_mod.validate(
+        make_config(method="simsiam_dinov2", batch_size_per_gpu=64)
+    )
+    # Starts from converged DINOv2 weights, so the small continual rule
+    # applies (5e-4 x total_batch / 1024), not SimSiam's from-scratch SGD rule.
+    assert cfg_mod.effective_lr(proposed, world_size=2) == pytest.approx(
+        5e-4 * 128 / 1024
+    )
+
+
 def test_mlflow_params_are_flat_primitives():
     params = cfg_mod.mlflow_params(cfg_mod.validate(make_config()))
     assert params["method"] == "dino_continual"
