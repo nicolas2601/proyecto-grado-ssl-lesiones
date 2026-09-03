@@ -1,5 +1,9 @@
 # Configuracion para el cluster (v6 SSL pretraining)
 
+Para el banco de fine-tuning de baselines (lo que corre la Dra. Karen), la guia
+de un solo comando esta en [cluster/finetune/README.md](finetune/README.md):
+`bash cluster/finetune/run_all.sh`.
+
 Respuesta al equipo de administracion: entorno virtual, dependencias, lanzadores
 para las dos colas (4 GPUs prioridad / 8 GPUs con espera) y los dos tamanos de
 ViT (pequeno y grande).
@@ -67,13 +71,20 @@ python scripts/pretrain.py --method simsiam_dinov2 --smoke \
     --image-root $SCRATCH/dermssl/pool --output-dir /tmp/smoke
 ```
 
-## 4. Tracking: MLflow + Weights & Biases
+## 4. Tracking: Weights & Biases + MLflow
+
+Decision 2026-09-03: W&B es el dashboard que ve todo el equipo (el laboratorio
+ya lo usa offline + sync); MLflow file-store queda como rastro local en el
+cluster; los JSON de resultados se versionan en `results/` y se suben a GitHub
+con `cluster/finetune/publish_results.sh`.
+
+## 4b. Detalle previo (pretraining v6)
 
 - MLflow file-store (`file:$SCRATCH/dermssl/mlruns`): ya integrado en el
   codigo, no necesita red ni servidor. Es la fuente de verdad de la corrida.
 - W&B (lo que usa el laboratorio): el cluster no tiene internet, asi que los
   jobs corren con `WANDB_MODE=offline` y los runs se suben despues desde una
-  maquina con internet: `wandb sync $SCRATCH/dermssl/wandb/offline-run-*`.
+  maquina con internet: `wandb sync $SCRATCH/dermssl/wandb/wandb/offline-run-*`.
 
 ## 5. Preguntas pendientes para los administradores
 
