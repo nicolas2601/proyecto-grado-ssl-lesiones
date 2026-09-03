@@ -315,8 +315,11 @@ def all_metrics(y_true, proba):
             "macro_f1": f1_score(y_true, pred, average="macro"),
             "macro_precision": precision_score(y_true, pred, average="macro", zero_division=0),
             "macro_recall": recall_score(y_true, pred, average="macro", zero_division=0),
-            "auc_ovr_macro": roc_auc_score(y_true, proba, multi_class="ovr",
-                                           average="macro", labels=list(range(N))),
+            # binario: sklearn exige la proba de la clase positiva (1-D);
+            # multiclase: OvR macro sobre la matriz completa.
+            "auc_ovr_macro": (roc_auc_score(y_true, proba[:, 1]) if N == 2 else
+                              roc_auc_score(y_true, proba, multi_class="ovr",
+                                            average="macro", labels=list(range(N)))),
             "ece": ece(y_true, proba),
             "recall_por_clase": {{classes[c]: float(recall_score(
                 y_true, pred, labels=[c], average="macro", zero_division=0))
