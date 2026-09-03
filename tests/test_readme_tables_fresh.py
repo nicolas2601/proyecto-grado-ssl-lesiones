@@ -67,3 +67,28 @@ def test_the_superseded_vit_b16_number_is_gone():
                  + (REPO / "notebooks" / "baselines" / "README.md").read_text())
     stale = "| ViT-B/16 | Supervisado | 768 | 0.761 |"
     assert stale not in published, "the pre-augreg ViT-B/16 row is still published"
+
+
+def test_the_checkpoint_table_matches_the_protocol():
+    """The hand-written version of this table claimed torchvision for four
+    models that had already migrated to Hugging Face - including vit_b16,
+    whose weight change is what flipped the comparison."""
+    generated = _table_rows(brt.table_weights())
+    published = _table_rows((REPO / "notebooks" / "baselines" / "README.md").read_text())
+    missing = {r for r in generated if r not in published and "Modelo" not in r}
+    assert not missing, (
+        "the checkpoint table is stale - regenerate with "
+        f"'build_results_tables.py --weights': {sorted(missing)[:2]}")
+
+
+def test_no_readme_tells_the_reader_to_pick_a_p100():
+    """Kaggle's PyTorch has no sm_60 kernels, so a P100 dies on the first
+    forward. Any doc offering it as an option is a trap for the next person."""
+    for path in (REPO / "notebooks" / "baselines" / "README.md",
+                 REPO / "notebooks" / "finetune" / "README.md",
+                 REPO / "cluster" / "finetune" / "README.md"):
+        for line in path.read_text().splitlines():
+            if "P100" not in line:
+                continue
+            assert any(w in line for w in ("NO elegir", "no kernel image", "sm_60")), (
+                f"{path.name}: line offers a P100 without warning: {line.strip()}")

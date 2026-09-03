@@ -12,10 +12,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
+
+from dermssl.finetune import protocol  # noqa: E402
 
 DISPLAY: dict[str, str] = {
     "alexnet": "AlexNet",
@@ -180,6 +184,36 @@ def table_per_class(rows: list[Row], field: str) -> str:
     return _table(["Modelo"] + classes, body)
 
 
+def table_weights() -> str:
+    """Where each backbone's weights come from, straight from the protocol.
+
+    Written by hand this table went stale the moment the bank migrated to
+    Hugging Face: it still claimed torchvision for four models that had
+    already moved, including the vit_b16 row whose weight change flipped the
+    conclusion of the whole comparison.
+    """
+    notes = {
+        "vgg19": "mismos tensores que torchvision IMAGENET1K_V1",
+        "resnet50": "mismos tensores que torchvision IMAGENET1K_V2",
+        "efficientnet_b0": "receta propia de timm (no es la de torchvision)",
+        "vit_b16": "supervisado SOLO con ImageNet-1k (comparador justo)",
+        "dinov2_vits14": "SSL sobre LVD-142M sin etiquetas",
+        "dinov2_vitb14": "SSL sobre LVD-142M sin etiquetas",
+        "alexnet": "sin pesos oficiales en HF Hub",
+        "simsiam_r50": "checkpoint oficial de FAIR, 100 epocas, batch 256",
+    }
+    body = []
+    for model in protocol.MODELS:
+        if model in protocol.TIMM_HF_TAGS:
+            source = f"Hugging Face via timm: `{protocol.TIMM_HF_TAGS[model]}`"
+        elif model in protocol.TORCHVISION_MODELS:
+            source = "torchvision `IMAGENET1K_V1`"
+        else:
+            source = f"`{protocol.SIMSIAM_CHECKPOINT_URL.rsplit('/', 1)[-1]}`"
+        body.append([DISPLAY[model], source, notes[model]])
+    return _table(["Modelo", "Checkpoint", "Nota"], body)
+
+
 def render(bank_dir: Path) -> str:
     rows = rank(load_bank(bank_dir))
     blocks = [f"### Métricas completas (mejor probe de cada modelo)\n\n{table_metrics(rows)}"]
@@ -203,9 +237,16 @@ def render(bank_dir: Path) -> str:
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--bank", required=True)
+    p.add_argument("--bank")
     p.add_argument("--results-dir", default=None)
+    p.add_argument("--weights", action="store_true",
+                   help="print the checkpoint-provenance table instead of results")
     args = p.parse_args(argv)
+    if args.weights:
+        print(table_weights())
+        return
+    if not args.bank:
+        p.error("give --bank <banco> or --weights")
     directory = Path(args.results_dir) if args.results_dir else REPO / "results" / args.bank
     print(render(directory))
 

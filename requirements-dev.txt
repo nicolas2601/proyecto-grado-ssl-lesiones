@@ -1,0 +1,12 @@
+# Dependencies for running the full test suite.
+#
+# Without scikit-learn two test MODULES skip in one line each, and with them
+# go the four tests that cover the metric cell shared by every bank - including
+# the binary-AUC fix that a bare `pytest` would silently not exercise:
+#   pytest -q            -> 266 passed, 2 skipped
+#   pytest -q (with sk)  -> 272 passed
+# Install with: pip install -r requirements-dev.txt
+pytest>=8.0
+numpy>=1.26
+pandas>=2.0
+scikit-learn>=1.5
