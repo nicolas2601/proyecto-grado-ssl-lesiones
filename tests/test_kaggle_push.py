@@ -25,6 +25,13 @@ def test_metadata_is_private_gpu_internet_with_dataset_source():
     assert m["dataset_sources"] == ["nischaydnk/isic-2020-jpg-256x256-resized"]
 
 
+def test_metadata_pins_the_t4_shape_for_the_kaggle_cli():
+    """The CLI reads machine_shape from kernel-metadata.json. Without it Kaggle
+    may hand out a P100 (sm_60), which its PyTorch build has no kernels for."""
+    m = kp.metadata("nicorghost", "baselines", "resnet50", "x.ipynb")
+    assert m["machine_shape"] == "NvidiaTeslaT4"
+
+
 @pytest.mark.parametrize("bank", list(kp.BANKS))
 def test_stage_flips_smoke_and_keeps_cell_count(tmp_path, bank):
     dataset, pattern = kp.BANKS[bank]
@@ -38,6 +45,7 @@ def test_stage_flips_smoke_and_keeps_cell_count(tmp_path, bank):
     meta = json.loads((folder / "kernel-metadata.json").read_text())
     assert meta["code_file"] == src.name
     assert meta["dataset_sources"] == kp.DATASET_SOURCES[dataset]
+    assert meta["machine_shape"] == "NvidiaTeslaT4"
 
 
 def test_push_payload_matches_kaggle_kernels_push_schema(tmp_path):

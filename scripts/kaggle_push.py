@@ -38,6 +38,10 @@ DATASET_SOURCES = {
     "isic2020": ["nischaydnk/isic-2020-jpg-256x256-resized"],
 }
 
+# SDK enum: NvidiaTeslaT4 | NvidiaTeslaP100. NvidiaTeslaT4x2 does not exist and
+# Kaggle silently ignores it.
+MACHINE_SHAPE = "NvidiaTeslaT4"
+
 BANKS = {
     "baselines": ("ham10000", "test_{m}.ipynb"),
     "baselines_isic2020": ("isic2020", "test_{m}_isic2020.ipynb"),
@@ -66,6 +70,10 @@ def metadata(user: str, bank: str, model: str, code_file: str) -> dict:
         "competition_sources": [],
         "kernel_sources": [],
         "model_sources": [],
+        # Kaggle's PyTorch build ships no sm_60 kernels, so a Tesla P100 dies on
+        # the first forward with "no kernel image is available". Both transports
+        # must pin the T4: the CLI reads this key, composio reads push_payload().
+        "machine_shape": MACHINE_SHAPE,
     }
 
 
@@ -119,9 +127,7 @@ def push_payload(folder: Path) -> dict:
         "kernelDataSources": meta["kernel_sources"],
         "modelDataSources": meta["model_sources"],
         "categoryIds": [],
-        # Kaggle's current PyTorch build has no sm_60 kernels: a P100 fails with
-        # "no kernel image is available". Ask for the T4 shape explicitly (SDK enum: NvidiaTeslaT4 | NvidiaTeslaP100).
-        "machineShape": meta.get("machine_shape", "NvidiaTeslaT4"),
+        "machineShape": meta.get("machine_shape", MACHINE_SHAPE),
     }
 
 
