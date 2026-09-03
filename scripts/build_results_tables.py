@@ -1,0 +1,171 @@
+"""Render the README result tables from the bank JSONs.
+
+Sixteen runs times three tables is exactly where hand-typed numbers rot, so the
+markdown that goes into README.md and notebooks/*/README.md is generated here
+and pasted verbatim. Ranking always follows each model's best probe.
+
+    python scripts/build_results_tables.py --bank baselines
+    python scripts/build_results_tables.py --bank baselines_isic2020
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from dataclasses import dataclass
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+
+DISPLAY: dict[str, str] = {
+    "alexnet": "AlexNet",
+    "vgg19": "VGG19",
+    "efficientnet_b0": "EfficientNet-B0",
+    "resnet50": "ResNet-50",
+    "vit_b16": "ViT-B/16",
+    "simsiam_r50": "SimSiam R50",
+    "dinov2_vits14": "DINOv2 ViT-S/14",
+    "dinov2_vitb14": "DINOv2 ViT-B/14",
+}
+
+SUPERVISION: dict[str, str] = {
+    "alexnet": "Supervisado",
+    "vgg19": "Supervisado",
+    "efficientnet_b0": "Supervisado",
+    "resnet50": "Supervisado",
+    "vit_b16": "Supervisado",
+    "simsiam_r50": "SSL",
+    "dinov2_vits14": "SSL",
+    "dinov2_vitb14": "SSL",
+}
+
+PROBE_LABELS = {"knn": "kNN", "logreg": "LogReg", "prototype": "Prototipos"}
+METRIC_COLUMNS = ("accuracy", "balanced_accuracy", "macro_f1", "macro_precision",
+                  "macro_recall", "auc_ovr_macro", "ece")
+LOWER_IS_BETTER = {"ece"}
+
+
+class MissingField(RuntimeError):
+    """The JSONs do not carry what the requested table needs."""
+
+
+@dataclass(frozen=True)
+class Row:
+    model: str
+    probe: str
+    dims: int
+    metrics: dict
+    probes: dict
+
+
+def best_probe(data: dict) -> str:
+    probes = data["probes"]
+    return max(probes, key=lambda name: probes[name]["balanced_accuracy"])
+
+
+def rank(bank: dict[str, dict]) -> list[Row]:
+    rows = [
+        Row(model=model, probe=best_probe(data), dims=data.get("dim_features", 0),
+            metrics=data["probes"][best_probe(data)], probes=data["probes"])
+        for model, data in bank.items()
+    ]
+    return sorted(rows, key=lambda r: r.metrics["balanced_accuracy"], reverse=True)
+
+
+def load_bank(directory: Path) -> dict[str, dict]:
+    bank: dict[str, dict] = {}
+    for path in sorted(directory.glob("results_*.json")):
+        data = json.loads(path.read_text())
+        if data.get("smoke"):
+            continue
+        bank[data["modelo"]] = data
+    if not bank:
+        raise MissingField(f"no real (SMOKE=False) results under {directory}")
+    return bank
+
+
+def _fmt(value: float, bold: bool = False) -> str:
+    text = f"{value:.3f}"
+    return f"**{text}**" if bold else text
+
+
+def _leaders(rows: list[Row]) -> dict[str, float]:
+    return {
+        column: (min if column in LOWER_IS_BETTER else max)(
+            row.metrics[column] for row in rows)
+        for column in METRIC_COLUMNS
+    }
+
+
+def _table(header: list[str], body: list[list[str]]) -> str:
+    lines = ["| " + " | ".join(header) + " |",
+             "|" + "---|" * len(header)]
+    lines += ["| " + " | ".join(cells) + " |" for cells in body]
+    return "\n".join(lines)
+
+
+def table_metrics(rows: list[Row]) -> str:
+    best = _leaders(rows)
+    header = ["#", "Modelo", "Tipo", "dims", "acc", "bal_acc", "F1 macro",
+              "Prec macro", "Recall macro", "AUC", "ECE"]
+    body = [
+        [str(i), DISPLAY.get(row.model, row.model), SUPERVISION.get(row.model, "?"),
+         str(row.dims)]
+        + [_fmt(row.metrics[c], row.metrics[c] == best[c]) for c in METRIC_COLUMNS]
+        for i, row in enumerate(rows, start=1)
+    ]
+    return _table(header, body)
+
+
+def table_probes(rows: list[Row]) -> str:
+    header = ["Modelo"] + [PROBE_LABELS[p] for p in PROBE_LABELS]
+    body = [
+        [DISPLAY.get(row.model, row.model)]
+        + [_fmt(row.probes[p]["balanced_accuracy"]) for p in PROBE_LABELS]
+        for row in rows
+    ]
+    return _table(header, body)
+
+
+def table_per_class(rows: list[Row], field: str) -> str:
+    for row in rows:
+        if field not in row.metrics:
+            raise MissingField(
+                f"{row.model}: probe '{row.probe}' has no '{field}' - "
+                "the JSON comes from a run before that metric existed")
+    classes = list(rows[0].metrics[field])
+    body = [
+        [DISPLAY.get(row.model, row.model)]
+        + [_fmt(row.metrics[field][c]) for c in classes]
+        for row in rows
+    ]
+    return _table(["Modelo"] + classes, body)
+
+
+def render(bank_dir: Path) -> str:
+    rows = rank(load_bank(bank_dir))
+    blocks = [f"### Metricas completas (mejor probe por modelo)\n\n{table_metrics(rows)}",
+              f"### Balanced accuracy por probe\n\n{table_probes(rows)}"]
+    for field, title in (("recall_por_clase", "Recall por clase"),
+                         ("precision_por_clase", "Precision por clase"),
+                         ("f1_por_clase", "F1 por clase")):
+        try:
+            blocks.append(f"### {title} (mejor probe)\n\n"
+                          f"{table_per_class(rows, field=field)}")
+        except MissingField as exc:
+            blocks.append(f"### {title}: no disponible\n\n> {exc}")
+    return "\n\n".join(blocks) + "\n"
+
+
+def main(argv: list[str] | None = None) -> None:
+    p = argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--bank", required=True)
+    p.add_argument("--results-dir", default=None)
+    args = p.parse_args(argv)
+    directory = Path(args.results_dir) if args.results_dir else REPO / "results" / args.bank
+    print(render(directory))
+
+
+if __name__ == "__main__":
+    main()
