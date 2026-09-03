@@ -19,6 +19,8 @@ def _probe(bal_acc, **extra):
         "macro_precision": 0.4, "macro_recall": bal_acc,
         "auc_ovr_macro": 0.8, "ece": 0.1,
         "recall_por_clase": {"benign": 0.9, "malignant": 0.3},
+        "ic95_bootstrap": {"balanced_accuracy": [bal_acc - 0.04, bal_acc + 0.04],
+                           "macro_f1": [0.35, 0.45]},
     }
     base.update(extra)
     return base
@@ -101,3 +103,40 @@ def test_loading_a_bank_skips_smoke_results(tmp_path):
 def test_loading_an_empty_bank_is_an_explicit_error(tmp_path):
     with pytest.raises(brt.MissingField):
         brt.load_bank(tmp_path)
+
+
+def _with_ci(model, bal_acc, lo, hi):
+    """A one-probe result whose interval we control exactly."""
+    return _result(model, 0.1, bal_acc, 0.1,
+                   probes={"logreg": _probe(bal_acc, ic95_bootstrap={
+                       "balanced_accuracy": [lo, hi], "macro_f1": [0.3, 0.5]})})
+
+
+def test_interval_table_flags_who_is_separated_from_the_leader():
+    rows = brt.rank({
+        "dinov2_vitb14": _with_ci("dinov2_vitb14", 0.618, 0.576, 0.660),
+        "alexnet": _with_ci("alexnet", 0.589, 0.548, 0.631),
+        "simsiam_r50": _with_ci("simsiam_r50", 0.494, 0.453, 0.539),
+    })
+    table = brt.table_intervals(rows)
+    cell = {line.split("|")[1].strip(): line.split("|")[-2].strip()
+            for line in table.splitlines()[2:]}
+    assert cell["DINOv2 ViT-B/14"] == "-"
+    assert cell["AlexNet"] == "no", "0.631 >= 0.576, the intervals touch"
+    assert cell["SimSiam R50"] == "sí", "0.539 < 0.576, no overlap"
+    assert "[0.576, 0.660]" in table
+
+
+def test_overlap_is_computed_against_the_leader_lower_bound():
+    leader = brt.rank({"a": _with_ci("a", 0.62, 0.58, 0.66)})[0]
+    touching = brt.rank({"b": _with_ci("b", 0.55, 0.50, 0.58)})[0]
+    clear = brt.rank({"c": _with_ci("c", 0.50, 0.45, 0.579)})[0]
+    assert brt.overlaps_leader(touching, leader)
+    assert not brt.overlaps_leader(clear, leader)
+
+
+def test_interval_table_is_explicit_when_the_json_predates_bootstrap():
+    entry = _result("resnet50", 0.3, 0.57, 0.4)
+    del entry["probes"]["logreg"]["ic95_bootstrap"]
+    with pytest.raises(brt.MissingField, match="bootstrap"):
+        brt.table_intervals(brt.rank({"resnet50": entry}))

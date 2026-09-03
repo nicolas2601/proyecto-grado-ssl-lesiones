@@ -117,6 +117,44 @@ def table_metrics(rows: list[Row]) -> str:
     return _table(header, body)
 
 
+def overlaps_leader(row: Row, leader: Row) -> bool:
+    """True when this model's bal_acc CI touches the leader's.
+
+    An overlap means the ranking gap is not resolvable with this validation
+    set, which is the difference between "ranks above" and "wins".
+    """
+    return (row.metrics["ic95_bootstrap"]["balanced_accuracy"][1]
+            >= leader.metrics["ic95_bootstrap"]["balanced_accuracy"][0])
+
+
+def table_intervals(rows: list[Row]) -> str:
+    """Bal_acc and macro-F1 with their 95% bootstrap intervals.
+
+    Printed next to the ranking on purpose: without the intervals a reader
+    treats position 1 vs position 3 as a result, and here it is not one.
+    """
+    for row in rows:
+        if "ic95_bootstrap" not in row.metrics:
+            raise MissingField(
+                f"{row.model}: the JSON predates the bootstrap interval")
+    leader = rows[0]
+    header = ["Modelo", "bal_acc", "IC95 bal_acc", "F1 macro", "IC95 F1 macro",
+              "Separado del líder"]
+    body = []
+    for row in rows:
+        ci = row.metrics["ic95_bootstrap"]
+        sep = "-" if row is leader else ("sí" if not overlaps_leader(row, leader) else "no")
+        body.append([
+            DISPLAY.get(row.model, row.model),
+            _fmt(row.metrics["balanced_accuracy"]),
+            f"[{ci['balanced_accuracy'][0]:.3f}, {ci['balanced_accuracy'][1]:.3f}]",
+            _fmt(row.metrics["macro_f1"]),
+            f"[{ci['macro_f1'][0]:.3f}, {ci['macro_f1'][1]:.3f}]",
+            sep,
+        ])
+    return _table(header, body)
+
+
 def table_probes(rows: list[Row]) -> str:
     header = ["Modelo"] + [PROBE_LABELS[p] for p in PROBE_LABELS]
     body = [
@@ -144,10 +182,15 @@ def table_per_class(rows: list[Row], field: str) -> str:
 
 def render(bank_dir: Path) -> str:
     rows = rank(load_bank(bank_dir))
-    blocks = [f"### Metricas completas (mejor probe por modelo)\n\n{table_metrics(rows)}",
-              f"### Balanced accuracy por probe\n\n{table_probes(rows)}"]
+    blocks = [f"### Métricas completas (mejor probe de cada modelo)\n\n{table_metrics(rows)}"]
+    try:
+        blocks.append("### Intervalos de confianza (bootstrap 95%)\n\n"
+                      f"{table_intervals(rows)}")
+    except MissingField as exc:
+        blocks.append(f"### Intervalos de confianza: no disponibles\n\n> {exc}")
+    blocks.append(f"### Balanced accuracy por probe\n\n{table_probes(rows)}")
     for field, title in (("recall_por_clase", "Recall por clase"),
-                         ("precision_por_clase", "Precision por clase"),
+                         ("precision_por_clase", "Precisión por clase"),
                          ("f1_por_clase", "F1 por clase")):
         try:
             blocks.append(f"### {title} (mejor probe)\n\n"
