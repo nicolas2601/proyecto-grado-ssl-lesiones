@@ -46,3 +46,6 @@ venv/
 
 # --- estado local del driver de bancos Kaggle ---
 results/**/.run_state.json
+
+# --- artefactos de MLflow que bajan con `kaggle kernels output` ---
+results/**/mlruns/
