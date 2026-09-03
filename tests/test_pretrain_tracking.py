@@ -1,7 +1,6 @@
 """The tracker must degrade loudly, never crash a run, and log through the
 mlflow module it is handed - which is how we test it without mlflow."""
 
-import pytest
 
 from dermssl.pretrain import tracking as tr
 
