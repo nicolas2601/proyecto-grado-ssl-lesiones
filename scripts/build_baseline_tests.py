@@ -177,31 +177,44 @@ print(f"train={{len(tr_ids)}} val={{len(va_ids)}} | {{SPLIT_DESC}}")
 """
 
 BACKBONE_CODE = """\
-# --- Backbone CONGELADO (nunca se entrena). Punto de extraccion unico:
-# GAP del ultimo bloque conv (CNN) / token CLS (ViT). model.eval() SIEMPRE:
+# --- Backbone CONGELADO (nunca se entrena). Fuente de pesos: Hugging Face Hub
+# via timm (decision del equipo con la Dra. Karen, 2026-08-28). Los tags
+# .tv_in1k / .tv2_in1k de timm sirven LOS MISMOS tensores que torchvision ->
+# resnet50 y vgg19 siguen comparables con las corridas previas del banco.
+# Excepciones documentadas (sin pesos oficiales en HF): alexnet (torchvision)
+# y simsiam_r50 (checkpoint oficial de FAIR). model.eval() SIEMPRE:
 # requires_grad=False no congela BatchNorm. ---
 RES, INTERP = 224, transforms.InterpolationMode.BILINEAR
+
+TIMM_HF_TAGS = {{
+    "vgg19": "vgg19.tv_in1k",                       # = torchvision IMAGENET1K_V1
+    "efficientnet_b0": "efficientnet_b0.ra_in1k",   # receta original de timm
+    "resnet50": "resnet50.tv2_in1k",                # = torchvision IMAGENET1K_V2
+    "vit_b16": "vit_base_patch16_224.augreg_in1k",  # supervisado SOLO in1k (fair)
+    "dinov2_vits14": "vit_small_patch14_dinov2.lvd142m",
+    "dinov2_vitb14": "vit_base_patch14_dinov2.lvd142m",
+}}
+
+try:
+    import timm
+except ImportError:
+    import subprocess, sys
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "timm"], check=True)
+    import timm
 
 def gap(features):
     return nn.Sequential(features, nn.AdaptiveAvgPool2d(1), nn.Flatten(1))
 
 def load_backbone(name):
     global RES, INTERP
-    from torchvision.models import (AlexNet_Weights, EfficientNet_B0_Weights,
-        ResNet50_Weights, VGG19_Weights, ViT_B_16_Weights, alexnet,
-        efficientnet_b0, resnet50, vgg19, vit_b_16)
     if name == "alexnet":
+        # Sin pesos oficiales en HF Hub: se mantiene torchvision, documentado.
+        from torchvision.models import AlexNet_Weights, alexnet
         return gap(alexnet(weights=AlexNet_Weights.IMAGENET1K_V1).features)
-    if name == "vgg19":
-        return gap(vgg19(weights=VGG19_Weights.IMAGENET1K_V1).features)
-    if name == "efficientnet_b0":
-        INTERP = transforms.InterpolationMode.BICUBIC  # su distribucion de entrenamiento
-        return gap(efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1).features)
-    if name == "resnet50":
-        m = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2); m.fc = nn.Identity(); return m
-    if name == "vit_b16":
-        m = vit_b_16(weights=ViT_B_16_Weights.IMAGENET1K_V1); m.heads = nn.Identity(); return m
     if name == "simsiam_r50":
+        # Checkpoint oficial de FAIR (no publicado en HF). Pendiente: mirror
+        # en el repo HF del equipo para fijar revision.
+        from torchvision.models import resnet50
         url = ("https://dl.fbaipublicfiles.com/simsiam/models/100ep-256bs/"
                "pretrain/checkpoint_0099.pth.tar")
         sd = torch.hub.load_state_dict_from_url(url, map_location="cpu")["state_dict"]
@@ -211,25 +224,11 @@ def load_backbone(name):
         missing, unexpected = m.load_state_dict(sd, strict=False)
         assert not unexpected, f"claves inesperadas: {{unexpected[:5]}}"
         return m
-    if name == "dinov2_vits14":
-        try:
-            import timm
-            return timm.create_model("vit_small_patch14_dinov2.lvd142m",
-                                     pretrained=True, num_classes=0, img_size=RES)
-        except Exception as exc:
-            print("timm fallo, uso torch.hub:", exc)
-            return torch.hub.load("facebookresearch/dinov2", "dinov2_vits14",
-                                  trust_repo=True)
-    if name == "dinov2_vitb14":
-        try:
-            import timm
-            return timm.create_model("vit_base_patch14_dinov2.lvd142m",
-                                     pretrained=True, num_classes=0, img_size=RES)
-        except Exception as exc:
-            print("timm fallo, uso torch.hub:", exc)
-            return torch.hub.load("facebookresearch/dinov2", "dinov2_vitb14",
-                                  trust_repo=True)
-    raise ValueError(name)
+    tag = TIMM_HF_TAGS[name]
+    if name == "efficientnet_b0":
+        INTERP = transforms.InterpolationMode.BICUBIC  # su distribucion de entrenamiento
+    kwargs = {{"img_size": RES}} if "patch14" in tag else {{}}
+    return timm.create_model(tag, pretrained=True, num_classes=0, **kwargs)
 
 model = load_backbone(MODEL)
 for p in model.parameters():
@@ -411,7 +410,7 @@ if mlflow is not None:
             for name, val in m.items():
                 if isinstance(val, (int, float)):
                     mlflow.log_metric(f"{{probe}}.{{name}}", val)
-        mlflow.log_artifact(str(dest / f"results_{{MODEL}}.json"))
+        mlflow.log_artifact(str(dest / f"results_{{MODEL}}{{JSON_SUFFIX}}.json"))
     print("MLflow: run registrado en", dest / "mlruns")
     print("ver UI local: MLFLOW_ALLOW_FILE_STORE=true mlflow ui "
           "--backend-store-uri file:" + str(dest / "mlruns"))

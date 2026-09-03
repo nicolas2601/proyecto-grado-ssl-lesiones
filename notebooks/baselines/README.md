@@ -15,7 +15,7 @@ cambiar el protocolo se edita el builder y se regeneran los ocho.
 | `vgg19/` | VGG19 (2014) | Supervisado | ImageNet-1k |
 | `efficientnet_b0/` | EfficientNet-B0 (2019) | Supervisado | ImageNet-1k |
 | `resnet50/` | ResNet-50 (2015) | Supervisado | ImageNet-1k |
-| `vit_b16/` | ViT-B/16 (2021) | Supervisado | ImageNet-1k (torchvision) |
+| `vit_b16/` | ViT-B/16 (2021) | Supervisado | ImageNet-1k (timm augreg_in1k) |
 | `simsiam_r50/` | SimSiam ResNet-50 (2021) | SSL | ImageNet-1k sin etiquetas |
 | `dinov2_vits14/` | DINOv2 ViT-S/14 (2023) | SSL | LVD-142M sin etiquetas |
 | `dinov2_vitb14/` | DINOv2 ViT-B/14 (2023) | SSL | LVD-142M sin etiquetas — par justo de tamano vs ViT-B/16 |
@@ -23,6 +23,17 @@ cambiar el protocolo se edita el builder y se regeneran los ocho.
 Los supervisados son comparadores congelados. El proposal del proyecto es
 full SSL: las etiquetas solo se usan en la evaluacion (probes y metricas),
 nunca en el preentrenamiento de nuestro modelo.
+
+## Fuente de pesos: Hugging Face Hub (decision del equipo, 2026-08-28)
+
+Los modelos se cargan desde HF Hub via timm. Los tags `.tv_in1k` (vgg19) y
+`.tv2_in1k` (resnet50) sirven exactamente los mismos tensores que torchvision,
+asi que esas corridas previas siguen siendo validas. Cambios de pesos reales:
+`vit_b16` paso de torchvision a `augreg_in1k` (re-correr su test HAM) y
+`efficientnet_b0` usa la receta `ra_in1k` de timm (verificar equivalencia o
+re-correr). Excepciones sin pesos oficiales en HF: `alexnet` (torchvision) y
+`simsiam_r50` (checkpoint oficial FAIR; pendiente mirror en repo HF del
+equipo).
 
 ## Como correr un test en Kaggle
 
