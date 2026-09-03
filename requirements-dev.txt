@@ -1,12 +1,20 @@
 # Dependencies for running the full test suite.
 #
-# Without scikit-learn two test MODULES skip in one line each, and with them
-# go the four tests that cover the metric cell shared by every bank - including
-# the binary-AUC fix that a bare `pytest` would silently not exercise:
-#   pytest -q            -> 266 passed, 2 skipped
-#   pytest -q (with sk)  -> 272 passed
-# Install with: pip install -r requirements-dev.txt
+# Without scikit-learn, tests/test_probes.py and tests/test_notebook_metrics_binary.py
+# skip as one line each and take every test they hold with them - including the
+# coverage of the binary-AUC fix in the metric cell shared by both banks. The
+# run still reports green, which is the dangerous part.
+#
+#   pip install -r requirements-dev.txt
+#   CI_REQUIRE_FULL_DEPS=1 pytest -q -rs
+#
+# The env var turns those skips into a failure; CI sets it. No test count is
+# written here on purpose: a hard-coded number goes stale the moment a test is
+# added, and tests/test_ci_workflow.py fails if one reappears.
 pytest>=8.0
 numpy>=1.26
 pandas>=2.0
 scikit-learn>=1.5
+
+# Linter. Config in ruff.toml, deliberately narrow.
+ruff>=0.6

@@ -1,0 +1,19 @@
+# Deliberately narrow. The repo had no linter, so a broad ruleset would arrive
+# as hundreds of findings nobody reads and a red pipeline everybody learns to
+# ignore. These rules only fire on things that are wrong, never on style:
+# syntax errors, undefined names, broken comparisons, unused imports.
+# Widen it later on purpose, not by default.
+
+line-length = 100
+target-version = "py311"
+
+exclude = ["notebooks", "data", "results", "assets", "demo"]
+
+[lint]
+select = [
+    "E9",   # syntax / IO errors
+    "F63",  # comparisons that are always true or false
+    "F7",   # break/return outside a loop or function
+    "F82",  # undefined name
+    "F401", # imported but unused
+]

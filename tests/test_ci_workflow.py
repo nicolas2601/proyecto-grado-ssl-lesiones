@@ -1,0 +1,70 @@
+"""The CI config is code too, and it rots the same way.
+
+Three things bit this repo before CI existed and must not be re-introducible:
+a bare `pytest` that silently skips whole modules when scikit-learn is absent,
+generated notebooks that drift from their builder, and hand-typed numbers in
+documentation. Each one has an assertion here.
+"""
+
+import re
+from pathlib import Path
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[1]
+WORKFLOW = REPO / ".github" / "workflows" / "ci.yml"
+
+
+@pytest.fixture(scope="module")
+def ci() -> str:
+    assert WORKFLOW.is_file(), f"no CI workflow at {WORKFLOW}"
+    return WORKFLOW.read_text()
+
+
+def test_ci_installs_the_full_test_dependencies(ci):
+    """A bare `pytest` skips test_probes and test_notebook_metrics_binary."""
+    assert "requirements-dev.txt" in ci
+
+
+def test_ci_demands_that_nothing_skips_for_a_missing_dependency(ci):
+    assert "CI_REQUIRE_FULL_DEPS" in ci
+
+
+def test_ci_regenerates_both_notebook_builders(ci):
+    """The finetune builder reuses the baseline backbone cell: fixing one and
+    regenerating only the other leaves stale notebooks on disk."""
+    assert "build_baseline_tests.py" in ci
+    assert "build_finetune_tests.py" in ci
+
+
+def test_ci_fails_when_generated_files_drift(ci):
+    assert "git diff --exit-code" in ci
+
+
+def test_ci_runs_the_linter(ci):
+    assert "ruff" in ci
+
+
+def test_ci_triggers_on_the_branches_this_repo_actually_uses(ci):
+    assert "main" in ci and "feature/**" in ci
+    assert "pull_request" in ci
+
+
+def test_ci_pins_action_versions_instead_of_tracking_a_moving_tag(ci):
+    """Unpinned actions turn a green pipeline red without a commit."""
+    for action in re.findall(r"uses:\s*(\S+)", ci):
+        assert "@" in action, f"{action} has no version"
+        assert not action.endswith("@master"), f"{action} tracks a moving tag"
+
+
+def test_requirements_dev_pins_scikit_learn():
+    text = (REPO / "requirements-dev.txt").read_text()
+    assert "scikit-learn" in text
+
+
+def test_requirements_dev_does_not_hardcode_a_test_count():
+    """`266 passed` in a comment is stale the moment a test is added - the same
+    rot that hit the result tables and the checkpoint table."""
+    text = (REPO / "requirements-dev.txt").read_text()
+    assert not re.search(r"\d+\s+passed", text), (
+        "hard-coded test count in requirements-dev.txt: it goes stale silently")
