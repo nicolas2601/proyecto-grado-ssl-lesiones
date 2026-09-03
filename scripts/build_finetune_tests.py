@@ -8,7 +8,6 @@ are directly comparable cell-by-cell.
 
 Output:
   notebooks/finetune/<model>/finetune_<model>.ipynb              (HAM10000)
-  notebooks/finetune_isic2019/<model>/finetune_<model>_isic2019.ipynb
   notebooks/finetune_isic2020/<model>/finetune_<model>_isic2020.ipynb
 
 Everything shared with the frozen bank (model list, data/split cells, backbone

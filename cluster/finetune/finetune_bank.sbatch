@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=dermssl-ft
-#SBATCH --array=0-23%4
+#SBATCH --array=0-15%4
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=1
@@ -8,7 +8,7 @@
 #SBATCH --mem=48G
 #SBATCH --time=06:00:00
 #SBATCH --output=logs/%x-%A_%a.out
-# Fine-tuning bank: 24 jobs (8 backbones x 3 datasets), one GPU each, four at
+# Fine-tuning bank: 16 jobs (8 backbones x 2 datasets), one GPU each, four at
 # a time on the 4-GPU priority queue. Job index -> (model, dataset) comes from
 # src/dermssl/finetune/protocol.py (dataset-major: HAM10000 first).
 # Adjust partition/account to the cluster's names:
@@ -19,7 +19,7 @@ set -euo pipefail
 
 SCRATCH_BASE="${SCRATCH:-$HOME/scratch}/dermssl"
 REPO_DIR="${REPO_DIR:-$HOME/proyecto-grado-ssl-lesiones}"
-DATA_ROOT="${DATA_ROOT:-$SCRATCH_BASE/data}"          # ham10000/ isic2019/ isic2020/
+DATA_ROOT="${DATA_ROOT:-$SCRATCH_BASE/data}"          # ham10000/ isic2020/
 OUTPUT_DIR="$SCRATCH_BASE/finetune/runs/job${SLURM_ARRAY_TASK_ID}-${SLURM_ARRAY_JOB_ID}"
 
 # Offline weights (see cluster/prepare_offline_assets.sh): no internet needed.

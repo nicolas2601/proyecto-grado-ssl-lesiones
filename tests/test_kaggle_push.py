@@ -38,3 +38,14 @@ def test_stage_flips_smoke_and_keeps_cell_count(tmp_path, bank):
     meta = json.loads((folder / "kernel-metadata.json").read_text())
     assert meta["code_file"] == src.name
     assert meta["dataset_sources"] == kp.DATASET_SOURCES[dataset]
+
+
+def test_push_payload_matches_kaggle_kernels_push_schema(tmp_path):
+    folder = kp.stage("baselines_isic2020", "resnet50", "nicorghost", real=False,
+                      staging=tmp_path)
+    body = kp.push_payload(folder)
+    assert body["slug"] == "nicorghost/baselines-isic2020-resnet50"
+    assert body["kernelType"] == "notebook" and body["language"] == "python"
+    assert body["enableGpu"] and body["enableInternet"] and body["isPrivate"]
+    assert body["datasetDataSources"] == ["nischaydnk/isic-2020-jpg-256x256-resized"]
+    assert json.loads(body["text"])["nbformat"] == 4

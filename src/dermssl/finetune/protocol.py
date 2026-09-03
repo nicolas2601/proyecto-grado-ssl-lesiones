@@ -62,11 +62,6 @@ DATASETS: dict[str, DatasetSpec] = {
         name="ham10000", subdir="ham10000", metadata_csv="HAM10000_metadata.csv",
         task="multiclass", group_column="lesion_id", json_suffix="",
     ),
-    "isic2019": DatasetSpec(
-        name="isic2019", subdir="isic2019", metadata_csv="train-metadata.csv",
-        # RESIZED patient_id is synthetic -> plain stratified split (docs/15).
-        task="binary", group_column="", json_suffix="_isic2019",
-    ),
     "isic2020": DatasetSpec(
         name="isic2020", subdir="isic2020", metadata_csv="train-metadata.csv",
         task="binary", group_column="patient_id", json_suffix="_isic2020",
@@ -84,8 +79,7 @@ RESOLUTION = 224
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 SMOKE_EPOCHS = 1
-SMOKE_FRACTION = {"ham10000": (0.08, 12, 6), "isic2019": (0.04, 40, 20),
-                  "isic2020": (0.04, 40, 20)}  # (frac, min train/cls, min val/cls)
+SMOKE_FRACTION = {"ham10000": (0.08, 12, 6), "isic2020": (0.04, 40, 20)}  # (frac, min train/cls, min val/cls)
 
 WANDB_PROJECT = "dermssl-baselines-finetune"
 MLFLOW_EXPERIMENT_PREFIX = "finetune-"
@@ -111,7 +105,7 @@ class Job:
 
 
 def manifest() -> list[Job]:
-    """The 24 (model, dataset) jobs in a fixed order: dataset-major.
+    """The 16 (model, dataset) jobs in a fixed order: dataset-major.
 
     Dataset-major means the SLURM array finishes one whole dataset before
     starting the next, so a partial run still yields a complete table.

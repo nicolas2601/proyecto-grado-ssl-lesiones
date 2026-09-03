@@ -38,9 +38,8 @@ base con `torch>=2.2+cu12` (module/conda) y sobre el instalamos el resto de
   propio repo. Ver `cluster/prepare_offline_assets.sh` (se corre en una maquina
   con internet; en el cluster solo se descarga el tar del Release y se apunta
   `TORCH_HOME` al cache).
-- Datos: el pool de imagenes sin etiquetas (HAM10000 + ISIC) se sube igual como
-  asset de Release (tar) o por el canal que indiquen los administradores
-  (scp/rsync si existe). Confirmar con ellos el mecanismo preferido.
+- Datos: el laboratorio ya cuenta con HAM10000 e ISIC 2020; ver la seccion 0b de
+  `cluster/finetune/README.md` para la carpeta esperada.
 
 ## 3. Corridas propuestas (grande y pequena)
 

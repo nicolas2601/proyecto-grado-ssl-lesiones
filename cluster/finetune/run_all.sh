@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-shot launcher for Dr. Karen: prepares the environment, checks every
-# prerequisite, runs a smoke test and queues the 24-job fine-tuning bank.
+# prerequisite, runs a smoke test and queues the 16-job fine-tuning bank.
 # Re-runnable: every step is idempotent (skips what already exists).
 #
 #   bash cluster/finetune/run_all.sh                 # full flow
@@ -82,7 +82,7 @@ elif [ -f "$DATA_TAR" ]; then
 else
     die "datasets missing. Copy dermssl-data.tar.gz to $DATA_TAR (see cluster/prepare_datasets.sh) or set DATA_ROOT"
 fi
-for d in ham10000 isic2019 isic2020; do
+for d in ham10000 isic2020; do
     [ "$DRY_RUN" = 1 ] || [ -d "$DATA_ROOT/$d" ] || die "missing $DATA_ROOT/$d"
 done
 
@@ -102,7 +102,7 @@ else
 fi
 
 # ---------------------------------------------------------------- 6. bank
-log "6/6 fine-tuning bank: 24 jobs (8 models x 3 datasets)"
+log "6/6 fine-tuning bank: 16 jobs (8 models x 2 datasets)"
 if [ "$SCHEDULER" = slurm ]; then
     run sbatch --export=ALL "$REPO_DIR/cluster/finetune/finetune_bank.sbatch"
     cat <<MSG
@@ -113,11 +113,11 @@ if [ "$SCHEDULER" = slurm ]; then
   When all 24 finished:   bash cluster/finetune/publish_results.sh
 MSG
 else
-    echo "  no SLURM: running the 24 jobs sequentially on the local GPU"
+    echo "  no SLURM: running the 16 jobs sequentially on the local GPU"
     source "$ENV_DIR/bin/activate"
     export WANDB_MODE=offline WANDB_DIR="$SCRATCH_BASE/wandb"
     mkdir -p "$WANDB_DIR"
-    for i in $(seq 0 23); do
+    for i in $(seq 0 15); do
         run python "$REPO_DIR/scripts/finetune_baseline.py" --job-index "$i" \
             --data-root "$DATA_ROOT" \
             --output-dir "$SCRATCH_BASE/finetune/runs/job$i" \
