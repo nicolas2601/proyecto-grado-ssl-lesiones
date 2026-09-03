@@ -153,7 +153,12 @@ def load_backbone(name: str):
     if name == "efficientnet_b0":
         interp = transforms.InterpolationMode.BICUBIC
     kwargs = {"img_size": res} if "patch14" in tag else {}
-    return timm.create_model(tag, pretrained=True, num_classes=0, **kwargs), interp
+    m = timm.create_model(tag, pretrained=True, num_classes=0, **kwargs)
+    if name == "vgg19":
+        # num_classes=0 leaves VGG's 4096-d pre-logits in place; the bank reads
+        # every CNN at the GAP of its last conv block.
+        return _gap(m.features), interp
+    return m, interp
 
 
 class FTNet(nn.Module):
@@ -297,6 +302,10 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
     with torch.no_grad():
         dim = backbone(torch.zeros(1, 3, protocol.RESOLUTION, protocol.RESOLUTION,
                                    device=device)).shape[-1]
+    expected = protocol.FEATURE_DIMS[cfg.model]
+    assert dim == expected, (
+        f"{cfg.model}: se extrajeron {dim} dims, el protocolo fija {expected}. "
+        "El punto de extraccion cambio; la corrida NO es comparable con el banco.")
     for p in backbone.parameters():
         p.requires_grad = True
     net = FTNet(backbone, dim, n).to(device)

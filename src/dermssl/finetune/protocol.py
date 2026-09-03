@@ -36,6 +36,27 @@ TIMM_HF_TAGS: dict[str, str] = {
     "dinov2_vitb14": "vit_base_patch14_dinov2.lvd142m",
 }
 
+# Expected feature width per backbone: GAP of the last conv block (CNN) or the
+# CLS token (ViT). Asserted at load time by both runners.
+#
+# vgg19 is the reason this exists. timm's `num_classes=0` returns VGG's 4096-d
+# pre-logits (fc6/fc7 of the classifier head), not the 512-d GAP of conv5, so
+# the HF migration silently moved the extraction point two fully-connected
+# layers deeper and made that row incomparable with the rest of the bank.
+FEATURE_DIMS: dict[str, int] = {
+    "alexnet": 256,
+    "vgg19": 512,
+    "efficientnet_b0": 1280,
+    "resnet50": 2048,
+    "vit_b16": 768,
+    "simsiam_r50": 2048,
+    "dinov2_vits14": 384,
+    "dinov2_vitb14": 768,
+}
+
+# Backbones whose timm head must be bypassed to reach the conv features.
+CONV_GAP_FROM_TIMM: tuple[str, ...] = ("vgg19",)
+
 # Documented exceptions without official HF weights.
 TORCHVISION_MODELS: tuple[str, ...] = ("alexnet",)
 SIMSIAM_CHECKPOINT_URL = (
