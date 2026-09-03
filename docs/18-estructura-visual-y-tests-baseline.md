@@ -79,4 +79,7 @@ garantizado por construccion). Instrucciones de ejecucion en
 - `src/dermssl/patch_guard.py`: los tres CNN clasicos registrados sin
   restriccion de parche (el sufijo numerico de `vgg19` no debe disparar la
   heuristica de nombres).
-- Suite de tests: 190 en verde (`python -m pytest tests/`).
+- Suite de tests: 272 en verde con `pip install -r requirements-dev.txt`
+  (`python -m pytest -q`). Sin scikit-learn instalado son 266 en verde y 2
+  modulos saltados: ahi van los cuatro tests de la celda de metricas, entre
+  ellos el del AUC binario. Un CI sin esa dependencia NO lo estaria probando.

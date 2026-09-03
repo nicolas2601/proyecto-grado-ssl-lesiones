@@ -49,7 +49,11 @@ equipo).
 1. kaggle.com -> Create -> Notebook -> File -> Import Notebook -> subir el
    `.ipynb` de la carpeta del modelo.
 2. Add Input: buscar `Skin Cancer MNIST: HAM10000` (kmader).
-3. Settings: Accelerator = GPU T4 x2 (o P100), Internet = ON (descarga pesos).
+3. Settings: Accelerator = **GPU T4** (T4 x2 tambien sirve), Internet = ON.
+   NO elegir P100: el PyTorch de Kaggle no trae kernels para su
+   arquitectura (sm_60) y el test muere en el primer forward con
+   `CUDA error: no kernel image is available`. `scripts/kaggle_push.py`
+   ya fija `machine_shape: NvidiaTeslaT4` al subir por API.
 4. Dejar `SMOKE = True` y Run All (~3-5 min). Valida el pipeline; los numeros
    NO son resultados.
 5. Si el humo pasa: `SMOKE = False` -> Save Version -> Save & Run All.
@@ -80,18 +84,20 @@ Todos quedan registrados en el JSON de salida y en MLflow por cada corrida.
 | Normalizacion | mean/std de ImageNet | celda config | `[0.485,0.456,0.406]/[0.229,0.224,0.225]` |
 | `SMOKE` | True por defecto | celda config | submuestreo estratificado 8 %; poner False para la corrida real |
 
-Checkpoints por modelo (pesos exactos, verificables):
+Checkpoints por modelo (generado con
+`python scripts/build_results_tables.py --weights`, fuente:
+`src/dermssl/finetune/protocol.py`):
 
-| Modelo | Checkpoint |
-|---|---|
-| AlexNet | torchvision `AlexNet_Weights.IMAGENET1K_V1` |
-| VGG19 | torchvision `VGG19_Weights.IMAGENET1K_V1` (sin BN) |
-| EfficientNet-B0 | torchvision `EfficientNet_B0_Weights.IMAGENET1K_V1` |
-| ResNet-50 | torchvision `ResNet50_Weights.IMAGENET1K_V2` |
-| ViT-B/16 | torchvision `ViT_B_16_Weights.IMAGENET1K_V1` |
-| SimSiam | oficial Facebook `checkpoint_0099.pth.tar` (100 ep, batch 256) |
-| DINOv2 ViT-S/14 | timm `vit_small_patch14_dinov2.lvd142m` (fallback torch.hub) |
-| DINOv2 ViT-B/14 | timm `vit_base_patch14_dinov2.lvd142m` (fallback torch.hub) |
+| Modelo | Checkpoint | Nota |
+|---|---|---|
+| AlexNet | torchvision `IMAGENET1K_V1` | sin pesos oficiales en HF Hub |
+| VGG19 | Hugging Face via timm: `vgg19.tv_in1k` | mismos tensores que torchvision IMAGENET1K_V1 |
+| EfficientNet-B0 | Hugging Face via timm: `efficientnet_b0.ra_in1k` | receta propia de timm (no es la de torchvision) |
+| ResNet-50 | Hugging Face via timm: `resnet50.tv2_in1k` | mismos tensores que torchvision IMAGENET1K_V2 |
+| ViT-B/16 | Hugging Face via timm: `vit_base_patch16_224.augreg_in1k` | supervisado SOLO con ImageNet-1k (comparador justo) |
+| SimSiam R50 | `checkpoint_0099.pth.tar` | checkpoint oficial de FAIR, 100 epocas, batch 256 |
+| DINOv2 ViT-S/14 | Hugging Face via timm: `vit_small_patch14_dinov2.lvd142m` | SSL sobre LVD-142M sin etiquetas |
+| DINOv2 ViT-B/14 | Hugging Face via timm: `vit_base_patch14_dinov2.lvd142m` | SSL sobre LVD-142M sin etiquetas |
 
 ## Protocolo (identico en los ocho — no cambiar por modelo)
 
