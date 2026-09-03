@@ -119,6 +119,9 @@ def push_payload(folder: Path) -> dict:
         "kernelDataSources": meta["kernel_sources"],
         "modelDataSources": meta["model_sources"],
         "categoryIds": [],
+        # Kaggle's current PyTorch build has no sm_60 kernels: a P100 fails with
+        # "no kernel image is available". Ask for the T4 shape explicitly (SDK enum: NvidiaTeslaT4 | NvidiaTeslaP100).
+        "machineShape": meta.get("machine_shape", "NvidiaTeslaT4"),
     }
 
 
