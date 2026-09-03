@@ -1,0 +1,127 @@
+"""Fine-tune one baseline backbone on one medical dataset (cluster runner).
+
+Same protocol as the Kaggle notebooks in notebooks/finetune*; see
+src/dermssl/finetune/protocol.py. Meant for Dr. Karen's cluster: weights
+come from a pre-seeded Hugging Face / torch cache (no internet), results go
+to a JSON file, a checkpoint, Weights & Biases (offline) and MLflow.
+
+One job by name:
+    python scripts/finetune_baseline.py --model resnet50 --dataset ham10000 \
+        --data-root $SCRATCH/dermssl/data --output-dir $SCRATCH/dermssl/finetune/runs/x
+
+One job by manifest index (what the SLURM array uses, 0..23):
+    python scripts/finetune_baseline.py --job-index 3 --data-root ... --output-dir ...
+
+Smoke (1 epoch on a stratified subset, validates the wiring in minutes):
+    python scripts/finetune_baseline.py --model resnet50 --dataset ham10000 --smoke ...
+
+List the 24 jobs of the bank:
+    python scripts/finetune_baseline.py --list-jobs
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import shutil
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from dermssl.finetune import protocol  # noqa: E402
+from dermssl.finetune.config import ConfigError, FinetuneConfig, validate  # noqa: E402
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--model", choices=protocol.MODELS)
+    p.add_argument("--dataset", choices=tuple(protocol.DATASETS))
+    p.add_argument("--job-index", type=int,
+                   help="0..23, overrides --model/--dataset from the manifest")
+    p.add_argument("--list-jobs", action="store_true")
+    p.add_argument("--data-root", help="folder with ham10000/ isic2019/ isic2020/")
+    p.add_argument("--output-dir", help="where JSON + checkpoint are written")
+    p.add_argument("--results-dir", default="",
+                   help="optional repo folder to copy the JSON into (for git push)")
+    p.add_argument("--epochs", type=int, default=protocol.EPOCHS)
+    p.add_argument("--batch", type=int, default=protocol.BATCH)
+    p.add_argument("--num-workers", type=int, default=8)
+    p.add_argument("--precision", default="fp16", choices=("fp16", "bf16", "fp32"))
+    p.add_argument("--seed", type=int, default=protocol.SEED)
+    p.add_argument("--smoke", action="store_true")
+    p.add_argument("--wandb-project", default=protocol.WANDB_PROJECT)
+    p.add_argument("--wandb-entity", default=os.environ.get("WANDB_ENTITY", ""))
+    p.add_argument("--wandb-mode", default=os.environ.get("WANDB_MODE", "offline"),
+                   choices=("offline", "online", "disabled"))
+    p.add_argument("--mlflow-tracking-uri", default="")
+    return p.parse_args(argv)
+
+
+def build_config(args: argparse.Namespace) -> FinetuneConfig:
+    model, dataset = args.model, args.dataset
+    if args.job_index is not None:
+        job = protocol.job_from_index(args.job_index)
+        model, dataset = job.model, job.dataset
+    if not model or not dataset:
+        raise ConfigError("give --model and --dataset, or --job-index")
+    if not args.data_root or not args.output_dir:
+        raise ConfigError("--data-root and --output-dir are required")
+    return FinetuneConfig(
+        model=model, dataset=dataset, data_root=args.data_root,
+        output_dir=args.output_dir, epochs=args.epochs, batch_size=args.batch,
+        seed=args.seed, num_workers=args.num_workers, smoke=args.smoke,
+        precision=args.precision, wandb_project=args.wandb_project,
+        wandb_entity=args.wandb_entity, wandb_mode=args.wandb_mode,
+        mlflow_tracking_uri=args.mlflow_tracking_uri,
+        extra_tags=["smoke"] if args.smoke else [],
+    )
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    if args.list_jobs:
+        for job in protocol.manifest():
+            print(f"{job.index:2d}  {job.model:<16} {job.dataset:<9} -> {job.results_file}")
+        return
+    try:
+        cfg = validate(build_config(args))  # fails before torch is imported
+    except ConfigError as exc:
+        sys.exit(f"config error: {exc}")
+
+    try:
+        import wandb
+    except ImportError:
+        wandb = None
+    try:
+        import mlflow
+    except ImportError:
+        mlflow = None
+
+    from dermssl.finetune.tracking import build_trackers
+    from dermssl.finetune.torch_run import run
+
+    tracker = build_trackers(
+        wandb_module=wandb, mlflow_module=mlflow, run=cfg.job_name,
+        wandb_project=cfg.wandb_project, wandb_mode=cfg.wandb_mode,
+        wandb_entity=cfg.wandb_entity,
+        wandb_tags=[cfg.model, cfg.dataset, *cfg.extra_tags],
+        wandb_group=cfg.dataset,
+        mlflow_experiment=f"{protocol.MLFLOW_EXPERIMENT_PREFIX}{cfg.dataset}",
+        mlflow_tracking_uri=cfg.mlflow_tracking_uri,
+    )
+    if tracker.is_null:
+        print("AVISO: sin wandb ni mlflow - la corrida NO queda registrada en "
+              "ningun dashboard (el JSON de resultados si se escribe).")
+
+    json_path = run(cfg, tracker)
+    if args.results_dir:
+        dest = Path(args.results_dir) / cfg.dataset
+        dest.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(json_path, dest / json_path.name)
+        print("copiado a", dest / json_path.name)
+
+
+if __name__ == "__main__":
+    main()

@@ -76,6 +76,9 @@ calibración esperado.*
 > modelo y arquitecturas v6 por brazo) en
 > [18 — Estructura visual y tests](docs/18-estructura-visual-y-tests-baseline.md).
 
+> Banco de fine-tuning de los baselines en el cluster (un solo comando para la
+> asesora): [cluster/finetune/README.md](cluster/finetune/README.md).
+
 ## Resultados del banco de baselines (Kaggle, 2026-08-27)
 
 Corrida real (SMOKE=False) sobre HAM10000 (8.001 train / 2.014 val, resolución 224,

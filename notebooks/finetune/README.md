@@ -95,3 +95,13 @@ Notas:
 Con ambos bancos corridos, cada modelo tiene dos JSON comparables campo a
 campo: `results_<modelo>.json` (congelado) vs `results_<modelo>_ft.json`
 (fine-tuned), mismas metricas, mismo split. La tabla de la tesis sale de ahi.
+
+## Version para el cluster (Dra. Karen)
+
+El mismo protocolo corre sin notebook en `scripts/finetune_baseline.py`
+(fuente unica: `src/dermssl/finetune/protocol.py`, verificada por
+`tests/test_finetune_protocol.py`). Lanzador de un solo comando y guia:
+`cluster/finetune/README.md`. Resultados en `results/finetune/<dataset>/`.
+
+Para subir y ejecutar los notebooks de Kaggle sin navegador:
+`python scripts/kaggle_push.py --bank finetune_isic2020 --user <kaggle-user> --dry-run`.

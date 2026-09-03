@@ -10,3 +10,7 @@ numpy==1.26.4
 Pillow==10.4.0
 mlflow==2.16.2
 wandb==0.17.9
+timm==1.0.9
+scikit-learn==1.5.2
+pandas==2.2.3
+huggingface_hub==0.25.2
