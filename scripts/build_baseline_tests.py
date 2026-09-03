@@ -180,11 +180,21 @@ BACKBONE_CODE = """\
 # --- Backbone CONGELADO (nunca se entrena). Fuente de pesos: Hugging Face Hub
 # via timm (decision del equipo con la Dra. Karen, 2026-08-28). Los tags
 # .tv_in1k / .tv2_in1k de timm sirven LOS MISMOS tensores que torchvision ->
-# resnet50 y vgg19 siguen comparables con las corridas previas del banco.
+# resnet50 sigue comparable con las corridas previas del banco. OJO: los mismos
+# tensores NO implican el mismo punto de extraccion — ver el caso vgg19 abajo.
 # Excepciones documentadas (sin pesos oficiales en HF): alexnet (torchvision)
 # y simsiam_r50 (checkpoint oficial de FAIR). model.eval() SIEMPRE:
 # requires_grad=False no congela BatchNorm. ---
 RES, INTERP = 224, transforms.InterpolationMode.BILINEAR
+
+# Ancho de features esperado: GAP del ultimo bloque conv (CNN) o token CLS
+# (ViT). Se asserta abajo — un cambio de punto de extraccion rompe la
+# comparabilidad del banco y tiene que fallar fuerte, no en silencio.
+FEATURE_DIMS = {{
+    "alexnet": 256, "vgg19": 512, "efficientnet_b0": 1280, "resnet50": 2048,
+    "vit_b16": 768, "simsiam_r50": 2048, "dinov2_vits14": 384,
+    "dinov2_vitb14": 768,
+}}
 
 TIMM_HF_TAGS = {{
     "vgg19": "vgg19.tv_in1k",                       # = torchvision IMAGENET1K_V1
@@ -228,7 +238,12 @@ def load_backbone(name):
     if name == "efficientnet_b0":
         INTERP = transforms.InterpolationMode.BICUBIC  # su distribucion de entrenamiento
     kwargs = {{"img_size": RES}} if "patch14" in tag else {{}}
-    return timm.create_model(tag, pretrained=True, num_classes=0, **kwargs)
+    m = timm.create_model(tag, pretrained=True, num_classes=0, **kwargs)
+    if name == "vgg19":
+        # num_classes=0 deja las pre-logits de 4096 (fc6/fc7 de la cabeza); el
+        # banco lee toda CNN en el GAP de su ultimo bloque conv.
+        return gap(m.features)
+    return m
 
 model = load_backbone(MODEL)
 for p in model.parameters():
@@ -238,6 +253,9 @@ with torch.no_grad():
     DIM = model(torch.zeros(1, 3, RES, RES, device=device)).shape[-1]
 trainable = sum(p.requires_grad for p in model.parameters())
 assert trainable == 0, "el backbone NO esta congelado"
+assert DIM == FEATURE_DIMS[MODEL], (
+    f"{{MODEL}}: se extrajeron {{DIM}} dims, el protocolo fija {{FEATURE_DIMS[MODEL]}}. "
+    "El punto de extraccion cambio; la corrida NO es comparable con el banco.")
 print(f"{{MODEL}}: dim={{DIM}} res={{RES}} interp={{INTERP}} entrenables=0")
 """
 

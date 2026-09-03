@@ -27,8 +27,17 @@ nunca en el preentrenamiento de nuestro modelo.
 ## Fuente de pesos: Hugging Face Hub (decision del equipo, 2026-08-28)
 
 Los modelos se cargan desde HF Hub via timm. Los tags `.tv_in1k` (vgg19) y
-`.tv2_in1k` (resnet50) sirven exactamente los mismos tensores que torchvision,
-asi que esas corridas previas siguen siendo validas. Cambios de pesos reales:
+`.tv2_in1k` (resnet50) sirven exactamente los mismos tensores que torchvision.
+
+**Los mismos tensores NO implican el mismo punto de extraccion** (hallazgo del
+2026-09-03). Con `num_classes=0`, timm devuelve para VGG las pre-logits de 4096
+dims (fc6/fc7 de la cabeza de clasificacion), no el GAP de 512 del ultimo
+bloque conv que usa el resto del banco. La primera re-corrida de HAM10000 lo
+delato como un salto silencioso de 512 a 4096 dims y -0.043 de balanced
+accuracy. Corregido: vgg19 se lee con `gap(m.features)` y ambos runners
+assertan `protocol.FEATURE_DIMS` antes de extraer.
+
+Cambios de pesos reales:
 `vit_b16` paso de torchvision a `augreg_in1k` (re-correr su test HAM) y
 `efficientnet_b0` usa la receta `ra_in1k` de timm (verificar equivalencia o
 re-correr). Excepciones sin pesos oficiales en HF: `alexnet` (torchvision) y
