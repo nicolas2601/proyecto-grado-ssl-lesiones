@@ -98,15 +98,11 @@ Checkpoints por modelo (pesos exactos, verificables):
 
 ## Pendiente
 
-- Bancos sobre ISIC 2019 y 2020 RESIZED (pedido de la direccion, 2026-08-28):
-  generados en `notebooks/baselines_isic2019/` y `notebooks/baselines_isic2020/`
-  como tarea BINARIA (benigno/maligno) — los datasets RESIZED solo traen
-  `target` binario. Split: ISIC 2020 agrupa por `patient_id` real; ISIC 2019
-  RESIZED trae `patient_id` sintetico, asi que va estratificado simple y se
-  reporta como limite. Ademas los 3 bancos ahora sacan precision/F1 por clase,
+- Banco sobre ISIC 2020 RESIZED (pedido de la direccion, 2026-08-28): generado
+  en `notebooks/baselines_isic2020/` como tarea BINARIA (benigno/maligno), split
+  agrupado por `patient_id` real. Los 2 bancos sacan precision/F1 por clase,
   matriz de confusion e IC bootstrap 95% (re-correr el de HAM10000 para
-  obtenerlas). La variante multiclase de ISIC 2019 sigue pendiente: requiere
-  `andrewmvd/isic-2019` (ground truth real de 8 clases).
+  obtenerlas). ISIC 2019 quedo fuera del alcance (decision 2026-09-03).
 
 ## Resultados de la corrida real (2026-08-27, SMOKE=False, seed 42)
 

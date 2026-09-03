@@ -10,7 +10,6 @@ modelos supervisados y SSL?
 
 ```
 notebooks/finetune/<modelo>/finetune_<modelo>.ipynb               HAM10000 (7 clases)
-notebooks/finetune_isic2019/<modelo>/finetune_<modelo>_isic2019.ipynb  ISIC 2019 (binaria)
 notebooks/finetune_isic2020/<modelo>/finetune_<modelo>_isic2020.ipynb  ISIC 2020 (binaria)
 ```
 
@@ -49,7 +48,7 @@ modelo es limpia.
 1. Subir el `.ipynb` a Kaggle (New Notebook -> File -> Import).
 2. Add Input segun el dataset (mismo input que el banco congelado):
    - HAM10000: `Skin Cancer MNIST: HAM10000` (kmader).
-   - ISIC 2019/2020: los datasets RESIZED del pool SSL.
+   - ISIC 2020: `ISIC 2020 JPG 256x256 RESIZED` (nischaydnk/isic-2020-jpg-256x256-resized).
 3. Settings: GPU T4, Internet ON.
 4. `SMOKE = True` -> Run All (valida el wiring en minutos).
 5. `SMOKE = False` -> Save & Run All (Commit). ~1-2 h por modelo en T4.
@@ -84,8 +83,6 @@ kaggle kernels output <usuario-kaggle>/finetune-resnet50-ham -p ./resultados
 
 Notas:
 - Recordar `SMOKE = False` antes del push definitivo.
-- El slug de `dataset_sources` para ISIC 2019/2020 es el del dataset RESIZED
-  que ya usa el equipo — copiarlo de la URL del dataset en Kaggle.
 - Cuota GPU Kaggle: ~30 h/semana por cuenta. 8 modelos x ~1.5 h = ~12 h por
   dataset: un banco completo cabe en la semana de una cuenta; repartir entre
   los del equipo si se corren dos bancos.
@@ -98,10 +95,13 @@ campo: `results_<modelo>.json` (congelado) vs `results_<modelo>_ft.json`
 
 ## Version para el cluster (Dra. Karen)
 
+Decision 2026-09-03: ISIC 2019 queda fuera del banco; solo HAM10000 e ISIC 2020.
+
 El mismo protocolo corre sin notebook en `scripts/finetune_baseline.py`
 (fuente unica: `src/dermssl/finetune/protocol.py`, verificada por
 `tests/test_finetune_protocol.py`). Lanzador de un solo comando y guia:
 `cluster/finetune/README.md`. Resultados en `results/finetune/<dataset>/`.
 
 Para subir y ejecutar los notebooks de Kaggle sin navegador:
-`python scripts/kaggle_push.py --bank finetune_isic2020 --user <kaggle-user> --dry-run`.
+`python scripts/kaggle_push.py --bank finetune_isic2020 --user <kaggle-user> --dry-run`
+(transporte `--via composio` usa la cuenta Kaggle enlazada en Composio, sin token local).

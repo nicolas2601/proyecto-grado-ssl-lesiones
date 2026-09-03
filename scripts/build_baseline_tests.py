@@ -2,7 +2,7 @@
 
 Output:
   notebooks/baselines/<model>/test_<model>.ipynb            (HAM10000)
-  notebooks/baselines_isic2019/<model>/test_<model>_isic2019.ipynb
+  notebooks/baselines_isic2020/<model>/test_<model>_isic2020.ipynb
 
 Each notebook is independent (no dermssl import) so any team member can
 upload a single file to Kaggle and run that model's test. All notebooks share
@@ -433,15 +433,6 @@ DATASETS = {
         "data_code": lambda fmt: DATA_CODE.format(**fmt),
         "out_dir": "baselines",
         "file_suffix": "",
-    },
-    "isic2019": {
-        "dataset_title": "ISIC 2019 RESIZED (binaria: benigno/maligno)",
-        "input_step": "`ISIC 2019 JPG 224x224 RESIZED` (el mismo del pool SSL).",
-        "json_suffix": "_isic2019",
-        "data_code": lambda fmt: DATA_CODE_ISICBIN.format(
-            year="2019", use_patient_groups="no", **fmt),
-        "out_dir": "baselines_isic2019",
-        "file_suffix": "_isic2019",
     },
     "isic2020": {
         "dataset_title": "ISIC 2020 RESIZED (binaria: benigno/maligno)",

@@ -20,27 +20,27 @@ import build_finetune_tests as ft_builder  # noqa: E402
 
 
 # ---------------------------------------------------------------- manifest
-def test_manifest_has_24_jobs_dataset_major_and_stable_order():
+def test_manifest_has_16_jobs_dataset_major_and_stable_order():
     jobs = protocol.manifest()
-    assert len(jobs) == 24
-    assert [j.index for j in jobs] == list(range(24))
+    assert len(jobs) == 16
+    assert [j.index for j in jobs] == list(range(16))
     assert [j.dataset for j in jobs[:8]] == ["ham10000"] * 8
     assert [j.model for j in jobs[:8]] == list(protocol.MODELS)
-    assert jobs[23].model == "dinov2_vitb14" and jobs[23].dataset == "isic2020"
+    assert jobs[15].model == "dinov2_vitb14" and jobs[15].dataset == "isic2020"
 
 
 def test_job_from_index_bounds():
     assert protocol.job_from_index(0).model == "alexnet"
     with pytest.raises(ValueError):
-        protocol.job_from_index(24)
+        protocol.job_from_index(16)
     with pytest.raises(ValueError):
         protocol.job_from_index(-1)
 
 
 def test_results_file_names_match_notebook_convention():
     assert protocol.job_from_index(3).results_file == "results_resnet50_ft.json"
-    assert protocol.job_from_index(11).results_file == "results_resnet50_ft_isic2019.json"
-    assert protocol.job_from_index(19).checkpoint_file == "ft_resnet50_isic2020.pth"
+    assert protocol.job_from_index(11).results_file == "results_resnet50_ft_isic2020.json"
+    assert protocol.job_from_index(11).checkpoint_file == "ft_resnet50_isic2020.pth"
 
 
 def test_low_memory_models_get_batch_16():
@@ -132,7 +132,7 @@ def test_cli_scripts_compile_and_list_jobs(tmp_path):
         py_compile.compile(str(SCRIPTS / name), doraise=True)
     out = subprocess.run([sys.executable, str(SCRIPTS / "finetune_baseline.py"),
                           "--list-jobs"], capture_output=True, text=True, check=True)
-    assert out.stdout.count("\n") == 24
+    assert out.stdout.count("\n") == 16
     bad = subprocess.run([sys.executable, str(SCRIPTS / "finetune_baseline.py"),
                           "--job-index", "3", "--data-root", str(tmp_path),
                           "--output-dir", str(tmp_path)], capture_output=True, text=True)

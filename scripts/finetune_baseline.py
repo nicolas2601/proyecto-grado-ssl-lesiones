@@ -9,13 +9,13 @@ One job by name:
     python scripts/finetune_baseline.py --model resnet50 --dataset ham10000 \
         --data-root $SCRATCH/dermssl/data --output-dir $SCRATCH/dermssl/finetune/runs/x
 
-One job by manifest index (what the SLURM array uses, 0..23):
+One job by manifest index (what the SLURM array uses, 0..15):
     python scripts/finetune_baseline.py --job-index 3 --data-root ... --output-dir ...
 
 Smoke (1 epoch on a stratified subset, validates the wiring in minutes):
     python scripts/finetune_baseline.py --model resnet50 --dataset ham10000 --smoke ...
 
-List the 24 jobs of the bank:
+List the 16 jobs of the bank:
     python scripts/finetune_baseline.py --list-jobs
 """
 
@@ -39,9 +39,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--model", choices=protocol.MODELS)
     p.add_argument("--dataset", choices=tuple(protocol.DATASETS))
     p.add_argument("--job-index", type=int,
-                   help="0..23, overrides --model/--dataset from the manifest")
+                   help="0..15, overrides --model/--dataset from the manifest")
     p.add_argument("--list-jobs", action="store_true")
-    p.add_argument("--data-root", help="folder with ham10000/ isic2019/ isic2020/")
+    p.add_argument("--data-root", help="folder with ham10000/ isic2020/")
     p.add_argument("--output-dir", help="where JSON + checkpoint are written")
     p.add_argument("--results-dir", default="",
                    help="optional repo folder to copy the JSON into (for git push)")
