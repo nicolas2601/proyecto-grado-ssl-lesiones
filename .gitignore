@@ -43,3 +43,6 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+
+# --- estado local del driver de bancos Kaggle ---
+results/**/.run_state.json

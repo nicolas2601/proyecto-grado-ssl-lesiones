@@ -1,0 +1,201 @@
+"""Run a whole Kaggle bank end to end, respecting the two-GPU-session limit.
+
+Kaggle only accepts two concurrent batch GPU sessions per account, and
+``kaggle kernels push`` exits 0 even when it refuses the push, so a naive loop
+over the eight models silently runs two of them. This driver keeps at most
+``--max-concurrent`` kernels in flight, polls their status, downloads each
+result as soon as it finishes, and records progress in a state file so it can
+be interrupted and resumed.
+
+    python scripts/kaggle_run_bank.py --bank baselines_isic2020 --user nicorghost --real
+    python scripts/kaggle_run_bank.py --bank baselines_isic2020 --user nicorghost --real --report
+
+A downloaded result is only accepted when its ``smoke`` flag matches the run
+mode: Kaggle reports the *kernel*'s status, so a stale COMPLETE left by an
+earlier smoke version would otherwise pass as a real run.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from kaggle_push import BANKS, REPO, kernel_slug, stage  # noqa: E402
+
+GPU_SESSION_LIMIT = 2
+STATUS_RE = re.compile(r"KernelWorkerStatus\.(\w+)")
+BUSY_MARKER = "Maximum batch GPU session count"
+TERMINAL = {"COMPLETE", "ERROR", "CANCEL_ACKNOWLEDGED"}
+
+
+class StaleResult(RuntimeError):
+    """The downloaded JSON does not belong to the run we just launched."""
+
+
+def parse_push(stdout: str, stderr: str) -> tuple[bool, str]:
+    text = f"{stdout}\n{stderr}".strip()
+    for line in text.splitlines():
+        if "Kernel push error" in line:
+            return False, line.strip()
+    for line in text.splitlines():
+        if "successfully pushed" in line:
+            return True, line.strip()
+    return False, text or "no output from kaggle kernels push"
+
+
+def is_slot_busy(text: str) -> bool:
+    return BUSY_MARKER in text
+
+
+def parse_status(text: str) -> str:
+    match = STATUS_RE.search(text)
+    return match.group(1) if match else "UNKNOWN"
+
+
+def result_name(bank: str, model: str) -> str:
+    suffix = "_isic2020" if bank.endswith("isic2020") else ""
+    return f"results_{model}{suffix}.json"
+
+
+def verify_result(path: Path, real: bool) -> dict:
+    if not path.is_file():
+        raise StaleResult(f"missing result file {path}")
+    data = json.loads(path.read_text())
+    if bool(data.get("smoke")) is real:
+        raise StaleResult(
+            f"{path.name} has smoke={data.get('smoke')} for a "
+            f"{'real' if real else 'smoke'} run - stale kernel output")
+    return data
+
+
+def load_state(path: Path) -> dict[str, str]:
+    return json.loads(path.read_text()) if path.is_file() else {}
+
+
+def save_state(path: Path, state: dict[str, str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+
+
+def pending(models: list[str], state: dict[str, str]) -> list[str]:
+    return [m for m in models if m not in state]
+
+
+def free_slots(state: dict[str, str], limit: int = GPU_SESSION_LIMIT) -> int:
+    return limit - sum(1 for v in state.values() if v == "running")
+
+
+def _run(cmd: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def push(bank: str, model: str, user: str, real: bool, staging: Path) -> tuple[bool, str]:
+    folder = stage(bank, model, user, real, staging)
+    out = _run(["kaggle", "kernels", "push", "-p", str(folder)])
+    return parse_push(out.stdout, out.stderr)
+
+
+def status(slug: str) -> str:
+    out = _run(["kaggle", "kernels", "status", slug])
+    return parse_status(out.stdout + out.stderr)
+
+
+def download(slug: str, dest: Path) -> None:
+    dest.mkdir(parents=True, exist_ok=True)
+    _run(["kaggle", "kernels", "output", slug, "-p", str(dest)])
+
+
+def collect(bank: str, model: str, user: str, real: bool, out_dir: Path) -> str:
+    """Download a finished kernel and keep only a result matching the run mode."""
+    slug = f"{user}/{kernel_slug(bank, model)}"
+    download(slug, out_dir)
+    try:
+        verify_result(out_dir / result_name(bank, model), real=real)
+    except StaleResult as exc:
+        print(f"  [{model}] {exc}")
+        return "failed"
+    return "done"
+
+
+def drive(bank: str, models: list[str], user: str, real: bool, out_dir: Path,
+          state_file: Path, poll: int, limit: int, staging: Path) -> dict[str, str]:
+    state = load_state(state_file)
+    while pending(models, state) or any(v == "running" for v in state.values()):
+        for model in list(state):
+            if state[model] != "running":
+                continue
+            phase = status(f"{user}/{kernel_slug(bank, model)}")
+            if phase not in TERMINAL:
+                continue
+            state[model] = collect(bank, model, user, real, out_dir) \
+                if phase == "COMPLETE" else "failed"
+            print(f"  [{model}] {phase} -> {state[model]}")
+            save_state(state_file, state)
+        for model in pending(models, state):
+            if free_slots(state, limit) <= 0:
+                break
+            ok, detail = push(bank, model, user, real, staging)
+            if ok:
+                state[model] = "running"
+                print(f"  [{model}] pushed")
+                save_state(state_file, state)
+            elif not is_slot_busy(detail):
+                state[model] = "failed"
+                print(f"  [{model}] push failed: {detail}")
+                save_state(state_file, state)
+            else:
+                break
+        if pending(models, state) or any(v == "running" for v in state.values()):
+            time.sleep(poll)
+    return state
+
+
+def report(bank: str, models: list[str], user: str, state_file: Path) -> None:
+    state = load_state(state_file)
+    for model in models:
+        slug = f"{user}/{kernel_slug(bank, model)}"
+        print(f"{model:18} state={state.get(model, 'pending'):8} kaggle={status(slug)}")
+
+
+def main(argv: list[str] | None = None) -> None:
+    p = argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--bank", required=True, choices=tuple(BANKS))
+    p.add_argument("--user", required=True)
+    p.add_argument("--models", nargs="*")
+    p.add_argument("--real", action="store_true")
+    p.add_argument("--report", action="store_true", help="print state and exit")
+    p.add_argument("--poll", type=int, default=120, help="seconds between status polls")
+    p.add_argument("--max-concurrent", type=int, default=GPU_SESSION_LIMIT)
+    p.add_argument("--staging", default="/tmp/kaggle-staging")
+    args = p.parse_args(argv)
+
+    sys.path.insert(0, str(REPO / "src"))
+    from dermssl.finetune import protocol
+
+    models = args.models or list(protocol.MODELS)
+    out_dir = REPO / "results" / args.bank
+    state_file = out_dir / ".run_state.json"
+
+    if args.report:
+        report(args.bank, models, args.user, state_file)
+        return
+
+    print(f"bank={args.bank} models={len(models)} mode={'real' if args.real else 'smoke'}")
+    state = drive(args.bank, models, args.user, args.real, out_dir, state_file,
+                  args.poll, args.max_concurrent, Path(args.staging))
+    failed = [m for m, v in state.items() if v != "done"]
+    print(f"\ndone: {len(models) - len(failed)}/{len(models)}")
+    if failed:
+        sys.exit(f"failed: {', '.join(failed)}")
+
+
+if __name__ == "__main__":
+    main()
