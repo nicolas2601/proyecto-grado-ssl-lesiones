@@ -96,10 +96,15 @@ jobs:
           python scripts/build_baseline_tests.py
           python scripts/build_finetune_tests.py
 
+      # `git diff` is blind to untracked paths, and a new bank makes the
+      # builders emit a whole new directory. Checking only the diff let eight
+      # uncommitted notebooks/finetune_isic2019/*.ipynb pass as clean.
       - name: Fail if the committed notebooks drift from their builder
         run: |
-          if ! git diff --exit-code -- notebooks/; then
+          drift="$(git status --porcelain -- notebooks/)"
+          if [ -n "$drift" ]; then
             echo "::error::notebooks differ from their builder - run both build_*_tests.py and commit"
+            echo "$drift"
             exit 1
           fi
 

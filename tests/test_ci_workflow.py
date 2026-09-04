@@ -38,7 +38,19 @@ def test_ci_regenerates_both_notebook_builders(ci):
 
 
 def test_ci_fails_when_generated_files_drift(ci):
-    assert "git diff --exit-code" in ci
+    """The gate compares the working tree against the builders' output and
+    exits non-zero on any difference."""
+    assert "notebooks/" in ci and "exit 1" in ci
+
+
+def test_the_drift_gate_also_sees_brand_new_generated_files(ci):
+    """`git diff` is blind to untracked paths.
+
+    Adding the isic2019 bank made both builders emit a whole new directory,
+    `notebooks/finetune_isic2019/`, and the gate stayed green with eight
+    uncommitted notebooks on disk - the exact drift it exists to catch.
+    """
+    assert "git status --porcelain" in ci or "--intent-to-add" in ci
 
 
 def test_ci_runs_the_linter(ci):
