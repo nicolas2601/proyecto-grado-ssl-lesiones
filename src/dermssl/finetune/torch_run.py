@@ -90,9 +90,49 @@ def _load_isic(dataset_dir: Path, spec: protocol.DatasetSpec):
     return classes, paths, id2label, ids, groups, desc
 
 
+def _load_isic2019(dataset_dir: Path, spec: protocol.DatasetSpec):
+    """ISIC 2019 official ground truth: one-hot columns, no grouping column.
+
+    Mirrors ``DATA_CODE_ISIC2019MC`` in ``scripts/build_finetune_tests.py`` so
+    the cluster and the Kaggle notebooks read the labels identically.
+
+    Two limits travel with this dataset and are surfaced in ``split_desc`` so
+    they reach the results JSON instead of living only in a comment:
+    the release ships no real patient/lesion column (the RESIZED variant's
+    patient_id is synthetic), so the split is stratified only; and its training
+    set contains HAM10000, so the two datasets of the bank overlap.
+    """
+    meta = pd.read_csv(find_files([dataset_dir], spec.metadata_csv)[0])
+    id_col = meta.columns[0]                      # "image"
+    dropped = [c for c in protocol.ISIC2019_DROPPED_COLUMNS if c in meta.columns]
+    onehot = meta.drop(columns=[id_col, *dropped])
+    classes = list(onehot.columns)
+    assert tuple(classes) == protocol.ISIC2019_CLASSES, (
+        f"columnas {tuple(classes)} != protocolo {protocol.ISIC2019_CLASSES}; "
+        "el ground truth cambio y la corrida NO es comparable con el banco.")
+    cls2idx = {c: i for i, c in enumerate(classes)}
+    labels = onehot.idxmax(axis=1)                # one-hot -> class name
+    paths = index_images([dataset_dir])
+    meta = meta.assign(_label=labels)
+    meta = meta[meta[id_col].astype(str).isin(paths)].reset_index(drop=True)
+    id2label = {str(r): cls2idx[lab]
+                for r, lab in zip(meta[id_col], meta._label)}
+    ids = meta[id_col].astype(str).tolist()
+    # One group per image degenerates StratifiedGroupKFold into a plain
+    # stratified split, which is exactly what this release allows.
+    groups = np.array(ids)
+    desc = ("estratificado simple SIN grupo de paciente (el release no lo trae) "
+            "- riesgo de fuga entre imagenes del mismo paciente y solape con "
+            "HAM10000, metricas con sesgo optimista")
+    return classes, paths, id2label, ids, groups, desc
+
+
 def load_split(cfg: FinetuneConfig) -> SplitData:
     spec = cfg.dataset_spec
-    if spec.task == "multiclass":
+    if spec.name == "isic2019":
+        classes, paths, id2label, ids, groups, desc = _load_isic2019(
+            cfg.dataset_dir, spec)
+    elif spec.task == "multiclass":
         classes, paths, id2label, ids, groups, desc = _load_ham(cfg.dataset_dir)
     else:
         classes, paths, id2label, ids, groups, desc = _load_isic(cfg.dataset_dir, spec)

@@ -12,6 +12,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "scripts"))
@@ -92,14 +94,33 @@ def test_the_bank_writes_its_own_results_file():
     assert 'f"results_{MODEL}{JSON_SUFFIX}.json"' in code
 
 
-def test_isic2019_is_frozen_only_and_never_enters_the_cluster_manifest():
-    """Adding it to DATASETS grew the SLURM array from 16 to 24 jobs, which
-    would have handed Dr. Karen eight fine-tuning runs on the one dataset with
-    no anti-leak split. The frozen bank can carry that caveat; cluster hours
-    should not inherit it silently."""
-    assert "isic2019" not in protocol.FINETUNE_DATASETS
+def test_the_manifest_is_exactly_the_finetune_datasets():
+    """The array size is derived, never hardcoded: FINETUNE_DATASETS is the one
+    place that decides what Dr. Karen's cluster spends its rounds on."""
     assert {j.dataset for j in protocol.manifest()} == set(protocol.FINETUNE_DATASETS)
     assert len(protocol.manifest()) == len(protocol.MODELS) * len(protocol.FINETUNE_DATASETS)
+
+
+def test_a_dataset_without_grouping_may_enter_the_cluster_only_if_documented():
+    """Replaces the older rule that kept isic2019 out of the manifest entirely.
+
+    Nico moved the fine-tuning bank from isic2020 to isic2019 (2026-09-04) to
+    match the Gessert anchor's 8-class task. That trades a real ``patient_id``
+    for a stratified-only split, so the numbers carry an optimistic bias that
+    fine-tuning amplifies - the model can memorise a patient across the split.
+
+    The decision is the user's; losing the caveat is not. Any dataset that
+    enters FINETUNE_DATASETS without a grouping column has to say so in the
+    document Dr. Karen actually reads, not only in a code comment."""
+    ungrouped = [d for d in protocol.FINETUNE_DATASETS
+                 if not protocol.DATASETS[d].group_column]
+    if not ungrouped:
+        pytest.skip("every fine-tuning dataset has a real grouping column")
+    readme = (REPO / "cluster" / "finetune" / "README.md").read_text()
+    for dataset in ungrouped:
+        assert dataset in readme, f"{dataset} corre en el cluster y el README no lo nombra"
+    assert "sin agrupacion" in readme.lower() or "sin agrupación" in readme.lower(), \
+        "el README del cluster no documenta la limitacion del split sin grupo"
 
 
 def test_the_result_name_the_runner_expects_matches_the_notebook():

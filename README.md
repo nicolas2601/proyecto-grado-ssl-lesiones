@@ -35,12 +35,15 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
   Dos brazos 100 % sin etiquetas: DINOv2 continual (principal) + SimSiam desde cero (purista),
   a igual presupuesto de GPU-horas, con MLflow. Ver [16 — Plan v6](docs/16-plan-v6-pretraining-gpu.md).
   ⚠️ Fixes DDP pendientes antes de correr multi-GPU (documentados en Engram #1328).
-- **Banco de baselines (tarea de la dirección):** ✅ **CORRIDO en Kaggle (2026-08-27).** **8 modelos** evaluados
-  con backbone congelado (incluido DINOv2 ViT-B/14, par justo de tamaño vs ViT-B/16).
-  **Mejor baseline: ViT-B/16 (bal_acc 0.629)**; DINOv2 ViT-B/14 (SSL, igual tamaño) 2º con 0.618;
-  SimSiam-ImageNet último → el SSL genérico débil no transfiere a piel, lo que motiva el v6.
-  Tabla completa abajo y en
-  [`notebooks/baselines/`](notebooks/baselines/README.md); JSONs en `results/baselines/`.
+- **Bancos de baselines congelados (tarea de la dirección):** ✅ **CORRIDOS en Kaggle.**
+  **8 modelos** con backbone congelado sobre **HAM10000** (7 clases) e **ISIC 2019**
+  (8 clases, la única tarea comparable con el ancla de Gessert).
+  **Lidera DINOv2 ViT-B/14 (SSL) en los dos**: 0.618 en HAM10000 y 0.620 en ISIC 2019,
+  por encima de su par exacto de tamaño ViT-B/16 supervisado (0.567 y 0.579).
+  SimSiam-ImageNet último en ambos → el SSL genérico débil no transfiere a piel, lo que
+  motiva el v6. Tablas completas abajo y en
+  [`notebooks/baselines/`](notebooks/baselines/README.md); JSONs en `results/baselines/`
+  y `results/baselines_isic2019/`.
 - **Siguiente hito:** fixes DDP → pre-entrenamiento v6 en el clúster de la asesora.
 
 > ⚠️ **Resultados preliminares.** Obtenidos con los **recursos actuales** (GPU T4 de estudiante,
@@ -170,87 +173,94 @@ JSONs en `results/baselines/`.
 | VGG19 | 0.306 | 0.390 | 0.440 | 0.082 | 0.409 | 0.783 | 0.495 |
 | SimSiam R50 | 0.311 | 0.401 | 0.228 | 0.088 | 0.359 | 0.675 | 0.155 |
 
-### ISIC 2020 (binario benigno/maligno, 6.660 val, split por `patient_id`)
+### ISIC 2019 (multiclase, 8 clases del challenge oficial, 5.067 val)
 
-JSONs en `results/baselines_isic2020/`.
+JSONs en `results/baselines_isic2019/`. 20.264 train / 5.067 val, semilla 42.
+
+> **Dos limitaciones que viajan con esta tabla.** (1) El release no trae columna
+> de paciente, asi que el split es **estratificado simple**: dos imagenes del
+> mismo paciente pueden caer en train y en val, y las metricas quedan con sesgo
+> optimista. (2) **HAM10000 esta contenido entero en ISIC 2019** (10.015 de
+> 10.015 imagenes, el 39,5 % de este banco), asi que este banco y el de HAM10000
+> **no son dos evaluaciones independientes**.
 
 #### Métricas completas (mejor probe de cada modelo)
 
 | # | Modelo | Tipo | dims | acc | bal_acc | F1 macro | Prec macro | Recall macro | AUC | ECE |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | AlexNet | Supervisado | 256 | 0.794 | **0.774** | 0.501 | 0.529 | **0.774** | 0.857 | **0.044** |
-| 2 | SimSiam R50 | SSL | 2048 | 0.752 | 0.765 | 0.480 | 0.525 | 0.765 | 0.847 | 0.085 |
-| 3 | ViT-B/16 | Supervisado | 768 | 0.751 | 0.761 | 0.479 | 0.524 | 0.761 | 0.843 | 0.145 |
-| 4 | DINOv2 ViT-S/14 | SSL | 384 | **0.847** | 0.757 | **0.527** | **0.535** | 0.757 | **0.858** | 0.056 |
-| 5 | VGG19 | Supervisado | 512 | 0.719 | 0.748 | 0.463 | 0.522 | 0.748 | 0.824 | 0.133 |
-| 6 | EfficientNet-B0 | Supervisado | 1280 | 0.691 | 0.742 | 0.450 | 0.520 | 0.742 | 0.819 | 0.084 |
-| 7 | ResNet-50 | Supervisado | 2048 | 0.743 | 0.740 | 0.473 | 0.522 | 0.740 | 0.811 | 0.158 |
-| 8 | DINOv2 ViT-B/14 | SSL | 768 | 0.731 | 0.734 | 0.467 | 0.521 | 0.734 | 0.807 | 0.138 |
+| 1 | DINOv2 ViT-B/14 | SSL | 768 | **0.681** | **0.620** | **0.563** | **0.528** | **0.620** | **0.920** | 0.106 |
+| 2 | DINOv2 ViT-S/14 | SSL | 384 | 0.653 | 0.597 | 0.518 | 0.481 | 0.597 | 0.910 | 0.067 |
+| 3 | ViT-B/16 | Supervisado | 768 | 0.654 | 0.579 | 0.528 | 0.498 | 0.579 | 0.906 | 0.116 |
+| 4 | EfficientNet-B0 | Supervisado | 1280 | 0.661 | 0.575 | 0.525 | 0.495 | 0.575 | 0.911 | 0.106 |
+| 5 | ResNet-50 | Supervisado | 2048 | 0.638 | 0.569 | 0.499 | 0.463 | 0.569 | 0.906 | 0.096 |
+| 6 | AlexNet | Supervisado | 256 | 0.574 | 0.533 | 0.421 | 0.398 | 0.533 | 0.873 | **0.050** |
+| 7 | VGG19 | Supervisado | 512 | 0.558 | 0.497 | 0.391 | 0.373 | 0.497 | 0.860 | 0.054 |
+| 8 | SimSiam R50 | SSL | 2048 | 0.478 | 0.494 | 0.329 | 0.336 | 0.494 | 0.839 | 0.221 |
 
 #### Intervalos de confianza (bootstrap 95%)
 
 | Modelo | bal_acc | IC95 bal_acc | F1 macro | IC95 F1 macro | Separado del líder |
 |---|---|---|---|---|---|
-| AlexNet | 0.774 | [0.735, 0.813] | 0.501 | [0.489, 0.512] | - |
-| SimSiam R50 | 0.765 | [0.730, 0.800] | 0.480 | [0.469, 0.491] | no |
-| ViT-B/16 | 0.761 | [0.723, 0.796] | 0.479 | [0.468, 0.489] | no |
-| DINOv2 ViT-S/14 | 0.757 | [0.713, 0.798] | 0.527 | [0.512, 0.539] | no |
-| VGG19 | 0.748 | [0.712, 0.786] | 0.463 | [0.454, 0.472] | no |
-| EfficientNet-B0 | 0.742 | [0.706, 0.778] | 0.450 | [0.441, 0.459] | no |
-| ResNet-50 | 0.740 | [0.704, 0.782] | 0.473 | [0.463, 0.482] | no |
-| DINOv2 ViT-B/14 | 0.734 | [0.696, 0.773] | 0.467 | [0.457, 0.476] | no |
+| DINOv2 ViT-B/14 | 0.620 | [0.591, 0.649] | 0.563 | [0.538, 0.587] | - |
+| DINOv2 ViT-S/14 | 0.597 | [0.568, 0.626] | 0.518 | [0.494, 0.540] | no |
+| ViT-B/16 | 0.579 | [0.551, 0.606] | 0.528 | [0.502, 0.550] | no |
+| EfficientNet-B0 | 0.575 | [0.546, 0.603] | 0.525 | [0.500, 0.548] | no |
+| ResNet-50 | 0.569 | [0.539, 0.598] | 0.499 | [0.474, 0.523] | no |
+| AlexNet | 0.533 | [0.503, 0.562] | 0.421 | [0.401, 0.440] | sí |
+| VGG19 | 0.497 | [0.468, 0.525] | 0.391 | [0.373, 0.407] | sí |
+| SimSiam R50 | 0.494 | [0.466, 0.522] | 0.329 | [0.313, 0.343] | sí |
 
 #### Balanced accuracy por probe
 
 | Modelo | kNN | LogReg | Prototipos |
 |---|---|---|---|
-| AlexNet | 0.500 | 0.774 | 0.761 |
-| SimSiam R50 | 0.500 | 0.765 | 0.739 |
-| ViT-B/16 | 0.500 | 0.734 | 0.761 |
-| DINOv2 ViT-S/14 | 0.500 | 0.757 | 0.723 |
-| VGG19 | 0.500 | 0.737 | 0.748 |
-| EfficientNet-B0 | 0.500 | 0.637 | 0.742 |
-| ResNet-50 | 0.500 | 0.688 | 0.740 |
-| DINOv2 ViT-B/14 | 0.500 | 0.675 | 0.734 |
+| DINOv2 ViT-B/14 | 0.390 | 0.620 | 0.388 |
+| DINOv2 ViT-S/14 | 0.417 | 0.597 | 0.418 |
+| ViT-B/16 | 0.393 | 0.579 | 0.387 |
+| EfficientNet-B0 | 0.407 | 0.575 | 0.378 |
+| ResNet-50 | 0.393 | 0.569 | 0.344 |
+| AlexNet | 0.436 | 0.533 | 0.394 |
+| VGG19 | 0.350 | 0.497 | 0.341 |
+| SimSiam R50 | 0.406 | 0.494 | 0.430 |
 
 #### Recall por clase (mejor probe)
 
-| Modelo | benign | malignant |
-|---|---|---|
-| AlexNet | 0.795 | 0.754 |
-| SimSiam R50 | 0.751 | 0.779 |
-| ViT-B/16 | 0.751 | 0.770 |
-| DINOv2 ViT-S/14 | 0.850 | 0.664 |
-| VGG19 | 0.717 | 0.779 |
-| EfficientNet-B0 | 0.689 | 0.795 |
-| ResNet-50 | 0.743 | 0.738 |
-| DINOv2 ViT-B/14 | 0.731 | 0.738 |
+| Modelo | MEL | NV | BCC | AK | BKL | DF | VASC | SCC |
+|---|---|---|---|---|---|---|---|---|
+| DINOv2 ViT-B/14 | 0.602 | 0.757 | 0.663 | 0.511 | 0.570 | 0.596 | 0.760 | 0.500 |
+| DINOv2 ViT-S/14 | 0.566 | 0.737 | 0.585 | 0.569 | 0.539 | 0.553 | 0.720 | 0.508 |
+| ViT-B/16 | 0.565 | 0.731 | 0.595 | 0.563 | 0.600 | 0.404 | 0.740 | 0.437 |
+| EfficientNet-B0 | 0.579 | 0.732 | 0.668 | 0.523 | 0.558 | 0.383 | 0.700 | 0.460 |
+| ResNet-50 | 0.571 | 0.711 | 0.579 | 0.529 | 0.556 | 0.489 | 0.660 | 0.452 |
+| AlexNet | 0.524 | 0.662 | 0.475 | 0.529 | 0.402 | 0.532 | 0.760 | 0.381 |
+| VGG19 | 0.484 | 0.645 | 0.489 | 0.425 | 0.425 | 0.468 | 0.600 | 0.437 |
+| SimSiam R50 | 0.484 | 0.561 | 0.305 | 0.534 | 0.232 | 0.638 | 0.760 | 0.437 |
 
 #### Precisión por clase (mejor probe)
 
-| Modelo | benign | malignant |
-|---|---|---|
-| AlexNet | 0.994 | 0.064 |
-| SimSiam R50 | 0.995 | 0.055 |
-| ViT-B/16 | 0.994 | 0.054 |
-| DINOv2 ViT-S/14 | 0.993 | 0.076 |
-| VGG19 | 0.994 | 0.049 |
-| EfficientNet-B0 | 0.994 | 0.045 |
-| ResNet-50 | 0.993 | 0.051 |
-| DINOv2 ViT-B/14 | 0.993 | 0.049 |
+| Modelo | MEL | NV | BCC | AK | BKL | DF | VASC | SCC |
+|---|---|---|---|---|---|---|---|---|
+| DINOv2 ViT-B/14 | 0.561 | 0.902 | 0.696 | 0.303 | 0.446 | 0.400 | 0.613 | 0.306 |
+| DINOv2 ViT-S/14 | 0.538 | 0.896 | 0.662 | 0.299 | 0.442 | 0.329 | 0.450 | 0.229 |
+| ViT-B/16 | 0.538 | 0.887 | 0.616 | 0.341 | 0.438 | 0.288 | 0.627 | 0.249 |
+| EfficientNet-B0 | 0.535 | 0.897 | 0.658 | 0.333 | 0.418 | 0.250 | 0.583 | 0.283 |
+| ResNet-50 | 0.545 | 0.884 | 0.583 | 0.290 | 0.429 | 0.235 | 0.485 | 0.256 |
+| AlexNet | 0.536 | 0.888 | 0.558 | 0.249 | 0.350 | 0.082 | 0.365 | 0.150 |
+| VGG19 | 0.523 | 0.877 | 0.568 | 0.212 | 0.345 | 0.075 | 0.224 | 0.162 |
+| SimSiam R50 | 0.468 | 0.865 | 0.501 | 0.179 | 0.324 | 0.098 | 0.069 | 0.183 |
 
 #### F1 por clase (mejor probe)
 
-| Modelo | benign | malignant |
-|---|---|---|
-| AlexNet | 0.883 | 0.118 |
-| SimSiam R50 | 0.856 | 0.103 |
-| ViT-B/16 | 0.855 | 0.102 |
-| DINOv2 ViT-S/14 | 0.916 | 0.137 |
-| VGG19 | 0.834 | 0.092 |
-| EfficientNet-B0 | 0.814 | 0.086 |
-| ResNet-50 | 0.850 | 0.095 |
-| DINOv2 ViT-B/14 | 0.842 | 0.091 |
+| Modelo | MEL | NV | BCC | AK | BKL | DF | VASC | SCC |
+|---|---|---|---|---|---|---|---|---|
+| DINOv2 ViT-B/14 | 0.581 | 0.823 | 0.679 | 0.380 | 0.500 | 0.479 | 0.679 | 0.380 |
+| DINOv2 ViT-S/14 | 0.552 | 0.809 | 0.621 | 0.392 | 0.486 | 0.413 | 0.554 | 0.316 |
+| ViT-B/16 | 0.551 | 0.802 | 0.606 | 0.425 | 0.506 | 0.336 | 0.679 | 0.317 |
+| EfficientNet-B0 | 0.556 | 0.806 | 0.663 | 0.407 | 0.478 | 0.303 | 0.636 | 0.350 |
+| ResNet-50 | 0.558 | 0.788 | 0.581 | 0.375 | 0.485 | 0.317 | 0.559 | 0.327 |
+| AlexNet | 0.530 | 0.759 | 0.513 | 0.339 | 0.374 | 0.142 | 0.494 | 0.216 |
+| VGG19 | 0.503 | 0.744 | 0.525 | 0.283 | 0.381 | 0.129 | 0.326 | 0.236 |
+| SimSiam R50 | 0.476 | 0.681 | 0.379 | 0.268 | 0.271 | 0.170 | 0.126 | 0.258 |
 
 ### Lectura
 
@@ -262,26 +272,45 @@ JSONs en `results/baselines_isic2020/`.
 - **El SSL genérico de ImageNet no transfiere a dermatoscopia.** SimSiam R50 es
   último en HAM10000 y su intervalo no toca al del líder, así que esa diferencia
   sí es real. Es el argumento que motiva la fase v6: pre-entrenar en piel.
-- **Ningún backbone congelado sirve para tamizaje en ISIC 2020.** La precisión de
-  la clase maligna va de 0.046 a 0.077 en los ocho: unos 13 falsos positivos por
-  cada acierto. La balanced accuracy de 0.77 es cosmética, producto de un
-  desbalance cercano a 50:1 (unos 133 malignos en 6.660 de validación).
-- **El kNN colapsa en HAM10000** (0.26–0.40): con desbalance 58:1 el vecindario lo
-  domina `nv`. La regresión logística con pesos de clase es el probe informativo.
-- **`df` es la clase débil transversal** (115 imágenes, recall ≤ 0.32 en todos).
-  `mel`, la clínicamente crítica, queda entre 0.46 y 0.63.
+- **Los dos DINOv2 barren el top-2 en ISIC 2019**, la única tarea comparable con la
+  literatura (8 clases del challenge oficial). Ambos son SSL.
+- **El SSL genérico de ImageNet no transfiere a dermatoscopia.** SimSiam R50 es
+  último en los dos bancos y su intervalo no toca al del líder en ninguno, así que
+  esa diferencia sí es real. Es el argumento que motiva la fase v6: pre-entrenar
+  en piel.
+- **ISIC 2019 separa mejor que HAM10000.** Acá tres modelos quedan estadísticamente
+  separados del líder (AlexNet, VGG19, SimSiam), contra dos en HAM10000: el conjunto
+  de validación es 2,5 veces más grande y los intervalos se angostan.
+- **El kNN colapsa en los dos bancos** (0.26–0.44): con desbalance fuerte el
+  vecindario lo domina la clase mayoritaria. La regresión logística con pesos de
+  clase es el probe informativo, y en ISIC 2019 es el mejor probe **en los ocho
+  modelos**.
+- **Las clases raras son la debilidad transversal.** En ISIC 2019, `SCC` y `AK`
+  quedan con precisión ≤ 0.34 en todos los modelos; `MEL`, la clínicamente crítica,
+  llega a 0.602 de recall en el mejor.
 
 **Lo que NO se puede afirmar.**
 
-El ranking no resuelve su propio medio. En HAM10000 seis de los ocho modelos tienen
-intervalos que se solapan con el del líder; en ISIC 2020 se solapan los ocho. Leer
-las posiciones 1 a 6 como un orden de mérito sería sobreinterpretar el tamaño del
-conjunto de validación. La afirmación defendible es que **la ventaja del supervisado
-sobre el SSL genérico desaparece a igual tamaño**, no que el SSL gane: DINOv2
-ViT-B/14 queda 0.051 por encima del ViT-B/16 supervisado, pero sus intervalos se
-solapan. Nótese además que en ISIC 2020 el orden se invierte casi por completo
-(AlexNet primero, DINOv2 ViT-B/14 último), lo que confirma que ahí el ranking es
-ruido.
+**Ninguno alcanza el ancla de Gessert (0.636) en estimación puntual**: el mejor
+—DINOv2 ViT-B/14 con 0.620— queda a 0.016. Pero su intervalo llega a 0.649, así que
+**cubre el ancla**. La redacción defendible es que *con estos datos no se distingue
+de la marca ganadora del challenge*, **no** que la iguale. Y conviene subrayar que
+es con **backbone congelado**, sin fine-tuning y sin haber visto dermatoscopia nunca.
+
+**El SSL no gana probado, aventaja.** Contra su par exacto de tamaño (86M params),
+DINOv2 ViT-B/14 le saca +0.041 al ViT-B/16 supervisado (0.620 vs 0.579), pero los
+intervalos todavía se tocan: el techo del supervisado es 0.606 y el piso del SSL
+0.591. Es una ventaja consistente en los dos bancos, no una victoria estadística.
+
+**Y los dos bancos no son independientes.** HAM10000 está contenido entero en
+ISIC 2019, así que la coincidencia del ranking entre ambos **no es replicación en
+datos nuevos**. La validación externa honesta exigiría el complemento
+`ISIC 2019 \ HAM10000` (15.316 imágenes), que está pendiente de decidir.
+
+> El banco de ISIC 2020 se retiró de este README el 2026-09-04 al pasar el proyecto
+> a ISIC 2019. Sus JSONs siguen en `results/baselines_isic2020/` y sus tablas en el
+> commit `db1b3e0`. Su hallazgo —ningún backbone congelado sirve para tamizaje
+> binario, con precisión maligna de 0.046 a 0.077— se sostiene como antecedente.
 
 > Cambio respecto de la versión anterior de esta tabla: `vit_b16` pasó de los pesos
 > de torchvision a `augreg_in1k` de timm, el comparador entrenado solo con

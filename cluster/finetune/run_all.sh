@@ -82,7 +82,7 @@ elif [ -f "$DATA_TAR" ]; then
 else
     die "datasets missing. Copy dermssl-data.tar.gz to $DATA_TAR (see cluster/prepare_datasets.sh) or set DATA_ROOT"
 fi
-for d in ham10000 isic2020; do
+for d in ham10000 isic2019; do
     [ "$DRY_RUN" = 1 ] || [ -d "$DATA_ROOT/$d" ] || die "missing $DATA_ROOT/$d"
 done
 

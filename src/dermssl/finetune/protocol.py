@@ -107,10 +107,20 @@ ISIC2019_CLASSES: tuple[str, ...] = ("MEL", "NV", "BCC", "AK", "BKL", "DF",
 ISIC2019_DROPPED_COLUMNS: tuple[str, ...] = ("UNK",)
 
 # Datasets that go into the cluster fine-tuning manifest. Deliberately NOT all
-# of DATASETS: the frozen bank is cheap and can afford a dataset with a caveat,
-# a fine-tuning array on Dr. Karen's cluster cannot. isic2019 is frozen-only
-# until it gets a real grouping column.
-FINETUNE_DATASETS: tuple[str, ...] = ("ham10000", "isic2020")
+# of DATASETS: the array is 8 models wide, so every dataset added costs a whole
+# extra round on Dr. Karen's four GPUs.
+#
+# isic2019 replaced isic2020 here (Nico, 2026-09-04). It is the only bank whose
+# task matches the Gessert anchor (8 classes, official challenge), which is what
+# makes the fine-tuning table comparable against the literature. Two caveats
+# travel with that choice and are documented in cluster/finetune/README.md:
+#   1. No real grouping column, so the split is stratified only and the metrics
+#      carry an optimistic bias (same caveat as the frozen isic2019 bank).
+#   2. ISIC 2019's training set contains HAM10000, so the two datasets in this
+#      manifest are NOT independent.
+# isic2020 stays in DATASETS: its frozen bank is already published and its JSONs
+# under results/baselines_isic2020/ must keep resolving.
+FINETUNE_DATASETS: tuple[str, ...] = ("ham10000", "isic2019")
 
 # Optimization recipe (identical for the 8 models and the 3 datasets).
 EPOCHS = 8
@@ -123,7 +133,10 @@ RESOLUTION = 224
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 SMOKE_EPOCHS = 1
-SMOKE_FRACTION = {"ham10000": (0.08, 12, 6), "isic2020": (0.04, 40, 20)}  # (frac, min train/cls, min val/cls)
+# (frac, min train/cls, min val/cls). isic2019 mirrors the frozen bank's own
+# smoke subsample so both halves of the project exercise the same subset shape.
+SMOKE_FRACTION = {"ham10000": (0.08, 12, 6), "isic2020": (0.04, 40, 20),
+                  "isic2019": (0.08, 12, 6)}
 
 WANDB_PROJECT = "dermssl-baselines-finetune"
 MLFLOW_EXPERIMENT_PREFIX = "finetune-"
@@ -155,9 +168,10 @@ def manifest() -> list[Job]:
     starting the next, so a partial run still yields a complete table.
 
     Built from FINETUNE_DATASETS, not from DATASETS: a dataset can be worth a
-    frozen bank and still not be worth cluster hours. isic2019 is exactly that
-    case - no real grouping column, so its numbers carry a leakage caveat that
-    a fine-tuning comparison should not inherit silently.
+    frozen bank and still not be worth cluster hours. isic2020 is exactly that
+    case now - its frozen bank is published, but the fine-tuning table is the
+    one that has to line up with the Gessert anchor, so the cluster spends its
+    rounds on isic2019 instead.
     """
     jobs: list[Job] = []
     for dataset in FINETUNE_DATASETS:
