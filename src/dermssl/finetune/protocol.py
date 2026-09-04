@@ -87,7 +87,30 @@ DATASETS: dict[str, DatasetSpec] = {
         name="isic2020", subdir="isic2020", metadata_csv="train-metadata.csv",
         task="binary", group_column="patient_id", json_suffix="_isic2020",
     ),
+    # The only bank whose task matches the Gessert anchor (8 classes, official
+    # ISIC 2019). Also the only one with no real grouping column: andrewmvd's
+    # release ships none and the RESIZED variant's patient_id is synthetic
+    # ("randomly generated"), so the split is stratified only. An empty
+    # group_column is that caveat in machine-readable form - not an oversight.
+    "isic2019": DatasetSpec(
+        name="isic2019", subdir="isic2019",
+        metadata_csv="ISIC_2019_Training_GroundTruth.csv",
+        task="multiclass", group_column="", json_suffix="_isic2019",
+    ),
 }
+
+# One-hot columns of ISIC_2019_Training_GroundTruth.csv. UNK is released as all
+# zeros: keeping it would invent a ninth class that never occurs and drag every
+# macro metric down by a factor of 9/8.
+ISIC2019_CLASSES: tuple[str, ...] = ("MEL", "NV", "BCC", "AK", "BKL", "DF",
+                                     "VASC", "SCC")
+ISIC2019_DROPPED_COLUMNS: tuple[str, ...] = ("UNK",)
+
+# Datasets that go into the cluster fine-tuning manifest. Deliberately NOT all
+# of DATASETS: the frozen bank is cheap and can afford a dataset with a caveat,
+# a fine-tuning array on Dr. Karen's cluster cannot. isic2019 is frozen-only
+# until it gets a real grouping column.
+FINETUNE_DATASETS: tuple[str, ...] = ("ham10000", "isic2020")
 
 # Optimization recipe (identical for the 8 models and the 3 datasets).
 EPOCHS = 8
@@ -130,9 +153,14 @@ def manifest() -> list[Job]:
 
     Dataset-major means the SLURM array finishes one whole dataset before
     starting the next, so a partial run still yields a complete table.
+
+    Built from FINETUNE_DATASETS, not from DATASETS: a dataset can be worth a
+    frozen bank and still not be worth cluster hours. isic2019 is exactly that
+    case - no real grouping column, so its numbers carry a leakage caveat that
+    a fine-tuning comparison should not inherit silently.
     """
     jobs: list[Job] = []
-    for dataset in DATASETS:
+    for dataset in FINETUNE_DATASETS:
         for model in MODELS:
             jobs.append(Job(index=len(jobs), model=model, dataset=dataset))
     return jobs

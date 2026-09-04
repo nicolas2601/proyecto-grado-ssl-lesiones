@@ -60,8 +60,15 @@ def parse_status(text: str) -> str:
 
 
 def result_name(bank: str, model: str) -> str:
-    suffix = "_isic2020" if bank.endswith("isic2020") else ""
-    return f"results_{model}{suffix}.json"
+    """Derived from the protocol, never from the bank name.
+
+    Matching on `endswith("isic2020")` silently returned the HAM10000 file name
+    for every other ISIC bank, so the driver would download one bank and verify
+    another one's results.
+    """
+    sys.path.insert(0, str(REPO / "src"))
+    from dermssl.finetune import protocol
+    return f"results_{model}{protocol.DATASETS[BANKS[bank][0]].json_suffix}.json"
 
 
 def verify_result(path: Path, real: bool) -> dict:

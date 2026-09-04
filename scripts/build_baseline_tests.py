@@ -124,6 +124,63 @@ SPLIT_DESC = "StratifiedGroupKFold por lesion_id (0 lesiones compartidas)"
 print(f"train={{len(tr_ids)}} val={{len(va_ids)}} | lesiones compartidas=0")
 """
 
+DATA_CODE_ISIC2019MC = """\
+# --- ISIC 2019 (andrewmvd/isic-2019) desde /kaggle/input: tarea MULTICLASE de
+# 8 clases, la misma del challenge oficial. Es el UNICO banco cuya tarea coincide
+# con el ancla de Gessert (0.636 de balanced accuracy en el test oficial), asi
+# que es el unico comparable de frente contra ella.
+#
+# LIMITE que viaja con estos numeros: este release NO trae columna de paciente
+# (y el patient_id del RESIZED es sintetico), asi que NO hay split anti-fuga por
+# paciente. El split es estratificado simple. Dos imagenes del mismo paciente
+# pueden caer en train y en val, lo que sesga las metricas hacia arriba. Por eso
+# este banco NO es comparable 1:1 con HAM10000 ni con ISIC 2020, que si agrupan
+# por lesion_id y patient_id reales. ---
+from sklearn.model_selection import StratifiedKFold
+
+root = Path("/kaggle/input")
+gt_csv = next(root.glob("**/ISIC_2019_Training_GroundTruth.csv"))
+meta = pd.read_csv(gt_csv)
+id_col = meta.columns[0]                      # "image"
+# UNK sale en cero en todo el release: conservarla inventaria una novena clase
+# que nunca ocurre y hundiria todas las metricas macro por un factor 9/8.
+onehot = meta.drop(columns=[id_col] + [c for c in ("UNK",) if c in meta.columns])
+classes = list(onehot.columns)
+N = len(classes)
+labels = onehot.idxmax(axis=1)                # one-hot -> nombre de clase
+cls2idx = {{c: i for i, c in enumerate(classes)}}
+paths = {{p.stem: p for p in root.glob("**/*.jpg")}}
+meta = meta.assign(_label=labels)
+meta = meta[meta[id_col].astype(str).isin(paths)].reset_index(drop=True)
+id2label = {{str(r): cls2idx[l] for r, l in zip(meta[id_col], meta._label)}}
+print("clases:", classes); print(meta._label.value_counts().to_string())
+
+ids = meta[id_col].astype(str).tolist()
+y = np.array([id2label[i] for i in ids])
+tr_idx, va_idx = next(StratifiedKFold(5, shuffle=True, random_state=SEED)
+                      .split(ids, y))
+tr_ids = [ids[i] for i in tr_idx]; va_ids = [ids[i] for i in va_idx]
+assert not set(tr_ids) & set(va_ids), "una imagen quedo en train y en val"
+
+if SMOKE:  # subconjunto estratificado: humo en minutos
+    rng = np.random.default_rng(SEED)
+    def subsample(id_list, frac, min_pc):
+        yy = np.array([id2label[i] for i in id_list]); keep = []
+        for c in range(N):
+            idx = np.flatnonzero(yy == c)
+            take = max(min_pc, int(len(idx) * frac))
+            keep.extend(rng.choice(idx, size=min(take, len(idx)), replace=False))
+        return [id_list[i] for i in sorted(keep)]
+    tr_ids = subsample(tr_ids, 0.08, 12); va_ids = subsample(va_ids, 0.08, 6)
+
+y_tr = np.array([id2label[i] for i in tr_ids])
+y_va = np.array([id2label[i] for i in va_ids])
+SPLIT_DESC = ("StratifiedKFold estratificado simple SIN grupo de paciente "
+              "(el release no trae patient_id) - riesgo de fuga entre imagenes "
+              "del mismo paciente, metricas con sesgo optimista")
+print(f"train={{len(tr_ids)}} val={{len(va_ids)}} | SIN agrupacion por paciente")
+"""
+
 DATA_CODE_ISICBIN = """\
 # --- ISIC {year} RESIZED desde /kaggle/input: tarea BINARIA (0 benigno / 1 maligno).
 # Gotcha documentado (docs/15): los datasets RESIZED solo traen target binario;
@@ -463,6 +520,14 @@ DATASETS = {
             year="2020", use_patient_groups="yes", **fmt),
         "out_dir": "baselines_isic2020",
         "file_suffix": "_isic2020",
+    },
+    "isic2019": {
+        "dataset_title": "ISIC 2019 (multiclase, 8 clases del challenge oficial)",
+        "input_step": "`ISIC 2019` (andrewmvd/isic-2019), el release con ground truth multiclase.",
+        "json_suffix": "_isic2019",
+        "data_code": lambda fmt: DATA_CODE_ISIC2019MC.format(**fmt),
+        "out_dir": "baselines_isic2019",
+        "file_suffix": "_isic2019",
     },
 }
 
