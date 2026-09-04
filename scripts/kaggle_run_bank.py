@@ -114,15 +114,32 @@ def status(slug: str) -> str:
     return parse_status(out.stdout + out.stderr)
 
 
-def download(slug: str, dest: Path) -> None:
+def download_with_retry(slug: str, dest: Path, runner=_run, attempts: int = 3,
+                        delay: float = 20.0) -> bool:
+    """Fetch a kernel's output, retrying a transient miss.
+
+    Kaggle reports COMPLETE slightly before the output is fetchable, and the CLI
+    exits non-zero without saying much. Ignoring that exit code cost a real GPU
+    run: dinov2_vitb14 on the ISIC 2019 bank was written off as "missing result
+    file" while its JSON downloaded fine seconds later.
+    """
     dest.mkdir(parents=True, exist_ok=True)
-    _run(["kaggle", "kernels", "output", slug, "-p", str(dest)])
+    for attempt in range(1, attempts + 1):
+        out = runner(["kaggle", "kernels", "output", slug, "-p", str(dest)])
+        if out.returncode == 0:
+            return True
+        if attempt < attempts:
+            print(f"  [{slug}] descarga fallo (intento {attempt}/{attempts}), reintento")
+            time.sleep(delay)
+    return False
 
 
 def collect(bank: str, model: str, user: str, real: bool, out_dir: Path) -> str:
     """Download a finished kernel and keep only a result matching the run mode."""
     slug = f"{user}/{kernel_slug(bank, model)}"
-    download(slug, out_dir)
+    if not download_with_retry(slug, out_dir):
+        print(f"  [{model}] no se pudo descargar el output de {slug}")
+        return "failed"
     try:
         verify_result(out_dir / result_name(bank, model), real=real)
     except StaleResult as exc:
