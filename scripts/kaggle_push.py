@@ -36,6 +36,10 @@ REPO = Path(__file__).resolve().parents[1]
 DATASET_SOURCES = {
     "ham10000": ["kmader/skin-cancer-mnist-ham10000"],
     "isic2020": ["nischaydnk/isic-2020-jpg-256x256-resized"],
+    # The RESIZED ISIC 2019 only ships a binary target; the eight classes of the
+    # official challenge - the ones Gessert's 0.636 anchor is measured on - are
+    # only in this release.
+    "isic2019": ["andrewmvd/isic-2019"],
 }
 
 # SDK enum: NvidiaTeslaT4 | NvidiaTeslaP100. NvidiaTeslaT4x2 does not exist and
@@ -45,6 +49,7 @@ MACHINE_SHAPE = "NvidiaTeslaT4"
 BANKS = {
     "baselines": ("ham10000", "test_{m}.ipynb"),
     "baselines_isic2020": ("isic2020", "test_{m}_isic2020.ipynb"),
+    "baselines_isic2019": ("isic2019", "test_{m}_isic2019.ipynb"),
     "finetune": ("ham10000", "finetune_{m}.ipynb"),
     "finetune_isic2020": ("isic2020", "finetune_{m}_isic2020.ipynb"),
 }
