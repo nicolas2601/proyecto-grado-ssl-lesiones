@@ -5,6 +5,7 @@ an earlier smoke version of the same kernel."""
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -93,6 +94,34 @@ def test_pending_models_skip_the_ones_already_done():
     state = {"alexnet": "done", "vgg19": "failed", "resnet50": "running"}
     models = ["alexnet", "vgg19", "resnet50", "vit_b16"]
     assert krb.pending(models, state) == ["vit_b16"]
+
+
+def test_a_download_that_fails_is_retried_before_the_model_is_written_off():
+    """A COMPLETE kernel's output is not readable the instant it completes.
+
+    dinov2_vitb14 on the ISIC 2019 bank was marked failed with "missing result
+    file" while its JSON was sitting on Kaggle and downloaded fine seconds
+    later: `download` ignored the CLI exit code, so one transient miss burned a
+    GPU run permanently.
+    """
+    calls = []
+
+    def flaky(cmd):
+        calls.append(cmd)
+        ok = len(calls) >= 3          # first two attempts fail
+        return SimpleNamespace(returncode=0 if ok else 1, stdout="", stderr="boom")
+
+    assert krb.download_with_retry("u/s", Path("/tmp"), runner=flaky,
+                                   attempts=3, delay=0)
+    assert len(calls) == 3
+
+
+def test_a_download_that_never_succeeds_reports_failure_instead_of_lying():
+    def always_fails(cmd):
+        return SimpleNamespace(returncode=1, stdout="", stderr="nope")
+
+    assert not krb.download_with_retry("u/s", Path("/tmp"), runner=always_fails,
+                                       attempts=2, delay=0)
 
 
 def test_free_slots_account_for_the_running_kernels():
