@@ -5,7 +5,7 @@ markdown that goes into README.md and notebooks/*/README.md is generated here
 and pasted verbatim. Ranking always follows each model's best probe.
 
     python scripts/build_results_tables.py --bank baselines
-    python scripts/build_results_tables.py --bank baselines_isic2020
+    python scripts/build_results_tables.py --bank baselines_isic2019
 """
 
 from __future__ import annotations

@@ -19,7 +19,7 @@ set -euo pipefail
 
 SCRATCH_BASE="${SCRATCH:-$HOME/scratch}/dermssl"
 REPO_DIR="${REPO_DIR:-$HOME/proyecto-grado-ssl-lesiones}"
-DATA_ROOT="${DATA_ROOT:-$SCRATCH_BASE/data}"          # ham10000/ isic2020/
+DATA_ROOT="${DATA_ROOT:-$SCRATCH_BASE/data}"          # ham10000/ isic2019/
 OUTPUT_DIR="$SCRATCH_BASE/finetune/runs/job${SLURM_ARRAY_TASK_ID}-${SLURM_ARRAY_JOB_ID}"
 
 # Offline weights (see cluster/prepare_offline_assets.sh): no internet needed.

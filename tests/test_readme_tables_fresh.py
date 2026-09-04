@@ -14,10 +14,30 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
-import build_results_tables as brt  # noqa: E402
+sys.path.insert(0, str(REPO / "src"))
 
+import build_results_tables as brt  # noqa: E402
+from dermssl.finetune import protocol  # noqa: E402
+
+# Banks whose tables are published. baselines_isic2020 left this map on
+# 2026-09-04: the project moved to ISIC 2019 and its tables were retired from
+# the README, so freshness no longer applies to it (its JSONs stay in results/
+# as provenance). baselines_isic2019 joins automatically as soon as its JSONs
+# land - see _published_banks below.
 BANKS = {"baselines": REPO / "notebooks" / "baselines" / "README.md",
-         "baselines_isic2020": REPO / "README.md"}
+         "baselines_isic2019": REPO / "README.md"}
+
+
+def _published_banks() -> list[str]:
+    """Only COMPLETE banks are worth checking for freshness.
+
+    A bank that is still running has some of its JSONs on disk, and demanding
+    that a half-finished ranking be pasted into the README would be asking for
+    a table that is wrong by construction: the ranking changes with every model
+    that lands. ISIC 2019 joins this list on its eighth JSON, not before."""
+    expected = len(protocol.MODELS)
+    return [b for b in sorted(BANKS)
+            if len(list((REPO / "results" / b).glob("results_*.json"))) == expected]
 
 
 def _rows(bank: str) -> list[brt.Row]:
@@ -31,7 +51,7 @@ def _table_rows(markdown: str) -> set[str]:
             if line.startswith("|") and not set(line) <= set("|- ")}
 
 
-@pytest.mark.parametrize("bank", sorted(BANKS))
+@pytest.mark.parametrize("bank", _published_banks())
 def test_every_generated_row_appears_in_a_readme(bank):
     generated = _table_rows(brt.render(REPO / "results" / bank))
     published = _table_rows((REPO / "README.md").read_text())
@@ -42,7 +62,7 @@ def test_every_generated_row_appears_in_a_readme(bank):
         f"scripts/build_results_tables.py and paste: {sorted(missing)[:3]}")
 
 
-@pytest.mark.parametrize("bank", sorted(BANKS))
+@pytest.mark.parametrize("bank", _published_banks())
 def test_readmes_carry_no_number_from_a_superseded_run(bank):
     """Guards the specific rot that happened on 2026-09-03: vit_b16 changed
     weights and vgg19's extraction point moved, but the tables stayed."""

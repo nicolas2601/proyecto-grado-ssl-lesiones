@@ -26,7 +26,7 @@ def test_manifest_has_16_jobs_dataset_major_and_stable_order():
     assert [j.index for j in jobs] == list(range(16))
     assert [j.dataset for j in jobs[:8]] == ["ham10000"] * 8
     assert [j.model for j in jobs[:8]] == list(protocol.MODELS)
-    assert jobs[15].model == "dinov2_vitb14" and jobs[15].dataset == "isic2020"
+    assert jobs[15].model == "dinov2_vitb14" and jobs[15].dataset == "isic2019"
 
 
 def test_job_from_index_bounds():
@@ -39,8 +39,8 @@ def test_job_from_index_bounds():
 
 def test_results_file_names_match_notebook_convention():
     assert protocol.job_from_index(3).results_file == "results_resnet50_ft.json"
-    assert protocol.job_from_index(11).results_file == "results_resnet50_ft_isic2020.json"
-    assert protocol.job_from_index(11).checkpoint_file == "ft_resnet50_isic2020.pth"
+    assert protocol.job_from_index(11).results_file == "results_resnet50_ft_isic2019.json"
+    assert protocol.job_from_index(11).checkpoint_file == "ft_resnet50_isic2019.pth"
 
 
 def test_low_memory_models_get_batch_16():
@@ -110,6 +110,47 @@ def test_smoke_and_low_memory_are_reflected_in_effective_values():
     assert cfg.as_params()["fuente_pesos"] == "hf:timm/vgg19.tv_in1k"
     assert weight_source("alexnet").startswith("torchvision")
     assert weight_source("simsiam_r50") == protocol.SIMSIAM_CHECKPOINT_URL
+
+
+def test_the_cluster_isic2019_loader_matches_the_notebook_cell():
+    """The cluster runner cannot import torch here, so this checks the parity
+    that matters by source: both halves must read the 8-class one-hot ground
+    truth the same way, or Dr. Karen's numbers stop being comparable with the
+    Kaggle bank.
+
+    The failure this guards against is silent: ``_load_isic`` asserts a
+    ``target`` column that ISIC 2019 does not have, and ``_load_ham`` reads
+    ``dx``/``lesion_id`` that it does not have either. Routing isic2019 to
+    either one dies, or worse, mislabels."""
+    runner = (REPO / "src" / "dermssl" / "finetune" / "torch_run.py").read_text()
+    cell = frozen_builder.DATA_CODE_ISIC2019MC
+
+    assert "def _load_isic2019" in runner, "the cluster has no ISIC 2019 loader"
+    # isic2019 must be routed by name, before the task-based branch: it is
+    # multiclass like HAM10000 but shares none of its columns.
+    assert runner.index('spec.name == "isic2019"') < runner.index('spec.task == "multiclass"')
+
+    for op, why in ((".idxmax(axis=1)", "one-hot -> class name"),
+                    ("ISIC2019_DROPPED_COLUMNS", "UNK must be dropped")):
+        assert op in runner, f"cluster loader missing: {why}"
+    assert "idxmax(axis=1)" in cell and "UNK" in cell
+
+    # The 8 classes are pinned in the protocol and asserted by the runner, so a
+    # changed ground truth fails loudly instead of producing a shifted mapping.
+    assert "protocol.ISIC2019_CLASSES" in runner
+    assert protocol.ISIC2019_CLASSES == ("MEL", "NV", "BCC", "AK", "BKL", "DF",
+                                         "VASC", "SCC")
+    assert protocol.ISIC2019_DROPPED_COLUMNS == ("UNK",)
+
+
+def test_isic2019_carries_its_split_caveat_into_the_results_json():
+    """``split_desc`` is written to every results JSON, so the limitation
+    travels with the numbers instead of living only in the README."""
+    runner = (REPO / "src" / "dermssl" / "finetune" / "torch_run.py").read_text()
+    body = runner.split("def _load_isic2019")[1].split("\ndef ")[0]
+    assert "sin grupo" in body.lower() or "sin agrupacion" in body.lower()
+    assert protocol.DATASETS["isic2019"].group_column == "", \
+        "isic2019 must declare it has no grouping column"
 
 
 # ---------------------------------------------------------------- cluster wiring

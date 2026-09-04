@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Three-minute wiring check on ONE GPU before queueing the 24-job array.
+# Three-minute wiring check on ONE GPU before queueing the 16-job array.
 # Runs 1 epoch of resnet50 on a stratified subset of HAM10000 and exercises
 # every stage: data, split, offline weights, training, metrics, W&B, MLflow.
 #
 #   bash cluster/finetune/smoke.sh                 # resnet50 / ham10000
-#   bash cluster/finetune/smoke.sh dinov2_vitb14 isic2020
+#   bash cluster/finetune/smoke.sh dinov2_vitb14 isic2019
 set -euo pipefail
 
 MODEL="${1:-resnet50}"
