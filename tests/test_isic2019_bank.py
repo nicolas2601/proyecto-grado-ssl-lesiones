@@ -77,9 +77,32 @@ def test_the_data_cell_drops_the_empty_unknown_column():
     assert '"UNK"' in _code("resnet50")
 
 
+def _split_desc(model: str) -> str:
+    """The SPLIT_DESC assignment only - not the whole notebook.
+
+    Searching the full code blob passed even with the caveat deleted from
+    SPLIT_DESC and left in a comment, which is the one place it does NOT
+    travel: SPLIT_DESC is what lands in the results JSON and reaches whoever
+    reads the numbers. Verified by falsifying it.
+    """
+    code = _code(model)
+    start = code.index("SPLIT_DESC = ")
+    tail = code[start:]
+    end = tail.index("\nprint(") if "\nprint(" in tail else len(tail)
+    return tail[:end]
+
+
 def test_the_split_description_states_the_missing_group_out_loud():
-    code = _code("resnet50")
-    assert "sin grupo" in code.lower() or "sin patient_id" in code.lower()
+    desc = _split_desc("resnet50").lower()
+    assert "sin grupo" in desc or "sin patient_id" in desc, (
+        "el caveat de fuga no esta en SPLIT_DESC, que es el campo que viaja "
+        "dentro del results JSON")
+
+
+def test_the_caveat_is_not_satisfied_by_a_comment_elsewhere():
+    """Guards the guard: the assertion must read SPLIT_DESC, not the file."""
+    desc = _split_desc("resnet50")
+    assert "SPLIT_DESC" in desc and len(desc) < len(_code("resnet50"))
 
 
 def test_the_notebook_still_carries_the_feature_width_guard():

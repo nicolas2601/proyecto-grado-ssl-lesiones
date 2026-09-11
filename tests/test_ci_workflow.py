@@ -27,7 +27,12 @@ def test_ci_installs_the_full_test_dependencies(ci):
 
 
 def test_ci_demands_that_nothing_skips_for_a_missing_dependency(ci):
-    assert "CI_REQUIRE_FULL_DEPS" in ci
+    """The variable has to be SET, not merely mentioned.
+
+    `"CI_REQUIRE_FULL_DEPS" in ci` also matches the comment that explains it,
+    so removing the env block would have left this green.
+    """
+    assert 'CI_REQUIRE_FULL_DEPS: "1"' in ci
 
 
 def test_ci_regenerates_both_notebook_builders(ci):

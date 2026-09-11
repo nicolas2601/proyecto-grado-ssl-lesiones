@@ -62,7 +62,12 @@ def test_generated_notebooks_carry_the_width_guard():
             code = "".join("".join(c["source"])
                            for c in json.loads(path.read_text())["cells"]
                            if c["cell_type"] == "code")
-            assert "FEATURE_DIMS" in code, f"{bank}/{model} has no width guard"
+            # The dict being present proves nothing: deleting the assert that
+            # consumes it left all seven tests green when falsified. What has
+            # to exist is the comparison that aborts the run.
+            assert "assert DIM == FEATURE_DIMS[MODEL]" in code, (
+                f"{bank}/{model} declares FEATURE_DIMS but never asserts it; "
+                "a moved extraction point would produce a plausible number")
 
 
 def test_the_readme_no_longer_claims_vgg19_reproduces_the_old_run():
