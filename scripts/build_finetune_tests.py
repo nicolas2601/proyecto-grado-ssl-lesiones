@@ -316,6 +316,28 @@ def main() -> None:
     import tempfile
 
     root = Path(__file__).resolve().parent.parent / "notebooks"
+    # Variante de diagnostico: mismo protocolo salvo el LR del backbone.
+    # Responde si el techo real de los DINOv2 esta arriba o abajo del ViT
+    # supervisado, sin tocar el banco publicado - donde "8 epocas, ajustes
+    # identicos para los ocho" tiene que seguir siendo literalmente cierto.
+    LRPROBE = {"models": ("dinov2_vits14", "dinov2_vitb14"),
+               "lr_backbone": "5e-6", "dataset": "ham10000"}
+    for model in LRPROBE["models"]:
+        nb = build(model, LRPROBE["dataset"])
+        for cell in nb["cells"]:
+            if cell["cell_type"] != "code":
+                continue
+            cell["source"] = [
+                ln.replace("LR_BACKBONE = 5e-5",
+                           f"LR_BACKBONE = {LRPROBE['lr_backbone']}")
+                  .replace('JSON_SUFFIX = "_ft"', 'JSON_SUFFIX = "_ft_lrprobe"')
+                for ln in cell["source"]]
+        out = (root / "finetune_lrprobe" / model
+               / f"finetune_{model}_lrprobe.ipynb")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(nb, indent=1, ensure_ascii=False) + "\n")
+        print(f"wrote {out.relative_to(root.parent)}")
+
     for dataset, spec in DATASETS.items():
         out_dir = spec["out_dir"].replace("baselines", "finetune")
         for model in MODELS:

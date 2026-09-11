@@ -53,6 +53,8 @@ BANKS = {
     "finetune": ("ham10000", "finetune_{m}.ipynb"),
     "finetune_isic2020": ("isic2020", "finetune_{m}_isic2020.ipynb"),
     "finetune_isic2019": ("isic2019", "finetune_{m}_isic2019.ipynb"),
+    # Diagnostico de LR: mismo dataset que finetune, notebooks aparte.
+    "finetune_lrprobe": ("ham10000", "finetune_{m}_lrprobe.ipynb"),
 }
 
 

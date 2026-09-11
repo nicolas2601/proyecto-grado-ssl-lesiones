@@ -35,9 +35,14 @@ def test_metadata_pins_the_t4_shape_for_the_kaggle_cli():
 @pytest.mark.parametrize("bank", list(kp.BANKS))
 def test_stage_flips_smoke_and_keeps_cell_count(tmp_path, bank):
     dataset, pattern = kp.BANKS[bank]
-    src = REPO / "notebooks" / bank / "resnet50" / pattern.format(m="resnet50")
+    # Not every bank covers all eight models: the LR probe is a two-model
+    # diagnostic. Pick whichever model this bank actually generated.
+    bank_dir = REPO / "notebooks" / bank
+    model = "resnet50" if (bank_dir / "resnet50").is_dir() else sorted(
+        d.name for d in bank_dir.iterdir() if d.is_dir())[0]
+    src = bank_dir / model / pattern.format(m=model)
     original = json.loads(src.read_text())
-    folder = kp.stage(bank, "resnet50", "u", real=True, staging=tmp_path)
+    folder = kp.stage(bank, model, "u", real=True, staging=tmp_path)
     staged = json.loads((folder / src.name).read_text())
     assert len(staged["cells"]) == len(original["cells"])
     code = "".join("".join(c["source"]) for c in staged["cells"] if c["cell_type"] == "code")

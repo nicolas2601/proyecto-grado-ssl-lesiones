@@ -96,6 +96,10 @@ def result_name(bank: str, model: str) -> str:
     # nothing ever writes - and the driver retired four finished runs as
     # "missing result file" before its log became readable enough to say so.
     infix = "_ft" if bank.startswith("finetune") else ""
+    # The LR probe shares ham10000 with the main finetune bank, so without its
+    # own suffix it would overwrite published rows with diagnostic numbers.
+    if bank == "finetune_lrprobe":
+        infix, suffix = "_ft_lrprobe", ""
     return f"results_{model}{infix}{suffix}.json"
 
 
