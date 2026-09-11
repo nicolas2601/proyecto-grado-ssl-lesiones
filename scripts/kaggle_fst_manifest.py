@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import random
 import sys
 from pathlib import Path
 
@@ -48,6 +49,10 @@ MANIFEST_COLUMNS = (
     "fst_bucket",
     "skin_fraction",
     "mask_source",
+    "mask_confidence",
+    "fallback_used",
+    "confidence",
+    "artifact_detected",
     "status",
 )
 
@@ -72,6 +77,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--num-workers", type=int, default=4)
+    parser.add_argument("--validation-fraction", type=float, default=0.20)
+    parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
         "--smoke",
         action="store_true",
@@ -83,6 +90,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def image_id(path: Path) -> str:
     return path.stem
+
+
+def deterministic_split_indices(
+    n_items: int, *, val_fraction: float = 0.20, seed: int = 42
+) -> tuple[list[int], list[int]]:
+    """Return a deterministic, disjoint train/validation split."""
+    if n_items < 2:
+        raise ValueError("held-out validation requires at least two image/mask pairs")
+    if not 0.0 < val_fraction < 1.0:
+        raise ValueError("validation fraction must be strictly between 0 and 1")
+    indices = list(range(n_items))
+    random.Random(seed).shuffle(indices)
+    n_val = min(n_items - 1, max(1, int(round(n_items * val_fraction))))
+    val_indices = sorted(indices[:n_val])
+    train_indices = sorted(indices[n_val:])
+    return train_indices, val_indices
 
 
 def write_manifest(rows: list[dict], path: Path) -> None:
@@ -99,29 +122,51 @@ def run(args: argparse.Namespace) -> int:
     import numpy as np
     import torch
     from PIL import Image
-    from torch.utils.data import DataLoader
+    from torch.utils.data import DataLoader, Subset
 
     from dermssl import fitzpatrick, torch_unet
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
 
-    train_ds = torch_unet.ISIC2018SegmentationDataset(
+    full_ds = torch_unet.ISIC2018SegmentationDataset(
         args.unet_train_images, args.unet_train_masks
     )
+    train_indices, val_indices = deterministic_split_indices(
+        len(full_ds), val_fraction=args.validation_fraction, seed=args.seed
+    )
+    train_ds = Subset(full_ds, train_indices)
+    val_ds = Subset(full_ds, val_indices)
+    generator = torch.Generator().manual_seed(args.seed)
     train_loader = DataLoader(
         train_ds,
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.num_workers,
         drop_last=True,
+        generator=generator,
+    )
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
     )
 
     epochs = SMOKE_EPOCHS if args.smoke else args.epochs
-    model = torch_unet.train_unet(train_loader, epochs=epochs, device=device, lr=args.lr)
+    training = torch_unet.train_unet(
+        train_loader, val_loader, epochs=epochs, device=device, lr=args.lr
+    )
+    model = training.model
     model.eval()
+    print(
+        f"best U-Net checkpoint: epoch={training.best_epoch} "
+        f"val_dice={training.best_val_dice:.5f} val_iou={training.best_val_iou:.5f}"
+    )
 
     if args.checkpoint_out:
-        torch_unet.save_checkpoint(model, args.checkpoint_out)
+        torch_unet.save_checkpoint(training, args.checkpoint_out)
 
     target_paths = sorted(Path(args.target_image_root).glob("*.jpg"))
     if args.smoke:
@@ -130,26 +175,25 @@ def run(args: argparse.Namespace) -> int:
     rows = []
     for path in target_paths:
         img = np.asarray(Image.open(path).convert("RGB"), dtype=np.float32) / 255.0
-        mask = torch_unet.infer_mask(model, img, device=device)
-
-        # Same degenerate-area check estimate_fst applies internally (D3) -
-        # recomputed here only to LABEL which mask source it will actually
-        # use, not to change the decision.
-        area = float(mask.mean())
-        mask_source = (
-            "unet"
-            if fitzpatrick.MIN_MASK_AREA_FRACTION <= area <= fitzpatrick.MAX_MASK_AREA_FRACTION
-            else "otsu_fallback"
+        prediction = torch_unet.infer_mask_with_confidence(model, img, device=device)
+        estimate = fitzpatrick.estimate_fst(
+            img,
+            mask=prediction.mask,
+            mask_confidence=prediction.confidence,
         )
-
-        estimate = fitzpatrick.estimate_fst(img, mask=mask)
         rows.append(
             {
                 "image_id": image_id(path),
                 "ita": estimate.ita,
-                "fst_bucket": estimate.bucket if estimate.bucket is not None else "",
+                "fst_bucket": (
+                    estimate.bucket if estimate.bucket is not None else "unavailable"
+                ),
                 "skin_fraction": estimate.skin_fraction,
-                "mask_source": mask_source,
+                "mask_source": "otsu_fallback" if estimate.fallback_used else "unet",
+                "mask_confidence": prediction.confidence,
+                "fallback_used": estimate.fallback_used,
+                "confidence": estimate.confidence,
+                "artifact_detected": estimate.artifact_detected,
                 "status": estimate.status,
             }
         )

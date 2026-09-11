@@ -5,6 +5,7 @@ core stays numpy-only, the GPU/CPU seam is ``fst_manifest.csv``, never an
 in-process import. Modeled on ``tests/test_pretrain_torch_layer.py``."""
 
 import ast
+import importlib.util
 import py_compile
 import sys
 from pathlib import Path
@@ -12,6 +13,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TORCH_UNET = ROOT / "src" / "dermssl" / "torch_unet.py"
 KAGGLE_SCRIPT = ROOT / "scripts" / "kaggle_fst_manifest.py"
+
+
+def _load_kaggle_script():
+    spec = importlib.util.spec_from_file_location("kaggle_fst_manifest", KAGGLE_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_torch_unet_module_exists():
@@ -112,6 +121,30 @@ def test_train_unet_and_checkpoint_helpers_exist():
     assert {"train_unet", "save_checkpoint", "load_checkpoint"} <= names
 
 
+def test_train_unet_requires_held_out_validation_and_selects_best_dice_checkpoint():
+    source = TORCH_UNET.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    fn = next(
+        n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "train_unet"
+    )
+    args = [a.arg for a in fn.args.args + fn.args.kwonlyargs]
+    fn_source = ast.get_source_segment(source, fn)
+
+    assert "val_loader" in args
+    assert "evaluate_segmentation" in fn_source
+    assert "best_val_dice" in fn_source
+    assert "load_state_dict" in fn_source
+
+
+def test_torch_unet_exposes_validation_metrics_and_mask_confidence_contracts():
+    tree = ast.parse(TORCH_UNET.read_text(encoding="utf-8"))
+    functions = {n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
+    classes = {n.name for n in ast.walk(tree) if isinstance(n, ast.ClassDef)}
+
+    assert {"evaluate_segmentation", "infer_mask_with_confidence"} <= functions
+    assert {"UNetTrainingResult", "MaskPrediction"} <= classes
+
+
 def test_isic2018_dataset_class_exists():
     tree = ast.parse(TORCH_UNET.read_text())
     classes = {n.name for n in ast.walk(tree) if isinstance(n, ast.ClassDef)}
@@ -128,6 +161,10 @@ def test_kaggle_script_writes_the_manifest_schema_columns():
         "fst_bucket",
         "skin_fraction",
         "mask_source",
+        "mask_confidence",
+        "fallback_used",
+        "confidence",
+        "artifact_detected",
         "status",
     ):
         assert f'"{column}"' in source
@@ -141,3 +178,42 @@ def test_kaggle_script_wires_infer_mask_into_estimate_fst():
     assert "infer_mask" in source
     assert "estimate_fst" in source
     assert "fitzpatrick" in source
+
+
+def test_kaggle_script_builds_a_deterministic_held_out_validation_loader():
+    source = KAGGLE_SCRIPT.read_text(encoding="utf-8")
+
+    assert "deterministic_split_indices" in source
+    assert "train_indices" in source
+    assert "val_indices" in source
+    assert "val_loader" in source
+    assert "seed=args.seed" in source
+
+
+def test_deterministic_split_indices_is_reproducible_disjoint_and_nonempty():
+    script = _load_kaggle_script()
+
+    train_a, val_a = script.deterministic_split_indices(10, val_fraction=0.2, seed=7)
+    train_b, val_b = script.deterministic_split_indices(10, val_fraction=0.2, seed=7)
+
+    assert (train_a, val_a) == (train_b, val_b)
+    assert len(train_a) == 8 and len(val_a) == 2
+    assert set(train_a).isdisjoint(val_a)
+    assert sorted(train_a + val_a) == list(range(10))
+
+
+def test_deterministic_split_indices_changes_with_seed():
+    script = _load_kaggle_script()
+
+    _, val_a = script.deterministic_split_indices(20, val_fraction=0.2, seed=7)
+    _, val_b = script.deterministic_split_indices(20, val_fraction=0.2, seed=8)
+
+    assert val_a != val_b
+
+
+def test_kaggle_script_propagates_mask_confidence_and_explicit_unavailable():
+    source = KAGGLE_SCRIPT.read_text(encoding="utf-8")
+
+    assert "infer_mask_with_confidence" in source
+    assert "mask_confidence=prediction.confidence" in source
+    assert '"unavailable"' in source
