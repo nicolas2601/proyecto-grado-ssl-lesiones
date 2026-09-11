@@ -156,19 +156,20 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
     contract - both return bool (H, W), skin = ~mask).
     """
     gray = img.mean(axis=-1)
+    border = gray < BORDER_LUMINANCE_THRESHOLD
 
     if mask is None or _is_degenerate(mask):
         mask = lesion_guided.lesion_mask(gray)
 
     if _is_degenerate(mask):
+        skin = ~mask & ~border
         return FSTEstimate(
             bucket=None,
             ita=float("nan"),
-            skin_fraction=float(mask.mean()),
+            skin_fraction=float(skin.mean()),
             status="degenerate_mask",
         )
 
-    border = gray < BORDER_LUMINANCE_THRESHOLD
     skin = ~mask & ~border
     skin_fraction = float(skin.mean())
 
