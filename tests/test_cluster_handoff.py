@@ -81,6 +81,8 @@ def test_the_launcher_does_not_dead_end_when_weights_can_be_downloaded():
              "SCRATCH": "/tmp/dermssl-handoff-test",
              "DERMSSL_ASSUME_NETWORK": "1"},
     )
-    assert "3/6" in out.stdout, out.stdout + out.stderr
     assert "weight caches missing" not in out.stdout + out.stderr
-    assert "4/6" in out.stdout, "launcher stopped at the weights step:\n" + out.stdout
+    for step in ("1/6", "2/6", "3/6", "4/6", "5/6", "6/6"):
+        assert step in out.stdout, f"launcher never reached {step}:\n" + out.stdout
+    assert out.returncode == 0, (
+        f"a dry-run must not fail (exit {out.returncode}):\n{out.stdout}\n{out.stderr}")
