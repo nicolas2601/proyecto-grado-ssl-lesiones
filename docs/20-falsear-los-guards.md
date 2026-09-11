@@ -11,6 +11,10 @@ No es un documento sobre testing en general. Es sobre una clase concreta de
 test: el **guard estatico**, el que lee un archivo y verifica que algo este
 ahi. Son baratos, se escriben en dos minutos, y por eso se escriben mal.
 
+Las cuatro primeras categorias son guards mal escritos. La quinta es distinta y
+peor: el guard esta bien escrito y la herramienta en la que se apoya responde
+otra pregunta.
+
 ## La regla
 
 Un guard no verifica un mecanismo hasta que se lo falsea. Y hacen falta **dos**
@@ -27,7 +31,7 @@ el falseo 1 no lo distingue.
 
 Cuesta dos minutos. Si el test no cae, el test no existe: solo lo parece.
 
-## Las cuatro formas de guard falso
+## Las cinco formas de guard falso
 
 ### 1. Busca un token que el propio mecanismo declara
 
@@ -93,6 +97,40 @@ debil en otro archivo se lee como cobertura, y quien abra ese archivo va a
 creer que el contrato esta protegido ahi.
 
 Los dos se borraron, dejando un comentario que apunta al guard real.
+
+### 5. La herramienta de validacion responde otra pregunta
+
+Las cuatro anteriores son guards mal escritos. Esta es peor: el guard esta bien
+escrito, pero la herramienta en la que se apoya no verifica lo que uno cree.
+
+El caso real: el builder de notebooks validaba su salida con `py_compile`. Una
+version leia `BATCH_RUN` y `WEIGHT_DECAY`, **dos nombres que no existen en el
+notebook**, y `py_compile` la acepto sin quejarse. Es sintaxis valida. El kernel
+habria entrenado quince minutos en GPU y muerto con `NameError` en la celda de
+reporte, **sin escribir ningun JSON**.
+
+`py_compile` verifica que el codigo **parsee**, no que **corra**. Son dos
+preguntas distintas y solo una de las dos es la que importaba.
+
+El arreglo fue parsear el notebook con `ast`, extraer todos los nombres
+asignados, y verificar que cada nombre que la celda de resultados lee este
+definido en alguna parte.
+
+**Y el arreglo nacio con el mismo defecto.** El primer detector no veia
+`best_epoch` porque esa variable se asigna por *tuple unpacking* y el detector
+solo miraba `ast.Name` en los targets. O sea: el verificador tenia exactamente
+la clase de ceguera que existia para detectar. Se corrigio caminando el arbol
+completo del target.
+
+**Variante: el guard cuya propia mecanica garantiza el fallo.** Al sellar cada
+notebook con la version de su generador, la primera version estampaba el sha del
+ultimo commit del builder. Se ve correcta y tiene un ciclo: al commitear un
+cambio del builder ese sha cambia, pero los notebooks de *ese mismo commit* ya
+llevan estampado el anterior, asi que regenerar produce diff siempre y el gate
+de deriva queda rojo para siempre. Se reemplazo por un hash del **contenido** de
+los archivos del generador, que no depende de cuando se commiteo. Hay ademas un
+test que assertea que el sello **no** es HEAD, o sea un guard contra la version
+que se veia bien.
 
 ## Un guard nuevo tambien puede abrir un hueco
 

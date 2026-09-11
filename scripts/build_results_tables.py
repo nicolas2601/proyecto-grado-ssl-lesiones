@@ -60,6 +60,7 @@ class Row:
     dims: int
     metrics: dict
     probes: dict
+    data: dict
 
 
 def best_probe(data: dict) -> str:
@@ -70,7 +71,8 @@ def best_probe(data: dict) -> str:
 def rank(bank: dict[str, dict]) -> list[Row]:
     rows = [
         Row(model=model, probe=best_probe(data), dims=data.get("dim_features", 0),
-            metrics=data["probes"][best_probe(data)], probes=data["probes"])
+            metrics=data["probes"][best_probe(data)], probes=data["probes"],
+            data=data)
         for model, data in bank.items()
     ]
     return sorted(rows, key=lambda r: r.metrics["balanced_accuracy"], reverse=True)
@@ -159,6 +161,62 @@ def table_intervals(rows: list[Row]) -> str:
     return _table(header, body)
 
 
+def convergence(data: dict) -> str:
+    """Three states, and the third is not the second.
+
+    A run whose best epoch is its last one was still improving when the budget
+    ran out, so its score is a floor and not a ceiling - that is what sank the
+    DINOv2 rows of the HAM10000 bank. A JSON with no `truncada` at all is a
+    third case: the evidence was never recorded. Folding it into "converged"
+    would invent a measurement nobody took.
+    """
+    if "truncada" not in data:
+        return "desconocida"
+    return "truncada" if data["truncada"] else "convergio"
+
+
+CONVERGENCE_LABEL = {"convergio": "si", "truncada": "**NO**", "desconocida": "**?**"}
+
+
+def table_convergence(rows: list[Row]) -> str:
+    header = ["Modelo", "Convergio", "Mejor epoca", "Epocas"]
+    body = []
+    for row in rows:
+        state = convergence(row.data)
+        best = row.data.get("mejor_epoca", "-")
+        total = row.data.get("epocas_corridas") or row.data.get(
+            "protocolo", {}).get("epocas", "-")
+        body.append([DISPLAY.get(row.model, row.model),
+                     CONVERGENCE_LABEL[state], str(best), str(total)])
+    return _table(header, body)
+
+
+def convergence_warning(rows: list[Row]) -> str:
+    states = {convergence(row.data) for row in rows}
+    if states == {"convergio"}:
+        return ("> Los ocho modelos convergieron dentro del presupuesto de epocas: "
+                "ninguno llego a la ultima epoca todavia mejorando.")
+    parts = []
+    if "truncada" in states:
+        bad = [DISPLAY.get(r.model, r.model) for r in rows
+               if convergence(r.data) == "truncada"]
+        parts.append(
+            f"**{', '.join(bad)}: corrida truncada.** No convergieron dentro del "
+            "presupuesto de epocas: "
+            "su mejor epoca es la ultima, o sea que seguian mejorando cuando se "
+            "corto el entrenamiento. Su numero es un **piso**, no un techo, y el "
+            "orden de la tabla no los compara con los demas.")
+    if "desconocida" in states:
+        unknown = [DISPLAY.get(r.model, r.model) for r in rows
+                   if convergence(r.data) == "desconocida"]
+        parts.append(
+            f"**{', '.join(unknown)}: convergencia desconocida.** Su JSON no trae "
+            "el campo, porque la corrida es anterior a que el generador lo "
+            "escribiera. Ausente no es lo mismo que convergio: no se sabe si el "
+            "numero es un techo o un piso.")
+    return "> ## Atencion: convergencia\n>\n> " + "\n>\n> ".join(parts)
+
+
 def probes_present(rows: list[Row]) -> list[str]:
     """The probes this bank actually ran, in the canonical order.
 
@@ -231,7 +289,11 @@ def table_weights() -> str:
 
 def render(bank_dir: Path) -> str:
     rows = rank(load_bank(bank_dir))
-    blocks = [f"### Métricas completas (mejor probe de cada modelo)\n\n{table_metrics(rows)}"]
+    blocks = []
+    if any("truncada" in r.data or "mejor_epoca" in r.data for r in rows):
+        blocks.append(convergence_warning(rows))
+        blocks.append(f"### Convergencia por modelo\n\n{table_convergence(rows)}")
+    blocks.append(f"### Métricas completas (mejor probe de cada modelo)\n\n{table_metrics(rows)}")
     try:
         blocks.append("### Intervalos de confianza (bootstrap 95%)\n\n"
                       f"{table_intervals(rows)}")
