@@ -435,7 +435,9 @@ gradientes.
 | ISIC 2019 (8 clases) | 8 modelos | `results/finetune/isic2019/` | abajo, cuando cierren las ocho |
 
 Las tablas se generan igual que las de los bancos congelados y **no se escriben
-a mano**:
+a mano**. Los tests que las protegen estan falseados uno por uno; el metodo y
+los siete guards falsos que encontro estan en
+[20 — Falsear los guards](docs/20-falsear-los-guards.md):
 
 ```bash
 python scripts/build_results_tables.py --results-dir results/finetune/ham10000

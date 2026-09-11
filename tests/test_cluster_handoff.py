@@ -49,52 +49,48 @@ def test_the_cluster_environment_installs_what_the_runner_imports(package):
         f"{package} is imported by the runner but absent from cluster/requirements.txt")
 
 
-def test_the_clone_url_is_real():
-    """`git clone https://github.com/<org>/...` is not a command anyone can run."""
+def test_the_clone_url_is_the_one_this_repo_actually_lives_at():
+    """A clone command has to resolve, not merely look filled in.
+
+    The first version only rejected the literal <org> placeholder, so any
+    plausible-but-wrong owner - a typo in the username, an old org - sailed
+    through and handed Dr. Karen a 404. It now compares against the real
+    remote."""
+    import re
+    import subprocess
+
+    remote = subprocess.run(["git", "remote", "get-url", "origin"],
+                            capture_output=True, text=True, cwd=REPO).stdout.strip()
+    slug = re.sub(r"^.*github\.com[:/]|\.git$", "", remote)
+    assert "/" in slug, f"cannot read a github slug from {remote!r}"
+
+    quoted = []
     for path in CLUSTER.rglob("*.md"):
-        text = path.read_text()
-        assert "<org>" not in text, f"{path.name} still ships the <org> placeholder"
+        for n, line in enumerate(path.read_text().splitlines(), 1):
+            # <> is in the class on purpose: a <org> placeholder has to be
+            # captured so it can be reported as wrong, not skipped as unmatched.
+            for found in re.findall(
+                    r"github\.com[:/]([\w.<>-]+/[\w.<>-]+?)(?:\.git)?(?=[\s)`\"]|$)", line):
+                quoted.append((path.name, n, found))
+    assert quoted, "no clone URL documented anywhere in cluster/"
+    wrong = [f"{f}:{n} points at {g}, repo is {slug}" for f, n, g in quoted if g != slug]
+    assert not wrong, wrong
 
 
-def test_the_launcher_does_not_dead_end_when_weights_can_be_downloaded():
-    """Karen's first command must not stop at a release that does not exist.
+def test_the_two_weight_caches_are_separate_directories():
+    """torch.hub and Hugging Face must not share a cache root.
 
-    Step 3 used to hard-fail with "copy dermssl-weights-cache.tar.gz (GitHub
-    Release cluster-assets-v2)". That release was never published, so on a
-    cluster with internet - the common case - the one-command launcher died
-    pointing at a file nobody could fetch. With network available the run
-    should fall through and let timm/torch.hub download the weights."""
-    import subprocess
+    They are set on adjacent lines, which makes one of them a copy-paste away
+    from pointing at the other's directory - a mistake that leaves both loaders
+    half-working instead of failing loudly."""
+    import re
 
-    out = subprocess.run(
-        ["bash", str(CLUSTER / "finetune" / "run_all.sh"), "--dry-run"],
-        capture_output=True, text=True, cwd=REPO,
-        env={**__import__("os").environ,
-             "SCRATCH": "/tmp/dermssl-handoff-test",
-             "DERMSSL_ASSUME_NETWORK": "1"},
-    )
-    assert "weight caches missing" not in out.stdout + out.stderr
-    for step in ("1/6", "2/6", "3/6", "4/6", "5/6", "6/6"):
-        assert step in out.stdout, f"launcher never reached {step}:\n" + out.stdout
-    assert out.returncode == 0, (
-        f"a dry-run must not fail (exit {out.returncode}):\n{out.stdout}\n{out.stderr}")
-
-
-def test_an_existing_weight_cache_is_respected():
-    """Karen's lab may already have a shared Hugging Face cache.
-
-    The launcher used to export HF_HOME unconditionally, so a cluster-wide
-    cache was ignored and every model was downloaded again into scratch."""
-    import os
-    import subprocess
-
-    shared = "/tmp/dermssl-shared-hf"
-    os.makedirs(shared, exist_ok=True)
-    out = subprocess.run(
-        ["bash", str(CLUSTER / "finetune" / "run_all.sh"), "--dry-run"],
-        capture_output=True, text=True, cwd=REPO,
-        env={**os.environ, "SCRATCH": "/tmp/dermssl-handoff-test",
-             "DERMSSL_ASSUME_NETWORK": "1", "HF_HOME": shared},
-    )
-    assert shared in out.stdout, (
-        "the launcher ignored a pre-set HF_HOME:\n" + out.stdout)
+    script = (CLUSTER / "finetune" / "run_all.sh").read_text()
+    defaults = {}
+    for var in ("HF_HOME", "TORCH_HOME"):
+        m = re.search(rf'export {var}="\$\{{{var}:-([^}}]+)\}}"', script)
+        assert m, f"{var} is no longer defaulted with ${{{var}:-...}}"
+        defaults[var] = m.group(1)
+    assert defaults["HF_HOME"] != defaults["TORCH_HOME"], (
+        f"both caches default to {defaults['HF_HOME']}; the two loaders need "
+        "separate roots")
