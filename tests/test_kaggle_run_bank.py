@@ -73,6 +73,22 @@ def test_missing_result_file_is_reported(tmp_path):
         krb.verify_result(tmp_path / "nope.json", real=True)
 
 
+def test_finetune_results_land_where_the_cluster_writes_them(tmp_path):
+    """Kaggle and the cluster run the same protocol, so their outputs have to
+    be comparable without a path translation. `finetune_baseline.py` writes
+    `<results-dir>/<dataset>/`, so the Kaggle driver does too."""
+    assert krb.output_dir("finetune", tmp_path) == tmp_path / "finetune" / "ham10000"
+    assert (krb.output_dir("finetune_isic2019", tmp_path)
+            == tmp_path / "finetune" / "isic2019")
+
+
+def test_frozen_banks_keep_their_flat_layout(tmp_path):
+    """Only the fine-tuning banks have a cluster counterpart to line up with."""
+    assert krb.output_dir("baselines", tmp_path) == tmp_path / "baselines"
+    assert (krb.output_dir("baselines_isic2019", tmp_path)
+            == tmp_path / "baselines_isic2019")
+
+
 def test_expected_result_name_follows_the_bank_naming(tmp_path):
     assert krb.result_name("baselines", "alexnet") == "results_alexnet.json"
     assert (krb.result_name("baselines_isic2020", "vit_b16")
@@ -121,6 +137,37 @@ def test_a_download_that_never_succeeds_reports_failure_instead_of_lying():
         return SimpleNamespace(returncode=1, stdout="", stderr="nope")
 
     assert not krb.download_with_retry("u/s", Path("/tmp"), runner=always_fails,
+                                       attempts=2, delay=0)
+
+
+def test_a_stale_result_is_re_fetched_before_the_model_is_written_off(tmp_path):
+    """Right after a new version completes, Kaggle can still serve the previous
+    version's output. resnet50's real fine-tuning run was marked failed because
+    the first download returned the smoke JSON; the real one was there moments
+    later. One verification miss must not retire a finished GPU run.
+    """
+    path = tmp_path / "results_resnet50_ft.json"
+    path.write_text(json.dumps({"modelo": "resnet50", "smoke": True}))
+    attempts = []
+
+    def fetch_then_settle(slug, dest, **kw):
+        attempts.append(slug)
+        if len(attempts) >= 2:      # second fetch brings the real output
+            path.write_text(json.dumps({"modelo": "resnet50", "smoke": False}))
+        return True
+
+    assert krb.verify_with_refetch(path, real=True, slug="u/s", dest=tmp_path,
+                                   downloader=fetch_then_settle, attempts=3,
+                                   delay=0)
+    assert len(attempts) == 2
+
+
+def test_a_result_that_stays_stale_is_still_reported_as_failed(tmp_path):
+    path = tmp_path / "results_resnet50_ft.json"
+    path.write_text(json.dumps({"modelo": "resnet50", "smoke": True}))
+
+    assert not krb.verify_with_refetch(path, real=True, slug="u/s", dest=tmp_path,
+                                       downloader=lambda *a, **k: True,
                                        attempts=2, delay=0)
 
 

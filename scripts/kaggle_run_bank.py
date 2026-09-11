@@ -59,6 +59,21 @@ def parse_status(text: str) -> str:
     return match.group(1) if match else "UNKNOWN"
 
 
+def output_dir(bank: str, results_root: Path) -> Path:
+    """Where a bank's JSONs land.
+
+    Fine-tuning banks mirror the cluster layout, `<root>/finetune/<dataset>/`,
+    because `scripts/finetune_baseline.py` writes there and the whole point of
+    running both is comparing them without translating paths. Frozen banks have
+    no cluster counterpart and keep their flat `<root>/<bank>/`.
+    """
+    if bank.startswith("finetune"):
+        sys.path.insert(0, str(REPO / "src"))
+        from dermssl.finetune import protocol
+        return results_root / "finetune" / protocol.DATASETS[BANKS[bank][0]].name
+    return results_root / bank
+
+
 def result_name(bank: str, model: str) -> str:
     """Derived from the protocol, never from the bank name.
 
@@ -134,16 +149,38 @@ def download_with_retry(slug: str, dest: Path, runner=_run, attempts: int = 3,
     return False
 
 
+def verify_with_refetch(path: Path, real: bool, slug: str, dest: Path,
+                        downloader=download_with_retry, attempts: int = 3,
+                        delay: float = 30.0) -> bool:
+    """Verify the result, re-fetching when it looks like the previous version.
+
+    Kaggle can keep serving the old version's output for a while after a new
+    one completes. The first download of resnet50's real fine-tuning run
+    returned the smoke JSON, and a single check retired a finished GPU run.
+    """
+    for attempt in range(1, attempts + 1):
+        try:
+            verify_result(path, real=real)
+            return True
+        except StaleResult as exc:
+            if attempt == attempts:
+                print(f"  [{path.name}] {exc}")
+                return False
+            print(f"  [{path.name}] resultado viejo (intento {attempt}/{attempts}), "
+                  "re-descargando")
+            time.sleep(delay)
+            downloader(slug, dest)
+    return False
+
+
 def collect(bank: str, model: str, user: str, real: bool, out_dir: Path) -> str:
     """Download a finished kernel and keep only a result matching the run mode."""
     slug = f"{user}/{kernel_slug(bank, model)}"
     if not download_with_retry(slug, out_dir):
         print(f"  [{model}] no se pudo descargar el output de {slug}")
         return "failed"
-    try:
-        verify_result(out_dir / result_name(bank, model), real=real)
-    except StaleResult as exc:
-        print(f"  [{model}] {exc}")
+    path = out_dir / result_name(bank, model)
+    if not verify_with_refetch(path, real=real, slug=slug, dest=out_dir):
         return "failed"
     return "done"
 
@@ -205,7 +242,7 @@ def main(argv: list[str] | None = None) -> None:
     from dermssl.finetune import protocol
 
     models = args.models or list(protocol.MODELS)
-    out_dir = REPO / "results" / args.bank
+    out_dir = output_dir(args.bank, REPO / "results")
     state_file = out_dir / ".run_state.json"
 
     if args.report:
