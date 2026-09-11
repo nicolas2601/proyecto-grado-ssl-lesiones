@@ -136,8 +136,15 @@ def _finetune_section() -> str:
     passes on a coincidence. The first version of this test did exactly that
     and let a falsified alexnet row through."""
     readme = (REPO / "README.md").read_text()
-    start = readme.index("## Resultados de los bancos de fine-tuning")
-    rest = readme[start + 1:]
+    # Located by intent, not by exact prose: the heading has been reworded
+    # twice and pinning the sentence made this guard fail on a rename instead
+    # of on a wrong number, which is the opposite of what it is for.
+    heads = [m for m in re.finditer(r"^## .*fine-tuning.*$", readme, re.M | re.I)
+             if "sin fine-tuning" not in m.group(0).lower()]
+    assert len(heads) == 1, (
+        f"expected exactly one 'con fine-tuning' section, found "
+        f"{[h.group(0) for h in heads]}")
+    rest = readme[heads[0].end():]
     end = rest.find("\n## ")
     return rest if end == -1 else rest[:end]
 

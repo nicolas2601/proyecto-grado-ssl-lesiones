@@ -85,13 +85,13 @@ calibración esperado.*
 > Banco de fine-tuning de los baselines en el cluster (un solo comando para la
 > asesora): [cluster/finetune/README.md](cluster/finetune/README.md).
 
-## Resultados de los bancos de baselines congelados (Kaggle, 2026-09-03)
+## Baselines SIN fine-tuning — backbone congelado (Kaggle, 2026-09-03)
 
 Corridas reales (`SMOKE=False`, seed 42, backbone congelado, resolución 224) sobre
 los tres datasets: 24 corridas en total. Las tablas se generan con
 `python scripts/build_results_tables.py --bank <banco>`; no se escriben a mano.
 
-### HAM10000 (7 clases, 8.001 train / 2.014 val, split por `lesion_id`)
+### HAM10000 sin fine-tuning (7 clases, 8.001 train / 2.014 val, split por `lesion_id`)
 
 Ancla de literatura: Gessert, ganador del ISIC 2019 = **0.636** de balanced accuracy.
 JSONs en `results/baselines/`.
@@ -174,7 +174,7 @@ JSONs en `results/baselines/`.
 | VGG19 | 0.306 | 0.390 | 0.440 | 0.082 | 0.409 | 0.783 | 0.495 |
 | SimSiam R50 | 0.311 | 0.401 | 0.228 | 0.088 | 0.359 | 0.675 | 0.155 |
 
-### ISIC 2019 (multiclase, 8 clases del challenge oficial, 5.067 val)
+### ISIC 2019 sin fine-tuning (8 clases del challenge oficial, 5.067 val)
 
 JSONs en `results/baselines_isic2019/`. 20.264 train / 5.067 val, semilla 42.
 
@@ -263,7 +263,7 @@ JSONs en `results/baselines_isic2019/`. 20.264 train / 5.067 val, semilla 42.
 | VGG19 | 0.503 | 0.744 | 0.525 | 0.283 | 0.381 | 0.129 | 0.326 | 0.236 |
 | SimSiam R50 | 0.476 | 0.681 | 0.379 | 0.268 | 0.271 | 0.170 | 0.126 | 0.258 |
 
-### ISIC 2020 (binario benigno/maligno, 6.660 val, split por `patient_id`)
+### ISIC 2020 sin fine-tuning (binario benigno/maligno, 6.660 val, split por `patient_id`)
 
 JSONs en `results/baselines_isic2020/`. 26.466 train / 6.660 val, semilla 42, mismo protocolo y misma
 resolución que los otros dos bancos. Es el único de los tres con agrupación
@@ -417,11 +417,12 @@ datos nuevos**. La validación externa honesta exigiría el complemento
 > del GAP convolucional). Los otros seis modelos reprodujeron sus números al cuarto
 > decimal, lo que confirma que el pipeline es determinista.
 
-## Resultados de los bancos de fine-tuning (en curso)
+## Baselines CON fine-tuning — backbone entrenado end-to-end (en curso)
 
-Los bancos de arriba miden cada backbone **congelado**: que tan buenas son sus
-features genericas tal cual vienen. Estos miden lo contrario, los mismos ocho
-modelos **entrenados de punta a punta** sobre cada dataset. La pregunta que
+**Los mismos ocho backbones que los tres bancos de arriba, pero entrenados.**
+Aquellos miden el backbone **congelado**: que tan buenas son sus features
+genericas tal cual vienen, con un probe encima. Estos lo descongelan y entrenan
+la red completa sobre cada dataset. La pregunta que
 responden es cuanto cierra el fine-tuning la brecha que dejaron los congelados.
 
 Mismo protocolo, misma semilla 42, mismo split y los mismos pesos de partida que
@@ -467,7 +468,7 @@ evita elegir despues la lectura que mas convenga.
   memorizar al paciente. Ademas HAM10000 esta contenido entero en ISIC 2019, asi
   que los dos bancos no son evaluaciones independientes.
 
-### HAM10000 cerrado (8 de 8)
+### HAM10000 con fine-tuning (8 de 8, cerrado)
 
 > ## ⚠ El orden de esta tabla NO es una comparacion entre modelos
 >
@@ -608,7 +609,7 @@ escriben a mano y un test verifica que lo pegado aqui sea lo que los JSON dicen.
 > (`scripts/coupling_check.py`). La comparacion valida es fine-tuned contra
 > congelado, donde el congelado aparece una sola vez.
 
-### Lo que este banco deja pendiente
+### Lo que el banco con fine-tuning deja pendiente
 
 El presupuesto fijo es una decision del protocolo (`EPOCHS = 8` en
 `src/dermssl/finetune/protocol.py`) y resolverlo cuesta horas de GPU, asi que es
