@@ -56,7 +56,7 @@ SEEDS     = [42, 1234, 2026]
 
 if SMOKE:
     BACKBONES = ["ssl_dinov2_vits14", "sup_resnet50"]
-    PROBES    = ["knn", "knn_balanced", "logreg"]
+    PROBES    = ["knn", "knn_balanced", "logreg", "logreg_balanced"]
     FRACTIONS = (0.05, 1.00)
     SEEDS     = [42]
     print("*** MODO SMOKE: los numeros NO son validos como resultado. "
@@ -418,16 +418,26 @@ FST_MANIFEST_PATH = WORK / "fst_manifest.csv"
 if FST_MANIFEST_PATH.is_file():
     fst_manifest = pd.read_csv(FST_MANIFEST_PATH)
     fst_by_id = fst_manifest.set_index("image_id")["fst_bucket"]
+
+    def fst_bucket_or_none(value):
+        """Keep every validation row; map explicit/missing values to unavailable."""
+        if pd.isna(value) or str(value).strip().lower() in ("", "unavailable", "nan"):
+            return None
+        try:
+            bucket = int(value)
+        except (TypeError, ValueError):
+            return None
+        return bucket if 1 <= bucket <= 6 else None
+
     ssl_key = next((k for k in BACKBONES if k.startswith("ssl_")), None)
     strat = {}
-    if ssl_key is not None and "knn" in PROBES and 1.0 in FRACTIONS:
+    if ssl_key is not None and "logreg_balanced" in PROBES and 1.0 in FRACTIONS:
         x_tr, y_tr = FEATURES[ssl_key]["train"]
         x_va, y_va = FEATURES[ssl_key]["val"]
-        proba_va = run_probe("knn", x_tr, y_tr, x_va, N_CLASSES)
+        proba_va = run_probe("logreg_balanced", x_tr, y_tr, x_va, N_CLASSES)
         joined = [
-            (label, proba, int(fst_by_id[img_id]))
+            (label, proba, fst_bucket_or_none(fst_by_id.get(img_id, None)))
             for img_id, label, proba in zip(va_ids, y_va, proba_va)
-            if img_id in fst_by_id.index and not pd.isna(fst_by_id[img_id])
         ]
         if joined:
             labels_j, proba_j, buckets_j = zip(*joined)

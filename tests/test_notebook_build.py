@@ -178,3 +178,22 @@ def test_report_code_no_manifest_path_never_touches_fairness_gate():
 
     inside_dump = "\n".join(ast.dump(node) for node in guard.body)
     assert "fairness_gate" in inside_dump, "the guard must call fairness_gate when the manifest exists"
+
+
+def test_fairness_path_uses_balanced_linear_probe_for_macro_f1():
+    guard = _fst_manifest_guard(ast.parse(REPORT_CODE))
+    assert guard is not None
+    source = ast.get_source_segment(REPORT_CODE, guard)
+
+    assert 'run_probe("logreg_balanced"' in source
+    assert 'run_probe("knn"' not in source
+
+
+def test_fairness_path_preserves_unavailable_and_missing_manifest_assignments():
+    guard = _fst_manifest_guard(ast.parse(REPORT_CODE))
+    assert guard is not None
+    source = ast.get_source_segment(REPORT_CODE, guard)
+
+    assert "fst_bucket_or_none" in source
+    assert "fst_by_id.get(img_id" in source
+    assert "if img_id in fst_by_id.index" not in source
