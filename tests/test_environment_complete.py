@@ -12,7 +12,7 @@ import os
 import pytest
 
 # Modules whose absence silently removes tests from the run.
-REQUIRED_FOR_FULL_RUN = ("numpy", "pandas", "sklearn")
+REQUIRED_FOR_FULL_RUN = ("numpy", "pandas", "sklearn", "skimage")
 
 REQUIRE_FULL = os.environ.get("CI_REQUIRE_FULL_DEPS") == "1"
 
