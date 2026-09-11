@@ -11,8 +11,9 @@ Igual que el paso de Kaggle de PR3 (`docs/20`), este entorno de apply no tiene G
 ni sesion de Kaggle. `src/dermssl/circle.py` (numpy, PR4a) y
 `src/dermssl/finetune/circle_torch.py` (torch, PR4b) estan implementados y
 probados (TDD real para `circle.py`, `py_compile`/ast estatico para
-`circle_torch.py`), pero **nadie corrio todavia** un entrenamiento real de Stage
-2. Por proposal.md: "Stage 2 is gated on Stage 1 showing measurable bias" - y
+`circle_torch.py`). Tambien existe `scripts/kaggle_circle_stage2.py`, pero
+**nadie corrio todavia** un entrenamiento real de Stage 2. Por proposal.md:
+"Stage 2 is gated on Stage 1 showing measurable bias" - y
 Stage 1 mismo (el `fst_manifest.csv` real de PR3) tampoco corrio todavia. Este
 checkpoint queda documentado para cuando ambos pasos se ejecuten.
 
@@ -46,39 +47,38 @@ pasan a `metrics.stratified_summary()` por separado - los tres resultados son el
 insumo de `metrics.comparison_report()` (Fase 6, PR4c), que calcula la brecha por
 variante y la mejora relativa de (2) y (3) contra (1).
 
-## Pasos para un humano con sesion GPU real
+## Bundle de entrada
+
+El runner recibe un `.npz` con features del mismo backbone congelado. Debe
+contener `x_train_original`, `x_train_shifted`, `y_train`, `x_val`, `y_val`,
+`fst_buckets_val` y el escalar `backbone_frozen=True`. Las features desplazadas
+deben provenir de imagenes transformadas con `circle.shift_skin_tone` y las
+mascaras usadas en Stage 1. El runner rechaza dimensiones desalineadas y bundles
+que no certifican el backbone congelado.
+
+## Ejecucion en GPU
 
 1. Confirmar que `fst_manifest.csv` (PR3) existe y que
    `gates.fairness_gate(stratified_summary(...))` en el run de Stage 1 real
    reporta `FAIL` (o una brecha por encima del umbral que se considere "vale la
    pena mitigar").
-2. Entrenar el probe baseline (ya existe el camino v5/finetune actual) y guardar
-   sus predicciones de validacion + bucket FST por imagen.
-3. Entrenar la variante "regularization-only" usando
-   `finetune.circle_torch.freeze_backbone`, `build_probe_optimizer` y
-   `stage2_train_step` en un loop de entrenamiento real (adaptar
-   `finetune/torch_run.py`'s estructura de datos, pero manteniendo el backbone
-   congelado - a diferencia de `torch_run.py`, que si entrena el backbone
-   completo para el finetune bank).
-4. Entrenar la variante "synthetic-blend" igual que (3), agregando el paso de
-   mezcla real/sintetica antes de construir cada batch
-   (`dermssl.circle.synthetic_blend_mask` + `dermssl.circle.shift_skin_tone`
-   aplicado a las imagenes seleccionadas como sinteticas).
-5. Correr `metrics.stratified_summary()` sobre las predicciones de validacion de
-   cada una de las tres variantes.
-6. Pasar los tres resultados a `metrics.comparison_report()` para obtener la
-   brecha por variante y la mejora relativa - el criterio de aceptacion primario
-   de la tesis (proposal.md, "Success Criteria").
-7. Empezar con `--smoke` (pocas epocas, subconjunto chico) para validar el
-   wiring antes de un run real, igual que el precedente de
-   `scripts/kaggle_fst_manifest.py` y `scripts/pretrain.py`.
+2. Ejecutar primero smoke sobre datos reales. El resultado queda marcado
+   `valid_for_thesis=false`:
+
+   ```bash
+   python scripts/kaggle_circle_stage2.py \
+       --feature-bundle circle_features.npz \
+       --stage1-gate RESULTS_SUMMARY_v5.json \
+       --output-json circle_stage2_smoke.json --smoke
+   ```
+
+3. Si smoke termina bien, ejecutar la corrida completa quitando `--smoke` y
+   fijando epocas, semilla y numero de remuestreos bootstrap. El runner entrena
+   baseline, regularizacion y blend sintetico con el mismo probe lineal,
+   calcula `stratified_summary()` y produce brechas, mejoras relativas e IC95
+   bootstrap pareados mediante `comparison_report()`.
 
 ## Que NO esta hecho todavia
 
-- No existe un script `scripts/kaggle_circle_stage2.py` dedicado (design.md's
-  File Changes table para esta fase solo lista `finetune/circle_torch.py`); un
-  humano debe ensamblar el loop de entrenamiento real a partir de las
-  primitivas de este modulo cuando llegue el momento, siguiendo el patron de
-  `scripts/kaggle_fst_manifest.py` / `finetune/torch_run.py`.
 - No hay datos reales, no hay numeros reales, no hay mejora de fairness medida
   todavia en ningun lado de este repositorio para Stage 2.
