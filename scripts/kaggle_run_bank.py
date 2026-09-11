@@ -261,6 +261,12 @@ def drive(bank: str, models: list[str], user: str, real: bool, out_dir: Path,
                       "esperando")
                 break
         if pending(models, state) or any(v == "running" for v in state.values()):
+            # heartbeat: a bank whose models take an hour each printed nothing
+            # for that hour, so a healthy run looked exactly like a hung one.
+            corriendo = [m for m, v in state.items() if v == "running"]
+            print(f"  [{time.strftime('%H:%M')}] corriendo={corriendo or '-'} "
+                  f"hechos={sum(1 for v in state.values() if v == 'done')}/{len(models)} "
+                  f"| siguiente poll en {poll}s")
             time.sleep(poll)
     return state
 

@@ -175,6 +175,41 @@ def test_a_result_that_stays_stale_is_still_reported_as_failed(tmp_path):
                                        attempts=2, delay=0)
 
 
+def test_the_driver_reports_that_it_is_alive_between_polls():
+    """Silence must not be the normal state of a healthy run.
+
+    Between a push and a completion the loop printed nothing, so a bank whose
+    models take an hour each looked identical to a hung process for that whole
+    hour. Third instance today of the same shape: the buffered log, the guard
+    that checked vocabulary, and the mute wait for a GPU slot. Absence of
+    signal reads exactly like the silence of a failure.
+
+    Falsified: asserting `"heartbeat" in source` passed with the print deleted
+    and only the explanatory comment left - category 3 of docs/20, committed
+    three hours after cataloguing it. The assertion has to name the mechanism.
+    """
+    import ast
+    source = (REPO / "scripts" / "kaggle_run_bank.py").read_text()
+    tree = ast.parse(source)
+    drive = next(n for n in ast.walk(tree)
+                 if isinstance(n, ast.FunctionDef) and n.name == "drive")
+    # The print has to live in the SAME block as the sleep. Counting prints
+    # anywhere in drive() passed with the heartbeat deleted, because the push
+    # and failure messages alone met the threshold.
+    bloques_con_sleep = [
+        node for node in ast.walk(drive)
+        if isinstance(node, ast.If)
+        and any(isinstance(c, ast.Call) and getattr(c.func, "attr", "") == "sleep"
+                for c in ast.walk(node))
+    ]
+    assert bloques_con_sleep, "drive() ya no duerme entre polls"
+    innermost = bloques_con_sleep[-1]
+    assert any(isinstance(c, ast.Call) and getattr(c.func, "id", "") == "print"
+               for stmt in innermost.body for c in ast.walk(stmt)), (
+        "el bloque que duerme no imprime nada: un banco sano es "
+        "indistinguible de uno colgado durante horas")
+
+
 def test_the_driver_does_not_buffer_its_diagnostics_away():
     """A long run piped to a file must report as it goes.
 
