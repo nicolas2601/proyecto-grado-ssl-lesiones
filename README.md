@@ -465,18 +465,37 @@ evita elegir despues la lectura que mas convenga.
   memorizar al paciente. Ademas HAM10000 esta contenido entero en ISIC 2019, asi
   que los dos bancos no son evaluaciones independientes.
 
-### Primera corrida cerrada (1 de 8 en HAM10000)
+### Corridas cerradas hasta ahora (2 de 8 en HAM10000)
 
-No es la tabla del banco todavia, es una fila verificada. Se publica porque el
-resultado se sostiene solo:
+No es la tabla del banco todavia. Son filas verificadas una por una contra su
+JSON, con la comparacion pareada contra el mismo modelo congelado:
 
-| resnet50 en HAM10000 | bal_acc | IC95 | F1 macro | AUC |
-|---|---|---|---|---|
-| Congelado (probe logreg) | 0.572 | [0.533, 0.615] | 0.528 | 0.908 |
-| **Fine-tuned end-to-end** | **0.739** | **[0.700, 0.781]** | **0.687** | **0.955** |
+| Modelo | Estado | bal_acc | IC95 bal_acc | F1 macro | AUC |
+|---|---|---|---|---|---|
+| resnet50 | congelado | 0.572 | [0.533, 0.615] | 0.528 | 0.908 |
+| resnet50 | **fine-tuned** | **0.739** | **[0.700, 0.781]** | **0.687** | **0.955** |
+| alexnet | congelado | 0.589 | [0.548, 0.631] | 0.493 | 0.896 |
+| alexnet | **fine-tuned** | **0.670** | **[0.633, 0.709]** | **0.579** | **0.933** |
 
-**Los intervalos no se solapan**: el techo del congelado es 0.615 y el piso del
-fine-tuned 0.700. Es la **primera diferencia del proyecto que se separa
-estadisticamente**; todos los ordenes de los tres bancos congelados eran empates
-con intervalos solapados. Con un solo modelo no es un resultado del banco, y por
-eso esta seccion dice 1 de 8.
+| Modelo | Delta pareado | Separacion entre los IC95 |
+|---|---|---|
+| resnet50 | **+0.168** | +0.085, separados de verdad |
+| alexnet | +0.081 | +0.001, al limite |
+
+**El fine-tuning mejora a los dos, pero no por igual**, y solo uno de los dos
+resultados es solido:
+
+- **resnet50 se separa de verdad.** Techo del congelado 0.615 contra piso del
+  fine-tuned 0.700: 0.085 de aire. Es la **primera diferencia del proyecto que
+  se separa estadisticamente**; todos los ordenes de los tres bancos congelados
+  eran empates con intervalos solapados.
+- **alexnet no.** Sus intervalos tecnicamente no se tocan, pero por 0.0014. Eso
+  esta dentro del ruido del propio remuestreo bootstrap, asi que se reporta como
+  mejora pero **no** como diferencia establecida. Escribir "no se solapan" ahi
+  seria cierto de forma literal y enganoso de forma practica.
+
+**Algo para vigilar, no para concluir.** Congelados, alexnet le ganaba a
+resnet50 (0.589 contra 0.572). Con fine-tuning se da vuelta y resnet50 queda
+0.069 arriba. Si eso se sostiene cuando entren los otros seis, diria que las
+features genericas de un backbone predicen mal su techo una vez que se lo
+entrena. Con dos modelos no se afirma nada.

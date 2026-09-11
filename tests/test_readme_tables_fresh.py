@@ -149,3 +149,24 @@ def test_the_published_finetuning_row_matches_its_jsons():
     assert floor > ceiling, (
         "the README claims the intervals do not overlap, but the fine-tuned "
         f"floor {floor:.3f} is not above the frozen ceiling {ceiling:.3f}")
+
+
+def test_the_partial_finetuning_count_matches_what_landed():
+    """'2 de 8' has to keep meaning two.
+
+    While a bank is in flight the README carries a hand-written progress
+    heading, and a heading like that rots the moment the next model lands. The
+    freshness test only guards COMPLETE banks, so this covers the gap in
+    between."""
+    import re
+
+    readme = (REPO / "README.md").read_text()
+    m = re.search(r"Corridas cerradas hasta ahora \((\d+) de (\d+) en HAM10000\)", readme)
+    if not m:
+        return  # the bank finished and the heading was replaced by the table
+    claimed, total = int(m.group(1)), int(m.group(2))
+    on_disk = len(list((REPO / "results" / "finetune" / "ham10000")
+                       .glob("results_*_ft.json")))
+    assert claimed == on_disk, (
+        f"the README says {claimed} runs are closed but {on_disk} JSONs are on disk")
+    assert total == len(protocol.MODELS)
