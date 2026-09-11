@@ -408,6 +408,34 @@ gate_list = evaluate_gates(
     grid_rows=json.loads(ok.to_json(orient="records")),
     smoke=SMOKE,
 )
+
+# --- equidad por fototipo (Fase 2: fst_manifest.csv, generado en Kaggle por --
+# torch_unet.py, Fase 3 - dermssl.fitzpatrick). Si el manifiesto todavia no
+# existe (por ejemplo, antes de correr la Fase 3), este bloque no toca
+# gate_list: la corrida se comporta exactamente como v5 (design.md, tabla
+# "Error Handling": "Manifest missing -> ... v5 behavior unchanged").
+FST_MANIFEST_PATH = WORK / "fst_manifest.csv"
+if FST_MANIFEST_PATH.is_file():
+    fst_manifest = pd.read_csv(FST_MANIFEST_PATH)
+    fst_by_id = fst_manifest.set_index("image_id")["fst_bucket"]
+    ssl_key = next((k for k in BACKBONES if k.startswith("ssl_")), None)
+    strat = {}
+    if ssl_key is not None and "knn" in PROBES and 1.0 in FRACTIONS:
+        x_tr, y_tr = FEATURES[ssl_key]["train"]
+        x_va, y_va = FEATURES[ssl_key]["val"]
+        proba_va = run_probe("knn", x_tr, y_tr, x_va, N_CLASSES)
+        joined = [
+            (label, proba, int(fst_by_id[img_id]))
+            for img_id, label, proba in zip(va_ids, y_va, proba_va)
+            if img_id in fst_by_id.index and not pd.isna(fst_by_id[img_id])
+        ]
+        if joined:
+            labels_j, proba_j, buckets_j = zip(*joined)
+            strat = stratified_summary(
+                np.array(labels_j), np.array(proba_j), np.array(buckets_j), N_CLASSES
+            )
+    gate_list.append(fairness_gate(strat))
+
 print()
 print(report(gate_list))
 

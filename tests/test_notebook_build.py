@@ -5,6 +5,7 @@ GPU-minute on it: a syntax error, a missing helper or a stale build all fail her
 instead of 40 minutes into a queued session.
 """
 
+import ast
 import json
 import sys
 from pathlib import Path
@@ -19,6 +20,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import build_notebook_v5 as builder  # noqa: E402
+from notebook_code_v5 import REPORT_CODE  # noqa: E402
 
 # Every helper the torch-dependent cells call by name. If the inlined core stops
 # providing one of these, the Kaggle run dies with NameError - so assert it here.
@@ -39,6 +41,9 @@ REQUIRED_API = [
     "evaluate_gates",
     "report",
     "all_blocking_pass",
+    "stratified_summary",
+    "fairness_gate",
+    "estimate_fst",
 ]
 
 
@@ -133,3 +138,43 @@ def test_validate_detects_a_broken_cell():
     """Negative control: the validator must actually be able to fail."""
     broken = {"cells": [{"cell_type": "code", "id": "x", "source": ["def (:\n"]}]}
     assert builder.validate(broken) != []
+
+
+def _fst_manifest_guard(tree: ast.Module) -> ast.If | None:
+    """The `if FST_MANIFEST_PATH.is_file(): ...` statement in REPORT_CODE."""
+    return next(
+        (
+            node
+            for node in tree.body
+            if isinstance(node, ast.If) and "FST_MANIFEST_PATH" in ast.dump(node.test)
+        ),
+        None,
+    )
+
+
+def test_report_code_guards_fst_manifest_path_before_touching_it():
+    """REPORT_CODE must check for fst_manifest.csv before reading it."""
+    tree = ast.parse(REPORT_CODE)
+    guard = _fst_manifest_guard(tree)
+    assert guard is not None, "expected an `if ...FST_MANIFEST_PATH...:` guard in REPORT_CODE"
+
+
+def test_report_code_no_manifest_path_never_touches_fairness_gate():
+    """Task 2.7: with no fst_manifest.csv, the run must stay byte-identical to
+    v5 (design.md's error table: "Manifest missing -> ... v5 behavior
+    unchanged"). Enforced structurally: every reference to `fairness_gate` or
+    `stratified_summary` must live strictly inside the manifest-exists guard,
+    so the no-manifest branch executes none of this PR's new code at all -
+    gate_list, the printed report and RESULTS_SUMMARY_v5.json are therefore
+    produced by exactly the same statements as before this change.
+    """
+    tree = ast.parse(REPORT_CODE)
+    guard = _fst_manifest_guard(tree)
+    assert guard is not None
+
+    outside_dump = "\n".join(ast.dump(node) for node in tree.body if node is not guard)
+    assert "fairness_gate" not in outside_dump
+    assert "stratified_summary" not in outside_dump
+
+    inside_dump = "\n".join(ast.dump(node) for node in guard.body)
+    assert "fairness_gate" in inside_dump, "the guard must call fairness_gate when the manifest exists"
