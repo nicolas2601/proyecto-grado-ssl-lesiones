@@ -1,19 +1,23 @@
-"""Experiment tracking for the fine-tuning bank: W&B + MLflow, both optional.
+"""Experiment tracking for the fine-tuning bank: W&B, MLflow and TensorBoard.
 
-Why two backends
-----------------
+Why three backends
+------------------
 Dr. Karen's lab already works with Weights & Biases (offline on the cluster,
-synced later). That is the dashboard the whole team can read. MLflow's file
-store stays as the on-cluster audit trail the pretraining runs already use.
-Neither is required: a missing library degrades to a NullTracker that says
-so loudly, and the JSON results file is always written regardless.
+synced later). MLflow's file store stays as the on-cluster audit trail the
+pretraining runs already use. TensorBoard is what the UNAB cluster asks for:
+its MLflow server is shared by every student, so a private event-file
+directory per run is the dashboard the director reads without exposing the
+experiments to the whole platform. None is required: a missing library
+degrades to a NullTracker that says so loudly, and the JSON results file is
+always written regardless.
 
-Both trackers take the library module by injection so the tests run without
-wandb or mlflow installed.
+Every tracker takes the library by injection so the tests run without wandb,
+mlflow or torch installed.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from dermssl.pretrain.tracking import MlflowTracker, NullTracker
@@ -53,6 +57,35 @@ class WandbTracker:
 
     def end(self) -> None:
         self._wandb.finish()
+
+
+class TensorBoardTracker:
+    """Event files under ``<root>/<run>/`` through an injected SummaryWriter class.
+
+    Hyper-parameters go in as a text card rather than ``add_hparams``: the
+    hparams plugin needs numeric metrics at start time and rewrites the run
+    layout, which only muddies a directory that one job owns entirely.
+    """
+
+    def __init__(self, writer_cls: Any, root: str, run: str):
+        self._writer_cls = writer_cls
+        self._log_dir = str(Path(root) / run)
+        self._writer: Any = None
+
+    def start(self, params: dict[str, Any]) -> None:
+        self._writer = self._writer_cls(log_dir=self._log_dir)
+        card = "\n".join(f"{k}: {v}" for k, v in sorted(params.items()))
+        self._writer.add_text("hparams", card)
+
+    def log_metric(self, key: str, value: float, step: int | None = None) -> None:
+        self._writer.add_scalar(key, value, global_step=step)
+
+    def log_artifact(self, path: str) -> None:
+        self._writer.add_text("artifacts", path)
+
+    def end(self) -> None:
+        self._writer.flush()
+        self._writer.close()
 
 
 class CompositeTracker:
@@ -99,6 +132,8 @@ def build_trackers(
     wandb_group: str = "",
     mlflow_experiment: str = "",
     mlflow_tracking_uri: str = "",
+    summary_writer_cls: Any | None = None,
+    tensorboard_dir: str = "",
 ) -> CompositeTracker:
     trackers: list[Any] = []
     if wandb_module is not None and wandb_mode != "disabled":
@@ -109,4 +144,6 @@ def build_trackers(
         trackers.append(MlflowTracker(
             mlflow_module, experiment=mlflow_experiment,
             tracking_uri=mlflow_tracking_uri, run=run))
+    if summary_writer_cls is not None and tensorboard_dir:
+        trackers.append(TensorBoardTracker(summary_writer_cls, root=tensorboard_dir, run=run))
     return CompositeTracker(trackers)

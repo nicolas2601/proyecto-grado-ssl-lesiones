@@ -35,6 +35,7 @@ class FinetuneConfig:
     wandb_entity: str = ""
     wandb_mode: str = "offline"  # "offline" | "online" | "disabled"
     mlflow_tracking_uri: str = ""
+    tensorboard_dir: str = ""
     extra_tags: list[str] = field(default_factory=list)
 
     @property
