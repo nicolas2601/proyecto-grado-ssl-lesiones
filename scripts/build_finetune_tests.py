@@ -240,6 +240,26 @@ def mlflow_ft_code() -> str:
     return MLFLOW_CODE.replace('f"baselines-{{DATASET}}"', 'f"finetune-{{DATASET}}"')
 
 
+def generator_sha() -> str:
+    """Content hash of the generator, not a git commit.
+
+    Answers the question that came up twice today - was this run produced by
+    code older than the fix? - without the chicken-and-egg a commit sha
+    creates: stamping the last commit that touched the builder means the
+    notebooks committed alongside a builder change carry the previous sha, so
+    regenerating always yields a diff and the CI drift gate stays red. Hashing
+    the source has no such cycle: same generator, same stamp, regardless of
+    when it was committed.
+    """
+    import hashlib
+    repo = Path(__file__).resolve().parents[1]
+    h = hashlib.sha256()
+    for rel in ("scripts/build_finetune_tests.py", "scripts/build_baseline_tests.py",
+                "src/dermssl/finetune/protocol.py"):
+        h.update((repo / rel).read_bytes())
+    return h.hexdigest()[:16]
+
+
 def report_ft_code() -> str:
     """Same report cell, but the CI line reads the finetune probe, not logreg."""
     assert 'results["logreg"]["ic95_bootstrap"]' in REPORT_CODE, (
@@ -256,6 +276,7 @@ def report_ft_code() -> str:
         '    "protocolo": {{"epocas": EPOCHS_RUN, "batch": BATCH,\n'
         '                  "lr_backbone": LR_BACKBONE, "lr_head": LR_HEAD,\n'
         '                  "amp": use_amp}},\n'
+        f'    "generador_sha": "{generator_sha()}",\n'
     )
     return (REPORT_CODE
             .replace('results["logreg"]["ic95_bootstrap"]',

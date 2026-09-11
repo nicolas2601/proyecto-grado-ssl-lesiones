@@ -182,6 +182,33 @@ def test_the_history_records_loss_and_accuracy_per_epoch(bank):
 
 
 @pytest.mark.parametrize("bank", ["finetune", "finetune_isic2019"])
+def test_the_json_records_which_generator_version_produced_it(bank):
+    """Two runs today were made by a driver executing code older than its fix.
+
+    Answering "is this result from before the fix?" meant reconstructing the
+    chronology by hand. The stamp makes it a field.
+
+    It is the sha of the last commit touching the GENERATOR, not HEAD: HEAD
+    would change the notebooks on every commit and leave the CI drift gate
+    permanently red, while the generator sha only moves when regenerating is
+    warranted anyway.
+    """
+    code = _ft_code(bank, "resnet50")
+    assert '"generador_sha"' in code
+
+
+def test_the_generator_stamp_is_stable_across_unrelated_commits():
+    """Guards the guard: the stamp must not be HEAD."""
+    import subprocess
+    head = subprocess.run(["git", "log", "-1", "--format=%H"], cwd=REPO,
+                          capture_output=True, text=True).stdout.strip()
+    code = _ft_code("finetune", "resnet50")
+    assert head not in code, (
+        "el notebook lleva el sha de HEAD: cambia en cada commit y deja el "
+        "gate de deriva del CI en rojo permanente")
+
+
+@pytest.mark.parametrize("bank", ["finetune", "finetune_isic2019"])
 def test_every_name_the_result_cell_reads_is_actually_defined(bank):
     """A NameError in the report cell costs the whole run.
 
