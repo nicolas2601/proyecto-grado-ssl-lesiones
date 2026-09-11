@@ -269,8 +269,8 @@ def main(argv: list[str] | None = None) -> None:
     if args.weights:
         print(table_weights())
         return
-    if not args.bank:
-        p.error("give --bank <banco> or --weights")
+    if not args.bank and not args.results_dir:
+        p.error("give --bank <banco>, --results-dir <ruta> or --weights")
     directory = Path(args.results_dir) if args.results_dir else REPO / "results" / args.bank
     print(render(directory))
 
