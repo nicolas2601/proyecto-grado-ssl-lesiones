@@ -154,7 +154,12 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
 use_amp = device.type == "cuda"
 scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 
-best_ba, best_sd = -1.0, None
+# La curva viaja DENTRO del JSON, no solo en el log de Kaggle (que expira).
+# Sin esto, una corrida truncada se ve igual que una convergida: dinov2_vitb14
+# dio 0.533 en HAM10000, por debajo de su propio probe congelado, porque ocho
+# epocas no le alcanzaron - y esa evidencia no estaba en ningun lado salvo el log.
+HISTORIA = []
+best_ba, best_sd, best_epoch = -1.0, None, 0
 t0 = time.time()
 for epoch in range(EPOCHS_RUN):
     net.train(); running, seen = 0.0, 0
@@ -174,13 +179,24 @@ for epoch in range(EPOCHS_RUN):
                 out = net(xb.to(device, non_blocking=True))
             preds.append(out.float().argmax(1).cpu().numpy())
     ba = balanced_accuracy_score(y_va, np.concatenate(preds))
+    train_loss = running / max(1, seen)
+    HISTORIA.append({{"epoca": epoch + 1, "train_loss": float(train_loss),
+                     "val_bal_acc": float(ba)}})
     if ba > best_ba:
-        best_ba, best_sd = ba, copy.deepcopy(net.state_dict())
-    print(f"epoca {{epoch + 1}}/{{EPOCHS_RUN}} loss={{running / max(1, seen):.4f}} "
+        best_ba, best_sd, best_epoch = ba, copy.deepcopy(net.state_dict()), epoch + 1
+    print(f"epoca {{epoch + 1}}/{{EPOCHS_RUN}} loss={{train_loss:.4f}} "
           f"val_bal_acc={{ba:.4f}} mejor={{best_ba:.4f}} ({{time.time() - t0:.0f}}s)")
 
 net.load_state_dict(best_sd)  # evaluacion final sobre la MEJOR epoca
-print(f"fine-tuning listo: mejor bal_acc={{best_ba:.4f}} en {{time.time() - t0:.0f}}s")
+# Si la mejor epoca es la ultima, el entrenamiento se corto mientras todavia
+# mejoraba: el numero es un piso, no un techo. Queda en el JSON para que
+# cualquiera lo detecte sin leer logs.
+TRUNCADA = best_epoch == EPOCHS_RUN
+print(f"fine-tuning listo: mejor bal_acc={{best_ba:.4f}} en epoca {{best_epoch}}"
+      f"/{{EPOCHS_RUN}} ({{time.time() - t0:.0f}}s)")
+if TRUNCADA:
+    print("AVISO: la mejor epoca es la ultima -> la corrida quedo TRUNCADA, "
+          "el modelo seguia mejorando. NO comparable con una corrida convergida.")
 """
 
 EVAL_FT_CODE = """\
@@ -228,11 +244,25 @@ def report_ft_code() -> str:
     """Same report cell, but the CI line reads the finetune probe, not logreg."""
     assert 'results["logreg"]["ic95_bootstrap"]' in REPORT_CODE, (
         "REPORT_CODE cambio de forma")
+    # La procedencia y la curva viajan DENTRO del JSON. Sin esto una corrida
+    # truncada es indistinguible de una convergida para quien solo tiene el
+    # archivo: el log de Kaggle expira y el mensaje de commit no lo acompana.
+    assert '"probes": results,' in REPORT_CODE, "REPORT_CODE cambio de forma"
+    procedencia = (
+        '"probes": results,\n'
+        '    "mejor_epoca": best_epoch, "epocas_corridas": EPOCHS_RUN,\n'
+        '    "truncada": TRUNCADA,\n'
+        '    "historia": HISTORIA,\n'
+        '    "protocolo": {{"epocas": EPOCHS_RUN, "batch": BATCH,\n'
+        '                  "lr_backbone": LR_BACKBONE, "lr_head": LR_HEAD,\n'
+        '                  "amp": use_amp}},\n'
+    )
     return (REPORT_CODE
             .replace('results["logreg"]["ic95_bootstrap"]',
                      'results["finetune"]["ic95_bootstrap"]')
             .replace('print("logreg IC95 bootstrap:',
-                     'print("finetune IC95 bootstrap:'))
+                     'print("finetune IC95 bootstrap:')
+            .replace('"probes": results,\n', procedencia, 1))
 
 
 def build(model: str, dataset: str) -> dict:

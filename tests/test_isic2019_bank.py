@@ -147,6 +147,61 @@ def test_a_dataset_without_grouping_may_enter_the_cluster_only_if_documented():
         "el README del cluster no documenta la limitacion del split sin grupo"
 
 
+def _ft_code(bank: str, model: str) -> str:
+    pattern = "finetune_{m}.ipynb" if bank == "finetune" else "finetune_{m}_isic2019.ipynb"
+    path = REPO / "notebooks" / bank / model / pattern.format(m=model)
+    assert path.is_file(), f"missing {path}"
+    return "".join("".join(c["source"])
+                   for c in json.loads(path.read_text())["cells"]
+                   if c["cell_type"] == "code")
+
+
+@pytest.mark.parametrize("bank", ["finetune", "finetune_isic2019"])
+def test_the_finetuning_json_carries_its_own_convergence_evidence(bank):
+    """A truncated run has to be detectable from the JSON alone.
+
+    The HAM10000 bank produced dinov2_vitb14 at 0.533, below its own frozen
+    probe, because eight epochs never converged it - its loss ended where the
+    supervised ViT passed during epoch one. That evidence lived only in the
+    Kaggle log, which expires, and in a commit message. Whoever opens the JSON
+    later sees a number and nothing telling them the run was cut short.
+
+    Same lesson as SPLIT_DESC: a caveat that does not travel inside the data
+    never reaches whoever reads the numbers.
+    """
+    code = _ft_code(bank, "resnet50")
+    assert '"historia"' in code, "el JSON no guarda la curva de entrenamiento"
+    assert '"mejor_epoca"' in code, "el JSON no guarda en que epoca fue el mejor"
+    assert '"protocolo"' in code, "el JSON no guarda epocas ni learning rates"
+
+
+@pytest.mark.parametrize("bank", ["finetune", "finetune_isic2019"])
+def test_the_history_records_loss_and_accuracy_per_epoch(bank):
+    code = _ft_code(bank, "resnet50")
+    assert '"train_loss"' in code and '"val_bal_acc"' in code
+
+
+@pytest.mark.parametrize("bank", ["finetune", "finetune_isic2019"])
+def test_every_name_the_result_cell_reads_is_actually_defined(bank):
+    """A NameError in the report cell costs the whole run.
+
+    The provenance fields were first written against BATCH_RUN and
+    WEIGHT_DECAY, neither of which exists in the notebook. py_compile accepts
+    that happily - it is valid syntax - so the kernel would have trained for
+    fifteen minutes and then died before writing any JSON.
+    """
+    import ast
+    tree = ast.parse(_ft_code(bank, "resnet50"))
+    defined = {sub.id for node in ast.walk(tree) if isinstance(node, ast.Assign)
+               for target in node.targets for sub in ast.walk(target)
+               if isinstance(sub, ast.Name)}
+    defined |= {node.name for node in ast.walk(tree)
+                if isinstance(node, (ast.FunctionDef, ast.ClassDef))}
+    for name in ("HISTORIA", "TRUNCADA", "best_epoch", "EPOCHS_RUN", "BATCH",
+                 "LR_BACKBONE", "LR_HEAD", "use_amp"):
+        assert name in defined, f"{bank}: el JSON lee {name} y nadie lo define"
+
+
 def test_the_result_name_the_runner_expects_matches_the_notebook():
     """kaggle_run_bank downloads by this name; a mismatch reports a stale run."""
     import kaggle_run_bank as krb
