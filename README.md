@@ -472,37 +472,62 @@ evita elegir despues la lectura que mas convenga.
 
 > ## ⚠ El orden de esta tabla NO es una comparacion entre modelos
 >
-> Los dos backbones DINOv2 **no convergieron** dentro del presupuesto fijo de 8
-> epocas. Segun los logs de entrenamiento en Kaggle, terminan la epoca 8 con una
-> perdida que el ViT-B/16 supervisado ya habia superado **durante la epoca 1**, y
-> su accuracy de validacion seguia subiendo cuando se corto el entrenamiento:
+> Los dos DINOv2 no se pueden leer junto a los otros seis, pero **no por la
+> razon que decia la primera version de este aviso**. Ver la correccion al final
+> del bloque.
 >
-> | Modelo | Perdida, epoca 1 → 8 | Validacion al cortar |
-> |---|---|---|
-> | ViT-B/16 | 1.128 → 0.077 | meseta desde la epoca 4 |
-> | DINOv2 ViT-S/14 | 1.875 → 0.868 | **seguia subiendo** |
-> | DINOv2 ViT-B/14 | 1.918 → 1.086 | **seguia subiendo** |
+> **Los hechos, de las curvas de validacion en Kaggle** (`bal_acc` por epoca):
 >
-> Este banco entonces **no midio que backbone es mejor con fine-tuning**. Midio
-> un presupuesto de ocho epocas que alcanza para converger a una familia de
-> modelos y trunca a la otra. Es una afirmacion sobre `EPOCHS = 8`, no sobre los
-> backbones.
+> | Modelo | Epoca 1 → 8 | Mejor | Ultimas 3 ganancias |
+> |---|---|---|---|
+> | ViT-B/16 | 0.675 … 0.739 | **4** | −0.002, +0.021, −0.007 |
+> | DINOv2 ViT-S/14 | 0.293 … 0.616 | **7** | +0.043, +0.030, −0.005 |
+> | DINOv2 ViT-B/14 | 0.302 … 0.528 | **7** | +0.045, +0.007, −0.005 |
+>
+> Ninguno de los tres hace pico en la ultima epoca, asi que **ninguno quedo
+> truncado** en el sentido de "se corto mientras seguia mejorando".
+>
+> **El hallazgo que hay que explicar sigue en pie y es mas raro que el anterior:**
+> DINOv2 ViT-B/14 termina el fine-tuning **por debajo de su propio probe
+> congelado** (0.618 → 0.532). Entrenarlo lo empeora. Con la validacion ya
+> aplanada, el presupuesto no es la explicacion; la candidata es que el learning
+> rate del backbone dana las features preentrenadas mas rapido de lo que la
+> cabeza aprende a usarlas. Es un modo de falla documentado en DINOv2. Hay un
+> probe de LR encolado para medirlo (ver los pendientes).
+>
+> **Un matiz que conviene no aplanar.** "La validacion se aplano" esta bien
+> sostenido para ViT-B/14, que gano +0.007 en su ultima epoca util. Para
+> ViT-S/14 es mas flojo: venia ganando +0.030 y cayo 0.005, y una caida de una
+> sola epoca de ese tamano no distingue una meseta del ruido. Para ese modelo,
+> que mas epocas no ayuden es **plausible pero no esta demostrado**.
 >
 > **Lo que si es valido son las filas individuales**: cada modelo contra su
 > propio congelado, mismo split, misma semilla, mismos pesos de partida. Esa
 > comparacion es pareada y no depende del orden.
 >
 > **Lo que NO se puede escribir en ninguna direccion** es la comparacion
-> supervisado contra SSL de este banco: los tres modelos SSL son dos DINOv2
-> truncados y un SimSiam, asi que cualquier conclusion sobre "familias" estaria
-> midiendo el presupuesto.
+> supervisado contra SSL de este banco: los tres modelos SSL son dos DINOv2 con
+> este comportamiento anomalo y un SimSiam, asi que cualquier conclusion sobre
+> "familias" estaria describiendo el problema de los DINOv2.
 >
-> **Limitacion de trazabilidad, anotada sin adornos:** la evidencia de arriba
-> vive en los logs de Kaggle y en el mensaje del commit `77c2968`, **no en los
-> JSON de resultados**. Los notebooks de Kaggle no escriben `mejor_epoca` ni la
-> historia por epoca, asi que quien abra `results_dinov2_vitb14_ft.json` ve un
-> 0.532 sin nada que le avise que la corrida quedo truncada. Esta pendiente que
-> el banco de ISIC 2019 los escriba.
+> ### Correccion (2026-09-11)
+>
+> La primera version de este aviso decia que los dos DINOv2 **no convergieron**
+> y que "su accuracy de validacion seguia subiendo cuando se corto el
+> entrenamiento". **Es falso**: los dos hacen pico en la epoca 7. El error salio
+> de leer la **loss de entrenamiento**, que efectivamente seguia bajando, como
+> si fuera evidencia de convergencia. No lo es: un modelo puede seguir ajustando
+> train mucho despues de que la validacion dejo de mejorar, y eso es justamente
+> lo que separa ajustar de aprender.
+>
+> La consecuencia practica es que la hipotesis "los backbones SSL necesitan mas
+> presupuesto de fine-tuning" **queda debilitada, no apoyada**, por este dato.
+>
+> **Y la razon de fondo de que el error se publicara:** los JSON de este banco
+> no traen la historia por epoca, asi que el caveat viajaba en un mensaje de
+> commit y nadie podia contrastarlo contra el dato. Los notebooks ya escriben
+> `historia`, `mejor_epoca` y `truncada`, de modo que el banco de ISIC 2019
+> permite verificar esta clase de afirmacion en vez de creerla.
 
 #### Comparacion pareada contra el banco congelado
 
