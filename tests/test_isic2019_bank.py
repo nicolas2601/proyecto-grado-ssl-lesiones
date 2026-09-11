@@ -117,11 +117,12 @@ def test_the_bank_writes_its_own_results_file():
     assert 'f"results_{MODEL}{JSON_SUFFIX}.json"' in code
 
 
-def test_the_manifest_is_exactly_the_finetune_datasets():
-    """The array size is derived, never hardcoded: FINETUNE_DATASETS is the one
-    place that decides what Dr. Karen's cluster spends its rounds on."""
-    assert {j.dataset for j in protocol.manifest()} == set(protocol.FINETUNE_DATASETS)
-    assert len(protocol.manifest()) == len(protocol.MODELS) * len(protocol.FINETUNE_DATASETS)
+# The manifest itself is covered by
+# tests/test_finetune_protocol.py::test_manifest_has_16_jobs_dataset_major_and_stable_order.
+# A derived assertion lived here too and was strictly weaker: falsified against
+# both a bypassed FINETUNE_DATASETS (both caught it) and a third dataset added
+# to the cluster array (only the other one caught it). A weaker duplicate is
+# worse than no test, because this file then reads as if it covered the manifest.
 
 
 def test_a_dataset_without_grouping_may_enter_the_cluster_only_if_documented():
