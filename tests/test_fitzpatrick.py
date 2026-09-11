@@ -43,3 +43,35 @@ def test_srgb_to_lab_matches_skimage_on_boundary_colors():
     np.testing.assert_allclose(lab, expected, atol=1e-4)
     # Black must land at the Lab origin - a concrete, non-trivial value.
     np.testing.assert_allclose(lab[0, 0], [0.0, 0.0, 0.0], atol=1e-6)
+
+
+def test_ita_degrees_matches_the_groh_formula():
+    """ITA = arctan((L*-50)/b*) * 180/pi, computed elementwise."""
+    L = np.array([70.0, 30.0])
+    b = np.array([20.0, -10.0])
+
+    ita = fp.ita_degrees(L, b)
+
+    expected = np.degrees(np.arctan2(L - 50.0, b))
+    np.testing.assert_allclose(ita, expected)
+
+
+@pytest.mark.parametrize(
+    "ita, expected_bucket",
+    [
+        (60.0, 1),  # well above the lightest threshold
+        (55.0001, 1),  # just above 55
+        (55.0, 2),  # exactly on the 55 boundary falls to the next bucket
+        (50.0, 2),
+        (41.0, 3),  # exactly on the 41 boundary
+        (35.0, 3),
+        (28.0, 4),  # exactly on the 28 boundary
+        (24.0, 4),
+        (19.0, 5),  # exactly on the 19 boundary
+        (15.0, 5),
+        (10.0, 6),  # exactly on the 10 boundary
+        (-30.0, 6),  # well below the darkest threshold
+    ],
+)
+def test_fst_bucket_at_groh_thresholds_and_boundaries(ita, expected_bucket):
+    assert fp.fst_bucket(ita) == expected_bucket

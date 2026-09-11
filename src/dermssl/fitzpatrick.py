@@ -86,3 +86,29 @@ def srgb_to_lab(img: np.ndarray) -> np.ndarray:
     a = 500.0 * (fx - fy)
     b = 200.0 * (fy - fz)
     return np.stack([L, a, b], axis=-1)
+
+
+def ita_degrees(L: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Individual Typology Angle, in degrees: ``arctan((L*-50)/b*) * 180/pi``.
+
+    Uses ``arctan2`` rather than plain ``arctan`` so the sign of ``b*`` is
+    preserved instead of raising/NaN-ing on ``b* == 0`` - matching the
+    "impossible to leave [-90, 90]" invariant from design.md's error table.
+    """
+    return np.degrees(np.arctan2(np.asarray(L) - 50.0, np.asarray(b)))
+
+
+def fst_bucket(ita: float) -> int:
+    """Map an aggregate ITA (degrees) to a Fitzpatrick bucket (1-6).
+
+    ``FST_THRESHOLDS`` are the Groh et al. empirical cut points, descending.
+    A value exactly ON a threshold belongs to the DARKER (higher-numbered)
+    bucket - i.e. thresholds are exclusive lower bounds for the lighter
+    bucket, matching the ``>`` comparisons in the original ITA-to-FST table.
+    """
+    bucket = len(FST_THRESHOLDS) + 1
+    for i, threshold in enumerate(FST_THRESHOLDS, start=1):
+        if ita > threshold:
+            bucket = i
+            break
+    return bucket
