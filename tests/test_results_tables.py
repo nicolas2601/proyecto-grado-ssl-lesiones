@@ -2,6 +2,7 @@
 by hand: sixteen runs times three tables is where transcription errors live."""
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -182,3 +183,45 @@ def test_the_frozen_banks_still_get_their_probe_table():
     out = brt.render(REPO / "results" / "baselines")
     assert "Balanced accuracy por probe" in out
     assert all(p in brt.table_probes(rows) for p in ("kNN", "LogReg", "Prototipos"))
+
+
+def test_the_coupling_artefact_is_large_at_our_noise_level():
+    """The README cites a measured rate; this keeps that number honest.
+
+    delta = fine_tuned - frozen puts the frozen score on both axes, so noise
+    alone yields a strong negative frozen-vs-delta correlation. If this rate
+    were small the warning would be over-cautious; it is not."""
+    sys.path.insert(0, str(REPO / "scripts"))
+    import coupling_check
+
+    rate = coupling_check.spurious_rate(models=8, noise=0.02, threshold=-0.6,
+                                        trials=20000, seed=42)
+    assert 0.55 < rate < 0.70, rate
+    # Spanish typography puts a space before the sign ("61.6 %"), so compare
+    # with the separator collapsed rather than demanding one spelling.
+    readme = re.sub(r"\s+%", "%", (REPO / "README.md").read_text())
+    assert f"{rate:.1%}" in readme, (
+        f"the README must cite the measured rate, {rate:.1%}")
+
+
+def test_no_real_effect_means_no_correlation_in_the_valid_comparison():
+    """Control: the same simulation, compared the way the README says to.
+
+    Frozen against fine-tuned has the frozen score on one axis only, so with
+    zero real effect it must show no systematic sign - which is exactly why
+    that is the comparison the conclusion has to rest on."""
+    sys.path.insert(0, str(REPO / "scripts"))
+    import random
+
+    import coupling_check
+
+    rng = random.Random(7)
+    negatives = 0
+    trials = 4000
+    for _ in range(trials):
+        frozen = [0.55 + rng.gauss(0, 0.02) for _ in range(8)]
+        tuned = [0.72 + rng.gauss(0, 0.02) for _ in range(8)]
+        if coupling_check.spearman(frozen, tuned) < -0.6:
+            negatives += 1
+    assert negatives / trials < 0.10, (
+        f"the uncoupled comparison should not lean negative: {negatives / trials:.1%}")
