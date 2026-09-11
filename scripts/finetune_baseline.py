@@ -56,6 +56,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--wandb-mode", default=os.environ.get("WANDB_MODE", "offline"),
                    choices=("offline", "online", "disabled"))
     p.add_argument("--mlflow-tracking-uri", default="")
+    p.add_argument("--tensorboard-dir", default="",
+                   help="root for TensorBoard event files; one subfolder per run")
     return p.parse_args(argv)
 
 
@@ -75,6 +77,7 @@ def build_config(args: argparse.Namespace) -> FinetuneConfig:
         precision=args.precision, wandb_project=args.wandb_project,
         wandb_entity=args.wandb_entity, wandb_mode=args.wandb_mode,
         mlflow_tracking_uri=args.mlflow_tracking_uri,
+        tensorboard_dir=args.tensorboard_dir,
         extra_tags=["smoke"] if args.smoke else [],
     )
 
@@ -98,6 +101,10 @@ def main(argv: list[str] | None = None) -> None:
         import mlflow
     except ImportError:
         mlflow = None
+    try:
+        from torch.utils.tensorboard import SummaryWriter
+    except ImportError:
+        SummaryWriter = None
 
     from dermssl.finetune.tracking import build_trackers
     from dermssl.finetune.torch_run import run
@@ -110,10 +117,11 @@ def main(argv: list[str] | None = None) -> None:
         wandb_group=cfg.dataset,
         mlflow_experiment=f"{protocol.MLFLOW_EXPERIMENT_PREFIX}{cfg.dataset}",
         mlflow_tracking_uri=cfg.mlflow_tracking_uri,
+        summary_writer_cls=SummaryWriter, tensorboard_dir=cfg.tensorboard_dir,
     )
     if tracker.is_null:
-        print("AVISO: sin wandb ni mlflow - la corrida NO queda registrada en "
-              "ningun dashboard (el JSON de resultados si se escribe).")
+        print("AVISO: sin wandb, mlflow ni tensorboard - la corrida NO queda registrada "
+              "en ningun dashboard (el JSON de resultados si se escribe).")
 
     json_path = run(cfg, tracker)
     if args.results_dir:
