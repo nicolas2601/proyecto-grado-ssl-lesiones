@@ -20,12 +20,13 @@ import build_results_tables as brt  # noqa: E402
 from dermssl.finetune import protocol  # noqa: E402
 
 # Banks whose tables are published. baselines_isic2020 left this map on
-# 2026-09-04: the project moved to ISIC 2019 and its tables were retired from
-# the README, so freshness no longer applies to it (its JSONs stay in results/
-# as provenance). baselines_isic2019 joins automatically as soon as its JSONs
-# land - see _published_banks below.
+# 2026-09-04 when the project moved to ISIC 2019, and came back on 2026-09-11:
+# its tables are published again in the README as the screening antecedent, so
+# they must stay fresh like the other two. A bank only counts once all of its
+# JSONs have landed - see _published_banks below.
 BANKS = {"baselines": REPO / "notebooks" / "baselines" / "README.md",
-         "baselines_isic2019": REPO / "README.md"}
+         "baselines_isic2019": REPO / "README.md",
+         "baselines_isic2020": REPO / "README.md"}
 
 
 def _published_banks() -> list[str]:
