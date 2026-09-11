@@ -236,3 +236,48 @@ def test_results_dir_alone_is_enough(tmp_path, capsys):
     _write(tmp_path, [_finetune_result("resnet50", 0.71)])
     brt.main(["--results-dir", str(tmp_path)])
     assert "0.710" in capsys.readouterr().out
+
+
+def _run(model, bal_acc, **extra):
+    return {"modelo": model, "smoke": False, "dim_features": 2048,
+            "dataset": "isic2019", "probes": {"finetune": _probe(bal_acc)}, **extra}
+
+
+CONVERGED = {"truncada": False, "mejor_epoca": 5, "epocas_corridas": 8}
+TRUNCATED = {"truncada": True, "mejor_epoca": 8, "epocas_corridas": 8}
+
+
+def test_a_truncated_run_cannot_look_like_a_converged_one(tmp_path):
+    """dinov2_vitb14 scored below its own frozen probe because eight epochs
+    were not enough, and the table showed that number like any other."""
+    _write(tmp_path, [_run("resnet50", 0.71, **CONVERGED),
+                      _run("dinov2_vitb14", 0.53, **TRUNCATED)])
+    out = brt.render(tmp_path)
+    assert "truncada" in out.lower(), "the warning must name the state"
+    assert "DINOv2 ViT-B/14" in out.split("### Métricas")[0], (
+        "the truncated model must be named before the metrics table, not after")
+    row = next(l for l in out.splitlines()
+               if l.startswith("| DINOv2 ViT-B/14 |") and "**NO**" in l)
+    assert row, "the convergence table must mark it"
+
+
+def test_a_missing_field_reads_as_unknown_not_as_converged(tmp_path):
+    """Two ISIC 2019 runs were pushed before the builder recorded convergence.
+
+    Their JSONs have no `truncada` at all. Absent is not False: treating it as
+    converged would invent evidence that was never collected."""
+    _write(tmp_path, [_run("resnet50", 0.71, **CONVERGED),
+                      _run("alexnet", 0.66)])  # sin el campo
+    out = brt.render(tmp_path)
+    assert "desconocida" in out.lower(), "a missing field must read as unknown"
+    assert "ausente no es lo mismo" in out.lower()
+    marked = [l for l in out.splitlines() if "| AlexNet |" in l and "**?**" in l]
+    assert marked, "the unknown row must be marked, not left blank"
+
+
+def test_a_fully_converged_bank_says_so_without_noise(tmp_path):
+    _write(tmp_path, [_run("resnet50", 0.71, **CONVERGED),
+                      _run("vgg19", 0.70, **CONVERGED)])
+    out = brt.render(tmp_path)
+    assert "convergieron" in out.lower()
+    assert "desconocid" not in out.lower()
