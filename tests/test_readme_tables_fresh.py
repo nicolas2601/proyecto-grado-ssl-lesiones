@@ -26,7 +26,12 @@ from dermssl.finetune import protocol  # noqa: E402
 # JSONs have landed - see _published_banks below.
 BANKS = {"baselines": REPO / "notebooks" / "baselines" / "README.md",
          "baselines_isic2019": REPO / "README.md",
-         "baselines_isic2020": REPO / "README.md"}
+         "baselines_isic2020": REPO / "README.md",
+         # The fine-tuning banks live one level deeper because the cluster and
+         # Kaggle both write results/finetune/<dataset>/. They join the
+         # freshness check on their eighth JSON, like every other bank.
+         "finetune/ham10000": REPO / "README.md",
+         "finetune/isic2019": REPO / "README.md"}
 
 
 def _published_banks() -> list[str]:
@@ -113,3 +118,34 @@ def test_no_readme_tells_the_reader_to_pick_a_p100():
                 continue
             assert any(w in line for w in ("NO elegir", "no kernel image", "sm_60")), (
                 f"{path.name}: line offers a P100 without warning: {line.strip()}")
+
+
+def test_the_published_finetuning_row_matches_its_jsons():
+    """The one fine-tuning row in the README is hand-laid-out, so it needs a
+    guard the generated tables get for free.
+
+    It is published before its bank is complete because the claim stands on its
+    own: the two confidence intervals do not overlap. If either JSON is
+    re-run and the numbers move, this fails instead of letting the README keep
+    a number the results no longer support."""
+    import json
+
+    readme = (REPO / "README.md").read_text()
+    frozen = json.loads((REPO / "results" / "baselines"
+                         / "results_resnet50.json").read_text())["probes"]["logreg"]
+    tuned_files = list((REPO / "results").glob("finetune*/**/results_resnet50_ft.json"))
+    tuned_files += list((REPO / "results" / "finetune").glob("results_resnet50_ft.json"))
+    tuned_files = [f for f in tuned_files if "mlruns" not in f.parts]
+    assert tuned_files, "the fine-tuned resnet50 JSON the README quotes is gone"
+    tuned = json.loads(tuned_files[0].read_text())["probes"]["finetune"]
+
+    for probe in (frozen, tuned):
+        for field in ("balanced_accuracy", "macro_f1", "auc_ovr_macro"):
+            assert f"{probe[field]:.3f}" in readme, (
+                f"the README does not carry {field}={probe[field]:.3f}")
+
+    floor = tuned["ic95_bootstrap"]["balanced_accuracy"][0]
+    ceiling = frozen["ic95_bootstrap"]["balanced_accuracy"][1]
+    assert floor > ceiling, (
+        "the README claims the intervals do not overlap, but the fine-tuned "
+        f"floor {floor:.3f} is not above the frozen ceiling {ceiling:.3f}")

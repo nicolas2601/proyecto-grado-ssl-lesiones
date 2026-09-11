@@ -416,3 +416,67 @@ datos nuevos**. La validación externa honesta exigiría el complemento
 > VGG19 (`timm` con `num_classes=0` devolvía las pre-logits de 4096 dims en lugar
 > del GAP convolucional). Los otros seis modelos reprodujeron sus números al cuarto
 > decimal, lo que confirma que el pipeline es determinista.
+
+## Resultados de los bancos de fine-tuning (en curso)
+
+Los bancos de arriba miden cada backbone **congelado**: que tan buenas son sus
+features genericas tal cual vienen. Estos miden lo contrario, los mismos ocho
+modelos **entrenados de punta a punta** sobre cada dataset. La pregunta que
+responden es cuanto cierra el fine-tuning la brecha que dejaron los congelados.
+
+Mismo protocolo, misma semilla 42, mismo split y los mismos pesos de partida que
+el banco congelado de cada dataset. Eso hace que la comparacion congelado contra
+fine-tuned sea **pareada**: lo unico que cambia es si el backbone recibe
+gradientes.
+
+| Banco | Corridas | JSONs | Tabla |
+|---|---|---|---|
+| HAM10000 (7 clases) | 8 modelos | `results/finetune/ham10000/` | abajo, cuando cierren las ocho |
+| ISIC 2019 (8 clases) | 8 modelos | `results/finetune/isic2019/` | abajo, cuando cierren las ocho |
+
+Las tablas se generan igual que las de los bancos congelados y **no se escriben
+a mano**:
+
+```bash
+python scripts/build_results_tables.py --results-dir results/finetune/ham10000
+python scripts/build_results_tables.py --results-dir results/finetune/isic2019
+```
+
+Un banco de fine-tuning tiene un solo modo de evaluacion (`finetune`) en lugar de
+los tres probes del congelado, asi que la tabla "balanced accuracy por probe" no
+aplica y el generador lo dice en vez de imprimir una columna repetida.
+
+### Como se leera esta tabla, escrito antes de tenerla
+
+Las reglas van primero a proposito: fijar el criterio antes de ver los numeros
+evita elegir despues la lectura que mas convenga.
+
+- **La comparacion valida es pareada, contra el mismo modelo congelado**, no
+  contra el ranking de otro banco. Mismo split, misma semilla, mismos pesos.
+- **El ancla de Gessert (0.636) solo aplica al banco de ISIC 2019.** Es el
+  ganador de ese challenge, con sus 8 clases. HAM10000 son 7 y no esta en la
+  misma escala; la tabla de comparabilidad esta en
+  [19 — Resultados de los bancos congelados](docs/19-resultados-bancos-congelados.md).
+- **Dos intervalos que se solapan son un empate**, aqui igual que arriba. Un
+  orden entre modelos solo se afirma si los intervalos se separan.
+- **Las dos limitaciones de ISIC 2019 siguen viajando con sus numeros**: su
+  release no trae columna de paciente, asi que el split es estratificado simple
+  y el sesgo es optimista, y el fine-tuning lo amplifica porque el modelo puede
+  memorizar al paciente. Ademas HAM10000 esta contenido entero en ISIC 2019, asi
+  que los dos bancos no son evaluaciones independientes.
+
+### Primera corrida cerrada (1 de 8 en HAM10000)
+
+No es la tabla del banco todavia, es una fila verificada. Se publica porque el
+resultado se sostiene solo:
+
+| resnet50 en HAM10000 | bal_acc | IC95 | F1 macro | AUC |
+|---|---|---|---|---|
+| Congelado (probe logreg) | 0.572 | [0.533, 0.615] | 0.528 | 0.908 |
+| **Fine-tuned end-to-end** | **0.739** | **[0.700, 0.781]** | **0.687** | **0.955** |
+
+**Los intervalos no se solapan**: el techo del congelado es 0.615 y el piso del
+fine-tuned 0.700. Es la **primera diferencia del proyecto que se separa
+estadisticamente**; todos los ordenes de los tres bancos congelados eran empates
+con intervalos solapados. Con un solo modelo no es un resultado del banco, y por
+eso esta seccion dice 1 de 8.
