@@ -85,3 +85,89 @@ def test_ita_degrees_stays_within_arctan_bounds_for_negative_b():
 )
 def test_fst_bucket_at_groh_thresholds_and_boundaries(ita, expected_bucket):
     assert fp.fst_bucket(ita) == expected_bucket
+
+
+def disk_srgb_image(size=64, radius=15, skin_rgb=(0.85, 0.65, 0.60), lesion_rgb=(0.30, 0.20, 0.10)):
+    """A well-separated synthetic dermoscopy image: dark lesion disk on a
+    lighter skin background, both far from the near-black border/vignette
+    threshold - the "clean image" scenario from spec.md.
+
+    Grayscale means (0.2, 0.7) are deliberately chosen to fall on the
+    low/favorable side of ``lesion_guided.otsu_threshold``'s 1/256-wide
+    quantization bins - flat, noise-free synthetic clusters can otherwise
+    land on a bin's tied argmax edge and produce a threshold that excludes
+    the very cluster it is supposed to select (verified empirically against
+    the pre-existing Otsu implementation, not something this PR modifies)."""
+    yy, xx = np.mgrid[:size, :size]
+    dist = np.sqrt((yy - size / 2) ** 2 + (xx - size / 2) ** 2)
+    img = np.empty((size, size, 3))
+    img[:] = skin_rgb
+    img[dist <= radius] = lesion_rgb
+    return img, dist
+
+
+def _independent_expected_bucket(img, true_skin):
+    """Reference bucket computed from KNOWN geometry (not the production
+    mask), via the skimage LAB oracle - independent of estimate_fst's own
+    masking so the assertion is not circular."""
+    skimage_color = pytest.importorskip("skimage.color")
+    lab = skimage_color.rgb2lab(img)
+    L_med = np.median(lab[..., 0][true_skin])
+    b_med = np.median(lab[..., 2][true_skin])
+    ita = float(fp.ita_degrees(np.array(L_med), np.array(b_med)))
+    return fp.fst_bucket(ita)
+
+
+def test_estimate_fst_returns_ok_bucket_for_a_clean_skin_lesion_image():
+    pytest.importorskip("skimage.color")
+    img, dist = disk_srgb_image()
+
+    result = fp.estimate_fst(img)
+
+    assert result.status == "ok"
+    expected_bucket = _independent_expected_bucket(img, true_skin=dist > 15)
+    assert result.bucket == expected_bucket
+    assert result.skin_fraction == pytest.approx((dist > 15).mean(), abs=0.01)
+
+
+def test_estimate_fst_falls_back_to_otsu_when_the_given_mask_is_degenerate():
+    """A degenerate primary mask (e.g. a failed U-Net call, all-lesion) must
+    fall back to the Otsu mask and still produce a real estimate (D3)."""
+    pytest.importorskip("skimage.color")
+    img, dist = disk_srgb_image()
+    degenerate_given_mask = np.ones(img.shape[:2], dtype=bool)  # 100% "lesion"
+
+    result = fp.estimate_fst(img, mask=degenerate_given_mask)
+
+    assert result.status == "ok"
+    expected_bucket = _independent_expected_bucket(img, true_skin=dist > 15)
+    assert result.bucket == expected_bucket
+
+
+def test_estimate_fst_no_skin_when_candidate_skin_is_almost_all_border_vignette():
+    """skin_fraction < 0.05 after border/vignette exclusion -> no_skin,
+    bucket None (spec: explicit bucket-or-unavailable, never a silent skip)."""
+    img = np.full((20, 20, 3), 0.01)  # near-black border/vignette everywhere
+    mask = np.zeros((20, 20), dtype=bool)
+    mask[:10, :] = True  # top half: lesion (50% area, not degenerate)
+    img[:10, :] = (0.3, 0.2, 0.15)  # lesion color (irrelevant, excluded)
+    img[10, 0:5] = (0.8, 0.6, 0.5)  # 5/400 = 1.25% real skin pixels
+
+    result = fp.estimate_fst(img, mask=mask)
+
+    assert result.status == "no_skin"
+    assert result.bucket is None
+    assert result.skin_fraction == pytest.approx(5 / 400)
+
+
+def test_estimate_fst_degenerate_mask_when_otsu_fallback_also_fails():
+    """Given mask degenerate AND the Otsu fallback degenerate (a uniform
+    image has no bimodal split) -> degenerate_mask, bucket None."""
+    img = np.full((20, 20, 3), 0.5)  # uniform: Otsu cannot find a split
+    degenerate_given_mask = np.ones((20, 20), dtype=bool)
+
+    result = fp.estimate_fst(img, mask=degenerate_given_mask)
+
+    assert result.status == "degenerate_mask"
+    assert result.bucket is None
+    assert np.isnan(result.ita)

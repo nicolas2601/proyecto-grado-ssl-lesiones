@@ -17,7 +17,11 @@ inlined and executed by the notebook-build test, so a module-level
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
+
+from dermssl.pretrain import lesion_guided
 
 # Groh et al. empirical ITA thresholds (degrees), descending. Bucket 1 is the
 # lightest FST, bucket 6 the darkest.
@@ -30,6 +34,11 @@ MIN_SKIN_FRACTION = 0.05
 # range a mask is not a plausible single-lesion segmentation.
 MIN_MASK_AREA_FRACTION = 0.01
 MAX_MASK_AREA_FRACTION = 0.90
+
+# Near-black pixels are treated as image border/vignette artifacts (common
+# in dermoscopy captures), not skin - excluded regardless of the lesion mask
+# (spec.md: "Skin Pixel Selection" MUST exclude border/vignette too).
+BORDER_LUMINANCE_THRESHOLD = 0.02
 
 # D65 reference white, 2-degree observer. Matches skimage's
 # ``xyz_tristimulus_values(illuminant="D65", observer="2")`` exactly so the
@@ -115,3 +124,66 @@ def fst_bucket(ita: float) -> int:
             bucket = i
             break
     return bucket
+
+
+@dataclass
+class FSTEstimate:
+    """Result of one FST estimation call. Never dropped silently (spec.md:
+    "Explicit Bucket-or-Unavailable Output") - always either a bucket or an
+    explicit ``status`` explaining why one is not available."""
+
+    bucket: int | None  # 1..6, None when unavailable
+    ita: float  # NaN when unavailable
+    skin_fraction: float
+    status: str  # "ok" | "no_skin" | "degenerate_mask" | "ita_out_of_range"
+
+
+def _is_degenerate(mask: np.ndarray) -> bool:
+    area = float(mask.mean())
+    return not (MIN_MASK_AREA_FRACTION <= area <= MAX_MASK_AREA_FRACTION)
+
+
+def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate:
+    """Mask-guided FST estimate for one sRGB image, float (H, W, 3) in [0, 1].
+
+    ``mask`` is the primary lesion segmentation (bool (H, W), True = lesion -
+    e.g. a U-Net's output in Phase 3). When omitted, or when it is
+    degenerate (area outside 1%-90%), the pure-numpy Otsu fallback from
+    ``pretrain.lesion_guided`` is used instead (D3: two-tier masking, one
+    contract - both return bool (H, W), skin = ~mask).
+    """
+    gray = img.mean(axis=-1)
+
+    if mask is None or _is_degenerate(mask):
+        mask = lesion_guided.lesion_mask(gray)
+
+    if _is_degenerate(mask):
+        return FSTEstimate(
+            bucket=None,
+            ita=float("nan"),
+            skin_fraction=float(mask.mean()),
+            status="degenerate_mask",
+        )
+
+    border = gray < BORDER_LUMINANCE_THRESHOLD
+    skin = ~mask & ~border
+    skin_fraction = float(skin.mean())
+
+    if skin_fraction < MIN_SKIN_FRACTION:
+        return FSTEstimate(
+            bucket=None, ita=float("nan"), skin_fraction=skin_fraction, status="no_skin"
+        )
+
+    lab = srgb_to_lab(img)
+    skin_lab = lab[skin]
+    L_med = np.median(skin_lab[:, 0])
+    b_med = np.median(skin_lab[:, 2])
+    ita = float(ita_degrees(np.asarray(L_med), np.asarray(b_med)))
+
+    # Impossible by arctan construction (see ita_degrees); an invariant, not
+    # a runtime branch - design.md's error table.
+    assert -90.0 <= ita <= 90.0, f"ITA {ita} outside [-90, 90] - arctan invariant violated"
+
+    return FSTEstimate(
+        bucket=fst_bucket(ita), ita=ita, skin_fraction=skin_fraction, status="ok"
+    )
