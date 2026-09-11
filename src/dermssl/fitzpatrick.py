@@ -35,6 +35,22 @@ MIN_SKIN_FRACTION = 0.05
 MIN_MASK_AREA_FRACTION = 0.01
 MAX_MASK_AREA_FRACTION = 0.90
 
+# U-Net mask predictions below this confidence use the documented Otsu
+# fallback. ``infer_mask_with_confidence`` defines confidence as mean sigmoid
+# distance from 0.5, scaled to [0, 1].
+MIN_PRIMARY_MASK_CONFIDENCE = 0.50
+
+# Confidence is provenance, not a calibrated probability. Primary masks retain
+# their measured confidence; fallback masks start lower, and detected
+# dermoscopy artifacts reduce it further.
+FALLBACK_CONFIDENCE = 0.60
+ARTIFACT_CONFIDENCE_FACTOR = 0.70
+
+ARTIFACT_DARK_THRESHOLD = 0.12
+ARTIFACT_CONTRAST_THRESHOLD = 0.20
+ARTIFACT_PIXEL_FRACTION = 0.005
+ARTIFACT_FRAME_DARK_FRACTION = 0.50
+
 # Near-black pixels are treated as image border/vignette artifacts (common
 # in dermoscopy captures), not skin - excluded regardless of the lesion mask
 # (spec.md: "Skin Pixel Selection" MUST exclude border/vignette too).
@@ -136,6 +152,9 @@ class FSTEstimate:
     ita: float  # NaN when unavailable
     skin_fraction: float
     status: str  # "ok" | "no_skin" | "degenerate_mask" | "ita_out_of_range"
+    fallback_used: bool
+    confidence: float
+    artifact_detected: bool
 
 
 def _is_degenerate(mask: np.ndarray) -> bool:
@@ -146,7 +165,51 @@ def _is_degenerate(mask: np.ndarray) -> bool:
     return not (MIN_MASK_AREA_FRACTION <= area <= MAX_MASK_AREA_FRACTION)
 
 
-def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate:
+def detect_dermoscopy_artifacts(img: np.ndarray, lesion_mask: np.ndarray) -> bool:
+    """Flag dark high-contrast lines or a dark outer frame.
+
+    Hair, ruler marks and ink are all dark, locally high-contrast structures.
+    The heuristic deliberately reports one conservative boolean instead of
+    pretending to identify an artifact subtype. Lesion pixels are excluded so
+    a dark lesion is not mislabeled as hair. The outer-frame check catches ink
+    borders separately from interior linear structures.
+    """
+    image = np.asarray(img, dtype=float)
+    mask = np.asarray(lesion_mask, dtype=bool)
+    gray = image.mean(axis=-1)
+    h, w = gray.shape
+
+    contrast = np.zeros_like(gray)
+    horizontal = np.abs(gray[:, 1:] - gray[:, :-1])
+    vertical = np.abs(gray[1:, :] - gray[:-1, :])
+    contrast[:, 1:] = np.maximum(contrast[:, 1:], horizontal)
+    contrast[:, :-1] = np.maximum(contrast[:, :-1], horizontal)
+    contrast[1:, :] = np.maximum(contrast[1:, :], vertical)
+    contrast[:-1, :] = np.maximum(contrast[:-1, :], vertical)
+
+    margin = max(1, int(round(min(h, w) * 0.05)))
+    interior = np.zeros_like(mask)
+    if h > 2 * margin and w > 2 * margin:
+        interior[margin:-margin, margin:-margin] = True
+    frame = ~interior
+    dark = gray < ARTIFACT_DARK_THRESHOLD
+
+    candidate_skin = ~mask & interior
+    linear_artifact = candidate_skin & dark & (contrast >= ARTIFACT_CONTRAST_THRESHOLD)
+    linear_fraction = float(linear_artifact.sum()) / max(1, int(candidate_skin.sum()))
+    frame_dark_fraction = float((frame & dark).sum()) / max(1, int(frame.sum()))
+    return (
+        linear_fraction >= ARTIFACT_PIXEL_FRACTION
+        or frame_dark_fraction >= ARTIFACT_FRAME_DARK_FRACTION
+    )
+
+
+def estimate_fst(
+    img: np.ndarray,
+    mask: np.ndarray | None = None,
+    *,
+    mask_confidence: float | None = None,
+) -> FSTEstimate:
     """Mask-guided FST estimate for one sRGB image, float (H, W, 3) in [0, 1].
 
     ``mask`` is the primary lesion segmentation (bool (H, W), True = lesion -
@@ -160,14 +223,29 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
     integer dtype would instead be bitwise NOT on the raw integers (wrong
     fancy-indexing into ``lab[skin]``, silently, no error raised).
     """
+    if mask_confidence is not None and not 0.0 <= mask_confidence <= 1.0:
+        raise ValueError("mask_confidence must be within [0, 1]")
+
     if mask is not None:
         mask = np.asarray(mask, dtype=bool)
 
     gray = img.mean(axis=-1)
     border = gray < BORDER_LUMINANCE_THRESHOLD
 
-    if mask is None or _is_degenerate(mask):
+    fallback_used = (
+        mask is None
+        or _is_degenerate(mask)
+        or (mask_confidence is not None and mask_confidence < MIN_PRIMARY_MASK_CONFIDENCE)
+    )
+    if fallback_used:
         mask = lesion_guided.lesion_mask(gray)
+
+    artifact_detected = detect_dermoscopy_artifacts(img, mask)
+    confidence = FALLBACK_CONFIDENCE if fallback_used else (
+        float(mask_confidence) if mask_confidence is not None else 1.0
+    )
+    if artifact_detected:
+        confidence *= ARTIFACT_CONFIDENCE_FACTOR
 
     if _is_degenerate(mask):
         skin = ~mask & ~border
@@ -176,6 +254,9 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
             ita=float("nan"),
             skin_fraction=float(skin.mean()),
             status="degenerate_mask",
+            fallback_used=fallback_used,
+            confidence=0.0,
+            artifact_detected=artifact_detected,
         )
 
     skin = ~mask & ~border
@@ -183,7 +264,13 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
 
     if skin_fraction < MIN_SKIN_FRACTION:
         return FSTEstimate(
-            bucket=None, ita=float("nan"), skin_fraction=skin_fraction, status="no_skin"
+            bucket=None,
+            ita=float("nan"),
+            skin_fraction=skin_fraction,
+            status="no_skin",
+            fallback_used=fallback_used,
+            confidence=0.0,
+            artifact_detected=artifact_detected,
         )
 
     lab = srgb_to_lab(img)
@@ -203,9 +290,21 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
     # documented on FSTEstimate.status.
     if not (-90.0 <= ita <= 90.0):
         return FSTEstimate(
-            bucket=None, ita=ita, skin_fraction=skin_fraction, status="ita_out_of_range"
+            bucket=None,
+            ita=ita,
+            skin_fraction=skin_fraction,
+            status="ita_out_of_range",
+            fallback_used=fallback_used,
+            confidence=0.0,
+            artifact_detected=artifact_detected,
         )
 
     return FSTEstimate(
-        bucket=fst_bucket(ita), ita=ita, skin_fraction=skin_fraction, status="ok"
+        bucket=fst_bucket(ita),
+        ita=ita,
+        skin_fraction=skin_fraction,
+        status="ok",
+        fallback_used=fallback_used,
+        confidence=float(np.clip(confidence, 0.0, 1.0)),
+        artifact_detected=artifact_detected,
     )
