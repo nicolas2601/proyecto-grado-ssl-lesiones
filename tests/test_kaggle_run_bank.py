@@ -90,10 +90,14 @@ def test_frozen_banks_keep_their_flat_layout(tmp_path):
 
 
 def test_expected_result_name_follows_the_bank_naming(tmp_path):
+    """The fine-tuning case lived here asserting `results_resnet50.json`, which
+    is the buggy name. Written before any fine-tuning bank had ever run, it
+    never failed - it certified the defect. Covered now by
+    test_finetune_results_carry_the_ft_suffix_the_notebooks_write, against a
+    file that exists on disk."""
     assert krb.result_name("baselines", "alexnet") == "results_alexnet.json"
     assert (krb.result_name("baselines_isic2020", "vit_b16")
             == "results_vit_b16_isic2020.json")
-    assert krb.result_name("finetune", "resnet50") == "results_resnet50.json"
 
 
 def test_state_roundtrip_lets_the_runner_resume(tmp_path):
@@ -183,6 +187,52 @@ def test_the_driver_does_not_buffer_its_diagnostics_away():
     source = (REPO / "scripts" / "kaggle_run_bank.py").read_text()
     assert "reconfigure(line_buffering=True)" in source or "flush=True" in source, \
         "el driver no fuerza el vaciado de stdout: su log queda vacio en vuelo"
+
+
+def test_finetune_results_carry_the_ft_suffix_the_notebooks_write():
+    """The driver has to look for the file that actually gets written.
+
+    Deriving the name from `protocol.DATASETS[...].json_suffix` gives
+    `results_<model>.json` for ham10000, but the fine-tuning notebooks write
+    `results_<model>_ft.json`. The driver spent the whole bank looking for a
+    file that never existed and retiring finished runs as "missing result
+    file" - four of them before the log became readable and said so.
+    """
+    assert krb.result_name("finetune", "resnet50") == "results_resnet50_ft.json"
+    assert (krb.result_name("finetune_isic2019", "resnet50")
+            == "results_resnet50_ft_isic2019.json")
+
+
+def test_frozen_banks_keep_their_own_names():
+    assert krb.result_name("baselines", "resnet50") == "results_resnet50.json"
+    assert (krb.result_name("baselines_isic2019", "resnet50")
+            == "results_resnet50_isic2019.json")
+
+
+def test_an_unreadable_status_is_reported_instead_of_polled_forever():
+    """UNKNOWN is not RUNNING, and treating it as such hangs the bank silently.
+
+    `kaggle kernels status` returns nothing parseable when the network is down,
+    which happened during this session. UNKNOWN is not terminal, so the driver
+    would keep polling a kernel it can no longer see, forever, printing nothing.
+    """
+    seen = []
+    krb._unknown_streak.clear()
+    for _ in range(krb.UNKNOWN_TOLERANCE - 1):
+        assert krb.status_or_report("u/s", reader=lambda s: "UNKNOWN",
+                                    report=seen.append) == "UNKNOWN"
+    assert krb.status_or_report("u/s", reader=lambda s: "UNKNOWN",
+                                report=seen.append) == "UNREACHABLE"
+    assert seen and "u/s" in seen[-1]
+
+
+def test_a_readable_status_clears_the_streak():
+    """A blip must not accumulate across a healthy poll."""
+    krb._unknown_streak.clear()
+    krb.status_or_report("u/s", reader=lambda s: "UNKNOWN", report=lambda m: None)
+    assert krb.status_or_report("u/s", reader=lambda s: "RUNNING",
+                                report=lambda m: None) == "RUNNING"
+    assert "u/s" not in krb._unknown_streak
 
 
 def test_free_slots_account_for_the_running_kernels():
