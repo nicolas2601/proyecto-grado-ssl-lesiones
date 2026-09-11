@@ -228,6 +228,27 @@ def test_estimate_fst_returns_ita_out_of_range_status_instead_of_crashing(monkey
     assert np.isnan(result.ita) if np.isnan(bad_ita) else result.ita == bad_ita
 
 
+def test_estimate_fst_coerces_a_non_bool_mask_to_the_same_result_as_bool():
+    """A future U-Net (Phase 3) may emit an int/uint8 0/1 mask instead of
+    native bool. ``~mask`` on an integer array is bitwise NOT on the
+    integers (e.g. ~np.uint8(1) == 254), not logical negation - so
+    ``lab[skin]`` silently does wrong fancy-indexing instead of boolean
+    masking, with no error raised, just a wrong FST bucket. An int-dtype
+    mask must produce the same estimate as the equivalent bool mask."""
+    pytest.importorskip("skimage.color")
+    img, dist = disk_srgb_image()
+    mask_bool = dist <= 15
+    mask_uint8 = mask_bool.astype(np.uint8)
+
+    result_bool = fp.estimate_fst(img, mask=mask_bool)
+    result_uint8 = fp.estimate_fst(img, mask=mask_uint8)
+
+    assert result_uint8.status == result_bool.status
+    assert result_uint8.bucket == result_bool.bucket
+    assert result_uint8.ita == pytest.approx(result_bool.ita)
+    assert result_uint8.skin_fraction == pytest.approx(result_bool.skin_fraction)
+
+
 def test_module_source_never_imports_skimage():
     """Static check (D2): a module-level ``import skimage`` would break
     ``test_notebook_build.py``'s inlined ``exec`` cell and the Kaggle

@@ -154,7 +154,15 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
     degenerate (area outside 1%-90%), the pure-numpy Otsu fallback from
     ``pretrain.lesion_guided`` is used instead (D3: two-tier masking, one
     contract - both return bool (H, W), skin = ~mask).
+
+    A non-bool ``mask`` (e.g. an int/uint8 0/1 array) is coerced to bool:
+    downstream code relies on ``~mask`` being logical negation, which on an
+    integer dtype would instead be bitwise NOT on the raw integers (wrong
+    fancy-indexing into ``lab[skin]``, silently, no error raised).
     """
+    if mask is not None:
+        mask = np.asarray(mask, dtype=bool)
+
     gray = img.mean(axis=-1)
     border = gray < BORDER_LUMINANCE_THRESHOLD
 
