@@ -467,7 +467,7 @@ evita elegir despues la lectura que mas convenga.
   memorizar al paciente. Ademas HAM10000 esta contenido entero en ISIC 2019, asi
   que los dos bancos no son evaluaciones independientes.
 
-### Corridas cerradas hasta ahora (2 de 8 en HAM10000)
+### Corridas cerradas hasta ahora (3 de 8 en HAM10000)
 
 No es la tabla del banco todavia. Son filas verificadas una por una contra su
 JSON, con la comparacion pareada contra el mismo modelo congelado:
@@ -476,28 +476,40 @@ JSON, con la comparacion pareada contra el mismo modelo congelado:
 |---|---|---|---|---|---|
 | resnet50 | congelado | 0.572 | [0.533, 0.615] | 0.528 | 0.908 |
 | resnet50 | **fine-tuned** | **0.739** | **[0.700, 0.781]** | **0.687** | **0.955** |
+| vgg19 | congelado | 0.515 | [0.472, 0.555] | 0.415 | 0.870 |
+| vgg19 | **fine-tuned** | **0.714** | **[0.673, 0.751]** | **0.625** | **0.944** |
 | alexnet | congelado | 0.589 | [0.548, 0.631] | 0.493 | 0.896 |
 | alexnet | **fine-tuned** | **0.670** | **[0.633, 0.709]** | **0.579** | **0.933** |
 
 | Modelo | Delta pareado | Separacion entre los IC95 |
 |---|---|---|
+| vgg19 | **+0.200** | +0.119, separados de verdad |
 | resnet50 | **+0.168** | +0.085, separados de verdad |
 | alexnet | +0.081 | +0.001, al limite |
 
-**El fine-tuning mejora a los dos, pero no por igual**, y solo uno de los dos
-resultados es solido:
+**El fine-tuning mejora a los tres, y dos de las tres mejoras son solidas:**
 
-- **resnet50 se separa de verdad.** Techo del congelado 0.615 contra piso del
-  fine-tuned 0.700: 0.085 de aire. Es la **primera diferencia del proyecto que
-  se separa estadisticamente**; todos los ordenes de los tres bancos congelados
-  eran empates con intervalos solapados.
-- **alexnet no.** Sus intervalos tecnicamente no se tocan, pero por 0.0014. Eso
-  esta dentro del ruido del propio remuestreo bootstrap, asi que se reporta como
-  mejora pero **no** como diferencia establecida. Escribir "no se solapan" ahi
-  seria cierto de forma literal y enganoso de forma practica.
+- **vgg19 y resnet50 se separan de verdad**, con 0.119 y 0.085 de aire entre el
+  techo del congelado y el piso del fine-tuned. Son las **primeras diferencias
+  del proyecto que se separan estadisticamente**; todos los ordenes de los tres
+  bancos congelados eran empates con intervalos solapados.
+- **alexnet no.** Sus intervalos tecnicamente no se tocan, pero por 0.0014, que
+  esta dentro del ruido del propio remuestreo bootstrap. Se reporta como mejora
+  y **no** como diferencia establecida. Escribir "no se solapan" ahi seria
+  cierto de forma literal y enganoso de forma practica.
 
-**Algo para vigilar, no para concluir.** Congelados, alexnet le ganaba a
-resnet50 (0.589 contra 0.572). Con fine-tuning se da vuelta y resnet50 queda
-0.069 arriba. Si eso se sostiene cuando entren los otros seis, diria que las
-features genericas de un backbone predicen mal su techo una vez que se lo
-entrena. Con dos modelos no se afirma nada.
+**El orden se da vuelta entero, y eso es lo que hay que vigilar.**
+
+| | Congelados | Fine-tuned |
+|---|---|---|
+| 1º | alexnet 0.589 | resnet50 0.739 |
+| 2º | resnet50 0.572 | vgg19 0.714 |
+| 3º | vgg19 0.515 | alexnet 0.670 |
+
+Tres de tres invierten su posicion, y la ganancia crece a medida que el
+rendimiento congelado baja: vgg19 era ultimo y da el mayor salto (+0.200),
+alexnet era primero y da el menor (+0.081). Si eso aguanta con los cinco que
+faltan, la lectura seria que **el rendimiento congelado predice mal el techo
+tras fine-tuning**, con una consecuencia practica directa: elegir backbone por
+su banco congelado seria un criterio malo. Con tres modelos es una senal, no un
+resultado. Se decide con los ocho.

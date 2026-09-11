@@ -36,9 +36,19 @@ assert "FEATURE_DIMS" in code        # el diccionario que lo declara ya satisfac
 ```
 
 El caso real: ese guard protegia el bug de extraccion de VGG19, el unico error
-del proyecto que ya costo re-correr dos bancos enteros. Se borro la linea
-`assert DIM == FEATURE_DIMS[MODEL]` de los 16 notebooks y los siete tests
-pasaron. El mecanismo con mas historial de fallar era el peor protegido.
+del proyecto que ya costo re-correr dos bancos enteros. El `assert DIM ==
+FEATURE_DIMS[MODEL]` vive en 48 notebooks; **se borro de uno solo**, el de
+VGG19, y los siete tests de `test_feature_extraction_point.py` pasaron igual.
+El mecanismo con mas historial de fallar era el peor protegido, y bastaba
+romperlo en un archivo para que la suite siguiera verde.
+
+> Este parrafo decia antes "se borro de los 16 notebooks". Era falso dos veces:
+> el falseo se hizo en uno, y el assert vive en 48, no en 16 — ese numero es el
+> de los jobs del banco de fine-tuning, otra cosa. El error entro por transcribir
+> el reporte de quien hizo el experimento en vez de verificar su alcance, que es
+> justo lo que este documento pide no hacer. Se corrigio al revisarlo entre las
+> dos sesiones. La version correcta ademas es **mas** fuerte: que alcance con un
+> archivo es peor que si hubieran hecho falta los 48.
 
 ```python
 assert "assert DIM == FEATURE_DIMS[MODEL]" in code   # ahora exige la comparacion
