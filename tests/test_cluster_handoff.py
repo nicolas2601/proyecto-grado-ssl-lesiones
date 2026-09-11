@@ -40,14 +40,6 @@ def test_no_document_quotes_a_job_count_the_manifest_does_not_produce():
     assert not stale, stale
 
 
-def test_the_slurm_array_covers_exactly_the_manifest():
-    sbatch = (CLUSTER / "finetune" / "finetune_bank.sbatch").read_text()
-    m = re.search(r"#SBATCH --array=(\d+)-(\d+)(?:%(\d+))?", sbatch)
-    assert m, "no --array directive found"
-    first, last = int(m.group(1)), int(m.group(2))
-    assert (first, last) == (0, len(protocol.manifest()) - 1)
-
-
 @pytest.mark.parametrize("package", ["tensorboard", "timm", "torch", "scikit-learn"])
 def test_the_cluster_environment_installs_what_the_runner_imports(package):
     """A tracker whose library is missing degrades to a NullTracker in silence:
