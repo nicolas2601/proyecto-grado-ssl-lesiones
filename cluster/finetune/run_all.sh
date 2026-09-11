@@ -125,7 +125,8 @@ if [ "$SCHEDULER" = slurm ]; then
 MSG
 else
     echo "  no SLURM: running the 16 jobs sequentially on the local GPU"
-    source "$ENV_DIR/bin/activate"
+    # shellcheck source=/dev/null
+    [ "$DRY_RUN" = 1 ] || source "$ENV_DIR/bin/activate"
     export WANDB_MODE=offline WANDB_DIR="$SCRATCH_BASE/wandb"
     mkdir -p "$WANDB_DIR"
     for i in $(seq 0 15); do
