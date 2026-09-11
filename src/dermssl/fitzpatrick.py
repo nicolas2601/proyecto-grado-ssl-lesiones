@@ -139,6 +139,9 @@ class FSTEstimate:
 
 
 def _is_degenerate(mask: np.ndarray) -> bool:
+    """True when ``mask``'s area is outside the plausible single-lesion
+    range (1%-90%) - too small to be a real segmentation, or so large it
+    likely captured the whole frame instead of one lesion."""
     area = float(mask.mean())
     return not (MIN_MASK_AREA_FRACTION <= area <= MAX_MASK_AREA_FRACTION)
 

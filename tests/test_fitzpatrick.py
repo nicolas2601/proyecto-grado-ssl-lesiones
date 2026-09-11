@@ -2,10 +2,16 @@
 mask-guided estimator. Pure numpy in production; scikit-image is a test
 oracle only (D2)."""
 
+import ast
+import sys
+from pathlib import Path
+
 import numpy as np
 import pytest
 
 from dermssl import fitzpatrick as fp
+
+MODULE_PATH = Path(__file__).resolve().parents[1] / "src" / "dermssl" / "fitzpatrick.py"
 
 
 def random_srgb(rng, shape=(16, 16, 3)):
@@ -171,3 +177,30 @@ def test_estimate_fst_degenerate_mask_when_otsu_fallback_also_fails():
     assert result.status == "degenerate_mask"
     assert result.bucket is None
     assert np.isnan(result.ita)
+
+
+def test_module_source_never_imports_skimage():
+    """Static check (D2): a module-level ``import skimage`` would break
+    ``test_notebook_build.py``'s inlined ``exec`` cell and the Kaggle
+    notebook, since ``__init__.py::MODULE_ORDER`` executes this file."""
+    tree = ast.parse(MODULE_PATH.read_text())
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            assert not any(a.name.startswith("skimage") for a in node.names)
+        if isinstance(node, ast.ImportFrom):
+            assert not (node.module or "").startswith("skimage")
+
+
+def test_importing_fitzpatrick_never_imports_skimage():
+    """Dynamic check mirroring the pure-package torch guard: importing the
+    module must not pull scikit-image into ``sys.modules`` as a side effect."""
+    for name in list(sys.modules):
+        if name == "skimage" or name.startswith("skimage."):
+            del sys.modules[name]
+    for name in list(sys.modules):
+        if name == "dermssl.fitzpatrick":
+            del sys.modules[name]
+
+    import dermssl.fitzpatrick  # noqa: F401
+
+    assert "skimage" not in sys.modules
