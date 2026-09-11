@@ -142,17 +142,23 @@ def _finetune_section() -> str:
     return rest if end == -1 else rest[:end]
 
 
-def _row(section: str, model: str, state: str) -> str:
+def _paired_row(section: str, display: str) -> list[str]:
+    """The hand-laid-out row of the paired table, as a list of cells."""
     for line in section.splitlines():
         cells = [c.strip().strip("*") for c in line.split("|")]
-        if len(cells) > 3 and cells[1] == model and cells[2] == state:
-            return line
-    raise AssertionError(f"no published row for {model} / {state}")
+        if len(cells) >= 7 and cells[1] == display:
+            return cells
+    raise AssertionError(f"no paired row published for {display}")
 
 
 def test_every_published_finetuning_number_matches_its_json():
-    """Each published row must carry the numbers of its own JSON, in its own
-    row - not merely somewhere in a document full of numbers."""
+    """The paired table is laid out by hand, so it needs the guard the
+    generated tables get for free - and its derived columns need checking too,
+    because an arithmetic slip there is invisible against the JSONs.
+
+    An early version searched the whole README for each number: a file with
+    twenty result tables contains almost every three-decimal value somewhere, so
+    a falsified row passed on a coincidence."""
     import json
 
     section = _finetune_section()
@@ -160,18 +166,33 @@ def test_every_published_finetuning_number_matches_its_json():
     for path in _finetune_jsons():
         data = json.loads(path.read_text())
         model = data["modelo"]
-        if f"| {model} |" not in section:
+        display = brt.DISPLAY.get(model, model)
+        if f"| {display} |" not in section:
             continue  # not published yet; nothing to keep honest
+        tuned = data["probes"]["finetune"]
         frozen = json.loads((REPO / "results" / "baselines"
                              / f"results_{model}.json").read_text())["probes"]
         frozen = frozen[max(frozen, key=lambda k: frozen[k]["balanced_accuracy"])]
-        for state, probe in (("fine-tuned", data["probes"]["finetune"]),
-                             ("congelado", frozen)):
-            line = _row(section, model, state)
-            for field in ("balanced_accuracy", "macro_f1", "auc_ovr_macro"):
-                assert f"{probe[field]:.3f}" in line, (
-                    f"{model}/{state}: row says\n  {line.strip()}\nbut "
-                    f"{field} is {probe[field]:.3f} in {path.name}")
+
+        cells = _paired_row(section, display)
+        assert cells[3] == f"{frozen['balanced_accuracy']:.3f}", (
+            f"{model}: published frozen {cells[3]}, JSON says "
+            f"{frozen['balanced_accuracy']:.3f}")
+        assert cells[4] == f"{tuned['balanced_accuracy']:.3f}", (
+            f"{model}: published fine-tuned {cells[4]}, JSON says "
+            f"{tuned['balanced_accuracy']:.3f}")
+
+        delta = tuned["balanced_accuracy"] - frozen["balanced_accuracy"]
+        assert cells[5] == f"{delta:+.3f}", (
+            f"{model}: published delta {cells[5]}, arithmetic gives {delta:+.3f}")
+
+        gap = (tuned["ic95_bootstrap"]["balanced_accuracy"][0]
+               - frozen["ic95_bootstrap"]["balanced_accuracy"][1])
+        assert cells[6].startswith(f"{gap:+.3f}"), (
+            f"{model}: published gap {cells[6]}, arithmetic gives {gap:+.3f}")
+        overlap_claimed = "solapan" in cells[6]
+        assert overlap_claimed == (gap <= 0), (
+            f"{model}: the row says {cells[6]!r} but the gap is {gap:+.4f}")
         checked += 1
     assert checked, "no published fine-tuning row was verified"
 

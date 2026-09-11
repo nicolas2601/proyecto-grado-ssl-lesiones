@@ -467,69 +467,161 @@ evita elegir despues la lectura que mas convenga.
   memorizar al paciente. Ademas HAM10000 esta contenido entero en ISIC 2019, asi
   que los dos bancos no son evaluaciones independientes.
 
-### Corridas cerradas hasta ahora (3 de 8 en HAM10000)
+### HAM10000 cerrado (8 de 8)
 
-No es la tabla del banco todavia. Son filas verificadas una por una contra su
-JSON, con la comparacion pareada contra el mismo modelo congelado:
+> ## ⚠ El orden de esta tabla NO es una comparacion entre modelos
+>
+> Los dos backbones DINOv2 **no convergieron** dentro del presupuesto fijo de 8
+> epocas. Segun los logs de entrenamiento en Kaggle, terminan la epoca 8 con una
+> perdida que el ViT-B/16 supervisado ya habia superado **durante la epoca 1**, y
+> su accuracy de validacion seguia subiendo cuando se corto el entrenamiento:
+>
+> | Modelo | Perdida, epoca 1 → 8 | Validacion al cortar |
+> |---|---|---|
+> | ViT-B/16 | 1.128 → 0.077 | meseta desde la epoca 4 |
+> | DINOv2 ViT-S/14 | 1.875 → 0.868 | **seguia subiendo** |
+> | DINOv2 ViT-B/14 | 1.918 → 1.086 | **seguia subiendo** |
+>
+> Este banco entonces **no midio que backbone es mejor con fine-tuning**. Midio
+> un presupuesto de ocho epocas que alcanza para converger a una familia de
+> modelos y trunca a la otra. Es una afirmacion sobre `EPOCHS = 8`, no sobre los
+> backbones.
+>
+> **Lo que si es valido son las filas individuales**: cada modelo contra su
+> propio congelado, mismo split, misma semilla, mismos pesos de partida. Esa
+> comparacion es pareada y no depende del orden.
+>
+> **Lo que NO se puede escribir en ninguna direccion** es la comparacion
+> supervisado contra SSL de este banco: los tres modelos SSL son dos DINOv2
+> truncados y un SimSiam, asi que cualquier conclusion sobre "familias" estaria
+> midiendo el presupuesto.
+>
+> **Limitacion de trazabilidad, anotada sin adornos:** la evidencia de arriba
+> vive en los logs de Kaggle y en el mensaje del commit `77c2968`, **no en los
+> JSON de resultados**. Los notebooks de Kaggle no escriben `mejor_epoca` ni la
+> historia por epoca, asi que quien abra `results_dinov2_vitb14_ft.json` ve un
+> 0.532 sin nada que le avise que la corrida quedo truncada. Esta pendiente que
+> el banco de ISIC 2019 los escriba.
 
-| Modelo | Estado | bal_acc | IC95 bal_acc | F1 macro | AUC |
+#### Comparacion pareada contra el banco congelado
+
+| Modelo | Tipo | Congelado | Fine-tuned | Delta | Separacion IC95 |
 |---|---|---|---|---|---|
-| resnet50 | congelado | 0.572 | [0.533, 0.615] | 0.528 | 0.908 |
-| resnet50 | **fine-tuned** | **0.739** | **[0.700, 0.781]** | **0.687** | **0.955** |
-| vgg19 | congelado | 0.515 | [0.472, 0.555] | 0.415 | 0.870 |
-| vgg19 | **fine-tuned** | **0.714** | **[0.673, 0.751]** | **0.625** | **0.944** |
-| alexnet | congelado | 0.589 | [0.548, 0.631] | 0.493 | 0.896 |
-| alexnet | **fine-tuned** | **0.670** | **[0.633, 0.709]** | **0.579** | **0.933** |
+| ViT-B/16 | Supervisado | 0.567 | 0.752 | +0.185 | +0.100, separados |
+| ResNet-50 | Supervisado | 0.572 | 0.739 | +0.168 | +0.085, separados |
+| EfficientNet-B0 | Supervisado | 0.586 | 0.721 | +0.135 | +0.057, separados |
+| VGG19 | Supervisado | 0.515 | 0.714 | +0.200 | +0.119, separados |
+| SimSiam R50 | SSL | 0.494 | 0.678 | +0.184 | +0.100, separados |
+| AlexNet | Supervisado | 0.589 | 0.670 | +0.081 | +0.001, al limite |
+| DINOv2 ViT-S/14 | SSL | 0.575 | 0.621 | +0.045 | -0.036, **se solapan** |
+| DINOv2 ViT-B/14 | SSL | 0.618 | 0.532 | -0.085 | -0.170, **se solapan** |
 
-| Modelo | Delta pareado | Separacion entre los IC95 |
-|---|---|---|
-| vgg19 | **+0.200** | +0.119, separados de verdad |
-| resnet50 | **+0.168** | +0.085, separados de verdad |
-| alexnet | +0.081 | +0.001, al limite |
+Seis de los ocho mejoran con intervalos separados. AlexNet queda al limite
+(+0.001, dentro del ruido del propio bootstrap). **Los dos DINOv2 son los dos
+unicos sin mejora establecida**, y DINOv2 ViT-B/14 es el unico que empeora: una
+cabeza inicializada al azar retropropagando sobre features preentrenadas las
+dana mas rapido de lo que ocho epocas alcanzan a reparar.
 
-**El fine-tuning mejora a los tres, y dos de las tres mejoras son solidas:**
+#### Tablas generadas del banco
 
-- **vgg19 y resnet50 se separan de verdad**, con 0.119 y 0.085 de aire entre el
-  techo del congelado y el piso del fine-tuned. Son las **primeras diferencias
-  del proyecto que se separan estadisticamente**; todos los ordenes de los tres
-  bancos congelados eran empates con intervalos solapados.
-- **alexnet no.** Sus intervalos tecnicamente no se tocan, pero por 0.0014, que
-  esta dentro del ruido del propio remuestreo bootstrap. Se reporta como mejora
-  y **no** como diferencia establecida. Escribir "no se solapan" ahi seria
-  cierto de forma literal y enganoso de forma practica.
+Estas salen de `python scripts/build_results_tables.py --results-dir
+results/finetune/ham10000`, igual que las de los bancos congelados. No se
+escriben a mano y un test verifica que lo pegado aqui sea lo que los JSON dicen.
 
-**Sobre el orden: lo que se puede mirar y lo que no.**
+### Métricas completas (mejor probe de cada modelo)
 
-| | Congelados | Fine-tuned |
-|---|---|---|
-| 1º | alexnet 0.589 | resnet50 0.739 |
-| 2º | resnet50 0.572 | vgg19 0.714 |
-| 3º | vgg19 0.515 | alexnet 0.670 |
+| # | Modelo | Tipo | dims | acc | bal_acc | F1 macro | Prec macro | Recall macro | AUC | ECE |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | ViT-B/16 | Supervisado | 768 | **0.807** | **0.752** | **0.706** | **0.699** | **0.752** | **0.961** | 0.046 |
+| 2 | ResNet-50 | Supervisado | 2048 | 0.800 | 0.739 | 0.687 | 0.651 | 0.739 | 0.955 | 0.052 |
+| 3 | EfficientNet-B0 | Supervisado | 1280 | 0.780 | 0.721 | 0.650 | 0.607 | 0.721 | 0.951 | 0.037 |
+| 4 | VGG19 | Supervisado | 512 | 0.744 | 0.714 | 0.625 | 0.571 | 0.714 | 0.944 | 0.057 |
+| 5 | SimSiam R50 | SSL | 2048 | 0.688 | 0.678 | 0.532 | 0.472 | 0.678 | 0.924 | **0.025** |
+| 6 | AlexNet | Supervisado | 256 | 0.719 | 0.670 | 0.579 | 0.531 | 0.670 | 0.933 | 0.036 |
+| 7 | DINOv2 ViT-S/14 | SSL | 384 | 0.639 | 0.621 | 0.495 | 0.447 | 0.621 | 0.915 | 0.054 |
+| 8 | DINOv2 ViT-B/14 | SSL | 768 | 0.593 | 0.532 | 0.427 | 0.395 | 0.532 | 0.888 | 0.060 |
 
-Los tres cambian de puesto, pero **no es una inversion limpia**: vgg19 era
-ultimo congelado y termina segundo, no primero. El unico movimiento nitido es
-alexnet, que pasa de primero a ultimo.
+### Intervalos de confianza (bootstrap 95%)
 
-> **Trampa estadistica, anotada antes de caer en ella.** Es tentador graficar
-> el delta contra el rendimiento congelado y decir "el que peor rinde congelado
-> es el que mas gana". **Esa afirmacion no se puede sostener**, porque
-> `delta = fine_tuned - congelado` lleva el congelado a los dos lados: en el eje
-> X directamente y en el eje Y restando. Cualquier ruido en la medicion del
-> congelado genera correlacion negativa **aunque no exista ningun efecto real**.
-> Es acoplamiento matematico, de la familia de la regresion a la media.
->
-> Cuanto importa, medido: simulando 8 modelos con el **mismo** valor verdadero y
-> solo ruido de medicion del tamano de nuestros intervalos, la correlacion entre
-> congelado y delta sale por debajo de -0.6 en el **61.6 %** de las simulaciones.
-> Es decir, con cero efecto real ese patron aparece mas veces de las que no.
->
-> La comparacion que si es valida es **fine-tuned contra congelado**, donde el
-> congelado aparece una sola vez. En ese grafico, con los tres cerrados, el
-> orden ya deja de invertirse.
+| Modelo | bal_acc | IC95 bal_acc | F1 macro | IC95 F1 macro | Separado del líder |
+|---|---|---|---|---|---|
+| ViT-B/16 | 0.752 | [0.712, 0.791] | 0.706 | [0.659, 0.743] | - |
+| ResNet-50 | 0.739 | [0.700, 0.781] | 0.687 | [0.648, 0.723] | no |
+| EfficientNet-B0 | 0.721 | [0.680, 0.760] | 0.650 | [0.607, 0.687] | no |
+| VGG19 | 0.714 | [0.673, 0.751] | 0.625 | [0.587, 0.659] | no |
+| SimSiam R50 | 0.678 | [0.640, 0.717] | 0.532 | [0.501, 0.563] | no |
+| AlexNet | 0.670 | [0.633, 0.709] | 0.579 | [0.547, 0.610] | sí |
+| DINOv2 ViT-S/14 | 0.621 | [0.581, 0.660] | 0.495 | [0.464, 0.525] | sí |
+| DINOv2 ViT-B/14 | 0.532 | [0.490, 0.572] | 0.427 | [0.397, 0.454] | sí |
 
-Lo que si queda dicho con tres modelos: el fine-tuning mejora a los tres, dos de
-las tres mejoras se separan estadisticamente, y el rendimiento congelado no
-anticipo cual quedaria primero. Si con los ocho el orden fine-tuned sigue sin
-parecerse al congelado, la consecuencia practica seria que **elegir backbone por
-su banco congelado es un criterio malo**. Eso se afirma con los ocho, mirando
-fine-tuned contra congelado, nunca el delta.
+### Balanced accuracy por probe: no aplica
+
+> Este banco tiene un solo modo de evaluacion (`finetune`), asi que la columna ya esta en la tabla de metricas completas.
+
+### Recall por clase (mejor probe)
+
+| Modelo | akiec | bcc | bkl | df | mel | nv | vasc |
+|---|---|---|---|---|---|---|---|
+| ViT-B/16 | 0.779 | 0.830 | 0.771 | 0.409 | 0.703 | 0.833 | 0.941 |
+| ResNet-50 | 0.779 | 0.850 | 0.649 | 0.455 | 0.689 | 0.842 | 0.912 |
+| EfficientNet-B0 | 0.691 | 0.820 | 0.673 | 0.409 | 0.698 | 0.813 | 0.941 |
+| VGG19 | 0.706 | 0.840 | 0.688 | 0.364 | 0.707 | 0.754 | 0.941 |
+| SimSiam R50 | 0.721 | 0.790 | 0.537 | 0.455 | 0.590 | 0.715 | 0.941 |
+| AlexNet | 0.706 | 0.780 | 0.502 | 0.318 | 0.689 | 0.754 | 0.941 |
+| DINOv2 ViT-S/14 | 0.735 | 0.580 | 0.512 | 0.364 | 0.577 | 0.665 | 0.912 |
+| DINOv2 ViT-B/14 | 0.500 | 0.500 | 0.395 | 0.227 | 0.658 | 0.624 | 0.824 |
+
+### Precisión por clase (mejor probe)
+
+| Modelo | akiec | bcc | bkl | df | mel | nv | vasc |
+|---|---|---|---|---|---|---|---|
+| ViT-B/16 | 0.570 | 0.585 | 0.534 | 0.818 | 0.602 | 0.967 | 0.821 |
+| ResNet-50 | 0.546 | 0.644 | 0.668 | 0.435 | 0.474 | 0.953 | 0.838 |
+| EfficientNet-B0 | 0.427 | 0.636 | 0.642 | 0.429 | 0.456 | 0.961 | 0.696 |
+| VGG19 | 0.429 | 0.583 | 0.555 | 0.258 | 0.429 | 0.964 | 0.780 |
+| SimSiam R50 | 0.340 | 0.523 | 0.502 | 0.147 | 0.373 | 0.963 | 0.457 |
+| AlexNet | 0.375 | 0.569 | 0.486 | 0.163 | 0.410 | 0.953 | 0.762 |
+| DINOv2 ViT-S/14 | 0.282 | 0.414 | 0.393 | 0.125 | 0.338 | 0.969 | 0.608 |
+| DINOv2 ViT-B/14 | 0.224 | 0.282 | 0.380 | 0.068 | 0.310 | 0.971 | 0.528 |
+
+### F1 por clase (mejor probe)
+
+| Modelo | akiec | bcc | bkl | df | mel | nv | vasc |
+|---|---|---|---|---|---|---|---|
+| ViT-B/16 | 0.658 | 0.686 | 0.631 | 0.545 | 0.649 | 0.895 | 0.877 |
+| ResNet-50 | 0.642 | 0.733 | 0.658 | 0.444 | 0.561 | 0.894 | 0.873 |
+| EfficientNet-B0 | 0.528 | 0.716 | 0.657 | 0.419 | 0.552 | 0.881 | 0.800 |
+| VGG19 | 0.533 | 0.689 | 0.614 | 0.302 | 0.534 | 0.846 | 0.853 |
+| SimSiam R50 | 0.462 | 0.629 | 0.519 | 0.222 | 0.457 | 0.821 | 0.615 |
+| AlexNet | 0.490 | 0.658 | 0.494 | 0.215 | 0.514 | 0.842 | 0.842 |
+| DINOv2 ViT-S/14 | 0.408 | 0.483 | 0.445 | 0.186 | 0.426 | 0.789 | 0.729 |
+| DINOv2 ViT-B/14 | 0.309 | 0.361 | 0.388 | 0.105 | 0.421 | 0.760 | 0.644 |
+
+> **Trampa estadistica, anotada antes de caer en ella.** La columna de delta de
+> la tabla pareada invita a graficarla contra el congelado y decir "el que peor
+> rinde congelado es el que mas gana". **Esa afirmacion no se puede sostener**:
+> `delta = fine_tuned - congelado` lleva el congelado a los dos lados, en el eje
+> X directamente y en el eje Y restando, asi que el ruido de medicion produce
+> correlacion negativa **aunque el efecto real sea cero**. Simulando 8 modelos
+> con el mismo valor verdadero y solo ruido del tamano de nuestros intervalos,
+> esa correlacion sale por debajo de -0.6 en el **61.6 %** de los casos
+> (`scripts/coupling_check.py`). La comparacion valida es fine-tuned contra
+> congelado, donde el congelado aparece una sola vez.
+
+### Lo que este banco deja pendiente
+
+El presupuesto fijo es una decision del protocolo (`EPOCHS = 8` en
+`src/dermssl/finetune/protocol.py`) y resolverlo cuesta horas de GPU, asi que es
+decision de alcance, no algo que se arregle escribiendo:
+
+1. **Criterio de convergencia en vez de epocas fijas** (early stopping con
+   paciencia), o **learning rate por familia**. Cualquiera de los dos vuelve el
+   banco una comparacion entre backbones en vez de entre presupuestos.
+2. **Re-correr los dos DINOv2 con mas presupuesto** para saber si su techo real
+   esta por encima o por debajo del ViT supervisado. Hoy no lo sabemos.
+
+Y hay una hipotesis que este banco sugiere y no puede probar: **los backbones
+SSL podrian necesitar mas presupuesto de fine-tuning que los supervisados sobre
+el mismo dataset**. Encaja con que el banco congelado los favoreciera —ahi no
+hay presupuesto que agotar— pero afirmarlo exige medirlo, no deducirlo de una
+corrida truncada.

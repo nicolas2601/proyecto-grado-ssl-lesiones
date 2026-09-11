@@ -225,3 +225,14 @@ def test_no_real_effect_means_no_correlation_in_the_valid_comparison():
             negatives += 1
     assert negatives / trials < 0.10, (
         f"the uncoupled comparison should not lean negative: {negatives / trials:.1%}")
+
+
+def test_results_dir_alone_is_enough(tmp_path, capsys):
+    """cluster/finetune/README documents this exact command.
+
+    It used to abort with "give --bank <banco> or --weights" because --bank was
+    required even when --results-dir already said where to look - so a command
+    printed in a guide for someone with no way to ask us simply failed."""
+    _write(tmp_path, [_finetune_result("resnet50", 0.71)])
+    brt.main(["--results-dir", str(tmp_path)])
+    assert "0.710" in capsys.readouterr().out
