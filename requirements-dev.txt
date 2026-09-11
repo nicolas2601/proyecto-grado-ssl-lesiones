@@ -16,5 +16,9 @@ numpy>=1.26
 pandas>=2.0
 scikit-learn>=1.5
 
+# LAB-conversion test oracle for dermssl/fitzpatrick.py (D2: never a runtime
+# import in src/dermssl - see openspec/changes/fitzpatrick-domain-adaptation).
+scikit-image>=0.22
+
 # Linter. Config in ruff.toml, deliberately narrow.
 ruff>=0.6
