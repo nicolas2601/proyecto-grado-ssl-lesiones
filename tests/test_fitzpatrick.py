@@ -179,6 +179,27 @@ def test_estimate_fst_degenerate_mask_when_otsu_fallback_also_fails():
     assert np.isnan(result.ita)
 
 
+def test_estimate_fst_degenerate_mask_reports_skin_fraction_not_lesion_fraction():
+    """``skin_fraction`` must always mean the fraction of SKIN pixels
+    (mask=True means lesion, so skin = ~mask & ~border), the same
+    convention every other branch uses - never the raw lesion fraction.
+
+    The given mask (100% "lesion") is degenerate, so it gets replaced by
+    the Otsu fallback on this uniform image; that fallback also ends up
+    degenerate (0% "lesion" - a flat image has no bimodal split), which is
+    what actually reaches the ``degenerate_mask`` return. The buggy
+    ``float(mask.mean())`` reports that 0% AS IF it were the skin
+    fraction, when the true skin fraction (``~mask & ~border``, no
+    border here) is 100%."""
+    img = np.full((20, 20, 3), 0.5)  # uniform: Otsu cannot find a split
+    degenerate_given_mask = np.ones((20, 20), dtype=bool)  # 100% "lesion"
+
+    result = fp.estimate_fst(img, mask=degenerate_given_mask)
+
+    assert result.status == "degenerate_mask"
+    assert result.skin_fraction == pytest.approx(1.0)
+
+
 def test_module_source_never_imports_skimage():
     """Static check (D2): a module-level ``import skimage`` would break
     ``test_notebook_build.py``'s inlined ``exec`` cell and the Kaggle
