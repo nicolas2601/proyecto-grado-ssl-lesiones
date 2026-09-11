@@ -46,14 +46,24 @@ def test_srgb_to_lab_matches_skimage_on_boundary_colors():
 
 
 def test_ita_degrees_matches_the_groh_formula():
-    """ITA = arctan((L*-50)/b*) * 180/pi, computed elementwise."""
+    """ITA = arctan((L*-50)/b*) * 180/pi (plain arctan of the ratio - the
+    literature formula, NOT arctan2/atan2 of the two components, which
+    would answer a different quadrant-aware question)."""
     L = np.array([70.0, 30.0])
     b = np.array([20.0, -10.0])
 
     ita = fp.ita_degrees(L, b)
 
-    expected = np.degrees(np.arctan2(L - 50.0, b))
+    expected = np.degrees(np.arctan((L - 50.0) / b))
     np.testing.assert_allclose(ita, expected)
+
+
+def test_ita_degrees_stays_within_arctan_bounds_for_negative_b():
+    """Negative b* (a common reading on blue-ish/shadowed skin) must not
+    push ITA past +/-90: arctan is bounded by construction (error table in
+    design.md), unlike arctan2 which would wrap into (90, 180]."""
+    ita = fp.ita_degrees(L=np.array([30.0]), b=np.array([-10.0]))
+    np.testing.assert_allclose(ita, [63.43494882], atol=1e-4)
 
 
 @pytest.mark.parametrize(
