@@ -229,6 +229,38 @@ def test_every_name_the_result_cell_reads_is_actually_defined(bank):
         assert name in defined, f"{bank}: el JSON lee {name} y nadie lo define"
 
 
+def test_the_lr_probe_is_a_separate_bank_that_cannot_contaminate_the_main_one():
+    """The DINOv2 learning-rate probe answers an open question without
+    touching the published banks.
+
+    dinov2_vitb14 fine-tuned to 0.533, below its own frozen probe at 0.618, and
+    its validation curve peaked at epoch 7 and fell at 8 - so the fixed budget
+    is not what limits it. The candidate cause is the backbone learning rate
+    destroying pretrained features faster than the head learns to use them.
+
+    It is a SEPARATE bank on purpose: the eight rows of the main bank all ran
+    the same protocol, and "8 epochs, identical settings for all eight" has to
+    stay literally true in the report.
+    """
+    assert kp.BANKS["finetune_lrprobe"] == ("ham10000",
+                                            "finetune_{m}_lrprobe.ipynb")
+    # Distinct results file: it must never overwrite a main-bank row.
+    import kaggle_run_bank as krb
+    assert (krb.result_name("finetune_lrprobe", "dinov2_vitb14")
+            != krb.result_name("finetune", "dinov2_vitb14"))
+
+
+def test_the_lr_probe_notebook_lowers_only_the_backbone_rate():
+    """One variable changes, so the result is attributable."""
+    code = "".join("".join(c["source"]) for c in json.loads(
+        (REPO / "notebooks" / "finetune_lrprobe" / "dinov2_vitb14"
+         / "finetune_dinov2_vitb14_lrprobe.ipynb").read_text())["cells"]
+        if c["cell_type"] == "code")
+    assert "LR_BACKBONE = 5e-06" in code or "LR_BACKBONE = 5e-6" in code
+    assert "LR_HEAD = 5e-4" in code, "la cabeza debe quedar igual que el banco"
+    assert "EPOCHS = 8" in code, "el presupuesto debe quedar igual que el banco"
+
+
 def test_the_result_name_the_runner_expects_matches_the_notebook():
     """kaggle_run_bank downloads by this name; a mismatch reports a stale run."""
     import kaggle_run_bank as krb
