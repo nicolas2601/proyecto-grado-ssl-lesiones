@@ -28,6 +28,11 @@ BANKS = {"baselines": REPO / "notebooks" / "baselines" / "README.md",
          "baselines_isic2019": REPO / "README.md"}
 
 
+def _read_utf8(path: Path) -> str:
+    """Read repository Markdown using its committed UTF-8 encoding."""
+    return path.read_text(encoding="utf-8")
+
+
 def _published_banks() -> list[str]:
     """Only COMPLETE banks are worth checking for freshness.
 
@@ -54,8 +59,8 @@ def _table_rows(markdown: str) -> set[str]:
 @pytest.mark.parametrize("bank", _published_banks())
 def test_every_generated_row_appears_in_a_readme(bank):
     generated = _table_rows(brt.render(REPO / "results" / bank))
-    published = _table_rows((REPO / "README.md").read_text())
-    published |= _table_rows(BANKS[bank].read_text())
+    published = _table_rows(_read_utf8(REPO / "README.md"))
+    published |= _table_rows(_read_utf8(BANKS[bank]))
     missing = {r for r in generated if r not in published and "Modelo" not in r}
     assert not missing, (
         f"{bank}: these generated rows are not in any README - re-run "
@@ -67,8 +72,7 @@ def test_readmes_carry_no_number_from_a_superseded_run(bank):
     """Guards the specific rot that happened on 2026-09-03: vit_b16 changed
     weights and vgg19's extraction point moved, but the tables stayed."""
     rows = _rows(bank)
-    published = ((REPO / "README.md").read_text()
-                 + BANKS[bank].read_text())
+    published = (_read_utf8(REPO / "README.md") + _read_utf8(BANKS[bank]))
     for row in rows:
         model = brt.DISPLAY[row.model]
         for line in published.splitlines():
@@ -83,8 +87,10 @@ def test_readmes_carry_no_number_from_a_superseded_run(bank):
 
 
 def test_the_superseded_vit_b16_number_is_gone():
-    published = ((REPO / "README.md").read_text()
-                 + (REPO / "notebooks" / "baselines" / "README.md").read_text())
+    published = (
+        _read_utf8(REPO / "README.md")
+        + _read_utf8(REPO / "notebooks" / "baselines" / "README.md")
+    )
     stale = "| ViT-B/16 | Supervisado | 768 | 0.761 |"
     assert stale not in published, "the pre-augreg ViT-B/16 row is still published"
 
@@ -94,7 +100,7 @@ def test_the_checkpoint_table_matches_the_protocol():
     models that had already migrated to Hugging Face - including vit_b16,
     whose weight change is what flipped the comparison."""
     generated = _table_rows(brt.table_weights())
-    published = _table_rows((REPO / "notebooks" / "baselines" / "README.md").read_text())
+    published = _table_rows(_read_utf8(REPO / "notebooks" / "baselines" / "README.md"))
     missing = {r for r in generated if r not in published and "Modelo" not in r}
     assert not missing, (
         "the checkpoint table is stale - regenerate with "
@@ -107,7 +113,7 @@ def test_no_readme_tells_the_reader_to_pick_a_p100():
     for path in (REPO / "notebooks" / "baselines" / "README.md",
                  REPO / "notebooks" / "finetune" / "README.md",
                  REPO / "cluster" / "finetune" / "README.md"):
-        for line in path.read_text().splitlines():
+        for line in _read_utf8(path).splitlines():
             if "P100" not in line:
                 continue
             assert any(w in line for w in ("NO elegir", "no kernel image", "sm_60")), (
