@@ -117,9 +117,16 @@ class FSTEstimate:
     status: str  # "ok" | "no_skin" | "degenerate_mask" | "ita_out_of_range"
 
 
-def _is_degenerate(mask: np.ndarray) -> bool:
+def is_degenerate_mask(mask: np.ndarray) -> bool:
     """True si el area de la mascara esta fuera del rango plausible para
-    una sola lesion (1%-90%)."""
+    una sola lesion (1%-90%).
+
+    Publica a proposito (no un helper con guion bajo): es la unica fuente
+    de verdad para el chequeo de rango de area. Quien la use fuera de este
+    modulo (el etiquetado mask_source de scripts/kaggle_fst_manifest.py)
+    debe importar y llamar esta funcion en vez de re-derivar la
+    comparacion, para que un cambio futuro en los limites no se
+    desincronice en silencio con una copia duplicada en otro lado."""
     area = float(mask.mean())
     return not (MIN_MASK_AREA_FRACTION <= area <= MAX_MASK_AREA_FRACTION)
 
@@ -140,10 +147,10 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
     gray = img.mean(axis=-1)
     border = gray < BORDER_LUMINANCE_THRESHOLD
 
-    if mask is None or _is_degenerate(mask):
+    if mask is None or is_degenerate_mask(mask):
         mask = lesion_guided.lesion_mask(gray)
 
-    if _is_degenerate(mask):
+    if is_degenerate_mask(mask):
         skin = ~mask & ~border
         return FSTEstimate(
             bucket=None,

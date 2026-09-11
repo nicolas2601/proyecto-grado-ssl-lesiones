@@ -249,6 +249,22 @@ def test_estimate_fst_coerces_a_non_bool_mask_to_the_same_result_as_bool():
     assert result_uint8.skin_fraction == pytest.approx(result_bool.skin_fraction)
 
 
+def test_is_degenerate_mask_is_public_and_matches_the_internal_bounds():
+    """``is_degenerate_mask`` is the single source of truth for the
+    plausible-single-lesion area bounds (1%-90%) - callers outside this
+    module (e.g. the Kaggle manifest script's mask_source labeling) must
+    import and call this function rather than re-deriving the comparison,
+    so a future bounds change cannot silently drift between the two."""
+    below = np.zeros((10, 10), dtype=bool)  # 0% area, below MIN_MASK_AREA_FRACTION
+    above = np.ones((10, 10), dtype=bool)  # 100% area, above MAX_MASK_AREA_FRACTION
+    within = np.zeros((10, 10), dtype=bool)
+    within[:5, :] = True  # 50% area, well within bounds
+
+    assert fp.is_degenerate_mask(below) is True
+    assert fp.is_degenerate_mask(above) is True
+    assert fp.is_degenerate_mask(within) is False
+
+
 def test_module_source_never_imports_skimage():
     """Static check (D2): a module-level ``import skimage`` would break
     ``test_notebook_build.py``'s inlined ``exec`` cell and the Kaggle
