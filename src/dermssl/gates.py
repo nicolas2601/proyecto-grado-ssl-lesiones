@@ -176,6 +176,52 @@ def evaluate_gates(
     return gates
 
 
+FAIRNESS_METRIC = "macro_f1"
+DEFAULT_FAIRNESS_MAX_GAP = 0.15
+DEFAULT_FAIRNESS_MIN_BUCKET_N = 30
+
+
+def fairness_gate(
+    summary: dict,
+    *,
+    max_gap: float = DEFAULT_FAIRNESS_MAX_GAP,
+    min_bucket_n: int = DEFAULT_FAIRNESS_MIN_BUCKET_N,
+) -> Gate:
+    """G3: cuanto varia el macro-F1 entre buckets de fototipo Fitzpatrick.
+
+    Independiente a proposito: se compone sobre evaluate_gates en vez de
+    extenderlo, asi este modulo sigue sin dependencias externas y su firma
+    no cambia nunca. El llamador concatena::
+
+        gates = evaluate_gates(...) + [fairness_gate(strat)]
+
+    summary es la salida de metrics.stratified_summary - esta funcion nunca
+    toca la matematica de FST/ITA, solo los numeros ya calculados. Menos de
+    dos buckets con al menos min_bucket_n muestras significa que no hay nada
+    confiable para comparar, asi que el gate hace SKIP - nunca FALLA por
+    datos escasos o ausentes. max_gap=0.15 es el objetivo de referencia
+    documentado (docs/07, docs/11) - un KPI secundario, no el criterio
+    principal de aceptacion de la tesis.
+    """
+    qualifying = {
+        bucket: entry[FAIRNESS_METRIC]
+        for bucket, entry in summary.items()
+        if entry.get("status") == "OK" and entry.get("count", 0) >= min_bucket_n
+    }
+    criterion = f"brecha de {FAIRNESS_METRIC} entre fototipos <= {max_gap}"
+    if len(qualifying) < 2:
+        omitted = sorted(str(bucket) for bucket in summary if bucket not in qualifying)
+        return Gate(
+            "G3 equidad por fototipo",
+            criterion,
+            f"menos de 2 fototipos con >= {min_bucket_n} muestras "
+            f"(omitidos: {', '.join(omitted) if omitted else 'sin datos'})",
+            SKIP,
+        )
+    gap = max(qualifying.values()) - min(qualifying.values())
+    return Gate("G3 equidad por fototipo", criterion, round(gap, 4), _decide(gap <= max_gap))
+
+
 def report(gates: Sequence[Gate]) -> str:
     """Human-readable block, plus an unambiguous verdict line."""
     lines = ["=== REPORTE DE COMPUERTAS ==="]

@@ -5,10 +5,15 @@ GPU-minute on it: a syntax error, a missing helper or a stale build all fail her
 instead of 40 minutes into a queued session.
 """
 
+import ast
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
@@ -19,6 +24,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import build_notebook_v5 as builder  # noqa: E402
+from notebook_code_v5 import REPORT_CODE  # noqa: E402
 
 # Every helper the torch-dependent cells call by name. If the inlined core stops
 # providing one of these, the Kaggle run dies with NameError - so assert it here.
@@ -39,6 +45,9 @@ REQUIRED_API = [
     "evaluate_gates",
     "report",
     "all_blocking_pass",
+    "stratified_summary",
+    "fairness_gate",
+    "estimate_fst",
 ]
 
 
@@ -70,6 +79,35 @@ def test_core_cell_executes_and_exposes_the_full_api(notebook):
     exec(compile(core, "<core cell>", "exec"), namespace)  # noqa: S102 - that is the test
     missing = [name for name in REQUIRED_API if name not in namespace]
     assert missing == [], f"inlined core is missing: {missing}"
+
+
+def test_core_cell_runs_without_src_on_sys_path(notebook, tmp_path):
+    """Regression (PR2 code review): on real Kaggle, ``src/dermssl`` is never
+    installed - that is the documented reason the core cell is inlined at
+    all. ``tests/conftest.py`` puts ``src/`` on ``sys.path`` for every other
+    test in this suite, which silently masks any inlined module that still
+    imports the ``dermssl`` package (e.g. ``from dermssl.pretrain import
+    lesion_guided``): such an import resolves locally but raises
+    ``ModuleNotFoundError`` on Kaggle. Run the built core cell as a bare
+    subprocess script, in a directory with no relation to this repo and with
+    ``PYTHONPATH`` cleared, to reproduce the Kaggle environment faithfully.
+    """
+    core = "".join(code_cells(notebook)[1]["source"])
+    core_file = tmp_path / "core_cell.py"
+    core_file.write_text(core, encoding="utf-8")
+
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    result = subprocess.run(
+        [sys.executable, str(core_file)],
+        cwd=str(tmp_path),
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        "inlined core cell failed with src/ NOT on sys.path - this is "
+        f"exactly the failure mode a real Kaggle run would hit:\n{result.stderr}"
+    )
 
 
 def test_core_cell_has_no_future_import(notebook):
@@ -133,3 +171,93 @@ def test_validate_detects_a_broken_cell():
     """Negative control: the validator must actually be able to fail."""
     broken = {"cells": [{"cell_type": "code", "id": "x", "source": ["def (:\n"]}]}
     assert builder.validate(broken) != []
+
+
+def _fst_manifest_guard(tree: ast.Module) -> ast.If | None:
+    """The `if FST_MANIFEST_PATH.is_file(): ...` statement in REPORT_CODE."""
+    return next(
+        (
+            node
+            for node in tree.body
+            if isinstance(node, ast.If) and "FST_MANIFEST_PATH" in ast.dump(node.test)
+        ),
+        None,
+    )
+
+
+def test_report_code_guards_fst_manifest_path_before_touching_it():
+    """REPORT_CODE must check for fst_manifest.csv before reading it."""
+    tree = ast.parse(REPORT_CODE)
+    guard = _fst_manifest_guard(tree)
+    assert guard is not None, "expected an `if ...FST_MANIFEST_PATH...:` guard in REPORT_CODE"
+
+
+def test_report_code_no_manifest_path_never_touches_fairness_gate():
+    """Task 2.7: with no fst_manifest.csv, the run must stay byte-identical to
+    v5 (design.md's error table: "Manifest missing -> ... v5 behavior
+    unchanged"). Enforced structurally: every reference to `fairness_gate` or
+    `stratified_summary` must live strictly inside the manifest-exists guard,
+    so the no-manifest branch executes none of this PR's new code at all -
+    gate_list, the printed report and RESULTS_SUMMARY_v5.json are therefore
+    produced by exactly the same statements as before this change.
+    """
+    tree = ast.parse(REPORT_CODE)
+    guard = _fst_manifest_guard(tree)
+    assert guard is not None
+
+    outside_dump = "\n".join(ast.dump(node) for node in tree.body if node is not guard)
+    assert "fairness_gate" not in outside_dump
+    assert "stratified_summary" not in outside_dump
+
+    inside_dump = "\n".join(ast.dump(node) for node in guard.body)
+    assert "fairness_gate" in inside_dump, "the guard must call fairness_gate when the manifest exists"
+
+
+def test_report_code_fst_lookup_survives_duplicate_manifest_rows(tmp_path):
+    """Regression (PR2 code review): ``fst_by_id = fst_manifest.set_index(
+    "image_id")["fst_bucket"]`` assumes a unique index. If fst_manifest.csv
+    ever has a duplicate ``image_id`` row (e.g. an appended rerun),
+    ``fst_by_id[img_id]`` returns a pandas Series instead of a scalar, and
+    ``not pd.isna(fst_by_id[img_id])`` raises ``ValueError: The truth value
+    of a Series is ambiguous`` - crashing the whole report cell, not just
+    the fairness gate. This executes the real guarded block from
+    REPORT_CODE (not a reimplementation) against a synthetic manifest with
+    a duplicate row.
+    """
+    tree = ast.parse(REPORT_CODE)
+    guard = _fst_manifest_guard(tree)
+    assert guard is not None
+    guard_src = ast.unparse(guard)
+
+    manifest = tmp_path / "fst_manifest.csv"
+    pd.DataFrame(
+        {
+            "image_id": ["ISIC_0000001", "ISIC_0000001", "ISIC_0000002"],
+            "fst_bucket": [2, 5, 3],
+        }
+    ).to_csv(manifest, index=False)
+
+    def fake_run_probe(name, x_tr, y_tr, x_va, n_classes):
+        return np.zeros((len(x_va), n_classes))
+
+    namespace = {
+        "pd": pd,
+        "np": np,
+        "FST_MANIFEST_PATH": manifest,
+        "BACKBONES": ["ssl_dino"],
+        "PROBES": ["knn"],
+        "FRACTIONS": [1.0],
+        "FEATURES": {
+            "ssl_dino": {
+                "train": (np.zeros((2, 3)), np.array([0, 1])),
+                "val": (np.zeros((1, 3)), np.array([0])),
+            }
+        },
+        "va_ids": ["ISIC_0000001"],
+        "run_probe": fake_run_probe,
+        "N_CLASSES": 2,
+        "stratified_summary": lambda *a, **k: {"called": True},
+        "fairness_gate": lambda strat: strat,
+        "gate_list": [],
+    }
+    exec(compile(guard_src, "<report fst guard>", "exec"), namespace)  # noqa: S102

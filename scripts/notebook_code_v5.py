@@ -408,6 +408,41 @@ gate_list = evaluate_gates(
     grid_rows=json.loads(ok.to_json(orient="records")),
     smoke=SMOKE,
 )
+
+# --- equidad por fototipo (fst_manifest.csv, generado en Kaggle por --
+# torch_unet.py - dermssl.fitzpatrick). Si el manifiesto todavia no existe
+# (por ejemplo, antes de correr esa etapa), este bloque no toca gate_list:
+# la corrida se comporta exactamente igual que antes de agregar la
+# equidad por fototipo.
+FST_MANIFEST_PATH = WORK / "fst_manifest.csv"
+if FST_MANIFEST_PATH.is_file():
+    fst_manifest = pd.read_csv(FST_MANIFEST_PATH)
+    dup_mask = fst_manifest["image_id"].duplicated(keep=False)
+    if dup_mask.any():
+        dup_ids = sorted(fst_manifest.loc[dup_mask, "image_id"].unique())
+        print(f"WARNING: fst_manifest.csv has {len(dup_ids)} duplicate image_id "
+              f"row(s) (keeping first occurrence): {dup_ids[:5]}"
+              f"{'...' if len(dup_ids) > 5 else ''}")
+        fst_manifest = fst_manifest.drop_duplicates(subset="image_id", keep="first")
+    fst_by_id = fst_manifest.set_index("image_id")["fst_bucket"]
+    ssl_key = next((k for k in BACKBONES if k.startswith("ssl_")), None)
+    strat = {}
+    if ssl_key is not None and "knn" in PROBES and 1.0 in FRACTIONS:
+        x_tr, y_tr = FEATURES[ssl_key]["train"]
+        x_va, y_va = FEATURES[ssl_key]["val"]
+        proba_va = run_probe("knn", x_tr, y_tr, x_va, N_CLASSES)
+        joined = [
+            (label, proba, int(fst_by_id[img_id]))
+            for img_id, label, proba in zip(va_ids, y_va, proba_va)
+            if img_id in fst_by_id.index and not pd.isna(fst_by_id[img_id])
+        ]
+        if joined:
+            labels_j, proba_j, buckets_j = zip(*joined)
+            strat = stratified_summary(
+                np.array(labels_j), np.array(proba_j), np.array(buckets_j), N_CLASSES
+            )
+    gate_list.append(fairness_gate(strat))
+
 print()
 print(report(gate_list))
 

@@ -10,6 +10,15 @@ Numpy puro, sin scikit-image en runtime. scikit-image se usa unicamente en
 los tests como oraculo para validar la conversion a LAB contra
 skimage.color.rgb2lab (atol=1e-4) - nunca se importa aca, porque este
 modulo se inlinea en el notebook y un import de skimage rompe esa celda.
+
+El import de lesion_mask de abajo se usa como nombre suelto (nunca
+lesion_guided.lesion_mask) a proposito: pretrain/lesion_guided se inlinea
+en la misma celda del notebook, justo antes de este modulo, y
+build_notebook_v5.py elimina esta linea de import al inlinear - para
+cuando corre este codigo en el notebook, lesion_mask ya existe como
+funcion suelta en ese namespace compartido. Una referencia calificada con
+el paquete dejaria un nombre lesion_guided colgante y romperia la celda
+de Kaggle.
 """
 
 from __future__ import annotations
@@ -18,7 +27,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from dermssl.pretrain import lesion_guided
+from dermssl.pretrain.lesion_guided import lesion_mask
 
 # Umbrales ITA de Groh et al. (grados), de mayor a menor. Bucket 1 = piel
 # mas clara, bucket 6 = mas oscura.
@@ -141,7 +150,7 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
     border = gray < BORDER_LUMINANCE_THRESHOLD
 
     if mask is None or _is_degenerate(mask):
-        mask = lesion_guided.lesion_mask(gray)
+        mask = lesion_mask(gray)
 
     if _is_degenerate(mask):
         skin = ~mask & ~border

@@ -166,3 +166,127 @@ def test_summarize_includes_all_headline_metrics():
         assert key in out, f"missing {key}"
     assert out["balanced_accuracy"] == pytest.approx(
         m.balanced_accuracy(y, proba.argmax(axis=1), 2))
+
+
+# --- stratified_summary: per-Fitzpatrick-bucket fairness evaluation --------
+#
+# Never fails on thin data (spec.md, fairness-evaluation req 2): buckets below
+# ``min_n`` are SKIPPED, not silently dropped from the output structure - and
+# an empty manifest (Fitzpatrick estimation not run yet) returns {}, matching
+# design.md's error table ("Manifest missing -> stratified_summary returns {}").
+
+
+def _multiclass_rows(n, n_classes, seed):
+    """Deterministic, reasonably-separated fake predictions for n rows."""
+    rng = np.random.RandomState(seed)
+    y = rng.randint(0, n_classes, n)
+    proba = rng.dirichlet(np.ones(n_classes), size=n)
+    return y, proba
+
+
+def test_stratified_summary_returns_empty_dict_for_empty_input():
+    """No fst_manifest.csv yet -> nothing to stratify. v5 behavior unchanged."""
+    out = m.stratified_summary(np.array([]), np.zeros((0, 2)), np.array([]), n_classes=2)
+    assert out == {}
+
+
+def test_stratified_summary_always_reports_all_six_buckets_and_unavailable():
+    """Every FST bucket appears in the output structure, even with zero rows."""
+    y, proba = _multiclass_rows(40, 2, seed=0)
+    buckets = np.array([1] * 40)
+    out = m.stratified_summary(y, proba, buckets, n_classes=2, min_n=30)
+    assert set(out) == {1, 2, 3, 4, 5, 6, "unavailable"}
+
+
+@pytest.mark.parametrize(
+    "count, expected_status",
+    [
+        (40, "OK"),       # populated: clears the default min_n=30
+        (10, "SKIPPED"),  # sparse: below min_n, but not empty
+        (0, "SKIPPED"),   # empty bucket: still present, never omitted
+    ],
+    ids=["populated", "sparse_skipped", "empty_skipped"],
+)
+def test_stratified_summary_bucket_status_by_population(count, expected_status):
+    """Table-driven: bucket 1 gets `count` rows, the rest fall to 'unavailable'."""
+    n_classes, total = 2, 100
+    y, proba = _multiclass_rows(total, n_classes, seed=1)
+    buckets = np.array([1] * count + [None] * (total - count), dtype=object)
+
+    out = m.stratified_summary(y, proba, buckets, n_classes=n_classes)  # default min_n=30
+
+    assert out[1]["status"] == expected_status
+    assert out[1]["count"] == count
+    if expected_status == "SKIPPED":
+        assert "reason" in out[1]
+        assert "macro_f1" not in out[1]
+    else:
+        assert out[1]["macro_f1"] == pytest.approx(
+            m.summarize(y[:count], proba[:count], n_classes)["macro_f1"]
+        )
+
+
+def test_stratified_summary_unavailable_key_groups_none_buckets():
+    """FSTEstimate.bucket=None (spec.md req 4) lands under the 'unavailable' key."""
+    n_classes = 2
+    y, proba = _multiclass_rows(50, n_classes, seed=3)
+    buckets = np.array([None] * 35 + [1] * 15, dtype=object)
+
+    out = m.stratified_summary(y, proba, buckets, n_classes=n_classes, min_n=30)
+
+    assert out["unavailable"]["status"] == "OK"
+    assert out["unavailable"]["count"] == 35
+    assert out["unavailable"]["macro_f1"] == pytest.approx(
+        m.summarize(y[:35], proba[:35], n_classes)["macro_f1"]
+    )
+    assert out[1]["status"] == "SKIPPED"
+    assert out[1]["count"] == 15
+
+
+def test_stratified_summary_min_n_is_configurable():
+    n_classes = 2
+    y, proba = _multiclass_rows(10, n_classes, seed=4)
+    buckets = np.array([1] * 10)
+
+    out = m.stratified_summary(y, proba, buckets, n_classes=n_classes, min_n=5)
+
+    assert out[1]["status"] == "OK"
+    assert out[1]["count"] == 10
+
+
+def test_stratified_summary_ok_bucket_has_the_same_metric_keys_as_summarize():
+    """'same metrics as non-stratified summary' (spec.md req 1)."""
+    n_classes = 3
+    y, proba = _multiclass_rows(40, n_classes, seed=5)
+    buckets = np.array([2] * 40)
+
+    out = m.stratified_summary(y, proba, buckets, n_classes=n_classes)
+
+    expected_keys = set(m.summarize(y, proba, n_classes)) | {"status", "count"}
+    assert set(out[2]) == expected_keys
+
+
+def test_stratified_summary_min_n_default_shares_the_gates_fairness_threshold():
+    """Regression (PR2 code review): ``gates.DEFAULT_FAIRNESS_MIN_BUCKET_N``
+    and ``stratified_summary``'s ``min_n`` default used to be two
+    independently hardcoded literals (both 30) - free to drift apart
+    silently if someone changed one without noticing the other, which would
+    make ``fairness_gate`` re-filter with a stale threshold and silently
+    change PASS/SKIP outcomes. Plain value equality cannot prove they share
+    a single source (CPython interns small ints, so two unrelated literal
+    ``30``s are already ``==`` and even ``is``), so this asserts
+    ``metrics.py`` imports the name from ``gates`` instead of defining its
+    own literal.
+    """
+    import inspect
+
+    from dermssl import gates as g
+
+    assert m.DEFAULT_FAIRNESS_MIN_BUCKET_N is g.DEFAULT_FAIRNESS_MIN_BUCKET_N
+
+    default = inspect.signature(m.stratified_summary).parameters["min_n"].default
+    assert default is g.DEFAULT_FAIRNESS_MIN_BUCKET_N
+
+    source = inspect.getsource(m)
+    assert "from dermssl.gates import DEFAULT_FAIRNESS_MIN_BUCKET_N" in source
+    assert "min_n: int = DEFAULT_FAIRNESS_MIN_BUCKET_N" in source

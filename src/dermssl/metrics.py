@@ -26,6 +26,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from dermssl.gates import DEFAULT_FAIRNESS_MIN_BUCKET_N
+
 
 def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
@@ -199,6 +201,57 @@ def bootstrap_ci(
     lo = float(np.percentile(vals, 100 * alpha / 2))
     hi = float(np.percentile(vals, 100 * (1 - alpha / 2)))
     return float(point), lo, hi
+
+
+FST_BUCKETS = (1, 2, 3, 4, 5, 6)
+UNAVAILABLE_BUCKET = "unavailable"
+
+
+def stratified_summary(
+    y_true: np.ndarray,
+    proba: np.ndarray,
+    buckets: np.ndarray,
+    n_classes: int,
+    min_n: int = DEFAULT_FAIRNESS_MIN_BUCKET_N,
+) -> dict:
+    """summarize(), separado por bucket de fototipo Fitzpatrick (1-6, o
+    "unavailable" para filas sin bucket estimado - ver dermssl.fitzpatrick).
+
+    Nunca falla con pocos datos: todo bucket en FST_BUCKETS +
+    (UNAVAILABLE_BUCKET,) siempre esta presente en la salida, incluso con
+    cero filas - un bucket por debajo de min_n se marca "SKIPPED" con el
+    conteo observado y la razon, nunca se omite en silencio.
+
+    Sin filas (y_true vacio - todavia no existe un fst_manifest.csv),
+    devuelve {}: nada que estratificar.
+    """
+    y_true = np.asarray(y_true)
+    if y_true.size == 0:
+        return {}
+
+    proba = np.asarray(proba, dtype=float)
+    buckets = np.asarray(buckets, dtype=object)
+
+    result: dict = {}
+    for key in (*FST_BUCKETS, UNAVAILABLE_BUCKET):
+        if key == UNAVAILABLE_BUCKET:
+            mask = np.array([b is None for b in buckets])
+        else:
+            mask = np.array([b == key for b in buckets])
+        count = int(mask.sum())
+        if count < min_n:
+            result[key] = {
+                "status": "SKIPPED",
+                "count": count,
+                "reason": f"n={count} < min_n={min_n}",
+            }
+        else:
+            result[key] = {
+                "status": "OK",
+                "count": count,
+                **summarize(y_true[mask], proba[mask], n_classes),
+            }
+    return result
 
 
 def mean_std(values) -> dict:

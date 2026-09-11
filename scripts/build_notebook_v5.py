@@ -66,9 +66,10 @@ BANNER = (
 
 
 def module_source(name: str) -> str:
-    """Read one module, dropping the ``__future__`` import.
+    """Read one module, dropping the ``__future__`` import and any
+    intra-package ``dermssl`` import.
 
-    Two reasons it cannot survive inlining:
+    Two reasons the ``__future__`` import cannot survive inlining:
 
     1. ``from __future__ import annotations`` must be the *first* statement of a
        compilation unit, and a notebook cell is one unit - several inlined
@@ -80,9 +81,27 @@ def module_source(name: str) -> str:
     Dropping it is safe: every annotation used here (``Path | None``,
     ``dict[str, Path]``) is native syntax from Python 3.10 onwards, and Kaggle
     runs 3.10+.
+
+    ``from dermssl...`` imports (e.g. ``fitzpatrick.py``'s
+    ``from dermssl.pretrain import lesion_guided``) are dropped for a
+    different reason: on real Kaggle ``src/dermssl`` is never installed, so
+    that import raises ``ModuleNotFoundError`` in the inlined cell - that is
+    the whole reason this inlining mechanism exists. Dropping it is only safe
+    because ``MODULE_ORDER`` guarantees the dependency (e.g.
+    ``pretrain/lesion_guided``) is inlined into the same cell *before* any
+    module that needs it, so the names it defines (e.g. ``lesion_mask``) are
+    already plain names in the shared exec namespace by the time this
+    module's code runs. Callers must therefore use bare names
+    (``lesion_mask(...)``), not the package-qualified form
+    (``lesion_guided.lesion_mask(...)``).
     """
     text = (SRC / "dermssl" / f"{name}.py").read_text(encoding="utf-8")
-    lines = [ln for ln in text.splitlines() if ln.strip() != "from __future__ import annotations"]
+    lines = [
+        ln
+        for ln in text.splitlines()
+        if ln.strip() != "from __future__ import annotations"
+        and not ln.lstrip().startswith(("from dermssl", "import dermssl"))
+    ]
     return "\n".join(lines).strip()
 
 
