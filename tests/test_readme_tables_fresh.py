@@ -120,35 +120,76 @@ def test_no_readme_tells_the_reader_to_pick_a_p100():
                 f"{path.name}: line offers a P100 without warning: {line.strip()}")
 
 
-def test_the_published_finetuning_row_matches_its_jsons():
-    """The one fine-tuning row in the README is hand-laid-out, so it needs a
-    guard the generated tables get for free.
+def _finetune_jsons():
+    """Every fine-tuning result on disk, wherever the runner left it."""
+    root = REPO / "results"
+    hits = list(root.glob("finetune/*/results_*_ft*.json"))
+    hits += list(root.glob("finetune/results_*_ft*.json"))
+    return [h for h in hits if "mlruns" not in h.parts]
 
-    It is published before its bank is complete because the claim stands on its
-    own: the two confidence intervals do not overlap. If either JSON is
-    re-run and the numbers move, this fails instead of letting the README keep
-    a number the results no longer support."""
+
+def _finetune_section() -> str:
+    """Just the fine-tuning results section of the README.
+
+    Searching the whole file for a number is useless: a README with twenty
+    tables contains almost every three-decimal value somewhere, so a wrong row
+    passes on a coincidence. The first version of this test did exactly that
+    and let a falsified alexnet row through."""
+    readme = (REPO / "README.md").read_text()
+    start = readme.index("## Resultados de los bancos de fine-tuning")
+    rest = readme[start + 1:]
+    end = rest.find("\n## ")
+    return rest if end == -1 else rest[:end]
+
+
+def _row(section: str, model: str, state: str) -> str:
+    for line in section.splitlines():
+        cells = [c.strip().strip("*") for c in line.split("|")]
+        if len(cells) > 3 and cells[1] == model and cells[2] == state:
+            return line
+    raise AssertionError(f"no published row for {model} / {state}")
+
+
+def test_every_published_finetuning_number_matches_its_json():
+    """Each published row must carry the numbers of its own JSON, in its own
+    row - not merely somewhere in a document full of numbers."""
     import json
 
-    readme = (REPO / "README.md").read_text()
+    section = _finetune_section()
+    checked = 0
+    for path in _finetune_jsons():
+        data = json.loads(path.read_text())
+        model = data["modelo"]
+        if f"| {model} |" not in section:
+            continue  # not published yet; nothing to keep honest
+        frozen = json.loads((REPO / "results" / "baselines"
+                             / f"results_{model}.json").read_text())["probes"]
+        frozen = frozen[max(frozen, key=lambda k: frozen[k]["balanced_accuracy"])]
+        for state, probe in (("fine-tuned", data["probes"]["finetune"]),
+                             ("congelado", frozen)):
+            line = _row(section, model, state)
+            for field in ("balanced_accuracy", "macro_f1", "auc_ovr_macro"):
+                assert f"{probe[field]:.3f}" in line, (
+                    f"{model}/{state}: row says\n  {line.strip()}\nbut "
+                    f"{field} is {probe[field]:.3f} in {path.name}")
+        checked += 1
+    assert checked, "no published fine-tuning row was verified"
+
+
+def test_the_no_overlap_claim_is_true_where_the_readme_makes_it():
+    """The README says resnet50's intervals separate. That must stay true."""
+    import json
+
     frozen = json.loads((REPO / "results" / "baselines"
                          / "results_resnet50.json").read_text())["probes"]["logreg"]
-    tuned_files = list((REPO / "results").glob("finetune*/**/results_resnet50_ft.json"))
-    tuned_files += list((REPO / "results" / "finetune").glob("results_resnet50_ft.json"))
-    tuned_files = [f for f in tuned_files if "mlruns" not in f.parts]
-    assert tuned_files, "the fine-tuned resnet50 JSON the README quotes is gone"
-    tuned = json.loads(tuned_files[0].read_text())["probes"]["finetune"]
-
-    for probe in (frozen, tuned):
-        for field in ("balanced_accuracy", "macro_f1", "auc_ovr_macro"):
-            assert f"{probe[field]:.3f}" in readme, (
-                f"the README does not carry {field}={probe[field]:.3f}")
-
-    floor = tuned["ic95_bootstrap"]["balanced_accuracy"][0]
+    tuned = [p for p in _finetune_jsons() if "resnet50" in p.name]
+    assert tuned, "the fine-tuned resnet50 JSON the README quotes is gone"
+    t = json.loads(tuned[0].read_text())["probes"]["finetune"]
+    floor = t["ic95_bootstrap"]["balanced_accuracy"][0]
     ceiling = frozen["ic95_bootstrap"]["balanced_accuracy"][1]
     assert floor > ceiling, (
-        "the README claims the intervals do not overlap, but the fine-tuned "
-        f"floor {floor:.3f} is not above the frozen ceiling {ceiling:.3f}")
+        f"the README claims separation but the fine-tuned floor {floor:.3f} "
+        f"is not above the frozen ceiling {ceiling:.3f}")
 
 
 def test_the_partial_finetuning_count_matches_what_landed():
