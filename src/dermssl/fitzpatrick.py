@@ -184,9 +184,19 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
     b_med = np.median(skin_lab[:, 2])
     ita = float(ita_degrees(np.asarray(L_med), np.asarray(b_med)))
 
-    # Impossible by arctan construction (see ita_degrees); an invariant, not
-    # a runtime branch - design.md's error table.
-    assert -90.0 <= ita <= 90.0, f"ITA {ita} outside [-90, 90] - arctan invariant violated"
+    # Finite ITA cannot leave [-90, 90] by arctan construction (see
+    # ita_degrees) - but an achromatic skin median at L*=50 makes the
+    # (L*-50)/b* ratio a literal 0/0, which is NaN, and NaN comparisons
+    # are always False. Check explicitly (never a bare assert, which would
+    # both crash the whole batch on one atypical image - the opposite of
+    # lesion_guided.py's philosophy - and be silently skipped entirely
+    # under python -O / PYTHONOPTIMIZE=1) and degrade gracefully, matching
+    # every other "no result" branch in this function and the contract
+    # documented on FSTEstimate.status.
+    if not (-90.0 <= ita <= 90.0):
+        return FSTEstimate(
+            bucket=None, ita=ita, skin_fraction=skin_fraction, status="ita_out_of_range"
+        )
 
     return FSTEstimate(
         bucket=fst_bucket(ita), ita=ita, skin_fraction=skin_fraction, status="ok"

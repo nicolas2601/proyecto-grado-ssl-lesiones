@@ -200,6 +200,34 @@ def test_estimate_fst_degenerate_mask_reports_skin_fraction_not_lesion_fraction(
     assert result.skin_fraction == pytest.approx(1.0)
 
 
+@pytest.mark.parametrize("bad_ita", [float("nan"), 91.0, -91.0])
+def test_estimate_fst_returns_ita_out_of_range_status_instead_of_crashing(monkeypatch, bad_ita):
+    """An achromatic skin median at L*=50 makes ``ita_degrees``'s
+    ``(L*-50)/b*`` a literal 0/0, which is NaN - and NaN comparisons are
+    always False, so a bare ``assert -90 <= ita <= 90`` raises
+    AssertionError instead of the documented explicit status. This must
+    degrade gracefully (status="ita_out_of_range", bucket=None), the same
+    "never crash a run on an atypical image" philosophy as
+    ``pretrain/lesion_guided.py`` - not crash the whole batch.
+
+    ``ita_degrees`` is monkeypatched because constructing skin pixels
+    whose LAB median lands on an EXACT 0/0 (not merely near it) via real
+    sRGB->LAB conversion is floating-point-fragile; patching isolates the
+    behavior this fix actually changes: how ``estimate_fst`` reacts to an
+    out-of-range/NaN ITA, regardless of how it got there."""
+    pytest.importorskip("skimage.color")
+    img, dist = disk_srgb_image()
+    mask = dist <= 15
+
+    monkeypatch.setattr(fp, "ita_degrees", lambda L, b: bad_ita)
+
+    result = fp.estimate_fst(img, mask=mask)
+
+    assert result.status == "ita_out_of_range"
+    assert result.bucket is None
+    assert np.isnan(result.ita) if np.isnan(bad_ita) else result.ita == bad_ita
+
+
 def test_module_source_never_imports_skimage():
     """Static check (D2): a module-level ``import skimage`` would break
     ``test_notebook_build.py``'s inlined ``exec`` cell and the Kaggle
