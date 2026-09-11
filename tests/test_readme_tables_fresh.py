@@ -120,25 +120,13 @@ def test_no_readme_tells_the_reader_to_pick_a_p100():
                 f"{path.name}: line offers a P100 without warning: {line.strip()}")
 
 
-def _finetune_jsons():
-    """Every fine-tuning result on disk, wherever the runner left it."""
-    root = REPO / "results"
-    hits = list(root.glob("finetune/*/results_*_ft*.json"))
-    hits += list(root.glob("finetune/results_*_ft*.json"))
-    return [h for h in hits if "mlruns" not in h.parts]
-
-
 def _finetune_section() -> str:
     """Just the fine-tuning results section of the README.
 
-    Searching the whole file for a number is useless: a README with twenty
-    tables contains almost every three-decimal value somewhere, so a wrong row
-    passes on a coincidence. The first version of this test did exactly that
-    and let a falsified alexnet row through."""
+    Located by intent, not by exact prose: the heading has been reworded twice
+    and pinning the sentence made this guard fail on a rename instead of on a
+    wrong number, which is the opposite of what it is for."""
     readme = (REPO / "README.md").read_text()
-    # Located by intent, not by exact prose: the heading has been reworded
-    # twice and pinning the sentence made this guard fail on a rename instead
-    # of on a wrong number, which is the opposite of what it is for.
     heads = [m for m in re.finditer(r"^## .*fine-tuning.*$", readme, re.M | re.I)
              if "sin fine-tuning" not in m.group(0).lower()]
     assert len(heads) == 1, (
@@ -147,6 +135,31 @@ def _finetune_section() -> str:
     rest = readme[heads[0].end():]
     end = rest.find("\n## ")
     return rest if end == -1 else rest[:end]
+
+
+def _finetune_jsons(dataset: str):
+    """Results of ONE dataset's fine-tuning bank.
+
+    Scoping by dataset is the whole point. An earlier version globbed every
+    fine-tuning JSON under results/, so the moment the first ISIC 2019 run
+    landed it compared that alexnet (0.642) against the HAM10000 row (0.670)
+    and reported a mismatch that did not exist. Worse than the false alarm is
+    the false pass hiding behind it: had the two datasets happened to agree,
+    the guard would have gone green while checking the wrong file."""
+    root = REPO / "results" / "finetune" / dataset
+    return [h for h in sorted(root.glob("results_*_ft*.json"))
+            if "mlruns" not in h.parts]
+
+
+def _dataset_sections() -> dict[str, str]:
+    """Each published `### <dataset> con fine-tuning` block, by dataset."""
+    section = _finetune_section()
+    found = {}
+    heads = list(re.finditer(r"^### (\S+) con fine-tuning.*$", section, re.M))
+    for i, head in enumerate(heads):
+        stop = heads[i + 1].start() if i + 1 < len(heads) else len(section)
+        found[head.group(1).lower().replace(" ", "")] = section[head.end():stop]
+    return found
 
 
 def _paired_row(section: str, display: str) -> list[str]:
@@ -161,46 +174,49 @@ def _paired_row(section: str, display: str) -> list[str]:
 def test_every_published_finetuning_number_matches_its_json():
     """The paired table is laid out by hand, so it needs the guard the
     generated tables get for free - and its derived columns need checking too,
-    because an arithmetic slip there is invisible against the JSONs.
-
-    An early version searched the whole README for each number: a file with
-    twenty result tables contains almost every three-decimal value somewhere, so
-    a falsified row passed on a coincidence."""
+    because an arithmetic slip there is invisible against the JSONs."""
     import json
 
-    section = _finetune_section()
+    sections = _dataset_sections()
+    assert sections, "no '### <dataset> con fine-tuning' block found"
     checked = 0
-    for path in _finetune_jsons():
-        data = json.loads(path.read_text())
-        model = data["modelo"]
-        display = brt.DISPLAY.get(model, model)
-        if f"| {display} |" not in section:
-            continue  # not published yet; nothing to keep honest
-        tuned = data["probes"]["finetune"]
-        frozen = json.loads((REPO / "results" / "baselines"
-                             / f"results_{model}.json").read_text())["probes"]
-        frozen = frozen[max(frozen, key=lambda k: frozen[k]["balanced_accuracy"])]
+    for dataset, section in sections.items():
+        for path in _finetune_jsons(dataset):
+            data = json.loads(path.read_text())
+            assert data["dataset"].replace(" ", "") == dataset, (
+                f"{path} sits under {dataset}/ but its JSON says "
+                f"{data['dataset']}")
+            model = data["modelo"]
+            display = brt.DISPLAY.get(model, model)
+            if f"| {display} |" not in section:
+                continue  # not published yet; nothing to keep honest
+            tuned = data["probes"]["finetune"]
+            frozen = json.loads((REPO / "results" / "baselines"
+                                 / f"results_{model}.json").read_text())["probes"]
+            frozen = frozen[max(frozen, key=lambda k: frozen[k]["balanced_accuracy"])]
 
-        cells = _paired_row(section, display)
-        assert cells[3] == f"{frozen['balanced_accuracy']:.3f}", (
-            f"{model}: published frozen {cells[3]}, JSON says "
-            f"{frozen['balanced_accuracy']:.3f}")
-        assert cells[4] == f"{tuned['balanced_accuracy']:.3f}", (
-            f"{model}: published fine-tuned {cells[4]}, JSON says "
-            f"{tuned['balanced_accuracy']:.3f}")
+            cells = _paired_row(section, display)
+            assert cells[3] == f"{frozen['balanced_accuracy']:.3f}", (
+                f"{dataset}/{model}: published frozen {cells[3]}, JSON says "
+                f"{frozen['balanced_accuracy']:.3f}")
+            assert cells[4] == f"{tuned['balanced_accuracy']:.3f}", (
+                f"{dataset}/{model}: published fine-tuned {cells[4]}, JSON says "
+                f"{tuned['balanced_accuracy']:.3f}")
 
-        delta = tuned["balanced_accuracy"] - frozen["balanced_accuracy"]
-        assert cells[5] == f"{delta:+.3f}", (
-            f"{model}: published delta {cells[5]}, arithmetic gives {delta:+.3f}")
+            delta = tuned["balanced_accuracy"] - frozen["balanced_accuracy"]
+            assert cells[5] == f"{delta:+.3f}", (
+                f"{dataset}/{model}: published delta {cells[5]}, arithmetic "
+                f"gives {delta:+.3f}")
 
-        gap = (tuned["ic95_bootstrap"]["balanced_accuracy"][0]
-               - frozen["ic95_bootstrap"]["balanced_accuracy"][1])
-        assert cells[6].startswith(f"{gap:+.3f}"), (
-            f"{model}: published gap {cells[6]}, arithmetic gives {gap:+.3f}")
-        overlap_claimed = "solapan" in cells[6]
-        assert overlap_claimed == (gap <= 0), (
-            f"{model}: the row says {cells[6]!r} but the gap is {gap:+.4f}")
-        checked += 1
+            gap = (tuned["ic95_bootstrap"]["balanced_accuracy"][0]
+                   - frozen["ic95_bootstrap"]["balanced_accuracy"][1])
+            assert cells[6].startswith(f"{gap:+.3f}"), (
+                f"{dataset}/{model}: published gap {cells[6]}, arithmetic "
+                f"gives {gap:+.3f}")
+            assert ("solapan" in cells[6]) == (gap <= 0), (
+                f"{dataset}/{model}: the row says {cells[6]!r} but the gap is "
+                f"{gap:+.4f}")
+            checked += 1
     assert checked, "no published fine-tuning row was verified"
 
 
@@ -210,7 +226,7 @@ def test_the_no_overlap_claim_is_true_where_the_readme_makes_it():
 
     frozen = json.loads((REPO / "results" / "baselines"
                          / "results_resnet50.json").read_text())["probes"]["logreg"]
-    tuned = [p for p in _finetune_jsons() if "resnet50" in p.name]
+    tuned = [p for p in _finetune_jsons("ham10000") if "resnet50" in p.name]
     assert tuned, "the fine-tuned resnet50 JSON the README quotes is gone"
     t = json.loads(tuned[0].read_text())["probes"]["finetune"]
     floor = t["ic95_bootstrap"]["balanced_accuracy"][0]
