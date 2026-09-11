@@ -26,8 +26,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from dermssl.gates import DEFAULT_FAIRNESS_MIN_BUCKET_N
-
 
 def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
@@ -212,22 +210,18 @@ def stratified_summary(
     proba: np.ndarray,
     buckets: np.ndarray,
     n_classes: int,
-    min_n: int = DEFAULT_FAIRNESS_MIN_BUCKET_N,
+    min_n: int = 30,
 ) -> dict:
-    """``summarize()``, split per Fitzpatrick skin-type bucket (1-6, or
-    ``"unavailable"`` for ``FSTEstimate.bucket is None`` rows - see
-    ``dermssl.fitzpatrick``).
+    """summarize(), separado por bucket de fototipo Fitzpatrick (1-6, o
+    "unavailable" para filas sin bucket estimado - ver dermssl.fitzpatrick).
 
-    Never fails on thin data (spec.md, fairness-evaluation req 2): every
-    bucket in ``FST_BUCKETS + (UNAVAILABLE_BUCKET,)`` is always present in the
-    output, even with zero matching rows - a bucket below ``min_n`` (0
-    included) is marked ``"SKIPPED"`` with the observed count and a reason,
-    never silently omitted from the structure.
+    Nunca falla con pocos datos: todo bucket en FST_BUCKETS +
+    (UNAVAILABLE_BUCKET,) siempre esta presente en la salida, incluso con
+    cero filas - un bucket por debajo de min_n se marca "SKIPPED" con el
+    conteo observado y la razon, nunca se omite en silencio.
 
-    With no rows at all (``y_true`` empty - e.g. no ``fst_manifest.csv`` has
-    been produced yet), returns ``{}``: nothing to stratify, matching
-    design.md's error table ("Manifest missing -> stratified_summary returns
-    {}; gate = SKIP").
+    Sin filas (y_true vacio - todavia no existe un fst_manifest.csv),
+    devuelve {}: nada que estratificar.
     """
     y_true = np.asarray(y_true)
     if y_true.size == 0:
@@ -256,6 +250,76 @@ def stratified_summary(
                 **summarize(y_true[mask], proba[mask], n_classes),
             }
     return result
+
+
+DEFAULT_COMPARISON_METRIC = "macro_f1"
+DEFAULT_COMPARISON_MIN_BUCKET_N = 30
+
+
+def _variant_gap(summary: dict, *, metric: str, min_bucket_n: int) -> float | None:
+    """Diferencia maximo-menos-minimo de metric entre buckets con
+    status == "OK" y al menos min_bucket_n muestras - misma regla que usa
+    gates.fairness_gate, reimplementada aca (no importada) para que
+    metrics.py no dependa de gates.py.
+
+    Devuelve None cuando menos de dos buckets califican - "datos
+    insuficientes", no cero: reportar 0.0 afirmaria falsamente una brecha
+    perfecta cuando en realidad no hay nada que medir.
+    """
+    qualifying = {
+        bucket: entry[metric]
+        for bucket, entry in summary.items()
+        if entry.get("status") == "OK" and entry.get("count", 0) >= min_bucket_n
+    }
+    if len(qualifying) < 2:
+        return None
+    return max(qualifying.values()) - min(qualifying.values())
+
+
+def comparison_report(
+    baseline: dict,
+    regularization: dict,
+    synthetic_blend: dict,
+    *,
+    metric: str = DEFAULT_COMPARISON_METRIC,
+    min_bucket_n: int = DEFAULT_COMPARISON_MIN_BUCKET_N,
+) -> dict:
+    """Comparacion baseline vs. mitigacion de Stage 2: toma tres salidas de
+    stratified_summary() (baseline, solo regularizacion, blend sintetico) y
+    reporta la brecha por bucket FST de cada una, mas la mejora relativa de
+    cada variante de mitigacion respecto a la brecha del baseline - el
+    criterio de aceptacion principal de la tesis.
+
+    Esta funcion solo hace aritmetica sobre los tres resumenes que recibe -
+    no entrena nada ni genera datos. Todavia no hubo una corrida real de
+    Stage 1 ni Stage 2 (ver docs/21), asi que llamarla con datos reales
+    queda pendiente; aca se testea solo contra fixtures sinteticas con la
+    misma forma que stratified_summary().
+
+    relative_improvement es (baseline_gap - variant_gap) / baseline_gap:
+    positivo significa que la brecha de la variante es menor (mas justa) que
+    la del baseline. Es None -nunca un numero inventado- cuando no se puede
+    calcular sin adivinar: brecha de baseline indefinida, brecha de baseline
+    exactamente cero, o brecha de la variante indefinida.
+    """
+    baseline_gap = _variant_gap(baseline, metric=metric, min_bucket_n=min_bucket_n)
+    report = {
+        "baseline": {
+            "gap": baseline_gap,
+            "status": "ok" if baseline_gap is not None else "insufficient_data",
+        }
+    }
+    for name, summary in (("regularization", regularization), ("synthetic_blend", synthetic_blend)):
+        gap = _variant_gap(summary, metric=metric, min_bucket_n=min_bucket_n)
+        relative_improvement = None
+        if gap is not None and baseline_gap is not None and baseline_gap != 0:
+            relative_improvement = (baseline_gap - gap) / baseline_gap
+        report[name] = {
+            "gap": gap,
+            "status": "ok" if gap is not None else "insufficient_data",
+            "relative_improvement": relative_improvement,
+        }
+    return report
 
 
 def mean_std(values) -> dict:

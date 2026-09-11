@@ -417,13 +417,6 @@ gate_list = evaluate_gates(
 FST_MANIFEST_PATH = WORK / "fst_manifest.csv"
 if FST_MANIFEST_PATH.is_file():
     fst_manifest = pd.read_csv(FST_MANIFEST_PATH)
-    dup_mask = fst_manifest["image_id"].duplicated(keep=False)
-    if dup_mask.any():
-        dup_ids = sorted(fst_manifest.loc[dup_mask, "image_id"].unique())
-        print(f"WARNING: fst_manifest.csv has {len(dup_ids)} duplicate image_id "
-              f"row(s) (keeping first occurrence): {dup_ids[:5]}"
-              f"{'...' if len(dup_ids) > 5 else ''}")
-        fst_manifest = fst_manifest.drop_duplicates(subset="image_id", keep="first")
     fst_by_id = fst_manifest.set_index("image_id")["fst_bucket"]
     ssl_key = next((k for k in BACKBONES if k.startswith("ssl_")), None)
     strat = {}

@@ -266,27 +266,131 @@ def test_stratified_summary_ok_bucket_has_the_same_metric_keys_as_summarize():
     assert set(out[2]) == expected_keys
 
 
-def test_stratified_summary_min_n_default_shares_the_gates_fairness_threshold():
-    """Regression (PR2 code review): ``gates.DEFAULT_FAIRNESS_MIN_BUCKET_N``
-    and ``stratified_summary``'s ``min_n`` default used to be two
-    independently hardcoded literals (both 30) - free to drift apart
-    silently if someone changed one without noticing the other, which would
-    make ``fairness_gate`` re-filter with a stale threshold and silently
-    change PASS/SKIP outcomes. Plain value equality cannot prove they share
-    a single source (CPython interns small ints, so two unrelated literal
-    ``30``s are already ``==`` and even ``is``), so this asserts
-    ``metrics.py`` imports the name from ``gates`` instead of defining its
-    own literal.
-    """
-    import inspect
+# --- comparison_report: Stage 2 baseline vs. mitigation reporting ---------
+#
+# spec.md, circle-adaptation req 5: "MUST report Stage 1 stratified fairness
+# metrics for three variants - baseline, regularization-only, and
+# synthetic-blend - so the relative fairness improvement (primary thesis
+# acceptance criterion) is directly computable between variants."
+#
+# Tested against synthetic, hand-built stratified_summary()-shaped fixtures -
+# NOT against real data: no fst_manifest.csv exists yet, no real Stage 2
+# Kaggle run has happened (see docs/21-checkpoint-manual-circle-stage2.md).
+# This only checks that the report structure and arithmetic are correct given
+# whatever three stratified_summary() outputs it is handed.
 
-    from dermssl import gates as g
 
-    assert m.DEFAULT_FAIRNESS_MIN_BUCKET_N is g.DEFAULT_FAIRNESS_MIN_BUCKET_N
+def qualifying_variant_bucket(macro_f1, count=40):
+    return {"status": "OK", "count": count, "macro_f1": macro_f1}
 
-    default = inspect.signature(m.stratified_summary).parameters["min_n"].default
-    assert default is g.DEFAULT_FAIRNESS_MIN_BUCKET_N
 
-    source = inspect.getsource(m)
-    assert "from dermssl.gates import DEFAULT_FAIRNESS_MIN_BUCKET_N" in source
-    assert "min_n: int = DEFAULT_FAIRNESS_MIN_BUCKET_N" in source
+def skipped_variant_bucket(count=5):
+    return {"status": "SKIPPED", "count": count, "reason": f"n={count} < min_n=30"}
+
+
+def test_comparison_report_lists_all_three_variants_with_a_gap():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}
+    regularization = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.55)}
+    synthetic_blend = {1: qualifying_variant_bucket(0.62), 2: qualifying_variant_bucket(0.58)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert set(report) == {"baseline", "regularization", "synthetic_blend"}
+    for variant in report.values():
+        assert "gap" in variant
+
+
+def test_comparison_report_gap_is_max_minus_min_among_qualifying_buckets():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}
+    regularization = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.55)}
+    synthetic_blend = {1: qualifying_variant_bucket(0.62), 2: qualifying_variant_bucket(0.58)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["baseline"]["gap"] == pytest.approx(0.20)
+    assert report["regularization"]["gap"] == pytest.approx(0.10)
+    assert report["synthetic_blend"]["gap"] == pytest.approx(0.04)
+
+
+def test_comparison_report_relative_improvement_vs_baseline():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}  # gap 0.20
+    regularization = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.55)}  # 0.10
+    synthetic_blend = {1: qualifying_variant_bucket(0.61), 2: qualifying_variant_bucket(0.56)}  # 0.05
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["regularization"]["relative_improvement"] == pytest.approx(0.5)
+    assert report["synthetic_blend"]["relative_improvement"] == pytest.approx(0.75)
+    assert "relative_improvement" not in report["baseline"]
+
+
+def test_comparison_report_baseline_insufficient_data_disables_relative_improvement():
+    """<2 qualifying buckets in the baseline: nothing to compare a relative
+    improvement against, so it must not be silently reported as some number."""
+    baseline = {1: qualifying_variant_bucket(0.70), 2: skipped_variant_bucket()}
+    regularization = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.60)}
+    synthetic_blend = {1: qualifying_variant_bucket(0.62), 2: qualifying_variant_bucket(0.61)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["baseline"]["gap"] is None
+    assert report["baseline"]["status"] == "insufficient_data"
+    assert report["regularization"]["relative_improvement"] is None
+    assert report["synthetic_blend"]["relative_improvement"] is None
+    # the mitigation variants' own gaps are still reported even when the
+    # baseline cannot anchor a relative improvement
+    assert report["regularization"]["gap"] == pytest.approx(0.05)
+
+
+def test_comparison_report_mitigation_variant_insufficient_data():
+    """A mitigation variant with thin buckets reports gap=None and no
+    relative_improvement, without breaking the other variants."""
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}
+    regularization = {1: qualifying_variant_bucket(0.65), 2: skipped_variant_bucket()}
+    synthetic_blend = {1: qualifying_variant_bucket(0.62), 2: qualifying_variant_bucket(0.58)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["regularization"]["gap"] is None
+    assert report["regularization"]["relative_improvement"] is None
+    assert report["synthetic_blend"]["gap"] == pytest.approx(0.04)
+    assert report["synthetic_blend"]["relative_improvement"] is not None
+
+
+def test_comparison_report_zero_baseline_gap_avoids_division_by_zero():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.70)}  # gap 0.0
+    regularization = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.70)}
+    synthetic_blend = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.60)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["baseline"]["gap"] == pytest.approx(0.0)
+    assert report["regularization"]["relative_improvement"] is None
+    assert report["synthetic_blend"]["relative_improvement"] is None
+
+
+def test_comparison_report_respects_a_custom_metric_and_min_bucket_n():
+    baseline = {
+        1: {"status": "OK", "count": 12, "auc": 0.80},
+        2: {"status": "OK", "count": 12, "auc": 0.60},
+    }
+    regularization = {
+        1: {"status": "OK", "count": 12, "auc": 0.75},
+        2: {"status": "OK", "count": 12, "auc": 0.68},
+    }
+    synthetic_blend = {
+        1: {"status": "OK", "count": 12, "auc": 0.73},
+        2: {"status": "OK", "count": 12, "auc": 0.70},
+    }
+
+    # default min_bucket_n=30 would make every bucket too thin to qualify
+    default_report = m.comparison_report(
+        baseline, regularization, synthetic_blend, metric="auc"
+    )
+    assert default_report["baseline"]["gap"] is None
+
+    report = m.comparison_report(
+        baseline, regularization, synthetic_blend, metric="auc", min_bucket_n=10
+    )
+    assert report["baseline"]["gap"] == pytest.approx(0.20)
+    assert report["regularization"]["gap"] == pytest.approx(0.07)

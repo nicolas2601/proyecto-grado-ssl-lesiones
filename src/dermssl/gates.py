@@ -187,22 +187,21 @@ def fairness_gate(
     max_gap: float = DEFAULT_FAIRNESS_MAX_GAP,
     min_bucket_n: int = DEFAULT_FAIRNESS_MIN_BUCKET_N,
 ) -> Gate:
-    """G3: how much macro-F1 varies across Fitzpatrick skin-type buckets.
+    """G3: cuanto varia el macro-F1 entre buckets de fototipo Fitzpatrick.
 
-    Standalone by design (D1 in design.md): composes over ``evaluate_gates``
-    instead of extending it, so this module stays stdlib-only and its
-    signature never changes. Caller concatenates::
+    Independiente a proposito: se compone sobre evaluate_gates en vez de
+    extenderlo, asi este modulo sigue sin dependencias externas y su firma
+    no cambia nunca. El llamador concatena::
 
         gates = evaluate_gates(...) + [fairness_gate(strat)]
 
-    ``summary`` is the output of ``metrics.stratified_summary`` - this
-    function never touches FST/ITA math, only the numbers already computed.
-    Mirrors the G2 smoke-skip precedent: fewer than two buckets with at least
-    ``min_bucket_n`` samples means there is nothing trustworthy to compare, so
-    the gate SKIPs - it never FAILs on thin or absent data (spec.md,
-    fairness-evaluation req 3). ``max_gap=0.15`` is the reference target from
-    docs/07 and docs/11 ("Brecha de fairness (Fitzpatrick) <= 0.15") - a
-    secondary KPI, not the thesis's primary acceptance criterion.
+    summary es la salida de metrics.stratified_summary - esta funcion nunca
+    toca la matematica de FST/ITA, solo los numeros ya calculados. Menos de
+    dos buckets con al menos min_bucket_n muestras significa que no hay nada
+    confiable para comparar, asi que el gate hace SKIP - nunca FALLA por
+    datos escasos o ausentes. max_gap=0.15 es el objetivo de referencia
+    documentado (docs/07, docs/11) - un KPI secundario, no el criterio
+    principal de aceptacion de la tesis.
     """
     qualifying = {
         bucket: entry[FAIRNESS_METRIC]

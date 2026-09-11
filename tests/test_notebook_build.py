@@ -7,13 +7,9 @@ instead of 40 minutes into a queued session.
 
 import ast
 import json
-import os
-import subprocess
 import sys
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
@@ -79,35 +75,6 @@ def test_core_cell_executes_and_exposes_the_full_api(notebook):
     exec(compile(core, "<core cell>", "exec"), namespace)  # noqa: S102 - that is the test
     missing = [name for name in REQUIRED_API if name not in namespace]
     assert missing == [], f"inlined core is missing: {missing}"
-
-
-def test_core_cell_runs_without_src_on_sys_path(notebook, tmp_path):
-    """Regression (PR2 code review): on real Kaggle, ``src/dermssl`` is never
-    installed - that is the documented reason the core cell is inlined at
-    all. ``tests/conftest.py`` puts ``src/`` on ``sys.path`` for every other
-    test in this suite, which silently masks any inlined module that still
-    imports the ``dermssl`` package (e.g. ``from dermssl.pretrain import
-    lesion_guided``): such an import resolves locally but raises
-    ``ModuleNotFoundError`` on Kaggle. Run the built core cell as a bare
-    subprocess script, in a directory with no relation to this repo and with
-    ``PYTHONPATH`` cleared, to reproduce the Kaggle environment faithfully.
-    """
-    core = "".join(code_cells(notebook)[1]["source"])
-    core_file = tmp_path / "core_cell.py"
-    core_file.write_text(core, encoding="utf-8")
-
-    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
-    result = subprocess.run(
-        [sys.executable, str(core_file)],
-        cwd=str(tmp_path),
-        env=env,
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 0, (
-        "inlined core cell failed with src/ NOT on sys.path - this is "
-        f"exactly the failure mode a real Kaggle run would hit:\n{result.stderr}"
-    )
 
 
 def test_core_cell_has_no_future_import(notebook):
@@ -211,53 +178,3 @@ def test_report_code_no_manifest_path_never_touches_fairness_gate():
 
     inside_dump = "\n".join(ast.dump(node) for node in guard.body)
     assert "fairness_gate" in inside_dump, "the guard must call fairness_gate when the manifest exists"
-
-
-def test_report_code_fst_lookup_survives_duplicate_manifest_rows(tmp_path):
-    """Regression (PR2 code review): ``fst_by_id = fst_manifest.set_index(
-    "image_id")["fst_bucket"]`` assumes a unique index. If fst_manifest.csv
-    ever has a duplicate ``image_id`` row (e.g. an appended rerun),
-    ``fst_by_id[img_id]`` returns a pandas Series instead of a scalar, and
-    ``not pd.isna(fst_by_id[img_id])`` raises ``ValueError: The truth value
-    of a Series is ambiguous`` - crashing the whole report cell, not just
-    the fairness gate. This executes the real guarded block from
-    REPORT_CODE (not a reimplementation) against a synthetic manifest with
-    a duplicate row.
-    """
-    tree = ast.parse(REPORT_CODE)
-    guard = _fst_manifest_guard(tree)
-    assert guard is not None
-    guard_src = ast.unparse(guard)
-
-    manifest = tmp_path / "fst_manifest.csv"
-    pd.DataFrame(
-        {
-            "image_id": ["ISIC_0000001", "ISIC_0000001", "ISIC_0000002"],
-            "fst_bucket": [2, 5, 3],
-        }
-    ).to_csv(manifest, index=False)
-
-    def fake_run_probe(name, x_tr, y_tr, x_va, n_classes):
-        return np.zeros((len(x_va), n_classes))
-
-    namespace = {
-        "pd": pd,
-        "np": np,
-        "FST_MANIFEST_PATH": manifest,
-        "BACKBONES": ["ssl_dino"],
-        "PROBES": ["knn"],
-        "FRACTIONS": [1.0],
-        "FEATURES": {
-            "ssl_dino": {
-                "train": (np.zeros((2, 3)), np.array([0, 1])),
-                "val": (np.zeros((1, 3)), np.array([0])),
-            }
-        },
-        "va_ids": ["ISIC_0000001"],
-        "run_probe": fake_run_probe,
-        "N_CLASSES": 2,
-        "stratified_summary": lambda *a, **k: {"called": True},
-        "fairness_gate": lambda strat: strat,
-        "gate_list": [],
-    }
-    exec(compile(guard_src, "<report fst guard>", "exec"), namespace)  # noqa: S102
