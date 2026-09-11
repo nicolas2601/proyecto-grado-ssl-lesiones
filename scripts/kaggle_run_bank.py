@@ -29,6 +29,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from kaggle_push import BANKS, REPO, kernel_slug, stage  # noqa: E402
 
+# A bank run lasts hours and is always piped to a log. Python block-buffers
+# stdout when it is not a tty, so without this the log stays EMPTY until the
+# process exits - which is precisely when the progress no longer matters. Every
+# false "failed" diagnosed on 2026-09-11 had to be reconstructed from files on
+# disk because the reason never reached the log.
+sys.stdout.reconfigure(line_buffering=True)
+
 GPU_SESSION_LIMIT = 2
 STATUS_RE = re.compile(r"KernelWorkerStatus\.(\w+)")
 BUSY_MARKER = "Maximum batch GPU session count"

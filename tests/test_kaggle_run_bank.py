@@ -171,6 +171,20 @@ def test_a_result_that_stays_stale_is_still_reported_as_failed(tmp_path):
                                        attempts=2, delay=0)
 
 
+def test_the_driver_does_not_buffer_its_diagnostics_away():
+    """A long run piped to a file must report as it goes.
+
+    Python block-buffers stdout when it is not a tty, so a driver that runs for
+    hours writes zero bytes until it exits. Both bank logs were empty while the
+    run was in flight, which is exactly when the output is needed: every `failed`
+    diagnosed today had to be reconstructed from files on disk because the
+    reason never reached the log.
+    """
+    source = (REPO / "scripts" / "kaggle_run_bank.py").read_text()
+    assert "reconfigure(line_buffering=True)" in source or "flush=True" in source, \
+        "el driver no fuerza el vaciado de stdout: su log queda vacio en vuelo"
+
+
 def test_free_slots_account_for_the_running_kernels():
     assert krb.free_slots({"a": "running", "b": "running"}, limit=2) == 0
     assert krb.free_slots({"a": "running", "b": "done"}, limit=2) == 1
