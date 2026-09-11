@@ -256,6 +256,81 @@ def stratified_summary(
     return result
 
 
+DEFAULT_COMPARISON_METRIC = "macro_f1"
+DEFAULT_COMPARISON_MIN_BUCKET_N = 30
+
+
+def _variant_gap(summary: dict, *, metric: str, min_bucket_n: int) -> float | None:
+    """Max-minus-min ``metric`` among buckets with ``status == "OK"`` and at
+    least ``min_bucket_n`` samples - the same qualifying rule
+    ``gates.fairness_gate`` applies, reimplemented here (not imported) so
+    ``metrics.py`` stays independent of ``gates.py`` (mirrors D1: neither
+    module depends on the other; the caller composes them).
+
+    Returns ``None`` when fewer than two buckets qualify - "insufficient
+    data", not zero: a report of ``0.0`` would misleadingly claim a perfect
+    (measured) fairness gap where there is, in fact, nothing to measure.
+    """
+    qualifying = {
+        bucket: entry[metric]
+        for bucket, entry in summary.items()
+        if entry.get("status") == "OK" and entry.get("count", 0) >= min_bucket_n
+    }
+    if len(qualifying) < 2:
+        return None
+    return max(qualifying.values()) - min(qualifying.values())
+
+
+def comparison_report(
+    baseline: dict,
+    regularization: dict,
+    synthetic_blend: dict,
+    *,
+    metric: str = DEFAULT_COMPARISON_METRIC,
+    min_bucket_n: int = DEFAULT_COMPARISON_MIN_BUCKET_N,
+) -> dict:
+    """Stage 2 baseline-vs-mitigation comparison (spec.md, circle-adaptation
+    req 5): consumes three ``stratified_summary()`` outputs (baseline,
+    regularization-only, synthetic-blend) and reports the per-FST-bucket gap
+    for each, plus each mitigation variant's relative improvement over the
+    baseline gap - the thesis's primary acceptance criterion
+    (proposal.md, "Success Criteria": "measurable relative fairness
+    improvement ... of Stage 2 over the Stage 1 baseline").
+
+    This function computes arithmetic over whatever three summaries it is
+    given - it does not run any training or produce any data itself. As of
+    this writing no real Stage 1 or Stage 2 run has happened (see
+    docs/21-checkpoint-manual-circle-stage2.md), so calling this with real
+    data is future work; it is tested here against synthetic,
+    hand-built ``stratified_summary()``-shaped fixtures only.
+
+    ``relative_improvement`` is ``(baseline_gap - variant_gap) / baseline_gap``:
+    positive means the variant's gap is smaller (fairer) than the baseline's.
+    It is ``None`` - never a number - whenever it cannot be computed without
+    guessing: the baseline gap is undefined (fewer than two qualifying
+    buckets), the baseline gap is exactly zero (division by zero), or the
+    variant's own gap is undefined.
+    """
+    baseline_gap = _variant_gap(baseline, metric=metric, min_bucket_n=min_bucket_n)
+    report = {
+        "baseline": {
+            "gap": baseline_gap,
+            "status": "ok" if baseline_gap is not None else "insufficient_data",
+        }
+    }
+    for name, summary in (("regularization", regularization), ("synthetic_blend", synthetic_blend)):
+        gap = _variant_gap(summary, metric=metric, min_bucket_n=min_bucket_n)
+        relative_improvement = None
+        if gap is not None and baseline_gap is not None and baseline_gap != 0:
+            relative_improvement = (baseline_gap - gap) / baseline_gap
+        report[name] = {
+            "gap": gap,
+            "status": "ok" if gap is not None else "insufficient_data",
+            "relative_improvement": relative_improvement,
+        }
+    return report
+
+
 def mean_std(values) -> dict:
     """Mean and population std over seeds, NaN-safe."""
     vals = [float(v) for v in values if v == v]
