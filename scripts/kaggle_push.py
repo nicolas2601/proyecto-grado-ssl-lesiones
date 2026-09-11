@@ -52,6 +52,7 @@ BANKS = {
     "baselines_isic2019": ("isic2019", "test_{m}_isic2019.ipynb"),
     "finetune": ("ham10000", "finetune_{m}.ipynb"),
     "finetune_isic2020": ("isic2020", "finetune_{m}_isic2020.ipynb"),
+    "finetune_isic2019": ("isic2019", "finetune_{m}_isic2019.ipynb"),
 }
 
 

@@ -57,3 +57,16 @@ def test_push_payload_matches_kaggle_kernels_push_schema(tmp_path):
     assert body["enableGpu"] and body["enableInternet"] and body["isPrivate"]
     assert body["datasetDataSources"] == ["nischaydnk/isic-2020-jpg-256x256-resized"]
     assert json.loads(body["text"])["nbformat"] == 4
+
+
+def test_every_generated_notebook_bank_is_pushable():
+    """A bank of notebooks nobody can push is a bank that never runs.
+
+    finetune_isic2019 was generated on 2026-09-04 when the project moved off
+    ISIC 2020, but BANKS was never updated, so `--bank finetune_isic2019` was
+    rejected by argparse and the eight notebooks sat unreachable on disk.
+    """
+    on_disk = {d.name for d in (REPO / "notebooks").iterdir()
+               if d.is_dir() and any(d.glob("*/*.ipynb"))}
+    missing = on_disk - set(kp.BANKS)
+    assert not missing, f"notebook banks with no entry in BANKS: {sorted(missing)}"
