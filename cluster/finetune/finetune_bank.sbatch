@@ -42,4 +42,5 @@ python "$REPO_DIR/scripts/finetune_baseline.py" \
     --results-dir "$REPO_DIR/results/finetune" \
     --num-workers 8 \
     --precision "${PRECISION:-bf16}" \
-    --mlflow-tracking-uri "file:$SCRATCH_BASE/mlruns"
+    --mlflow-tracking-uri "file:$SCRATCH_BASE/mlruns" \
+    --tensorboard-dir "$SCRATCH_BASE/finetune/tb"

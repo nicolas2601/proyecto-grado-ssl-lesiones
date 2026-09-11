@@ -62,15 +62,26 @@ else
 fi
 
 # ---------------------------------------------------------------- 3. weights
-log "3/6 offline weight caches"
+# Three ways to get the pretrained weights, in order of preference. The offline
+# tarball exists for air-gapped clusters; when the nodes do reach the internet
+# there is nothing to prepare, so a missing tarball must not stop the run.
+log "3/6 weight caches"
+export HF_HOME="$SCRATCH_BASE/hf-cache" TORCH_HOME="$SCRATCH_BASE/torch-cache"
 if [ -d "$SCRATCH_BASE/hf-cache" ] && [ -d "$SCRATCH_BASE/torch-cache" ]; then
     echo "  caches present, skipping"
+    export HF_HUB_OFFLINE=1
 elif [ -f "$ASSETS_TAR" ]; then
     run tar -xzf "$ASSETS_TAR" -C "$SCRATCH_BASE"
+    export HF_HUB_OFFLINE=1
+elif [ "${DERMSSL_ASSUME_NETWORK:-0}" = 1 ] || curl -sf -m 10 -o /dev/null https://huggingface.co; then
+    echo "  no local cache, but huggingface.co is reachable: the weights will be"
+    echo "  downloaded on first use into $HF_HOME (a few GB, once)."
+    run mkdir -p "$HF_HOME" "$TORCH_HOME"
 else
-    die "weight caches missing. Copy dermssl-weights-cache.tar.gz to $ASSETS_TAR (GitHub Release cluster-assets-v2) or set ASSETS_TAR"
+    die "no weight cache and no internet. On a machine WITH internet run
+  bash cluster/prepare_offline_assets.sh \$OUT
+then copy \$OUT as a tarball to $ASSETS_TAR (or set ASSETS_TAR)."
 fi
-export HF_HOME="$SCRATCH_BASE/hf-cache" TORCH_HOME="$SCRATCH_BASE/torch-cache" HF_HUB_OFFLINE=1
 
 # ---------------------------------------------------------------- 4. data
 log "4/6 datasets ($DATA_ROOT)"
@@ -110,7 +121,7 @@ if [ "$SCHEDULER" = slurm ]; then
   Queued. Monitor with:   squeue -u \$USER
   Logs:                   $REPO_DIR/logs/dermssl-ft-*.out
   Results (JSON):         $REPO_DIR/results/finetune/<dataset>/
-  When all 24 finished:   bash cluster/finetune/publish_results.sh
+  When all 16 finished:   bash cluster/finetune/publish_results.sh
 MSG
 else
     echo "  no SLURM: running the 16 jobs sequentially on the local GPU"

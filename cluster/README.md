@@ -32,7 +32,7 @@ base con `torch>=2.2+cu12` (module/conda) y sobre el instalamos el resto de
 
 ## 2. Codigo y datos (sin internet, solo GitHub)
 
-- Codigo: `git clone https://github.com/<org>/proyecto-grado-ssl-lesiones` (permitido).
+- Codigo: `git clone https://github.com/nicolas2601/proyecto-grado-ssl-lesiones` (permitido).
 - Pesos DINOv2: `torch.hub` los baja de `dl.fbaipublicfiles.com` (bloqueado).
   Solucion: cache pre-armado y publicado como asset de un Release de GitHub del
   propio repo. Ver `cluster/prepare_offline_assets.sh` (se corre en una maquina

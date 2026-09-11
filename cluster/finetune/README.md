@@ -36,7 +36,7 @@ asi que viajan con los datos y no solo con este documento.
 | Item | De donde sale | Donde va |
 |---|---|---|
 | Repositorio | `git clone https://github.com/nicolas2601/proyecto-grado-ssl-lesiones` (rama `feature/v6-gpu-ssl-pretraining`) | `$HOME/proyecto-grado-ssl-lesiones` |
-| Pesos preentrenados (sin internet) | `dermssl-weights-cache.tar.gz`, asset del Release `cluster-assets-v2` del repo | `$SCRATCH/dermssl/` |
+| Pesos preentrenados | **Si los nodos tienen internet, nada que preparar**: se bajan solos de Hugging Face en el primer uso (unos GB, una vez). Solo si el cluster esta aislado hace falta el tarball; ver seccion 0c | `$SCRATCH/dermssl/` |
 | Datasets | HAM10000 e ISIC 2019 de Kaggle. Solo hay que dejarlos en la carpeta indicada en la seccion 0b | `$SCRATCH/dermssl/data/` |
 | Python 3.11 | `module load python/3.11` o el que indiquen los administradores | - |
 
@@ -63,6 +63,24 @@ release con el ground truth multiclase (one-hot de 8 columnas: MEL, NV, BCC, AK,
 BKL, DF, VASC, SCC; la columna UNK sale en cero y se descarta). El release
 `nischaydnk/isic-2019-jpg-224x224-resized` **no sirve**: solo trae un target
 binario y un `patient_id` sintetico.
+
+## 0c. Solo si el cluster NO tiene salida a internet
+
+El lanzador baja los pesos de Hugging Face en la primera corrida. Si los nodos
+estan aislados, hay que llevarlos a mano desde una maquina con internet:
+
+```bash
+# en una maquina con internet (portatil de Nicolas)
+bash cluster/prepare_offline_assets.sh /tmp/dermssl-offline
+tar -czf dermssl-weights-cache.tar.gz -C /tmp/dermssl-offline .
+
+# copiar ese tar al cluster como:
+#   $SCRATCH/dermssl/dermssl-weights-cache.tar.gz
+```
+
+El lanzador lo detecta solo, lo descomprime y activa `HF_HUB_OFFLINE=1`. Si no
+hay ni cache ni internet, se detiene con ese mismo instructivo en pantalla en
+lugar de fallar a mitad de la cola.
 
 ## 1. Un solo comando
 
@@ -91,7 +109,7 @@ el team de W&B del laboratorio.
 ## 2. Seguimiento
 
 ```bash
-squeue -u $USER                       # estado de los 24 jobs
+squeue -u $USER                       # estado de los 16 jobs
 tail -f logs/dermssl-ft-*_0.out       # log del job 0
 python scripts/finetune_baseline.py --list-jobs   # que indice es que modelo/dataset
 ```
@@ -115,6 +133,54 @@ de reloj con 4 GPU en paralelo.
 El JSON es la fuente de verdad: trae accuracy, balanced accuracy, F1/precision/
 recall macro y por clase, AUC, ECE, matriz de confusion, IC bootstrap, mejor
 epoca, tiempo, fuente exacta de los pesos, commit del repo, host y GPU.
+
+## 3b. Ver las corridas en TensorBoard
+
+Las 16 corridas escriben sus eventos bajo un mismo arbol, una subcarpeta por
+corrida, asi que un solo TensorBoard las muestra superpuestas:
+
+```bash
+tensorboard --logdir $SCRATCH/dermssl/finetune/tb --port 6006
+```
+
+Se ven `train/loss`, `val/balanced_accuracy` y `val/best_balanced_accuracy` por
+epoca, mas los hiperparametros de cada corrida como tarjeta de texto. No
+requiere servidor ni cuenta: son archivos en disco.
+
+Esta es la razon de que exista ademas de MLflow. El MLflow de la plataforma de
+la UNAB es uno solo compartido por todos los estudiantes; TensorBoard escribe
+en el scratch de quien corre el banco y no se publica a nadie mas.
+
+## 3c. Comparar el cluster contra Kaggle
+
+El mismo banco se esta corriendo en Kaggle (T4) en paralelo a este. No es
+duplicar trabajo: es la comprobacion mas barata que tenemos de que el protocolo
+es reproducible fuera de una sola maquina.
+
+Para armar la tabla de un dataset, desde cualquiera de las dos salidas:
+
+```bash
+python scripts/build_results_tables.py --results-dir results/finetune/ham10000
+python scripts/build_results_tables.py --results-dir results/finetune/isic2019
+```
+
+Como leer la comparacion, en orden:
+
+1. **Mismo modelo, mismo dataset, misma semilla: los numeros deberian coincidir
+   hasta el tercer decimal.** El pipeline es determinista y los pesos salen del
+   mismo tag de Hugging Face.
+2. **Si no coinciden, no es ruido.** En este proyecto ya paso una vez: VGG19
+   dio un valor plausible pero falso porque `timm` con `num_classes=0` devuelve
+   las pre-logits de 4096 dimensiones en lugar del GAP convolucional de 512.
+   Mismos pesos, distinto punto de medicion. Por eso ambos ejecutores verifican
+   `protocol.FEATURE_DIMS` antes de extraer.
+3. **Diferencias esperables y que no invalidan nada**: precision (bf16 en A100
+   contra fp16 en T4) puede mover el cuarto decimal, y un `--batch` distinto por
+   OOM cambia el resultado de verdad, asi que queda registrado en el JSON.
+
+Cada JSON trae `host`, `gpu`, `precision`, `batch`, `git_sha` y `split`, de modo
+que la procedencia de cada fila viaja con el dato y no hay que reconstruirla de
+memoria.
 
 ## 4. Publicar los resultados
 
