@@ -26,10 +26,23 @@ BUILDERS = {
 }
 
 
-def _cells(path: Path) -> list[str]:
+def _cells_from(text: str) -> list[str]:
     """Source of every cell, ignoring outputs and execution counts."""
-    nb = json.loads(path.read_text())
+    nb = json.loads(text)
     return ["".join(c.get("source", [])) for c in nb.get("cells", [])]
+
+
+def _committed(relpath: str) -> str | None:
+    """The file as HEAD has it, not as the working tree has it.
+
+    Reading the working tree was a false pass: running the builder locally made
+    this test green while the repo still carried the stale notebooks, which is
+    precisely the state that broke CI on 2026-09-11. CI asked "is what is
+    committed in sync?"; this asked "did you run the builder at some point?" -
+    a different question, and the weaker one."""
+    out = subprocess.run(["git", "show", f"HEAD:{relpath}"],
+                         capture_output=True, text=True, cwd=REPO)
+    return out.stdout if out.returncode == 0 else None
 
 
 @pytest.mark.parametrize("builder", sorted(BUILDERS))
@@ -58,11 +71,12 @@ def test_the_committed_notebooks_are_what_the_builder_writes(builder, tmp_path):
         if not fresh_bank.is_dir():
             continue
         for fresh in sorted(fresh_bank.rglob("*.ipynb")):
-            committed = REPO / fresh.relative_to(work)
-            if not committed.exists():
-                stale.append(f"{fresh.relative_to(work)} is missing from the repo")
-            elif _cells(committed) != _cells(fresh):
-                stale.append(str(fresh.relative_to(work)))
+            rel = str(fresh.relative_to(work))
+            committed = _committed(rel)
+            if committed is None:
+                stale.append(f"{rel} is generated but never committed")
+            elif _cells_from(committed) != _cells_from(fresh.read_text()):
+                stale.append(rel)
     assert not stale, (
         f"these notebooks differ from what {builder} writes - regenerate and "
         f"commit them: {stale}")
