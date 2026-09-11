@@ -66,9 +66,11 @@ fi
 # tarball exists for air-gapped clusters; when the nodes do reach the internet
 # there is nothing to prepare, so a missing tarball must not stop the run.
 log "3/6 weight caches"
-export HF_HOME="$SCRATCH_BASE/hf-cache" TORCH_HOME="$SCRATCH_BASE/torch-cache"
-if [ -d "$SCRATCH_BASE/hf-cache" ] && [ -d "$SCRATCH_BASE/torch-cache" ]; then
-    echo "  caches present, skipping"
+# A lab with a shared cache keeps it: only default when nothing is set.
+export HF_HOME="${HF_HOME:-$SCRATCH_BASE/hf-cache}"
+export TORCH_HOME="${TORCH_HOME:-$SCRATCH_BASE/torch-cache}"
+if [ -d "$HF_HOME" ] && [ -d "$TORCH_HOME" ]; then
+    echo "  cache present, skipping ($HF_HOME)"
     export HF_HUB_OFFLINE=1
 elif [ -f "$ASSETS_TAR" ]; then
     run tar -xzf "$ASSETS_TAR" -C "$SCRATCH_BASE"

@@ -31,7 +31,23 @@ Ese cambio trae dos limites que hay que reportar junto con los resultados:
 Ambos limites quedan escritos en el campo `split` de cada JSON de resultados,
 asi que viajan con los datos y no solo con este documento.
 
-## 0. Lo que hay que tener a mano
+## 0. Lo que pone quien corre el banco
+
+Dos cosas, y ambas se indican por variable de entorno; no hay que editar codigo.
+
+| Que | Variable | Por defecto | Nota |
+|---|---|---|---|
+| Los datasets | `DATA_ROOT` | `$SCRATCH/dermssl/data` | Debe contener `ham10000/` e `isic2019/`. Un enlace simbolico a las copias que ya existan en el laboratorio es suficiente; las imagenes pueden estar en cualquier subcarpeta, el codigo las busca recursivamente |
+| Los pesos preentrenados | `HF_HOME`, `TORCH_HOME` | `$SCRATCH/dermssl/{hf,torch}-cache` | Si el laboratorio ya tiene un cache de Hugging Face compartido, apuntar `HF_HOME` ahi y no se vuelve a descargar nada. Si no hay nada y los nodos tienen internet, se bajan solos |
+
+```bash
+DATA_ROOT=/ruta/a/los/datos HF_HOME=/cache/compartido/huggingface \
+    bash cluster/finetune/run_all.sh
+```
+
+Los 8 backbones y el tag exacto de pesos de cada uno estan en la seccion 6.
+
+## 0a. Lo que hay que tener a mano
 
 | Item | De donde sale | Donde va |
 |---|---|---|
