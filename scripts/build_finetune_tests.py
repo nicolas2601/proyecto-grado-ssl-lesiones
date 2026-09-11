@@ -94,6 +94,13 @@ EPOCHS_RUN = 1 if SMOKE else EPOCHS
 for p in model.parameters():
     p.requires_grad = True
 
+# La celda anterior imprime "entrenables=0" porque comparte codigo con el banco
+# CONGELADO. Ese numero ya no vale aqui: se re-imprime despues de descongelar
+# para que el log no haga dudar de si esto entreno de verdad.
+_entrenables = sum(p.numel() for p in model.parameters() if p.requires_grad)
+assert _entrenables > 0, "el backbone sigue congelado: esto NO es fine-tuning"
+print(f"{{MODEL}}: backbone DESCONGELADO, entrenables={{_entrenables:,}}")
+
 class FTNet(nn.Module):
     def __init__(self, backbone, dim, n_cls):
         super().__init__()
