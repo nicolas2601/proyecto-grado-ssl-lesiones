@@ -26,6 +26,8 @@ this module.
 
 from __future__ import annotations
 
+import copy
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -113,6 +115,25 @@ class UNet(nn.Module):
         return self.out_conv(d1)  # -> (B, 1, H, W) logits
 
 
+@dataclass
+class UNetTrainingResult:
+    """Best held-out checkpoint and its auditable validation history."""
+
+    model: UNet
+    best_epoch: int
+    best_val_dice: float
+    best_val_iou: float
+    history: list[dict[str, float]]
+
+
+@dataclass
+class MaskPrediction:
+    """Binary lesion mask plus mean sigmoid certainty in [0, 1]."""
+
+    mask: np.ndarray
+    confidence: float
+
+
 class ISIC2018SegmentationDataset(Dataset):
     """Image/mask pairs from the ISIC 2018 Task 1 challenge layout.
 
@@ -156,23 +177,58 @@ class ISIC2018SegmentationDataset(Dataset):
         return img_t, mask_t
 
 
+@torch.no_grad()
+def evaluate_segmentation(model: UNet, val_loader, device: torch.device) -> dict[str, float]:
+    """Compute global held-out BCE, Dice and IoU over one validation loader."""
+    model.eval()
+    loss_sum = 0.0
+    pixels = 0
+    intersection = 0
+    predicted = 0
+    target = 0
+    union = 0
+    for imgs, masks in val_loader:
+        imgs, masks = imgs.to(device), masks.to(device)
+        logits = model(imgs)
+        loss_sum += float(F.binary_cross_entropy_with_logits(logits, masks, reduction="sum").item())
+        pixels += masks.numel()
+        pred_mask = torch.sigmoid(logits) > MASK_THRESHOLD
+        true_mask = masks >= 0.5
+        intersection += int((pred_mask & true_mask).sum().item())
+        predicted += int(pred_mask.sum().item())
+        target += int(true_mask.sum().item())
+        union += int((pred_mask | true_mask).sum().item())
+
+    eps = 1e-7
+    return {
+        "loss": loss_sum / max(1, pixels),
+        "dice": (2.0 * intersection + eps) / (predicted + target + eps),
+        "iou": (intersection + eps) / (union + eps),
+    }
+
+
 def train_unet(
     train_loader,
+    val_loader,
     epochs: int,
     device: torch.device,
     lr: float = 1e-3,
-) -> UNet:
-    """Train a fresh ``UNet`` with BCE-with-logits loss, Adam optimizer.
-
-    Runs once on Kaggle (D4); the caller is responsible for saving the
-    result via :func:`save_checkpoint` if it should outlive the session.
-    """
+) -> UNetTrainingResult:
+    """Train on one split and restore the checkpoint with best held-out Dice."""
     model = UNet().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.BCEWithLogitsLoss()
 
-    for _ in range(epochs):
+    best_val_dice = -1.0
+    best_val_iou = -1.0
+    best_epoch = -1
+    best_state = None
+    history = []
+
+    for epoch in range(1, epochs + 1):
         model.train()
+        train_loss_sum = 0.0
+        train_pixels = 0
         for imgs, masks in train_loader:
             imgs, masks = imgs.to(device), masks.to(device)
             optimizer.zero_grad(set_to_none=True)
@@ -180,12 +236,53 @@ def train_unet(
             loss = criterion(logits, masks)
             loss.backward()
             optimizer.step()
+            train_loss_sum += float(loss.item()) * masks.numel()
+            train_pixels += masks.numel()
 
-    return model
+        validation = evaluate_segmentation(model, val_loader, device)
+        row = {
+            "epoch": float(epoch),
+            "train_loss": train_loss_sum / max(1, train_pixels),
+            "val_loss": validation["loss"],
+            "val_dice": validation["dice"],
+            "val_iou": validation["iou"],
+        }
+        history.append(row)
+        print(
+            f"epoch={epoch}/{epochs} train_loss={row['train_loss']:.5f} "
+            f"val_loss={row['val_loss']:.5f} val_dice={row['val_dice']:.5f} "
+            f"val_iou={row['val_iou']:.5f}"
+        )
+        if validation["dice"] > best_val_dice:
+            best_val_dice = validation["dice"]
+            best_val_iou = validation["iou"]
+            best_epoch = epoch
+            best_state = copy.deepcopy(model.state_dict())
+
+    if best_state is None:
+        raise RuntimeError("U-Net training produced no validation checkpoint")
+    model.load_state_dict(best_state)
+    model.eval()
+    return UNetTrainingResult(
+        model=model,
+        best_epoch=best_epoch,
+        best_val_dice=best_val_dice,
+        best_val_iou=best_val_iou,
+        history=history,
+    )
 
 
-def save_checkpoint(model: UNet, path: str) -> None:
-    torch.save({"model_state_dict": model.state_dict()}, path)
+def save_checkpoint(result: UNetTrainingResult, path: str) -> None:
+    torch.save(
+        {
+            "model_state_dict": result.model.state_dict(),
+            "best_epoch": result.best_epoch,
+            "best_val_dice": result.best_val_dice,
+            "best_val_iou": result.best_val_iou,
+            "history": result.history,
+        },
+        path,
+    )
 
 
 def load_checkpoint(path: str, device: torch.device) -> UNet:
@@ -197,14 +294,17 @@ def load_checkpoint(path: str, device: torch.device) -> UNet:
 
 
 @torch.no_grad()
-def infer_mask(model: UNet, img: np.ndarray, device: torch.device) -> np.ndarray:
-    """Run ``model`` on one sRGB image, float ``(H, W, 3)`` in ``[0, 1]``.
+def infer_mask_with_confidence(
+    model: UNet, img: np.ndarray, device: torch.device
+) -> MaskPrediction:
+    """Run mask inference and return binary mask plus sigmoid certainty.
 
-    Returns a bool ``(H, W)`` mask, ``True`` = lesion - the exact contract
+    The bool ``(H, W)`` mask, ``True`` = lesion, is the exact contract
     ``fitzpatrick.estimate_fst``'s ``mask`` parameter expects (D3): resized
     to ``INPUT_RESOLUTION`` for the forward pass, then the predicted
     probability map is resized back to the image's original shape before
-    thresholding, so the returned mask always matches ``img.shape[:2]``.
+    thresholding. Confidence is mean distance from the decision boundary,
+    scaled to [0, 1]; it is used only to trigger the documented fallback.
     """
     model.eval()
     h, w = img.shape[:2]
@@ -219,5 +319,12 @@ def infer_mask(model: UNet, img: np.ndarray, device: torch.device) -> np.ndarray
     probs = torch.sigmoid(logits)
     probs = F.interpolate(probs, size=(h, w), mode="bilinear", align_corners=False)
 
-    mask = probs.squeeze(0).squeeze(0) > MASK_THRESHOLD
-    return mask.cpu().numpy().astype(bool)
+    probs = probs.squeeze(0).squeeze(0)
+    mask = probs > MASK_THRESHOLD
+    confidence = float((torch.abs(probs - MASK_THRESHOLD) * 2.0).mean().item())
+    return MaskPrediction(mask=mask.cpu().numpy().astype(bool), confidence=confidence)
+
+
+def infer_mask(model: UNet, img: np.ndarray, device: torch.device) -> np.ndarray:
+    """Compatibility wrapper returning only the binary lesion mask."""
+    return infer_mask_with_confidence(model, img, device).mask
