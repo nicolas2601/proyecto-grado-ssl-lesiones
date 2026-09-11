@@ -150,6 +150,45 @@ def test_estimate_fst_falls_back_to_otsu_when_the_given_mask_is_degenerate():
     assert result.bucket == expected_bucket
 
 
+def test_estimate_fst_reports_primary_mask_provenance_and_confidence():
+    img, dist = disk_srgb_image()
+    mask = dist <= 15
+
+    result = fp.estimate_fst(img, mask=mask, mask_confidence=0.92)
+
+    assert result.status == "ok"
+    assert result.fallback_used is False
+    assert result.artifact_detected is False
+    assert result.confidence == pytest.approx(0.92)
+
+
+def test_estimate_fst_low_mask_confidence_uses_fallback_and_reduces_confidence():
+    img, dist = disk_srgb_image()
+    mask = dist <= 15
+
+    result = fp.estimate_fst(img, mask=mask, mask_confidence=0.10)
+
+    assert result.status == "ok"
+    assert result.bucket == _independent_expected_bucket(img, true_skin=dist > 15)
+    assert result.fallback_used is True
+    assert 0.0 < result.confidence < 0.92
+
+
+def test_estimate_fst_flags_dark_linear_artifact_and_reduces_confidence():
+    img, dist = disk_srgb_image()
+    mask = dist <= 15
+    clean = fp.estimate_fst(img, mask=mask, mask_confidence=0.95)
+    with_hair = img.copy()
+    with_hair[6:8, 5:-5] = 0.0
+
+    result = fp.estimate_fst(with_hair, mask=mask, mask_confidence=0.95)
+
+    assert result.status == "ok"
+    assert result.bucket is not None
+    assert result.artifact_detected is True
+    assert result.confidence < clean.confidence
+
+
 def test_estimate_fst_no_skin_when_candidate_skin_is_almost_all_border_vignette():
     """skin_fraction < 0.05 after border/vignette exclusion -> no_skin,
     bucket None (spec: explicit bucket-or-unavailable, never a silent skip)."""
@@ -177,6 +216,8 @@ def test_estimate_fst_degenerate_mask_when_otsu_fallback_also_fails():
     assert result.status == "degenerate_mask"
     assert result.bucket is None
     assert np.isnan(result.ita)
+    assert result.fallback_used is True
+    assert result.confidence == 0.0
 
 
 def test_estimate_fst_degenerate_mask_reports_skin_fraction_not_lesion_fraction():
