@@ -254,6 +254,11 @@ def drive(bank: str, models: list[str], user: str, real: bool, out_dir: Path,
                 print(f"  [{model}] push failed: {detail}")
                 save_state(state_file, state)
             else:
+                # Without this the log goes silent for as long as the other
+                # sessions last, and a driver waiting correctly is
+                # indistinguishable from one that hung.
+                print(f"  [{model}] sin slot GPU libre ({GPU_SESSION_LIMIT} en uso), "
+                      "esperando")
                 break
         if pending(models, state) or any(v == "running" for v in state.values()):
             time.sleep(poll)
