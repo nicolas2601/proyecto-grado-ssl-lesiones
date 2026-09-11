@@ -90,7 +90,13 @@ def result_name(bank: str, model: str) -> str:
     """
     sys.path.insert(0, str(REPO / "src"))
     from dermssl.finetune import protocol
-    return f"results_{model}{protocol.DATASETS[BANKS[bank][0]].json_suffix}.json"
+    suffix = protocol.DATASETS[BANKS[bank][0]].json_suffix
+    # The fine-tuning notebooks write results_<model>_ft<suffix>.json. Deriving
+    # only from json_suffix produced results_<model>.json for ham10000 - a name
+    # nothing ever writes - and the driver retired four finished runs as
+    # "missing result file" before its log became readable enough to say so.
+    infix = "_ft" if bank.startswith("finetune") else ""
+    return f"results_{model}{infix}{suffix}.json"
 
 
 def verify_result(path: Path, real: bool) -> dict:
@@ -134,6 +140,35 @@ def push(bank: str, model: str, user: str, real: bool, staging: Path) -> tuple[b
 def status(slug: str) -> str:
     out = _run(["kaggle", "kernels", "status", slug])
     return parse_status(out.stdout + out.stderr)
+
+
+# How many unreadable polls in a row before the driver says so. One is a blip;
+# a run of them means the CLI cannot see the kernel at all.
+UNKNOWN_TOLERANCE = 5
+
+_unknown_streak: dict[str, int] = {}
+
+
+def status_or_report(slug: str, reader=status, consecutive: int = UNKNOWN_TOLERANCE,
+                     report=print) -> str:
+    """Poll a kernel, turning a persistent unreadable status into a report.
+
+    UNKNOWN is what `parse_status` returns when the CLI prints nothing
+    parseable - a dropped network, an expired token. It is not terminal, so the
+    driver treated it as "still running" and polled a kernel it could no longer
+    see, forever, printing nothing. The network did drop during this session.
+    """
+    phase = reader(slug)
+    if phase != "UNKNOWN":
+        _unknown_streak.pop(slug, None)
+        return phase
+    streak = _unknown_streak.get(slug, 0) + 1
+    _unknown_streak[slug] = streak
+    if streak >= consecutive:
+        report(f"  [{slug}] estado ilegible {streak} veces seguidas: "
+               "el CLI no puede ver el kernel (red o token). Revisar a mano.")
+        return "UNREACHABLE"
+    return "UNKNOWN"
 
 
 def download_with_retry(slug: str, dest: Path, runner=_run, attempts: int = 3,
@@ -199,7 +234,7 @@ def drive(bank: str, models: list[str], user: str, real: bool, out_dir: Path,
         for model in list(state):
             if state[model] != "running":
                 continue
-            phase = status(f"{user}/{kernel_slug(bank, model)}")
+            phase = status_or_report(f"{user}/{kernel_slug(bank, model)}")
             if phase not in TERMINAL:
                 continue
             state[model] = collect(bank, model, user, real, out_dir) \
