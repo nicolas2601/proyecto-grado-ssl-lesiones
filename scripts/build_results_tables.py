@@ -159,11 +159,26 @@ def table_intervals(rows: list[Row]) -> str:
     return _table(header, body)
 
 
+def probes_present(rows: list[Row]) -> list[str]:
+    """The probes this bank actually ran, in the canonical order.
+
+    A frozen bank probes a fixed backbone three ways (kNN, logistic regression,
+    prototypes). A fine-tuning bank trains the whole network, so it has nothing
+    to probe and ships a single entry called 'finetune'. Reading the names off
+    the JSONs keeps one renderer honest for both.
+    """
+    seen = {name for row in rows for name in row.probes}
+    ordered = [p for p in PROBE_LABELS if p in seen]
+    return ordered + sorted(seen - set(ordered))
+
+
 def table_probes(rows: list[Row]) -> str:
-    header = ["Modelo"] + [PROBE_LABELS[p] for p in PROBE_LABELS]
+    names = probes_present(rows)
+    header = ["Modelo"] + [PROBE_LABELS.get(p, p) for p in names]
     body = [
         [DISPLAY.get(row.model, row.model)]
-        + [_fmt(row.probes[p]["balanced_accuracy"]) for p in PROBE_LABELS]
+        + [_fmt(row.probes[p]["balanced_accuracy"]) if p in row.probes else "-"
+           for p in names]
         for row in rows
     ]
     return _table(header, body)
@@ -222,7 +237,16 @@ def render(bank_dir: Path) -> str:
                       f"{table_intervals(rows)}")
     except MissingField as exc:
         blocks.append(f"### Intervalos de confianza: no disponibles\n\n> {exc}")
-    blocks.append(f"### Balanced accuracy por probe\n\n{table_probes(rows)}")
+    names = probes_present(rows)
+    if len(names) > 1:
+        blocks.append(f"### Balanced accuracy por probe\n\n{table_probes(rows)}")
+    else:
+        # One probe means the table would repeat the metrics table column for
+        # column. Name the probe instead so the reader knows what was measured.
+        blocks.append("### Balanced accuracy por probe: no aplica\n\n"
+                      f"> Este banco tiene un solo modo de evaluacion "
+                      f"(`{names[0]}`), asi que la columna ya esta en la tabla "
+                      "de metricas completas.")
     for field, title in (("recall_por_clase", "Recall por clase"),
                          ("precision_por_clase", "Precisión por clase"),
                          ("f1_por_clase", "F1 por clase")):

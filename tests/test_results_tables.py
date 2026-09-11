@@ -140,3 +140,45 @@ def test_interval_table_is_explicit_when_the_json_predates_bootstrap():
     del entry["probes"]["logreg"]["ic95_bootstrap"]
     with pytest.raises(brt.MissingField, match="bootstrap"):
         brt.table_intervals(brt.rank({"resnet50": entry}))
+
+
+def _finetune_result(model, bal_acc):
+    """A fine-tuning JSON: same shape, but a single probe called 'finetune'.
+
+    There are no kNN / logreg / prototype probes because nothing is probed -
+    the whole network was trained."""
+    return {"modelo": model, "smoke": False, "dim_features": 2048,
+            "dataset": "ham10000", "probes": {"finetune": _probe(bal_acc)}}
+
+
+def _write(tmp_path, results):
+    for data in results:
+        (tmp_path / f"results_{data['modelo']}_ft.json").write_text(json.dumps(data))
+    return tmp_path
+
+
+def test_a_finetuning_bank_renders_without_crashing(tmp_path):
+    """The probe table used to index knn/logreg/prototype unconditionally, so
+    a bank whose only probe is 'finetune' died with KeyError mid-render."""
+    _write(tmp_path, [_finetune_result("resnet50", 0.71),
+                      _finetune_result("vit_b16", 0.68)])
+    out = brt.render(tmp_path)
+    assert "resnet50" in out.lower() or "ResNet-50" in out
+    assert "0.710" in out
+
+
+def test_a_single_probe_bank_skips_the_per_probe_table(tmp_path):
+    """With one probe that table is just the metrics table again, column for
+    column. Saying why it is absent beats printing a duplicate."""
+    _write(tmp_path, [_finetune_result("resnet50", 0.71)])
+    out = brt.render(tmp_path)
+    assert "### Balanced accuracy por probe: no aplica" in out
+    assert "| kNN |" not in out and "| LogReg |" not in out
+    assert "finetune" in out.lower(), "the reader should learn which probe it was"
+
+
+def test_the_frozen_banks_still_get_their_probe_table():
+    rows = brt.rank(brt.load_bank(REPO / "results" / "baselines"))
+    out = brt.render(REPO / "results" / "baselines")
+    assert "Balanced accuracy por probe" in out
+    assert all(p in brt.table_probes(rows) for p in ("kNN", "LogReg", "Prototipos"))
