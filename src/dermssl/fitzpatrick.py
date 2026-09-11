@@ -13,6 +13,15 @@ LAB conversion against ``skimage.color.rgb2lab`` within ``atol=1e-4`` -
 never imported here. ``src/dermssl/__init__.py::MODULE_ORDER`` modules are
 inlined and executed by the notebook-build test, so a module-level
 ``import skimage`` here would break both that test and the Kaggle cell.
+
+The ``lesion_mask`` import below is used as a bare name (never
+``lesion_guided.lesion_mask``) on purpose: ``pretrain/lesion_guided`` is
+inlined into the same notebook cell, immediately before this module (see
+``MODULE_ORDER``), and ``scripts/build_notebook_v5.py``'s
+``module_source()`` strips this import line during inlining - by the time
+this file's code runs in the notebook, ``lesion_mask`` already exists as a
+plain function in that shared namespace. A package-qualified reference
+would leave a dangling ``lesion_guided`` name and break the Kaggle cell.
 """
 
 from __future__ import annotations
@@ -21,7 +30,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from dermssl.pretrain import lesion_guided
+from dermssl.pretrain.lesion_guided import lesion_mask
 
 # Groh et al. empirical ITA thresholds (degrees), descending. Bucket 1 is the
 # lightest FST, bucket 6 the darkest.
@@ -167,7 +176,7 @@ def estimate_fst(img: np.ndarray, mask: np.ndarray | None = None) -> FSTEstimate
     border = gray < BORDER_LUMINANCE_THRESHOLD
 
     if mask is None or _is_degenerate(mask):
-        mask = lesion_guided.lesion_mask(gray)
+        mask = lesion_mask(gray)
 
     if _is_degenerate(mask):
         skin = ~mask & ~border

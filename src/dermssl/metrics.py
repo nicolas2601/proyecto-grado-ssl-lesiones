@@ -26,6 +26,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from dermssl.gates import DEFAULT_FAIRNESS_MIN_BUCKET_N
+
 
 def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
@@ -199,6 +201,61 @@ def bootstrap_ci(
     lo = float(np.percentile(vals, 100 * alpha / 2))
     hi = float(np.percentile(vals, 100 * (1 - alpha / 2)))
     return float(point), lo, hi
+
+
+FST_BUCKETS = (1, 2, 3, 4, 5, 6)
+UNAVAILABLE_BUCKET = "unavailable"
+
+
+def stratified_summary(
+    y_true: np.ndarray,
+    proba: np.ndarray,
+    buckets: np.ndarray,
+    n_classes: int,
+    min_n: int = DEFAULT_FAIRNESS_MIN_BUCKET_N,
+) -> dict:
+    """``summarize()``, split per Fitzpatrick skin-type bucket (1-6, or
+    ``"unavailable"`` for ``FSTEstimate.bucket is None`` rows - see
+    ``dermssl.fitzpatrick``).
+
+    Never fails on thin data (spec.md, fairness-evaluation req 2): every
+    bucket in ``FST_BUCKETS + (UNAVAILABLE_BUCKET,)`` is always present in the
+    output, even with zero matching rows - a bucket below ``min_n`` (0
+    included) is marked ``"SKIPPED"`` with the observed count and a reason,
+    never silently omitted from the structure.
+
+    With no rows at all (``y_true`` empty - e.g. no ``fst_manifest.csv`` has
+    been produced yet), returns ``{}``: nothing to stratify, matching
+    design.md's error table ("Manifest missing -> stratified_summary returns
+    {}; gate = SKIP").
+    """
+    y_true = np.asarray(y_true)
+    if y_true.size == 0:
+        return {}
+
+    proba = np.asarray(proba, dtype=float)
+    buckets = np.asarray(buckets, dtype=object)
+
+    result: dict = {}
+    for key in (*FST_BUCKETS, UNAVAILABLE_BUCKET):
+        if key == UNAVAILABLE_BUCKET:
+            mask = np.array([b is None for b in buckets])
+        else:
+            mask = np.array([b == key for b in buckets])
+        count = int(mask.sum())
+        if count < min_n:
+            result[key] = {
+                "status": "SKIPPED",
+                "count": count,
+                "reason": f"n={count} < min_n={min_n}",
+            }
+        else:
+            result[key] = {
+                "status": "OK",
+                "count": count,
+                **summarize(y_true[mask], proba[mask], n_classes),
+            }
+    return result
 
 
 def mean_std(values) -> dict:
