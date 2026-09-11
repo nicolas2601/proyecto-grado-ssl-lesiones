@@ -36,4 +36,5 @@ MODULE_ORDER = (
     "feature_cache",
     "fitzpatrick",
     "gates",
+    "circle",
 )
