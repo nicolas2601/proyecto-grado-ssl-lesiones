@@ -86,3 +86,23 @@ def test_the_launcher_does_not_dead_end_when_weights_can_be_downloaded():
         assert step in out.stdout, f"launcher never reached {step}:\n" + out.stdout
     assert out.returncode == 0, (
         f"a dry-run must not fail (exit {out.returncode}):\n{out.stdout}\n{out.stderr}")
+
+
+def test_an_existing_weight_cache_is_respected():
+    """Karen's lab may already have a shared Hugging Face cache.
+
+    The launcher used to export HF_HOME unconditionally, so a cluster-wide
+    cache was ignored and every model was downloaded again into scratch."""
+    import os
+    import subprocess
+
+    shared = "/tmp/dermssl-shared-hf"
+    os.makedirs(shared, exist_ok=True)
+    out = subprocess.run(
+        ["bash", str(CLUSTER / "finetune" / "run_all.sh"), "--dry-run"],
+        capture_output=True, text=True, cwd=REPO,
+        env={**os.environ, "SCRATCH": "/tmp/dermssl-handoff-test",
+             "DERMSSL_ASSUME_NETWORK": "1", "HF_HOME": shared},
+    )
+    assert shared in out.stdout, (
+        "the launcher ignored a pre-set HF_HOME:\n" + out.stdout)
