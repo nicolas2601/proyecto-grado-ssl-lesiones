@@ -498,7 +498,7 @@ JSON, con la comparacion pareada contra el mismo modelo congelado:
   y **no** como diferencia establecida. Escribir "no se solapan" ahi seria
   cierto de forma literal y enganoso de forma practica.
 
-**El orden se da vuelta entero, y eso es lo que hay que vigilar.**
+**Sobre el orden: lo que se puede mirar y lo que no.**
 
 | | Congelados | Fine-tuned |
 |---|---|---|
@@ -506,10 +506,30 @@ JSON, con la comparacion pareada contra el mismo modelo congelado:
 | 2º | resnet50 0.572 | vgg19 0.714 |
 | 3º | vgg19 0.515 | alexnet 0.670 |
 
-Tres de tres invierten su posicion, y la ganancia crece a medida que el
-rendimiento congelado baja: vgg19 era ultimo y da el mayor salto (+0.200),
-alexnet era primero y da el menor (+0.081). Si eso aguanta con los cinco que
-faltan, la lectura seria que **el rendimiento congelado predice mal el techo
-tras fine-tuning**, con una consecuencia practica directa: elegir backbone por
-su banco congelado seria un criterio malo. Con tres modelos es una senal, no un
-resultado. Se decide con los ocho.
+Los tres cambian de puesto, pero **no es una inversion limpia**: vgg19 era
+ultimo congelado y termina segundo, no primero. El unico movimiento nitido es
+alexnet, que pasa de primero a ultimo.
+
+> **Trampa estadistica, anotada antes de caer en ella.** Es tentador graficar
+> el delta contra el rendimiento congelado y decir "el que peor rinde congelado
+> es el que mas gana". **Esa afirmacion no se puede sostener**, porque
+> `delta = fine_tuned - congelado` lleva el congelado a los dos lados: en el eje
+> X directamente y en el eje Y restando. Cualquier ruido en la medicion del
+> congelado genera correlacion negativa **aunque no exista ningun efecto real**.
+> Es acoplamiento matematico, de la familia de la regresion a la media.
+>
+> Cuanto importa, medido: simulando 8 modelos con el **mismo** valor verdadero y
+> solo ruido de medicion del tamano de nuestros intervalos, la correlacion entre
+> congelado y delta sale por debajo de -0.6 en el **61.6 %** de las simulaciones.
+> Es decir, con cero efecto real ese patron aparece mas veces de las que no.
+>
+> La comparacion que si es valida es **fine-tuned contra congelado**, donde el
+> congelado aparece una sola vez. En ese grafico, con los tres cerrados, el
+> orden ya deja de invertirse.
+
+Lo que si queda dicho con tres modelos: el fine-tuning mejora a los tres, dos de
+las tres mejoras se separan estadisticamente, y el rendimiento congelado no
+anticipo cual quedaria primero. Si con los ocho el orden fine-tuned sigue sin
+parecerse al congelado, la consecuencia practica seria que **elegir backbone por
+su banco congelado es un criterio malo**. Eso se afirma con los ocho, mirando
+fine-tuned contra congelado, nunca el delta.
