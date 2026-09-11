@@ -394,3 +394,91 @@ def test_comparison_report_respects_a_custom_metric_and_min_bucket_n():
     )
     assert report["baseline"]["gap"] == pytest.approx(0.20)
     assert report["regularization"]["gap"] == pytest.approx(0.07)
+
+
+def _bootstrap_fixture():
+    y = np.array([0, 0, 1, 1, 0, 0, 1, 1])
+    buckets = np.array([1, 1, 1, 1, 2, 2, 2, 2], dtype=object)
+    baseline = np.array(
+        [[0.9, 0.1], [0.8, 0.2], [0.1, 0.9], [0.2, 0.8],
+         [0.9, 0.1], [0.8, 0.2], [0.7, 0.3], [0.6, 0.4]]
+    )
+    regularization = np.array(
+        [[0.9, 0.1], [0.8, 0.2], [0.1, 0.9], [0.2, 0.8],
+         [0.9, 0.1], [0.8, 0.2], [0.4, 0.6], [0.6, 0.4]]
+    )
+    synthetic = np.array(
+        [[0.9, 0.1], [0.8, 0.2], [0.1, 0.9], [0.2, 0.8],
+         [0.9, 0.1], [0.8, 0.2], [0.4, 0.6], [0.3, 0.7]]
+    )
+    proba = {
+        "baseline": baseline,
+        "regularization": regularization,
+        "synthetic_blend": synthetic,
+    }
+    summaries = {
+        name: m.stratified_summary(y, values, buckets, n_classes=2, min_n=1)
+        for name, values in proba.items()
+    }
+    inputs = {
+        name: {"y_true": y, "proba": values, "buckets": buckets, "n_classes": 2}
+        for name, values in proba.items()
+    }
+    return summaries, inputs
+
+
+def test_comparison_report_bootstraps_gap_and_relative_improvement_intervals():
+    summaries, inputs = _bootstrap_fixture()
+
+    report = m.comparison_report(
+        summaries["baseline"],
+        summaries["regularization"],
+        summaries["synthetic_blend"],
+        min_bucket_n=1,
+        bootstrap_inputs=inputs,
+        n_resamples=200,
+        seed=7,
+    )
+
+    for variant in report.values():
+        assert variant["gap_ci95"] is not None
+        assert len(variant["gap_ci95"]) == 2
+        assert variant["gap_ci95"][0] <= variant["gap_ci95"][1]
+    assert report["regularization"]["relative_improvement_ci95"] is not None
+    assert report["synthetic_blend"]["relative_improvement_ci95"] is not None
+
+
+def test_comparison_report_without_raw_predictions_marks_intervals_unavailable():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}
+    mitigation = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.55)}
+
+    report = m.comparison_report(baseline, mitigation, mitigation)
+
+    assert report["baseline"]["gap_ci95"] is None
+    assert report["regularization"]["relative_improvement_ci95"] is None
+
+
+def test_comparison_report_rejects_unpaired_bootstrap_cohorts():
+    summaries, inputs = _bootstrap_fixture()
+    inputs["regularization"] = {**inputs["regularization"], "y_true": np.arange(8)}
+
+    with pytest.raises(ValueError, match="same validation cohort"):
+        m.comparison_report(
+            summaries["baseline"],
+            summaries["regularization"],
+            summaries["synthetic_blend"],
+            min_bucket_n=1,
+            bootstrap_inputs=inputs,
+            n_resamples=20,
+        )
+
+
+def test_stratified_summary_counts_explicit_unavailable_markers():
+    y = np.array([0, 1, 0, 1])
+    proba = np.array([[0.9, 0.1], [0.1, 0.9], [0.8, 0.2], [0.2, 0.8]])
+    buckets = np.array([1, "unavailable", None, float("nan")], dtype=object)
+
+    summary = m.stratified_summary(y, proba, buckets, n_classes=2, min_n=1)
+
+    assert summary[1]["count"] == 1
+    assert summary["unavailable"]["count"] == 3
