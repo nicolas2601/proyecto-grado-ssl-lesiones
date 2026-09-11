@@ -91,11 +91,14 @@ def srgb_to_lab(img: np.ndarray) -> np.ndarray:
 def ita_degrees(L: np.ndarray, b: np.ndarray) -> np.ndarray:
     """Individual Typology Angle, in degrees: ``arctan((L*-50)/b*) * 180/pi``.
 
-    Uses ``arctan2`` rather than plain ``arctan`` so the sign of ``b*`` is
-    preserved instead of raising/NaN-ing on ``b* == 0`` - matching the
-    "impossible to leave [-90, 90]" invariant from design.md's error table.
+    Plain ``arctan`` of the ratio - the literature formula (Kolm/Chardon,
+    Groh et al.) - not ``arctan2`` of the two components: ``arctan2`` is
+    quadrant-aware and would wrap negative-``b*`` readings into (90, 180],
+    which contradicts the "ITA cannot leave [-90, 90]" invariant that
+    design.md's error table asserts "by arctan construction".
     """
-    return np.degrees(np.arctan2(np.asarray(L) - 50.0, np.asarray(b)))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return np.degrees(np.arctan((np.asarray(L) - 50.0) / np.asarray(b)))
 
 
 def fst_bucket(ita: float) -> int:
