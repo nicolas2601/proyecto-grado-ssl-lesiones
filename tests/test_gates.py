@@ -165,3 +165,84 @@ def test_blocking_is_only_true_for_failures():
     assert g.Gate("x", "c", 1, g.FAIL).blocking is True
     assert g.Gate("x", "c", 1, g.SKIP).blocking is False
     assert g.Gate("x", "c", 1, g.PASS).blocking is False
+
+
+# --- fairness_gate: G3, standalone per D1 (composes over evaluate_gates) ---
+#
+# gates.py stays a PURE DECISION module: fairness_gate receives numbers a
+# caller already computed (metrics.stratified_summary's output), it never
+# touches FST/ITA math. Mirrors the G2 smoke-skip precedent: thin or absent
+# data SKIPs, it never FAILs (spec.md, fairness-evaluation req 3).
+
+
+def qualifying_bucket(macro_f1, count=40):
+    return {"status": "OK", "count": count, "macro_f1": macro_f1}
+
+
+def skipped_bucket(count=5):
+    return {"status": "SKIPPED", "count": count, "reason": f"n={count} < min_n=30"}
+
+
+@pytest.mark.parametrize(
+    "summary, expected_status",
+    [
+        (
+            {1: qualifying_bucket(0.70), 2: qualifying_bucket(0.60), 3: skipped_bucket()},
+            "pass",
+        ),
+        (
+            {1: qualifying_bucket(0.80), 2: qualifying_bucket(0.50)},
+            "fail",
+        ),
+        (
+            {1: qualifying_bucket(0.80), 2: skipped_bucket(), 3: skipped_bucket(0)},
+            "skip",
+        ),
+        (
+            {},
+            "skip",
+        ),
+    ],
+    ids=["pass_within_threshold", "fail_beyond_threshold", "skip_thin_only_one_qualifies", "skip_empty_no_buckets"],
+)
+def test_fairness_gate_table_driven(summary, expected_status):
+    gate = g.fairness_gate(summary)
+    assert gate.status == {"pass": g.PASS, "fail": g.FAIL, "skip": g.SKIP}[expected_status]
+    assert gate.name == "G3 equidad por fototipo"
+    assert gate.blocking == (expected_status == "fail")
+
+
+def test_fairness_gate_gap_is_max_minus_min_macro_f1_among_qualifying_buckets():
+    summary = {1: qualifying_bucket(0.70), 2: qualifying_bucket(0.55), 3: qualifying_bucket(0.60)}
+    gate = g.fairness_gate(summary)
+    assert gate.value == pytest.approx(0.70 - 0.55)
+
+
+def test_fairness_gate_respects_a_custom_max_gap():
+    summary = {1: qualifying_bucket(0.70), 2: qualifying_bucket(0.60)}  # gap = 0.10
+    assert g.fairness_gate(summary, max_gap=0.05).status == g.FAIL
+    assert g.fairness_gate(summary, max_gap=0.15).status == g.PASS
+
+
+def test_fairness_gate_respects_a_custom_min_bucket_n():
+    summary = {1: qualifying_bucket(0.70, count=12), 2: qualifying_bucket(0.60, count=12)}
+    # Below the default min_bucket_n=30, both buckets are too thin to qualify.
+    assert g.fairness_gate(summary).status == g.SKIP
+    # A caller-supplied, lower min_bucket_n makes them qualify.
+    assert g.fairness_gate(summary, min_bucket_n=10).status == g.PASS
+
+
+def test_fairness_gate_never_fails_it_only_passes_or_skips_on_thin_data():
+    thin = {1: qualifying_bucket(0.90), 2: skipped_bucket()}
+    assert g.fairness_gate(thin).status in (g.PASS, g.SKIP)
+    assert g.fairness_gate(thin).blocking is False
+
+
+def test_fairness_gate_composes_with_evaluate_gates_by_concatenation():
+    """D1: evaluate_gates' signature never changes - the caller concatenates."""
+    strat = {1: qualifying_bucket(0.70), 2: qualifying_bucket(0.60)}
+    gates = g.evaluate_gates(**base_kwargs()) + [g.fairness_gate(strat)]
+    assert by_name(gates, "equidad por fototipo").status == g.PASS
+    assert g.all_blocking_pass(gates) is True
+    text = g.report(gates)
+    assert "G3 equidad por fototipo" in text

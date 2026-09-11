@@ -176,6 +176,53 @@ def evaluate_gates(
     return gates
 
 
+FAIRNESS_METRIC = "macro_f1"
+DEFAULT_FAIRNESS_MAX_GAP = 0.15
+DEFAULT_FAIRNESS_MIN_BUCKET_N = 30
+
+
+def fairness_gate(
+    summary: dict,
+    *,
+    max_gap: float = DEFAULT_FAIRNESS_MAX_GAP,
+    min_bucket_n: int = DEFAULT_FAIRNESS_MIN_BUCKET_N,
+) -> Gate:
+    """G3: how much macro-F1 varies across Fitzpatrick skin-type buckets.
+
+    Standalone by design (D1 in design.md): composes over ``evaluate_gates``
+    instead of extending it, so this module stays stdlib-only and its
+    signature never changes. Caller concatenates::
+
+        gates = evaluate_gates(...) + [fairness_gate(strat)]
+
+    ``summary`` is the output of ``metrics.stratified_summary`` - this
+    function never touches FST/ITA math, only the numbers already computed.
+    Mirrors the G2 smoke-skip precedent: fewer than two buckets with at least
+    ``min_bucket_n`` samples means there is nothing trustworthy to compare, so
+    the gate SKIPs - it never FAILs on thin or absent data (spec.md,
+    fairness-evaluation req 3). ``max_gap=0.15`` is the reference target from
+    docs/07 and docs/11 ("Brecha de fairness (Fitzpatrick) <= 0.15") - a
+    secondary KPI, not the thesis's primary acceptance criterion.
+    """
+    qualifying = {
+        bucket: entry[FAIRNESS_METRIC]
+        for bucket, entry in summary.items()
+        if entry.get("status") == "OK" and entry.get("count", 0) >= min_bucket_n
+    }
+    criterion = f"brecha de {FAIRNESS_METRIC} entre fototipos <= {max_gap}"
+    if len(qualifying) < 2:
+        omitted = sorted(str(bucket) for bucket in summary if bucket not in qualifying)
+        return Gate(
+            "G3 equidad por fototipo",
+            criterion,
+            f"menos de 2 fototipos con >= {min_bucket_n} muestras "
+            f"(omitidos: {', '.join(omitted) if omitted else 'sin datos'})",
+            SKIP,
+        )
+    gap = max(qualifying.values()) - min(qualifying.values())
+    return Gate("G3 equidad por fototipo", criterion, round(gap, 4), _decide(gap <= max_gap))
+
+
 def report(gates: Sequence[Gate]) -> str:
     """Human-readable block, plus an unambiguous verdict line."""
     lines = ["=== REPORTE DE COMPUERTAS ==="]
