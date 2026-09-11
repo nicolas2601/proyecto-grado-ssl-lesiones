@@ -41,8 +41,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--job-index", type=int,
                    help="0..15, overrides --model/--dataset from the manifest")
     p.add_argument("--list-jobs", action="store_true")
-    p.add_argument("--data-root", help="folder with ham10000/ isic2019/")
-    p.add_argument("--output-dir", help="where JSON + checkpoint are written")
+    # Underscore spellings mirror Dr. Karen's CT-Encoders runner so the bank
+    # can be launched on her cluster without learning a second CLI.
+    p.add_argument("--data-root", "--data_path", dest="data_root",
+                   help="folder with ham10000/ isic2019/")
+    p.add_argument("--output-dir", "--output_dir", dest="output_dir",
+                   help="where JSON + checkpoint are written")
     p.add_argument("--results-dir", default="",
                    help="optional repo folder to copy the JSON into (for git push)")
     p.add_argument("--epochs", type=int, default=protocol.EPOCHS)
@@ -56,8 +60,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--wandb-mode", default=os.environ.get("WANDB_MODE", "offline"),
                    choices=("offline", "online", "disabled"))
     p.add_argument("--mlflow-tracking-uri", default="")
-    p.add_argument("--tensorboard-dir", default="",
-                   help="root for TensorBoard event files; one subfolder per run")
+    p.add_argument("--tensorboard-dir", "--tensorboard_dir", dest="tensorboard_dir",
+                   default="", help="root for TensorBoard event files (one subfolder "
+                   "per run). Default: <output-dir>/tb, like CT-Encoders. "
+                   "Pass 'none' to disable.")
     return p.parse_args(argv)
 
 
@@ -70,6 +76,11 @@ def build_config(args: argparse.Namespace) -> FinetuneConfig:
         raise ConfigError("give --model and --dataset, or --job-index")
     if not args.data_root or not args.output_dir:
         raise ConfigError("--data-root and --output-dir are required")
+    # TensorBoard is on by default and lands inside the run's own output dir:
+    # the UNAB platform shares one MLflow server across every student, so a
+    # private event-file directory is the only dashboard that is ours.
+    tb = args.tensorboard_dir
+    tensorboard_dir = "" if tb == "none" else (tb or str(Path(args.output_dir) / "tb"))
     return FinetuneConfig(
         model=model, dataset=dataset, data_root=args.data_root,
         output_dir=args.output_dir, epochs=args.epochs, batch_size=args.batch,
@@ -77,7 +88,7 @@ def build_config(args: argparse.Namespace) -> FinetuneConfig:
         precision=args.precision, wandb_project=args.wandb_project,
         wandb_entity=args.wandb_entity, wandb_mode=args.wandb_mode,
         mlflow_tracking_uri=args.mlflow_tracking_uri,
-        tensorboard_dir=args.tensorboard_dir,
+        tensorboard_dir=tensorboard_dir,
         extra_tags=["smoke"] if args.smoke else [],
     )
 

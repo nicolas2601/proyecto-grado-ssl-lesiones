@@ -167,6 +167,38 @@ Definido en `src/dermssl/finetune/protocol.py` y verificado por tests.
 | Seleccion | mejor epoca por balanced accuracy de validacion |
 | Semilla | 42 |
 
+## 6b. Equivalencias con CT-Encoders
+
+El runner acepta la misma forma de invocacion que `ibot/main_ibot.py` del
+repositorio CT-Encoders del laboratorio, para no obligar a aprender un segundo
+CLI. `--data_path` y `--output_dir` funcionan igual que `--data-root` y
+`--output-dir`.
+
+```bash
+# CT-Encoders
+python ibot/main_ibot.py --arch swin3D --data_path /../dataset --output_dir ./output_dir
+
+# este banco, un job
+python scripts/finetune_baseline.py --model resnet50 --dataset ham10000 \
+    --data_path $SCRATCH/dermssl/data --output_dir ./output_dir
+```
+
+TensorBoard se activa solo y escribe dentro del `output_dir`, igual que el
+`SummaryWriter` de CT-Encoders (`args.output_dir/tf_logs`); aca es
+`<output_dir>/tb`, un subdirectorio por corrida. Se apaga con
+`--tensorboard-dir none`. Para verlo:
+
+```bash
+tensorboard --logdir <output_dir>/tb
+```
+
+Dos diferencias deliberadas, por si llaman la atencion:
+
+| Tema | CT-Encoders | Este banco | Por que |
+|---|---|---|---|
+| Paralelismo | DDP: un modelo repartido en N GPU | un modelo por GPU, N jobs en paralelo | son 16 corridas independientes de 20-90 min; repartir una sola entre 4 GPU no las termina antes y agrega una superficie de fallo (NCCL, sincronizacion) que aqui no compra nada |
+| Registro | tensorboardX | `torch.utils.tensorboard` | misma salida y mismo visor; evita una dependencia mas en el entorno del cluster |
+
 ## 7. Si algo falla
 
 - `weight caches missing`: falta el tar de pesos en `$SCRATCH/dermssl/`.
