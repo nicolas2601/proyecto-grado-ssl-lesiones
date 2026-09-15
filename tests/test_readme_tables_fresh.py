@@ -151,14 +151,33 @@ def _finetune_jsons(dataset: str):
             if "mlruns" not in h.parts]
 
 
+# Where each fine-tuned dataset's FROZEN counterpart lives. The first version of
+# the paired-table guard read every frozen number from results/baselines/, which
+# is HAM10000: a correct ISIC 2019 table would have failed against the wrong
+# bank, and a wrong one copied from HAM10000 would have passed.
+FROZEN_BANK = {"ham10000": ("baselines", ""),
+               "isic2019": ("baselines_isic2019", "_isic2019")}
+
+
 def _dataset_sections() -> dict[str, str]:
-    """Each published `### <dataset> con fine-tuning` block, by dataset."""
+    """Each published `### <dataset> con fine-tuning` block, by dataset.
+
+    The heading is matched up to ' con fine-tuning', not with a no-space
+    class: the first
+    version captured only 'ISIC' out of 'ISIC 2019', so that section was never
+    looked up and its rows went unchecked in silence. A block ends at the next
+    ### heading of any kind, so a later table that happens to start with the
+    same model name (the LR probe) cannot be mistaken for the paired row."""
     section = _finetune_section()
     found = {}
-    heads = list(re.finditer(r"^### (\S+) con fine-tuning.*$", section, re.M))
-    for i, head in enumerate(heads):
-        stop = heads[i + 1].start() if i + 1 < len(heads) else len(section)
-        found[head.group(1).lower().replace(" ", "")] = section[head.end():stop]
+    heads = list(re.finditer(r"^### (.+?) con fine-tuning.*$", section, re.M))
+    for head in heads:
+        rest = section[head.end():]
+        nxt = re.search(r"^### ", rest, re.M)
+        body = rest if nxt is None else rest[:nxt.start()]
+        key = head.group(1).lower().replace(" ", "")
+        if key in FROZEN_BANK:
+            found[key] = body
     return found
 
 
@@ -191,8 +210,9 @@ def test_every_published_finetuning_number_matches_its_json():
             if f"| {display} |" not in section:
                 continue  # not published yet; nothing to keep honest
             tuned = data["probes"]["finetune"]
-            frozen = json.loads((REPO / "results" / "baselines"
-                                 / f"results_{model}.json").read_text())["probes"]
+            bank, suffix = FROZEN_BANK[dataset]
+            frozen = json.loads((REPO / "results" / bank
+                                 / f"results_{model}{suffix}.json").read_text())["probes"]
             frozen = frozen[max(frozen, key=lambda k: frozen[k]["balanced_accuracy"])]
 
             cells = _paired_row(section, display)
@@ -208,14 +228,30 @@ def test_every_published_finetuning_number_matches_its_json():
                 f"{dataset}/{model}: published delta {cells[5]}, arithmetic "
                 f"gives {delta:+.3f}")
 
-            gap = (tuned["ic95_bootstrap"]["balanced_accuracy"][0]
-                   - frozen["ic95_bootstrap"]["balanced_accuracy"][1])
-            assert cells[6].startswith(f"{gap:+.3f}"), (
+            # Separation is checked in BOTH directions. The first version only
+            # measured the fine-tuned floor against the frozen ceiling, which is
+            # the right question for an improvement and the wrong one for a
+            # drop: DINOv2 ViT-B/14 on HAM10000 sits entirely BELOW its frozen
+            # interval (0.572 vs 0.576) and the README called that an overlap.
+            up = (tuned["ic95_bootstrap"]["balanced_accuracy"][0]
+                  - frozen["ic95_bootstrap"]["balanced_accuracy"][1])
+            down = (frozen["ic95_bootstrap"]["balanced_accuracy"][0]
+                    - tuned["ic95_bootstrap"]["balanced_accuracy"][1])
+            if up > 0:
+                expect, overlap = f"{up:+.3f}", False
+            elif down > 0:
+                expect, overlap = f"{-down:+.3f}", False
+            else:
+                expect, overlap = f"{up:+.3f}", True
+            assert cells[6].startswith(expect), (
                 f"{dataset}/{model}: published gap {cells[6]}, arithmetic "
-                f"gives {gap:+.3f}")
-            assert ("solapan" in cells[6]) == (gap <= 0), (
-                f"{dataset}/{model}: the row says {cells[6]!r} but the gap is "
-                f"{gap:+.4f}")
+                f"gives {expect}")
+            assert ("solapan" in cells[6]) == overlap, (
+                f"{dataset}/{model}: the row says {cells[6]!r} but up={up:+.4f} "
+                f"down={down:+.4f}")
+            if down > 0:
+                assert "por debajo" in cells[6], (
+                    f"{dataset}/{model}: separated downwards must say so")
             checked += 1
     assert checked, "no published fine-tuning row was verified"
 
@@ -255,3 +291,18 @@ def test_the_partial_finetuning_count_matches_what_landed():
     assert claimed == on_disk, (
         f"the README says {claimed} runs are closed but {on_disk} JSONs are on disk")
     assert total == len(protocol.MODELS)
+
+
+def test_the_lr_probe_rows_are_published_and_fresh():
+    """The probe has two models, so it never reaches _published_banks (which
+    waits for eight). It still must not rot: its two rows decide how the DINOv2
+    drop is read, and a stale 0.762 would be the worst number to leave wrong."""
+    probe = REPO / "results" / "finetune_lrprobe"
+    if len(list(probe.glob("results_*.json"))) < 2:
+        pytest.skip("the LR probe has not landed")
+    generated = _table_rows(brt.render(probe))
+    published = _table_rows((REPO / "README.md").read_text())
+    missing = {r for r in generated if r not in published and "Modelo" not in r}
+    assert not missing, (
+        "LR probe rows are not in the README - re-run "
+        f"build_results_tables.py --results-dir results/finetune_lrprobe: {sorted(missing)[:3]}")
