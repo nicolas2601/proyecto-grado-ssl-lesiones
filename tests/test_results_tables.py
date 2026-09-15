@@ -281,3 +281,14 @@ def test_a_fully_converged_bank_says_so_without_noise(tmp_path):
     out = brt.render(tmp_path)
     assert "convergieron" in out.lower()
     assert "desconocid" not in out.lower()
+
+
+def test_the_converged_sentence_counts_the_models_it_has(tmp_path):
+    """The LR probe bank has two models. Its first rendering said 'Los ocho
+    modelos convergieron' because the sentence was written for the eight-model
+    banks and never looked at the rows."""
+    _write(tmp_path, [_run("dinov2_vits14", 0.73, **CONVERGED),
+                      _run("dinov2_vitb14", 0.76, **CONVERGED)])
+    out = brt.render(tmp_path)
+    assert "los dos modelos convergieron" in out.lower()
+    assert "ocho" not in out.lower()

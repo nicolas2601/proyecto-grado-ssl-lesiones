@@ -194,7 +194,11 @@ def table_convergence(rows: list[Row]) -> str:
 def convergence_warning(rows: list[Row]) -> str:
     states = {convergence(row.data) for row in rows}
     if states == {"convergio"}:
-        return ("> Los ocho modelos convergieron dentro del presupuesto de epocas: "
+        n = len(rows)
+        word = {1: "El unico modelo", 2: "Los dos modelos", 8: "Los ocho modelos"}
+        subject = word.get(n, f"Los {n} modelos")
+        verb = "convergio" if n == 1 else "convergieron"
+        return (f"> {subject} {verb} dentro del presupuesto de epocas: "
                 "ninguno llego a la ultima epoca todavia mejorando.")
     parts = []
     if "truncada" in states:
