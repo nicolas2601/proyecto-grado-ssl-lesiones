@@ -74,6 +74,11 @@ def output_dir(bank: str, results_root: Path) -> Path:
     running both is comparing them without translating paths. Frozen banks have
     no cluster counterpart and keep their flat `<root>/<bank>/`.
     """
+    # The LR probe shares ham10000 with the main bank but is NOT part of it, so
+    # it gets its own directory. Without this it resolved to the published
+    # bank's folder, read that bank's state file and exited claiming 8/8.
+    if bank == "finetune_lrprobe":
+        return results_root / bank
     if bank.startswith("finetune"):
         sys.path.insert(0, str(REPO / "src"))
         from dermssl.finetune import protocol

@@ -73,6 +73,21 @@ def test_missing_result_file_is_reported(tmp_path):
         krb.verify_result(tmp_path / "nope.json", real=True)
 
 
+def test_the_lr_probe_writes_to_its_own_directory(tmp_path):
+    """Contamination has two halves and only one was guarded.
+
+    `result_name` already gave the probe its own `_ft_lrprobe` suffix, and a
+    test covered that. `output_dir` did not: `finetune_lrprobe` starts with
+    "finetune", so it resolved to results/finetune/ham10000 - the published
+    bank's own directory. The probe read that bank's state file, saw 8/8 done
+    and exited without running. Had it run, it would have written over
+    published rows.
+    """
+    assert (krb.output_dir("finetune_lrprobe", tmp_path)
+            != krb.output_dir("finetune", tmp_path))
+    assert krb.output_dir("finetune_lrprobe", tmp_path) == tmp_path / "finetune_lrprobe"
+
+
 def test_finetune_results_land_where_the_cluster_writes_them(tmp_path):
     """Kaggle and the cluster run the same protocol, so their outputs have to
     be comparable without a path translation. `finetune_baseline.py` writes
