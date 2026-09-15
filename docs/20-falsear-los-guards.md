@@ -31,7 +31,7 @@ el falseo 1 no lo distingue.
 
 Cuesta dos minutos. Si el test no cae, el test no existe: solo lo parece.
 
-## Las cinco formas de guard falso
+## Las seis formas de guard falso
 
 ### 1. Busca un token que el propio mecanismo declara
 
@@ -131,6 +131,29 @@ de deriva queda rojo para siempre. Se reemplazo por un hash del **contenido** de
 los archivos del generador, que no depende de cuando se commiteo. Hay ademas un
 test que assertea que el sello **no** es HEAD, o sea un guard contra la version
 que se veia bien.
+
+### 6. Mide en la direccion que esperabamos
+
+El guard esta bien escrito para el caso esperado y ciego para el inesperado,
+que es justo donde mas falta hace.
+
+El caso real (2026-09-15): la tabla pareada congelado contra fine-tuned tiene
+una columna "Separacion IC95" y un test que la recalcula desde los JSON. Los dos
+median `piso del fine-tuned - techo del congelado`, que es la pregunta correcta
+cuando el fine-tuning **mejora**. Cuando **empeora**, la pregunta es la otra:
+`piso del congelado - techo del fine-tuned`. DINOv2 ViT-B/14 sobre HAM10000
+tiene el intervalo fine-tuned entero por debajo del congelado (0.572 contra
+0.576), y el README lo publico como "se solapan". El test lo confirmo, porque
+calculaba lo mismo que la tabla.
+
+Toda la infraestructura de intervalos se escribio asumiendo mejoras, asi que la
+unica caida real del banco paso por la rendija. Y no era un detalle: separado
+por debajo significa que la degradacion no es ruido, lo que refuerza la lectura
+del probe de learning rate en vez de debilitarla.
+
+El arreglo mide en las dos direcciones y exige que la fila diga "por debajo"
+cuando la separacion es hacia abajo. El falseo que lo habria encontrado antes:
+tomar un JSON con caida y preguntarse que tendria que decir la tabla.
 
 ## Un guard nuevo tambien puede abrir un hueco
 
