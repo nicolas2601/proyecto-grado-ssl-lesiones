@@ -417,7 +417,7 @@ datos nuevos**. La validación externa honesta exigiría el complemento
 > del GAP convolucional). Los otros seis modelos reprodujeron sus números al cuarto
 > decimal, lo que confirma que el pipeline es determinista.
 
-## Baselines CON fine-tuning — backbone entrenado end-to-end (en curso)
+## Baselines CON fine-tuning — backbone entrenado end-to-end (Kaggle, 2026-09-11 a 2026-09-15)
 
 **Los mismos ocho backbones que los tres bancos de arriba, pero entrenados.**
 Aquellos miden el backbone **congelado**: que tan buenas son sus features
@@ -432,8 +432,9 @@ gradientes.
 
 | Banco | Corridas | JSONs | Tabla |
 |---|---|---|---|
-| HAM10000 (7 clases) | 8 modelos | `results/finetune/ham10000/` | abajo, cuando cierren las ocho |
-| ISIC 2019 (8 clases) | 8 modelos | `results/finetune/isic2019/` | abajo, cuando cierren las ocho |
+| HAM10000 (7 clases) | 8 de 8, cerrado | `results/finetune/ham10000/` | abajo |
+| ISIC 2019 (8 clases) | 8 de 8, cerrado | `results/finetune/isic2019/` | abajo |
+| Probe de learning rate, DINOv2 x2 sobre HAM10000 | 2 de 2, cerrado | `results/finetune_lrprobe/` | abajo, fuera de los rankings |
 
 Las tablas se generan igual que las de los bancos congelados y **no se escriben
 a mano**. Los tests que las protegen estan falseados uno por uno; el metodo y
@@ -448,6 +449,29 @@ python scripts/build_results_tables.py --results-dir results/finetune/isic2019
 Un banco de fine-tuning tiene un solo modo de evaluacion (`finetune`) en lugar de
 los tres probes del congelado, asi que la tabla "balanced accuracy por probe" no
 aplica y el generador lo dice en vez de imprimir una columna repetida.
+
+### Las decisiones del protocolo, y lo que cuesta cada una
+
+Todas las tablas de esta seccion salen del mismo protocolo
+(`src/dermssl/finetune/protocol.py`, generado a los notebooks por
+`scripts/build_finetune_tests.py`). Ninguna es neutral; esta es la lista con su
+razon y su costo, para que el lector no tenga que adivinar.
+
+| Decision | Valor | Por que | Lo que cuesta |
+|---|---|---|---|
+| Presupuesto de entrenamiento | 8 epocas fijas, iguales para los ocho | Presupuesto de GPU, no criterio de convergencia: la cuota de Kaggle es ~30 h/semana y cada modelo tarda 1-2 h en una T4, asi que un banco de ocho cabe en una semana (`notebooks/finetune/README.md`). Fijo para que la comparacion sea pareada | Cuatro corridas de ISIC 2019 quedaron truncadas (mejor epoca = ultima). Su numero es un piso |
+| Seleccion de la epoca | La de mejor balanced accuracy en validacion, y se evalua esa | Evita reportar una epoca ya en sobreajuste | **Sesgo optimista**: se elige la mejor de ocho sobre el mismo conjunto en el que se reporta. El intervalo bootstrap no lo captura, porque remuestrea ese mismo conjunto. No hay test set aparte |
+| Optimizador | AdamW, weight decay 1e-4 | Estandar para fine-tuning de transformers y CNNs por igual | Ninguno relevante |
+| Learning rate | Backbone 5e-5, cabeza 5e-4, un solo valor para los ocho | Discriminativo: la cabeza parte de cero y necesita pasos grandes; el backbone parte preentrenado y necesita pasos chicos. Un solo valor para que ningun modelo reciba ajuste a mano | **Penaliza a los DINOv2**: 5e-5 les destruye las features preentrenadas (ver el probe de learning rate). Un LR unico no es neutral entre familias |
+| Schedule | Coseno hasta cero sobre el total de pasos | Sin hiperparametro extra de decaimiento | El LR llega a cero en la epoca 8 aunque el modelo siga mejorando |
+| Batch | 32; 16 en VGG19, ViT-B/16 y DINOv2 ViT-B/14 | Memoria de la T4 (16 GB) | Tres modelos hacen el doble de pasos de optimizador por epoca que los otros cinco |
+| Precision | AMP fp16 | Velocidad y memoria en T4 | Puede mover el cuarto decimal frente a fp32 |
+| Resolucion y normalizacion | 224 px, media y desviacion de ImageNet | Las mismas con que se preentrenaron los ocho backbones | Los pesos publicados de DINOv2 vienen para 518 px; timm interpola sus embeddings de posicion a 224, asi que trabaja fuera de la resolucion con que se publicaron |
+| Perdida | Cross-entropy ponderada por clase | HAM10000 e ISIC 2019 estan dominados por NV (68 % y 51 % de la validacion, desbalance de 62 a 1 y 55 a 1 entre la clase mayor y la menor); sin pesos, la cabeza aprende a decir NV | Ninguno relevante |
+| Semilla y split | 42, el mismo split que el banco congelado (HAM10000 agrupado por `lesion_id`; ISIC 2019 estratificado simple) | Comparacion pareada: lo unico que cambia frente al congelado es si el backbone recibe gradientes | ISIC 2019 no trae paciente, asi que su split puede tener al mismo paciente en train y val |
+| Metrica principal | Balanced accuracy; ademas F1 macro, AUC OVR macro, ECE | Con clases desbalanceadas, la accuracy simple premia adivinar la mayoritaria | Ninguna metrica sola cuenta la historia; por eso van las cuatro y el recall por clase |
+| Intervalos | Bootstrap de 1000 remuestreos del conjunto de validacion, 95 % | Dos numeros sin intervalo no se pueden comparar | Captura el ruido del muestreo de validacion, no el de la semilla ni el de la seleccion de epoca. Una sola semilla por celda |
+| GPU | Kaggle T4 | Es la que hay. La P100 no tiene kernels para el PyTorch de Kaggle | Una corrida de 1-2 h por modelo limita el presupuesto a las 8 epocas de arriba |
 
 ### Como se leera esta tabla, escrito antes de tenerla
 
@@ -467,6 +491,17 @@ evita elegir despues la lectura que mas convenga.
   y el sesgo es optimista, y el fine-tuning lo amplifica porque el modelo puede
   memorizar al paciente. Ademas HAM10000 esta contenido entero en ISIC 2019, asi
   que los dos bancos no son evaluaciones independientes.
+
+> **Lectura transversal, valida para los dos bancos (2026-09-15).** Los dos
+> DINOv2 son los unicos que caen por debajo de su propio congelado, en ambos
+> bancos, y en ISIC 2019 son ademas dos de las cuatro corridas que el presupuesto
+> trunco. El probe de learning rate (`LR_BACKBONE` 5e-6 en vez de 5e-5, todo lo
+> demas identico) los lleva de 0.532 y 0.621 a 0.762 y 0.731 sobre HAM10000, con
+> la mejor epoca de ViT-B/14 bajando de 7 a 3. La caida es un artefacto del
+> protocolo, ajustado para backbones supervisados, no una propiedad de los
+> backbones SSL. Ninguna tabla de abajo se puede leer como "el SSL rinde peor
+> con fine-tuning"; lo que se puede leer es que un learning rate unico para ocho
+> backbones distintos no es un protocolo neutral.
 
 ### HAM10000 con fine-tuning (8 de 8, cerrado)
 
@@ -492,8 +527,9 @@ evita elegir despues la lectura que mas convenga.
 > congelado** (0.618 → 0.532). Entrenarlo lo empeora. Con la validacion ya
 > aplanada, el presupuesto no es la explicacion; la candidata es que el learning
 > rate del backbone dana las features preentrenadas mas rapido de lo que la
-> cabeza aprende a usarlas. Es un modo de falla documentado en DINOv2. Hay un
-> probe de LR encolado para medirlo (ver los pendientes).
+> cabeza aprende a usarlas. Es un modo de falla documentado en DINOv2. El probe
+> de LR ya corrio y lo confirma: con `LR_BACKBONE` 5e-6 el mismo modelo llega a
+> 0.762 y converge en la epoca 3 (ver el probe mas abajo).
 >
 > **Un matiz que conviene no aplanar.** "La validacion se aplano" esta bien
 > sostenido para ViT-B/14, que gano +0.007 en su ultima epoca util. Para
@@ -522,6 +558,7 @@ evita elegir despues la lectura que mas convenga.
 >
 > La consecuencia practica es que la hipotesis "los backbones SSL necesitan mas
 > presupuesto de fine-tuning" **queda debilitada, no apoyada**, por este dato.
+> El probe de learning rate del 2026-09-15 la descarta del todo.
 >
 > **Y la razon de fondo de que el error se publicara:** los JSON de este banco
 > no traen la historia por epoca, asi que el caveat viajaba en un mensaje de
@@ -540,13 +577,17 @@ evita elegir despues la lectura que mas convenga.
 | SimSiam R50 | SSL | 0.494 | 0.678 | +0.184 | +0.100, separados |
 | AlexNet | Supervisado | 0.589 | 0.670 | +0.081 | +0.001, al limite |
 | DINOv2 ViT-S/14 | SSL | 0.575 | 0.621 | +0.045 | -0.036, **se solapan** |
-| DINOv2 ViT-B/14 | SSL | 0.618 | 0.532 | -0.085 | -0.170, **se solapan** |
+| DINOv2 ViT-B/14 | SSL | 0.618 | 0.532 | -0.085 | -0.004, **separados por debajo** (al limite) |
 
 Seis de los ocho mejoran con intervalos separados. AlexNet queda al limite
 (+0.001, dentro del ruido del propio bootstrap). **Los dos DINOv2 son los dos
-unicos sin mejora establecida**, y DINOv2 ViT-B/14 es el unico que empeora: una
-cabeza inicializada al azar retropropagando sobre features preentrenadas las
-dana mas rapido de lo que ocho epocas alcanzan a reparar.
+unicos sin mejora establecida**, y DINOv2 ViT-B/14 es el unico que empeora, con
+los intervalos separados por debajo (0.004, al limite). La primera version de
+esta tabla decia que se solapaban: la columna solo miraba la separacion hacia
+arriba (piso del fine-tuned contra techo del congelado), que para una caida es
+la pregunta equivocada. La causa la muestra el probe de LR: el learning rate del
+backbone dana las features preentrenadas mas rapido de lo que la cabeza aprende
+a usarlas.
 
 #### Tablas generadas del banco
 
@@ -634,20 +675,260 @@ escriben a mano y un test verifica que lo pegado aqui sea lo que los JSON dicen.
 > (`scripts/coupling_check.py`). La comparacion valida es fine-tuned contra
 > congelado, donde el congelado aparece una sola vez.
 
-### Lo que el banco con fine-tuning deja pendiente
+### ISIC 2019 con fine-tuning (8 de 8, cerrado)
 
-El presupuesto fijo es una decision del protocolo (`EPOCHS = 8` en
-`src/dermssl/finetune/protocol.py`) y resolverlo cuesta horas de GPU, asi que es
-decision de alcance, no algo que se arregle escribiendo:
+> ## ⚠ Cuatro corridas truncadas: el orden de la tabla no compara a los ocho
+>
+> VGG19, SimSiam R50 y los dos DINOv2 hacen su mejor epoca en la ultima (8 de
+> 8): seguian mejorando cuando se corto el entrenamiento, asi que su numero es
+> un **piso**. A diferencia del banco de HAM10000, cada JSON de este banco trae
+> `historia`, `mejor_epoca` y `truncada`, de modo que esta afirmacion se
+> verifica contra el dato en vez de creerse.
+>
+> **Los dos DINOv2 vuelven a caer por debajo de su propio congelado**
+> (0.620 → 0.550 y 0.597 → 0.533), igual que en HAM10000, y esta vez con los
+> intervalos separados por debajo. Su curva de validacion arranca en
+> 0.23-0.27 en la epoca 1, muy por debajo del probe congelado, y sube toda la
+> corrida sin alcanzarlo. Es la firma de un learning rate de backbone que
+> destruye las features preentrenadas en las primeras epocas y deja al resto
+> del entrenamiento reconstruirlas. El probe de learning rate de mas abajo lo
+> confirma sobre HAM10000; **sobre ISIC 2019 no se corrio**, asi que aqui la
+> explicacion es inferencia por analogia (misma curva, mismo signo), no medida.
+>
+> **Aqui la comparacion con el ancla de Gessert (0.636) si es admisible**: misma
+> tarea, mismas 8 clases. Cuatro modelos la superan con el intervalo entero por
+> encima (ViT-B/16, ResNet-50, EfficientNet-B0, VGG19) y AlexNet la cruza dentro
+> de su intervalo [0.615, 0.668]. ViT-B/16 con 0.805 de balanced accuracy, F1
+> macro 0.796 y AUC 0.977 es el mejor numero del proyecto hasta ahora, y es un
+> backbone supervisado entrenado end-to-end. Lo que la fase v6 tiene que superar
+> de forma medible es esto, no el congelado.
+>
+> Las dos limitaciones de ISIC 2019 siguen viajando con estos numeros: split
+> estratificado simple sin columna de paciente (sesgo optimista, que el
+> fine-tuning amplifica porque puede memorizar al paciente) y HAM10000 contenido
+> entero dentro, asi que no es una evaluacion independiente del banco anterior.
 
-1. **Criterio de convergencia en vez de epocas fijas** (early stopping con
-   paciencia), o **learning rate por familia**. Cualquiera de los dos vuelve el
-   banco una comparacion entre backbones en vez de entre presupuestos.
-2. **Re-correr los dos DINOv2 con mas presupuesto** para saber si su techo real
-   esta por encima o por debajo del ViT supervisado. Hoy no lo sabemos.
+#### Comparacion pareada contra el banco congelado
 
-Y hay una hipotesis que este banco sugiere y no puede probar: **los backbones
-SSL podrian necesitar mas presupuesto de fine-tuning que los supervisados sobre
-el mismo dataset**. Encaja con que el banco congelado los favoreciera —ahi no
-hay presupuesto que agotar— pero afirmarlo exige medirlo, no deducirlo de una
-corrida truncada.
+| Modelo | Tipo | Congelado | Fine-tuned | Delta | Separacion IC95 |
+|---|---|---|---|---|---|
+| ViT-B/16 | Supervisado | 0.579 | 0.805 | +0.225 | +0.173, separados |
+| ResNet-50 | Supervisado | 0.569 | 0.758 | +0.189 | +0.135, separados |
+| EfficientNet-B0 | Supervisado | 0.575 | 0.716 | +0.140 | +0.086, separados |
+| VGG19 | Supervisado | 0.497 | 0.701 | +0.205 | +0.151, separados |
+| AlexNet | Supervisado | 0.533 | 0.642 | +0.109 | +0.053, separados |
+| SimSiam R50 | SSL | 0.494 | 0.607 | +0.113 | +0.057, separados |
+| DINOv2 ViT-B/14 | SSL | 0.620 | 0.550 | -0.070 | -0.014, **separados por debajo** |
+| DINOv2 ViT-S/14 | SSL | 0.597 | 0.533 | -0.064 | -0.008, **separados por debajo** (al limite) |
+
+Seis de los ocho mejoran con intervalos separados, incluidos VGG19 y SimSiam
+R50, que mejoran aun truncados. Los dos DINOv2 empeoran con intervalos
+separados. La comparacion supervisado contra SSL de este banco sigue sin poder
+escribirse en ninguna direccion, por la misma razon que en HAM10000: dos de los
+tres SSL estan en un regimen de learning rate que los dana.
+
+#### Tablas generadas del banco
+
+Estas salen de `python scripts/build_results_tables.py --results-dir
+results/finetune/isic2019`. No se escriben a mano y un test verifica que lo
+pegado aqui sea lo que los JSON dicen.
+
+> ## Atencion: convergencia
+>
+> **VGG19, SimSiam R50, DINOv2 ViT-B/14, DINOv2 ViT-S/14: corrida truncada.** No convergieron dentro del presupuesto de epocas: su mejor epoca es la ultima, o sea que seguian mejorando cuando se corto el entrenamiento. Su numero es un **piso**, no un techo, y el orden de la tabla no los compara con los demas.
+
+### Convergencia por modelo
+
+| Modelo | Convergio | Mejor epoca | Epocas |
+|---|---|---|---|
+| ViT-B/16 | si | 7 | 8 |
+| ResNet-50 | si | 7 | 8 |
+| EfficientNet-B0 | si | 7 | 8 |
+| VGG19 | **NO** | 8 | 8 |
+| AlexNet | si | 7 | 8 |
+| SimSiam R50 | **NO** | 8 | 8 |
+| DINOv2 ViT-B/14 | **NO** | 8 | 8 |
+| DINOv2 ViT-S/14 | **NO** | 8 | 8 |
+
+### Métricas completas (mejor probe de cada modelo)
+
+| # | Modelo | Tipo | dims | acc | bal_acc | F1 macro | Prec macro | Recall macro | AUC | ECE |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | ViT-B/16 | Supervisado | 768 | **0.843** | **0.805** | **0.796** | **0.790** | **0.805** | **0.977** | 0.043 |
+| 2 | ResNet-50 | Supervisado | 2048 | 0.783 | 0.758 | 0.708 | 0.673 | 0.758 | 0.964 | 0.019 |
+| 3 | EfficientNet-B0 | Supervisado | 1280 | 0.753 | 0.716 | 0.642 | 0.596 | 0.716 | 0.954 | **0.018** |
+| 4 | VGG19 | Supervisado | 512 | 0.711 | 0.701 | 0.613 | 0.567 | 0.701 | 0.946 | 0.045 |
+| 5 | AlexNet | Supervisado | 256 | 0.649 | 0.642 | 0.528 | 0.488 | 0.642 | 0.923 | 0.024 |
+| 6 | SimSiam R50 | SSL | 2048 | 0.649 | 0.607 | 0.500 | 0.467 | 0.607 | 0.916 | 0.022 |
+| 7 | DINOv2 ViT-B/14 | SSL | 768 | 0.600 | 0.550 | 0.455 | 0.424 | 0.550 | 0.893 | 0.020 |
+| 8 | DINOv2 ViT-S/14 | SSL | 384 | 0.594 | 0.533 | 0.446 | 0.420 | 0.533 | 0.886 | 0.024 |
+
+### Intervalos de confianza (bootstrap 95%)
+
+| Modelo | bal_acc | IC95 bal_acc | F1 macro | IC95 F1 macro | Separado del líder |
+|---|---|---|---|---|---|
+| ViT-B/16 | 0.805 | [0.780, 0.828] | 0.796 | [0.775, 0.816] | - |
+| ResNet-50 | 0.758 | [0.733, 0.782] | 0.708 | [0.684, 0.729] | no |
+| EfficientNet-B0 | 0.716 | [0.689, 0.742] | 0.642 | [0.617, 0.666] | sí |
+| VGG19 | 0.701 | [0.675, 0.725] | 0.613 | [0.591, 0.634] | sí |
+| AlexNet | 0.642 | [0.615, 0.668] | 0.528 | [0.508, 0.548] | sí |
+| SimSiam R50 | 0.607 | [0.579, 0.630] | 0.500 | [0.480, 0.520] | sí |
+| DINOv2 ViT-B/14 | 0.550 | [0.522, 0.576] | 0.455 | [0.433, 0.475] | sí |
+| DINOv2 ViT-S/14 | 0.533 | [0.507, 0.560] | 0.446 | [0.425, 0.466] | sí |
+
+### Balanced accuracy por probe: no aplica
+
+> Este banco tiene un solo modo de evaluacion (`finetune`), asi que la columna ya esta en la tabla de metricas completas.
+
+### Recall por clase (mejor probe)
+
+| Modelo | MEL | NV | BCC | AK | BKL | DF | VASC | SCC |
+|---|---|---|---|---|---|---|---|---|
+| ViT-B/16 | 0.783 | 0.876 | 0.892 | 0.753 | 0.796 | 0.766 | 0.880 | 0.690 |
+| ResNet-50 | 0.695 | 0.840 | 0.777 | 0.730 | 0.699 | 0.766 | 0.880 | 0.675 |
+| EfficientNet-B0 | 0.649 | 0.819 | 0.743 | 0.644 | 0.678 | 0.745 | 0.820 | 0.627 |
+| VGG19 | 0.642 | 0.759 | 0.710 | 0.575 | 0.634 | 0.787 | 0.860 | 0.643 |
+| AlexNet | 0.581 | 0.704 | 0.615 | 0.632 | 0.552 | 0.681 | 0.840 | 0.532 |
+| SimSiam R50 | 0.539 | 0.754 | 0.534 | 0.598 | 0.518 | 0.617 | 0.880 | 0.413 |
+| DINOv2 ViT-B/14 | 0.513 | 0.700 | 0.486 | 0.431 | 0.497 | 0.553 | 0.840 | 0.381 |
+| DINOv2 ViT-S/14 | 0.498 | 0.699 | 0.486 | 0.471 | 0.461 | 0.426 | 0.820 | 0.405 |
+
+### Precisión por clase (mejor probe)
+
+| Modelo | MEL | NV | BCC | AK | BKL | DF | VASC | SCC |
+|---|---|---|---|---|---|---|---|---|
+| ViT-B/16 | 0.726 | 0.931 | 0.853 | 0.675 | 0.742 | 0.818 | 0.846 | 0.725 |
+| ResNet-50 | 0.655 | 0.905 | 0.827 | 0.488 | 0.687 | 0.581 | 0.759 | 0.483 |
+| EfficientNet-B0 | 0.638 | 0.906 | 0.794 | 0.426 | 0.602 | 0.455 | 0.532 | 0.418 |
+| VGG19 | 0.565 | 0.906 | 0.752 | 0.382 | 0.573 | 0.356 | 0.672 | 0.332 |
+| AlexNet | 0.569 | 0.905 | 0.674 | 0.273 | 0.455 | 0.182 | 0.575 | 0.275 |
+| SimSiam R50 | 0.541 | 0.886 | 0.689 | 0.291 | 0.471 | 0.146 | 0.494 | 0.219 |
+| DINOv2 ViT-B/14 | 0.514 | 0.885 | 0.582 | 0.274 | 0.364 | 0.144 | 0.477 | 0.154 |
+| DINOv2 ViT-S/14 | 0.527 | 0.886 | 0.588 | 0.280 | 0.329 | 0.120 | 0.482 | 0.145 |
+
+### F1 por clase (mejor probe)
+
+| Modelo | MEL | NV | BCC | AK | BKL | DF | VASC | SCC |
+|---|---|---|---|---|---|---|---|---|
+| ViT-B/16 | 0.753 | 0.903 | 0.872 | 0.712 | 0.768 | 0.791 | 0.863 | 0.707 |
+| ResNet-50 | 0.674 | 0.872 | 0.802 | 0.585 | 0.693 | 0.661 | 0.815 | 0.563 |
+| EfficientNet-B0 | 0.643 | 0.861 | 0.768 | 0.513 | 0.638 | 0.565 | 0.646 | 0.502 |
+| VGG19 | 0.601 | 0.826 | 0.730 | 0.459 | 0.602 | 0.490 | 0.754 | 0.438 |
+| AlexNet | 0.575 | 0.792 | 0.643 | 0.381 | 0.499 | 0.287 | 0.683 | 0.362 |
+| SimSiam R50 | 0.540 | 0.815 | 0.602 | 0.392 | 0.494 | 0.237 | 0.633 | 0.287 |
+| DINOv2 ViT-B/14 | 0.513 | 0.782 | 0.530 | 0.335 | 0.420 | 0.228 | 0.609 | 0.220 |
+| DINOv2 ViT-S/14 | 0.512 | 0.782 | 0.532 | 0.351 | 0.384 | 0.187 | 0.607 | 0.214 |
+
+
+### Probe de learning rate sobre los dos DINOv2 (HAM10000, 2 de 2, cerrado)
+
+Banco separado a proposito (`--bank finetune_lrprobe`, JSON con sufijo
+`_ft_lrprobe` en `results/finetune_lrprobe/`): una sola variable cambia respecto
+del banco de HAM10000, `LR_BACKBONE` pasa de 5e-5 a 5e-6. Mismas 8 epocas,
+mismo `LR_HEAD`, misma semilla, mismo split, mismos pesos de partida. Sus
+numeros **no entran** en las tablas de los bancos: las ocho filas publicadas
+arriba corrieron el mismo protocolo y "ajustes identicos para los ocho" tiene
+que seguir siendo literalmente cierto.
+
+| Modelo | Congelado | Fine-tuned, LR 5e-5 | Fine-tuned, LR 5e-6 | IC95 con 5e-6 | Separacion 5e-6 contra 5e-5 | Mejor epoca con 5e-6 |
+|---|---|---|---|---|---|---|
+| DINOv2 ViT-B/14 | 0.618 | 0.532 | **0.762** | [0.722, 0.796] | +0.149, separados | 3 de 8 |
+| DINOv2 ViT-S/14 | 0.575 | 0.621 | **0.731** | [0.692, 0.772] | +0.032, separados | 7 de 8 |
+
+**DINOv2 ViT-B/14 pasa de 0.532 a 0.762 cambiando una variable**, y con 5e-6 hace pico
+en la epoca 3 de 8 (historia de validacion: 0.648 0.724 0.762 0.722 0.726 0.740 0.740 0.742), mientras que con
+5e-5 hacia pico en la 7 y aun asi quedaba por debajo de su congelado. Con 0.762 encabezaria el banco de HAM10000 en vez de ir
+ultimo, empatado con el ViT-B/16 supervisado (0.752, intervalos solapados). El
+presupuesto nunca fue el limite: el learning rate del backbone destruia las
+features preentrenadas mas rapido de lo que la cabeza aprendia a usarlas. Eso
+explica ademas por que el banco congelado favorecia a los DINOv2: ahi no hay
+learning rate que los dane.
+
+Lo que el probe **no** dice, para no sobrevender dos corridas:
+
+- **Es un punto, no un barrido.** 5e-6 le gana a 5e-5 para estos dos modelos
+  sobre HAM10000. No se sabe si 1e-5 o 1e-6 es mejor todavia, ni donde esta el
+  optimo.
+- **No se corrio sobre ISIC 2019.** La lectura de la caida en ese banco es por
+  analogia.
+- **No se corrieron los seis supervisados con 5e-6.** Sin ese control,
+  "learning rate por familia" seria ajustar a mano a favor del SSL: puede que
+  5e-6 tambien los mejore a ellos, o que los empeore.
+- **N = 2, una semilla.** El tamano del efecto es grande frente a los intervalos,
+  pero "los backbones SSL necesitan otro learning rate" sigue siendo una
+  hipotesis con dos puntos a favor, no un resultado del banco.
+
+#### Tablas generadas del probe
+
+Salen de `python scripts/build_results_tables.py --results-dir
+results/finetune_lrprobe`. Son dos filas y no compiten con nadie.
+
+> Los ocho modelos convergieron dentro del presupuesto de epocas: ninguno llego a la ultima epoca todavia mejorando.
+
+### Convergencia por modelo
+
+| Modelo | Convergio | Mejor epoca | Epocas |
+|---|---|---|---|
+| DINOv2 ViT-B/14 | si | 3 | 8 |
+| DINOv2 ViT-S/14 | si | 7 | 8 |
+
+### Métricas completas (mejor probe de cada modelo)
+
+| # | Modelo | Tipo | dims | acc | bal_acc | F1 macro | Prec macro | Recall macro | AUC | ECE |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | DINOv2 ViT-B/14 | SSL | 768 | 0.792 | **0.762** | 0.684 | 0.650 | **0.762** | **0.963** | **0.048** |
+| 2 | DINOv2 ViT-S/14 | SSL | 384 | **0.805** | 0.731 | **0.690** | **0.687** | 0.731 | 0.960 | 0.052 |
+
+### Intervalos de confianza (bootstrap 95%)
+
+| Modelo | bal_acc | IC95 bal_acc | F1 macro | IC95 F1 macro | Separado del líder |
+|---|---|---|---|---|---|
+| DINOv2 ViT-B/14 | 0.762 | [0.722, 0.796] | 0.684 | [0.647, 0.716] | - |
+| DINOv2 ViT-S/14 | 0.731 | [0.692, 0.772] | 0.690 | [0.645, 0.729] | no |
+
+### Balanced accuracy por probe: no aplica
+
+> Este banco tiene un solo modo de evaluacion (`finetune`), asi que la columna ya esta en la tabla de metricas completas.
+
+### Recall por clase (mejor probe)
+
+| Modelo | akiec | bcc | bkl | df | mel | nv | vasc |
+|---|---|---|---|---|---|---|---|
+| DINOv2 ViT-B/14 | 0.647 | 0.800 | 0.663 | 0.818 | 0.761 | 0.822 | 0.824 |
+| DINOv2 ViT-S/14 | 0.809 | 0.840 | 0.722 | 0.364 | 0.721 | 0.836 | 0.824 |
+
+### Precisión por clase (mejor probe)
+
+| Modelo | akiec | bcc | bkl | df | mel | nv | vasc |
+|---|---|---|---|---|---|---|---|
+| DINOv2 ViT-B/14 | 0.657 | 0.650 | 0.673 | 0.327 | 0.459 | 0.961 | 0.824 |
+| DINOv2 ViT-S/14 | 0.487 | 0.689 | 0.641 | 0.727 | 0.508 | 0.960 | 0.800 |
+
+### F1 por clase (mejor probe)
+
+| Modelo | akiec | bcc | bkl | df | mel | nv | vasc |
+|---|---|---|---|---|---|---|---|
+| DINOv2 ViT-B/14 | 0.652 | 0.717 | 0.668 | 0.468 | 0.573 | 0.886 | 0.824 |
+| DINOv2 ViT-S/14 | 0.608 | 0.757 | 0.679 | 0.485 | 0.596 | 0.893 | 0.812 |
+
+
+### Lo que los bancos con fine-tuning dejan pendiente
+
+La hipotesis que la primera version de esta seccion dejo escrita, "los backbones
+SSL podrian necesitar mas presupuesto de fine-tuning que los supervisados",
+**queda descartada** por el probe: con el learning rate adecuado, ViT-B/14
+converge en la epoca 3. El problema era una decision del protocolo,
+`LR_BACKBONE = 5e-5` en `src/dermssl/finetune/protocol.py`, elegida para
+backbones supervisados. Resolverlo cuesta horas de GPU, asi que es decision de
+alcance, no algo que se arregle escribiendo:
+
+1. **Learning rate por familia, o barrido por modelo.** Cambia el protocolo,
+   asi que rompe "ajustes identicos para los ocho" y obliga a re-correr al menos
+   los dos DINOv2 en ambos bancos (4 corridas) y, como control, uno o dos
+   supervisados con 5e-6. Sin el control, el cambio favorece al SSL a mano.
+2. **Probe de learning rate sobre ISIC 2019** (2 corridas), para que la lectura
+   de ese banco sea medida y no analogia.
+3. **Criterio de convergencia en vez de epocas fijas** (early stopping con
+   paciencia) sigue vigente: cuatro de las ocho corridas de ISIC 2019 quedaron
+   truncadas, y dos de ellas no son DINOv2.
+

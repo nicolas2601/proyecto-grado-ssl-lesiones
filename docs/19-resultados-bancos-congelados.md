@@ -154,3 +154,26 @@ Queda pendiente una decision de alcance que este documento no resuelve: cuatro
 documentos del repositorio describen ISIC 2019 como conjunto de validacion externa,
 y el solape del 39.5 por ciento con HAM10000 lo desmiente. La validacion externa
 honesta seria el complemento `ISIC 2019 \ HAM10000`, unas 15316 imagenes.
+
+## 7. Lo que cambio con los bancos de fine-tuning (2026-09-15)
+
+Este documento describe los bancos congelados. Los dos bancos con fine-tuning
+(HAM10000 e ISIC 2019, 8 de 8 cada uno) y el probe de learning rate estan en el
+README, seccion "Baselines CON fine-tuning", con sus tablas generadas y la
+tabla de decisiones del protocolo. Tres cosas de ahi corrigen la lectura de
+este documento:
+
+1. **El numero a superar ya no es el del congelado.** En ISIC 2019, la unica
+   tarea comparable con Gessert (0.636), ViT-B/16 supervisado con fine-tuning
+   llega a 0.805 de balanced accuracy, con intervalo [0.780, 0.828]. La fase v6
+   tiene que medirse contra eso.
+2. **La ventaja del DINOv2 congelado en ISIC 2019 no sobrevive al fine-tuning
+   con el protocolo actual, y la razon es el protocolo.** Los dos DINOv2 caen
+   por debajo de su propio congelado en ambos bancos. El probe de learning rate
+   (`LR_BACKBONE` 5e-6 en vez de 5e-5, todo lo demas identico) lleva a ViT-B/14
+   de 0.532 a 0.762 sobre HAM10000, convergiendo en la epoca 3. Un learning
+   rate unico para ocho backbones no es neutral entre familias.
+3. **La hipotesis "los backbones SSL necesitan mas presupuesto de fine-tuning"
+   queda descartada.** Necesitaban otro learning rate, no mas epocas. Lo que
+   sigue pendiente es decision de alcance: learning rate por familia con un
+   control supervisado, y el probe sobre ISIC 2019.
