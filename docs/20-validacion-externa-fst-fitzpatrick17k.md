@@ -111,7 +111,29 @@ imágenes): **32.9% exacta, 73.5% off-by-one**.
   confirmado revisando `origin/feature/v6-gpu-ssl-pretraining`, que solo tiene el plan
   (`docs/16`) y diagramas de arquitectura, cero checkpoints ni resultados.
 
-## 5. Consecuencia para el proyecto
+## 5. Una hipótesis que el dato descartó: constancia de color antes del ITA
+
+Alipour et al. 2026 sugieren en su trabajo futuro que algoritmos de constancia de color
+podrían mitigar la sensibilidad de ITA a iluminación no controlada. El repo ya tenía
+`gray_world` y `shades_of_gray` implementados en `pretrain/color_constancy.py` (pensados
+como augmentation SSL, no para esto) y se agregó un flag `--color-constancy` a
+`validar_fitzpatrick17k.py` para probarlo directo (commit `008fcf1`).
+
+Un smoke de 20 imágenes bastó para descartarlo: el accuracy se derrumbó a 5-10% con
+las dos variantes (contra ~23-30% sin corrección), consistente en ambos métodos y
+ambos algoritmos — no es ruido de muestra chica, es un fallo sistemático. La hipótesis
+más probable: `gray_world` asume que la escena promedia a gris, un supuesto que una
+foto dominada por piel (que es rojiza/anaranjada, no gris) viola por diseño. En vez de
+corregir el sesgo de iluminación, la corrección borra la información de tono de piel
+que se está intentando medir. No se corrió la validación completa sobre esta vía — el
+smoke ya fue suficientemente concluyente para no gastar el cómputo.
+
+**Aprendizaje transferible**: la constancia de color de tipo gray-world no es un
+preprocesamiento neutral para tareas donde el color del sujeto ES la señal (como
+estimar tono de piel) — solo tiene sentido cuando el color es ruido a remover, no la
+variable de interés.
+
+## 6. Consecuencia para el proyecto
 
 La calibración de umbral era gratis y valía la pena — ya está corregida y commiteada. No
 hay evidencia de que seguir ajustando el umbral por sí solo vaya a cerrar la brecha
