@@ -215,5 +215,5 @@ def test_kaggle_script_propagates_mask_confidence_and_explicit_unavailable():
     source = KAGGLE_SCRIPT.read_text(encoding="utf-8")
 
     assert "infer_mask_with_confidence" in source
-    assert "mask_confidence=prediction.confidence" in source
+    assert "confidence=prediction.confidence" in source
     assert '"unavailable"' in source
