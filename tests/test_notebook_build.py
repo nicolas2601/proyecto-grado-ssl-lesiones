@@ -101,7 +101,7 @@ def test_inlined_dataclasses_are_usable_after_exec(notebook):
 def test_core_cell_inlines_every_module(notebook):
     core = "".join(code_cells(notebook)[1]["source"])
     for name in builder.MODULE_ORDER:
-        assert f"inlined from src/dermssl/{name}.py" in core
+        assert f"insertado desde src/dermssl/{name}.py" in core
 
 
 def test_committed_notebook_is_not_stale(notebook):
@@ -125,6 +125,15 @@ def test_smoke_is_enabled_by_default_in_the_committed_notebook():
     nb = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     config = "".join(nb["cells"][1]["source"])
     assert "SMOKE        = True" in config
+
+
+def test_generated_notebook_has_an_empty_run_token_by_default():
+    """Staging replaces this marker so result JSON can prove its freshness."""
+    nb = builder.build_notebook()
+    config = "".join(code_cells(nb)[0]["source"])
+    report = "".join(code_cells(nb)[-1]["source"])
+    assert 'KAGGLE_RUN_TOKEN = ""' in config
+    assert '"kaggle_run_token": KAGGLE_RUN_TOKEN' in report
 
 
 def test_no_credentials_are_baked_into_the_notebook():

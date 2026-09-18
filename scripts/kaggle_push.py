@@ -1,21 +1,21 @@
-"""Push the generated Kaggle notebooks with the Kaggle CLI, bank by bank.
+"""Publica los notebooks generados de Kaggle con la CLI, banco por banco.
 
-Writes a kernel-metadata.json next to each notebook (dataset sources and GPU
-settings included) and runs ``kaggle kernels push`` so the notebook is
-uploaded AND executed (Save & Run All) without touching the browser.
+Escribe un kernel-metadata.json junto a cada notebook (incluye fuentes de datos
+y configuración de GPU) y ejecuta ``kaggle kernels push`` para publicar Y
+ejecutar el notebook (Save & Run All) sin usar el navegador.
 
     python scripts/kaggle_push.py --bank baselines_isic2020 --user nicorghost --dry-run
     python scripts/kaggle_push.py --bank baselines_isic2020 --user nicorghost --real
     python scripts/kaggle_push.py --bank finetune --user nicorghost --models resnet50 vit_b16
     python scripts/kaggle_push.py --status --bank baselines_isic2020 --user nicorghost
 
-``--real`` flips SMOKE = False inside a copy of the notebook before pushing;
-without it the smoke version is pushed (validate the wiring first).
+``--real`` cambia SMOKE = False en una copia del notebook antes de publicarlo;
+sin esa opción se publica la versión smoke (primero se valida la integración).
 
-Transports (``--via``):
-  kaggle    the official CLI: ``pip install kaggle`` + ~/.kaggle/kaggle.json
-  composio  ``composio proxy`` with the Kaggle account linked in Composio -
-            no local token file needed (default when the CLI is absent).
+Transportes (``--via``):
+  kaggle    la CLI oficial: ``pip install kaggle`` + ~/.kaggle/kaggle.json
+  composio  ``composio proxy`` con la cuenta de Kaggle vinculada en Composio;
+             no requiere un archivo local de token (predeterminado sin CLI).
 """
 
 from __future__ import annotations
@@ -36,14 +36,14 @@ REPO = Path(__file__).resolve().parents[1]
 DATASET_SOURCES = {
     "ham10000": ["kmader/skin-cancer-mnist-ham10000"],
     "isic2020": ["nischaydnk/isic-2020-jpg-256x256-resized"],
-    # The RESIZED ISIC 2019 only ships a binary target; the eight classes of the
-    # official challenge - the ones Gessert's 0.636 anchor is measured on - are
-    # only in this release.
+    # El ISIC 2019 redimensionado solo ofrece una etiqueta binaria; las ocho
+    # clases del desafío oficial, sobre las que se mide el ancla 0.636 de
+    # Gessert, solo están disponibles en esta versión.
     "isic2019": ["andrewmvd/isic-2019"],
 }
 
-# SDK enum: NvidiaTeslaT4 | NvidiaTeslaP100. NvidiaTeslaT4x2 does not exist and
-# Kaggle silently ignores it.
+# Enum del SDK: NvidiaTeslaT4 | NvidiaTeslaP100. NvidiaTeslaT4x2 no existe y
+# Kaggle lo ignora silenciosamente.
 MACHINE_SHAPE = "NvidiaTeslaT4"
 
 BANKS = {
@@ -75,9 +75,9 @@ def metadata(user: str, bank: str, model: str, code_file: str) -> dict:
         "competition_sources": [],
         "kernel_sources": [],
         "model_sources": [],
-        # Kaggle's PyTorch build ships no sm_60 kernels, so a Tesla P100 dies on
-        # the first forward with "no kernel image is available". Both transports
-        # must pin the T4: the CLI reads this key, composio reads push_payload().
+        # La compilación PyTorch de Kaggle no incluye kernels sm_60, por lo que
+        # una Tesla P100 falla en el primer forward. Ambos transportes deben
+        # fijar la T4: la CLI lee esta clave y Composio usa push_payload().
         "machine_shape": MACHINE_SHAPE,
     }
 
@@ -97,7 +97,38 @@ def set_smoke(notebook_path: Path, smoke: bool) -> dict:
     return nb
 
 
-def stage(bank: str, model: str, user: str, real: bool, staging: Path) -> Path:
+def set_run_token(notebook: dict, run_token: str) -> None:
+    """Replace the notebook marker with the identity of this Kaggle push."""
+    hits = 0
+    code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+    assert code_cells, "expected at least one code cell"
+    token_line = f"KAGGLE_RUN_TOKEN = {json.dumps(run_token)}\n"
+    for cell in code_cells:
+        for index, line in enumerate(cell["source"]):
+            if line.startswith("KAGGLE_RUN_TOKEN = "):
+                cell["source"][index] = token_line
+                hits += 1
+    if hits == 0:
+        code_cells[0]["source"].insert(0, token_line)
+        hits = 1
+    assert hits == 1, f"expected one KAGGLE_RUN_TOKEN line, found {hits}"
+    code_cells[-1]["source"].extend([
+        "\n# Kaggle result freshness marker injected by kaggle_push.stage().\n",
+        "from pathlib import Path as _KagglePath\n",
+        "import json as _kaggle_json\n",
+        "for _result_path in _KagglePath('/kaggle/working').glob('results_*.json'):\n",
+        "    try:\n",
+        "        _result_data = _kaggle_json.loads(_result_path.read_text())\n",
+        "    except _kaggle_json.JSONDecodeError:\n",
+        "        continue\n",
+        "    if isinstance(_result_data, dict):\n",
+        "        _result_data['kaggle_run_token'] = KAGGLE_RUN_TOKEN\n",
+        "        _result_path.write_text(_kaggle_json.dumps(_result_data, indent=2) + '\\n')\n",
+    ])
+
+
+def stage(bank: str, model: str, user: str, real: bool, staging: Path,
+          run_token: str = "") -> Path:
     dataset, pattern = BANKS[bank]
     src = REPO / "notebooks" / bank / model / pattern.format(m=model)
     if not src.is_file():
@@ -105,6 +136,7 @@ def stage(bank: str, model: str, user: str, real: bool, staging: Path) -> Path:
     dest = staging / kernel_slug(bank, model)
     dest.mkdir(parents=True, exist_ok=True)
     nb = set_smoke(src, smoke=not real)
+    set_run_token(nb, run_token)
     (dest / src.name).write_text(json.dumps(nb, indent=1, ensure_ascii=False) + "\n")
     (dest / "kernel-metadata.json").write_text(
         json.dumps(metadata(user, bank, model, src.name), indent=2) + "\n")
@@ -143,7 +175,7 @@ def composio_proxy(url: str, method: str = "GET", body: dict | None = None) -> d
     out = subprocess.run(cmd, input=json.dumps(body) if body is not None else None,
                          capture_output=True, text=True)
     if out.returncode != 0:
-        raise RuntimeError(f"composio proxy failed: {out.stderr.strip() or out.stdout.strip()}")
+        raise RuntimeError(f"falló composio proxy: {out.stderr.strip() or out.stdout.strip()}")
     text = out.stdout.strip()
     try:
         return json.loads(text)
@@ -164,11 +196,11 @@ def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--bank", required=True, choices=tuple(BANKS))
-    p.add_argument("--user", required=True, help="Kaggle username (owner of the kernels)")
+    p.add_argument("--user", required=True, help="Usuario de Kaggle propietario de los kernels")
     p.add_argument("--models", nargs="*", default=list(protocol.MODELS))
-    p.add_argument("--real", action="store_true", help="SMOKE = False (full run)")
-    p.add_argument("--dry-run", action="store_true", help="stage files, do not push")
-    p.add_argument("--status", action="store_true", help="only query kernel status")
+    p.add_argument("--real", action="store_true", help="SMOKE = False (ejecución completa)")
+    p.add_argument("--dry-run", action="store_true", help="prepara archivos, sin publicar")
+    p.add_argument("--status", action="store_true", help="consulta únicamente el estado del kernel")
     p.add_argument("--staging", default="/tmp/kaggle-staging")
     p.add_argument("--via", choices=("auto", "kaggle", "composio"), default="auto")
     args = p.parse_args(argv)
@@ -177,7 +209,7 @@ def main(argv: list[str] | None = None) -> None:
     if via == "auto":
         via = "kaggle" if shutil.which("kaggle") else "composio"
     if via == "composio" and shutil.which("composio") is None:
-        sys.exit("neither kaggle nor composio CLI found")
+        sys.exit("no se encontró la CLI de kaggle ni la de composio")
 
     for model in args.models:
         slug = f"{args.user}/{kernel_slug(args.bank, model)}"
@@ -191,20 +223,20 @@ def main(argv: list[str] | None = None) -> None:
         folder = stage(args.bank, model, args.user, args.real, Path(args.staging))
         mode = "REAL (SMOKE=False)" if args.real else "smoke"
         if args.dry_run:
-            print(f"staged {slug} [{mode}] -> {folder}")
+            print(f"preparado {slug} [{mode}] -> {folder}")
             continue
-        print(f"pushing {slug} [{mode}] via {via} ...")
+        print(f"publicando {slug} [{mode}] mediante {via} ...")
         if via == "composio":
             resp = push_via_composio(folder)
             if resp.get("error") or "ref" not in resp:
-                sys.exit(f"push failed for {slug}: {resp}")
-            print(f"  ok -> {resp.get('url') or resp['ref']} (version {resp.get('versionNumber')})")
+                sys.exit(f"falló la publicación de {slug}: {resp}")
+            print(f"  correcto -> {resp.get('url') or resp['ref']} (versión {resp.get('versionNumber')})")
         else:
             subprocess.run(["kaggle", "kernels", "push", "-p", str(folder)], check=True)
     if not args.status and not args.dry_run:
-        print("\ncheck progress:  python scripts/kaggle_push.py --status "
+        print("\nconsultar progreso:  python scripts/kaggle_push.py --status "
               f"--bank {args.bank} --user {args.user} --via {via}")
-        print("fetch outputs:   kaggle kernels output <user>/<slug> -p results/")
+        print("descargar resultados:   kaggle kernels output <user>/<slug> -p results/")
 
 
 if __name__ == "__main__":
