@@ -1,4 +1,4 @@
-"""Executable cells for the v5 notebook (the torch-dependent half).
+"""Celdas ejecutables para el notebook v5 (la mitad dependiente de torch).
 
 The numpy-only logic is NOT written here: it is inlined from ``src/dermssl/`` by
 ``build_notebook_v5.py``, so the code that ships in the notebook is byte-for-byte
@@ -29,6 +29,7 @@ def elapsed():
 # PERILLAS. Lo unico que se toca a mano.
 # ----------------------------------------------------------------------------
 SMOKE        = True          # True = validacion rapida del pipeline (numeros NO validos)
+KAGGLE_RUN_TOKEN = ""       # substituted by kaggle_push.stage() for each push
 DATA_BACKEND = "auto"        # "auto" | "kaggle-input" | "kagglehub" | "local"
 LOCAL_ROOT   = None          # ruta de datos ya bajados (para el cluster)
 BASE_RES     = 224           # se ajusta por backbone (ViT patch 14 vs 16)
@@ -420,7 +421,7 @@ if FST_MANIFEST_PATH.is_file():
     fst_by_id = fst_manifest.set_index("image_id")["fst_bucket"]
 
     def fst_bucket_or_none(value):
-        """Keep every validation row; map explicit/missing values to unavailable."""
+        """Conserva cada fila de validación y convierte valores explícitos o ausentes en unavailable."""
         if pd.isna(value) or str(value).strip().lower() in ("", "unavailable", "nan"):
             return None
         try:
@@ -451,6 +452,7 @@ print(report(gate_list))
 
 summary = {
     "mode": "SMOKE (numeros NO validos)" if SMOKE else "corrida real",
+    "kaggle_run_token": KAGGLE_RUN_TOKEN,
     "notebook": "proyecto_ssl_lesiones_v5",
     "claim": "ninguna etiqueta toca el extractor de features; backbone congelado",
     "elapsed": elapsed(),

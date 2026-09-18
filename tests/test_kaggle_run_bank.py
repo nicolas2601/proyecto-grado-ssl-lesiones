@@ -57,20 +57,49 @@ def test_parse_status_of_a_kernel_that_never_ran():
 
 def test_result_of_a_real_run_must_not_carry_the_smoke_flag(tmp_path):
     path = tmp_path / "results_alexnet_isic2020.json"
-    path.write_text(json.dumps({"modelo": "alexnet", "smoke": True}))
+    path.write_text(json.dumps({"modelo": "alexnet", "smoke": True,
+                                "kaggle_run_token": "run-expected"}))
     with pytest.raises(krb.StaleResult):
-        krb.verify_result(path, real=True)
+        krb.verify_result(path, real=True, expected_run_token="run-expected")
 
 
 def test_result_of_a_real_run_is_accepted_when_smoke_is_false(tmp_path):
     path = tmp_path / "results_alexnet_isic2020.json"
-    path.write_text(json.dumps({"modelo": "alexnet", "smoke": False}))
-    assert krb.verify_result(path, real=True) == {"modelo": "alexnet", "smoke": False}
+    expected = {"modelo": "alexnet", "smoke": False, "kaggle_run_token": "run-expected"}
+    path.write_text(json.dumps(expected))
+    assert krb.verify_result(path, real=True, expected_run_token="run-expected") == expected
+
+
+def test_result_with_another_run_token_is_rejected(tmp_path):
+    """A completed JSON from an earlier push must never satisfy this push."""
+    path = tmp_path / "results_alexnet_isic2020.json"
+    path.write_text(json.dumps({"modelo": "alexnet", "smoke": False,
+                                "kaggle_run_token": "run-previous"}))
+
+    with pytest.raises(krb.StaleResult, match="token"):
+        krb.verify_result(path, real=True, expected_run_token="run-expected")
+
+
+def test_result_with_matching_token_but_wrong_mode_is_rejected(tmp_path):
+    path = tmp_path / "results_alexnet_isic2020.json"
+    path.write_text(json.dumps({"modelo": "alexnet", "smoke": True,
+                                "kaggle_run_token": "run-expected"}))
+
+    with pytest.raises(krb.StaleResult, match="smoke"):
+        krb.verify_result(path, real=True, expected_run_token="run-expected")
+
+
+def test_result_json_that_is_not_an_object_is_rejected_with_domain_error(tmp_path):
+    path = tmp_path / "results_alexnet_isic2020.json"
+    path.write_text(json.dumps(["not", "a", "result"]))
+
+    with pytest.raises(krb.StaleResult, match="objeto"):
+        krb.verify_result(path, real=True, expected_run_token="run-expected")
 
 
 def test_missing_result_file_is_reported(tmp_path):
     with pytest.raises(krb.StaleResult):
-        krb.verify_result(tmp_path / "nope.json", real=True)
+        krb.verify_result(tmp_path / "nope.json", real=True, expected_run_token="run-expected")
 
 
 def test_expected_result_name_follows_the_bank_naming(tmp_path):
@@ -82,8 +111,22 @@ def test_expected_result_name_follows_the_bank_naming(tmp_path):
 
 def test_state_roundtrip_lets_the_runner_resume(tmp_path):
     state_file = tmp_path / "state.json"
-    krb.save_state(state_file, {"alexnet": "done", "vgg19": "running"})
-    assert krb.load_state(state_file) == {"alexnet": "done", "vgg19": "running"}
+    state = {
+        "alexnet": {"status": "done", "run_token": "run-a"},
+        "vgg19": {"status": "running", "run_token": "run-b"},
+    }
+    krb.save_state(state_file, state)
+    assert krb.load_state(state_file) == state
+
+
+def test_load_state_normalizes_legacy_status_values(tmp_path):
+    state_file = tmp_path / "state.json"
+    state_file.write_text(json.dumps({"alexnet": "done", "vgg19": "running"}))
+
+    assert krb.load_state(state_file) == {
+        "alexnet": {"status": "done", "run_token": ""},
+        "vgg19": {"status": "running", "run_token": ""},
+    }
 
 
 def test_state_of_a_fresh_bank_is_empty(tmp_path):
@@ -94,6 +137,31 @@ def test_pending_models_skip_the_ones_already_done():
     state = {"alexnet": "done", "vgg19": "failed", "resnet50": "running"}
     models = ["alexnet", "vgg19", "resnet50", "vit_b16"]
     assert krb.pending(models, state) == ["vit_b16"]
+
+
+def test_drive_recovers_persisted_pushing_without_publishing_again(tmp_path, monkeypatch):
+    state_file = tmp_path / "state.json"
+    krb.save_state(state_file, {"alexnet": {"status": "pushing", "run_token": "run-restart"}})
+    collected = []
+
+    monkeypatch.setattr(krb, "status", lambda _slug: "COMPLETE")
+    monkeypatch.setattr(
+        krb,
+        "collect",
+        lambda bank, model, user, real, out_dir, run_token: collected.append(run_token) or "done",
+    )
+    monkeypatch.setattr(
+        krb,
+        "push",
+        lambda *_args: pytest.fail("a persisted pushing state must be checked before another push"),
+    )
+
+    state = krb.drive("baselines", ["alexnet"], "u", True, tmp_path / "results",
+                      state_file, poll=0, limit=1, staging=tmp_path / "staging")
+
+    assert collected == ["run-restart"]
+    assert state == {"alexnet": {"status": "done", "run_token": "run-restart"}}
+    assert krb.load_state(state_file) == state
 
 
 def test_a_download_that_fails_is_retried_before_the_model_is_written_off():
@@ -128,3 +196,28 @@ def test_free_slots_account_for_the_running_kernels():
     assert krb.free_slots({"a": "running", "b": "running"}, limit=2) == 0
     assert krb.free_slots({"a": "running", "b": "done"}, limit=2) == 1
     assert krb.free_slots({}, limit=2) == 2
+
+
+def test_collect_ignores_a_matching_json_left_in_the_final_directory(tmp_path, monkeypatch):
+    """Validation must use this download, not a result left by a prior run."""
+    out_dir = tmp_path / "results"
+    result = out_dir / "result.json"
+    out_dir.mkdir()
+    result.write_text(json.dumps({"smoke": False, "kaggle_run_token": "run-expected"}))
+    seen = {}
+
+    def download_stale_result(slug, dest, **_kwargs):
+        seen["dest"] = dest
+        dest.mkdir(parents=True, exist_ok=True)
+        (dest / "result.json").write_text(
+            json.dumps({"smoke": False, "kaggle_run_token": "run-previous"})
+        )
+        return True
+
+    monkeypatch.setattr(krb, "download_with_retry", download_stale_result)
+    monkeypatch.setattr(krb, "result_name", lambda _bank, _model: "result.json")
+
+    assert krb.collect("baselines", "alexnet", "u", True, out_dir,
+                       run_token="run-expected") == "failed"
+    assert seen["dest"].parent == out_dir / ".downloads"
+    assert json.loads(result.read_text()) == {"smoke": False, "kaggle_run_token": "run-expected"}

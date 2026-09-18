@@ -13,6 +13,7 @@ import numpy as np
 import pytest
 
 from dermssl import circle as c
+from dermssl import mask_manifest as mm
 from dermssl.fitzpatrick import (
     FST_THRESHOLDS,
     MAX_MASK_AREA_FRACTION,
@@ -176,6 +177,46 @@ def test_shift_skin_tone_coerces_non_bool_mask():
     out_bool = c.shift_skin_tone(img, bool_mask, shift_buckets=1)
     out_int = c.shift_skin_tone(img, int_mask, shift_buckets=1)
     np.testing.assert_array_equal(out_bool, out_int)
+
+
+def test_traceable_mask_record_protects_lesion_pixels_bit_exact():
+    img, mask = _swatch(seed=7), _center_square_mask()
+    record = mm.build_mask_record(
+        dataset="ham10000",
+        image_id="sample",
+        source_revision="v1",
+        mask=mask,
+        producer="otsu",
+        version="1",
+    )
+
+    out = c.shift_skin_tone_from_mask_record(img, mask, record, shift_buckets=1)
+
+    np.testing.assert_array_equal(out[mask], img[mask])
+
+
+def test_traceable_mask_record_rejects_tampered_or_quarantined_masks():
+    img, mask = _swatch(seed=8), _center_square_mask()
+    record = mm.build_mask_record(
+        dataset="ham10000",
+        image_id="sample",
+        source_revision="v1",
+        mask=mask,
+        producer="otsu",
+        version="1",
+    )
+    tampered = mask.copy()
+    tampered[0, 0] = True
+
+    with pytest.raises(ValueError, match="procedencia"):
+        c.shift_skin_tone_from_mask_record(img, tampered, record, shift_buckets=1)
+    with pytest.raises(ValueError, match="elegible"):
+        c.shift_skin_tone_from_mask_record(
+            img,
+            mask,
+            {**record, "eligible": False},
+            shift_buckets=1,
+        )
 
 
 # --------------------------------------------------------------------------

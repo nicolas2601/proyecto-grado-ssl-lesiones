@@ -1,8 +1,8 @@
-"""Cell order for the v5 notebook.
+"""Orden de celdas para el notebook v5.
 
-Single place that decides what the notebook looks like: prose from
-``notebook_prose_v5``, executable cells from ``notebook_code_v5``. The inlined
-``src/dermssl/`` core is injected by ``build_notebook_v5.py``.
+Único lugar que decide la estructura del notebook: prosa de
+``notebook_prose_v5`` y celdas ejecutables de ``notebook_code_v5``. El núcleo
+insertado de ``src/dermssl/`` se inyecta desde ``build_notebook_v5.py``.
 """
 
 from notebook_code_v5 import (

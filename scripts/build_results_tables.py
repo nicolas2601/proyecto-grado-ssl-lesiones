@@ -1,8 +1,8 @@
-"""Render the README result tables from the bank JSONs.
+"""Genera las tablas de resultados del README a partir de los JSON del banco.
 
-Sixteen runs times three tables is exactly where hand-typed numbers rot, so the
-markdown that goes into README.md and notebooks/*/README.md is generated here
-and pasted verbatim. Ranking always follows each model's best probe.
+Dieciséis ejecuciones por tres tablas es donde los números escritos a mano se
+deterioran. El Markdown de README.md y notebooks/*/README.md se genera aquí y
+se pega literalmente. El ranking siempre sigue el mejor probe de cada modelo.
 
     python scripts/build_results_tables.py --bank baselines
     python scripts/build_results_tables.py --bank baselines_isic2019
@@ -50,7 +50,7 @@ LOWER_IS_BETTER = {"ece"}
 
 
 class MissingField(RuntimeError):
-    """The JSONs do not carry what the requested table needs."""
+    """Los JSON no contienen lo necesario para la tabla solicitada."""
 
 
 @dataclass(frozen=True)
@@ -84,7 +84,7 @@ def load_bank(directory: Path) -> dict[str, dict]:
             continue
         bank[data["modelo"]] = data
     if not bank:
-        raise MissingField(f"no real (SMOKE=False) results under {directory}")
+        raise MissingField(f"no hay resultados reales (SMOKE=False) en {directory}")
     return bank
 
 
@@ -122,25 +122,26 @@ def table_metrics(rows: list[Row]) -> str:
 
 
 def overlaps_leader(row: Row, leader: Row) -> bool:
-    """True when this model's bal_acc CI touches the leader's.
+    """Verdadero si el IC de bal_acc de este modelo toca el del líder.
 
-    An overlap means the ranking gap is not resolvable with this validation
-    set, which is the difference between "ranks above" and "wins".
+    Un solapamiento significa que la brecha de ranking no puede resolverse con
+    este conjunto de validación: hay diferencia entre "supera en ranking" y
+    "gana".
     """
     return (row.metrics["ic95_bootstrap"]["balanced_accuracy"][1]
             >= leader.metrics["ic95_bootstrap"]["balanced_accuracy"][0])
 
 
 def table_intervals(rows: list[Row]) -> str:
-    """Bal_acc and macro-F1 with their 95% bootstrap intervals.
+    """Bal_acc y macro-F1 con sus intervalos bootstrap al 95%.
 
-    Printed next to the ranking on purpose: without the intervals a reader
-    treats position 1 vs position 3 as a result, and here it is not one.
+    Se imprimen junto al ranking intencionalmente: sin intervalos, quien lee
+    toma la diferencia entre las posiciones 1 y 3 como resultado, y aquí no lo es.
     """
     for row in rows:
         if "ic95_bootstrap" not in row.metrics:
             raise MissingField(
-                f"{row.model}: the JSON predates the bootstrap interval")
+                f"{row.model}: el JSON es anterior al intervalo bootstrap")
     leader = rows[0]
     header = ["Modelo", "bal_acc", "IC95 bal_acc", "F1 macro", "IC95 F1 macro",
               "Separado del líder"]
@@ -173,8 +174,8 @@ def table_per_class(rows: list[Row], field: str) -> str:
     for row in rows:
         if field not in row.metrics:
             raise MissingField(
-                f"{row.model}: probe '{row.probe}' has no '{field}' - "
-                "the JSON comes from a run before that metric existed")
+                f"{row.model}: el probe '{row.probe}' no tiene '{field}'; "
+                "el JSON proviene de una ejecución anterior a esa métrica")
     classes = list(rows[0].metrics[field])
     body = [
         [DISPLAY.get(row.model, row.model)]
@@ -185,12 +186,11 @@ def table_per_class(rows: list[Row], field: str) -> str:
 
 
 def table_weights() -> str:
-    """Where each backbone's weights come from, straight from the protocol.
+    """Procedencia de los pesos de cada backbone, según el protocolo.
 
-    Written by hand this table went stale the moment the bank migrated to
-    Hugging Face: it still claimed torchvision for four models that had
-    already moved, including the vit_b16 row whose weight change flipped the
-    conclusion of the whole comparison.
+    Escrita a mano, esta tabla quedó desactualizada cuando el banco migró a
+    Hugging Face: aún afirmaba torchvision para cuatro modelos ya migrados,
+    incluido vit_b16, cuyo cambio de pesos alteró la conclusión de la comparación.
     """
     notes = {
         "vgg19": "mismos tensores que torchvision IMAGENET1K_V1",
@@ -240,13 +240,13 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--bank")
     p.add_argument("--results-dir", default=None)
     p.add_argument("--weights", action="store_true",
-                   help="print the checkpoint-provenance table instead of results")
+                    help="muestra la tabla de procedencia de checkpoints en vez de resultados")
     args = p.parse_args(argv)
     if args.weights:
         print(table_weights())
         return
     if not args.bank:
-        p.error("give --bank <banco> or --weights")
+        p.error("indique --bank <banco> o --weights")
     directory = Path(args.results_dir) if args.results_dir else REPO / "results" / args.bank
     print(render(directory))
 

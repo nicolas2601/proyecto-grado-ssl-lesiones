@@ -37,11 +37,14 @@ def test_stage_flips_smoke_and_keeps_cell_count(tmp_path, bank):
     dataset, pattern = kp.BANKS[bank]
     src = REPO / "notebooks" / bank / "resnet50" / pattern.format(m="resnet50")
     original = json.loads(src.read_text())
-    folder = kp.stage(bank, "resnet50", "u", real=True, staging=tmp_path)
+    folder = kp.stage(bank, "resnet50", "u", real=True, staging=tmp_path,
+                      run_token="run-expected")
     staged = json.loads((folder / src.name).read_text())
     assert len(staged["cells"]) == len(original["cells"])
     code = "".join("".join(c["source"]) for c in staged["cells"] if c["cell_type"] == "code")
     assert "SMOKE = False" in code and "SMOKE = True" not in code
+    assert code.count("KAGGLE_RUN_TOKEN = ") == 1
+    assert 'KAGGLE_RUN_TOKEN = "run-expected"' in code
     meta = json.loads((folder / "kernel-metadata.json").read_text())
     assert meta["code_file"] == src.name
     assert meta["dataset_sources"] == kp.DATASET_SOURCES[dataset]
@@ -57,3 +60,14 @@ def test_push_payload_matches_kaggle_kernels_push_schema(tmp_path):
     assert body["enableGpu"] and body["enableInternet"] and body["isPrivate"]
     assert body["datasetDataSources"] == ["nischaydnk/isic-2020-jpg-256x256-resized"]
     assert json.loads(body["text"])["nbformat"] == 4
+
+
+def test_staged_notebook_compiles_after_run_token_injection(tmp_path):
+    folder = kp.stage("baselines", "resnet50", "u", real=True, staging=tmp_path,
+                      run_token="run-expected")
+    notebook = json.loads(next(folder.glob("*.ipynb")).read_text())
+    code = "".join(
+        line for cell in notebook["cells"] if cell["cell_type"] == "code" for line in cell["source"]
+    )
+
+    compile(code, "<staged notebook>", "exec")

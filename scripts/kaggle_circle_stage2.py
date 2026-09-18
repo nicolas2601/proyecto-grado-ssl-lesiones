@@ -1,16 +1,16 @@
-"""Run CIRCLe Stage 2 on real frozen-backbone feature pairs.
+"""Ejecuta CIRCLe Stage 2 sobre pares reales de características con backbone congelado.
 
-The input NPZ must contain features extracted from the same frozen backbone:
+El NPZ de entrada debe contener características extraídas con el mismo backbone congelado:
 ``x_train_original``, ``x_train_shifted``, ``y_train``, ``x_val``, ``y_val``,
-``fst_buckets_val`` and scalar ``backbone_frozen=True``. Shifted features must
-come from images transformed with ``dermssl.circle.shift_skin_tone`` and the
-lesion masks produced during Stage 1. This runner never invents features,
-labels, buckets or outcomes.
+``fst_buckets_val`` y el escalar ``backbone_frozen=True``. Las características
+desplazadas deben provenir de imágenes transformadas con
+``dermssl.circle.shift_skin_tone`` y de las máscaras de lesión producidas en
+Stage 1. Este ejecutor nunca inventa características, etiquetas, buckets ni resultados.
 
-The Stage 1 gate JSON may be either ``{"status": "FAIL"}`` or a v5 summary
-with a ``gates`` list containing ``G3 equidad por fototipo``. PASS/SKIP writes
-an explicit skipped result. FAIL trains three matched linear probes: baseline,
-regularization-only and regularization plus a 50/50 synthetic blend.
+El JSON de puerta de Stage 1 puede ser ``{"status": "FAIL"}`` o un resumen v5
+con una lista ``gates`` que contenga ``G3 equidad por fototipo``. PASS/SKIP
+escribe un resultado omitido explícito. FAIL entrena tres probes lineales
+equivalentes: baseline, solo regularización y regularización con mezcla 50/50.
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from dermssl import circle, metrics  # noqa: E402
+from dermssl.cli import build_spanish_parser  # noqa: E402
 
 SMOKE_EPOCHS = 2
 SMOKE_MAX_TRAIN = 256
@@ -41,35 +42,33 @@ REQUIRED_BUNDLE_KEYS = (
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    parser.add_argument("--feature-bundle", required=True)
-    parser.add_argument("--stage1-gate", required=True)
-    parser.add_argument("--output-json", default="circle_stage2_results.json")
-    parser.add_argument("--epochs", type=int, default=50)
-    parser.add_argument("--batch-size", type=int, default=128)
-    parser.add_argument("--lr", type=float, default=1e-3)
-    parser.add_argument("--reg-weight", type=float, default=1.0)
-    parser.add_argument("--synthetic-ratio", type=float, default=0.5)
-    parser.add_argument("--min-bucket-n", type=int, default=30)
-    parser.add_argument("--bootstrap-resamples", type=int, default=1000)
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--smoke", action="store_true")
+    parser = build_spanish_parser(description=__doc__)
+    parser.add_argument("--feature-bundle", required=True, help="Paquete de características NPZ de entrada")
+    parser.add_argument("--stage1-gate", required=True, help="JSON de puerta de Stage 1")
+    parser.add_argument("--output-json", default="circle_stage2_results.json", help="Ruta del JSON de resultados")
+    parser.add_argument("--epochs", type=int, default=50, help="Épocas de entrenamiento del probe")
+    parser.add_argument("--batch-size", type=int, default=128, help="Tamaño de lote")
+    parser.add_argument("--lr", type=float, default=1e-3, help="Tasa de aprendizaje")
+    parser.add_argument("--reg-weight", type=float, default=1.0, help="Peso de la regularización")
+    parser.add_argument("--synthetic-ratio", type=float, default=0.5, help="Proporción de pares sintéticos")
+    parser.add_argument("--min-bucket-n", type=int, default=30, help="Mínimo de muestras por bucket")
+    parser.add_argument("--bootstrap-resamples", type=int, default=1000, help="Remuestreos bootstrap")
+    parser.add_argument("--seed", type=int, default=42, help="Semilla de aleatoriedad")
+    parser.add_argument("--smoke", action="store_true", help="Ejecuta una validación reducida sin validez de tesis")
     return parser.parse_args(argv)
 
 
 def validate_args(args: argparse.Namespace) -> None:
     if not Path(args.feature_bundle).is_file():
-        raise ValueError(f"feature bundle not found: {args.feature_bundle}")
+        raise ValueError(f"no se encontró el paquete de características: {args.feature_bundle}")
     if not Path(args.stage1_gate).is_file():
-        raise ValueError(f"Stage 1 gate JSON not found: {args.stage1_gate}")
+        raise ValueError(f"no se encontró el JSON de puerta de Stage 1: {args.stage1_gate}")
     if args.epochs <= 0 or args.batch_size <= 0:
-        raise ValueError("epochs and batch-size must be positive")
+        raise ValueError("epochs y batch-size deben ser positivos")
     if not 0.0 <= args.synthetic_ratio <= 1.0:
-        raise ValueError("synthetic-ratio must be within [0, 1]")
+        raise ValueError("synthetic-ratio debe estar en [0, 1]")
     if args.min_bucket_n <= 0 or args.bootstrap_resamples <= 0:
-        raise ValueError("min-bucket-n and bootstrap-resamples must be positive")
+        raise ValueError("min-bucket-n y bootstrap-resamples deben ser positivos")
 
 
 def load_stage1_gate_status(path: Path) -> str:
@@ -79,7 +78,7 @@ def load_stage1_gate_status(path: Path) -> str:
     for gate in payload.get("gates", []):
         if gate.get("gate", gate.get("name")) == "G3 equidad por fototipo":
             return str(gate.get("status", "SKIP"))
-    raise ValueError("Stage 1 JSON has no G3 equidad por fototipo gate")
+    raise ValueError("el JSON de Stage 1 no contiene la puerta G3 equidad por fototipo")
 
 
 def _class_weights(torch_module, y_train: np.ndarray, n_classes: int, device):
@@ -155,7 +154,7 @@ def _train_variant(
                     logits_original, logits_shifted
                 )
             else:
-                raise ValueError(f"unknown Stage 2 variant: {mode}")
+                raise ValueError(f"variante desconocida de Stage 2: {mode}")
             loss.backward()
             optimizer.step()
     return probe
@@ -177,9 +176,9 @@ def run(args: argparse.Namespace, gate_status: str) -> dict:
     bundle = np.load(args.feature_bundle, allow_pickle=False)
     missing = [key for key in REQUIRED_BUNDLE_KEYS if key not in bundle.files]
     if missing:
-        raise ValueError(f"feature bundle missing keys: {missing}")
+        raise ValueError(f"al paquete de características le faltan claves: {missing}")
     if not bool(np.asarray(bundle["backbone_frozen"]).item()):
-        raise ValueError("feature bundle must attest backbone_frozen=True")
+        raise ValueError("el paquete de características debe declarar backbone_frozen=True")
 
     x_original = np.asarray(bundle["x_train_original"], dtype=np.float32)
     x_shifted = np.asarray(bundle["x_train_shifted"], dtype=np.float32)
@@ -188,11 +187,11 @@ def run(args: argparse.Namespace, gate_status: str) -> dict:
     y_val = np.asarray(bundle["y_val"], dtype=np.int64)
     fst_val = np.asarray(bundle["fst_buckets_val"], dtype=object)
     if x_original.shape != x_shifted.shape or len(x_original) != len(y_train):
-        raise ValueError("training feature pairs and labels must have matching shapes")
+        raise ValueError("los pares de características y etiquetas de entrenamiento deben tener dimensiones compatibles")
     if len(x_val) != len(y_val) or len(y_val) != len(fst_val):
-        raise ValueError("validation features, labels and FST buckets must align")
+        raise ValueError("las características, etiquetas y buckets FST de validación deben estar alineados")
     if x_original.ndim != 2 or x_val.ndim != 2 or x_original.shape[1] != x_val.shape[1]:
-        raise ValueError("feature arrays must be 2-D with one shared feature dimension")
+        raise ValueError("los arreglos de características deben ser 2-D y compartir una dimensión de características")
 
     epochs = SMOKE_EPOCHS if args.smoke else args.epochs
     bootstrap_resamples = min(100, args.bootstrap_resamples) if args.smoke else args.bootstrap_resamples
@@ -287,17 +286,17 @@ def main(argv: list[str] | None = None) -> None:
             result = {
                 "status": "skipped",
                 "stage1_gate_status": gate_status,
-                "reason": "Stage 1 did not report measurable bias",
+                "reason": "Stage 1 no reportó un sesgo medible",
                 "smoke": args.smoke,
                 "valid_for_thesis": False,
             }
         else:
             result = run(args, gate_status)
     except ValueError as exc:
-        raise SystemExit(f"config error: {exc}") from exc
+        raise SystemExit(f"error de configuración: {exc}") from exc
     output = Path(args.output_json)
     _write_json(output, result)
-    print(f"wrote {output} | status={result['status']}")
+    print(f"se escribió {output} | estado={result['status']}")
 
 
 if __name__ == "__main__":
