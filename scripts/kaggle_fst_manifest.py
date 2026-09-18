@@ -62,6 +62,17 @@ SMOKE_EPOCHS = 1
 SMOKE_MAX_TARGET_IMAGES = 8
 
 
+def find_target_images(root) -> list[Path]:
+    """Recursivo (mismo criterio que ``data_resolver.index_images`` y
+    ``diagnostico_fst_comparativa.find_images``): HAM10000 reparte las
+    imagenes en subcarpetas (part_1/part_2), un glob no recursivo sobre
+    ``--target-image-root`` encuentra cero imagenes."""
+    from dermssl import data_resolver
+
+    found = data_resolver.index_images([Path(root)])
+    return sorted(found.values())
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = build_spanish_parser(description=__doc__)
     parser.add_argument("--unet-train-images", required=True,
@@ -236,7 +247,7 @@ def run(args: argparse.Namespace) -> int:
     if args.checkpoint_out:
         torch_unet.save_checkpoint(training, args.checkpoint_out)
 
-    target_paths = sorted(Path(args.target_image_root).glob("*.jpg"))
+    target_paths = find_target_images(args.target_image_root)
     if args.smoke:
         target_paths = target_paths[:SMOKE_MAX_TARGET_IMAGES]
 
