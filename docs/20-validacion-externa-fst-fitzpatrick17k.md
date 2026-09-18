@@ -133,7 +133,33 @@ preprocesamiento neutral para tareas donde el color del sujeto ES la señal (com
 estimar tono de piel) — solo tiene sentido cuando el color es ruido a remover, no la
 variable de interés.
 
-## 6. Consecuencia para el proyecto
+## 6. El fallback de Otsu confunde piel oscura con piel clara, no solo con tonos vecinos
+
+Alipour et al. 2026 reportan cero aciertos en FST VI (el tono más oscuro) con su método
+de umbral fijo. Revisamos la fila del bucket 6 en nuestra matriz de confusión
+(`validacion_fitzpatrick17k_v2.json`, 373 imágenes con FST 6 real):
+
+| Método | Aciertos (bucket 6 → 6) | Recall |
+|---|---|---|
+| Sin máscara | 199/373 | 53.4% |
+| Con máscara (Otsu) | 111/371 | 29.9% |
+
+No repetimos su hallazgo más extremo — ninguna de las dos versiones da cero. Pero
+apareció un problema propio, más preocupante que un simple recall bajo: **con máscara,
+145 de 371 imágenes de piel realmente oscura (39%) se clasifican como bucket 1, la piel
+MÁS CLARA de la escala** — no un error de un tono, el error más grande posible. Hipótesis
+sin confirmar: `BORDER_LUMINANCE_THRESHOLD` en `fitzpatrick.py`, usado para separar
+"borde/fondo" de "piel" en el fallback de Otsu, probablemente está calibrado pensando en
+piel más clara; sobre piel oscura real podría estar excluyendo piel válida y quedándose
+con parches de brillo o artefacto, produciendo una lectura de ITA falsamente clara.
+
+Esto es exactamente el tipo de sesgo contra piel oscura que motiva todo este proyecto
+(CIRCLe), encontrado en la **herramienta de etiquetado** antes de llegar siquiera a
+CIRCLe. Es la razón principal para priorizar una máscara de lesión real (DoubleU-Net,
+sección 7) sobre el fallback de Otsu para HAM10000/ISIC — el problema aparece en los
+propios datos de esta validación, no es exclusivo de Fitzpatrick17k.
+
+## 7. Consecuencia para el proyecto
 
 La calibración de umbral era gratis y valía la pena — ya está corregida y commiteada. No
 hay evidencia de que seguir ajustando el umbral por sí solo vaya a cerrar la brecha
