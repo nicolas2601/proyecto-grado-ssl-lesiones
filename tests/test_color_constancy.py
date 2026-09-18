@@ -70,7 +70,7 @@ def test_sample_op_respects_zero_probability():
 
 def test_unknown_op_name_is_rejected():
     rng = np.random.default_rng(0)
-    with pytest.raises(ValueError, match="unknown"):
+    with pytest.raises(ValueError, match="desconocida"):
         cc.sample_op(rng, (("sepia", 1.0),))
 
 
