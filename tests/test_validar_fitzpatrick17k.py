@@ -164,6 +164,69 @@ def test_smoke_flag_caps_number_of_evaluated_rows(tmp_path):
     assert len(report_rows) == vf.SMOKE_MAX_IMAGES
 
 
+def test_parse_args_defaults_color_constancy_to_identity():
+    args = vf.parse_args([
+        "--image-root", "x", "--labels-csv", "y", "--output-json", "z",
+    ])
+
+    assert args.color_constancy == "identity"
+
+
+def test_invalid_color_constancy_choice_is_rejected():
+    with pytest.raises(SystemExit):
+        vf.parse_args([
+            "--image-root", "x", "--labels-csv", "y", "--output-json", "z",
+            "--color-constancy", "no-existe",
+        ])
+
+
+def test_color_constancy_option_shifts_the_whole_image_ita(tmp_path):
+    """Una imagen con un sesgo de color fuerte (canales muy desbalanceados)
+    debe dar un ITA distinto segun se aplique o no gray_world antes de
+    estimar - si no cambia nada, el flag no esta realmente conectado."""
+    image_root = tmp_path / "images"
+    image_root.mkdir()
+    arr = np.full((64, 64, 3), (0.9, 0.5, 0.2))
+    Image.fromarray((arr * 255).astype(np.uint8), mode="RGB").save(image_root / "aaa.jpg")
+    labels_csv = tmp_path / "Fitzpatrick17k-C.csv"
+    _write_labels_csv(labels_csv, [{"md5hash": "aaa", "fst": "1"}])
+
+    identity_args = vf.parse_args([
+        "--image-root", str(image_root), "--labels-csv", str(labels_csv),
+        "--output-json", str(tmp_path / "identity.json"),
+    ])
+    gray_world_args = vf.parse_args([
+        "--image-root", str(image_root), "--labels-csv", str(labels_csv),
+        "--output-json", str(tmp_path / "gray_world.json"),
+        "--color-constancy", "gray_world",
+    ])
+
+    identity_rows = vf.run(identity_args)
+    gray_world_rows = vf.run(gray_world_args)
+
+    ita_identity = identity_rows[0]["whole_image"]["ita"]
+    ita_gray_world = gray_world_rows[0]["whole_image"]["ita"]
+    assert ita_identity != pytest.approx(ita_gray_world)
+
+
+def test_report_records_which_color_constancy_op_was_applied(tmp_path):
+    image_root = tmp_path / "images"
+    image_root.mkdir()
+    _write_disk_image(image_root / "aaa.jpg")
+    labels_csv = tmp_path / "Fitzpatrick17k-C.csv"
+    _write_labels_csv(labels_csv, [{"md5hash": "aaa", "fst": "1"}])
+    out_json = tmp_path / "out.json"
+    args = vf.parse_args([
+        "--image-root", str(image_root), "--labels-csv", str(labels_csv),
+        "--output-json", str(out_json), "--color-constancy", "shades_of_gray",
+    ])
+
+    vf.run(args)
+
+    report = json.loads(out_json.read_text(encoding="utf-8"))
+    assert report["color_constancy"] == "shades_of_gray"
+
+
 def test_missing_image_is_recorded_without_crashing(tmp_path):
     image_root = tmp_path / "images"
     image_root.mkdir()

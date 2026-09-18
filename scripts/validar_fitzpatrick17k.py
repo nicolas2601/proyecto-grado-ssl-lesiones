@@ -53,6 +53,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help=f"Ejecucion reducida (<= {SMOKE_MAX_IMAGES} imagenes) para validar el cableado",
     )
+    parser.add_argument(
+        "--color-constancy",
+        default="identity",
+        choices=("identity", "gray_world", "shades_of_gray"),
+        help="Normalizacion de iluminacion aplicada antes de estimar el ITA "
+             "(Alipour et al. 2026 la senala como mitigacion posible bajo "
+             "iluminacion no controlada); 'identity' no aplica ninguna",
+    )
     return parser.parse_args(argv)
 
 
@@ -141,6 +149,10 @@ def run(args: argparse.Namespace) -> list[dict]:
     import numpy as np
     from PIL import Image
 
+    from dermssl.pretrain import color_constancy
+
+    correct_illumination = color_constancy.OPS[args.color_constancy]
+
     ground_truth = load_ground_truth(args.labels_csv)
     items = sorted(ground_truth.items())
     if args.smoke:
@@ -162,12 +174,15 @@ def run(args: argparse.Namespace) -> list[dict]:
             })
             continue
         img = np.asarray(Image.open(path).convert("RGB"), dtype=np.float32) / 255.0
+        img = correct_illumination(img)
         row = evaluate_image(img, actual_fst)
         row["md5hash"] = md5hash
         row["status"] = "evaluated"
         rows.append(row)
 
-    report = build_report(rows, ground_truth_total=len(ground_truth))
+    report = build_report(
+        rows, ground_truth_total=len(ground_truth), color_constancy=args.color_constancy
+    )
     Path(args.output_json).write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
@@ -180,7 +195,7 @@ def run(args: argparse.Namespace) -> list[dict]:
     return rows
 
 
-def build_report(rows: list[dict], ground_truth_total: int) -> dict:
+def build_report(rows: list[dict], ground_truth_total: int, color_constancy: str = "identity") -> dict:
     found = [row for row in rows if row["status"] == "evaluated"]
     missing = [row for row in rows if row["status"] == "image_missing"]
 
@@ -191,6 +206,7 @@ def build_report(rows: list[dict], ground_truth_total: int) -> dict:
         "schema_version": "1.0",
         "source": "Fitzpatrick17k-C (Abhishek, Jain & Hamarneh, Nature Scientific Data 2025; "
                   "Zenodo 10.5281/zenodo.11101337) - contraste externo provisional, no verdad clinica",
+        "color_constancy": color_constancy,
         "n_ground_truth": ground_truth_total,
         "n_images_found": len(found),
         "n_images_missing": len(missing),
