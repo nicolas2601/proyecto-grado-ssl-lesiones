@@ -15,6 +15,16 @@ def test_gpu_hours_scale_with_gpu_count():
     assert b.gpu_hours_elapsed(wall_seconds=3600) == pytest.approx(4.0)
 
 
+@pytest.mark.parametrize("wall_seconds", (0, 3600))
+def test_cpu_budget_does_not_convert_wall_time_to_gpu_hours(wall_seconds):
+    budget = bg.ComputeBudget(gpu_hours=10.0, n_gpus=0, fractions=(0.25, 1.0))
+
+    assert budget.gpu_hours_elapsed(wall_seconds) == 0.0
+    assert budget.fraction_done(wall_seconds) == 0.0
+    assert not budget.should_stop(wall_seconds)
+    assert budget.due_checkpoints(wall_seconds, set()) == []
+
+
 def test_fraction_done_is_clamped_to_one():
     b = make_budget(hours=10.0, gpus=4)
     assert b.fraction_done(wall_seconds=0) == 0.0
@@ -49,4 +59,4 @@ def test_invalid_construction_is_loud():
     with pytest.raises(ValueError):
         make_budget(hours=0)
     with pytest.raises(ValueError):
-        make_budget(gpus=0)
+        make_budget(gpus=-1)

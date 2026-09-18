@@ -29,6 +29,25 @@ def test_torch_modules_compile(path):
     py_compile.compile(str(path), doraise=True)
 
 
+def test_dino_head_survives_deepcopy():
+    """DinoContinual.__init__ builds the teacher via copy.deepcopy(student_head)
+    (torch_dino.py). The legacy nn.utils.weight_norm hook-based
+    implementation cannot be deepcopy'd on recent PyTorch (RuntimeError,
+    "Only Tensors created explicitly by the user ... support the deepcopy
+    protocol" - see https://github.com/pytorch/pytorch/pull/103001); this
+    only reproduces where torch is actually installed (the GPU cluster),
+    so it skips everywhere else instead of failing to import."""
+    torch = pytest.importorskip("torch")
+    import copy
+    import sys
+
+    sys.path.insert(0, str(ROOT / "src"))
+    from dermssl.pretrain.torch_dino import DinoHead
+
+    head = DinoHead(in_dim=384, out_dim=64)
+    copy.deepcopy(head)  # must not raise
+
+
 def test_launch_script_compiles():
     py_compile.compile(str(ROOT / "scripts" / "pretrain.py"), doraise=True)
 
@@ -131,3 +150,42 @@ def test_smoke_budget_is_small():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     assert mod.SMOKE_BUDGET_GPU_HOURS <= 0.1
+
+
+def test_imagenet_resnet_control_uses_pretrained_weights_in_the_ssl_builder():
+    """The named ImageNet control must load ImageNet weights, not silently
+    reuse the random SimSiam arm."""
+    source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_loop.py").read_text()
+    model_source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_simsiam.py").read_text()
+    assert '"simsiam_imagenet"' in source
+    assert "ResNet50_Weights.IMAGENET1K_V2" in model_source
+
+
+def test_training_writes_the_run_contract_and_honors_an_explicit_resume_path():
+    source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_loop.py").read_text()
+    assert "run_contract.build_run_manifest" in source
+    assert "cfg.resume_checkpoint" in source
+
+
+def test_original_transformed_mode_uses_paired_images_and_named_consistency_loss():
+    """The adaptation objective must be explicit: original/transform pairs go
+    through a representation-consistency loss, not two arbitrary augmentations."""
+    loop_source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_loop.py").read_text()
+    data_source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_data.py").read_text()
+    model_source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_simsiam.py").read_text()
+
+    assert "collect_paired_images" in loop_source
+    assert "original_transformed_consistency_loss" in loop_source
+    assert "transformed_image_root" in loop_source
+    assert "tuple[Path, Path]" in data_source
+    assert "original_transformed_consistency_loss" in model_source
+
+
+def test_smoke_run_limits_steps_and_accepts_the_transformed_image_root():
+    script_source = (ROOT / "scripts" / "pretrain.py").read_text()
+    loop_source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_loop.py").read_text()
+
+    assert "--transformed-image-root" in script_source
+    assert "SMOKE_MAX_STEPS" in script_source
+    assert "max_steps" in script_source
+    assert "cfg.max_steps" in loop_source

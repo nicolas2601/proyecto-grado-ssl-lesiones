@@ -1,4 +1,4 @@
-"""Torch datasets for label-free SSL pretraining.
+"""Conjuntos Torch para preentrenamiento SSL sin etiquetas.
 
 The ``torch_`` prefix marks the boundary of the tested core: modules with the
 prefix require torch and are exercised on the cluster (and by the smoke run),
@@ -31,7 +31,7 @@ IMAGENET_STD = (0.229, 0.224, 0.225)
 
 
 def _geometric(resolution: int, scale: tuple[float, float]) -> T.Compose:
-    # Dermoscopy has no canonical orientation: both flips are safe invariances.
+    # La dermatoscopia no tiene orientación canónica: ambos volteos son invariancias seguras.
     return T.Compose(
         [
             T.RandomResizedCrop(resolution, scale=scale, antialias=True),
@@ -59,7 +59,7 @@ def _finish_view(
     rng: np.random.Generator,
     cc_probs: tuple[tuple[str, float], ...],
 ) -> torch.Tensor:
-    """Photometric aug + INDEPENDENT color constancy draw + tensor."""
+    """Aumento fotométrico, muestreo independiente de constancia de color y tensor."""
     view = _photometric()(view)
     arr = np.asarray(view, dtype=np.float64) / 255.0
     arr = color_constancy.apply_stochastic(arr, rng, cc_probs)
@@ -68,11 +68,11 @@ def _finish_view(
 
 
 class SimSiamPairDataset(Dataset):
-    """Two independently augmented views per image."""
+    """Dos vistas aumentadas de forma independiente por imagen."""
 
     def __init__(
         self,
-        paths: list[Path],
+        paths: list[Path] | list[tuple[Path, Path]],
         resolution: int,
         cc_probs: tuple[tuple[str, float], ...],
         seed: int,
@@ -87,15 +87,25 @@ class SimSiamPairDataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         rng = np.random.default_rng((self.seed, idx))
-        img = Image.open(self.paths[idx]).convert("RGB")
-        views = [
+        entry = self.paths[idx]
+        if isinstance(entry, tuple):
+            original, transformed = entry
+            return (
+                _finish_view(self.geometric(Image.open(original).convert("RGB")), rng, self.cc_probs),
+                _finish_view(
+                    self.geometric(Image.open(transformed).convert("RGB")),
+                    rng,
+                    self.cc_probs,
+                ),
+            )
+        img = Image.open(entry).convert("RGB")
+        return tuple(
             _finish_view(self.geometric(img), rng, self.cc_probs) for _ in range(2)
-        ]
-        return views[0], views[1]
+        )
 
 
 class DinoMultiCropDataset(Dataset):
-    """2 global crops + N local crops, local ones biased to the lesion border."""
+    """Dos crops globales y N locales, con sesgo local al borde de lesión."""
 
     def __init__(
         self,

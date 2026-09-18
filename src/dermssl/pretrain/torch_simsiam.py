@@ -22,7 +22,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models import resnet50
+from torchvision.models import ResNet50_Weights, resnet50
 
 PROJ_DIM = 2048
 PRED_HIDDEN = 512
@@ -31,7 +31,9 @@ PRED_HIDDEN = 512
 def _build_backbone(backbone_name: str, pretrained: bool) -> tuple[nn.Module, int]:
     """(backbone, feature_dim) for either backbone family."""
     if backbone_name == "resnet50":
-        backbone = resnet50(weights=None)  # random init: the purist guarantee
+        backbone = resnet50(
+            weights=ResNet50_Weights.IMAGENET1K_V2 if pretrained else None
+        )
         feat_dim = backbone.fc.in_features
         backbone.fc = nn.Identity()
         return backbone, feat_dim
@@ -84,6 +86,16 @@ def simsiam_loss(
         return -F.cosine_similarity(p, z, dim=-1).mean()
 
     return 0.5 * (neg_cosine(p1, z2) + neg_cosine(p2, z1))
+
+
+def original_transformed_consistency_loss(
+    p_original: torch.Tensor,
+    p_transformed: torch.Tensor,
+    z_original: torch.Tensor,
+    z_transformed: torch.Tensor,
+) -> torch.Tensor:
+    """Representation consistency between one original and its transformation."""
+    return simsiam_loss(p_original, p_transformed, z_original, z_transformed)
 
 
 def collapse_indicator(z: torch.Tensor) -> float:

@@ -87,7 +87,7 @@ def sample_centers(
     """``n`` (row, col) centers drawn uniformly from the True pixels of ``region``."""
     coords = np.argwhere(region)
     if len(coords) == 0:
-        raise ValueError("cannot sample from an empty region")
+        raise ValueError("no se puede muestrear una región vacía")
     picks = rng.integers(0, len(coords), size=n)
     return coords[picks]
 
