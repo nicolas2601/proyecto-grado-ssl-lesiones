@@ -155,8 +155,8 @@ con parches de brillo o artefacto, produciendo una lectura de ITA falsamente cla
 
 Esto es exactamente el tipo de sesgo contra piel oscura que motiva todo este proyecto
 (CIRCLe), encontrado en la **herramienta de etiquetado** antes de llegar siquiera a
-CIRCLe. Es la razón principal para priorizar una máscara de lesión real (DoubleU-Net,
-sección 7) sobre el fallback de Otsu para HAM10000/ISIC — el problema aparece en los
+CIRCLe. Es la razón principal para priorizar una máscara de lesión real (U-Net entrenada
+sobre ISIC 2018 Task 1, sección 7) sobre el fallback de Otsu para HAM10000/ISIC — el problema aparece en los
 propios datos de esta validación, no es exclusivo de Fitzpatrick17k.
 
 ## 7. Consecuencia para el proyecto
