@@ -1,8 +1,13 @@
 """JSON mask contracts: a boolean True pixel always denotes lesion."""
 
+import sys
+from pathlib import Path
+
 import numpy as np
 
-from dermssl import mask_manifest as mm
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from dermssl import mask_manifest as mm  # noqa: E402
 
 
 def test_build_mask_record_quarantines_missing_and_degenerate_masks():
