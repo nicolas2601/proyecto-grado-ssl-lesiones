@@ -75,18 +75,18 @@ def test_ita_degrees_stays_within_arctan_bounds_for_negative_b():
 @pytest.mark.parametrize(
     "ita, expected_bucket",
     [
-        (60.0, 1),  # well above the lightest threshold
-        (55.0001, 1),  # just above 55
-        (55.0, 2),  # exactly on the 55 boundary falls to the next bucket
-        (50.0, 2),
-        (41.0, 3),  # exactly on the 41 boundary
-        (35.0, 3),
-        (28.0, 4),  # exactly on the 28 boundary
-        (24.0, 4),
-        (19.0, 5),  # exactly on the 19 boundary
-        (15.0, 5),
-        (10.0, 6),  # exactly on the 10 boundary
-        (-30.0, 6),  # well below the darkest threshold
+        (45.0, 1),  # well above the lightest threshold
+        (40.0001, 1),  # just above 40
+        (40.0, 2),  # exactly on the 40 boundary falls to the next bucket
+        (30.0, 2),
+        (23.0, 3),  # exactly on the 23 boundary
+        (15.0, 3),
+        (12.0, 4),  # exactly on the 12 boundary
+        (5.0, 4),
+        (0.0, 5),  # exactly on the 0 boundary
+        (-10.0, 5),
+        (-25.0, 6),  # exactly on the -25 boundary
+        (-40.0, 6),  # well below the darkest threshold
     ],
 )
 def test_fst_bucket_at_groh_thresholds_and_boundaries(ita, expected_bucket):
@@ -160,6 +160,47 @@ def test_estimate_fst_reports_primary_mask_provenance_and_confidence():
     assert result.fallback_used is False
     assert result.artifact_detected is False
     assert result.confidence == pytest.approx(0.92)
+
+
+def test_estimate_fst_from_mask_record_preserves_eligible_mask_provenance():
+    from dermssl import mask_manifest as mm
+
+    img, dist = disk_srgb_image()
+    lesion_mask = dist <= 15
+    record = mm.build_mask_record(
+        dataset="ham10000",
+        image_id="synthetic",
+        source_revision="v1",
+        mask=lesion_mask,
+        producer="unet",
+        version="checkpoint-a",
+    )
+
+    result = fp.estimate_fst_from_mask_record(img, mask=lesion_mask, mask_record=record)
+
+    assert result.status == "ok"
+    assert result.mask_producer == "unet"
+    assert result.mask_version == "checkpoint-a"
+    assert result.mask_sha256 == record["mask_sha256"]
+
+
+def test_estimate_fst_from_mask_record_marks_quarantined_mask_unavailable():
+    from dermssl import mask_manifest as mm
+
+    img, _ = disk_srgb_image()
+    record = mm.build_mask_record(
+        dataset="ham10000",
+        image_id="missing",
+        source_revision="v1",
+        mask=None,
+        producer="otsu",
+        version="1",
+    )
+
+    result = fp.estimate_fst_from_mask_record(img, mask=None, mask_record=record)
+
+    assert result.status == "mask_ineligible"
+    assert result.bucket is None
 
 
 def test_estimate_fst_low_mask_confidence_uses_fallback_and_reduces_confidence():
@@ -288,6 +329,73 @@ def test_estimate_fst_coerces_a_non_bool_mask_to_the_same_result_as_bool():
     assert result_uint8.bucket == result_bool.bucket
     assert result_uint8.ita == pytest.approx(result_bool.ita)
     assert result_uint8.skin_fraction == pytest.approx(result_bool.skin_fraction)
+
+
+def test_estimate_fst_whole_image_matches_lab_median_over_all_pixels():
+    """Sin mascara, el ITA sale de la mediana de Lab sobre TODOS los
+    pixeles - oraculo independiente calculado con true_skin=todo True,
+    para no ser circular respecto de la implementacion."""
+    pytest.importorskip("skimage.color")
+    img, _ = disk_srgb_image()
+
+    result = fp.estimate_fst_whole_image(img)
+
+    assert result.status == "ok"
+    expected_bucket = _independent_expected_bucket(
+        img, true_skin=np.ones(img.shape[:2], dtype=bool)
+    )
+    assert result.bucket == expected_bucket
+    assert result.skin_fraction == 1.0
+    assert result.fallback_used is False
+    assert result.confidence == pytest.approx(1.0)
+
+
+def test_estimate_fst_whole_image_diverges_from_masked_when_lesion_dominates():
+    """Con una lesion grande (60% del area), el bucket sin mascara debe
+    diferir del bucket con mascara: estimate_fst excluye la lesion,
+    estimate_fst_whole_image no excluye nada y la lesion domina la
+    mediana. Este es el contraste que motiva tener las dos funciones -
+    cuanto le importa la mascara al resultado."""
+    pytest.importorskip("skimage.color")
+    img, _ = disk_srgb_image(radius=28)  # ~60% del area de 64x64 es lesion
+
+    masked = fp.estimate_fst(img)
+    whole = fp.estimate_fst_whole_image(img)
+
+    assert masked.status == "ok"
+    assert whole.status == "ok"
+    assert whole.bucket != masked.bucket
+
+
+def test_estimate_fst_whole_image_reuses_the_artifact_detector_over_the_full_frame():
+    """El detector de artefactos se reutiliza pasandole una mascara de
+    lesion vacia (nada es "lesion"), asi el chequeo de pelo/regla corre
+    sobre el frame completo en vez de reimplementar la logica."""
+    img, _ = disk_srgb_image()
+    clean = fp.estimate_fst_whole_image(img)
+    with_hair = img.copy()
+    with_hair[6:8, 5:-5] = 0.0
+
+    result = fp.estimate_fst_whole_image(with_hair)
+
+    assert result.artifact_detected is True
+    assert clean.artifact_detected is False
+
+
+@pytest.mark.parametrize("bad_ita", [float("nan"), 91.0, -91.0])
+def test_estimate_fst_whole_image_returns_ita_out_of_range_instead_of_crashing(monkeypatch, bad_ita):
+    """Mismo contrato de estimate_fst: nunca un AssertionError o crash por
+    un ITA fuera de rango o NaN, siempre un status explicito."""
+    pytest.importorskip("skimage.color")
+    img, _ = disk_srgb_image()
+
+    monkeypatch.setattr(fp, "ita_degrees", lambda L, b: bad_ita)
+
+    result = fp.estimate_fst_whole_image(img)
+
+    assert result.status == "ita_out_of_range"
+    assert result.bucket is None
+    assert np.isnan(result.ita) if np.isnan(bad_ita) else result.ita == bad_ita
 
 
 def test_module_source_never_imports_skimage():

@@ -17,7 +17,7 @@ inlined and executed by the notebook-build test, so a module-level
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -25,7 +25,7 @@ from dermssl.pretrain import lesion_guided
 
 # Groh et al. empirical ITA thresholds (degrees), descending. Bucket 1 is the
 # lightest FST, bucket 6 the darkest.
-FST_THRESHOLDS = (55.0, 41.0, 28.0, 19.0, 10.0)
+FST_THRESHOLDS = (40.0, 23.0, 12.0, 0.0, -25.0)
 
 # Below this fraction of skin pixels, the estimate is not trustworthy.
 MIN_SKIN_FRACTION = 0.05
@@ -155,6 +155,9 @@ class FSTEstimate:
     fallback_used: bool
     confidence: float
     artifact_detected: bool
+    mask_producer: str | None = None
+    mask_version: str | None = None
+    mask_sha256: str | None = None
 
 
 def _is_degenerate(mask: np.ndarray) -> bool:
@@ -306,5 +309,86 @@ def estimate_fst(
         status="ok",
         fallback_used=fallback_used,
         confidence=float(np.clip(confidence, 0.0, 1.0)),
+        artifact_detected=artifact_detected,
+    )
+
+
+def estimate_fst_from_mask_record(
+    img: np.ndarray,
+    *,
+    mask: np.ndarray | None,
+    mask_record: dict,
+) -> FSTEstimate:
+    """Estimate FST only from a QA-eligible ``true=lesion`` mask record."""
+    if mask_record.get("mask_semantics") != "true=lesion":
+        raise ValueError("mask records must declare true=lesion semantics")
+
+    provenance = {
+        "mask_producer": mask_record.get("producer"),
+        "mask_version": mask_record.get("version"),
+        "mask_sha256": mask_record.get("mask_sha256"),
+    }
+    if not mask_record.get("eligible"):
+        skin_fraction = 0.0 if mask is None else float((~np.asarray(mask, dtype=bool)).mean())
+        return FSTEstimate(
+            bucket=None,
+            ita=float("nan"),
+            skin_fraction=skin_fraction,
+            status="mask_ineligible",
+            fallback_used=bool(mask_record.get("fallback_used")),
+            confidence=0.0,
+            artifact_detected=False,
+            **provenance,
+        )
+    if mask is None:
+        raise ValueError("eligible mask record requires its boolean mask")
+
+    return replace(estimate_fst(img, mask=np.asarray(mask, dtype=bool)), **provenance)
+
+
+def estimate_fst_whole_image(img: np.ndarray) -> FSTEstimate:
+    """FST estimate over the ENTIRE image - no lesion mask, no skin/border
+    exclusion, no fallback tiers. Every pixel (lesion, artifacts, vignette)
+    contributes equally to the median Lab used for ITA.
+
+    Exists to reproduce the "full image ITA" baseline that Kinyanjui et al.
+    and Groh et al. compare against their masked pipeline (Table 3 in
+    Corbin & Marques) - NOT a claim that this is a good estimator. It is
+    the unmasked counterpart to ``estimate_fst``: run both over the same
+    image set and the gap between them is how much the mask actually buys
+    you.
+
+    ``skin_fraction`` is always 1.0 (every pixel counts) and ``confidence``
+    is always 1.0 when status is "ok" - there is no mask provenance to be
+    less than fully confident about. A high confidence here says nothing
+    about accuracy, only that no mask-related discount applies.
+    """
+    artifact_detected = detect_dermoscopy_artifacts(
+        img, np.zeros(img.shape[:2], dtype=bool)
+    )
+
+    lab = srgb_to_lab(img)
+    L_med = np.median(lab[..., 0])
+    b_med = np.median(lab[..., 2])
+    ita = float(ita_degrees(np.asarray(L_med), np.asarray(b_med)))
+
+    if not (-90.0 <= ita <= 90.0):
+        return FSTEstimate(
+            bucket=None,
+            ita=ita,
+            skin_fraction=1.0,
+            status="ita_out_of_range",
+            fallback_used=False,
+            confidence=0.0,
+            artifact_detected=artifact_detected,
+        )
+
+    return FSTEstimate(
+        bucket=fst_bucket(ita),
+        ita=ita,
+        skin_fraction=1.0,
+        status="ok",
+        fallback_used=False,
+        confidence=1.0,
         artifact_detected=artifact_detected,
     )
