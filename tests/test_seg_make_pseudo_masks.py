@@ -111,3 +111,57 @@ def test_without_a_field_the_stats_say_so(tmp_path):
     saved = json.loads((tmp_path / "out" / "pseudo_masks_stats.json").read_text(encoding="utf-8"))
     assert saved["field"] is None
     assert saved["max_area_fraction"] == mpm.um.DEFAULT_MAX_AREA_FRACTION
+
+
+def _write_images(tmp_path, count=2, size=32, box=(15, 18)):
+    """Flat skin with a violet ink square, in the ``(N, H, W, 3)`` cache layout."""
+    images = np.full((count, size, size, 3), (200, 150, 140), dtype=np.uint8)
+    low, high = box
+    images[:, low:high, low:high] = (90, 60, 160)
+    path = tmp_path / "images.npy"
+    np.save(path, images)
+    return path
+
+
+def test_the_image_cache_turns_ink_marks_into_ignored_pixels(tmp_path):
+    saliency = _write_saliency(tmp_path, [_blob(), _blob()])
+    images = _write_images(tmp_path)
+    stats = _run(tmp_path, saliency, "--source", "student", "--images", str(images))
+    masks = cache_io.open_cache(tmp_path / "out" / "pseudo_masks.npy")
+    assert stats["excluded"] == 0
+    assert masks[0, 16, 16] == cache_io.IGNORE
+    assert masks[0, 16, 20] == cache_io.FOREGROUND
+    assert stats["mean_artifact_fraction"] > 0.0
+    saved = json.loads((tmp_path / "out" / "pseudo_masks_stats.json").read_text(encoding="utf-8"))
+    assert saved["artifact_suppression"] is True
+    assert saved["images"] == str(images)
+    assert saved["reads_masks_or_labels"] is False
+
+
+def test_artifact_suppression_can_be_turned_off_from_the_command_line(tmp_path):
+    saliency = _write_saliency(tmp_path, [_blob(), _blob()])
+    images = _write_images(tmp_path)
+    stats = _run(
+        tmp_path, saliency, "--source", "student",
+        "--images", str(images), "--no-artifact-suppression",
+    )
+    masks = cache_io.open_cache(tmp_path / "out" / "pseudo_masks.npy")
+    assert masks[0, 16, 16] == cache_io.FOREGROUND
+    assert stats["mean_artifact_fraction"] == 0.0
+    saved = json.loads((tmp_path / "out" / "pseudo_masks_stats.json").read_text(encoding="utf-8"))
+    assert saved["artifact_suppression"] is False
+
+
+def test_without_an_image_cache_nothing_is_suppressed(tmp_path):
+    saliency = _write_saliency(tmp_path, [_blob()])
+    stats = _run(tmp_path, saliency, "--source", "student")
+    assert stats["mean_artifact_fraction"] == 0.0
+    saved = json.loads((tmp_path / "out" / "pseudo_masks_stats.json").read_text(encoding="utf-8"))
+    assert saved["images"] is None and saved["artifact_suppression"] is False
+
+
+def test_an_image_cache_that_does_not_match_the_saliency_is_rejected(tmp_path):
+    saliency = _write_saliency(tmp_path, [_blob(), _blob()])
+    images = _write_images(tmp_path, count=1)
+    with pytest.raises(SystemExit):
+        _run(tmp_path, saliency, "--source", "student", "--images", str(images))

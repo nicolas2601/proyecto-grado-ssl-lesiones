@@ -30,6 +30,12 @@ def _summary(path, *, dice=0.812345, hausdorff=True, strata=True):
             "min_n": 5,
             "gap_dice": 0.0456,
             "worst_bucket": "5",
+            "in_pool": {"n": 20, "status": "OK",
+                        "dice": {"mean": 0.8301, "median": 0.84, "n": 20},
+                        "iou": {"mean": 0.73, "median": 0.74, "n": 20}},
+            "out_of_pool": {"n": 2, "status": "SKIPPED",
+                            "dice": {"mean": 0.5, "median": 0.5, "n": 2},
+                            "iou": {"mean": 0.4, "median": 0.4, "n": 2}},
             "buckets": {
                 "2": {"n": 12, "status": "OK",
                       "dice": {"mean": 0.85, "median": 0.86, "n": 12},
@@ -138,3 +144,28 @@ def test_a_run_specification_without_a_name_is_rejected(tmp_path):
 def test_at_least_one_run_is_required(tmp_path):
     with pytest.raises(SystemExit):
         table.parse_args(["--output", str(tmp_path / "r.md")])
+
+
+def test_the_pool_aggregates_reach_the_record(tmp_path):
+    record = table.load_run("ssl", _summary(tmp_path / "ssl" / "summary.json"))
+    assert record["in_pool_dice_mean"] == pytest.approx(0.8301)
+    assert record["out_of_pool_dice_mean"] == pytest.approx(0.5)
+
+
+def test_a_run_without_strata_reports_no_pool_aggregates(tmp_path):
+    record = table.load_run("base", _summary(tmp_path / "base" / "summary.json", strata=False))
+    assert record["in_pool_dice_mean"] is None
+    assert record["out_of_pool_dice_mean"] is None
+
+
+def test_the_pool_columns_appear_only_when_a_run_reports_them(tmp_path):
+    output, _ = _build(tmp_path)
+    text = output.read_text(encoding="utf-8")
+    assert "in_pool_dice_mean" in text and "out_of_pool_dice_mean" in text
+    row = next(line for line in text.splitlines() if line.startswith("| ssl "))
+    assert "| 0.830 |" in row and "| 0.500 |" in row
+
+    plain = tmp_path / "plain.md"
+    only = _summary(tmp_path / "solo" / "summary.json", strata=False)
+    table.build_table(table.parse_args(["--run", f"solo={only}", "--output", str(plain)]))
+    assert "in_pool" not in plain.read_text(encoding="utf-8")

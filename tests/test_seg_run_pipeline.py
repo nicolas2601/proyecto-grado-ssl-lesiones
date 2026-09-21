@@ -399,3 +399,50 @@ def test_cluster_pilot_preset_builds_every_stage(tmp_path):
     stages = {s.name: s for s in rp.build_stage_commands(config)}
     assert set(stages) >= {"cache", "contrastive", "ccam", "pseudo_r0", "student_r1", "fst"}
     assert _flag(stages["pseudo_r0"], "--max-area-fraction") == "0.6"
+
+
+# --- artefact suppression in the pseudo-mask stages --------------------------
+
+
+def test_pseudo_stages_receive_the_image_cache_for_artifact_suppression(tmp_path):
+    stages = {s.name: s for s in rp.build_stage_commands(_config(tmp_path))}
+    for name in ("pseudo_r0", "pseudo_r1"):
+        assert _flag(stages[name], "--images").endswith("cache/images.npy")
+
+
+def test_the_preset_can_turn_artifact_suppression_off(tmp_path):
+    preset = _config(tmp_path).preset
+    preset["pseudo"] = {**preset["pseudo"], "artifact_suppression": False}
+    stages = {s.name: s for s in rp.build_stage_commands(_config(tmp_path, preset=preset))}
+    assert "--images" not in stages["pseudo_r0"].argv
+    assert "--artifact-suppression" not in stages["pseudo_r0"].argv
+
+
+def test_an_enabled_artifact_suppression_never_becomes_a_bare_flag(tmp_path):
+    preset = _config(tmp_path).preset
+    preset["pseudo"] = {**preset["pseudo"], "artifact_suppression": True}
+    stage = next(
+        s for s in rp.build_stage_commands(_config(tmp_path, preset=preset))
+        if s.name == "pseudo_r0"
+    )
+    assert "--artifact-suppression" not in stage.argv
+    assert _flag(stage, "--images").endswith("cache/images.npy")
+
+
+def test_the_final_preset_lowers_the_minimum_area_and_suppresses_artifacts():
+    final = _cluster_preset("cluster-final.json")["pseudo"]
+    assert final["min_area_fraction"] == 0.003
+    assert final["artifact_suppression"] is True
+
+
+def test_the_pilot_preset_stays_the_recorded_baseline():
+    pilot = _cluster_preset("cluster-piloto.json")["pseudo"]
+    assert "min_area_fraction" not in pilot
+    assert "artifact_suppression" not in pilot
+
+
+def test_the_final_preset_forwards_both_new_pseudo_keys(tmp_path):
+    config = _config(tmp_path, preset=_cluster_preset("cluster-final.json"))
+    stage = next(s for s in rp.build_stage_commands(config) if s.name == "pseudo_r0")
+    assert _flag(stage, "--min-area-fraction") == "0.003"
+    assert _flag(stage, "--images").endswith("cache/images.npy")

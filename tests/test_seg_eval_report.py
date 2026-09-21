@@ -341,3 +341,38 @@ def test_reject_duplicate_ids_names_the_repeated_ones():
     er.reject_duplicate_ids(["a", "b"])
     with pytest.raises(ValueError, match="b"):
         er.reject_duplicate_ids(["a", "b", "b"])
+
+
+# ------------------------------------------------------ pool aggregates
+def test_strata_aggregate_the_pool_and_everything_outside_it():
+    rows = _rows([0.9] * 3, prefix="a") + _rows([0.3] * 2, prefix="b")
+    strata = er.stratified_summary(rows, {f"a{i}": "2" for i in range(3)}, min_n=3)
+    assert strata["in_pool"]["n"] == 3 and strata["in_pool"]["status"] == "OK"
+    assert strata["in_pool"]["dice"]["mean"] == pytest.approx(0.9)
+    assert strata["in_pool"]["iou"]["median"] == pytest.approx(0.45)
+    assert strata["out_of_pool"]["n"] == 2
+    assert strata["out_of_pool"]["status"] == "SKIPPED"
+    assert strata["out_of_pool"]["dice"]["mean"] == pytest.approx(0.3)
+
+
+def test_the_pool_aggregate_spans_every_tone_bucket_at_once():
+    rows = _rows([1.0] * 2, prefix="a") + _rows([0.0] * 2, prefix="b")
+    buckets = {f"a{i}": "1" for i in range(2)} | {f"b{i}": "6" for i in range(2)}
+    strata = er.stratified_summary(rows, buckets, min_n=2)
+    assert strata["in_pool"]["n"] == 4
+    assert strata["in_pool"]["dice"]["mean"] == pytest.approx(0.5)
+    assert strata["out_of_pool"]["n"] == 0
+
+
+def test_an_empty_pool_reports_nan_without_crashing():
+    strata = er.stratified_summary(_rows([0.5] * 2), {}, min_n=1)
+    assert strata["in_pool"]["n"] == 0
+    assert np.isnan(strata["in_pool"]["dice"]["mean"])
+    assert strata["out_of_pool"]["n"] == 2
+
+
+def test_the_pool_aggregates_never_leak_into_the_bucket_table():
+    rows = _rows([0.4] * 2)
+    strata = er.stratified_summary(rows, {r["image_id"]: "2" for r in rows}, min_n=1)
+    assert set(strata["buckets"]) == {"2"}
+    assert [row["bucket"] for row in et.strata_table_rows(strata)] == ["2"]

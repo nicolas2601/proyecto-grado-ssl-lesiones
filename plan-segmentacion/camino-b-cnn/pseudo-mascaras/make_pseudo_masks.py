@@ -11,7 +11,12 @@ uint8 con 0 = fondo, 1 = lesion, 255 = ignorar, y `pseudo_masks_stats.json`.
 Umbrales de USL-Net: menor a 0,35 es fondo, mayor a 0,65 es candidato a lesion,
 lo intermedio se ignora. Con `--field` los candidatos se limitan al campo del
 dermatoscopio, lo de afuera queda como fondo y una region que cubre mas de
-`--max-area-fraction` del campo descarta la imagen. No lee mascaras ni etiquetas.
+`--max-area-fraction` del campo descarta la imagen.
+
+Con `--images` (el `images.npy` de la cache) se detectan artefactos por color
+(tinta quirurgica violeta y brillos especulares), que dejan de ser candidatos y
+quedan marcados como ignorar. `--no-artifact-suppression` lo desactiva. Solo usa
+colores, nunca mascaras ni etiquetas.
 
     python make_pseudo_masks.py --saliency salidas/ccam/saliency.npy \\
         --output-dir salidas/pseudo_r0 --source ccam
@@ -48,6 +53,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--max-center-distance", type=float, default=um.DEFAULT_MAX_CENTER_DISTANCE, help="Distancia maxima al centro (fraccion de la semidiagonal)")
     parser.add_argument("--field", default=None, help="Archivo field.npy (N, H, W) con el campo valido del dermatoscopio")
     parser.add_argument("--max-area-fraction", type=float, default=um.DEFAULT_MAX_AREA_FRACTION, help="Area maxima de la region ganadora, como fraccion del campo")
+    parser.add_argument("--images", default=None, help="Archivo images.npy (N, H, W, 3) de la cache, para detectar artefactos por color")
+    parser.add_argument("--no-artifact-suppression", dest="artifact_suppression", action="store_false", help="No suprimir tinta ni brillos aunque se pase --images")
+    parser.set_defaults(artifact_suppression=True)
     return parser.parse_args(argv)
 
 
@@ -58,9 +66,10 @@ def run(args: argparse.Namespace) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     saliency = cache_io.open_cache(Path(args.saliency))
-    fields = None if args.field is None else cache_io.open_cache(Path(args.field))
-    if fields is not None and fields.shape[:3] != saliency.shape[:3]:
-        sys.exit(f"error: --field {fields.shape} no coincide con la saliencia {saliency.shape}")
+    fields = _matching_cache(args.field, saliency, "--field")
+    images = None
+    if args.artifact_suppression:
+        images = _matching_cache(args.images, saliency, "--images")
     masks = cache_io.create_cache(output_dir / MASKS_FILE, saliency.shape, "uint8")
     from_ccam = args.source == "ccam"
     stats = um.saliency_array_to_pseudo_masks(
@@ -69,6 +78,7 @@ def run(args: argparse.Namespace) -> dict:
         orient=from_ccam,
         normalize=from_ccam,
         fields=fields,
+        images=images,
         low=args.low,
         high=args.high,
         min_area_fraction=args.min_area_fraction,
@@ -83,9 +93,22 @@ def run(args: argparse.Namespace) -> dict:
     return stats
 
 
+def _matching_cache(path: str | None, saliency, flag: str):
+    """Open a per-image cache and check it has one entry per saliency map."""
+    if path is None:
+        return None
+    cache = cache_io.open_cache(Path(path))
+    if cache.shape[:3] != saliency.shape[:3]:
+        sys.exit(f"error: {flag} {cache.shape} no coincide con la saliencia {saliency.shape}")
+    return cache
+
+
 def _provenance(args: argparse.Namespace) -> dict:
+    suppressed = bool(args.artifact_suppression and args.images is not None)
     return {
         "source": args.source,
+        "images": str(args.images) if suppressed else None,
+        "artifact_suppression": suppressed,
         "low": args.low,
         "high": args.high,
         "min_area_fraction": args.min_area_fraction,

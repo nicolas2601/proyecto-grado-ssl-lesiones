@@ -45,6 +45,7 @@ BASE_COLUMNS = (
     "pred_coverage_mean",
 )
 STRATA_COLUMNS = ("worst_bucket", "gap_dice")
+POOL_COLUMNS = ("in_pool_dice_mean", "out_of_pool_dice_mean")
 BUCKET_COLUMNS = ("bucket", "n", "dice_mean", "dice_median")
 DECIMALS = 3
 
@@ -72,6 +73,12 @@ def _qualifying_buckets(strata: Mapping) -> dict[str, dict]:
     return buckets
 
 
+def _pool_dice(strata: Mapping, key: str) -> float | None:
+    """Dice mean of one aggregate; older runs did not report these entries."""
+    entry = strata.get(key)
+    return _stat(entry, "dice", "mean") if isinstance(entry, Mapping) else None
+
+
 def load_run(name: str, path: Path) -> dict:
     """Flatten one ``summary.json`` into the row this report needs."""
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -92,6 +99,8 @@ def load_run(name: str, path: Path) -> dict:
         "pred_coverage_mean": _stat(metrics, "pred_coverage", "mean"),
         "worst_bucket": strata.get("worst_bucket"),
         "gap_dice": None if gap is None else float(gap),
+        "in_pool_dice_mean": _pool_dice(strata, "in_pool"),
+        "out_of_pool_dice_mean": _pool_dice(strata, "out_of_pool"),
         "buckets": _qualifying_buckets(strata),
     }
 
@@ -121,6 +130,8 @@ def build_markdown(records: Sequence[Mapping]) -> str:
     columns = list(BASE_COLUMNS)
     if any(record["buckets"] for record in records):
         columns += list(STRATA_COLUMNS)
+    if any(record[name] is not None for record in records for name in POOL_COLUMNS):
+        columns += list(POOL_COLUMNS)
     lines = ["# Resultados de segmentacion", ""]
     lines += _table(columns, [[record[name] for name in columns] for record in records])
 

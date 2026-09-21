@@ -245,3 +245,110 @@ def test_an_unknown_exclusion_reason_is_counted_instead_of_crashing(monkeypatch)
     )
     assert stats["excluded"] == 1
     assert stats["excluded_by_area"] == 0
+
+
+# ------------------------------------------------- artefact suppression
+def _skin(size=64):
+    """Flat skin patch: warm, unsaturated in blue and far from white."""
+    return np.full((size, size, 3), (200, 150, 140), dtype=np.uint8)
+
+
+def test_violet_ink_is_detected_as_an_artifact():
+    rgb = _skin()
+    rgb[10:20, 10:20] = (90, 60, 160)
+    artifact = um.artifact_mask(rgb)
+    assert artifact[15, 15] and not artifact[45, 45]
+
+
+def test_a_specular_highlight_is_detected_as_an_artifact():
+    rgb = _skin()
+    rgb[30:34, 30:34] = (250, 250, 250)
+    artifact = um.artifact_mask(rgb)
+    assert artifact[32, 32] and not artifact[5, 5]
+
+
+def test_the_artifact_mask_grows_two_pixels_around_the_evidence():
+    rgb = _skin()
+    rgb[32, 32] = (250, 250, 250)
+    artifact = um.artifact_mask(rgb)
+    assert artifact[32, 34] and not artifact[32, 36]
+
+
+def test_plain_skin_carries_no_artifact():
+    assert not um.artifact_mask(_skin()).any()
+
+
+def test_the_artifact_mask_needs_three_colour_channels():
+    with pytest.raises(ValueError):
+        um.artifact_mask(np.zeros((8, 8), dtype=np.uint8))
+
+
+def test_an_ink_mark_beside_a_lesion_is_ignored_instead_of_selected():
+    saliency = _blob(center=(40, 40), radius=8)
+    saliency[20:32, 20:32] = 1.0  # the ink mark wins the class-agnostic saliency
+    artifact = np.zeros((64, 64), dtype=bool)
+    artifact[20:32, 20:32] = True
+
+    unprotected = um.saliency_to_pseudo_mask(saliency, normalize=False).mask
+    assert unprotected[25, 25] == cache_io.FOREGROUND
+
+    result = um.saliency_to_pseudo_mask(saliency, artifact=artifact, normalize=False)
+    assert result.valid is True
+    assert result.mask[40, 40] == cache_io.FOREGROUND
+    assert result.mask[25, 25] == cache_io.IGNORE
+
+
+def test_a_specular_spot_inside_the_lesion_is_ignored_not_foreground():
+    artifact = np.zeros((64, 64), dtype=bool)
+    artifact[31:34, 31:34] = True
+    result = um.saliency_to_pseudo_mask(_blob(), artifact=artifact, normalize=False)
+    assert result.valid is True
+    assert result.mask[32, 32] == cache_io.IGNORE
+    assert result.mask[32, 36] == cache_io.FOREGROUND
+
+
+def test_artifact_pixels_outside_the_field_are_ignored_not_background():
+    field = _disk()
+    artifact = np.zeros((64, 64), dtype=bool)
+    artifact[0:4, 0:4] = True
+    mask = um.saliency_to_pseudo_mask(
+        _blob(), field=field, artifact=artifact, normalize=False
+    ).mask
+    assert mask[2, 2] == cache_io.IGNORE
+    assert mask[2, 20] == cache_io.BACKGROUND
+
+
+def test_an_empty_artifact_map_changes_nothing():
+    saliency = _blob()
+    plain = um.saliency_to_pseudo_mask(saliency, normalize=False).mask
+    empty = um.saliency_to_pseudo_mask(
+        saliency, artifact=np.zeros((64, 64), dtype=bool), normalize=False
+    ).mask
+    assert np.array_equal(plain, empty)
+
+
+def test_an_artifact_map_with_a_different_shape_raises():
+    with pytest.raises(ValueError):
+        um.saliency_to_pseudo_mask(_blob(), artifact=np.ones((8, 8), bool))
+
+
+def test_batch_conversion_reads_the_artifacts_from_the_image_cache():
+    saliency = _blob(center=(40, 40), radius=8)
+    saliency[20:32, 20:32] = 1.0
+    images = np.full((1, 64, 64, 3), (200, 150, 140), dtype=np.uint8)
+    images[0, 20:32, 20:32] = (90, 60, 160)
+    out = np.zeros((1, 64, 64), dtype=np.uint8)
+    stats = um.saliency_array_to_pseudo_masks(
+        saliency[None], out, orient=False, normalize=False, images=images
+    )
+    assert out[0, 40, 40] == cache_io.FOREGROUND
+    assert out[0, 25, 25] == cache_io.IGNORE
+    assert stats["mean_artifact_fraction"] > 0.0
+
+
+def test_batch_conversion_without_images_reports_no_artifact_fraction():
+    out = np.zeros((1, 64, 64), dtype=np.uint8)
+    stats = um.saliency_array_to_pseudo_masks(
+        _blob()[None], out, orient=False, normalize=False
+    )
+    assert stats["mean_artifact_fraction"] == 0.0
