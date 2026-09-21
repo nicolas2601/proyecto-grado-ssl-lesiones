@@ -1,20 +1,20 @@
-"""Generate one self-contained Kaggle FINE-TUNING notebook per baseline model.
+"""Genera un notebook Kaggle de FINE-TUNING autocontenido por cada modelo base.
 
-Second stage of the baseline bank: the frozen-backbone tests measured the
-representations as-is; these notebooks fine-tune the SAME 8 backbones
-end-to-end on the medical data (linear head + full backbone, weighted CE,
-AdamW, cosine schedule, AMP) and report the SAME metric suite, so both banks
-are directly comparable cell-by-cell.
+Segunda etapa del banco base: las pruebas de backbone congelado midieron las
+representaciones tal como son; estos notebooks ajustan de punta a punta los
+MISMOS 8 backbones sobre datos médicos (cabeza lineal + backbone completo, CE
+ponderada, AdamW, calendario coseno, AMP) e informan el MISMO conjunto de
+métricas, para comparar ambos bancos celda por celda.
 
-Output:
+Salida:
   notebooks/finetune/<model>/finetune_<model>.ipynb              (HAM10000)
   notebooks/finetune_isic2020/<model>/finetune_<model>_isic2020.ipynb
 
-Everything shared with the frozen bank (model list, data/split cells, backbone
-loaders, metric functions, report, MLflow) is imported from
-build_baseline_tests.py - one source of truth for the protocol.
+Todo lo compartido con el banco congelado (lista de modelos, celdas de datos y
+splits, cargadores de backbone, funciones de métricas, informe y MLflow) se
+importa de build_baseline_tests.py: una única fuente de verdad del protocolo.
 
-Run: python scripts/build_finetune_tests.py
+Ejecutar: python scripts/build_finetune_tests.py
 """
 
 from __future__ import annotations

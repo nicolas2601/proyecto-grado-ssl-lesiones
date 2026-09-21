@@ -1,6 +1,7 @@
 """The pretraining config must be impossible to configure with labels."""
 
 import dataclasses
+from pathlib import Path
 
 import pytest
 
@@ -8,7 +9,12 @@ from dermssl.pretrain import config as cfg_mod
 
 
 def make_config(**overrides):
-    base = dict(method="dino_continual", image_root="/data/pool", output_dir="/out")
+    base = dict(
+        method="dino_continual",
+        image_root="/data/pool",
+        output_dir="/out",
+        split_hash="a" * 64,
+    )
     base.update(overrides)
     return cfg_mod.PretrainConfig(**base)
 
@@ -42,9 +48,9 @@ def test_resnet_arm_has_no_patch_constraint():
 def test_budget_must_be_positive_and_fractions_must_end_at_one():
     with pytest.raises(ValueError, match="budget"):
         cfg_mod.validate(make_config(budget_gpu_hours=0))
-    with pytest.raises(ValueError, match="fraction"):
+    with pytest.raises(ValueError, match="fracciones"):
         cfg_mod.validate(make_config(checkpoint_fractions=(0.5, 0.25, 1.0)))
-    with pytest.raises(ValueError, match="fraction"):
+    with pytest.raises(ValueError, match="fracción"):
         cfg_mod.validate(make_config(checkpoint_fractions=(0.25, 0.5)))
 
 
@@ -70,6 +76,29 @@ def test_collect_images_ignores_non_image_files(tmp_path):
 def test_collect_images_fails_loudly_on_an_empty_root(tmp_path):
     with pytest.raises(FileNotFoundError):
         cfg_mod.collect_images(tmp_path)
+
+
+def test_collect_images_follows_symlinked_dataset_directories(tmp_path):
+    """Staging a pool from several read-only mounts (docs/16) means
+    ``--image-root`` is a directory of SYMLINKS to the real datasets, not a
+    copy. ``Path.rglob("*")`` does NOT descend into symlinked directories by
+    default - only the root itself being a symlink is followed - so a naive
+    rglob silently returns zero images from every linked dataset."""
+    real_dataset = tmp_path / "real_dataset"
+    real_dataset.mkdir()
+    (real_dataset / "ISIC_0000000.jpg").write_bytes(b"x")
+
+    pool_root = tmp_path / "pool"
+    pool_root.mkdir()
+    link = pool_root / "linked_dataset"
+    try:
+        link.symlink_to(real_dataset, target_is_directory=True)
+    except OSError as exc:
+        pytest.skip(f"el entorno no permite crear symlinks: {exc}")
+
+    found = cfg_mod.collect_images(pool_root)
+
+    assert [p.name for p in found] == ["ISIC_0000000.jpg"]
 
 
 def test_effective_lr_scales_linearly_with_total_batch():
@@ -141,5 +170,112 @@ def test_mlflow_params_are_flat_primitives():
 
 
 def test_precision_is_validated():
-    with pytest.raises(ValueError, match="precision"):
+    with pytest.raises(ValueError, match="precisión"):
         cfg_mod.validate(make_config(precision="int8"))
+
+
+def test_ssl_run_requires_a_frozen_split_hash():
+    with pytest.raises(ValueError, match="split_hash"):
+        cfg_mod.validate(make_config(split_hash=""))
+
+
+def test_imagenet_resnet_control_has_its_own_explicit_method():
+    control = cfg_mod.validate(make_config(method="simsiam_imagenet"))
+    assert control.backbone == "resnet50"
+    assert control.initial_weights == "imagenet1k_v2"
+
+
+def test_original_transformed_adaptation_requires_a_transformed_image_root():
+    with pytest.raises(ValueError, match="transformed_image_root"):
+        cfg_mod.validate(
+            make_config(
+                method="simsiam_dinov2",
+                adaptation_mode="original_transformed_consistency",
+            )
+        )
+
+    adapted = cfg_mod.validate(
+        make_config(
+            method="simsiam_dinov2",
+            adaptation_mode="original_transformed_consistency",
+            transformed_image_root="/data/train-images-transformed",
+            transformed_manifest_path="/data/train-images-transformed/tone_transform_manifest.json",
+            data_revision="pool-v1",
+            transformed_data_revision="circle-v1",
+            consistency_weight=0.5,
+        )
+    )
+
+    assert adapted.transformed_image_root == "/data/train-images-transformed"
+    assert adapted.consistency_weight == 0.5
+
+
+def test_original_transformed_adaptation_rejects_an_unsupported_dino_objective():
+    with pytest.raises(ValueError, match="SimSiam"):
+        cfg_mod.validate(
+            make_config(
+                method="dino_continual",
+                adaptation_mode="original_transformed_consistency",
+                transformed_image_root="/data/train-images-transformed",
+            )
+        )
+
+
+def test_collect_paired_images_requires_a_transformation_for_each_original(tmp_path):
+    originals = tmp_path / "originals"
+    transformed = tmp_path / "transformed"
+    (originals / "nested").mkdir(parents=True)
+    (transformed / "nested").mkdir(parents=True)
+    (originals / "nested" / "a.jpg").write_bytes(b"original-a")
+    (originals / "b.jpg").write_bytes(b"original-b")
+    (transformed / "nested" / "a.jpg").write_bytes(b"transformed-a")
+    (transformed / "b.jpg").write_bytes(b"transformed-b")
+
+    def file_hash(path):
+        import hashlib
+
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    rows = [
+        {
+            "relative_path": relative,
+            "source_sha256": file_hash(originals / relative),
+            "transformed_sha256": file_hash(transformed / relative),
+        }
+        for relative in ("b.jpg", "nested/a.jpg")
+    ]
+    manifest = {
+        "source_revision": "pool-v1",
+        "transforms": rows,
+    }
+    import hashlib
+    import json
+
+    manifest["revision"] = hashlib.sha256(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+    manifest_path = transformed / "tone_transform_manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    pairs = cfg_mod.collect_paired_images(
+        originals,
+        transformed,
+        manifest_path=manifest_path,
+        source_revision="pool-v1",
+        transformed_revision=manifest["revision"],
+    )
+
+    assert [(left.relative_to(originals), right.relative_to(transformed)) for left, right in pairs] == [
+        (Path("b.jpg"), Path("b.jpg")),
+        (Path("nested/a.jpg"), Path("nested/a.jpg")),
+    ]
+
+    (transformed / "b.jpg").unlink()
+    with pytest.raises(ValueError, match="exactamente"):
+        cfg_mod.collect_paired_images(
+            originals,
+            transformed,
+            manifest_path=manifest_path,
+            source_revision="pool-v1",
+            transformed_revision=manifest["revision"],
+        )

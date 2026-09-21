@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="520" viewBox="0 0 920 520">
+<rect width="100%" height="100%" fill="white"/>
+<text x="460.0" y="34" text-anchor="middle" font-family="Arial" font-size="22" font-weight="bold">Máscaras degeneradas por dataset</text>
+<text x="22" y="260.0" transform="rotate(-90 22 260.0)" text-anchor="middle" font-family="Arial" font-size="15">Casos</text>
+<line x1="100" y1="430" x2="880" y2="430" stroke="#333"/>
+<line x1="100" y1="55" x2="100" y2="430" stroke="#333"/>
+<rect x="207.1" y="430.0" width="152.9" height="0.0" fill="#255f85"/>
+<text x="283.5" y="422.0" text-anchor="middle" font-family="Arial" font-size="14">0</text>
+<text x="283.5" y="458" text-anchor="middle" font-family="Arial" font-size="14">HAM10000</text>
+<rect x="467.1" y="352.3" width="152.9" height="77.7" fill="#255f85"/>
+<text x="543.5" y="344.3" text-anchor="middle" font-family="Arial" font-size="14">19</text>
+<text x="543.5" y="458" text-anchor="middle" font-family="Arial" font-size="14">ISIC2019</text>
+<rect x="727.1" y="70.0" width="152.9" height="360.0" fill="#255f85"/>
+<text x="803.5" y="62.0" text-anchor="middle" font-family="Arial" font-size="14">88</text>
+<text x="803.5" y="458" text-anchor="middle" font-family="Arial" font-size="14">ISIC2020</text>
+</svg>

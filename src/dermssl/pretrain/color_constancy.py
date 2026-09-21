@@ -64,7 +64,7 @@ def sample_op(rng: np.random.Generator, probs: tuple[tuple[str, float], ...]) ->
     names = [name for name, _ in probs]
     unknown = [n for n in names if n not in OPS]
     if unknown:
-        raise ValueError(f"unknown color constancy op(s) {unknown}; expected {sorted(OPS)}")
+        raise ValueError(f"operación de constancia de color desconocida {unknown}; se esperaba {sorted(OPS)}")
     weights = np.array([w for _, w in probs], dtype=float)
     weights = weights / weights.sum()
     return str(rng.choice(names, p=weights))

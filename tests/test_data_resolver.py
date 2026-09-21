@@ -157,3 +157,33 @@ def test_find_label_csvs_is_case_insensitive(tmp_path):
 
 def test_dataset_handles_cover_the_three_datasets():
     assert set(dr.DATASET_HANDLES) == {"ham10000", "isic2019", "isic2020"}
+
+
+def test_build_pool_manifest_preserves_source_identity_and_reports_coverage(tmp_path):
+    ham = make_ham(tmp_path, n_images=1)
+    isic2019 = make_pool(tmp_path, name="isic2019", n_images=1)
+    isic2020 = make_pool(tmp_path, name="isic2020", n_images=1)
+
+    manifest = dr.build_pool_manifest(
+        {
+            "ham10000": [next((ham / "HAM10000_images_part_1").glob("*.jpg"))],
+            "isic2019": [next(isic2019.glob("*.jpg"))],
+            "isic2020": [next(isic2020.glob("*.jpg"))],
+        },
+        source_revisions={
+            "ham10000": "ham-v1",
+            "isic2019": "isic2019-resized-v1",
+            "isic2020": "isic2020-resized-v1",
+        },
+        expected_counts={"ham10000": 1, "isic2019": 1, "isic2020": 1},
+    )
+
+    assert manifest["schema_version"] == "1.0"
+    assert manifest["total_images"] == 3
+    assert manifest["coverage"]["complete"] is True
+    assert {(row["dataset"], row["image_id"], row["source_revision"]) for row in manifest["images"]} == {
+        ("ham10000", "ISIC_0000000", "ham-v1"),
+        ("isic2019", "ISIC_9000000", "isic2019-resized-v1"),
+        ("isic2020", "ISIC_9000000", "isic2020-resized-v1"),
+    }
+    assert all(len(row["sha256"]) == 64 for row in manifest["images"])

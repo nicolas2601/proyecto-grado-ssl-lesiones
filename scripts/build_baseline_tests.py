@@ -1,15 +1,15 @@
-"""Generate one self-contained Kaggle test notebook per baseline model.
+"""Genera un notebook de prueba Kaggle autocontenido por cada modelo base.
 
-Output:
+Salida:
   notebooks/baselines/<model>/test_<model>.ipynb            (HAM10000)
   notebooks/baselines_isic2020/<model>/test_<model>_isic2020.ipynb
 
-Each notebook is independent (no dermssl import) so any team member can
-upload a single file to Kaggle and run that model's test. All notebooks share
-the same template; only the MODEL and DATASET constants change, which
-guarantees an identical protocol across models AND datasets.
+Cada notebook es independiente (sin importar dermssl), por lo que cualquier
+miembro del equipo puede cargar un solo archivo a Kaggle y ejecutar la prueba
+del modelo. Todos comparten una plantilla; solo cambian MODEL y DATASET, lo
+que garantiza un protocolo idéntico entre modelos Y conjuntos de datos.
 
-Run: python scripts/build_baseline_tests.py
+Ejecutar: python scripts/build_baseline_tests.py
 """
 
 from __future__ import annotations

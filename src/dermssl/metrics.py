@@ -201,6 +201,264 @@ def bootstrap_ci(
     return float(point), lo, hi
 
 
+FST_BUCKETS = (1, 2, 3, 4, 5, 6)
+UNAVAILABLE_BUCKET = "unavailable"
+
+
+def _is_unavailable_bucket(value) -> bool:
+    """Accept the explicit CSV marker plus legacy empty/NaN representations."""
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip().lower() in {"", UNAVAILABLE_BUCKET, "nan"}
+    return isinstance(value, (float, np.floating)) and bool(np.isnan(value))
+
+
+def stratified_summary(
+    y_true: np.ndarray,
+    proba: np.ndarray,
+    buckets: np.ndarray,
+    n_classes: int,
+    min_n: int = 30,
+) -> dict:
+    """``summarize()``, split per Fitzpatrick skin-type bucket (1-6, or
+    ``"unavailable"`` for ``FSTEstimate.bucket is None`` rows - see
+    ``dermssl.fitzpatrick``).
+
+    Never fails on thin data (spec.md, fairness-evaluation req 2): every
+    bucket in ``FST_BUCKETS + (UNAVAILABLE_BUCKET,)`` is always present in the
+    output, even with zero matching rows - a bucket below ``min_n`` (0
+    included) is marked ``"SKIPPED"`` with the observed count and a reason,
+    never silently omitted from the structure.
+
+    With no rows at all (``y_true`` empty - e.g. no ``fst_manifest.csv`` has
+    been produced yet), returns ``{}``: nothing to stratify, matching
+    design.md's error table ("Manifest missing -> stratified_summary returns
+    {}; gate = SKIP").
+    """
+    y_true = np.asarray(y_true)
+    if y_true.size == 0:
+        return {}
+
+    proba = np.asarray(proba, dtype=float)
+    buckets = np.asarray(buckets, dtype=object)
+
+    result: dict = {}
+    for key in (*FST_BUCKETS, UNAVAILABLE_BUCKET):
+        if key == UNAVAILABLE_BUCKET:
+            mask = np.array([_is_unavailable_bucket(b) for b in buckets])
+        else:
+            mask = np.array([b == key for b in buckets])
+        count = int(mask.sum())
+        if count < min_n:
+            result[key] = {
+                "status": "SKIPPED",
+                "count": count,
+                "reason": f"n={count} < min_n={min_n}",
+            }
+        else:
+            result[key] = {
+                "status": "OK",
+                "count": count,
+                **summarize(y_true[mask], proba[mask], n_classes),
+            }
+    return result
+
+
+DEFAULT_COMPARISON_METRIC = "macro_f1"
+DEFAULT_COMPARISON_MIN_BUCKET_N = 30
+COMPARISON_VARIANTS = ("baseline", "regularization", "synthetic_blend")
+
+
+def _variant_gap(summary: dict, *, metric: str, min_bucket_n: int) -> float | None:
+    """Max-minus-min ``metric`` among buckets with ``status == "OK"`` and at
+    least ``min_bucket_n`` samples - the same qualifying rule
+    ``gates.fairness_gate`` applies, reimplemented here (not imported) so
+    ``metrics.py`` stays independent of ``gates.py`` (mirrors D1: neither
+    module depends on the other; the caller composes them).
+
+    Returns ``None`` when fewer than two buckets qualify - "insufficient
+    data", not zero: a report of ``0.0`` would misleadingly claim a perfect
+    (measured) fairness gap where there is, in fact, nothing to measure.
+    """
+    qualifying = {
+        bucket: entry[metric]
+        for bucket, entry in summary.items()
+        if entry.get("status") == "OK" and entry.get("count", 0) >= min_bucket_n
+    }
+    if len(qualifying) < 2:
+        return None
+    return max(qualifying.values()) - min(qualifying.values())
+
+
+def _bucket_signature(values) -> np.ndarray:
+    """Canonical representation used to verify paired validation cohorts."""
+    return np.asarray(
+        [UNAVAILABLE_BUCKET if _is_unavailable_bucket(v) else int(v) for v in values],
+        dtype=object,
+    )
+
+
+def _paired_bootstrap_intervals(
+    bootstrap_inputs: dict,
+    *,
+    metric: str,
+    min_bucket_n: int,
+    n_resamples: int,
+    seed: int,
+) -> dict:
+    """Paired 95% bootstrap CIs for gaps and relative improvements.
+
+    All variants must describe the same validation examples in the same order.
+    One resampled index vector is shared across variants, preserving pairing
+    instead of injecting extra variance through independent resampling.
+    """
+    missing = [name for name in COMPARISON_VARIANTS if name not in bootstrap_inputs]
+    if missing:
+        raise ValueError(f"bootstrap_inputs missing variants: {missing}")
+    if n_resamples <= 0:
+        raise ValueError("n_resamples must be positive")
+
+    prepared = {}
+    for name in COMPARISON_VARIANTS:
+        raw = bootstrap_inputs[name]
+        prepared[name] = {
+            "y_true": np.asarray(raw["y_true"]),
+            "proba": np.asarray(raw["proba"], dtype=float),
+            "buckets": np.asarray(raw["buckets"], dtype=object),
+            "n_classes": int(raw["n_classes"]),
+        }
+
+    reference = prepared["baseline"]
+    n = len(reference["y_true"])
+    reference_buckets = _bucket_signature(reference["buckets"])
+    for name in COMPARISON_VARIANTS[1:]:
+        candidate = prepared[name]
+        same = (
+            len(candidate["y_true"]) == n
+            and np.array_equal(candidate["y_true"], reference["y_true"])
+            and np.array_equal(_bucket_signature(candidate["buckets"]), reference_buckets)
+            and candidate["n_classes"] == reference["n_classes"]
+        )
+        if not same:
+            raise ValueError("bootstrap_inputs must use the same validation cohort")
+    if n == 0:
+        return {
+            name: {"gap_ci95": None, "relative_improvement_ci95": None}
+            for name in COMPARISON_VARIANTS
+        }
+
+    gap_samples = {name: [] for name in COMPARISON_VARIANTS}
+    relative_samples = {name: [] for name in COMPARISON_VARIANTS[1:]}
+    rng = np.random.RandomState(seed)
+    for _ in range(n_resamples):
+        idx = rng.randint(0, n, n)
+        gaps = {}
+        for name, raw in prepared.items():
+            summary = stratified_summary(
+                raw["y_true"][idx],
+                raw["proba"][idx],
+                raw["buckets"][idx],
+                raw["n_classes"],
+                min_n=min_bucket_n,
+            )
+            gap = _variant_gap(summary, metric=metric, min_bucket_n=min_bucket_n)
+            gaps[name] = gap
+            if gap is not None:
+                gap_samples[name].append(gap)
+        baseline_gap = gaps["baseline"]
+        if baseline_gap is None or baseline_gap == 0:
+            continue
+        for name in COMPARISON_VARIANTS[1:]:
+            if gaps[name] is not None:
+                relative_samples[name].append((baseline_gap - gaps[name]) / baseline_gap)
+
+    def ci(values) -> list[float] | None:
+        if not values:
+            return None
+        return [float(np.percentile(values, 2.5)), float(np.percentile(values, 97.5))]
+
+    intervals = {}
+    for name in COMPARISON_VARIANTS:
+        intervals[name] = {
+            "gap_ci95": ci(gap_samples[name]),
+            "relative_improvement_ci95": (
+                None if name == "baseline" else ci(relative_samples[name])
+            ),
+        }
+    return intervals
+
+
+def comparison_report(
+    baseline: dict,
+    regularization: dict,
+    synthetic_blend: dict,
+    *,
+    metric: str = DEFAULT_COMPARISON_METRIC,
+    min_bucket_n: int = DEFAULT_COMPARISON_MIN_BUCKET_N,
+    bootstrap_inputs: dict | None = None,
+    n_resamples: int = 1000,
+    seed: int = 42,
+) -> dict:
+    """Stage 2 baseline-vs-mitigation comparison (spec.md, circle-adaptation
+    req 5): consumes three ``stratified_summary()`` outputs (baseline,
+    regularization-only, synthetic-blend) and reports the per-FST-bucket gap
+    for each, plus each mitigation variant's relative improvement over the
+    baseline gap - the thesis's primary acceptance criterion
+    (proposal.md, "Success Criteria": "measurable relative fairness
+    improvement ... of Stage 2 over the Stage 1 baseline").
+
+    This function computes arithmetic over whatever three summaries it is
+    given - it does not run any training or produce any data itself. As of
+    this writing no real Stage 1 or Stage 2 run has happened (see
+    docs/21-checkpoint-manual-circle-stage2.md), so calling this with real
+    data is future work; it is tested here against synthetic,
+    hand-built ``stratified_summary()``-shaped fixtures only.
+
+    ``relative_improvement`` is ``(baseline_gap - variant_gap) / baseline_gap``:
+    positive means the variant's gap is smaller (fairer) than the baseline's.
+    It is ``None`` - never a number - whenever it cannot be computed without
+    guessing: the baseline gap is undefined (fewer than two qualifying
+    buckets), the baseline gap is exactly zero (division by zero), or the
+    variant's own gap is undefined.
+    """
+    intervals = (
+        _paired_bootstrap_intervals(
+            bootstrap_inputs,
+            metric=metric,
+            min_bucket_n=min_bucket_n,
+            n_resamples=n_resamples,
+            seed=seed,
+        )
+        if bootstrap_inputs is not None
+        else {
+            name: {"gap_ci95": None, "relative_improvement_ci95": None}
+            for name in COMPARISON_VARIANTS
+        }
+    )
+    baseline_gap = _variant_gap(baseline, metric=metric, min_bucket_n=min_bucket_n)
+    report = {
+        "baseline": {
+            "gap": baseline_gap,
+            "status": "ok" if baseline_gap is not None else "insufficient_data",
+            "gap_ci95": intervals["baseline"]["gap_ci95"],
+        }
+    }
+    for name, summary in (("regularization", regularization), ("synthetic_blend", synthetic_blend)):
+        gap = _variant_gap(summary, metric=metric, min_bucket_n=min_bucket_n)
+        relative_improvement = None
+        if gap is not None and baseline_gap is not None and baseline_gap != 0:
+            relative_improvement = (baseline_gap - gap) / baseline_gap
+        report[name] = {
+            "gap": gap,
+            "status": "ok" if gap is not None else "insufficient_data",
+            "relative_improvement": relative_improvement,
+            "gap_ci95": intervals[name]["gap_ci95"],
+            "relative_improvement_ci95": intervals[name]["relative_improvement_ci95"],
+        }
+    return report
+
+
 def mean_std(values) -> dict:
     """Mean and population std over seeds, NaN-safe."""
     vals = [float(v) for v in values if v == v]

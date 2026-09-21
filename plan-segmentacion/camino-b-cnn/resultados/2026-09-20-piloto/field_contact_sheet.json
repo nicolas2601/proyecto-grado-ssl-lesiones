@@ -1,0 +1,113 @@
+{
+  "cache_dir": "/home/jovyan/work/proyectonp/salidas/piloto/cache",
+  "groups": {
+    "ham10000_p1/circular": {
+      "n": 548,
+      "sampled": [
+        "ISIC_0024702",
+        "ISIC_0026743",
+        "ISIC_0027154",
+        "ISIC_0027878",
+        "ISIC_0028124",
+        "ISIC_0028294",
+        "ISIC_0028938",
+        "ISIC_0029101"
+      ]
+    },
+    "ham10000_p1/full_frame": {
+      "n": 4452,
+      "sampled": [
+        "ISIC_0025170",
+        "ISIC_0025587",
+        "ISIC_0025592",
+        "ISIC_0026318",
+        "ISIC_0026895",
+        "ISIC_0027599",
+        "ISIC_0028684",
+        "ISIC_0028937"
+      ]
+    },
+    "ham10000_p2/circular": {
+      "n": 774,
+      "sampled": [
+        "ISIC_0030144",
+        "ISIC_0030714",
+        "ISIC_0031762",
+        "ISIC_0032342",
+        "ISIC_0033369",
+        "ISIC_0033595",
+        "ISIC_0033679",
+        "ISIC_0034089"
+      ]
+    },
+    "ham10000_p2/full_frame": {
+      "n": 4241,
+      "sampled": [
+        "ISIC_0029996",
+        "ISIC_0030235",
+        "ISIC_0031175",
+        "ISIC_0032196",
+        "ISIC_0032323",
+        "ISIC_0032554",
+        "ISIC_0033417",
+        "ISIC_0033834"
+      ]
+    },
+    "isic2019/circular": {
+      "n": 7465,
+      "sampled": [
+        "ISIC_0054586",
+        "ISIC_0058996",
+        "ISIC_0063070",
+        "ISIC_0063849",
+        "ISIC_0064814",
+        "ISIC_0065514",
+        "ISIC_0070920",
+        "ISIC_0072230"
+      ]
+    },
+    "isic2019/full_frame": {
+      "n": 7851,
+      "sampled": [
+        "ISIC_0000136_downsampled",
+        "ISIC_0010041",
+        "ISIC_0055326",
+        "ISIC_0060106",
+        "ISIC_0065534",
+        "ISIC_0069462",
+        "ISIC_0071929",
+        "ISIC_0071998"
+      ]
+    },
+    "isic2020/circular": {
+      "n": 1975,
+      "sampled": [
+        "ISIC_0088137",
+        "ISIC_5333238",
+        "ISIC_6485874",
+        "ISIC_6588801",
+        "ISIC_7106587",
+        "ISIC_7477593",
+        "ISIC_8180937",
+        "ISIC_8549193"
+      ]
+    },
+    "isic2020/full_frame": {
+      "n": 31151,
+      "sampled": [
+        "ISIC_2650222",
+        "ISIC_3492670",
+        "ISIC_3577923",
+        "ISIC_7437335",
+        "ISIC_7721649",
+        "ISIC_8730617",
+        "ISIC_9136413",
+        "ISIC_9166979"
+      ]
+    }
+  },
+  "output": "/home/jovyan/work/proyectonp/salidas/piloto/field_contact_sheet.png",
+  "per_group": 8,
+  "resolution": 224,
+  "seed": 0
+}
