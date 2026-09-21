@@ -614,8 +614,8 @@ export TORCH_HOME=$HOME/work/.torch WANDB_PROJECT=dermssl-segmentacion
 SPLIT=$(sha256sum salidas/final/cache/manifest.csv | cut -c1-64)
 REV=$(python -c "import json;print(json.load(open(salidas/tone/shift2/tone_transform_manifest.json))[revision])")
 COMMON="--method simsiam_dinov2 --image-root salidas/tone/inputs/originals --split-hash $SPLIT \
-    --budget-gpu-hours 4 --batch-size-per-gpu 64 --num-workers 0 --precision bf16 \
-    --tracking-uri file:$HOME/work/proyectonp/mlruns --wandb-group etapa2"
+    --budget-gpu-hours 4 --batch-size-per-gpu 64 --num-workers 2 --precision bf16 \
+    --wandb-project dermssl-segmentacion --wandb-group etapa2"
 
 # brazo A: SSL continuo sin tono (dos vistas de la misma imagen)
 torchrun --nproc_per_node=2 scripts/pretrain.py $COMMON --output-dir salidas/tone/ssl_plain
@@ -628,9 +628,12 @@ torchrun --nproc_per_node=2 scripts/pretrain.py $COMMON --output-dir salidas/ton
 
 Cada brazo escribe `simsiam_dinov2_backbone_final.pt` (solo el backbone) mas
 los checkpoints por fraccion del presupuesto y `run.json`. El presupuesto
-manda: 4 horas-GPU son 2 horas de reloj con dos GPU. Si `--num-workers 2` no
-falla en el smoke por `/dev/shm`, usarlo: la decodificacion en el hilo
-principal es el cuello de botella con `0`.
+manda: 4 horas-GPU son 2 horas de reloj con dos GPU. El smoke del 2026-09-21
+mostro que `--num-workers 2` no falla por `/dev/shm` (64 MB); medir el
+throughput sobre unos miles de PNG reales antes de fijar el valor, porque
+sobre 64 imagenes en cache de pagina la medicion no extrapola. MLflow no
+esta instalado en el pod: el seguimiento es Weights & Biases (proyecto
+`dermssl-segmentacion`, grupo `etapa2`), con `wandb login` hecho en el venv.
 
 ### 12.4 Banco congelado en HAM10000 por tercil de tono
 
