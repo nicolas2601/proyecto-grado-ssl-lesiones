@@ -220,11 +220,14 @@ def train(
         mlflow_module,
         experiment=cfg.mlflow_experiment,
         tracking_uri=cfg.tracking_uri,
-        run=tracking.run_name(cfg.method, cfg.backbone, cfg.seed),
+        run=tracking.run_name(
+            cfg.method, cfg.backbone, cfg.seed, arm=Path(cfg.output_dir).name
+        ),
         rank=rank,
         wandb_module=wandb_module,
         wandb_project=wandb_project,
         wandb_group=wandb_group,
+        wandb_run_id=tracking.run_id_for(cfg.output_dir),
     )
     if rank == 0 and isinstance(tracker, tracking.NullTracker):
         print("ADVERTENCIA: ni MLflow ni Weights & Biases están disponibles; esta ejecución no tendrá seguimiento.")
