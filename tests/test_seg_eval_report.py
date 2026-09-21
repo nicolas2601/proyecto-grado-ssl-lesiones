@@ -455,3 +455,25 @@ def test_strata_from_args_defaults_to_the_fst_bucket_column(tmp_path):
     strata = er.strata_from_args(args, _rows([0.2]))
     assert strata["column"] == "fst_bucket"
     assert strata["buckets"]["4"]["n"] == 1
+
+
+# ------------------------------------------------ confidence intervals per stratum
+def test_each_stratum_reports_a_bootstrap_interval_of_its_mean_dice():
+    rows = _rows([0.6 + 0.01 * (i % 7) for i in range(40)], prefix="a")
+    buckets = {f"a{i}": "dark" for i in range(40)}
+    entry = er.stratified_summary(rows, buckets, min_n=30)["buckets"]["dark"]
+    assert entry["dice"]["ci95_low"] <= entry["dice"]["mean"] <= entry["dice"]["ci95_high"]
+    assert entry["dice"]["ci95_low"] < entry["dice"]["ci95_high"]
+
+
+def test_strata_include_hd95_when_the_rows_carry_it():
+    rows = [{"image_id": f"a{i}", "dice": 0.8, "iou": 0.7, "hd95": 10.0 + i} for i in range(3)]
+    entry = er.stratified_summary(rows, {f"a{i}": "light" for i in range(3)}, min_n=1)["buckets"]["light"]
+    assert entry["hd95"]["median"] == pytest.approx(11.0)
+    assert entry["hd95"]["n"] == 3
+
+
+def test_a_stratum_with_one_value_has_no_interval_but_does_not_crash():
+    entry = er.stratified_summary(_rows([0.5]), {"img0": "medium"}, min_n=1)["buckets"]["medium"]
+    assert math.isnan(entry["dice"]["ci95_low"])
+    assert entry["dice"]["mean"] == pytest.approx(0.5)
