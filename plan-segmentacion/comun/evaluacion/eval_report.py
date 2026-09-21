@@ -25,7 +25,8 @@ BOOTSTRAP_SEED = 0
 UNAVAILABLE = "unavailable"
 BUCKET_COLUMN = "fst_bucket"
 VALID_BUCKETS = tuple(str(value) for value in range(1, 7))
-STRATA_METRICS = ("dice", "iou")
+STRATA_METRICS = ("dice", "iou", "hd95")
+MIN_VALUES_FOR_CI = 2
 IN_POOL = "in_pool"
 OUT_OF_POOL = "out_of_pool"
 
@@ -146,9 +147,12 @@ def _bucket_summary(bucket_rows: Sequence[Mapping], min_n: int) -> dict:
     for metric in STRATA_METRICS:
         values = np.array([row.get(metric, math.nan) for row in bucket_rows], dtype=np.float64)
         values = values[~np.isnan(values)]
+        low, high = _bootstrap_ci(values) if len(values) >= MIN_VALUES_FOR_CI else (math.nan, math.nan)
         entry[metric] = {
             "mean": float(values.mean()) if len(values) else math.nan,
             "median": float(np.median(values)) if len(values) else math.nan,
+            "ci95_low": low,
+            "ci95_high": high,
             "n": int(len(values)),
         }
     return entry

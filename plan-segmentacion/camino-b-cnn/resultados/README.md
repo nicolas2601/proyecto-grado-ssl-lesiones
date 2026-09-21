@@ -22,8 +22,10 @@ Nunca la cache, los checkpoints, `field.npy` ni el manifiesto FST completo
 - ISIC 2018 se reporta ademas en dos filas: ids dentro del pool de
   entrenamiento por la deduplicacion (transductivo, 722) y fuera del pool
   (1 872).
-- Estratificacion por fototipo (ITA sobre la pseudo-mascara y el campo, cortes
-  de Groh) con `min_n` 30 por bucket. Solo HAM10000 tiene buckets poblados.
+- Estratificacion por tono de piel: terciles de la mediana de L* de la piel
+  (fuera de la pseudo-mascara y dentro del campo) sobre todo el pool, con
+  `min_n` 30 por estrato. Los buckets ITA de Groh quedan como estrato
+  secundario, solo donde la mediana de b* es al menos 5 (ver "Tono de piel").
 - Pisos no supervisados con el mismo evaluador: SegRNorm y SegXNorm
   (`scripts/run_segnorm_baseline.py`, ROI circular, `--max-side 1024`). No hay
   techo supervisado por decision del proyecto.
@@ -152,21 +154,51 @@ La cifra honesta de generalizacion en ISIC 2018 es la de fuera del pool:
 0,686. La diferencia con la fila transductiva es la ganancia de haber visto la
 imagen, sin su mascara, durante el entrenamiento.
 
-## Fototipo (HAM10000)
+## Tono de piel (HAM10000)
 
-| Bucket | n | Dice piloto | Dice final |
-|---|---|---|---|
-| 1 | 5 729 | 0,781 | 0,791 |
-| 2 | 473 | 0,794 | 0,791 |
-| 3 | 121 | 0,758 | 0,765 |
-| 4 | 42 | 0,770 | 0,780 |
-| 6 | 3 431 | 0,730 | 0,780 |
-| brecha maximo - minimo | | 0,071 | 0,027 |
+### Tabla retirada: buckets ITA (commits hasta `6f92f24`)
 
-El bucket 5 (n = 26) queda bajo `min_n` y no se reporta. Los buckets salen del
-estimador ITA sobre la pseudo-mascara, que la validacion externa mostro por
-debajo de la linea base trivial en Fitzpatrick17k; leer la brecha como un
-indicio, no como una medida de equidad validada.
+La tabla por fototipo publicada con la corrida final (buckets 1 a 6, brecha
+0,071 en el piloto y 0,027 en la final) queda retirada y no debe citarse. El
+bucket no media el tono: `ITA = arctan((L* - 50) / b*)` satura en +-90 grados
+cuando b* tiende a cero y el signo de b* decide entre el bucket 1 y el 6. En
+HAM10000 el bucket 1 tenia mediana de L* 69,55 (b* +6,60) y el bucket 6
+68,81 (b* -4,46): la misma luminosidad, distinto signo. El 40,7 % de las
+imagenes tenia |b*| menor que 5 y el histograma del ITA era una U con el valle
+en cero. Ademas el signo de b* esta asociado al diagnostico: entre las
+imagenes con b* <= 0 la tasa de melanoma es 17,10 % frente a 7,57 % con b* > 0
+(chi cuadrado 209,3), asi que cualquier brecha por "fototipo VI" habria sido
+prevalencia de enfermedad, no tono. Los `summary.json` con el bloque
+contaminado se conservan en el pod como `*.v1_signo_b`; el diagnostico esta en
+`2026-09-21-final/fst_diagnostico/` (scripts como `.py.txt`, salidas verbatim
+e histograma del ITA). Para reproducir esas cifras los scripts deben leer
+`salidas/final/fst.v1_signo_b/fst_pseudo_manifest.json`: el manifiesto vivo
+ya sale del estimador corregido y da otros numeros. Los dos scripts reportan
+n distinto (9 868 y 9 822) porque el segundo exige bucket numerico y ambos
+descartan 147 imagenes con menos de 200 pixeles de piel.
+
+### Estimador corregido (commit `c272bdb`) y estrato principal (`bbd9bab`)
+
+- `fitzpatrick.estimate_fst` exige mediana de b* >= 5 antes de formar el
+  angulo; por debajo devuelve `ita_indeterminate`, sin bucket, conservando las
+  medianas de L* y b* y el numero de pixeles de piel.
+- El estrato principal es el tercil de la mediana de L* de la piel sobre todo
+  el pool (`tone_tercile`: oscuro, medio, claro), que no depende de b*. Es un
+  proxy de luminosidad, no un fototipo clinico, y tampoco esta libre de
+  confusion: la tasa de melanoma por tercil es 12,9 / 9,3 / 10,6 % (chi
+  cuadrado 22,7, no monotona) y la de queratosis benigna si es monotona
+  (16,0 / 9,4 / 7,4 %). El signo de b* y el tercil son casi independientes
+  (b* <= 0: 1 200 / 1 037 / 1 236 por tercil).
+- Los buckets ITA supervivientes (b* >= 5) son una submuestra no aleatoria,
+  empobrecida en melanoma (7,57 % frente a 10,92 % global); se reportan solo
+  con su n y ese caveat.
+
+### Dice por tercil de luminosidad
+
+PENDIENTE: corrida `--stages fst evaluate` sobre `bbd9bab` con el checkpoint
+final intacto (misma inferencia; solo cambia el bloque de estratos). La tabla
+se llena con `evaluacion_*/summary.json` y `fst/fst_summary.json` de esa
+corrida.
 
 ## Tamano de la lesion
 
@@ -270,11 +302,11 @@ detecten. Con la corrida final:
   antes de usarla: dilatar la mascara unos 8 a 12 pixeles a 224 (o el 5 % del
   lado) al construir el conjunto de piel. `fst_pseudo_manifest.py` ya excluye
   ademas la banda ignorada y el exterior del campo.
-- Fototipos: en HAM10000 la brecha de Dice entre buckets es 0,027, con todos
-  los buckets poblados entre 0,765 y 0,791. El estimador de buckets es el
-  propio ITA sobre la pseudo-mascara y su validacion externa quedo por debajo
-  de la linea base trivial, asi que la equidad de la segmentacion se afirma
-  con cautela.
+- Tono de piel: la brecha entre buckets ITA publicada antes (0,027) queda
+  retirada porque el bucket media el signo de b*, no el tono (ver "Tono de
+  piel"). La equidad de la segmentacion se reporta por terciles de
+  luminosidad de la piel, con el caveat de confusion por diagnostico, y se
+  actualiza con la corrida de estratos sobre `bbd9bab`.
 
 Conclusion: es utilizable ya como paso previo del ITA y del clasificador, con
 la dilatacion anterior y respetando la cuarentena. Donde no es utilizable sin
