@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -36,6 +37,7 @@ BASE_COLUMNS = (
     "run",
     "n",
     "dice_mean",
+    "dice_ci95",
     "dice_median",
     "dice_p10",
     "iou_mean",
@@ -73,6 +75,14 @@ def _qualifying_buckets(strata: Mapping) -> dict[str, dict]:
     return buckets
 
 
+def _interval(metrics: Mapping, metric: str) -> str | None:
+    """``low-high`` with three decimals, or None when the summary has no bootstrap."""
+    low, high = _stat(metrics, metric, "ci95_low"), _stat(metrics, metric, "ci95_high")
+    if low is None or high is None or math.isnan(low) or math.isnan(high):
+        return None
+    return f"{low:.{DECIMALS}f}-{high:.{DECIMALS}f}"
+
+
 def _pool_dice(strata: Mapping, key: str) -> float | None:
     """Dice mean of one aggregate; older runs did not report these entries."""
     entry = strata.get(key)
@@ -90,6 +100,7 @@ def load_run(name: str, path: Path) -> dict:
         "run": name,
         "n": int(count if count is not None else (_stat(metrics, "dice", "n") or 0)),
         "dice_mean": _stat(metrics, "dice", "mean"),
+        "dice_ci95": _interval(metrics, "dice"),
         "dice_median": _stat(metrics, "dice", "median"),
         "dice_p10": _stat(metrics, "dice", "p10"),
         "iou_mean": _stat(metrics, "iou", "mean"),

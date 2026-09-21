@@ -1,5 +1,6 @@
 """Pure tests for the evaluation report helpers (percentiles, strata, overlays)."""
 
+import math
 import argparse
 import csv
 import json
@@ -376,3 +377,17 @@ def test_the_pool_aggregates_never_leak_into_the_bucket_table():
     strata = er.stratified_summary(rows, {r["image_id"]: "2" for r in rows}, min_n=1)
     assert set(strata["buckets"]) == {"2"}
     assert [row["bucket"] for row in et.strata_table_rows(strata)] == ["2"]
+
+
+def test_summarize_reports_a_bootstrap_confidence_interval_of_the_mean():
+    rows = [{"image_id": f"i{i}", "dice": v} for i, v in enumerate([0.2, 0.4, 0.6, 0.8, 1.0] * 20)]
+    stats = er.summarize(rows, ["dice"])["dice"]
+    assert stats["ci95_low"] <= stats["mean"] <= stats["ci95_high"]
+    assert 0.5 < stats["ci95_low"] < stats["ci95_high"] < 0.7
+    again = er.summarize(rows, ["dice"])["dice"]
+    assert again["ci95_low"] == stats["ci95_low"]  # seeded, reproducible
+
+
+def test_summarize_confidence_interval_is_nan_without_values():
+    stats = er.summarize([], ["dice"])["dice"]
+    assert math.isnan(stats["ci95_low"]) and math.isnan(stats["ci95_high"])

@@ -19,6 +19,9 @@ import numpy as np
 
 PERCENTILES = (5, 10, 25, 75, 90)
 WORST_COUNT = 10
+# Bootstrap of the mean: fixed seed so a summary is reproducible from its CSV.
+BOOTSTRAP_RESAMPLES = 1000
+BOOTSTRAP_SEED = 0
 UNAVAILABLE = "unavailable"
 VALID_BUCKETS = tuple(str(value) for value in range(1, 7))
 STRATA_METRICS = ("dice", "iou")
@@ -27,16 +30,27 @@ OUT_OF_POOL = "out_of_pool"
 
 
 # ------------------------------------------------------------------ summary
+def _bootstrap_ci(values: np.ndarray) -> tuple[float, float]:
+    """95 % percentile bootstrap interval of the mean, seeded."""
+    rng = np.random.default_rng(BOOTSTRAP_SEED)
+    samples = rng.choice(values, size=(BOOTSTRAP_RESAMPLES, len(values)), replace=True)
+    low, high = np.percentile(samples.mean(axis=1), [2.5, 97.5])
+    return float(low), float(high)
+
+
 def _describe(values: np.ndarray) -> dict:
-    """Mean, std, median, percentiles and count of a NaN-free vector."""
+    """Mean, std, median, percentiles, bootstrap CI and count of a NaN-free vector."""
     if not len(values):
-        empty = {name: math.nan for name in ("mean", "std", "median")}
+        empty = {name: math.nan for name in ("mean", "std", "median", "ci95_low", "ci95_high")}
         empty.update({f"p{p}": math.nan for p in PERCENTILES})
         return {**empty, "n": 0}
+    low, high = _bootstrap_ci(values)
     stats = {
         "mean": float(values.mean()),
         "std": float(values.std()),
         "median": float(np.median(values)),
+        "ci95_low": low,
+        "ci95_high": high,
         "n": int(len(values)),
     }
     stats.update({f"p{p}": float(np.percentile(values, p)) for p in PERCENTILES})

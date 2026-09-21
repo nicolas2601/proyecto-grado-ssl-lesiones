@@ -169,3 +169,19 @@ def test_the_pool_columns_appear_only_when_a_run_reports_them(tmp_path):
     only = _summary(tmp_path / "solo" / "summary.json", strata=False)
     table.build_table(table.parse_args(["--run", f"solo={only}", "--output", str(plain)]))
     assert "in_pool" not in plain.read_text(encoding="utf-8")
+
+
+def test_the_dice_confidence_interval_is_rendered_when_present(tmp_path):
+    path = _summary(tmp_path / "ci" / "summary.json", dice=0.65)
+    payload = json.loads(path.read_text())
+    payload["metrics"]["dice"]["ci95_low"] = 0.64
+    payload["metrics"]["dice"]["ci95_high"] = 0.66
+    path.write_text(json.dumps(payload))
+    record = table.load_run("r", path)
+    assert record["dice_ci95"] == "0.640-0.660"
+    assert "0.640-0.660" in table.build_markdown([record])
+
+
+def test_the_dice_confidence_interval_is_blank_without_bootstrap(tmp_path):
+    record = table.load_run("r", _summary(tmp_path / "noci" / "summary.json"))
+    assert record["dice_ci95"] is None
