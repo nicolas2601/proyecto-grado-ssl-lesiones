@@ -1,0 +1,70 @@
+"""Control del gap por tono: el Dice por tercil sobrevive al controlar por diagnostico?
+
+El estimador FST v1 resulto ser un detector del signo de b* y su "brecha por
+fototipo" era prevalencia de enfermedad. Con el estimador corregido (guard de b*
++ terciles de luminosidad de la piel) vuelve a aparecer un gap por tono. Este
+script comprueba si ese gap nuevo es real o si es de nuevo composicion: calcula
+el Dice por tercil DENTRO de cada diagnostico. Si el gap sobrevive en las clases
+mayoritarias, no es composicion.
+
+Lee el manifiesto NUEVO (salidas/final/fst/fst_pseudo_manifest.csv, schema 1.1,
+con columna tone_tercile). Solo lectura.
+"""
+import csv
+
+import numpy as np
+
+ROOT = "/home/jovyan/work/proyectonp"
+HAM_META = "/home/jovyan/work/datos/ham10000/HAM10000_metadata.csv"
+CLASES = ["nv", "mel", "bkl", "bcc", "akiec", "vasc", "df"]
+TERCILES = ["light", "medium", "dark"]
+MIN_N = 30
+
+man = list(csv.DictReader(open(f"{ROOT}/salidas/final/fst/fst_pseudo_manifest.csv")))
+ter = {r["image_id"]: r["tone_tercile"] for r in man}
+lmed = {r["image_id"]: float(r["L_median"]) for r in man if r["L_median"] not in ("", "nan")}
+dx = {r["image_id"]: r["dx"] for r in csv.DictReader(open(HAM_META))}
+dice = {r["image_id"]: float(r["dice"])
+        for r in csv.DictReader(open(f"{ROOT}/salidas/final/evaluacion_ham10000/per_image.csv"))
+        if r["dice"] not in ("", "nan")}
+
+ids = [i for i in dice if ter.get(i) in TERCILES and i in dx]
+print(f"HAM con tercil y diagnostico: {len(ids)}")
+
+print()
+print("=== L* de la piel por tercil (contexto de los cortes) ===")
+print(f"{'tercil':8s} {'n':>5s} {'L*_media':>10s} {'L*_mediana':>11s} {'L*_min':>8s} {'L*_max':>8s}")
+for t in TERCILES:
+    v = np.array([lmed[i] for i in ids if ter[i] == t and i in lmed])
+    print(f"{t:8s} {len(v):5d} {v.mean():10.2f} {np.median(v):11.2f} {v.min():8.2f} {v.max():8.2f}")
+
+print()
+print("=== Composicion por tercil (% de cada diagnostico) ===")
+print(f"{'tercil':8s} {'n':>5s}  " + "".join(f"{c:>8s}" for c in CLASES))
+for t in TERCILES:
+    g = [i for i in ids if ter[i] == t]
+    pct = "".join(f"{100 * sum(1 for i in g if dx[i] == c) / len(g):7.1f}%" for c in CLASES)
+    print(f"{t:8s} {len(g):5d}  {pct}")
+
+print()
+print("=== Dice por tercil DENTRO de cada diagnostico ===")
+print(f"(se omite una celda con menos de {MIN_N} imagenes)")
+print(f"{'dx':7s} " + "".join(f"{t:>20s}" for t in TERCILES) + "      gap")
+for c in CLASES:
+    fila = []
+    for t in TERCILES:
+        v = [dice[i] for i in ids if ter[i] == t and dx[i] == c]
+        fila.append((float(np.mean(v)) if len(v) >= MIN_N else None, len(v)))
+    celdas = "".join(
+        f"{(f'{m:.4f} (n={n})' if m is not None else f'-- (n={n})'):>20s}" for m, n in fila)
+    vals = [m for m, _ in fila if m is not None]
+    gap = f"{max(vals) - min(vals):+.4f}" if len(vals) >= 2 else "--"
+    print(f"{c:7s} {celdas}  {gap}")
+
+print()
+print("=== Global, para comparar ===")
+for t in TERCILES:
+    v = [dice[i] for i in ids if ter[i] == t]
+    print(f"  {t:8s} n={len(v):5d} Dice {np.mean(v):.4f}")
+g = [np.mean([dice[i] for i in ids if ter[i] == t]) for t in TERCILES]
+print(f"  gap global (claro - oscuro): {g[0] - g[2]:+.4f}")
