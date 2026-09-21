@@ -39,8 +39,16 @@ DEFAULT_MARGIN_FRACTION = 0.04
 MIN_VALID_FRACTION = 0.05
 # Corner patches (fraction of the side) whose mean brightness decides "no vignette".
 CORNER_FRACTION = 0.05
-# A corner is lit when it reaches this share of the central luminance.
+# A corner is lit when it reaches this share of the central luminance...
 CORNER_LUMINANCE_RATIO = 0.6
+# ...or when it still looks like skin: red above blue (a dermoscope ring is
+# achromatic) and not near black. Optical vignetting of the camera darkens the
+# corners of a full frame to roughly half of the centre but keeps their colour.
+CORNER_SKIN_CHROMA = 0.03
+CORNER_SKIN_MIN_LUMINANCE = 0.12
+# A dermoscope circle larger than the frame clips one corner; that is still a
+# full frame. Two dark corners are a vignette.
+MIN_LIT_CORNERS = 3
 # Window (fraction of each side) taken as "the centre of the image".
 CENTRAL_WINDOW_FRACTION = 0.30
 # The field threshold is this share of the central brightness, floored and capped.
@@ -64,26 +72,42 @@ def _central_window(plane: np.ndarray) -> np.ndarray:
     ]
 
 
-def _corners_are_lit(image: np.ndarray, ratio: float = CORNER_LUMINANCE_RATIO) -> bool:
-    """True when every corner keeps a fair share of the central luminance.
-
-    The comparison is relative so that dark skin is not read as a vignette: a
-    uniform Fitzpatrick VI frame has dim corners but they are as bright as its
-    centre, while a vignette drops the corners far below it.
-    """
+def _corner_patches(image: np.ndarray) -> tuple[np.ndarray, ...]:
     height, width = image.shape[:2]
     side = max(1, int(round(min(height, width) * CORNER_FRACTION)))
-    luminance = image.mean(axis=-1)
-    reference = float(np.median(_central_window(luminance)))
+    return (
+        image[:side, :side],
+        image[:side, width - side :],
+        image[height - side :, :side],
+        image[height - side :, width - side :],
+    )
+
+
+def _corner_is_lit(patch: np.ndarray, reference: float, ratio: float) -> bool:
+    """A corner is lit when it is bright relative to the centre or looks like skin."""
+    rgb = patch.reshape(-1, 3).mean(axis=0)
+    luminance = float(rgb.mean())
+    if luminance >= ratio * reference:
+        return True
+    chroma = float(rgb[0] - rgb[2]) / 255.0
+    return chroma >= CORNER_SKIN_CHROMA and luminance >= CORNER_SKIN_MIN_LUMINANCE * 255.0
+
+
+def _corners_are_lit(image: np.ndarray, ratio: float = CORNER_LUMINANCE_RATIO) -> bool:
+    """True when at least three corners are bright or skin-coloured: no vignette.
+
+    Relative brightness keeps dark skin from being read as a vignette (a
+    uniform Fitzpatrick VI frame has dim corners but they match its centre).
+    The chroma test keeps camera vignetting from being read as a dermoscope
+    ring: the ring is achromatic and near black, the darkened skin is not.
+    Known limit: very dark skin whose corners fall below about half of the
+    centre is indistinguishable from a brownish ring and keeps the circle.
+    """
+    reference = float(np.median(_central_window(image.mean(axis=-1))))
     if reference <= 0.0:
         return False
-    patches = (
-        luminance[:side, :side],
-        luminance[:side, width - side :],
-        luminance[height - side :, :side],
-        luminance[height - side :, width - side :],
-    )
-    return all(float(patch.mean()) >= ratio * reference for patch in patches)
+    lit = sum(_corner_is_lit(patch, reference, ratio) for patch in _corner_patches(image))
+    return lit >= MIN_LIT_CORNERS
 
 
 def _adaptive_threshold(max_channel: np.ndarray, black_threshold: float) -> float:
