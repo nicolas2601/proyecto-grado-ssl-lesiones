@@ -265,3 +265,48 @@ No se guarda el netrc en ~/work a proposito: dejaria la clave persistente en el 
 
 **Herramientas de diagnostico dejadas**: ~/work/proyectonp/memwatch.log (free + loadavg cada 30 s,
 tambien con setsid).
+
+## 2026-09-21 10:45 UTC - PISOS NO SUPERVISADOS v2 Y COMPARACION FINAL
+
+Pisos con --max-side 1024 y 4 shards (repo2 en 03fa5a2). Lanzados 09:36:51, cerrados 10:41:57.
+segnorm isic2018 1615 s, segnorm ham10000 ~2200 s, evaluaciones 11-60 s cada una.
+El downscale fue mas rapido Y mas liviano: 108 img/min con 4 shards contra 79 img/min con 12 shards
+a resolucion nativa.
+
+**Tabla de Dice medio**
+| run | n | dice mean | IC 95% | mediana | p10 | hd95 mean |
+|-----|---|-----------|--------|---------|-----|-----------|
+| final isic2018 | 2594 | 0.718 | 0.709-0.726 | 0.792 | 0.402 | 26.05 |
+| rnorm isic2018 | 2594 | 0.716 | 0.707-0.724 | 0.789 | 0.348 | 33.47 |
+| xnorm isic2018 | 2594 | 0.695 | 0.687-0.704 | 0.768 | 0.318 | 33.05 |
+| final ham10000 | 10015 | 0.785 | 0.781-0.788 | 0.852 | 0.507 | 22.44 |
+| rnorm ham10000 | 10015 | 0.765 | 0.762-0.768 | 0.819 | 0.530 | 22.67 |
+| xnorm ham10000 | 10015 | 0.733 | 0.729-0.736 | 0.788 | 0.485 | 22.96 |
+
+**Bootstrap pareado por imagen** (tools/paired_bootstrap.py, 10000 remuestreos, semilla 42;
+mismas imagenes en ambos brazos, que es el test correcto y mas potente que comparar IC marginales):
+
+Dice (mas alto es mejor):
+| comparacion | n | diferencia | IC 95% | veredicto |
+|-------------|---|------------|--------|-----------|
+| isic2018 estudiante - rnorm | 2594 | +0.0015 | [-0.0076, +0.0107] | INCLUYE 0: empate |
+| isic2018 estudiante - xnorm | 2594 | +0.0223 | [+0.0127, +0.0318] | gana el estudiante |
+| ham10000 estudiante - rnorm | 10015 | +0.0197 | [+0.0164, +0.0231] | gana el estudiante |
+| ham10000 estudiante - xnorm | 10015 | +0.0521 | [+0.0485, +0.0556] | gana el estudiante |
+
+HD95 (mas bajo es mejor, negativo = gana el estudiante):
+| comparacion | n | diferencia | IC 95% | veredicto |
+|-------------|---|------------|--------|-----------|
+| isic2018 estudiante - rnorm | 2589 | -7.37 px | [-8.60, -6.12] | gana el estudiante |
+| isic2018 estudiante - xnorm | 2589 | -6.95 px | [-8.18, -5.73] | gana el estudiante |
+| ham10000 estudiante - rnorm | 10007 | -0.21 px | [-0.69, +0.28] | INCLUYE 0: empate |
+| ham10000 estudiante - xnorm | 10007 | -0.51 px | [-0.98, -0.02] | gana el estudiante |
+
+**Lectura honesta**: el estudiante NO le gana a rnorm en Dice medio sobre ISIC2018 (el IC pareado
+incluye el 0). Pero sobre el MISMO conjunto le gana en HD95 por 7.4 px con IC que excluye el 0, y en
+p10 (0.402 contra 0.348). En HAM la relacion se invierte: gana en Dice (+0.0197, IC excluye 0) y
+empata en HD95. Contra xnorm gana en las cuatro comparaciones.
+
+Conclusion defendible: el metodo aprendido no mejora el solapamiento medio frente a una normalizacion
+de color con Otsu en ISIC2018, pero si mejora la calidad del borde y reduce los fallos catastroficos;
+en HAM10000 mejora el solapamiento. Afirmar "supera a los pisos" sin matizar seria incorrecto.
