@@ -615,6 +615,7 @@ SPLIT=$(sha256sum salidas/final/cache/manifest.csv | cut -c1-64)
 REV=$(python -c "import json;print(json.load(open(salidas/tone/shift2/tone_transform_manifest.json))[revision])")
 COMMON="--method simsiam_dinov2 --image-root salidas/tone/inputs/originals --split-hash $SPLIT \
     --budget-gpu-hours 4 --batch-size-per-gpu 64 --num-workers 2 --precision bf16 \
+    --checkpoint-fractions 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 \
     --wandb-project dermssl-segmentacion --wandb-group etapa2"
 
 # brazo A: SSL continuo sin tono (dos vistas de la misma imagen)
@@ -628,7 +629,16 @@ torchrun --nproc_per_node=2 scripts/pretrain.py $COMMON --output-dir salidas/ton
 
 Cada brazo escribe `simsiam_dinov2_backbone_final.pt` (solo el backbone) mas
 los checkpoints por fraccion del presupuesto y `run.json`. El presupuesto
-manda: 4 horas-GPU son 2 horas de reloj con dos GPU. El smoke del 2026-09-21
+manda: 4 horas-GPU son 2 horas de reloj con dos GPU.
+
+Reanudacion tras una caida del contenedor: relanzar EL MISMO comando. El
+entrenamiento busca `<output-dir>/resume.pt` y, si existe, recupera modelo,
+optimizador y el tiempo ya consumido. El checkpoint solo se escribe en las
+fracciones de `--checkpoint-fractions`, asi que la cadencia fina de arriba
+(cada 10 % del presupuesto, unos 12 minutos de reloj) acota lo que se pierde.
+NO partir el presupuesto en tramos sobre la misma carpeta: al reanudar con un
+presupuesto mayor, las fracciones del tramo anterior ya estan marcadas como
+guardadas y el tramo largo correria sin ningun checkpoint. El smoke del 2026-09-21
 mostro que `--num-workers 2` no falla por `/dev/shm` (64 MB); medir el
 throughput sobre unos miles de PNG reales antes de fijar el valor, porque
 sobre 64 imagenes en cache de pagina la medicion no extrapola. MLflow no
