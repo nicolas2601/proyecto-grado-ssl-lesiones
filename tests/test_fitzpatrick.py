@@ -423,3 +423,94 @@ def test_importing_fitzpatrick_never_imports_skimage():
     import dermssl.fitzpatrick  # noqa: F401
 
     assert "skimage" not in sys.modules
+
+
+def _vignette_band(size=64, rows=16, level=0.10):
+    band = np.zeros((size, size), dtype=bool)
+    band[:rows] = True
+    return band, level
+
+
+def test_estimate_fst_border_mask_removes_a_grey_band_from_the_skin_statistics():
+    """A grey vignette band (0.10) is far above the near-black border
+    threshold, so only an explicit border mask can keep it out of the ITA.
+
+    The band has to outnumber the skin pixels it competes with: the estimator
+    takes a median, which shrugs off a minority of contaminated pixels.
+    """
+    pytest.importorskip("skimage.color")
+    img, dist = disk_srgb_image()
+    lesion = dist <= 15
+    band, level = _vignette_band(rows=36)
+    contaminated_img = img.copy()
+    contaminated_img[band] = level
+
+    contaminated = fp.estimate_fst(contaminated_img, mask=lesion)
+    cleaned = fp.estimate_fst(contaminated_img, mask=lesion, border_mask=band)
+    reference = fp.estimate_fst(img, mask=lesion, border_mask=band)
+
+    assert cleaned.status == "ok"
+    assert cleaned.ita == pytest.approx(reference.ita)
+    assert contaminated.ita != pytest.approx(reference.ita)
+
+
+def test_estimate_fst_border_mask_is_added_to_the_luminance_border():
+    pytest.importorskip("skimage.color")
+    img, dist = disk_srgb_image()
+    lesion = dist <= 15
+    img[:8] = 0.0  # near-black, already excluded by luminance
+    extra = np.zeros(img.shape[:2], dtype=bool)
+    extra[8:16] = True
+
+    without = fp.estimate_fst(img, mask=lesion)
+    with_extra = fp.estimate_fst(img, mask=lesion, border_mask=extra)
+
+    assert with_extra.skin_fraction == pytest.approx(without.skin_fraction - 8 / 64, abs=1e-6)
+
+
+def test_estimate_fst_border_mask_covering_the_frame_reports_no_skin():
+    img, dist = disk_srgb_image()
+    result = fp.estimate_fst(
+        img, mask=dist <= 15, border_mask=np.ones(img.shape[:2], dtype=bool)
+    )
+    assert result.status == "no_skin"
+    assert result.bucket is None
+
+
+def test_estimate_fst_border_mask_with_a_wrong_shape_raises():
+    img, dist = disk_srgb_image()
+    with pytest.raises(ValueError):
+        fp.estimate_fst(img, mask=dist <= 15, border_mask=np.zeros((8, 8), dtype=bool))
+
+
+def test_estimate_fst_without_a_border_mask_is_unchanged():
+    pytest.importorskip("skimage.color")
+    img, dist = disk_srgb_image()
+    assert fp.estimate_fst(img, mask=dist <= 15) == fp.estimate_fst(
+        img, mask=dist <= 15, border_mask=None
+    )
+
+
+def test_estimate_fst_from_mask_record_forwards_the_border_mask():
+    from dermssl import mask_manifest as mm
+
+    pytest.importorskip("skimage.color")
+    img, dist = disk_srgb_image()
+    lesion = dist <= 15
+    record = mm.build_mask_record(
+        dataset="synthetic",
+        image_id="disk",
+        source_revision="test",
+        mask=lesion,
+        producer="unit-test",
+        version="1",
+    )
+    band, _ = _vignette_band()
+
+    without = fp.estimate_fst_from_mask_record(img, mask=lesion, mask_record=record)
+    with_band = fp.estimate_fst_from_mask_record(
+        img, mask=lesion, mask_record=record, border_mask=band
+    )
+
+    assert with_band.skin_fraction == pytest.approx(without.skin_fraction - 16 / 64, abs=1e-6)
+    assert with_band.mask_sha256 == without.mask_sha256
