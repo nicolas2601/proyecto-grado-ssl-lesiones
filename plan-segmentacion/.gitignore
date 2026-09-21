@@ -6,3 +6,8 @@
 *.ckpt
 *.npy
 *.npz
+
+# Light run artifacts are versioned on purpose (overlays, per-image metrics, logs).
+!resultados/**/*.png
+!resultados/**/*.csv
+!resultados/**/*.log
