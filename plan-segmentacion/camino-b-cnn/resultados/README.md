@@ -83,7 +83,8 @@ escala de grises, desenfoque, viñeta sintetica (p = 0,3), nunca sobre la mascar
 | Corrida | Commit | Preset | Grupo W&B | Duracion | Estado |
 |---|---|---|---|---|---|
 | piloto | `f19ab56` | `cluster-piloto.json` | `piloto` | 37,4 min | terminada 2026-09-21 |
-| final | `d81a492` | `cluster-final.json` | `final` | 2 h 35 min | terminada 2026-09-21 |
+| final | `d81a492` | `cluster-final.json` | `final` | 2 h 35 min | terminada 2026-09-21, configuracion principal |
+| v2 | `91814a9` | `cluster-v2.json` | `v2` | 2 h 55 min | terminada 2026-09-21, ablacion negativa |
 
 El piloto uso el detector de campo v1, sin supresion de artefactos y con area
 minima de candidato 0,01. El final uso el detector v2, supresion de tinta y
@@ -212,6 +213,45 @@ retorno para una corrida siguiente: subir el cap a 0,75 manteniendo el resto.
   mismo commit murieron con el pod al convivir con doce procesos de pisos a
   resolucion nativa; la bitacora documenta ambas.
 
+## Ablacion v2: tope de area 0,75 (no mejora)
+
+Un solo cambio de entrenamiento respecto a la configuracion principal:
+`pseudo.max_area_fraction` 0,6 a 0,75 (mismas epocas, rondas, seleccion de
+checkpoint y umbral). Artefactos en `2026-09-21-v2/`. La cache fue identica
+byte a byte a la del final; en las pseudo-mascaras de la ronda 0 entraron
+1 087 lesiones grandes mas (excluidas por area 4 252 a 3 165) sin desborde
+(primer plano 0,131 a 0,143).
+
+| Conjunto | Dice final | Dice v2 | Pareado v2 menos final (Dice) | Pareado (HD95) |
+|---|---|---|---|---|
+| ISIC 2018 | 0,718 | 0,716 | -0,0015 [-0,0027, -0,0004], pierde | -0,22 px [-0,58, +0,13], empate |
+| HAM10000 | 0,785 | 0,783 | -0,0021 [-0,0026, -0,0017], pierde | +0,17 px [+0,08, +0,27], pierde |
+
+Por banda de cobertura de referencia (Dice medio, final a v2):
+
+| Cobertura | ISIC 2018 | HAM10000 |
+|---|---|---|
+| menos del 10 % | 0,646 a 0,646 | 0,750 a 0,750 |
+| 10 % a 25 % | 0,793 a 0,788 | 0,850 a 0,846 |
+| 25 % a 40 % | 0,782 a 0,778 | 0,794 a 0,791 |
+| 40 % a 60 % | 0,733 a 0,731 | 0,724 a 0,722 |
+| 60 % o mas | 0,684 a 0,695 | 0,642 a 0,647 |
+
+El tope alto hace lo que se diseno (las lesiones grandes mejoran) pero cuesta
+unas milesimas en las bandas medias, que pesan cinco o seis veces mas. El
+balance neto es una perdida pequena y estadisticamente detectable, asi que la
+configuracion principal sigue siendo la final y esta palanca queda cerrada.
+
+## Volteos en inferencia (TTA)
+
+`evaluate_segmentation.py --tta` promedia la prediccion sobre los cuatro
+volteos sin tocar el modelo. Sobre la configuracion principal, pareado:
+Dice +0,0003 [-0,0002, +0,0007] en ISIC 2018 y +0,0002 [0,0000, +0,0004] en
+HAM10000 (empate), HD95 -0,32 px [-0,61, -0,04] y -0,08 px [-0,16, -0,01]
+(mejora de borde). Cuesta cuatro veces mas computo en inferencia; se reporta
+como opcion, no como valor por defecto. Tampoco rescata la v2 (v2 con volteos
+0,7173 frente a 0,7177 del final sin volteos en ISIC 2018).
+
 ## Sirve ya como entrada del ITA y de la clasificacion
 
 La mascara se usa aguas abajo para excluir la lesion antes de medir el tono de
@@ -245,10 +285,8 @@ caer sobre el artefacto y no sobre la lesion.
 
 Por retorno esperado, todo sin etiquetas:
 
-1. Cap de area de candidato 0,6 a 0,75 (`pseudo.max_area_fraction`). Las
-   lesiones que ocupan mas del 60 % del cuadro rinden 0,64-0,68 frente a 0,85
-   del grueso porque el cap las saca del entrenamiento; una mascara de campo
-   entero sigue en 0,9-1,0 y el cap seguiria atrapandola. Costo: una corrida.
+1. Tope de area de candidato 0,75: probado el 2026-09-21 (corrida v2), no
+   mejora; ver la ablacion arriba. Palanca cerrada.
 2. Tinta y brillos como fondo en lugar de ignorados. Hoy el estudiante no
    aprende a rechazarlos; marcarlos como fondo lo obliga. Riesgo: si la regla
    de color toca una lesion azulada, la castiga. Verificar con los peores casos.

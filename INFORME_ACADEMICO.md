@@ -287,6 +287,12 @@ Lecturas que sostienen las cifras:
 - El re-etiquetado converge en dos rondas (fracción de primer plano 0,131,
   0,148, 0,143) y no deriva hacia el campo entero, que era el modo de fallo
   original de las máscaras de la V2.
+- Ablación v2 (commit `91814a9`, tope de área de candidato 0,75, todo lo
+  demás igual): Dice 0,716 en ISIC 2018 y 0,783 en HAM10000; pareado contra
+  la final, -0,0015 [-0,0027, -0,0004] y -0,0021 [-0,0026, -0,0017]. Mejora
+  las lesiones que llenan el cuadro y pierde en las medianas, que pesan más:
+  la configuración principal sigue siendo la final. Los volteos en inferencia
+  no mueven el Dice y mejoran el borde 0,3 px a cuatro veces el cómputo.
 - Pisos no supervisados con el mismo evaluador (normalización de color y Otsu
   dentro del campo, sin aprendizaje): SegRNorm da Dice 0,716 en ISIC 2018 y
   0,765 en HAM10000; SegXNorm 0,695 y 0,733. Comparación pareada por imagen:

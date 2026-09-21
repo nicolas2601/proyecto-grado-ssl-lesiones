@@ -1,0 +1,2090 @@
+entorno heredado: WANDB_PROJECT=dermssl-segmentacion WANDB_RUN_GROUP=v2
+
+=== env ===
+/home/jovyan/work/proyectonp/.venv/bin/python /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/nucleo/check_env.py
+{
+  "python": "3.13.15",
+  "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+  "numpy": "2.5.3",
+  "scipy": "1.18.0",
+  "pillow": "12.3.0",
+  "torch": "2.11.0+cu128",
+  "torchvision": "0.26.0+cu128",
+  "shm_free_mb": 64.0,
+  "work_dir_free_gb": 40657.7,
+  "cuda_available": true,
+  "cuda_version": "12.8",
+  "bf16_supported": true,
+  "nccl_available": true,
+  "gpus": [
+    {
+      "name": "NVIDIA RTX PRO 4000 Blackwell",
+      "memory_gb": 23.4
+    },
+    {
+      "name": "NVIDIA RTX PRO 4000 Blackwell",
+      "memory_gb": 23.4
+    }
+  ]
+}
+--- env: 3.4 s (codigo 0)
+
+=== cache ===
+/home/jovyan/work/proyectonp/.venv/bin/python /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/datos/prepare_cache.py --output-dir /home/jovyan/work/proyectonp/salidas/v2/cache --root ham10000_p1=/home/jovyan/work/datos/ham10000/HAM10000_images_part_1 --root ham10000_p2=/home/jovyan/work/datos/ham10000/HAM10000_images_part_2 --root isic2019=/home/jovyan/work/datos/isic2019 --root isic2020=/home/jovyan/work/datos/isic2020 --resolution 224 --holdout-fraction 0.02 --threads 16 --field-black-threshold 0.06 --field-margin-fraction 0.04 --seed 42
+cache: 2000/58457 imagenes
+cache: 4000/58457 imagenes
+cache: 6000/58457 imagenes
+cache: 8000/58457 imagenes
+cache: 10000/58457 imagenes
+cache: 12000/58457 imagenes
+cache: 14000/58457 imagenes
+cache: 16000/58457 imagenes
+cache: 18000/58457 imagenes
+cache: 20000/58457 imagenes
+cache: 22000/58457 imagenes
+cache: 24000/58457 imagenes
+cache: 26000/58457 imagenes
+cache: 28000/58457 imagenes
+cache: 30000/58457 imagenes
+cache: 32000/58457 imagenes
+cache: 34000/58457 imagenes
+cache: 36000/58457 imagenes
+cache: 38000/58457 imagenes
+cache: 40000/58457 imagenes
+cache: 42000/58457 imagenes
+cache: 44000/58457 imagenes
+cache: 46000/58457 imagenes
+cache: 48000/58457 imagenes
+cache: 50000/58457 imagenes
+cache: 52000/58457 imagenes
+cache: 54000/58457 imagenes
+cache: 56000/58457 imagenes
+cache: 58000/58457 imagenes
+{
+  "count": 58457,
+  "resolution": 224,
+  "per_dataset": {
+    "ham10000_p1": 5000,
+    "ham10000_p2": 5015,
+    "isic2019": 15316,
+    "isic2020": 33126
+  },
+  "duplicates_dropped": 10015,
+  "holdout_fraction": 0.02,
+  "val_count": 1169,
+  "seed": 42,
+  "field": {
+    "images": 58457,
+    "circular_count": 7528,
+    "fallback_count": 0,
+    "full_frame_count": 50929,
+    "mean_field_fraction": 0.9654211209762602,
+    "mean_valid_fraction": 0.9511696640575862,
+    "black_threshold": 0.06,
+    "margin_fraction": 0.04
+  },
+  "reads_masks_or_labels": false
+}
+--- cache: 197.3 s (codigo 0)
+
+=== contrastive ===
+/home/jovyan/work/proyectonp/.venv/bin/python -m torch.distributed.run --nproc_per_node=2 /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/camino-b-cnn/preentrenamiento-contrastivo/train_moco.py --cache-dir /home/jovyan/work/proyectonp/salidas/v2/cache --output-dir /home/jovyan/work/proyectonp/salidas/v2/moco --epochs 30 --batch-size 128 --lr 0.0005 --weight-decay 0.0001 --warmup-epochs 2 --queue-size 16384 --momentum 0.999 --temperature 0.2 --layer4-stride 2 --bn-splits 4 --precision bf16 --seed 42 --wandb-project dermssl-segmentacion
+
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.
+wandb: Currently logged in as: nmoreno534 (nmoreno534-universidad-autonoma-de-bucaramanga) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
+wandb: setting up run 072e4461571d
+wandb: Tracking run with wandb version 0.30.0
+wandb: Run data is saved locally in /home/jovyan/work/proyectonp/repo_final/wandb/run-20260921_121828-072e4461571d
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run moco-moco
+wandb: ⭐️ View project at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: 🚀 View run at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/072e4461571d
+epoca 0 paso 50/223 perdida 9.3880
+epoca 0 paso 100/223 perdida 9.4372
+epoca 0 paso 150/223 perdida 9.0970
+epoca 0 paso 200/223 perdida 8.9245
+{"epoch": 0, "images": 57088, "images_per_second": 283.18872665468797, "loss": 9.033884091227579, "lr": 0.00025, "seconds": 201.58994559699204}
+epoca 1 paso 50/223 perdida 8.7448
+epoca 1 paso 100/223 perdida 8.7875
+epoca 1 paso 150/223 perdida 8.5650
+epoca 1 paso 200/223 perdida 8.6947
+{"epoch": 1, "images": 57088, "images_per_second": 776.5254499394441, "loss": 8.714475896860986, "lr": 0.0005, "seconds": 73.51722986600362}
+epoca 2 paso 50/223 perdida 8.6962
+epoca 2 paso 100/223 perdida 8.5888
+epoca 2 paso 150/223 perdida 8.7475
+epoca 2 paso 200/223 perdida 8.7389
+{"epoch": 2, "images": 57088, "images_per_second": 774.2225604476248, "loss": 8.714276643077355, "lr": 0.0004984421044193033, "seconds": 73.73590349394362}
+epoca 3 paso 50/223 perdida 8.6024
+epoca 3 paso 100/223 perdida 8.9056
+epoca 3 paso 150/223 perdida 8.5846
+epoca 3 paso 200/223 perdida 8.6295
+{"epoch": 3, "images": 57088, "images_per_second": 773.1993745894521, "loss": 8.628625433541199, "lr": 0.0004937599368695267, "seconds": 73.83347927604336}
+epoca 4 paso 50/223 perdida 8.4616
+epoca 4 paso 100/223 perdida 8.5548
+epoca 4 paso 150/223 perdida 8.3946
+epoca 4 paso 200/223 perdida 8.4002
+{"epoch": 4, "images": 57088, "images_per_second": 773.3808438067953, "loss": 8.41700313551009, "lr": 0.0004860123466808062, "seconds": 73.81615468906239}
+epoca 5 paso 50/223 perdida 8.1410
+epoca 5 paso 100/223 perdida 8.1961
+epoca 5 paso 150/223 perdida 8.1291
+epoca 5 paso 200/223 perdida 8.0204
+{"epoch": 5, "images": 57088, "images_per_second": 773.7901910010279, "loss": 8.217757015484866, "lr": 0.00047529676429502126, "seconds": 73.77710478100926}
+epoca 6 paso 50/223 perdida 8.0677
+epoca 6 paso 100/223 perdida 8.0951
+epoca 6 paso 150/223 perdida 7.8417
+epoca 6 paso 200/223 perdida 7.9060
+{"epoch": 6, "images": 57088, "images_per_second": 774.0617850337981, "loss": 8.023409035173767, "lr": 0.00046174794437799907, "seconds": 73.75121870602015}
+epoca 7 paso 50/223 perdida 7.9243
+epoca 7 paso 100/223 perdida 8.0569
+epoca 7 paso 150/223 perdida 7.8445
+epoca 7 paso 200/223 perdida 7.6220
+{"epoch": 7, "images": 57088, "images_per_second": 774.1631986947299, "loss": 7.840276196398543, "lr": 0.0004455362712014044, "seconds": 73.74155746004544}
+epoca 8 paso 50/223 perdida 7.8334
+epoca 8 paso 100/223 perdida 7.7019
+epoca 8 paso 150/223 perdida 7.5347
+epoca 8 paso 200/223 perdida 7.7591
+{"epoch": 8, "images": 57088, "images_per_second": 774.1496927028589, "loss": 7.697813025504484, "lr": 0.0004268656159616648, "seconds": 73.74284397205338}
+epoca 9 paso 50/223 perdida 7.6748
+epoca 9 paso 100/223 perdida 7.6141
+epoca 9 paso 150/223 perdida 7.5536
+epoca 9 paso 200/223 perdida 7.6583
+{"epoch": 9, "images": 57088, "images_per_second": 773.9683434332892, "loss": 7.576689715877242, "lr": 0.0004059707729813867, "seconds": 73.7601227289997}
+epoca 10 paso 50/223 perdida 7.6661
+epoca 10 paso 100/223 perdida 7.5992
+epoca 10 paso 150/223 perdida 7.4417
+epoca 10 paso 200/223 perdida 7.4793
+{"epoch": 10, "images": 57088, "images_per_second": 773.6212752819058, "loss": 7.4713424887892375, "lr": 0.00038311450703451723, "seconds": 73.79321358399466}
+epoca 11 paso 50/223 perdida 7.4738
+epoca 11 paso 100/223 perdida 7.3780
+epoca 11 paso 150/223 perdida 7.4028
+epoca 11 paso 200/223 perdida 7.3469
+{"epoch": 11, "images": 57088, "images_per_second": 773.5993494387309, "loss": 7.3829624877382285, "lr": 0.00035858424892685266, "seconds": 73.79530507803429}
+epoca 12 paso 50/223 perdida 7.4084
+epoca 12 paso 100/223 perdida 7.2910
+epoca 12 paso 150/223 perdida 7.3036
+epoca 12 paso 200/223 perdida 7.2515
+{"epoch": 12, "images": 57088, "images_per_second": 773.722598467206, "loss": 7.3050964081768495, "lr": 0.00033268848088688417, "seconds": 73.7835499610519}
+epoca 13 paso 50/223 perdida 7.2629
+epoca 13 paso 100/223 perdida 7.2628
+epoca 13 paso 150/223 perdida 7.2307
+epoca 13 paso 200/223 perdida 7.2515
+{"epoch": 13, "images": 57088, "images_per_second": 773.9679170168395, "loss": 7.230352701093049, "lr": 0.00030575285722278907, "seconds": 73.76016336702742}
+epoca 14 paso 50/223 perdida 7.1429
+epoca 14 paso 100/223 perdida 7.1930
+epoca 14 paso 150/223 perdida 7.1128
+epoca 14 paso 200/223 perdida 7.1234
+{"epoch": 14, "images": 57088, "images_per_second": 774.0756682899383, "loss": 7.158045473654709, "lr": 0.00027811610903055614, "seconds": 73.74989595799707}
+epoca 15 paso 50/223 perdida 7.0813
+epoca 15 paso 100/223 perdida 7.0621
+epoca 15 paso 150/223 perdida 7.1595
+epoca 15 paso 200/223 perdida 7.1319
+{"epoch": 15, "images": 57088, "images_per_second": 774.1171724279995, "loss": 7.095656048556615, "lr": 0.0002501257844539175, "seconds": 73.74594187201001}
+epoca 16 paso 50/223 perdida 6.9992
+epoca 16 paso 100/223 perdida 7.0136
+epoca 16 paso 150/223 perdida 6.9639
+epoca 16 paso 200/223 perdida 7.0870
+{"epoch": 16, "images": 57088, "images_per_second": 774.2364233037524, "loss": 7.0381264451373315, "lr": 0.00022213387806478896, "seconds": 73.73458323802333}
+epoca 17 paso 50/223 perdida 7.0670
+epoca 17 paso 100/223 perdida 6.9695
+epoca 17 paso 150/223 perdida 6.9357
+epoca 17 paso 200/223 perdida 6.9525
+{"epoch": 17, "images": 57088, "images_per_second": 773.7971433028754, "loss": 6.979239288466928, "lr": 0.00019449240432729627, "seconds": 73.77644191903528}
+epoca 18 paso 50/223 perdida 6.9186
+epoca 18 paso 100/223 perdida 6.8596
+epoca 18 paso 150/223 perdida 6.9065
+epoca 18 paso 200/223 perdida 6.9191
+{"epoch": 18, "images": 57088, "images_per_second": 773.7681123841896, "loss": 6.933103279147982, "lr": 0.000167548970811645, "seconds": 73.77920992905274}
+epoca 19 paso 50/223 perdida 6.9116
+epoca 19 paso 100/223 perdida 6.8864
+epoca 19 paso 150/223 perdida 6.9131
+epoca 19 paso 200/223 perdida 6.8479
+{"epoch": 19, "images": 57088, "images_per_second": 773.9016620327452, "loss": 6.882517998528588, "lr": 0.0001416424068272388, "seconds": 73.76647809497081}
+epoca 20 paso 50/223 perdida 6.8063
+epoca 20 paso 100/223 perdida 6.7855
+epoca 20 paso 150/223 perdida 6.8511
+epoca 20 paso 200/223 perdida 6.8727
+{"epoch": 20, "images": 57088, "images_per_second": 773.8879634454182, "loss": 6.840041361582119, "lr": 0.00011709850244752001, "seconds": 73.76778383506462}
+epoca 21 paso 50/223 perdida 6.7863
+epoca 21 paso 100/223 perdida 6.7595
+epoca 21 paso 150/223 perdida 6.7211
+epoca 21 paso 200/223 perdida 6.8531
+{"epoch": 21, "images": 57088, "images_per_second": 773.6667397745887, "loss": 6.795841507847534, "lr": 9.422591151076873e-05, "seconds": 73.78887712897267}
+epoca 22 paso 50/223 perdida 6.8012
+epoca 22 paso 100/223 perdida 6.7559
+epoca 22 paso 150/223 perdida 6.7723
+epoca 22 paso 200/223 perdida 6.7233
+{"epoch": 22, "images": 57088, "images_per_second": 773.5456125865643, "loss": 6.760325068315583, "lr": 7.33122701190009e-05, "seconds": 73.80043150798883}
+epoca 23 paso 50/223 perdida 6.7550
+epoca 23 paso 100/223 perdida 6.7065
+epoca 23 paso 150/223 perdida 6.7275
+epoca 23 paso 200/223 perdida 6.7762
+{"epoch": 23, "images": 57088, "images_per_second": 773.8945839107874, "loss": 6.723627338494955, "lr": 5.4620579447095505e-05, "seconds": 73.76715277100448}
+epoca 24 paso 50/223 perdida 6.6544
+epoca 24 paso 100/223 perdida 6.7421
+epoca 24 paso 150/223 perdida 6.6271
+epoca 24 paso 200/223 perdida 6.7844
+{"epoch": 24, "images": 57088, "images_per_second": 773.7960724899638, "loss": 6.688027146685818, "lr": 3.838589835042311e-05, "seconds": 73.77654401410837}
+epoca 25 paso 50/223 perdida 6.6829
+epoca 25 paso 100/223 perdida 6.5755
+epoca 25 paso 150/223 perdida 6.6517
+epoca 25 paso 200/223 perdida 6.6215
+{"epoch": 25, "images": 57088, "images_per_second": 773.6990881646242, "loss": 6.661306885860426, "lr": 2.4812387363355838e-05, "seconds": 73.7857920130482}
+epoca 26 paso 50/223 perdida 6.7012
+epoca 26 paso 100/223 perdida 6.6273
+epoca 26 paso 150/223 perdida 6.6481
+epoca 26 paso 200/223 perdida 6.5872
+{"epoch": 26, "images": 57088, "images_per_second": 773.5325925578164, "loss": 6.636829324901906, "lr": 1.4070741262090625e-05, "seconds": 73.80167370999698}
+epoca 27 paso 50/223 perdida 6.6223
+epoca 27 paso 100/223 perdida 6.6279
+epoca 27 paso 150/223 perdida 6.5108
+epoca 27 paso 200/223 perdida 6.6070
+{"epoch": 27, "images": 57088, "images_per_second": 773.2767591045111, "loss": 6.616998099425448, "lr": 6.2960424787990855e-06, "seconds": 73.82609050103929}
+epoca 28 paso 50/223 perdida 6.5459
+epoca 28 paso 100/223 perdida 6.5698
+epoca 28 paso 150/223 perdida 6.5996
+epoca 28 paso 200/223 perdida 6.5533
+{"epoch": 28, "images": 57088, "images_per_second": 773.4385421217853, "loss": 6.598284665779148, "lr": 1.5860623616664183e-06, "seconds": 73.81064802303445}
+epoca 29 paso 50/223 perdida 6.5269
+epoca 29 paso 100/223 perdida 6.5506
+epoca 29 paso 150/223 perdida 6.5632
+epoca 29 paso 200/223 perdida 6.5482
+{"epoch": 29, "images": 57088, "images_per_second": 773.4731932706708, "loss": 6.5819644671384525, "lr": 3.164345968587057e-11, "seconds": 73.80734134896193}
+wandb: updating run metadata
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading output.log; uploading wandb-summary.json
+wandb: 
+wandb: Run history:
+wandb:             epoch ▁▁▁▂▂▂▂▃▃▃▃▄▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇███
+wandb:            images ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: images_per_second ▁█████████████████████████████
+wandb:              loss █▇▇▇▆▆▅▅▄▄▄▃▃▃▃▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁
+wandb:                lr ▄█████▇▇▇▇▆▆▆▅▅▅▄▄▃▃▃▂▂▂▂▁▁▁▁▁
+wandb:           seconds █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:             epoch 29
+wandb:            images 57088
+wandb: images_per_second 773.47319
+wandb:              loss 6.58196
+wandb:                lr 0.0
+wandb:           seconds 73.80734
+wandb: 
+wandb: 🚀 View run moco-moco at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/072e4461571d
+wandb: ⭐️ View project at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260921_121828-072e4461571d/logs
+/opt/conda/lib/python3.13/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+--- contrastive: 2418.9 s (codigo 0)
+
+=== ccam ===
+/home/jovyan/work/proyectonp/.venv/bin/python -m torch.distributed.run --nproc_per_node=2 /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/camino-b-cnn/pseudo-mascaras/train_ccam.py --cache-dir /home/jovyan/work/proyectonp/salidas/v2/cache --backbone /home/jovyan/work/proyectonp/salidas/v2/moco/backbone.pt --output-dir /home/jovyan/work/proyectonp/salidas/v2/ccam --epochs 5 --batch-size 64 --lr 0.001 --alpha 0.25 --head-kernel 3 --precision bf16 --seed 42 --wandb-project dermssl-segmentacion
+
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.
+wandb: Currently logged in as: nmoreno534 (nmoreno534-universidad-autonoma-de-bucaramanga) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
+wandb: setting up run 33248f230d5f
+wandb: Tracking run with wandb version 0.30.0
+wandb: Run data is saved locally in /home/jovyan/work/proyectonp/repo_final/wandb/run-20260921_125845-33248f230d5f
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run ccam-ccam
+wandb: ⭐️ View project at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: 🚀 View run at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/33248f230d5f
+ccam epoca 0 paso 50/447 perdida 1.7583
+ccam epoca 0 paso 100/447 perdida 1.6819
+ccam epoca 0 paso 150/447 perdida 1.7205
+ccam epoca 0 paso 200/447 perdida 1.6342
+ccam epoca 0 paso 250/447 perdida 1.6487
+ccam epoca 0 paso 300/447 perdida 1.5638
+ccam epoca 0 paso 350/447 perdida 1.5382
+ccam epoca 0 paso 400/447 perdida 1.5128
+{"epoch": 0, "images": 57216, "images_per_second": 2812.8903496035573, "loss": 1.618828758564038, "seconds": 20.340643569012173, "stage": "ccam"}
+ccam epoca 1 paso 50/447 perdida 1.4715
+ccam epoca 1 paso 100/447 perdida 1.4439
+ccam epoca 1 paso 150/447 perdida 1.3343
+ccam epoca 1 paso 200/447 perdida 1.4307
+ccam epoca 1 paso 250/447 perdida 1.3439
+ccam epoca 1 paso 300/447 perdida 1.2450
+ccam epoca 1 paso 350/447 perdida 1.3514
+ccam epoca 1 paso 400/447 perdida 1.2870
+{"epoch": 1, "images": 57216, "images_per_second": 2885.4725050366314, "loss": 1.3619169026146531, "seconds": 19.82898811204359, "stage": "ccam"}
+ccam epoca 2 paso 50/447 perdida 1.1745
+ccam epoca 2 paso 100/447 perdida 1.2330
+ccam epoca 2 paso 150/447 perdida 1.2566
+ccam epoca 2 paso 200/447 perdida 1.2213
+ccam epoca 2 paso 250/447 perdida 1.1718
+ccam epoca 2 paso 300/447 perdida 1.1721
+ccam epoca 2 paso 350/447 perdida 1.1785
+ccam epoca 2 paso 400/447 perdida 1.1144
+{"epoch": 2, "images": 57216, "images_per_second": 2878.3269703812125, "loss": 1.1917192087877517, "seconds": 19.878214180935174, "stage": "ccam"}
+ccam epoca 3 paso 50/447 perdida 1.1159
+ccam epoca 3 paso 100/447 perdida 1.0742
+ccam epoca 3 paso 150/447 perdida 1.0208
+ccam epoca 3 paso 200/447 perdida 1.0438
+ccam epoca 3 paso 250/447 perdida 1.0603
+ccam epoca 3 paso 300/447 perdida 1.0792
+ccam epoca 3 paso 350/447 perdida 1.0335
+ccam epoca 3 paso 400/447 perdida 1.0794
+{"epoch": 3, "images": 57216, "images_per_second": 2874.020803938963, "loss": 1.0786773886456587, "seconds": 19.907997854985297, "stage": "ccam"}
+ccam epoca 4 paso 50/447 perdida 1.0577
+ccam epoca 4 paso 100/447 perdida 1.0005
+ccam epoca 4 paso 150/447 perdida 1.0124
+ccam epoca 4 paso 200/447 perdida 1.0337
+ccam epoca 4 paso 250/447 perdida 0.9774
+ccam epoca 4 paso 300/447 perdida 1.0028
+ccam epoca 4 paso 350/447 perdida 0.9752
+ccam epoca 4 paso 400/447 perdida 0.9572
+{"epoch": 4, "images": 57216, "images_per_second": 2872.3755114484484, "loss": 1.0024965700153803, "seconds": 19.91940112703014, "stage": "ccam"}
+/opt/conda/lib/python3.13/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+saliencia escrita en /home/jovyan/work/proyectonp/salidas/v2/ccam/saliency.npy
+wandb: updating run metadata
+wandb: uploading wandb-summary.json; uploading config.yaml
+wandb: uploading history steps 4-4, summary, console lines 47-47
+wandb: 
+wandb: Run history:
+wandb:             epoch ▁▃▅▆█
+wandb:            images ▁▁▁▁▁
+wandb: images_per_second ▁█▇▇▇
+wandb:              loss █▅▃▂▁
+wandb:           seconds █▁▂▂▂
+wandb: 
+wandb: Run summary:
+wandb:             epoch 4
+wandb:            images 57216
+wandb: images_per_second 2872.37551
+wandb:              loss 1.0025
+wandb:           seconds 19.9194
+wandb:             stage ccam
+wandb: 
+wandb: 🚀 View run ccam-ccam at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/33248f230d5f
+wandb: ⭐️ View project at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260921_125845-33248f230d5f/logs
+--- ccam: 184.6 s (codigo 0)
+
+=== pseudo_r0 ===
+/home/jovyan/work/proyectonp/.venv/bin/python /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/camino-b-cnn/pseudo-mascaras/make_pseudo_masks.py --saliency /home/jovyan/work/proyectonp/salidas/v2/ccam/saliency.npy --output-dir /home/jovyan/work/proyectonp/salidas/v2/pseudo_r0 --source ccam --field /home/jovyan/work/proyectonp/salidas/v2/cache/field.npy --images /home/jovyan/work/proyectonp/salidas/v2/cache/images.npy --low 0.35 --high 0.65 --max-center-distance 0.5 --max-area-fraction 0.75 --min-area-fraction 0.003
+{
+  "images": "/home/jovyan/work/proyectonp/salidas/v2/cache/images.npy",
+  "excluded": 3837,
+  "excluded_no_region": 672,
+  "excluded_no_field": 0,
+  "excluded_by_area": 3165,
+  "excluded_fraction": 0.0656379903176694,
+  "mean_foreground_fraction": 0.1430455117366911,
+  "mean_ignore_fraction": 0.12882844937609783,
+  "mean_artifact_fraction": 0.006845154248757932,
+  "field_used": true,
+  "source": "ccam",
+  "artifact_suppression": true,
+  "low": 0.35,
+  "high": 0.65,
+  "min_area_fraction": 0.003,
+  "max_center_distance": 0.5,
+  "max_area_fraction": 0.75,
+  "saliency": "/home/jovyan/work/proyectonp/salidas/v2/ccam/saliency.npy",
+  "field": "/home/jovyan/work/proyectonp/salidas/v2/cache/field.npy",
+  "reads_masks_or_labels": false
+}
+--- pseudo_r0: 589.1 s (codigo 0)
+
+=== student_r1 ===
+/home/jovyan/work/proyectonp/.venv/bin/python -m torch.distributed.run --nproc_per_node=2 /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/estudiante/train_student.py --cache-dir /home/jovyan/work/proyectonp/salidas/v2/cache --pseudo-masks /home/jovyan/work/proyectonp/salidas/v2/pseudo_r0/pseudo_masks.npy --output-dir /home/jovyan/work/proyectonp/salidas/v2/student_r1 --batch-size 32 --lr 0.0001 --optimizer adam --warmup-epochs 1 --dice-weight 1.0 --base-channels 32 --selection best-val --precision bf16 --epochs 20 --seed 42 --wandb-project dermssl-segmentacion
+
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.
+wandb: Currently logged in as: nmoreno534 (nmoreno534-universidad-autonoma-de-bucaramanga) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
+wandb: setting up run b033b895ecad
+wandb: Tracking run with wandb version 0.30.0
+wandb: Run data is saved locally in /home/jovyan/work/proyectonp/repo_final/wandb/run-20260921_131154-b033b895ecad
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run student-student_r1
+wandb: ⭐️ View project at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: 🚀 View run at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/b033b895ecad
+estudiante epoca 0 paso 50/836 perdida 1.4833
+estudiante epoca 0 paso 100/836 perdida 1.2965
+estudiante epoca 0 paso 150/836 perdida 1.2748
+estudiante epoca 0 paso 200/836 perdida 1.0764
+estudiante epoca 0 paso 250/836 perdida 1.0168
+estudiante epoca 0 paso 300/836 perdida 0.8927
+estudiante epoca 0 paso 350/836 perdida 0.8835
+estudiante epoca 0 paso 400/836 perdida 0.8557
+estudiante epoca 0 paso 450/836 perdida 0.8622
+estudiante epoca 0 paso 500/836 perdida 0.8686
+estudiante epoca 0 paso 550/836 perdida 0.9654
+estudiante epoca 0 paso 600/836 perdida 0.6892
+estudiante epoca 0 paso 650/836 perdida 0.7103
+estudiante epoca 0 paso 700/836 perdida 0.7217
+estudiante epoca 0 paso 750/836 perdida 0.8432
+estudiante epoca 0 paso 800/836 perdida 0.8062
+{"epoch": 0, "images": 53504, "images_per_second": 704.1489269796459, "lr": 0.0001, "seconds": 75.9839260559529, "selected": true, "stage": "student", "train_loss": 0.9535260360206713, "val_loss": 0.6901552081108093}
+/opt/conda/lib/python3.13/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+estudiante epoca 1 paso 50/836 perdida 0.7052
+estudiante epoca 1 paso 100/836 perdida 0.5361
+estudiante epoca 1 paso 150/836 perdida 0.5544
+estudiante epoca 1 paso 200/836 perdida 0.5018
+estudiante epoca 1 paso 250/836 perdida 0.6423
+estudiante epoca 1 paso 300/836 perdida 0.6838
+estudiante epoca 1 paso 350/836 perdida 0.5401
+estudiante epoca 1 paso 400/836 perdida 0.6074
+estudiante epoca 1 paso 450/836 perdida 0.5375
+estudiante epoca 1 paso 500/836 perdida 0.4858
+estudiante epoca 1 paso 550/836 perdida 0.4108
+estudiante epoca 1 paso 600/836 perdida 0.5597
+estudiante epoca 1 paso 650/836 perdida 0.5050
+estudiante epoca 1 paso 700/836 perdida 0.4858
+estudiante epoca 1 paso 750/836 perdida 0.3193
+estudiante epoca 1 paso 800/836 perdida 0.3244
+{"epoch": 1, "images": 53504, "images_per_second": 699.1711234397769, "lr": 9.931969190997483e-05, "seconds": 76.52489956503268, "selected": true, "stage": "student", "train_loss": 0.528973374070163, "val_loss": 0.41766518354415894}
+estudiante epoca 2 paso 50/836 perdida 0.3653
+estudiante epoca 2 paso 100/836 perdida 0.3383
+estudiante epoca 2 paso 150/836 perdida 0.3151
+estudiante epoca 2 paso 200/836 perdida 0.4181
+estudiante epoca 2 paso 250/836 perdida 0.5445
+estudiante epoca 2 paso 300/836 perdida 0.3015
+estudiante epoca 2 paso 350/836 perdida 0.2537
+estudiante epoca 2 paso 400/836 perdida 0.5072
+estudiante epoca 2 paso 450/836 perdida 0.2361
+estudiante epoca 2 paso 500/836 perdida 0.3296
+estudiante epoca 2 paso 550/836 perdida 0.2229
+estudiante epoca 2 paso 600/836 perdida 0.3080
+estudiante epoca 2 paso 650/836 perdida 0.3504
+estudiante epoca 2 paso 700/836 perdida 0.3342
+estudiante epoca 2 paso 750/836 perdida 0.2217
+estudiante epoca 2 paso 800/836 perdida 0.3483
+{"epoch": 2, "images": 53504, "images_per_second": 693.8529635069332, "lr": 9.72940721694445e-05, "seconds": 77.11143832199741, "selected": true, "stage": "student", "train_loss": 0.3514954416375411, "val_loss": 0.2848425507545471}
+estudiante epoca 3 paso 50/836 perdida 0.4131
+estudiante epoca 3 paso 100/836 perdida 0.3391
+estudiante epoca 3 paso 150/836 perdida 0.2818
+estudiante epoca 3 paso 200/836 perdida 0.1855
+estudiante epoca 3 paso 250/836 perdida 0.2803
+estudiante epoca 3 paso 300/836 perdida 0.4441
+estudiante epoca 3 paso 350/836 perdida 0.1957
+estudiante epoca 3 paso 400/836 perdida 0.2601
+estudiante epoca 3 paso 450/836 perdida 0.1858
+estudiante epoca 3 paso 500/836 perdida 0.1866
+estudiante epoca 3 paso 550/836 perdida 0.1833
+estudiante epoca 3 paso 600/836 perdida 0.5397
+estudiante epoca 3 paso 650/836 perdida 0.1991
+estudiante epoca 3 paso 700/836 perdida 0.2228
+estudiante epoca 3 paso 750/836 perdida 0.2854
+estudiante epoca 3 paso 800/836 perdida 0.5175
+{"epoch": 3, "images": 53504, "images_per_second": 692.7859973339, "lr": 9.397839342657656e-05, "seconds": 77.23019836703315, "selected": true, "stage": "student", "train_loss": 0.286863226639597, "val_loss": 0.23534509539604187}
+estudiante epoca 4 paso 50/836 perdida 0.2022
+estudiante epoca 4 paso 100/836 perdida 0.3949
+estudiante epoca 4 paso 150/836 perdida 0.1802
+estudiante epoca 4 paso 200/836 perdida 0.3433
+estudiante epoca 4 paso 250/836 perdida 0.3640
+estudiante epoca 4 paso 300/836 perdida 0.1688
+estudiante epoca 4 paso 350/836 perdida 0.3402
+estudiante epoca 4 paso 400/836 perdida 0.1575
+estudiante epoca 4 paso 450/836 perdida 0.3094
+estudiante epoca 4 paso 500/836 perdida 0.3532
+estudiante epoca 4 paso 550/836 perdida 0.2667
+estudiante epoca 4 paso 600/836 perdida 0.1790
+estudiante epoca 4 paso 650/836 perdida 0.1684
+estudiante epoca 4 paso 700/836 perdida 0.1805
+estudiante epoca 4 paso 750/836 perdida 0.1854
+estudiante epoca 4 paso 800/836 perdida 0.3154
+{"epoch": 4, "images": 53504, "images_per_second": 692.8485200467097, "lr": 8.946309875414702e-05, "seconds": 77.22322910698131, "selected": true, "stage": "student", "train_loss": 0.264247620505009, "val_loss": 0.22393925487995148}
+estudiante epoca 5 paso 50/836 perdida 0.2264
+estudiante epoca 5 paso 100/836 perdida 0.2979
+estudiante epoca 5 paso 150/836 perdida 0.3068
+estudiante epoca 5 paso 200/836 perdida 0.1594
+estudiante epoca 5 paso 250/836 perdida 0.3225
+estudiante epoca 5 paso 300/836 perdida 0.1499
+estudiante epoca 5 paso 350/836 perdida 0.1314
+estudiante epoca 5 paso 400/836 perdida 0.1493
+estudiante epoca 5 paso 450/836 perdida 0.3374
+estudiante epoca 5 paso 500/836 perdida 0.3811
+estudiante epoca 5 paso 550/836 perdida 0.5821
+estudiante epoca 5 paso 600/836 perdida 0.1567
+estudiante epoca 5 paso 650/836 perdida 0.1590
+estudiante epoca 5 paso 700/836 perdida 0.1337
+estudiante epoca 5 paso 750/836 perdida 0.1685
+estudiante epoca 5 paso 800/836 perdida 0.3087
+{"epoch": 5, "images": 53504, "images_per_second": 692.9019437290282, "lr": 8.387135362032505e-05, "seconds": 77.21727509098127, "selected": true, "stage": "student", "train_loss": 0.2512396488463479, "val_loss": 0.21983575820922852}
+estudiante epoca 6 paso 50/836 perdida 0.3464
+estudiante epoca 6 paso 100/836 perdida 0.2067
+estudiante epoca 6 paso 150/836 perdida 0.1748
+estudiante epoca 6 paso 200/836 perdida 0.1344
+estudiante epoca 6 paso 250/836 perdida 0.1644
+estudiante epoca 6 paso 300/836 perdida 0.1208
+estudiante epoca 6 paso 350/836 perdida 0.5817
+estudiante epoca 6 paso 400/836 perdida 0.3423
+estudiante epoca 6 paso 450/836 perdida 0.3738
+estudiante epoca 6 paso 500/836 perdida 0.1360
+estudiante epoca 6 paso 550/836 perdida 0.1489
+estudiante epoca 6 paso 600/836 perdida 0.4231
+estudiante epoca 6 paso 650/836 perdida 0.2623
+estudiante epoca 6 paso 700/836 perdida 0.4907
+estudiante epoca 6 paso 750/836 perdida 0.1557
+estudiante epoca 6 paso 800/836 perdida 0.1191
+{"epoch": 6, "images": 53504, "images_per_second": 693.1187683557057, "lr": 7.735568625576968e-05, "seconds": 77.19311962497886, "selected": true, "stage": "student", "train_loss": 0.24427901272568406, "val_loss": 0.20644524693489075}
+estudiante epoca 7 paso 50/836 perdida 0.2298
+estudiante epoca 7 paso 100/836 perdida 0.1574
+estudiante epoca 7 paso 150/836 perdida 0.1697
+estudiante epoca 7 paso 200/836 perdida 0.2703
+estudiante epoca 7 paso 250/836 perdida 0.1930
+estudiante epoca 7 paso 300/836 perdida 0.1198
+estudiante epoca 7 paso 350/836 perdida 0.1259
+estudiante epoca 7 paso 400/836 perdida 0.3573
+estudiante epoca 7 paso 450/836 perdida 0.1527
+estudiante epoca 7 paso 500/836 perdida 0.2907
+estudiante epoca 7 paso 550/836 perdida 0.1283
+estudiante epoca 7 paso 600/836 perdida 0.2778
+estudiante epoca 7 paso 650/836 perdida 0.2694
+estudiante epoca 7 paso 700/836 perdida 0.2010
+estudiante epoca 7 paso 750/836 perdida 0.1303
+estudiante epoca 7 paso 800/836 perdida 0.1332
+{"epoch": 7, "images": 53504, "images_per_second": 693.5724786472965, "lr": 7.009382708110877e-05, "seconds": 77.14262264897116, "selected": false, "stage": "student", "train_loss": 0.23779450192976226, "val_loss": 0.20647276937961578}
+estudiante epoca 8 paso 50/836 perdida 0.2286
+estudiante epoca 8 paso 100/836 perdida 0.2823
+estudiante epoca 8 paso 150/836 perdida 0.2618
+estudiante epoca 8 paso 200/836 perdida 0.1637
+estudiante epoca 8 paso 250/836 perdida 0.1203
+estudiante epoca 8 paso 300/836 perdida 0.1101
+estudiante epoca 8 paso 350/836 perdida 0.4727
+estudiante epoca 8 paso 400/836 perdida 0.1351
+estudiante epoca 8 paso 450/836 perdida 0.1299
+estudiante epoca 8 paso 500/836 perdida 0.1513
+estudiante epoca 8 paso 550/836 perdida 0.6467
+estudiante epoca 8 paso 600/836 perdida 0.1443
+estudiante epoca 8 paso 650/836 perdida 0.7297
+estudiante epoca 8 paso 700/836 perdida 0.4521
+estudiante epoca 8 paso 750/836 perdida 0.1032
+estudiante epoca 8 paso 800/836 perdida 0.2506
+{"epoch": 8, "images": 53504, "images_per_second": 693.3704425817359, "lr": 6.228386068437307e-05, "seconds": 77.16510066506453, "selected": false, "stage": "student", "train_loss": 0.2340873827774559, "val_loss": 0.2383311688899994}
+estudiante epoca 9 paso 50/836 perdida 0.1495
+estudiante epoca 9 paso 100/836 perdida 0.4509
+estudiante epoca 9 paso 150/836 perdida 0.1649
+estudiante epoca 9 paso 200/836 perdida 0.1388
+estudiante epoca 9 paso 250/836 perdida 0.3576
+estudiante epoca 9 paso 300/836 perdida 0.1403
+estudiante epoca 9 paso 350/836 perdida 0.1099
+estudiante epoca 9 paso 400/836 perdida 0.1552
+estudiante epoca 9 paso 450/836 perdida 0.3776
+estudiante epoca 9 paso 500/836 perdida 0.1047
+estudiante epoca 9 paso 550/836 perdida 0.2695
+estudiante epoca 9 paso 600/836 perdida 0.1091
+estudiante epoca 9 paso 650/836 perdida 0.1820
+estudiante epoca 9 paso 700/836 perdida 0.4175
+estudiante epoca 9 paso 750/836 perdida 0.2038
+estudiante epoca 9 paso 800/836 perdida 0.1876
+{"epoch": 9, "images": 53504, "images_per_second": 693.7163834113271, "lr": 5.413882258980257e-05, "seconds": 77.12662015692331, "selected": true, "stage": "student", "train_loss": 0.2302936389685818, "val_loss": 0.20247164368629456}
+estudiante epoca 10 paso 50/836 perdida 0.3509
+estudiante epoca 10 paso 100/836 perdida 0.3160
+estudiante epoca 10 paso 150/836 perdida 0.3132
+estudiante epoca 10 paso 200/836 perdida 0.1714
+estudiante epoca 10 paso 250/836 perdida 0.8908
+estudiante epoca 10 paso 300/836 perdida 0.1403
+estudiante epoca 10 paso 350/836 perdida 0.1530
+estudiante epoca 10 paso 400/836 perdida 0.3000
+estudiante epoca 10 paso 450/836 perdida 0.1378
+estudiante epoca 10 paso 500/836 perdida 0.4165
+estudiante epoca 10 paso 550/836 perdida 0.3851
+estudiante epoca 10 paso 600/836 perdida 0.4681
+estudiante epoca 10 paso 650/836 perdida 0.1411
+estudiante epoca 10 paso 700/836 perdida 0.2440
+estudiante epoca 10 paso 750/836 perdida 0.1393
+estudiante epoca 10 paso 800/836 perdida 0.1273
+{"epoch": 10, "images": 53504, "images_per_second": 693.735944752437, "lr": 4.588088820408752e-05, "seconds": 77.12444540997967, "selected": false, "stage": "student", "train_loss": 0.22617130188280316, "val_loss": 0.2030133754014969}
+estudiante epoca 11 paso 50/836 perdida 0.1376
+estudiante epoca 11 paso 100/836 perdida 0.1920
+estudiante epoca 11 paso 150/836 perdida 0.1537
+estudiante epoca 11 paso 200/836 perdida 0.3513
+estudiante epoca 11 paso 250/836 perdida 0.2240
+estudiante epoca 11 paso 300/836 perdida 0.4821
+estudiante epoca 11 paso 350/836 perdida 0.2515
+estudiante epoca 11 paso 400/836 perdida 0.4499
+estudiante epoca 11 paso 450/836 perdida 0.2711
+estudiante epoca 11 paso 500/836 perdida 0.4491
+estudiante epoca 11 paso 550/836 perdida 0.3822
+estudiante epoca 11 paso 600/836 perdida 0.1422
+estudiante epoca 11 paso 650/836 perdida 0.1367
+estudiante epoca 11 paso 700/836 perdida 0.1970
+estudiante epoca 11 paso 750/836 perdida 0.1986
+estudiante epoca 11 paso 800/836 perdida 0.1185
+{"epoch": 11, "images": 53504, "images_per_second": 693.6290946870461, "lr": 3.773531245044189e-05, "seconds": 77.13632604200393, "selected": false, "stage": "student", "train_loss": 0.223596180454966, "val_loss": 0.20266199111938477}
+estudiante epoca 12 paso 50/836 perdida 0.2786
+estudiante epoca 12 paso 100/836 perdida 0.1480
+estudiante epoca 12 paso 150/836 perdida 0.2962
+estudiante epoca 12 paso 200/836 perdida 0.1041
+estudiante epoca 12 paso 250/836 perdida 0.3377
+estudiante epoca 12 paso 300/836 perdida 0.2534
+estudiante epoca 12 paso 350/836 perdida 0.1356
+estudiante epoca 12 paso 400/836 perdida 0.1550
+estudiante epoca 12 paso 450/836 perdida 0.3974
+estudiante epoca 12 paso 500/836 perdida 0.1727
+estudiante epoca 12 paso 550/836 perdida 0.1160
+estudiante epoca 12 paso 600/836 perdida 0.2570
+estudiante epoca 12 paso 650/836 perdida 0.2801
+estudiante epoca 12 paso 700/836 perdida 0.3181
+estudiante epoca 12 paso 750/836 perdida 0.2734
+estudiante epoca 12 paso 800/836 perdida 0.2512
+{"epoch": 12, "images": 53504, "images_per_second": 693.3798320372937, "lr": 2.9924285401493956e-05, "seconds": 77.16405572800431, "selected": true, "stage": "student", "train_loss": 0.22022621483323676, "val_loss": 0.19815079867839813}
+estudiante epoca 13 paso 50/836 perdida 0.1286
+estudiante epoca 13 paso 100/836 perdida 0.1577
+estudiante epoca 13 paso 150/836 perdida 0.3880
+estudiante epoca 13 paso 200/836 perdida 0.2233
+estudiante epoca 13 paso 250/836 perdida 0.2114
+estudiante epoca 13 paso 300/836 perdida 0.2502
+estudiante epoca 13 paso 350/836 perdida 0.4646
+estudiante epoca 13 paso 400/836 perdida 0.2333
+estudiante epoca 13 paso 450/836 perdida 0.1333
+estudiante epoca 13 paso 500/836 perdida 0.2985
+estudiante epoca 13 paso 550/836 perdida 0.1617
+estudiante epoca 13 paso 600/836 perdida 0.4646
+estudiante epoca 13 paso 650/836 perdida 0.1477
+estudiante epoca 13 paso 700/836 perdida 0.1550
+estudiante epoca 13 paso 750/836 perdida 0.5090
+estudiante epoca 13 paso 800/836 perdida 0.2908
+{"epoch": 13, "images": 53504, "images_per_second": 693.3549492260396, "lr": 2.266087151331112e-05, "seconds": 77.16682495700661, "selected": true, "stage": "student", "train_loss": 0.21681914261083282, "val_loss": 0.18306107819080353}
+estudiante epoca 14 paso 50/836 perdida 0.2550
+estudiante epoca 14 paso 100/836 perdida 0.1194
+estudiante epoca 14 paso 150/836 perdida 0.2930
+estudiante epoca 14 paso 200/836 perdida 0.3304
+estudiante epoca 14 paso 250/836 perdida 0.4303
+estudiante epoca 14 paso 300/836 perdida 0.1166
+estudiante epoca 14 paso 350/836 perdida 0.1297
+estudiante epoca 14 paso 400/836 perdida 0.1092
+estudiante epoca 14 paso 450/836 perdida 0.2604
+estudiante epoca 14 paso 500/836 perdida 0.1086
+estudiante epoca 14 paso 550/836 perdida 0.1268
+estudiante epoca 14 paso 600/836 perdida 0.1299
+estudiante epoca 14 paso 650/836 perdida 0.1116
+estudiante epoca 14 paso 700/836 perdida 0.2387
+estudiante epoca 14 paso 750/836 perdida 0.2422
+estudiante epoca 14 paso 800/836 perdida 0.1107
+{"epoch": 14, "images": 53504, "images_per_second": 693.2151437713276, "lr": 1.6143197782456192e-05, "seconds": 77.182387720095, "selected": false, "stage": "student", "train_loss": 0.2140597110730039, "val_loss": 0.1831345409154892}
+estudiante epoca 15 paso 50/836 perdida 0.1209
+estudiante epoca 15 paso 100/836 perdida 0.3940
+estudiante epoca 15 paso 150/836 perdida 0.1341
+estudiante epoca 15 paso 200/836 perdida 0.1751
+estudiante epoca 15 paso 250/836 perdida 0.1586
+estudiante epoca 15 paso 300/836 perdida 0.2356
+estudiante epoca 15 paso 350/836 perdida 0.1633
+estudiante epoca 15 paso 400/836 perdida 0.4231
+estudiante epoca 15 paso 450/836 perdida 0.1835
+estudiante epoca 15 paso 500/836 perdida 0.2704
+estudiante epoca 15 paso 550/836 perdida 0.1499
+estudiante epoca 15 paso 600/836 perdida 0.1157
+estudiante epoca 15 paso 650/836 perdida 0.0942
+estudiante epoca 15 paso 700/836 perdida 0.1853
+estudiante epoca 15 paso 750/836 perdida 0.1224
+estudiante epoca 15 paso 800/836 perdida 0.1460
+{"epoch": 15, "images": 53504, "images_per_second": 693.015911928821, "lr": 1.0549049357999457e-05, "seconds": 77.20457651698962, "selected": false, "stage": "student", "train_loss": 0.2108441220516223, "val_loss": 0.18642039597034454}
+estudiante epoca 16 paso 50/836 perdida 0.1869
+estudiante epoca 16 paso 100/836 perdida 0.1191
+estudiante epoca 16 paso 150/836 perdida 0.1310
+estudiante epoca 16 paso 200/836 perdida 0.1433
+estudiante epoca 16 paso 250/836 perdida 0.3001
+estudiante epoca 16 paso 300/836 perdida 0.2974
+estudiante epoca 16 paso 350/836 perdida 0.1698
+estudiante epoca 16 paso 400/836 perdida 0.1243
+estudiante epoca 16 paso 450/836 perdida 0.0906
+estudiante epoca 16 paso 500/836 perdida 0.2903
+estudiante epoca 16 paso 550/836 perdida 0.1189
+estudiante epoca 16 paso 600/836 perdida 0.2429
+estudiante epoca 16 paso 650/836 perdida 0.1369
+estudiante epoca 16 paso 700/836 perdida 0.1126
+estudiante epoca 16 paso 750/836 perdida 0.1372
+estudiante epoca 16 paso 800/836 perdida 0.0983
+{"epoch": 16, "images": 53504, "images_per_second": 693.2554995598006, "lr": 6.0310200261035955e-06, "seconds": 77.17789477901533, "selected": true, "stage": "student", "train_loss": 0.2097220169870477, "val_loss": 0.18148545920848846}
+estudiante epoca 17 paso 50/836 perdida 0.1389
+estudiante epoca 17 paso 100/836 perdida 0.1365
+estudiante epoca 17 paso 150/836 perdida 0.3885
+estudiante epoca 17 paso 200/836 perdida 0.3120
+estudiante epoca 17 paso 250/836 perdida 0.1710
+estudiante epoca 17 paso 300/836 perdida 0.1047
+estudiante epoca 17 paso 350/836 perdida 0.1253
+estudiante epoca 17 paso 400/836 perdida 0.1496
+estudiante epoca 17 paso 450/836 perdida 0.1220
+estudiante epoca 17 paso 500/836 perdida 0.1272
+estudiante epoca 17 paso 550/836 perdida 0.1425
+estudiante epoca 17 paso 600/836 perdida 0.1064
+estudiante epoca 17 paso 650/836 perdida 0.2214
+estudiante epoca 17 paso 700/836 perdida 0.1195
+estudiante epoca 17 paso 750/836 perdida 0.1291
+estudiante epoca 17 paso 800/836 perdida 0.1145
+{"epoch": 17, "images": 53504, "images_per_second": 693.4417080858029, "lr": 2.712349849319218e-06, "seconds": 77.15717035206035, "selected": true, "stage": "student", "train_loss": 0.20724943608188173, "val_loss": 0.18094171583652496}
+estudiante epoca 18 paso 50/836 perdida 0.3051
+estudiante epoca 18 paso 100/836 perdida 0.1643
+estudiante epoca 18 paso 150/836 perdida 0.2542
+estudiante epoca 18 paso 200/836 perdida 0.2374
+estudiante epoca 18 paso 250/836 perdida 0.1546
+estudiante epoca 18 paso 300/836 perdida 0.1560
+estudiante epoca 18 paso 350/836 perdida 0.1473
+estudiante epoca 18 paso 400/836 perdida 0.2903
+estudiante epoca 18 paso 450/836 perdida 0.2493
+estudiante epoca 18 paso 500/836 perdida 0.0895
+estudiante epoca 18 paso 550/836 perdida 0.1138
+estudiante epoca 18 paso 600/836 perdida 0.2136
+estudiante epoca 18 paso 650/836 perdida 0.1179
+estudiante epoca 18 paso 700/836 perdida 0.0943
+estudiante epoca 18 paso 750/836 perdida 0.2550
+estudiante epoca 18 paso 800/836 perdida 0.1659
+{"epoch": 18, "images": 53504, "images_per_second": 693.5052618515355, "lr": 6.835634989415307e-07, "seconds": 77.15009956399444, "selected": true, "stage": "student", "train_loss": 0.2070507067812687, "val_loss": 0.1805407702922821}
+estudiante epoca 19 paso 50/836 perdida 0.1152
+estudiante epoca 19 paso 100/836 perdida 0.1218
+estudiante epoca 19 paso 150/836 perdida 0.3581
+estudiante epoca 19 paso 200/836 perdida 0.1195
+estudiante epoca 19 paso 250/836 perdida 0.1272
+estudiante epoca 19 paso 300/836 perdida 0.1368
+estudiante epoca 19 paso 350/836 perdida 0.2883
+estudiante epoca 19 paso 400/836 perdida 0.0892
+estudiante epoca 19 paso 450/836 perdida 0.0992
+estudiante epoca 19 paso 500/836 perdida 0.4193
+estudiante epoca 19 paso 550/836 perdida 0.1461
+estudiante epoca 19 paso 600/836 perdida 0.3199
+estudiante epoca 19 paso 650/836 perdida 0.1036
+estudiante epoca 19 paso 700/836 perdida 0.1736
+estudiante epoca 19 paso 750/836 perdida 0.1799
+estudiante epoca 19 paso 800/836 perdida 0.2527
+{"epoch": 19, "images": 53504, "images_per_second": 693.4385697929899, "lr": 9.77957531622664e-13, "seconds": 77.15751954203006, "selected": true, "stage": "student", "train_loss": 0.205626072495748, "val_loss": 0.1802409142255783}
+wandb: updating run metadata
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading config.yaml
+wandb: uploading data
+wandb: 
+wandb: Run history:
+wandb:             epoch ▁▁▂▂▂▃▃▄▄▄▅▅▅▆▆▇▇▇██
+wandb:            images ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: images_per_second █▅▂▁▁▁▁▁▁▂▂▂▁▁▁▁▁▁▁▁
+wandb:                lr ████▇▇▆▆▅▅▄▄▃▃▂▂▁▁▁▁
+wandb:           seconds ▁▄▇██████▇▇▇████████
+wandb:        train_loss █▄▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:          val_loss █▄▂▂▂▂▁▁▂▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:             epoch 19
+wandb:            images 53504
+wandb: images_per_second 693.43857
+wandb:                lr 0.0
+wandb:           seconds 77.15752
+wandb:          selected True
+wandb:             stage student
+wandb:        train_loss 0.20563
+wandb:          val_loss 0.18024
+wandb: 
+wandb: 🚀 View run student-student_r1 at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/b033b895ecad
+wandb: ⭐️ View project at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260921_131154-b033b895ecad/logs
+predicciones escritas en /home/jovyan/work/proyectonp/salidas/v2/student_r1/predictions.npy
+--- student_r1: 1673.6 s (codigo 0)
+
+=== pseudo_r1 ===
+/home/jovyan/work/proyectonp/.venv/bin/python /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/camino-b-cnn/pseudo-mascaras/make_pseudo_masks.py --saliency /home/jovyan/work/proyectonp/salidas/v2/student_r1/predictions.npy --output-dir /home/jovyan/work/proyectonp/salidas/v2/pseudo_r1 --source student --field /home/jovyan/work/proyectonp/salidas/v2/cache/field.npy --images /home/jovyan/work/proyectonp/salidas/v2/cache/images.npy --low 0.35 --high 0.65 --max-center-distance 0.5 --max-area-fraction 0.75 --min-area-fraction 0.003
+{
+  "images": "/home/jovyan/work/proyectonp/salidas/v2/cache/images.npy",
+  "excluded": 1539,
+  "excluded_no_region": 1005,
+  "excluded_no_field": 0,
+  "excluded_by_area": 534,
+  "excluded_fraction": 0.026327043809979984,
+  "mean_foreground_fraction": 0.1582853396671865,
+  "mean_ignore_fraction": 0.04652388462516315,
+  "mean_artifact_fraction": 0.006845154248757932,
+  "field_used": true,
+  "source": "student",
+  "artifact_suppression": true,
+  "low": 0.35,
+  "high": 0.65,
+  "min_area_fraction": 0.003,
+  "max_center_distance": 0.5,
+  "max_area_fraction": 0.75,
+  "saliency": "/home/jovyan/work/proyectonp/salidas/v2/student_r1/predictions.npy",
+  "field": "/home/jovyan/work/proyectonp/salidas/v2/cache/field.npy",
+  "reads_masks_or_labels": false
+}
+--- pseudo_r1: 499.6 s (codigo 0)
+
+=== student_r2 ===
+/home/jovyan/work/proyectonp/.venv/bin/python -m torch.distributed.run --nproc_per_node=2 /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/estudiante/train_student.py --cache-dir /home/jovyan/work/proyectonp/salidas/v2/cache --pseudo-masks /home/jovyan/work/proyectonp/salidas/v2/pseudo_r1/pseudo_masks.npy --output-dir /home/jovyan/work/proyectonp/salidas/v2/student_r2 --batch-size 32 --lr 0.0001 --optimizer adam --warmup-epochs 1 --dice-weight 1.0 --base-channels 32 --selection best-val --precision bf16 --epochs 20 --seed 42 --wandb-project dermssl-segmentacion
+
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.
+wandb: Currently logged in as: nmoreno534 (nmoreno534-universidad-autonoma-de-bucaramanga) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
+wandb: setting up run 88a69b64fdc8
+wandb: Tracking run with wandb version 0.30.0
+wandb: Run data is saved locally in /home/jovyan/work/proyectonp/repo_final/wandb/run-20260921_134807-88a69b64fdc8
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run student-student_r2
+wandb: ⭐️ View project at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: 🚀 View run at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/88a69b64fdc8
+estudiante epoca 0 paso 50/871 perdida 1.4642
+estudiante epoca 0 paso 100/871 perdida 1.3209
+estudiante epoca 0 paso 150/871 perdida 1.3116
+estudiante epoca 0 paso 200/871 perdida 0.9888
+estudiante epoca 0 paso 250/871 perdida 0.9437
+estudiante epoca 0 paso 300/871 perdida 0.9655
+estudiante epoca 0 paso 350/871 perdida 0.9490
+estudiante epoca 0 paso 400/871 perdida 0.8893
+estudiante epoca 0 paso 450/871 perdida 0.9260
+estudiante epoca 0 paso 500/871 perdida 0.7832
+estudiante epoca 0 paso 550/871 perdida 0.8028
+estudiante epoca 0 paso 600/871 perdida 0.8026
+estudiante epoca 0 paso 650/871 perdida 0.7044
+estudiante epoca 0 paso 700/871 perdida 0.7591
+estudiante epoca 0 paso 750/871 perdida 0.7231
+estudiante epoca 0 paso 800/871 perdida 0.7294
+estudiante epoca 0 paso 850/871 perdida 0.6211
+{"epoch": 0, "images": 55744, "images_per_second": 703.7787220456023, "lr": 0.00010000000000000002, "seconds": 79.20671406202018, "selected": true, "stage": "student", "train_loss": 0.9225491897110003, "val_loss": 0.647732675075531}
+/opt/conda/lib/python3.13/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+estudiante epoca 1 paso 50/871 perdida 0.6416
+estudiante epoca 1 paso 100/871 perdida 0.6492
+estudiante epoca 1 paso 150/871 perdida 0.5924
+estudiante epoca 1 paso 200/871 perdida 0.4748
+estudiante epoca 1 paso 250/871 perdida 0.5379
+estudiante epoca 1 paso 300/871 perdida 0.5171
+estudiante epoca 1 paso 350/871 perdida 0.4511
+estudiante epoca 1 paso 400/871 perdida 0.4400
+estudiante epoca 1 paso 450/871 perdida 0.4918
+estudiante epoca 1 paso 500/871 perdida 0.4538
+estudiante epoca 1 paso 550/871 perdida 0.4196
+estudiante epoca 1 paso 600/871 perdida 0.4484
+estudiante epoca 1 paso 650/871 perdida 0.4020
+estudiante epoca 1 paso 700/871 perdida 0.4257
+estudiante epoca 1 paso 750/871 perdida 0.3654
+estudiante epoca 1 paso 800/871 perdida 0.3326
+estudiante epoca 1 paso 850/871 perdida 0.4235
+{"epoch": 1, "images": 55744, "images_per_second": 698.8442042418676, "lr": 9.93196265787594e-05, "seconds": 79.76599027600605, "selected": true, "stage": "student", "train_loss": 0.46950954082502155, "val_loss": 0.3226642906665802}
+estudiante epoca 2 paso 50/871 perdida 0.3196
+estudiante epoca 2 paso 100/871 perdida 0.3704
+estudiante epoca 2 paso 150/871 perdida 0.3623
+estudiante epoca 2 paso 200/871 perdida 0.2502
+estudiante epoca 2 paso 250/871 perdida 0.3467
+estudiante epoca 2 paso 300/871 perdida 0.2414
+estudiante epoca 2 paso 350/871 perdida 0.2363
+estudiante epoca 2 paso 400/871 perdida 0.3101
+estudiante epoca 2 paso 450/871 perdida 0.1806
+estudiante epoca 2 paso 500/871 perdida 0.1985
+estudiante epoca 2 paso 550/871 perdida 0.2326
+estudiante epoca 2 paso 600/871 perdida 0.2575
+estudiante epoca 2 paso 650/871 perdida 0.2147
+estudiante epoca 2 paso 700/871 perdida 0.1992
+estudiante epoca 2 paso 750/871 perdida 0.2215
+estudiante epoca 2 paso 800/871 perdida 0.2165
+estudiante epoca 2 paso 850/871 perdida 0.1986
+{"epoch": 2, "images": 55744, "images_per_second": 693.367769098261, "lr": 9.729394321206212e-05, "seconds": 80.3960069740424, "selected": true, "stage": "student", "train_loss": 0.2814950165600782, "val_loss": 0.23283016681671143}
+estudiante epoca 3 paso 50/871 perdida 0.2325
+estudiante epoca 3 paso 100/871 perdida 0.2017
+estudiante epoca 3 paso 150/871 perdida 0.2266
+estudiante epoca 3 paso 200/871 perdida 0.1611
+estudiante epoca 3 paso 250/871 perdida 0.2127
+estudiante epoca 3 paso 300/871 perdida 0.3182
+estudiante epoca 3 paso 350/871 perdida 0.2702
+estudiante epoca 3 paso 400/871 perdida 0.2487
+estudiante epoca 3 paso 450/871 perdida 0.1535
+estudiante epoca 3 paso 500/871 perdida 0.2401
+estudiante epoca 3 paso 550/871 perdida 0.2029
+estudiante epoca 3 paso 600/871 perdida 0.1796
+estudiante epoca 3 paso 650/871 perdida 0.1369
+estudiante epoca 3 paso 700/871 perdida 0.1503
+estudiante epoca 3 paso 750/871 perdida 0.2079
+estudiante epoca 3 paso 800/871 perdida 0.1763
+estudiante epoca 3 paso 850/871 perdida 0.2071
+{"epoch": 3, "images": 55744, "images_per_second": 692.5017041692506, "lr": 9.397820436064844e-05, "seconds": 80.49655280902516, "selected": true, "stage": "student", "train_loss": 0.2090630690074268, "val_loss": 0.12028481811285019}
+estudiante epoca 4 paso 50/871 perdida 0.1579
+estudiante epoca 4 paso 100/871 perdida 0.1954
+estudiante epoca 4 paso 150/871 perdida 0.2185
+estudiante epoca 4 paso 200/871 perdida 0.1547
+estudiante epoca 4 paso 250/871 perdida 0.1509
+estudiante epoca 4 paso 300/871 perdida 0.1155
+estudiante epoca 4 paso 350/871 perdida 0.1769
+estudiante epoca 4 paso 400/871 perdida 0.1531
+estudiante epoca 4 paso 450/871 perdida 0.1813
+estudiante epoca 4 paso 500/871 perdida 0.1693
+estudiante epoca 4 paso 550/871 perdida 0.1509
+estudiante epoca 4 paso 600/871 perdida 0.1439
+estudiante epoca 4 paso 650/871 perdida 0.2182
+estudiante epoca 4 paso 700/871 perdida 0.1404
+estudiante epoca 4 paso 750/871 perdida 0.1430
+estudiante epoca 4 paso 800/871 perdida 0.1825
+estudiante epoca 4 paso 850/871 perdida 0.2286
+{"epoch": 4, "images": 55744, "images_per_second": 692.6266674684307, "lr": 8.946285473689886e-05, "seconds": 80.48202966793906, "selected": true, "stage": "student", "train_loss": 0.1783991396495587, "val_loss": 0.10274487733840942}
+estudiante epoca 5 paso 50/871 perdida 0.1045
+estudiante epoca 5 paso 100/871 perdida 0.1754
+estudiante epoca 5 paso 150/871 perdida 0.1539
+estudiante epoca 5 paso 200/871 perdida 0.1823
+estudiante epoca 5 paso 250/871 perdida 0.1344
+estudiante epoca 5 paso 300/871 perdida 0.1684
+estudiante epoca 5 paso 350/871 perdida 0.1875
+estudiante epoca 5 paso 400/871 perdida 0.1418
+estudiante epoca 5 paso 450/871 perdida 0.1212
+estudiante epoca 5 paso 500/871 perdida 0.2063
+estudiante epoca 5 paso 550/871 perdida 0.1532
+estudiante epoca 5 paso 600/871 perdida 0.1115
+estudiante epoca 5 paso 650/871 perdida 0.2292
+estudiante epoca 5 paso 700/871 perdida 0.1458
+estudiante epoca 5 paso 750/871 perdida 0.1409
+estudiante epoca 5 paso 800/871 perdida 0.1880
+estudiante epoca 5 paso 850/871 perdida 0.1681
+{"epoch": 5, "images": 55744, "images_per_second": 692.965449887421, "lr": 8.387106130791127e-05, "seconds": 80.44268297799863, "selected": true, "stage": "student", "train_loss": 0.16175173070756493, "val_loss": 0.08598995953798294}
+estudiante epoca 6 paso 50/871 perdida 0.1628
+estudiante epoca 6 paso 100/871 perdida 0.1381
+estudiante epoca 6 paso 150/871 perdida 0.1703
+estudiante epoca 6 paso 200/871 perdida 0.1443
+estudiante epoca 6 paso 250/871 perdida 0.1409
+estudiante epoca 6 paso 300/871 perdida 0.2088
+estudiante epoca 6 paso 350/871 perdida 0.2533
+estudiante epoca 6 paso 400/871 perdida 0.1450
+estudiante epoca 6 paso 450/871 perdida 0.1829
+estudiante epoca 6 paso 500/871 perdida 0.1336
+estudiante epoca 6 paso 550/871 perdida 0.1840
+estudiante epoca 6 paso 600/871 perdida 0.1267
+estudiante epoca 6 paso 650/871 perdida 0.1126
+estudiante epoca 6 paso 700/871 perdida 0.1033
+estudiante epoca 6 paso 750/871 perdida 0.1289
+estudiante epoca 6 paso 800/871 perdida 0.1281
+estudiante epoca 6 paso 850/871 perdida 0.1729
+{"epoch": 6, "images": 55744, "images_per_second": 693.27182085898, "lr": 7.735535362171089e-05, "seconds": 80.4071337140631, "selected": true, "stage": "student", "train_loss": 0.1505837862034479, "val_loss": 0.07932154834270477}
+estudiante epoca 7 paso 50/871 perdida 0.1148
+estudiante epoca 7 paso 100/871 perdida 0.1626
+estudiante epoca 7 paso 150/871 perdida 0.1597
+estudiante epoca 7 paso 200/871 perdida 0.0682
+estudiante epoca 7 paso 250/871 perdida 0.1326
+estudiante epoca 7 paso 300/871 perdida 0.1477
+estudiante epoca 7 paso 350/871 perdida 0.1178
+estudiante epoca 7 paso 400/871 perdida 0.1420
+estudiante epoca 7 paso 450/871 perdida 0.1265
+estudiante epoca 7 paso 500/871 perdida 0.0882
+estudiante epoca 7 paso 550/871 perdida 0.1586
+estudiante epoca 7 paso 600/871 perdida 0.1133
+estudiante epoca 7 paso 650/871 perdida 0.1286
+estudiante epoca 7 paso 700/871 perdida 0.1609
+estudiante epoca 7 paso 750/871 perdida 0.1490
+estudiante epoca 7 paso 800/871 perdida 0.1415
+estudiante epoca 7 paso 850/871 perdida 0.1218
+{"epoch": 7, "images": 55744, "images_per_second": 693.2124872815996, "lr": 7.0093463198795e-05, "seconds": 80.41401593701448, "selected": false, "stage": "student", "train_loss": 0.14164577970274828, "val_loss": 0.08602387458086014}
+estudiante epoca 8 paso 50/871 perdida 0.1544
+estudiante epoca 8 paso 100/871 perdida 0.0964
+estudiante epoca 8 paso 150/871 perdida 0.1274
+estudiante epoca 8 paso 200/871 perdida 0.1288
+estudiante epoca 8 paso 250/871 perdida 0.1427
+estudiante epoca 8 paso 300/871 perdida 0.1312
+estudiante epoca 8 paso 350/871 perdida 0.0844
+estudiante epoca 8 paso 400/871 perdida 0.1340
+estudiante epoca 8 paso 450/871 perdida 0.1472
+estudiante epoca 8 paso 500/871 perdida 0.1448
+estudiante epoca 8 paso 550/871 perdida 0.2168
+estudiante epoca 8 paso 600/871 perdida 0.1204
+estudiante epoca 8 paso 650/871 perdida 0.2244
+estudiante epoca 8 paso 700/871 perdida 0.1301
+estudiante epoca 8 paso 750/871 perdida 0.1912
+estudiante epoca 8 paso 800/871 perdida 0.1708
+estudiante epoca 8 paso 850/871 perdida 0.1479
+{"epoch": 8, "images": 55744, "images_per_second": 693.4282822083076, "lr": 6.228347547956525e-05, "seconds": 80.3889910900034, "selected": true, "stage": "student", "train_loss": 0.13590707351912312, "val_loss": 0.06530483812093735}
+estudiante epoca 9 paso 50/871 perdida 0.1615
+estudiante epoca 9 paso 100/871 perdida 0.1275
+estudiante epoca 9 paso 150/871 perdida 0.1697
+estudiante epoca 9 paso 200/871 perdida 0.1862
+estudiante epoca 9 paso 250/871 perdida 0.2116
+estudiante epoca 9 paso 300/871 perdida 0.1023
+estudiante epoca 9 paso 350/871 perdida 0.1168
+estudiante epoca 9 paso 400/871 perdida 0.0827
+estudiante epoca 9 paso 450/871 perdida 0.1108
+estudiante epoca 9 paso 500/871 perdida 0.1577
+estudiante epoca 9 paso 550/871 perdida 0.1228
+estudiante epoca 9 paso 600/871 perdida 0.1360
+estudiante epoca 9 paso 650/871 perdida 0.1168
+estudiante epoca 9 paso 700/871 perdida 0.0847
+estudiante epoca 9 paso 750/871 perdida 0.1416
+estudiante epoca 9 paso 800/871 perdida 0.1198
+estudiante epoca 9 paso 850/871 perdida 0.1348
+{"epoch": 9, "images": 55744, "images_per_second": 693.5007399694521, "lr": 5.413842656988374e-05, "seconds": 80.38059195503592, "selected": true, "stage": "student", "train_loss": 0.13138876388322063, "val_loss": 0.060584668070077896}
+estudiante epoca 10 paso 50/871 perdida 0.1237
+estudiante epoca 10 paso 100/871 perdida 0.1244
+estudiante epoca 10 paso 150/871 perdida 0.1277
+estudiante epoca 10 paso 200/871 perdida 0.1355
+estudiante epoca 10 paso 250/871 perdida 0.0984
+estudiante epoca 10 paso 300/871 perdida 0.0931
+estudiante epoca 10 paso 350/871 perdida 0.1195
+estudiante epoca 10 paso 400/871 perdida 0.1210
+estudiante epoca 10 paso 450/871 perdida 0.0927
+estudiante epoca 10 paso 500/871 perdida 0.1722
+estudiante epoca 10 paso 550/871 perdida 0.1132
+estudiante epoca 10 paso 600/871 perdida 0.0999
+estudiante epoca 10 paso 650/871 perdida 0.1189
+estudiante epoca 10 paso 700/871 perdida 0.1533
+estudiante epoca 10 paso 750/871 perdida 0.1132
+estudiante epoca 10 paso 800/871 perdida 0.1048
+estudiante epoca 10 paso 850/871 perdida 0.1984
+{"epoch": 10, "images": 55744, "images_per_second": 693.6069076768993, "lr": 4.588049217144872e-05, "seconds": 80.36828841094393, "selected": false, "stage": "student", "train_loss": 0.12695622581017688, "val_loss": 0.06476108729839325}
+estudiante epoca 11 paso 50/871 perdida 0.0900
+estudiante epoca 11 paso 100/871 perdida 0.0960
+estudiante epoca 11 paso 150/871 perdida 0.1255
+estudiante epoca 11 paso 200/871 perdida 0.1376
+estudiante epoca 11 paso 250/871 perdida 0.1323
+estudiante epoca 11 paso 300/871 perdida 0.1193
+estudiante epoca 11 paso 350/871 perdida 0.1525
+estudiante epoca 11 paso 400/871 perdida 0.1156
+estudiante epoca 11 paso 450/871 perdida 0.1150
+estudiante epoca 11 paso 500/871 perdida 0.0994
+estudiante epoca 11 paso 550/871 perdida 0.1180
+estudiante epoca 11 paso 600/871 perdida 0.0789
+estudiante epoca 11 paso 650/871 perdida 0.1043
+estudiante epoca 11 paso 700/871 perdida 0.1622
+estudiante epoca 11 paso 750/871 perdida 0.0948
+estudiante epoca 11 paso 800/871 perdida 0.1231
+estudiante epoca 11 paso 850/871 perdida 0.1174
+{"epoch": 11, "images": 55744, "images_per_second": 693.6930388337328, "lr": 3.7734927207821117e-05, "seconds": 80.35830962599721, "selected": true, "stage": "student", "train_loss": 0.1230470677057172, "val_loss": 0.059017062187194824}
+estudiante epoca 12 paso 50/871 perdida 0.1232
+estudiante epoca 12 paso 100/871 perdida 0.1003
+estudiante epoca 12 paso 150/871 perdida 0.0850
+estudiante epoca 12 paso 200/871 perdida 0.1171
+estudiante epoca 12 paso 250/871 perdida 0.1081
+estudiante epoca 12 paso 300/871 perdida 0.1232
+estudiante epoca 12 paso 350/871 perdida 0.1178
+estudiante epoca 12 paso 400/871 perdida 0.0879
+estudiante epoca 12 paso 450/871 perdida 0.0660
+estudiante epoca 12 paso 500/871 perdida 0.1055
+estudiante epoca 12 paso 550/871 perdida 0.1013
+estudiante epoca 12 paso 600/871 perdida 0.1618
+estudiante epoca 12 paso 650/871 perdida 0.0908
+estudiante epoca 12 paso 700/871 perdida 0.2426
+estudiante epoca 12 paso 750/871 perdida 0.1914
+estudiante epoca 12 paso 800/871 perdida 0.1220
+estudiante epoca 12 paso 850/871 perdida 0.1195
+{"epoch": 12, "images": 55744, "images_per_second": 693.7532333800925, "lr": 2.992392145730564e-05, "seconds": 80.35133721597958, "selected": false, "stage": "student", "train_loss": 0.11826511037062284, "val_loss": 0.05982808768749237}
+estudiante epoca 13 paso 50/871 perdida 0.1049
+estudiante epoca 13 paso 100/871 perdida 0.0876
+estudiante epoca 13 paso 150/871 perdida 0.1213
+estudiante epoca 13 paso 200/871 perdida 0.0847
+estudiante epoca 13 paso 250/871 perdida 0.2278
+estudiante epoca 13 paso 300/871 perdida 0.1179
+estudiante epoca 13 paso 350/871 perdida 0.1411
+estudiante epoca 13 paso 400/871 perdida 0.1080
+estudiante epoca 13 paso 450/871 perdida 0.1245
+estudiante epoca 13 paso 500/871 perdida 0.0818
+estudiante epoca 13 paso 550/871 perdida 0.1432
+estudiante epoca 13 paso 600/871 perdida 0.0720
+estudiante epoca 13 paso 650/871 perdida 0.1122
+estudiante epoca 13 paso 700/871 perdida 0.1249
+estudiante epoca 13 paso 750/871 perdida 0.1375
+estudiante epoca 13 paso 800/871 perdida 0.1188
+estudiante epoca 13 paso 850/871 perdida 0.1109
+{"epoch": 13, "images": 55744, "images_per_second": 693.5702737949092, "lr": 2.2660538795003984e-05, "seconds": 80.37253340601455, "selected": true, "stage": "student", "train_loss": 0.11491850405144499, "val_loss": 0.05529249086976051}
+estudiante epoca 14 paso 50/871 perdida 0.1349
+estudiante epoca 14 paso 100/871 perdida 0.0765
+estudiante epoca 14 paso 150/871 perdida 0.0988
+estudiante epoca 14 paso 200/871 perdida 0.1579
+estudiante epoca 14 paso 250/871 perdida 0.0757
+estudiante epoca 14 paso 300/871 perdida 0.1241
+estudiante epoca 14 paso 350/871 perdida 0.1118
+estudiante epoca 14 paso 400/871 perdida 0.0666
+estudiante epoca 14 paso 450/871 perdida 0.1522
+estudiante epoca 14 paso 500/871 perdida 0.1507
+estudiante epoca 14 paso 550/871 perdida 0.1335
+estudiante epoca 14 paso 600/871 perdida 0.1069
+estudiante epoca 14 paso 650/871 perdida 0.0700
+estudiante epoca 14 paso 700/871 perdida 0.0956
+estudiante epoca 14 paso 750/871 perdida 0.0858
+estudiante epoca 14 paso 800/871 perdida 0.1314
+estudiante epoca 14 paso 850/871 perdida 0.0947
+{"epoch": 14, "images": 55744, "images_per_second": 693.6142396298652, "lr": 1.614290536571833e-05, "seconds": 80.36743886594195, "selected": true, "stage": "student", "train_loss": 0.11253973591888813, "val_loss": 0.05230523273348808}
+estudiante epoca 15 paso 50/871 perdida 0.1015
+estudiante epoca 15 paso 100/871 perdida 0.0858
+estudiante epoca 15 paso 150/871 perdida 0.1043
+estudiante epoca 15 paso 200/871 perdida 0.1119
+estudiante epoca 15 paso 250/871 perdida 0.1088
+estudiante epoca 15 paso 300/871 perdida 0.1402
+estudiante epoca 15 paso 350/871 perdida 0.1191
+estudiante epoca 15 paso 400/871 perdida 0.1068
+estudiante epoca 15 paso 450/871 perdida 0.0876
+estudiante epoca 15 paso 500/871 perdida 0.1289
+estudiante epoca 15 paso 550/871 perdida 0.1274
+estudiante epoca 15 paso 600/871 perdida 0.0933
+estudiante epoca 15 paso 650/871 perdida 0.1133
+estudiante epoca 15 paso 700/871 perdida 0.1454
+estudiante epoca 15 paso 750/871 perdida 0.1353
+estudiante epoca 15 paso 800/871 perdida 0.1401
+estudiante epoca 15 paso 850/871 perdida 0.1186
+{"epoch": 15, "images": 55744, "images_per_second": 693.4586876258974, "lr": 1.0548805219197222e-05, "seconds": 80.3854663510574, "selected": false, "stage": "student", "train_loss": 0.11035338444496269, "val_loss": 0.05418947711586952}
+estudiante epoca 16 paso 50/871 perdida 0.0832
+estudiante epoca 16 paso 100/871 perdida 0.1158
+estudiante epoca 16 paso 150/871 perdida 0.1241
+estudiante epoca 16 paso 200/871 perdida 0.1358
+estudiante epoca 16 paso 250/871 perdida 0.1275
+estudiante epoca 16 paso 300/871 perdida 0.0652
+estudiante epoca 16 paso 350/871 perdida 0.1421
+estudiante epoca 16 paso 400/871 perdida 0.0897
+estudiante epoca 16 paso 450/871 perdida 0.0858
+estudiante epoca 16 paso 500/871 perdida 0.1029
+estudiante epoca 16 paso 550/871 perdida 0.1012
+estudiante epoca 16 paso 600/871 perdida 0.1250
+estudiante epoca 16 paso 650/871 perdida 0.1137
+estudiante epoca 16 paso 700/871 perdida 0.1020
+estudiante epoca 16 paso 750/871 perdida 0.1322
+estudiante epoca 16 paso 800/871 perdida 0.0748
+estudiante epoca 16 paso 850/871 perdida 0.0840
+{"epoch": 16, "images": 55744, "images_per_second": 693.5536654123475, "lr": 6.0308308247070454e-06, "seconds": 80.3744580700295, "selected": true, "stage": "student", "train_loss": 0.10874427418758073, "val_loss": 0.05084867402911186}
+estudiante epoca 17 paso 50/871 perdida 0.0785
+estudiante epoca 17 paso 100/871 perdida 0.1311
+estudiante epoca 17 paso 150/871 perdida 0.1897
+estudiante epoca 17 paso 200/871 perdida 0.0977
+estudiante epoca 17 paso 250/871 perdida 0.0865
+estudiante epoca 17 paso 300/871 perdida 0.1221
+estudiante epoca 17 paso 350/871 perdida 0.0662
+estudiante epoca 17 paso 400/871 perdida 0.1015
+estudiante epoca 17 paso 450/871 perdida 0.0745
+estudiante epoca 17 paso 500/871 perdida 0.0874
+estudiante epoca 17 paso 550/871 perdida 0.0762
+estudiante epoca 17 paso 600/871 perdida 0.0919
+estudiante epoca 17 paso 650/871 perdida 0.0875
+estudiante epoca 17 paso 700/871 perdida 0.1039
+estudiante epoca 17 paso 750/871 perdida 0.1430
+estudiante epoca 17 paso 800/871 perdida 0.1219
+estudiante epoca 17 paso 850/871 perdida 0.0817
+{"epoch": 17, "images": 55744, "images_per_second": 693.6542934380557, "lr": 2.7122207462492777e-06, "seconds": 80.36279819405172, "selected": false, "stage": "student", "train_loss": 0.10588720170556472, "val_loss": 0.050932418555021286}
+estudiante epoca 18 paso 50/871 perdida 0.0876
+estudiante epoca 18 paso 100/871 perdida 0.1000
+estudiante epoca 18 paso 150/871 perdida 0.0865
+estudiante epoca 18 paso 200/871 perdida 0.1092
+estudiante epoca 18 paso 250/871 perdida 0.0813
+estudiante epoca 18 paso 300/871 perdida 0.1572
+estudiante epoca 18 paso 350/871 perdida 0.1427
+estudiante epoca 18 paso 400/871 perdida 0.1254
+estudiante epoca 18 paso 450/871 perdida 0.1164
+estudiante epoca 18 paso 500/871 perdida 0.0975
+estudiante epoca 18 paso 550/871 perdida 0.1775
+estudiante epoca 18 paso 600/871 perdida 0.0819
+estudiante epoca 18 paso 650/871 perdida 0.0919
+estudiante epoca 18 paso 700/871 perdida 0.0850
+estudiante epoca 18 paso 750/871 perdida 0.1094
+estudiante epoca 18 paso 800/871 perdida 0.1700
+estudiante epoca 18 paso 850/871 perdida 0.0590
+{"epoch": 18, "images": 55744, "images_per_second": 693.4256588367989, "lr": 6.834980157933879e-07, "seconds": 80.38929521804675, "selected": true, "stage": "student", "train_loss": 0.10613121969965378, "val_loss": 0.04876413196325302}
+estudiante epoca 19 paso 50/871 perdida 0.0797
+estudiante epoca 19 paso 100/871 perdida 0.0957
+estudiante epoca 19 paso 150/871 perdida 0.1045
+estudiante epoca 19 paso 200/871 perdida 0.1334
+estudiante epoca 19 paso 250/871 perdida 0.0880
+estudiante epoca 19 paso 300/871 perdida 0.1138
+estudiante epoca 19 paso 350/871 perdida 0.1116
+estudiante epoca 19 paso 400/871 perdida 0.1020
+estudiante epoca 19 paso 450/871 perdida 0.0976
+estudiante epoca 19 paso 500/871 perdida 0.1075
+estudiante epoca 19 paso 550/871 perdida 0.0708
+estudiante epoca 19 paso 600/871 perdida 0.1313
+estudiante epoca 19 paso 650/871 perdida 0.0764
+estudiante epoca 19 paso 700/871 perdida 0.1141
+estudiante epoca 19 paso 750/871 perdida 0.1062
+estudiante epoca 19 paso 800/871 perdida 0.0983
+estudiante epoca 19 paso 850/871 perdida 0.0741
+{"epoch": 19, "images": 55744, "images_per_second": 693.2675568659472, "lr": 9.009407719862139e-13, "seconds": 80.40762826404534, "selected": true, "stage": "student", "train_loss": 0.10547696627103366, "val_loss": 0.048554133623838425}
+wandb: updating run metadata
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading history steps 18-19, summary, console lines 360-361
+wandb: 
+wandb: Run history:
+wandb:             epoch ▁▁▂▂▂▃▃▄▄▄▅▅▅▆▆▇▇▇██
+wandb:            images ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: images_per_second █▅▂▁▁▁▁▁▂▂▂▂▂▂▂▂▂▂▂▁
+wandb:                lr ████▇▇▆▆▅▅▄▄▃▃▂▂▁▁▁▁
+wandb:           seconds ▁▄▇█████▇▇▇▇▇▇▇▇▇▇▇█
+wandb:        train_loss █▄▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:          val_loss █▄▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:             epoch 19
+wandb:            images 55744
+wandb: images_per_second 693.26756
+wandb:                lr 0.0
+wandb:           seconds 80.40763
+wandb:          selected True
+wandb:             stage student
+wandb:        train_loss 0.10548
+wandb:          val_loss 0.04855
+wandb: 
+wandb: 🚀 View run student-student_r2 at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/88a69b64fdc8
+wandb: ⭐️ View project at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260921_134807-88a69b64fdc8/logs
+predicciones escritas en /home/jovyan/work/proyectonp/salidas/v2/student_r2/predictions.npy
+--- student_r2: 1761.2 s (codigo 0)
+
+=== pseudo_r2 ===
+/home/jovyan/work/proyectonp/.venv/bin/python /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/camino-b-cnn/pseudo-mascaras/make_pseudo_masks.py --saliency /home/jovyan/work/proyectonp/salidas/v2/student_r2/predictions.npy --output-dir /home/jovyan/work/proyectonp/salidas/v2/pseudo_r2 --source student --field /home/jovyan/work/proyectonp/salidas/v2/cache/field.npy --images /home/jovyan/work/proyectonp/salidas/v2/cache/images.npy --low 0.35 --high 0.65 --max-center-distance 0.5 --max-area-fraction 0.75 --min-area-fraction 0.003
+{
+  "images": "/home/jovyan/work/proyectonp/salidas/v2/cache/images.npy",
+  "excluded": 1581,
+  "excluded_no_region": 925,
+  "excluded_no_field": 0,
+  "excluded_by_area": 656,
+  "excluded_fraction": 0.027045520639102247,
+  "mean_foreground_fraction": 0.156198964222634,
+  "mean_ignore_fraction": 0.04147093184315175,
+  "mean_artifact_fraction": 0.006845154248757932,
+  "field_used": true,
+  "source": "student",
+  "artifact_suppression": true,
+  "low": 0.35,
+  "high": 0.65,
+  "min_area_fraction": 0.003,
+  "max_center_distance": 0.5,
+  "max_area_fraction": 0.75,
+  "saliency": "/home/jovyan/work/proyectonp/salidas/v2/student_r2/predictions.npy",
+  "field": "/home/jovyan/work/proyectonp/salidas/v2/cache/field.npy",
+  "reads_masks_or_labels": false
+}
+--- pseudo_r2: 498.0 s (codigo 0)
+
+=== student_r3 ===
+/home/jovyan/work/proyectonp/.venv/bin/python -m torch.distributed.run --nproc_per_node=2 /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/estudiante/train_student.py --cache-dir /home/jovyan/work/proyectonp/salidas/v2/cache --pseudo-masks /home/jovyan/work/proyectonp/salidas/v2/pseudo_r2/pseudo_masks.npy --output-dir /home/jovyan/work/proyectonp/salidas/v2/student_r3 --batch-size 32 --lr 0.0001 --optimizer adam --warmup-epochs 1 --dice-weight 1.0 --base-channels 32 --selection best-val --precision bf16 --epochs 20 --no-predict --seed 42 --wandb-project dermssl-segmentacion
+
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.
+wandb: Currently logged in as: nmoreno534 (nmoreno534-universidad-autonoma-de-bucaramanga) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
+wandb: setting up run c51bfa1bf3e0
+wandb: Tracking run with wandb version 0.30.0
+wandb: Run data is saved locally in /home/jovyan/work/proyectonp/repo_final/wandb/run-20260921_142546-c51bfa1bf3e0
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run student-student_r3
+wandb: ⭐️ View project at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: 🚀 View run at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/c51bfa1bf3e0
+estudiante epoca 0 paso 50/870 perdida 1.4168
+estudiante epoca 0 paso 100/870 perdida 1.3214
+estudiante epoca 0 paso 150/870 perdida 1.3030
+estudiante epoca 0 paso 200/870 perdida 1.0645
+estudiante epoca 0 paso 250/870 perdida 0.9541
+estudiante epoca 0 paso 300/870 perdida 0.8225
+estudiante epoca 0 paso 350/870 perdida 0.8910
+estudiante epoca 0 paso 400/870 perdida 0.8000
+estudiante epoca 0 paso 450/870 perdida 0.8040
+estudiante epoca 0 paso 500/870 perdida 0.8963
+estudiante epoca 0 paso 550/870 perdida 0.7943
+estudiante epoca 0 paso 600/870 perdida 0.8112
+estudiante epoca 0 paso 650/870 perdida 0.7129
+estudiante epoca 0 paso 700/870 perdida 0.6571
+estudiante epoca 0 paso 750/870 perdida 0.6805
+estudiante epoca 0 paso 800/870 perdida 0.7090
+estudiante epoca 0 paso 850/870 perdida 0.7039
+{"epoch": 0, "images": 55680, "images_per_second": 702.0366556918065, "lr": 0.0001, "seconds": 79.31209794897586, "selected": true, "stage": "student", "train_loss": 0.9349435389727011, "val_loss": 0.6720409393310547}
+/opt/conda/lib/python3.13/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+estudiante epoca 1 paso 50/870 perdida 0.6195
+estudiante epoca 1 paso 100/870 perdida 0.5933
+estudiante epoca 1 paso 150/870 perdida 0.5786
+estudiante epoca 1 paso 200/870 perdida 0.5260
+estudiante epoca 1 paso 250/870 perdida 0.4753
+estudiante epoca 1 paso 300/870 perdida 0.5476
+estudiante epoca 1 paso 350/870 perdida 0.4949
+estudiante epoca 1 paso 400/870 perdida 0.4671
+estudiante epoca 1 paso 450/870 perdida 0.4609
+estudiante epoca 1 paso 500/870 perdida 0.4732
+estudiante epoca 1 paso 550/870 perdida 0.5022
+estudiante epoca 1 paso 600/870 perdida 0.5566
+estudiante epoca 1 paso 650/870 perdida 0.3917
+estudiante epoca 1 paso 700/870 perdida 0.3582
+estudiante epoca 1 paso 750/870 perdida 0.3756
+estudiante epoca 1 paso 800/870 perdida 0.3943
+estudiante epoca 1 paso 850/870 perdida 0.3398
+{"epoch": 1, "images": 55680, "images_per_second": 699.0620141765354, "lr": 9.931962837245932e-05, "seconds": 79.6495859749848, "selected": true, "stage": "student", "train_loss": 0.4854711773751796, "val_loss": 0.3648850917816162}
+estudiante epoca 2 paso 50/870 perdida 0.3450
+estudiante epoca 2 paso 100/870 perdida 0.4133
+estudiante epoca 2 paso 150/870 perdida 0.3295
+estudiante epoca 2 paso 200/870 perdida 0.3539
+estudiante epoca 2 paso 250/870 perdida 0.3598
+estudiante epoca 2 paso 300/870 perdida 0.2768
+estudiante epoca 2 paso 350/870 perdida 0.2739
+estudiante epoca 2 paso 400/870 perdida 0.2258
+estudiante epoca 2 paso 450/870 perdida 0.2338
+estudiante epoca 2 paso 500/870 perdida 0.2963
+estudiante epoca 2 paso 550/870 perdida 0.3044
+estudiante epoca 2 paso 600/870 perdida 0.2064
+estudiante epoca 2 paso 650/870 perdida 0.2982
+estudiante epoca 2 paso 700/870 perdida 0.2277
+estudiante epoca 2 paso 750/870 perdida 0.3232
+estudiante epoca 2 paso 800/870 perdida 0.1856
+estudiante epoca 2 paso 850/870 perdida 0.2365
+{"epoch": 2, "images": 55680, "images_per_second": 693.5916354949561, "lr": 9.729394675260682e-05, "seconds": 80.27778472309001, "selected": true, "stage": "student", "train_loss": 0.29489398824757546, "val_loss": 0.22612713277339935}
+estudiante epoca 3 paso 50/870 perdida 0.2740
+estudiante epoca 3 paso 100/870 perdida 0.2352
+estudiante epoca 3 paso 150/870 perdida 0.2873
+estudiante epoca 3 paso 200/870 perdida 0.2212
+estudiante epoca 3 paso 250/870 perdida 0.1538
+estudiante epoca 3 paso 300/870 perdida 0.2698
+estudiante epoca 3 paso 350/870 perdida 0.2294
+estudiante epoca 3 paso 400/870 perdida 0.1776
+estudiante epoca 3 paso 450/870 perdida 0.2293
+estudiante epoca 3 paso 500/870 perdida 0.2011
+estudiante epoca 3 paso 550/870 perdida 0.1968
+estudiante epoca 3 paso 600/870 perdida 0.1623
+estudiante epoca 3 paso 650/870 perdida 0.1732
+estudiante epoca 3 paso 700/870 perdida 0.2082
+estudiante epoca 3 paso 750/870 perdida 0.1731
+estudiante epoca 3 paso 800/870 perdida 0.1478
+estudiante epoca 3 paso 850/870 perdida 0.2253
+{"epoch": 3, "images": 55680, "images_per_second": 692.9811072305399, "lr": 9.397820955146109e-05, "seconds": 80.34851083101239, "selected": true, "stage": "student", "train_loss": 0.22034810384114584, "val_loss": 0.14499586820602417}
+estudiante epoca 4 paso 50/870 perdida 0.2351
+estudiante epoca 4 paso 100/870 perdida 0.1671
+estudiante epoca 4 paso 150/870 perdida 0.1721
+estudiante epoca 4 paso 200/870 perdida 0.2147
+estudiante epoca 4 paso 250/870 perdida 0.1565
+estudiante epoca 4 paso 300/870 perdida 0.1622
+estudiante epoca 4 paso 350/870 perdida 0.1800
+estudiante epoca 4 paso 400/870 perdida 0.1578
+estudiante epoca 4 paso 450/870 perdida 0.2435
+estudiante epoca 4 paso 500/870 perdida 0.2202
+estudiante epoca 4 paso 550/870 perdida 0.1369
+estudiante epoca 4 paso 600/870 perdida 0.2252
+estudiante epoca 4 paso 650/870 perdida 0.1352
+estudiante epoca 4 paso 700/870 perdida 0.1610
+estudiante epoca 4 paso 750/870 perdida 0.1976
+estudiante epoca 4 paso 800/870 perdida 0.1534
+estudiante epoca 4 paso 850/870 perdida 0.1608
+{"epoch": 4, "images": 55680, "images_per_second": 693.1304579253856, "lr": 8.946286143638763e-05, "seconds": 80.33119792002253, "selected": true, "stage": "student", "train_loss": 0.1883703823747306, "val_loss": 0.1112695038318634}
+estudiante epoca 5 paso 50/870 perdida 0.1366
+estudiante epoca 5 paso 100/870 perdida 0.1960
+estudiante epoca 5 paso 150/870 perdida 0.1704
+estudiante epoca 5 paso 200/870 perdida 0.2988
+estudiante epoca 5 paso 250/870 perdida 0.1463
+estudiante epoca 5 paso 300/870 perdida 0.1685
+estudiante epoca 5 paso 350/870 perdida 0.1602
+estudiante epoca 5 paso 400/870 perdida 0.1943
+estudiante epoca 5 paso 450/870 perdida 0.1550
+estudiante epoca 5 paso 500/870 perdida 0.1215
+estudiante epoca 5 paso 550/870 perdida 0.1617
+estudiante epoca 5 paso 600/870 perdida 0.1117
+estudiante epoca 5 paso 650/870 perdida 0.1612
+estudiante epoca 5 paso 700/870 perdida 0.1319
+estudiante epoca 5 paso 750/870 perdida 0.2317
+estudiante epoca 5 paso 800/870 perdida 0.1746
+estudiante epoca 5 paso 850/870 perdida 0.1297
+{"epoch": 5, "images": 55680, "images_per_second": 693.2169237068546, "lr": 8.387106933333155e-05, "seconds": 80.32117811299395, "selected": true, "stage": "student", "train_loss": 0.17017180344154095, "val_loss": 0.09797725826501846}
+estudiante epoca 6 paso 50/870 perdida 0.1026
+estudiante epoca 6 paso 100/870 perdida 0.1469
+estudiante epoca 6 paso 150/870 perdida 0.1542
+estudiante epoca 6 paso 200/870 perdida 0.1287
+estudiante epoca 6 paso 250/870 perdida 0.2489
+estudiante epoca 6 paso 300/870 perdida 0.1631
+estudiante epoca 6 paso 350/870 perdida 0.2031
+estudiante epoca 6 paso 400/870 perdida 0.1902
+estudiante epoca 6 paso 450/870 perdida 0.1617
+estudiante epoca 6 paso 500/870 perdida 0.0977
+estudiante epoca 6 paso 550/870 perdida 0.1193
+estudiante epoca 6 paso 600/870 perdida 0.3001
+estudiante epoca 6 paso 650/870 perdida 0.1278
+estudiante epoca 6 paso 700/870 perdida 0.1529
+estudiante epoca 6 paso 750/870 perdida 0.1706
+estudiante epoca 6 paso 800/870 perdida 0.2094
+estudiante epoca 6 paso 850/870 perdida 0.1827
+{"epoch": 6, "images": 55680, "images_per_second": 693.4734393268396, "lr": 7.735536275415016e-05, "seconds": 80.29146733297966, "selected": true, "stage": "student", "train_loss": 0.1574389578282148, "val_loss": 0.07987047731876373}
+estudiante epoca 7 paso 50/870 perdida 0.1397
+estudiante epoca 7 paso 100/870 perdida 0.1722
+estudiante epoca 7 paso 150/870 perdida 0.1740
+estudiante epoca 7 paso 200/870 perdida 0.1834
+estudiante epoca 7 paso 250/870 perdida 0.1996
+estudiante epoca 7 paso 300/870 perdida 0.1349
+estudiante epoca 7 paso 350/870 perdida 0.1474
+estudiante epoca 7 paso 400/870 perdida 0.1552
+estudiante epoca 7 paso 450/870 perdida 0.1116
+estudiante epoca 7 paso 500/870 perdida 0.1896
+estudiante epoca 7 paso 550/870 perdida 0.1256
+estudiante epoca 7 paso 600/870 perdida 0.1390
+estudiante epoca 7 paso 650/870 perdida 0.1290
+estudiante epoca 7 paso 700/870 perdida 0.1203
+estudiante epoca 7 paso 750/870 perdida 0.1127
+estudiante epoca 7 paso 800/870 perdida 0.1273
+estudiante epoca 7 paso 850/870 perdida 0.1219
+{"epoch": 7, "images": 55680, "images_per_second": 693.641891133834, "lr": 7.009347318914413e-05, "seconds": 80.27196844900027, "selected": false, "stage": "student", "train_loss": 0.15056969653600935, "val_loss": 0.08031304180622101}
+estudiante epoca 8 paso 50/870 perdida 0.1354
+estudiante epoca 8 paso 100/870 perdida 0.1488
+estudiante epoca 8 paso 150/870 perdida 0.1011
+estudiante epoca 8 paso 200/870 perdida 0.1811
+estudiante epoca 8 paso 250/870 perdida 0.1054
+estudiante epoca 8 paso 300/870 perdida 0.1206
+estudiante epoca 8 paso 350/870 perdida 0.0995
+estudiante epoca 8 paso 400/870 perdida 0.1507
+estudiante epoca 8 paso 450/870 perdida 0.1510
+estudiante epoca 8 paso 500/870 perdida 0.1555
+estudiante epoca 8 paso 550/870 perdida 0.1659
+estudiante epoca 8 paso 600/870 perdida 0.1689
+estudiante epoca 8 paso 650/870 perdida 0.0906
+estudiante epoca 8 paso 700/870 perdida 0.1118
+estudiante epoca 8 paso 750/870 perdida 0.1450
+estudiante epoca 8 paso 800/870 perdida 0.2146
+estudiante epoca 8 paso 850/870 perdida 0.1458
+{"epoch": 8, "images": 55680, "images_per_second": 693.3835937927946, "lr": 6.228348605531354e-05, "seconds": 80.30187114095315, "selected": true, "stage": "student", "train_loss": 0.1422527269385327, "val_loss": 0.07080506533384323}
+estudiante epoca 9 paso 50/870 perdida 0.1362
+estudiante epoca 9 paso 100/870 perdida 0.1731
+estudiante epoca 9 paso 150/870 perdida 0.1406
+estudiante epoca 9 paso 200/870 perdida 0.1595
+estudiante epoca 9 paso 250/870 perdida 0.1744
+estudiante epoca 9 paso 300/870 perdida 0.1402
+estudiante epoca 9 paso 350/870 perdida 0.1503
+estudiante epoca 9 paso 400/870 perdida 0.1906
+estudiante epoca 9 paso 450/870 perdida 0.1400
+estudiante epoca 9 paso 500/870 perdida 0.1053
+estudiante epoca 9 paso 550/870 perdida 0.1885
+estudiante epoca 9 paso 600/870 perdida 0.1049
+estudiante epoca 9 paso 650/870 perdida 0.1742
+estudiante epoca 9 paso 700/870 perdida 0.1379
+estudiante epoca 9 paso 750/870 perdida 0.1687
+estudiante epoca 9 paso 800/870 perdida 0.1408
+estudiante epoca 9 paso 850/870 perdida 0.1437
+{"epoch": 9, "images": 55680, "images_per_second": 693.5348808238784, "lr": 5.4138437442552324e-05, "seconds": 80.2843541681068, "selected": true, "stage": "student", "train_loss": 0.13690376720209232, "val_loss": 0.07006238400936127}
+estudiante epoca 10 paso 50/870 perdida 0.1042
+estudiante epoca 10 paso 100/870 perdida 0.0864
+estudiante epoca 10 paso 150/870 perdida 0.1202
+estudiante epoca 10 paso 200/870 perdida 0.0995
+estudiante epoca 10 paso 250/870 perdida 0.1651
+estudiante epoca 10 paso 300/870 perdida 0.1258
+estudiante epoca 10 paso 350/870 perdida 0.1591
+estudiante epoca 10 paso 400/870 perdida 0.0887
+estudiante epoca 10 paso 450/870 perdida 0.1167
+estudiante epoca 10 paso 500/870 perdida 0.1116
+estudiante epoca 10 paso 550/870 perdida 0.1518
+estudiante epoca 10 paso 600/870 perdida 0.1116
+estudiante epoca 10 paso 650/870 perdida 0.1799
+estudiante epoca 10 paso 700/870 perdida 0.1289
+estudiante epoca 10 paso 750/870 perdida 0.1158
+estudiante epoca 10 paso 800/870 perdida 0.1377
+estudiante epoca 10 paso 850/870 perdida 0.1326
+{"epoch": 10, "images": 55680, "images_per_second": 693.5919122665061, "lr": 4.5880503044459564e-05, "seconds": 80.27775268896949, "selected": true, "stage": "student", "train_loss": 0.13262504489942528, "val_loss": 0.06315775960683823}
+estudiante epoca 11 paso 50/870 perdida 0.1497
+estudiante epoca 11 paso 100/870 perdida 0.1471
+estudiante epoca 11 paso 150/870 perdida 0.1073
+estudiante epoca 11 paso 200/870 perdida 0.1492
+estudiante epoca 11 paso 250/870 perdida 0.0894
+estudiante epoca 11 paso 300/870 perdida 0.2000
+estudiante epoca 11 paso 350/870 perdida 0.1789
+estudiante epoca 11 paso 400/870 perdida 0.1658
+estudiante epoca 11 paso 450/870 perdida 0.0757
+estudiante epoca 11 paso 500/870 perdida 0.1145
+estudiante epoca 11 paso 550/870 perdida 0.1037
+estudiante epoca 11 paso 600/870 perdida 0.1124
+estudiante epoca 11 paso 650/870 perdida 0.1094
+estudiante epoca 11 paso 700/870 perdida 0.1188
+estudiante epoca 11 paso 750/870 perdida 0.1416
+estudiante epoca 11 paso 800/870 perdida 0.0868
+estudiante epoca 11 paso 850/870 perdida 0.1730
+{"epoch": 11, "images": 55680, "images_per_second": 693.5660165102114, "lr": 3.773493778458683e-05, "seconds": 80.28075002890546, "selected": true, "stage": "student", "train_loss": 0.12881562682403916, "val_loss": 0.058804724365472794}
+estudiante epoca 12 paso 50/870 perdida 0.1214
+estudiante epoca 12 paso 100/870 perdida 0.1131
+estudiante epoca 12 paso 150/870 perdida 0.1045
+estudiante epoca 12 paso 200/870 perdida 0.1204
+estudiante epoca 12 paso 250/870 perdida 0.1202
+estudiante epoca 12 paso 300/870 perdida 0.2109
+estudiante epoca 12 paso 350/870 perdida 0.1512
+estudiante epoca 12 paso 400/870 perdida 0.1008
+estudiante epoca 12 paso 450/870 perdida 0.1149
+estudiante epoca 12 paso 500/870 perdida 0.1489
+estudiante epoca 12 paso 550/870 perdida 0.1356
+estudiante epoca 12 paso 600/870 perdida 0.1106
+estudiante epoca 12 paso 650/870 perdida 0.1095
+estudiante epoca 12 paso 700/870 perdida 0.1105
+estudiante epoca 12 paso 750/870 perdida 0.1301
+estudiante epoca 12 paso 800/870 perdida 0.1055
+estudiante epoca 12 paso 850/870 perdida 0.0742
+{"epoch": 12, "images": 55680, "images_per_second": 693.5515306531071, "lr": 2.992393144931963e-05, "seconds": 80.28242681198753, "selected": true, "stage": "student", "train_loss": 0.12353433192461387, "val_loss": 0.058356255292892456}
+estudiante epoca 13 paso 50/870 perdida 0.1245
+estudiante epoca 13 paso 100/870 perdida 0.1462
+estudiante epoca 13 paso 150/870 perdida 0.1095
+estudiante epoca 13 paso 200/870 perdida 0.1041
+estudiante epoca 13 paso 250/870 perdida 0.1313
+estudiante epoca 13 paso 300/870 perdida 0.1021
+estudiante epoca 13 paso 350/870 perdida 0.1408
+estudiante epoca 13 paso 400/870 perdida 0.1212
+estudiante epoca 13 paso 450/870 perdida 0.1159
+estudiante epoca 13 paso 500/870 perdida 0.0841
+estudiante epoca 13 paso 550/870 perdida 0.0677
+estudiante epoca 13 paso 600/870 perdida 0.0909
+estudiante epoca 13 paso 650/870 perdida 0.1431
+estudiante epoca 13 paso 700/870 perdida 0.1374
+estudiante epoca 13 paso 750/870 perdida 0.1099
+estudiante epoca 13 paso 800/870 perdida 0.0996
+estudiante epoca 13 paso 850/870 perdida 0.1158
+{"epoch": 13, "images": 55680, "images_per_second": 693.6083490238734, "lr": 2.2660547929710145e-05, "seconds": 80.27585030999035, "selected": true, "stage": "student", "train_loss": 0.11886843977303341, "val_loss": 0.05397946760058403}
+estudiante epoca 14 paso 50/870 perdida 0.1508
+estudiante epoca 14 paso 100/870 perdida 0.1449
+estudiante epoca 14 paso 150/870 perdida 0.1961
+estudiante epoca 14 paso 200/870 perdida 0.1295
+estudiante epoca 14 paso 250/870 perdida 0.1318
+estudiante epoca 14 paso 300/870 perdida 0.0779
+estudiante epoca 14 paso 350/870 perdida 0.1355
+estudiante epoca 14 paso 400/870 perdida 0.0935
+estudiante epoca 14 paso 450/870 perdida 0.0828
+estudiante epoca 14 paso 500/870 perdida 0.0957
+estudiante epoca 14 paso 550/870 perdida 0.1149
+estudiante epoca 14 paso 600/870 perdida 0.1270
+estudiante epoca 14 paso 650/870 perdida 0.1481
+estudiante epoca 14 paso 700/870 perdida 0.0942
+estudiante epoca 14 paso 750/870 perdida 0.1495
+estudiante epoca 14 paso 800/870 perdida 0.0731
+estudiante epoca 14 paso 850/870 perdida 0.0886
+{"epoch": 14, "images": 55680, "images_per_second": 693.5567624860051, "lr": 1.6142913393945696e-05, "seconds": 80.28182120295241, "selected": true, "stage": "student", "train_loss": 0.11666714021529274, "val_loss": 0.05155085399746895}
+estudiante epoca 15 paso 50/870 perdida 0.0841
+estudiante epoca 15 paso 100/870 perdida 0.0933
+estudiante epoca 15 paso 150/870 perdida 0.1220
+estudiante epoca 15 paso 200/870 perdida 0.0638
+estudiante epoca 15 paso 250/870 perdida 0.1063
+estudiante epoca 15 paso 300/870 perdida 0.1064
+estudiante epoca 15 paso 350/870 perdida 0.1084
+estudiante epoca 15 paso 400/870 perdida 0.1176
+estudiante epoca 15 paso 450/870 perdida 0.0857
+estudiante epoca 15 paso 500/870 perdida 0.1002
+estudiante epoca 15 paso 550/870 perdida 0.0802
+estudiante epoca 15 paso 600/870 perdida 0.1263
+estudiante epoca 15 paso 650/870 perdida 0.1795
+estudiante epoca 15 paso 700/870 perdida 0.0997
+estudiante epoca 15 paso 750/870 perdida 0.0774
+estudiante epoca 15 paso 800/870 perdida 0.1444
+estudiante epoca 15 paso 850/870 perdida 0.1356
+{"epoch": 15, "images": 55680, "images_per_second": 693.4351200201612, "lr": 1.054881192195668e-05, "seconds": 80.29590424895287, "selected": false, "stage": "student", "train_loss": 0.11412328961251796, "val_loss": 0.056087519973516464}
+estudiante epoca 16 paso 50/870 perdida 0.0954
+estudiante epoca 16 paso 100/870 perdida 0.1392
+estudiante epoca 16 paso 150/870 perdida 0.0993
+estudiante epoca 16 paso 200/870 perdida 0.1154
+estudiante epoca 16 paso 250/870 perdida 0.0873
+estudiante epoca 16 paso 300/870 perdida 0.1187
+estudiante epoca 16 paso 350/870 perdida 0.0665
+estudiante epoca 16 paso 400/870 perdida 0.0636
+estudiante epoca 16 paso 450/870 perdida 0.1327
+estudiante epoca 16 paso 500/870 perdida 0.1326
+estudiante epoca 16 paso 550/870 perdida 0.1348
+estudiante epoca 16 paso 600/870 perdida 0.1105
+estudiante epoca 16 paso 650/870 perdida 0.0940
+estudiante epoca 16 paso 700/870 perdida 0.0958
+estudiante epoca 16 paso 750/870 perdida 0.0808
+estudiante epoca 16 paso 800/870 perdida 0.1063
+estudiante epoca 16 paso 850/870 perdida 0.0962
+{"epoch": 16, "images": 55680, "images_per_second": 693.2173349530023, "lr": 6.030836019164804e-06, "seconds": 80.32113046303857, "selected": false, "stage": "student", "train_loss": 0.11238475229548311, "val_loss": 0.052141882479190826}
+estudiante epoca 17 paso 50/870 perdida 0.1748
+estudiante epoca 17 paso 100/870 perdida 0.0884
+estudiante epoca 17 paso 150/870 perdida 0.1550
+estudiante epoca 17 paso 200/870 perdida 0.1027
+estudiante epoca 17 paso 250/870 perdida 0.1073
+estudiante epoca 17 paso 300/870 perdida 0.0817
+estudiante epoca 17 paso 350/870 perdida 0.0961
+estudiante epoca 17 paso 400/870 perdida 0.1027
+estudiante epoca 17 paso 450/870 perdida 0.1465
+estudiante epoca 17 paso 500/870 perdida 0.0855
+estudiante epoca 17 paso 550/870 perdida 0.1268
+estudiante epoca 17 paso 600/870 perdida 0.1645
+estudiante epoca 17 paso 650/870 perdida 0.0844
+estudiante epoca 17 paso 700/870 perdida 0.0935
+estudiante epoca 17 paso 750/870 perdida 0.1012
+estudiante epoca 17 paso 800/870 perdida 0.0987
+estudiante epoca 17 paso 850/870 perdida 0.0893
+{"epoch": 17, "images": 55680, "images_per_second": 693.2490884307716, "lr": 2.712224290714044e-06, "seconds": 80.31745144596789, "selected": true, "stage": "student", "train_loss": 0.1106194857893319, "val_loss": 0.05059187859296799}
+estudiante epoca 18 paso 50/870 perdida 0.1202
+estudiante epoca 18 paso 100/870 perdida 0.1463
+estudiante epoca 18 paso 150/870 perdida 0.0982
+estudiante epoca 18 paso 200/870 perdida 0.1534
+estudiante epoca 18 paso 250/870 perdida 0.0909
+estudiante epoca 18 paso 300/870 perdida 0.1272
+estudiante epoca 18 paso 350/870 perdida 0.0923
+estudiante epoca 18 paso 400/870 perdida 0.1426
+estudiante epoca 18 paso 450/870 perdida 0.0959
+estudiante epoca 18 paso 500/870 perdida 0.1143
+estudiante epoca 18 paso 550/870 perdida 0.1023
+estudiante epoca 18 paso 600/870 perdida 0.1355
+estudiante epoca 18 paso 650/870 perdida 0.0944
+estudiante epoca 18 paso 700/870 perdida 0.1406
+estudiante epoca 18 paso 750/870 perdida 0.1393
+estudiante epoca 18 paso 800/870 perdida 0.1667
+estudiante epoca 18 paso 850/870 perdida 0.0995
+{"epoch": 18, "images": 55680, "images_per_second": 693.4439220343352, "lr": 6.834998135814175e-07, "seconds": 80.29488503793254, "selected": true, "stage": "student", "train_loss": 0.10898127062567349, "val_loss": 0.0503338985145092}
+estudiante epoca 19 paso 50/870 perdida 0.0799
+estudiante epoca 19 paso 100/870 perdida 0.0940
+estudiante epoca 19 paso 150/870 perdida 0.1381
+estudiante epoca 19 paso 200/870 perdida 0.1208
+estudiante epoca 19 paso 250/870 perdida 0.1189
+estudiante epoca 19 paso 300/870 perdida 0.1177
+estudiante epoca 19 paso 350/870 perdida 0.1080
+estudiante epoca 19 paso 400/870 perdida 0.1312
+estudiante epoca 19 paso 450/870 perdida 0.1036
+estudiante epoca 19 paso 500/870 perdida 0.1074
+estudiante epoca 19 paso 550/870 perdida 0.1100
+estudiante epoca 19 paso 600/870 perdida 0.1561
+estudiante epoca 19 paso 650/870 perdida 0.0983
+estudiante epoca 19 paso 700/870 perdida 0.1329
+estudiante epoca 19 paso 750/870 perdida 0.1603
+estudiante epoca 19 paso 800/870 perdida 0.0956
+estudiante epoca 19 paso 850/870 perdida 0.0661
+{"epoch": 19, "images": 55680, "images_per_second": 693.4724497493879, "lr": 9.030130920795188e-13, "seconds": 80.29158190800808, "selected": true, "stage": "student", "train_loss": 0.10894629818269576, "val_loss": 0.0501280352473259}
+wandb: updating run metadata
+wandb: uploading config.yaml; uploading output.log; uploading wandb-summary.json
+wandb: uploading config.yaml
+wandb: 
+wandb: Run history:
+wandb:             epoch ▁▁▂▂▂▃▃▄▄▄▅▅▅▆▆▇▇▇██
+wandb:            images ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: images_per_second █▆▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                lr ████▇▇▆▆▅▅▄▄▃▃▂▂▁▁▁▁
+wandb:           seconds ▁▃█████▇████████████
+wandb:        train_loss █▄▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:          val_loss █▅▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:             epoch 19
+wandb:            images 55680
+wandb: images_per_second 693.47245
+wandb:                lr 0.0
+wandb:           seconds 80.29158
+wandb:          selected True
+wandb:             stage student
+wandb:        train_loss 0.10895
+wandb:          val_loss 0.05013
+wandb: 
+wandb: 🚀 View run student-student_r3 at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/c51bfa1bf3e0
+wandb: ⭐️ View project at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260921_142546-c51bfa1bf3e0/logs
+--- student_r3: 1646.0 s (codigo 0)
+
+=== fst ===
+/home/jovyan/work/proyectonp/.venv/bin/python /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/evaluacion/fst_pseudo_manifest.py --manifest /home/jovyan/work/proyectonp/salidas/v2/cache/manifest.csv --pseudo-masks /home/jovyan/work/proyectonp/salidas/v2/pseudo_r2/pseudo_masks.npy --output-json /home/jovyan/work/proyectonp/salidas/v2/fst/fst_pseudo_manifest.json --output-csv /home/jovyan/work/proyectonp/salidas/v2/fst/fst_pseudo_manifest.csv --field /home/jovyan/work/proyectonp/salidas/v2/cache/field.npy
+{
+  "total": 58457,
+  "by_dataset": {
+    "ham10000_p1": {
+      "n": 5000,
+      "states": {
+        "ok": 4944,
+        "quarantine": 56
+      },
+      "ITA": {
+        "mean": 28.02040207717891,
+        "median": 58.264848310549226,
+        "std": 63.08870432749876,
+        "n": 4944
+      },
+      "FST_distribution": {
+        "1": 3263,
+        "2": 283,
+        "3": 70,
+        "4": 24,
+        "5": 13,
+        "6": 1291
+      }
+    },
+    "ham10000_p2": {
+      "n": 5015,
+      "states": {
+        "ok": 4982,
+        "quarantine": 33
+      },
+      "ITA": {
+        "mean": 5.054139901251465,
+        "median": 42.4391185994909,
+        "std": 70.8333485976939,
+        "n": 4982
+      },
+      "FST_distribution": {
+        "1": 2536,
+        "2": 192,
+        "3": 49,
+        "4": 12,
+        "5": 13,
+        "6": 2180
+      }
+    },
+    "isic2019": {
+      "n": 15316,
+      "states": {
+        "ok": 14229,
+        "quarantine": 1087
+      },
+      "ITA": {
+        "mean": 42.140748792328736,
+        "median": 67.82154580911093,
+        "std": 57.975221070746365,
+        "n": 14229
+      },
+      "FST_distribution": {
+        "1": 10063,
+        "2": 1008,
+        "3": 392,
+        "4": 238,
+        "5": 145,
+        "6": 2383
+      }
+    },
+    "isic2020": {
+      "n": 33126,
+      "states": {
+        "ok": 31769,
+        "quarantine": 1357
+      },
+      "ITA": {
+        "mean": 39.40005139727056,
+        "median": 60.81361777604774,
+        "std": 54.52770360401698,
+        "n": 31769
+      },
+      "FST_distribution": {
+        "1": 21408,
+        "2": 2970,
+        "3": 1268,
+        "4": 845,
+        "5": 701,
+        "6": 4577
+      }
+    }
+  }
+}
+--- fst: 459.1 s (codigo 0)
+
+=== evaluate_isic2018 ===
+/home/jovyan/work/proyectonp/.venv/bin/python /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/evaluacion/evaluate_segmentation.py --checkpoint /home/jovyan/work/proyectonp/salidas/v2/student_r3/best.pt --image-dir /home/jovyan/work/proyectonp/datos_isic2018/ISIC2018_Task1-2_Training_Input --mask-dir /home/jovyan/work/proyectonp/masks_eval/isic2018/ground_truth --output-dir /home/jovyan/work/proyectonp/salidas/v2/evaluacion_isic2018 --eval-name isic2018 --overlay-dir /home/jovyan/work/proyectonp/salidas/v2/evaluacion_isic2018/overlays --fst-manifest /home/jovyan/work/proyectonp/salidas/v2/fst/fst_pseudo_manifest.csv --batch-size 32 --hausdorff --wandb-project dermssl-segmentacion
+/home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/evaluacion/eval_student.py:64: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  chunk = torch.from_numpy(images[start : start + batch_size]).to(device)
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.
+wandb: Currently logged in as: nmoreno534 (nmoreno534-universidad-autonoma-de-bucaramanga) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
+wandb: setting up run 41ccc99af447
+wandb: Tracking run with wandb version 0.30.0
+wandb: Run data is saved locally in /home/jovyan/work/proyectonp/repo_final/wandb/run-20260921_150518-41ccc99af447
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run eval-isic2018
+wandb: ⭐️ View project at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: 🚀 View run at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/41ccc99af447
+wandb: updating run metadata; uploading artifact run-41ccc99af447-isic2018strata-pfguyA
+wandb: uploading artifact run-41ccc99af447-isic2018strata-pfguyA
+wandb: uploading media/table/isic2018/strata_1_993ced1e1f19b5d0781e.table.json; uploading media/images/isic2018/overlays_3_4a94a7737bb82bdbc239.png; uploading media/images/isic2018/overlays_3_661a38d5fbcd399ebb2c.png; uploading media/images/isic2018/overlays_3_a56f7be1a80ecfae116c.png; uploading wandb-summary.json (+ 2 more)
+wandb: uploading media/images/isic2018/overlays_3_4a94a7737bb82bdbc239.png; uploading media/images/isic2018/overlays_3_661a38d5fbcd399ebb2c.png; uploading media/images/isic2018/overlays_3_a56f7be1a80ecfae116c.png
+wandb: uploading history steps 0-3, summary
+wandb: 
+wandb: Run history:
+wandb: isic2018/accuracy_ci95_high ▁
+wandb:  isic2018/accuracy_ci95_low ▁
+wandb:      isic2018/accuracy_mean ▁
+wandb:    isic2018/accuracy_median ▁
+wandb:         isic2018/accuracy_n ▁
+wandb:       isic2018/accuracy_p10 ▁
+wandb:       isic2018/accuracy_p25 ▁
+wandb:        isic2018/accuracy_p5 ▁
+wandb:       isic2018/accuracy_p75 ▁
+wandb:       isic2018/accuracy_p90 ▁
+wandb:                         +78 ...
+wandb: 
+wandb: Run summary:
+wandb: isic2018/accuracy_ci95_high 0.91387
+wandb:  isic2018/accuracy_ci95_low 0.90495
+wandb:      isic2018/accuracy_mean 0.90932
+wandb:    isic2018/accuracy_median 0.95525
+wandb:         isic2018/accuracy_n 2594
+wandb:       isic2018/accuracy_p10 0.77123
+wandb:       isic2018/accuracy_p25 0.90109
+wandb:        isic2018/accuracy_p5 0.6564
+wandb:       isic2018/accuracy_p75 0.97273
+wandb:       isic2018/accuracy_p90 0.98297
+wandb:                         +78 ...
+wandb: 
+wandb: 🚀 View run eval-isic2018 at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/41ccc99af447
+wandb: ⭐️ View project at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: Synced 4 W&B file(s), 4 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260921_150518-41ccc99af447/logs
+{
+  "accuracy": {
+    "ci95_high": 0.9138712141895837,
+    "ci95_low": 0.904946342536569,
+    "mean": 0.9093174062765527,
+    "median": 0.9552475286989796,
+    "n": 2594,
+    "p10": 0.7712292729591836,
+    "p25": 0.9010881696428571,
+    "p5": 0.6564004703443878,
+    "p75": 0.9727309869260203,
+    "p90": 0.9829679528061225,
+    "std": 0.11704181140936723
+  },
+  "dice": {
+    "ci95_high": 0.7242489484150304,
+    "ci95_low": 0.7075828589343302,
+    "mean": 0.7161472905389088,
+    "median": 0.7878141610239653,
+    "n": 2594,
+    "p10": 0.3970448673866568,
+    "p25": 0.6018563126796751,
+    "p5": 0.2449640282187405,
+    "p75": 0.8925683723382382,
+    "p90": 0.9379784007607536,
+    "std": 0.22510536826274116
+  },
+  "hd95": {
+    "ci95_high": 26.882800577214354,
+    "ci95_low": 24.815161865056435,
+    "mean": 25.865582074189327,
+    "median": 13.92838827718412,
+    "n": 2591,
+    "p10": 6.0,
+    "p25": 8.587744886611352,
+    "p5": 5.0,
+    "p75": 32.790975005151374,
+    "p90": 65.91106181375662,
+    "std": 27.141052027020855
+  },
+  "iou": {
+    "ci95_high": 0.6085439915343165,
+    "ci95_low": 0.590433219797372,
+    "mean": 0.599798466449271,
+    "median": 0.6499120313924895,
+    "n": 2594,
+    "p10": 0.2476955710908846,
+    "p25": 0.4304681415890762,
+    "p5": 0.13957813300615343,
+    "p75": 0.8059805710842657,
+    "p90": 0.8832008793162741,
+    "std": 0.24336562252784605
+  },
+  "pred_coverage": {
+    "ci95_high": 0.17633303209095655,
+    "ci95_low": 0.164984794387288,
+    "mean": 0.17029720764558715,
+    "median": 0.11791493941326531,
+    "n": 2594,
+    "p10": 0.042615991709183676,
+    "p25": 0.06453782684948979,
+    "p5": 0.031068638392857145,
+    "p75": 0.23471878985969388,
+    "p90": 0.37549426020408166,
+    "std": 0.14616847791072554
+  },
+  "ref_coverage": {
+    "ci95_high": 0.22165627703667365,
+    "ci95_low": 0.20623387153703163,
+    "mean": 0.21401928895714994,
+    "median": 0.1380939094387755,
+    "n": 2594,
+    "p10": 0.02507174744897959,
+    "p25": 0.051638233418367346,
+    "p5": 0.015590122767857144,
+    "p75": 0.3186981823979592,
+    "p90": 0.5227359693877554,
+    "std": 0.2083575148740127
+  },
+  "sensitivity": {
+    "ci95_high": 0.7870315458329629,
+    "ci95_low": 0.7672990611582213,
+    "mean": 0.7773488450436835,
+    "median": 0.8974589206241351,
+    "n": 2594,
+    "p10": 0.3458467947038576,
+    "p25": 0.6231809694496285,
+    "p5": 0.20042026180377087,
+    "p75": 0.9980914883330597,
+    "p90": 1.0,
+    "std": 0.26564647806435754
+  },
+  "specificity": {
+    "ci95_high": 0.9732938611857168,
+    "ci95_low": 0.9696532467476471,
+    "mean": 0.9715063989632031,
+    "median": 0.985079005707207,
+    "n": 2594,
+    "p10": 0.9358335148875783,
+    "p25": 0.9624244560967432,
+    "p5": 0.9077070681615499,
+    "p75": 0.9986105967558502,
+    "p90": 1.0,
+    "std": 0.048986309499766165
+  },
+  "worst_ids": [
+    "ISIC_0012159",
+    "ISIC_0012256",
+    "ISIC_0012372",
+    "ISIC_0012810",
+    "ISIC_0012941",
+    "ISIC_0013120",
+    "ISIC_0013191",
+    "ISIC_0013196",
+    "ISIC_0013197",
+    "ISIC_0013207"
+  ]
+}
+--- evaluate_isic2018: 294.4 s (codigo 0)
+
+=== evaluate_ham10000 ===
+/home/jovyan/work/proyectonp/.venv/bin/python /home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/evaluacion/evaluate_segmentation.py --checkpoint /home/jovyan/work/proyectonp/salidas/v2/student_r3/best.pt --image-dir /home/jovyan/work/proyectonp/eval_ham10000_images --mask-dir /home/jovyan/work/proyectonp/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl --output-dir /home/jovyan/work/proyectonp/salidas/v2/evaluacion_ham10000 --eval-name ham10000 --overlay-dir /home/jovyan/work/proyectonp/salidas/v2/evaluacion_ham10000/overlays --fst-manifest /home/jovyan/work/proyectonp/salidas/v2/fst/fst_pseudo_manifest.csv --batch-size 32 --hausdorff --wandb-project dermssl-segmentacion
+/home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/evaluacion/eval_student.py:64: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  chunk = torch.from_numpy(images[start : start + batch_size]).to(device)
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.
+wandb: Currently logged in as: nmoreno534 (nmoreno534-universidad-autonoma-de-bucaramanga) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
+wandb: setting up run 21758b785d1c
+wandb: Tracking run with wandb version 0.30.0
+wandb: Run data is saved locally in /home/jovyan/work/proyectonp/repo_final/wandb/run-20260921_150712-21758b785d1c
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run eval-ham10000
+wandb: ⭐️ View project at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: 🚀 View run at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/21758b785d1c
+wandb: updating run metadata; uploading artifact run-21758b785d1c-ham10000strata-SHIWXw
+wandb: uploading artifact run-21758b785d1c-ham10000strata-SHIWXw
+wandb: uploading wandb-summary.json; uploading config.yaml; uploading wandb-metadata.json; uploading requirements.txt; uploading media/table/ham10000/strata_1_c793e025b05f186831ab.table.json (+ 3 more)
+wandb: uploading media/table/ham10000/strata_1_c793e025b05f186831ab.table.json; uploading media/images/ham10000/overlays_3_e3bfd7ca863f56aeb9e9.png; uploading media/images/ham10000/overlays_3_842e539ecae0c222cc68.png; uploading media/images/ham10000/overlays_3_a136a4a6b306631ad2e8.png
+wandb: uploading media/images/ham10000/overlays_3_e3bfd7ca863f56aeb9e9.png; uploading media/images/ham10000/overlays_3_842e539ecae0c222cc68.png; uploading media/images/ham10000/overlays_3_a136a4a6b306631ad2e8.png
+wandb: uploading history steps 0-3, summary
+wandb: 
+wandb: Run history:
+wandb: ham10000/accuracy_ci95_high ▁
+wandb:  ham10000/accuracy_ci95_low ▁
+wandb:      ham10000/accuracy_mean ▁
+wandb:    ham10000/accuracy_median ▁
+wandb:         ham10000/accuracy_n ▁
+wandb:       ham10000/accuracy_p10 ▁
+wandb:       ham10000/accuracy_p25 ▁
+wandb:        ham10000/accuracy_p5 ▁
+wandb:       ham10000/accuracy_p75 ▁
+wandb:       ham10000/accuracy_p90 ▁
+wandb:                         +78 ...
+wandb: 
+wandb: Run summary:
+wandb: ham10000/accuracy_ci95_high 0.90483
+wandb:  ham10000/accuracy_ci95_low 0.90026
+wandb:      ham10000/accuracy_mean 0.90254
+wandb:    ham10000/accuracy_median 0.95219
+wandb:         ham10000/accuracy_n 10015
+wandb:       ham10000/accuracy_p10 0.7455
+wandb:       ham10000/accuracy_p25 0.88502
+wandb:        ham10000/accuracy_p5 0.64046
+wandb:       ham10000/accuracy_p75 0.9727
+wandb:       ham10000/accuracy_p90 0.98192
+wandb:                         +78 ...
+wandb: 
+wandb: 🚀 View run eval-ham10000 at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/21758b785d1c
+wandb: ⭐️ View project at: https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
+wandb: Synced 4 W&B file(s), 4 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260921_150712-21758b785d1c/logs
+{
+  "accuracy": {
+    "ci95_high": 0.9048336935862948,
+    "ci95_low": 0.9002563998688667,
+    "mean": 0.9025424415194809,
+    "median": 0.9521882971938775,
+    "n": 10015,
+    "p10": 0.7455038265306123,
+    "p25": 0.885024713010204,
+    "p5": 0.6404575892857143,
+    "p75": 0.9726961096938775,
+    "p90": 0.9819236288265306,
+    "std": 0.11997628625803261
+  },
+  "dice": {
+    "ci95_high": 0.7862154147778118,
+    "ci95_low": 0.778958154266835,
+    "mean": 0.7825192667005371,
+    "median": 0.851212909390095,
+    "n": 10015,
+    "p10": 0.5016551439686021,
+    "p25": 0.7087462095533427,
+    "p5": 0.36787670551123225,
+    "p75": 0.9186599948179253,
+    "p90": 0.948228518754556,
+    "std": 0.18898880967261536
+  },
+  "hd95": {
+    "ci95_high": 23.068136623828803,
+    "ci95_low": 22.13015282551951,
+    "mean": 22.632635539037768,
+    "median": 12.881737181947724,
+    "n": 10010,
+    "p10": 5.385164807134504,
+    "p25": 7.810249675906654,
+    "p5": 4.47213595499958,
+    "p75": 28.531372430491125,
+    "p90": 55.433713188738274,
+    "std": 23.301880813842995
+  },
+  "iou": {
+    "ci95_high": 0.6803817582224743,
+    "ci95_low": 0.672036020973844,
+    "mean": 0.6760612202377231,
+    "median": 0.7409666389427965,
+    "n": 10015,
+    "p10": 0.3348062013310518,
+    "p25": 0.5488821913121795,
+    "p5": 0.22539761969980524,
+    "p75": 0.8495570227938033,
+    "p90": 0.9015537473710113,
+    "std": 0.2177772286912552
+  },
+  "pred_coverage": {
+    "ci95_high": 0.19938980758772554,
+    "ci95_low": 0.19431078305811372,
+    "mean": 0.19670504805610464,
+    "median": 0.16123246173469388,
+    "n": 10015,
+    "p10": 0.06814413265306123,
+    "p25": 0.10402383609693877,
+    "p5": 0.05060586734693878,
+    "p75": 0.256477200255102,
+    "p90": 0.378694993622449,
+    "std": 0.13024430977628285
+  },
+  "ref_coverage": {
+    "ci95_high": 0.27026560401545324,
+    "ci95_low": 0.2629069997124848,
+    "mean": 0.26638520774323216,
+    "median": 0.22237723214285715,
+    "n": 10015,
+    "p10": 0.06174266581632653,
+    "p25": 0.11921037946428571,
+    "p5": 0.03845264668367347,
+    "p75": 0.37429249043367346,
+    "p90": 0.532505580357143,
+    "std": 0.18868530983263507
+  },
+  "sensitivity": {
+    "ci95_high": 0.776370667492555,
+    "ci95_low": 0.7667629464186861,
+    "mean": 0.7713288078198154,
+    "median": 0.8594289870885615,
+    "n": 10015,
+    "p10": 0.3739234385613428,
+    "p25": 0.634136175967595,
+    "p5": 0.23484170736556936,
+    "p75": 0.9806947799982572,
+    "p90": 1.0,
+    "std": 0.24748268582999253
+  },
+  "specificity": {
+    "ci95_high": 0.9827945543366915,
+    "ci95_low": 0.981697645388351,
+    "mean": 0.9822567535888275,
+    "median": 0.9928027901077996,
+    "n": 10013,
+    "p10": 0.9540054501967639,
+    "p25": 0.9731993299832495,
+    "p5": 0.9394622842774722,
+    "p75": 0.9999242290303841,
+    "p90": 1.0,
+    "std": 0.028955255580502867
+  },
+  "worst_ids": [
+    "ISIC_0025526",
+    "ISIC_0027513",
+    "ISIC_0028020",
+    "ISIC_0029389",
+    "ISIC_0029900",
+    "ISIC_0031345",
+    "ISIC_0031686",
+    "ISIC_0029789",
+    "ISIC_0028578",
+    "ISIC_0030835"
+  ]
+}
+--- evaluate_ham10000: 114.7 s (codigo 0)

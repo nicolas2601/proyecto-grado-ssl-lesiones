@@ -1,0 +1,297 @@
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ sleep 20
++ pgrep -f evaluate_segmentation.py
++ cd /home/jovyan/work/proyectonp/repo_final
++ W=/home/jovyan/work/proyectonp/salidas/final
++ for SET in isic2018 ham10000
++ case $SET in
++ IMG=/home/jovyan/work/proyectonp/datos_isic2018/ISIC2018_Task1-2_Training_Input
++ GT=/home/jovyan/work/proyectonp/masks_eval/isic2018/ground_truth
++ python plan-segmentacion/comun/evaluacion/evaluate_segmentation.py --checkpoint /home/jovyan/work/proyectonp/salidas/final/student_r3/best.pt --image-dir /home/jovyan/work/proyectonp/datos_isic2018/ISIC2018_Task1-2_Training_Input --mask-dir /home/jovyan/work/proyectonp/masks_eval/isic2018/ground_truth --eval-name isic2018_tta --output-dir /home/jovyan/work/proyectonp/salidas/final/evaluacion_isic2018_tta --overlay-dir /home/jovyan/work/proyectonp/salidas/final/evaluacion_isic2018_tta/overlays --hausdorff --tta --fst-manifest /home/jovyan/work/proyectonp/salidas/final/fst/fst_pseudo_manifest.csv --batch-size 32 --wandb-project dermssl-segmentacion
+/home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/evaluacion/eval_student.py:64: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  chunk = torch.from_numpy(images[start : start + batch_size]).to(device)
+aviso: seguimiento W&B deshabilitado: el paquete wandb no esta instalado
+{
+  "accuracy": {
+    "ci95_high": 0.9149341015846271,
+    "ci95_low": 0.9060825700780745,
+    "mean": 0.9104506954333392,
+    "median": 0.9561443718112245,
+    "n": 2594,
+    "p10": 0.7761997767857143,
+    "p25": 0.9033003826530612,
+    "p5": 0.6619359853316327,
+    "p75": 0.9723573022959183,
+    "p90": 0.9821767378826531,
+    "std": 0.11624147620494701
+  },
+  "dice": {
+    "ci95_high": 0.7262664612977356,
+    "ci95_low": 0.7093953661989255,
+    "mean": 0.7179679165723752,
+    "median": 0.7917067635631143,
+    "n": 2594,
+    "p10": 0.40244811937865765,
+    "p25": 0.6015765538761166,
+    "p5": 0.23118751602070664,
+    "p75": 0.8933549480029559,
+    "p90": 0.93764932173992,
+    "std": 0.22520442891142553
+  },
+  "hd95": {
+    "ci95_high": 26.788231384097024,
+    "ci95_low": 24.694280819437708,
+    "mean": 25.73909143707799,
+    "median": 13.416407864998739,
+    "n": 2589,
+    "p10": 6.0,
+    "p25": 8.54400374531753,
+    "p5": 5.0,
+    "p75": 32.25114850996502,
+    "p90": 67.42254417703111,
+    "std": 26.805391845520628
+  },
+  "iou": {
+    "ci95_high": 0.6108511549017206,
+    "ci95_low": 0.5926235362916774,
+    "mean": 0.6020471606895134,
+    "median": 0.6552273430376329,
+    "n": 2594,
+    "p10": 0.2519155411009666,
+    "p25": 0.4301821120928333,
+    "p5": 0.13070254398202683,
+    "p75": 0.8072642154554334,
+    "p90": 0.8826175222056725,
+    "std": 0.24315380428826394
+  },
+  "pred_coverage": {
+    "ci95_high": 0.175243353688002,
+    "ci95_low": 0.16415990213292694,
+    "mean": 0.16940992993790616,
+    "median": 0.1185726243622449,
+    "n": 2594,
+    "p10": 0.043797831632653064,
+    "p25": 0.06529017857142858,
+    "p5": 0.031764190051020415,
+    "p75": 0.2354113520408163,
+    "p90": 0.3717733577806123,
+    "std": 0.1425244412635014
+  },
+  "ref_coverage": {
+    "ci95_high": 0.22165627703667365,
+    "ci95_low": 0.20623387153703163,
+    "mean": 0.21401928895714994,
+    "median": 0.1380939094387755,
+    "n": 2594,
+    "p10": 0.02507174744897959,
+    "p25": 0.051638233418367346,
+    "p5": 0.015590122767857144,
+    "p75": 0.3186981823979592,
+    "p90": 0.5227359693877554,
+    "std": 0.2083575148740127
+  },
+  "sensitivity": {
+    "ci95_high": 0.7925827216475471,
+    "ci95_low": 0.7727286781079842,
+    "mean": 0.7828915503890848,
+    "median": 0.909351711660239,
+    "n": 2594,
+    "p10": 0.34867291337814743,
+    "p25": 0.6378995424934477,
+    "p5": 0.20063771996176785,
+    "p75": 0.9985374545913653,
+    "p90": 1.0,
+    "std": 0.26653765952347347
+  },
+  "specificity": {
+    "ci95_high": 0.9741280076473792,
+    "ci95_low": 0.9712457975987706,
+    "mean": 0.9727623525709351,
+    "median": 0.9830029106958078,
+    "n": 2594,
+    "p10": 0.9383501962301167,
+    "p25": 0.9627540386228527,
+    "p5": 0.9119912683780865,
+    "p75": 0.9978529418967818,
+    "p90": 1.0,
+    "std": 0.03905639058069057
+  },
+  "worst_ids": [
+    "ISIC_0005787",
+    "ISIC_0012159",
+    "ISIC_0012245",
+    "ISIC_0012256",
+    "ISIC_0012372",
+    "ISIC_0012464",
+    "ISIC_0012810",
+    "ISIC_0012941",
+    "ISIC_0013120",
+    "ISIC_0013134"
+  ]
+}
++ echo '=== isic2018 codigo 0'
+=== isic2018 codigo 0
++ for SET in isic2018 ham10000
++ case $SET in
++ IMG=/home/jovyan/work/proyectonp/eval_ham10000_images
++ GT=/home/jovyan/work/proyectonp/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl
++ python plan-segmentacion/comun/evaluacion/evaluate_segmentation.py --checkpoint /home/jovyan/work/proyectonp/salidas/final/student_r3/best.pt --image-dir /home/jovyan/work/proyectonp/eval_ham10000_images --mask-dir /home/jovyan/work/proyectonp/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl --eval-name ham10000_tta --output-dir /home/jovyan/work/proyectonp/salidas/final/evaluacion_ham10000_tta --overlay-dir /home/jovyan/work/proyectonp/salidas/final/evaluacion_ham10000_tta/overlays --hausdorff --tta --fst-manifest /home/jovyan/work/proyectonp/salidas/final/fst/fst_pseudo_manifest.csv --batch-size 32 --wandb-project dermssl-segmentacion
+/home/jovyan/work/proyectonp/repo_final/plan-segmentacion/comun/evaluacion/eval_student.py:64: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  chunk = torch.from_numpy(images[start : start + batch_size]).to(device)
+aviso: seguimiento W&B deshabilitado: el paquete wandb no esta instalado
+{
+  "accuracy": {
+    "ci95_high": 0.9053219791147941,
+    "ci95_low": 0.9008119359942868,
+    "mean": 0.903026244275169,
+    "median": 0.9537228954081632,
+    "n": 10015,
+    "p10": 0.7455875318877552,
+    "p25": 0.8873266103316326,
+    "p5": 0.6368463010204082,
+    "p75": 0.9725765306122449,
+    "p90": 0.9815648915816326,
+    "std": 0.12007542225889638
+  },
+  "dice": {
+    "ci95_high": 0.7885113135774517,
+    "ci95_low": 0.7813639777847875,
+    "mean": 0.7848560603483696,
+    "median": 0.8526585079167531,
+    "n": 10015,
+    "p10": 0.5082512413301135,
+    "p25": 0.7114296369915236,
+    "p5": 0.37727798369162346,
+    "p75": 0.9194572368322291,
+    "p90": 0.9480141203857914,
+    "std": 0.18716511787007623
+  },
+  "hd95": {
+    "ci95_high": 22.827303674089176,
+    "ci95_low": 21.88644017719929,
+    "mean": 22.375066301473783,
+    "median": 12.529964086141668,
+    "n": 10009,
+    "p10": 5.385164807134504,
+    "p25": 7.810249675906654,
+    "p5": 4.47213595499958,
+    "p75": 28.220551863031112,
+    "p90": 54.75353432970683,
+    "std": 23.074640076667595
+  },
+  "iou": {
+    "ci95_high": 0.6831619648506634,
+    "ci95_low": 0.674769433157962,
+    "mean": 0.6787816705930856,
+    "median": 0.7431601783777269,
+    "n": 10015,
+    "p10": 0.3407083387823723,
+    "p25": 0.55210771642505,
+    "p5": 0.23249702766969307,
+    "p75": 0.8509216556463923,
+    "p90": 0.9011662027683479,
+    "std": 0.21654798772282852
+  },
+  "pred_coverage": {
+    "ci95_high": 0.20047071736344782,
+    "ci95_low": 0.19543989470593218,
+    "mean": 0.19779693103839138,
+    "median": 0.16310586734693877,
+    "n": 10015,
+    "p10": 0.07028858418367347,
+    "p25": 0.10569794323979592,
+    "p5": 0.0518913424744898,
+    "p75": 0.25887874681122447,
+    "p90": 0.3778898278061225,
+    "std": 0.1286164302196491
+  },
+  "ref_coverage": {
+    "ci95_high": 0.27026560401545324,
+    "ci95_low": 0.2629069997124848,
+    "mean": 0.26638520774323216,
+    "median": 0.22237723214285715,
+    "n": 10015,
+    "p10": 0.06174266581632653,
+    "p25": 0.11921037946428571,
+    "p5": 0.03845264668367347,
+    "p75": 0.37429249043367346,
+    "p90": 0.532505580357143,
+    "std": 0.18868530983263507
+  },
+  "sensitivity": {
+    "ci95_high": 0.7821761883848702,
+    "ci95_low": 0.7724741389713594,
+    "mean": 0.7771193520934733,
+    "median": 0.8684092740130696,
+    "n": 10015,
+    "p10": 0.379211337385844,
+    "p25": 0.6434001122301736,
+    "p5": 0.24307502924813787,
+    "p75": 0.9837488878253675,
+    "p90": 1.0,
+    "std": 0.24660630605190517
+  },
+  "specificity": {
+    "ci95_high": 0.9823669707848035,
+    "ci95_low": 0.9813594319789395,
+    "mean": 0.9818599125711295,
+    "median": 0.9912223947550034,
+    "n": 10013,
+    "p10": 0.9541406550192364,
+    "p25": 0.9715749243590424,
+    "p5": 0.9404203260676435,
+    "p75": 0.9997573345628382,
+    "p90": 1.0,
+    "std": 0.026025404096166316
+  },
+  "worst_ids": [
+    "ISIC_0025038",
+    "ISIC_0025526",
+    "ISIC_0028020",
+    "ISIC_0029389",
+    "ISIC_0029900",
+    "ISIC_0030835",
+    "ISIC_0031345",
+    "ISIC_0028222",
+    "ISIC_0031686",
+    "ISIC_0029789"
+  ]
+}
++ echo '=== ham10000 codigo 0'
+=== ham10000 codigo 0
++ echo FINISHED_PIPE_FINAL
+FINISHED_PIPE_FINAL
