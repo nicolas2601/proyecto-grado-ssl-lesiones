@@ -281,8 +281,19 @@ Lecturas que sostienen las cifras:
   b* > 0), por lo que la brecha habría medido prevalencia de enfermedad. El
   estimador exige ahora b* ≥ 5 (`ita_indeterminate` por debajo, commit
   `c272bdb`) y la estratificación principal pasa a terciles de luminosidad de
-  la piel (`tone_tercile`, commit `bbd9bab`); las cifras por tercil se
-  incorporan con la corrida de estratos sobre ese commit.
+  la piel (`tone_tercile`, commit `bbd9bab`). Con la corrida de estratos
+  sobre ese commit (misma inferencia, métricas globales idénticas), la
+  brecha de Dice en HAM10000 entre el tercil claro (0,862, n = 864) y el
+  oscuro (0,750, n = 4 082) es 0,111, y sobrevive al control por
+  diagnóstico: cae de claro a oscuro dentro de las siete clases, monótona en
+  seis. Es una limitación real del método sin etiquetas (menos contraste
+  lesión/fondo a menor luminosidad), no un artefacto de composición. En
+  ISIC 2018 la brecha (0,055 sobre las 722 imágenes con tono) no se
+  confirma tras controlar por tamaño de lesión y se reporta como no
+  confirmada. Los cortes de tercil son L* 67,25 y 78,59: "oscuro" es el
+  tercio inferior de este pool, no un fototipo oscuro clínico. Detalle en
+  `plan-segmentacion/camino-b-cnn/resultados/README.md`, sección "Tono de
+  piel".
 - Entre piloto y final cambiaron tres cosas, todas sin etiquetas: el detector
   del campo del dermatoscopio (v2, esquinas por brillo relativo o croma de
   piel; ISIC 2020 pasó de 1 975 a 129 campos circulares), la supresión de tinta

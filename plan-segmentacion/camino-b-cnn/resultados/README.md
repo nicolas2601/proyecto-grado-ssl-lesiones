@@ -193,12 +193,57 @@ descartan 147 imagenes con menos de 200 pixeles de piel.
   empobrecida en melanoma (7,57 % frente a 10,92 % global); se reportan solo
   con su n y ese caveat.
 
-### Dice por tercil de luminosidad
+### Dice por tercil de luminosidad (corrida de estratos sobre `bbd9bab`)
 
-PENDIENTE: corrida `--stages fst evaluate` sobre `bbd9bab` con el checkpoint
-final intacto (misma inferencia; solo cambia el bloque de estratos). La tabla
-se llena con `evaluacion_*/summary.json` y `fst/fst_summary.json` de esa
-corrida.
+Misma inferencia que la corrida final (`student_r3/best.pt`, metricas
+globales identicas bit a bit); solo cambia el estimador de tono y el bloque
+de estratos. Fuente: `2026-09-21-final/strata_v2/` (`summary_*.json`,
+`fst_pseudo_manifest_summary.json`); tabla generada desde esos JSON.
+
+Cortes de tercil sobre el pool (n = 54 978 con piel): L* 67,25 y 78,59. El
+tercil "oscuro" es el tercio inferior de ESTE pool (L* medio 62,3 en HAM,
+rango 42,3 a 67,2), no piel oscura en sentido clinico: el pool es
+mayoritariamente piel clara. HAM10000 cae sobre todo en los terciles medio y
+oscuro (864 / 4 876 / 4 082) y ISIC 2020 en el claro (14 754 de 33 126).
+
+| Conjunto | Estrato | n | Dice | IoU |
+|---|---|---|---|---|
+| ISIC 2018 | claro | 260 | 0,820 | 0,718 |
+| ISIC 2018 | medio | 304 | 0,802 | 0,695 |
+| ISIC 2018 | oscuro | 158 | 0,765 | 0,646 |
+| ISIC 2018 | sin tono (fuera del pool) | 1 872 | 0,686 | 0,566 |
+| ISIC 2018 | brecha claro - oscuro | | 0,055 | |
+| HAM10000 | claro | 864 | 0,862 | 0,774 |
+| HAM10000 | medio | 4 876 | 0,803 | 0,699 |
+| HAM10000 | oscuro | 4 082 | 0,750 | 0,636 |
+| HAM10000 | sin tono (cuarentena) | 193 | 0,703 | 0,637 |
+| HAM10000 | brecha claro - oscuro | | 0,111 | |
+
+Lectura:
+
+- HAM10000 es el conjunto principal de equidad. La brecha de 0,111 NO es
+  composicion por diagnostico: dentro de cada una de las siete clases el
+  Dice cae de claro a oscuro (nv 0,872 / 0,840 / 0,801; mel 0,892 / 0,831 /
+  0,741; bkl 0,886 / 0,754 / 0,637; bcc 0,716 / 0,610 / 0,517), monotono en
+  seis de siete y en las cuatro clases mayoritarias la brecha es mayor que
+  la global (`fst_diagnostico_v2/diag_dx_por_tercil.txt`).
+- El mecanismo mas plausible es fisico, no un sesgo aprendido: a menor
+  luminosidad de la piel hay menos contraste lesion/fondo y un metodo sin
+  etiquetas que parte de saliencia sufre mas. Es una limitacion del enfoque
+  que hay que declarar, y la motivacion directa de la adaptacion de tono
+  de la etapa siguiente.
+- ISIC 2018 es secundario: el tono solo existe para las 722 imagenes dentro
+  del pool (las 1 872 restantes no tienen pseudo-mascara con que medir la
+  piel) y el control por tamano de lesion no confirma el efecto: el tercil
+  oscuro tiene 2,5 veces mas lesiones grandes, la brecha se concentra en la
+  banda 0,25 a 0,60 (0,102) y desaparece o se invierte en las bandas
+  pequenas (`fst_diagnostico_v2/diag_isic2018_tercil_tamano.txt`). Se
+  reporta como "no confirmado en el conjunto externo".
+- Los buckets ITA de Groh sobreviven solo con b* >= 5 (31 397 de 58 457,
+  el 74 % en el bucket 1; del antiguo bucket 6 quedan 198 en todo el pool) y
+  son una submuestra empobrecida en melanoma; no se usan para equidad.
+- Los intervalos de confianza por estrato (bootstrap, commit `5d947ea`) se
+  incorporan con el relanzamiento de la evaluacion.
 
 ## Tamano de la lesion
 
@@ -303,10 +348,11 @@ detecten. Con la corrida final:
   lado) al construir el conjunto de piel. `fst_pseudo_manifest.py` ya excluye
   ademas la banda ignorada y el exterior del campo.
 - Tono de piel: la brecha entre buckets ITA publicada antes (0,027) queda
-  retirada porque el bucket media el signo de b*, no el tono (ver "Tono de
-  piel"). La equidad de la segmentacion se reporta por terciles de
-  luminosidad de la piel, con el caveat de confusion por diagnostico, y se
-  actualiza con la corrida de estratos sobre `bbd9bab`.
+  retirada porque el bucket media el signo de b*, no el tono. Por terciles
+  de luminosidad de la piel la brecha real en HAM10000 es 0,111 (claro
+  0,862, oscuro 0,750) y sobrevive al control por diagnostico: la
+  segmentacion sin etiquetas rinde peor en piel menos luminosa, y eso es
+  lo que la etapa de adaptacion de tono debe atacar (ver "Tono de piel").
 
 Conclusion: es utilizable ya como paso previo del ITA y del clasificador, con
 la dilatacion anterior y respetando la cuarentena. Donde no es utilizable sin

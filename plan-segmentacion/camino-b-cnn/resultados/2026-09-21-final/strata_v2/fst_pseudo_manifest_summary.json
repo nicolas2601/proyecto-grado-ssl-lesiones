@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.1",
+  "field_used": true,
+  "summary": {
+    "total": 58457,
+    "tone_tercile_cuts": {
+      "low": 67.24953398535378,
+      "high": 78.58754257482624,
+      "n": 54978
+    },
+    "by_dataset": {
+      "ham10000_p1": {
+        "n": 5000,
+        "states": {
+          "ita_indeterminate": 2342,
+          "ok": 2547,
+          "quarantine": 111
+        },
+        "ITA": {
+          "mean": 56.87699932466651,
+          "median": 60.073065559435626,
+          "std": 15.95898381166946,
+          "n": 2547
+        },
+        "FST_distribution": {
+          "1": 2165,
+          "2": 281,
+          "3": 70,
+          "4": 26,
+          "5": 5
+        },
+        "tone_distribution": {
+          "dark": 1963,
+          "medium": 2500,
+          "light": 426
+        }
+      },
+      "ham10000_p2": {
+        "n": 5015,
+        "states": {
+          "ita_indeterminate": 3203,
+          "ok": 1730,
+          "quarantine": 82
+        },
+        "ITA": {
+          "mean": 56.829977508213865,
+          "median": 59.9215002796448,
+          "std": 15.847666867461564,
+          "n": 1730
+        },
+        "FST_distribution": {
+          "1": 1477,
+          "2": 188,
+          "3": 47,
+          "4": 13,
+          "5": 4,
+          "6": 1
+        },
+        "tone_distribution": {
+          "dark": 2119,
+          "medium": 2376,
+          "light": 438
+        }
+      },
+      "isic2019": {
+        "n": 15316,
+        "states": {
+          "ita_indeterminate": 7449,
+          "ok": 6287,
+          "quarantine": 1580
+        },
+        "ITA": {
+          "mean": 51.72404029809327,
+          "median": 56.85268932299726,
+          "std": 22.19763104666254,
+          "n": 6287
+        },
+        "FST_distribution": {
+          "1": 4543,
+          "2": 993,
+          "3": 386,
+          "4": 230,
+          "5": 106,
+          "6": 29
+        },
+        "tone_distribution": {
+          "dark": 5274,
+          "medium": 5755,
+          "light": 2707
+        }
+      },
+      "isic2020": {
+        "n": 33126,
+        "states": {
+          "ita_indeterminate": 10587,
+          "ok": 20833,
+          "quarantine": 1706
+        },
+        "ITA": {
+          "mean": 52.35946094830603,
+          "median": 58.86811783289861,
+          "std": 24.81262933992693,
+          "n": 20833
+        },
+        "FST_distribution": {
+          "1": 15148,
+          "2": 2862,
+          "3": 1203,
+          "4": 814,
+          "5": 638,
+          "6": 168
+        },
+        "tone_distribution": {
+          "dark": 8970,
+          "medium": 7696,
+          "light": 14754
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+"""ISIC2018: el gap por tono se explica por el tamano de la lesion?
+
+En ISIC2018 solo 722 de 2594 imagenes tienen tercil de tono (el resto esta
+fuera del pool y no tiene pseudo-mascara con la que medir la piel). No hay
+diagnostico para ISIC2018, asi que el control por dx no aplica. El unico
+confusor cruzable es el tamano de la lesion: si el tercil oscuro concentra
+lesiones grandes, que ya sabemos que se segmentan peor, el gap seria eso.
+
+Lee el manifiesto NUEVO (schema 1.1). Solo lectura.
+"""
+import csv
+
+import numpy as np
+
+ROOT = "/home/jovyan/work/proyectonp"
+TERCILES = ["light", "medium", "dark"]
+BANDAS = [(0.0, 0.10), (0.10, 0.25), (0.25, 0.60), (0.60, 1.01)]
+MIN_N = 30
+
+ter = {r["image_id"]: r["tone_tercile"]
+       for r in csv.DictReader(open(f"{ROOT}/salidas/final/fst/fst_pseudo_manifest.csv"))}
+filas = [r for r in csv.DictReader(open(f"{ROOT}/salidas/final/evaluacion_isic2018/per_image.csv"))
+         if r["dice"] not in ("", "nan") and r["ref_coverage"] not in ("", "nan")]
+dice = {r["image_id"]: float(r["dice"]) for r in filas}
+cov = {r["image_id"]: float(r["ref_coverage"]) for r in filas}
+
+ids = [i for i in dice if ter.get(i) in TERCILES]
+print(f"ISIC2018 evaluadas: {len(dice)}")
+print(f"ISIC2018 con tercil de tono (dentro del pool): {len(ids)}")
+
+
+def banda(v):
+    for lo, hi in BANDAS:
+        if lo <= v < hi:
+            return f"[{lo:.2f},{hi:.2f})"
+    return None
+
+
+print()
+print("=== Composicion: % de cada banda de ref_coverage dentro de cada tercil ===")
+etiquetas = [f"[{lo:.2f},{hi:.2f})" for lo, hi in BANDAS]
+print(f"{'tercil':8s} {'n':>5s}  " + "".join(f"{e:>15s}" for e in etiquetas))
+for t in TERCILES:
+    g = [i for i in ids if ter[i] == t]
+    pct = "".join(f"{100 * sum(1 for i in g if banda(cov[i]) == e) / len(g):14.1f}%" for e in etiquetas)
+    print(f"{t:8s} {len(g):5d}  {pct}")
+
+print()
+print("=== Dice por tercil DENTRO de cada banda de tamano ===")
+print(f"(se omite una celda con menos de {MIN_N} imagenes)")
+print(f"{'banda':15s} " + "".join(f"{t:>20s}" for t in TERCILES) + "      gap")
+for e in etiquetas:
+    fila = []
+    for t in TERCILES:
+        v = [dice[i] for i in ids if ter[i] == t and banda(cov[i]) == e]
+        fila.append((float(np.mean(v)) if len(v) >= MIN_N else None, len(v)))
+    celdas = "".join(
+        f"{(f'{m:.4f} (n={n})' if m is not None else f'-- (n={n})'):>20s}" for m, n in fila)
+    vals = [m for m, _ in fila if m is not None]
+    gap = f"{max(vals) - min(vals):+.4f}" if len(vals) >= 2 else "--"
+    print(f"{e:15s} {celdas}  {gap}")
+
+print()
+print("=== Global sobre las mismas imagenes, para comparar ===")
+medias = []
+for t in TERCILES:
+    v = [dice[i] for i in ids if ter[i] == t]
+    medias.append(float(np.mean(v)))
+    print(f"  {t:8s} n={len(v):5d} Dice {medias[-1]:.4f}")
+print(f"  gap global (claro - oscuro): {medias[0] - medias[2]:+.4f}")
