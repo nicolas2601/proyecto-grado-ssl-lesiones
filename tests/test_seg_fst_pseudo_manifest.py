@@ -349,7 +349,7 @@ def test_output_csv_writes_one_bucket_per_image(tmp_path):
     )
 
     rows = _csv_rows(csv_path)
-    assert list(rows[0]) == ["image_id", "fst_bucket"]
+    assert list(rows[0])[:2] == ["image_id", "fst_bucket"]
     assert [row["image_id"] for row in rows] == ["img-a"]
     assert rows[0]["fst_bucket"] == str(output["records"][0]["FST_bucket"])
     assert rows[0]["fst_bucket"] in {"1", "2", "3", "4", "5", "6"}
@@ -394,3 +394,95 @@ def test_without_output_csv_no_bucket_table_is_written(tmp_path):
     assert args.output_csv is None
     fpm.run(args)
     assert not (tmp_path / "fst.csv").exists()
+
+
+# ------------------------------------------------ skin medians and tone terciles
+def _write_three_tone_fixture(tmp_path):
+    """Three skin tones (dark, medium, light) sharing one lesion geometry."""
+    tones = {"img-dark": (120, 80, 60), "img-mid": (180, 130, 100), "img-light": (235, 200, 180)}
+    lines = ["index,dataset,image_id,path,split"]
+    for index, (image_id, rgb) in enumerate(tones.items()):
+        image_path = tmp_path / "images" / f"{image_id}.png"
+        image_path.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (8, 8), rgb).save(image_path)
+        lines.append(f"{index},ham10000,{image_id},{image_path},train")
+    manifest_path = tmp_path / "manifest.csv"
+    manifest_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    masks = np.zeros((3, 8, 8), dtype=np.uint8)
+    masks[:, 2:5, 2:5] = 1
+    masks_path = tmp_path / "pseudo_masks.npy"
+    np.save(masks_path, masks)
+    return manifest_path, masks_path
+
+
+def _run(tmp_path, manifest_path, masks_path, *extra):
+    return fpm.run(
+        fpm.parse_args(
+            ["--manifest", str(manifest_path), "--pseudo-masks", str(masks_path),
+             "--output-json", str(tmp_path / "fst_manifest.json"), *extra]
+        )
+    )
+
+
+def test_records_carry_the_skin_medians_and_the_pixel_count(tmp_path):
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    row = _run(tmp_path, manifest_path, masks_path)["records"][0]
+    assert isinstance(row["L_median"], float) and 0 < row["L_median"] < 100
+    assert isinstance(row["b_median"], float)
+    assert row["n_skin_px"] == 64 - 9 - 2
+
+
+def test_an_indeterminate_ita_keeps_its_status_and_medians_without_a_bucket(tmp_path):
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    Image.new("RGB", (8, 8), (150, 155, 190)).save(tmp_path / "images" / "ham" / "image-a.png")
+    row = _run(tmp_path, manifest_path, masks_path)["records"][0]
+    assert row["status"] == "ita_indeterminate"
+    assert row["FST_bucket"] == "unavailable"
+    assert row["ITA"] is None
+    assert row["b_median"] < 0
+    assert row["quality"] == "invalid_estimate:ita_indeterminate"
+
+
+def test_tone_terciles_split_the_pool_by_skin_lightness(tmp_path):
+    manifest_path, masks_path = _write_three_tone_fixture(tmp_path)
+    output = _run(tmp_path, manifest_path, masks_path)
+    terciles = {row["image_id"]: row["tone_tercile"] for row in output["records"]}
+    assert terciles == {"img-dark": "dark", "img-mid": "medium", "img-light": "light"}
+    cuts = output["summary"]["tone_tercile_cuts"]
+    assert cuts["low"] < cuts["high"]
+    assert output["summary"]["by_dataset"]["ham10000"]["tone_distribution"] == {
+        "dark": 1, "medium": 1, "light": 1
+    }
+
+
+def test_tone_terciles_still_cover_images_whose_ita_is_indeterminate(tmp_path):
+    manifest_path, masks_path = _write_three_tone_fixture(tmp_path)
+    Image.new("RGB", (8, 8), (150, 155, 190)).save(tmp_path / "images" / "img-mid.png")
+    output = _run(tmp_path, manifest_path, masks_path)
+    rows = {row["image_id"]: row for row in output["records"]}
+    assert rows["img-mid"]["FST_bucket"] == "unavailable"
+    assert rows["img-mid"]["tone_tercile"] in {"dark", "medium", "light"}
+
+
+def test_images_without_skin_get_no_tone_tercile(tmp_path):
+    manifest_path, masks_path = _write_three_tone_fixture(tmp_path)
+    masks = np.load(masks_path)
+    masks[1] = 0
+    np.save(masks_path, masks)
+    output = _run(tmp_path, manifest_path, masks_path)
+    rows = {row["image_id"]: row for row in output["records"]}
+    assert rows["img-mid"]["tone_tercile"] == "unavailable"
+    assert rows["img-mid"]["n_skin_px"] == 0
+    assert output["summary"]["tone_tercile_cuts"]["n"] == 2
+
+
+def test_output_csv_carries_the_tone_and_the_medians(tmp_path):
+    manifest_path, masks_path = _write_three_tone_fixture(tmp_path)
+    csv_path = tmp_path / "fst.csv"
+    _run(tmp_path, manifest_path, masks_path, "--output-csv", str(csv_path))
+    rows = _csv_rows(csv_path)
+    assert list(rows[0]) == [
+        "image_id", "fst_bucket", "tone_tercile", "status", "L_median", "b_median", "ita", "n_skin_px"
+    ]
+    assert [row["tone_tercile"] for row in rows] == ["dark", "medium", "light"]
+    assert all(row["n_skin_px"] == "55" for row in rows)

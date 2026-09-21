@@ -53,6 +53,7 @@
   },
   "evaluate": {
     "batch_size": 32,
-    "hausdorff": true
+    "hausdorff": true,
+    "strata_column": "tone_tercile"
   }
 }
