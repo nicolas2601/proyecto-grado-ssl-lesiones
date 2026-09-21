@@ -1,0 +1,8 @@
+# Artefactos pesados: pseudo-mascaras, cache de imagenes, checkpoints.
+# Los resultados livianos (JSON, CSV, figuras pequenas) si se versionan en resultados/.
+**/salidas/
+*.pt
+*.pth
+*.ckpt
+*.npy
+*.npz

@@ -11,9 +11,120 @@
 
 El proyecto estudia si las representaciones aprendidas mediante aprendizaje autosupervisado pueden mejorar la clasificación de lesiones cutáneas y, al mismo tiempo, permitir una evaluación explícita del comportamiento del modelo frente a diferencias de tono de piel. La implementación combina un protocolo reproducible de datos, división anti-fuga, estimación del tono mediante Fitzpatrick Skin Type (FST), entrenamiento SSL sin etiquetas clínicas y una propuesta de mitigación mediante CIRCLe.
 
-La conclusión actual debe dividirse en dos niveles. Primero, el diagnóstico FST inicial ya tiene ejecuciones completas sobre HAM10000, ISIC2019 e ISIC2020 con fallback Otsu. La máscara operacional cambia la asignación de bucket en 18,2 %, 27,5 % y 16,9 % de los casos comparables, respectivamente. Después, la corrida V2 con U-Net entrenada durante 20 épocas seleccionó la época 13 como mejor checkpoint, con Dice de validación 0,85538 e IoU 0,74731; con ese modelo, el cambio de bucket fue 12,2 %, 22,1 % y 13,8 %.
+La conclusión actual debe dividirse en dos niveles. Primero, el diagnóstico FST inicial ya tiene ejecuciones completas sobre HAM10000, ISIC2019 e ISIC2020 con fallback Otsu. La máscara operacional cambia la asignación de bucket en 18,2 %, 27,5 % y 16,9 % de los casos comparables, respectivamente. La documentación histórica también reporta una corrida V2 con U-Net entrenada durante 20 épocas, pero sus artefactos no están versionados y queda pendiente de verificación reproducible; por tanto, sus cifras no son evidencia local demostrada.
 
 Segundo, la infraestructura SSL/CIRCLe está preparada en buena parte, pero Stage 1 y Stage 2 CIRCLe todavía no cuentan con una ejecución GPU real dentro de este checkout. El resumen Kaggle v5 disponible está marcado como smoke y no es válido como resultado de tesis. El proyecto tiene evidencia fuerte de preparación, diagnóstico FST y contratos de ejecución, pero todavía no debe afirmar una mejora de fairness producida por CIRCLe.
+
+## Actualización corriente de María — Work Unit A (2026-09-20)
+
+Esta sección separa el estado actual del alcance de María de las secciones
+históricas anteriores. No reemplaza sus cifras ni su procedencia.
+
+### Alcance activo
+
+| Línea | Estado actual | Afirmación permitida |
+|---|---|---|
+| Segmentación CNN sin etiquetas | En desarrollo y con contratos/tests locales | El Camino B entrena con imágenes sin máscaras clínicas ni etiquetas clínicas |
+| ITA/FST | Implementado como evaluación posterior | Se puede medir el efecto de una máscara y reportar cobertura |
+| ADA por tono de piel | Preparada, sin ejecución final | Se puede evaluar una adaptación; no se puede afirmar mejora todavía |
+| FST/ITA + CIRCLe | Gate Stage 1/Stage 2 definido | CIRCLe solo se ejecuta si Stage 1 devuelve `FAIL` |
+
+### Régimen de etiquetas
+
+| Momento | Usa etiquetas o máscaras | Lectura científica |
+|---|---|---|
+| Contraste contrastivo | No | Usa imágenes crudas; no consume máscaras clínicas, etiquetas de diagnóstico, etiquetas FST ni máscaras ground-truth de ISIC2018 |
+| CCAM y generación de pseudo-máscaras | No | Usa imágenes/features del pipeline y produce pseudo-máscaras; no consume esas etiquetas o máscaras ground-truth |
+| Entrenamiento del estudiante r1/r2 | Sí, solo pseudo-máscaras generadas | El estudiante consume las pseudo-máscaras generadas por el pipeline, no máscaras clínicas, etiquetas de diagnóstico, etiquetas FST ni máscaras ground-truth de ISIC2018 |
+| Evaluación | Sí, cuando están disponibles | Las máscaras reales se leen únicamente para medir Dice, IoU, ITA/FST y cobertura |
+
+Las máscaras ground-truth de ISIC2018 solo pueden describirse como insumo de
+una segmentación auxiliar histórica de U-Net; no forman parte del reclamo de
+entrenamiento SSL/Camino B de la tesis. Confundir la evaluación o la
+segmentación auxiliar con el entrenamiento del estudiante sería una afirmación
+rechazada por el protocolo.
+
+### Camino B r1/r2 y cuarentena ITA/FST
+
+| Evidencia | Estado | Conteo verificable en este checkout |
+|---|---|---:|
+| `student_r1` | Pendiente de corrida versionada | No hay `best.pt`, `metrics.jsonl` ni `summary.json` comprometidos |
+| `student_r2` | Pendiente de corrida versionada | No hay `best.pt`, `metrics.jsonl` ni `summary.json` comprometidos |
+| Manifiesto pseudo-máscaras -> ITA/FST | Implementado | La cuarentena se registra por imagen; no hay ejecución de bundle que permita sumar casos |
+| FST V2 histórico con U-Net | Reportado históricamente; pendiente de verificación reproducible | HAM10000: 0; ISIC2019: 19; ISIC2020: 88 máscaras degeneradas |
+
+Los conteos 0/19/88 pertenecen a la corrida FST V2 descrita arriba, no son
+conteos de r1/r2. Para r1/r2 el estado correcto es **pendiente**, no cero.
+Una fila en `quarantine` no recibe ITA/FST inventado; queda fuera de los casos
+comparables y se conserva en la cobertura.
+
+### SegRNorm/SegXNorm
+
+| Diagnóstico | Estado | Interpretación |
+|---|---|---|
+| Fórmulas RNorm/XNorm y contratos de entrada | Probado con tests sintéticos | Baseline diagnóstico aislado, no reproducción exacta del paper |
+| Degeneración de canal en imágenes constantes | Probado | Se marca `degenerate_channel`; no se fabrica una máscara |
+| Polaridad bright/dark | Implementada y probada | La polaridad bright es el default histórico; el paper no la desambigua |
+| ROI circular | Implementado y probado | Excluye borde negro; la geometría es una hipótesis explícita |
+| Gaussian enmastrado por ROI | Implementado y probado | No mezcla píxeles externos al ROI |
+| Resultado sobre datasets reales | Pendiente | No hay corrida real versionada ni conclusión sobre calidad clínica |
+
+La degeneración bright/dark y la mejora operativa de ROI circular/Gaussian son
+diagnósticos de implementación. No demuestran que SegRNorm o SegXNorm superen
+Camino B ni que resuelvan el sesgo en piel oscura.
+
+### Bundles, ejecuciones y límites científicos
+
+- **Probado:** existen contratos, pruebas estáticas, el driver de Camino B, el
+  adaptador de pseudo-máscaras y el baseline SegRNorm/SegXNorm.
+- **Pendiente:** corrida GPU reproducible de Camino B, artefactos r1/r2,
+  `stage1_results.json`, evaluación por FST y cualquier `evaluation.json` real
+  de CIRCLe.
+- **Rechazado:** tratar smoke, código compilable, pseudo-máscaras o un bundle
+  construido como resultado de tesis; atribuir una mejora de fairness sin
+  comparación pareada contra baseline; llamar supervisado al entrenamiento sin
+  etiquetas.
+
+Las limitaciones vigentes incluyen ausencia de GPU en este entorno, falta de
+validación clínica externa independiente, dependencia de la calidad de las
+pseudo-máscaras y circularidad de seleccionar checkpoints por acuerdo con
+pseudo-etiquetas. HAM10000 contenido en ISIC2019 continúa impidiendo tratar
+ambas evaluaciones como independientes.
+
+### CI y próximos pasos (seguimiento separado, fuera de este commit)
+
+Esta subsección conserva la evidencia del reporte del viernes sobre el estado de
+CI. Las correcciones y ajustes de CI no forman parte de este commit: CI queda
+como un asunto local/separado, con validación remota aún pendiente.
+
+| Control | Estado al 2026-09-20 |
+|---|---|
+| Verificación local/CI-like | La ejecución local fechada 2026-09-20 valida los controles disponibles; la validación CI remota permanece pendiente. La suite completa no se presenta aquí mediante un conteo fijo porque cambia con el checkout y el entorno. Este control queda fuera de este commit. |
+| Regresión `Path.rglob` | Corrección reportada por separado, fuera de este commit: `os.walk(..., followlinks=True)` y test focal |
+| Matriz Python 3.11/3.12/3.13 | Ajuste reportado por separado, fuera de este commit; mantiene el job puro-Python sin tests Torch |
+| Tests Torch | Separación reportada por separado, fuera de este commit, en job Python 3.12 con `requirements-pretrain.txt`; CI remoto aún pendiente |
+| Notebooks generados | El workflow conserva la regeneración y el chequeo de frescura; este estado queda fuera de este commit |
+
+La ejecución local en Windows con Python 3.14 no equivale a una corrida CI
+remota completa: `tests/test_finetune_protocol.py` tiene un bloqueo
+preexistente y específico del entorno, documentado como `WinError 50` en este
+protocolo de verificación. Por tanto, no se interpreta como una suite exitosa
+ni como evidencia de que CI remoto ya haya pasado. La matriz aprobada de CI
+mantiene la separación de los tests Torch en Python 3.12 y conserva los checks
+de archivos generados.
+
+Próximos pasos de María: ejecutar y versionar r1/r2 con hashes y `run_config`,
+generar el manifiesto ITA/FST con sus conteos de cuarentena, completar Stage 1,
+y ejecutar Stage 2 solo si el gate lo exige. Después deben reportarse métricas
+por bucket, intervalos de confianza y cobertura antes de interpretar ADA.
+
+### Límite de conservación para este cleanup
+
+En esta unidad no se mueven, eliminan ni archivan carpetas o archivos. El
+ámbito de María comprende Camino B, evaluación ITA/FST, SegRNorm/SegXNorm,
+ADA/CIRCLe y sus pruebas/ajustes asociados. `INFORME.md` de Nico, el
+`README.md` compartido, notebooks históricos y ramas remotas quedan fuera de
+este ámbito y no se presentan como artefactos propios de María.
 
 ## 1. Problema y motivación
 
@@ -95,9 +206,15 @@ El principal problema observado está en los tonos oscuros. En Fitzpatrick17k-C,
 
 #### Qué se puede afirmar sobre U-Net
 
-El pipeline GPU de U-Net se ejecutó durante 20 épocas sobre ISIC2018 Task 1 y luego se utilizó para generar las máscaras del conjunto objetivo HAM10000. El mejor punto de control se obtuvo en la época 13, con `val_dice=0,85538` y `val_iou=0,74731`; por ello, el checkpoint seleccionado no corresponde a la última época, sino al mejor desempeño de validación.
+La documentación de la corrida V2 histórica reporta que el pipeline GPU de
+U-Net se ejecutó durante 20 épocas sobre ISIC2018 Task 1 y luego se utilizó
+para generar máscaras del conjunto objetivo HAM10000. El mejor punto de
+control reportado sería la época 13, con `val_dice=0,85538` y
+`val_iou=0,74731`; sin el log o JSON versionado, esta afirmación queda
+pendiente de verificación reproducible y no debe presentarse como resultado
+probado del checkout.
 
-Nota de trazabilidad: la arquitectura implementada es una U-Net clásica de 4 etapas (32/64/128/256 canales, cerca de 7,77 M de parámetros; `src/dermssl/torch_unet.py`), no una DoubleU-Net. Las cifras V2 de esta sección (Dice, IoU, época 13 y cambios de bucket 12,2 %, 22,1 % y 13,8 %) provienen de una corrida en Kaggle cuyo log o JSON no está versionado en este repositorio; por eso no pueden verificarse desde un clon. Los resultados con fallback Otsu sí se respaldan con los JSON locales `resultados_fst_v3_*`, ignorados por git.
+Nota de trazabilidad: la arquitectura implementada es una U-Net clásica de 4 etapas (32/64/128/256 canales, cerca de 7,77 M de parámetros; `src/dermssl/torch_unet.py`), no una DoubleU-Net. Las cifras V2 de esta sección (Dice, IoU, época 13 y cambios de bucket 12,2 %, 22,1 % y 13,8 %) provienen de una corrida en Kaggle cuyo log o JSON no está versionado en este repositorio; por eso no pueden verificarse desde un clon. Las referencias `resultados_fst_v3_*` son salidas históricas no versionadas: pueden existir en un entorno de trabajo, pero no son evidencia local verificable desde un clon limpio.
 
 | Época | Train loss | Val loss | Val Dice | Val IoU |
 |---:|---:|---:|---:|---:|
@@ -136,7 +253,12 @@ El contraste con Fitzpatrick17k-C también debe leerse como validación externa 
 
 El protocolo separa el preentrenamiento de la evaluación clínica. Se consideran representaciones SSL, incluyendo DINOv2 y SimSiam, y baselines supervisados como ResNet50 ImageNet. Las comparaciones deben conservar el mismo split, semillas, resolución, backbone congelado y protocolo de probe.
 
-El repositorio contiene resultados históricos de bancos Kaggle y una corrida v5 de smoke. El archivo results/kaggle_v3_download/RESULTS_SUMMARY_v5.json declara explícitamente SMOKE (números NO validos). Aunque su rejilla completa reporta 12/12 ejecuciones sin error y backbone congelado, el gate de sanity kNN no pasa el umbral: AUC 0,794 frente al criterio mayor que 0,80. Por eso esos números sirven para verificar contratos y conectividad del flujo, no para sostener una conclusión experimental final.
+La documentación conserva resultados históricos de bancos Kaggle y una corrida
+v5 de smoke. `results/kaggle_v3_download/RESULTS_SUMMARY_v5.json` no está
+versionado en este checkout; sus cifras son evidencia histórica/externa y no
+son localmente verificables desde un clon limpio. La documentación histórica
+marca esa corrida como SMOKE y describe un gate kNN inferior al umbral, por lo
+que no sostiene una conclusión experimental final.
 
 ## 6. Contratos de ejecución y frescura de resultados
 
@@ -152,7 +274,9 @@ La primera parte del flujo completo implementó contratos para:
 
 Un JSON válido por estructura no es suficiente. También debe coincidir el token de ejecución, el modo smoke/real y el contrato de la corrida actual. Esto evita que un resultado anterior parezca ser la salida de una ejecución nueva.
 
-Los reportes históricos registran 37 pruebas y un skip para Task 1, y 49 pruebas focales para Task 2. Estas cifras son evidencia de los reportes guardados, no una nueva ejecución realizada durante esta consolidación.
+Los reportes históricos de Task 1 y Task 2 se conservan como evidencia externa
+de esas corridas. No son una nueva ejecución realizada durante esta
+consolidación ni un conteo verificable del checkout actual.
 
 ## 7. CIRCLe y puerta de Stage 2
 
@@ -184,9 +308,9 @@ La implementación local contiene piezas de transformación, contratos y un runn
 | Área | Estado | Evidencia |
 |---|---|---|
 | Inventario y splits | Implementado | pool_manifest.py, data_resolver.py y OpenSpec |
-| Diagnóstico FST | Ejecutado en tres datasets | resultados_fst_v3_*/*.json |
-| U-Net V2 para máscaras | Ejecutado: 20 épocas; mejor checkpoint en época 13 | `val_dice=0,85538`, `val_iou=0,74731`; resultados V2 por dataset |
-| FST V2 con máscaras U-Net | Ejecutado | HAM10000 12,2 %; ISIC2019 22,1 %; ISIC2020 13,8 % de cambios de bucket |
+| Diagnóstico FST | Reportado históricamente; pendiente de verificación en un clon limpio | `resultados_fst_v3_*/*.json` no versionados |
+| U-Net V2 para máscaras | Reportado históricamente; pendiente de verificación reproducible | `val_dice=0,85538`, `val_iou=0,74731`; no hay log o JSON versionado |
+| FST V2 con máscaras U-Net | Reportado históricamente; pendiente de verificación reproducible | HAM10000 12,2 %; ISIC2019 22,1 %; ISIC2020 13,8 % de cambios de bucket |
 | Contratos de experimento | Implementados localmente | experiment_contract.py, run_contract.py |
 | Frescura Kaggle | Implementada y reportada | task-2-report.md |
 | Stage 1 | Brief y piezas parciales | task-3-brief.md; falta artefacto real |
@@ -260,7 +384,7 @@ Esta sección define qué debe viajar al repositorio y qué debe permanecer loca
 | Etapa | Estado | Se puede afirmar actualmente |
 |---|---|---|
 | FST inicial con fallback Otsu | Terminada | Se identificó la sensibilidad de ITA y el sesgo en tonos oscuros |
-| U-Net V2 y FST enmascarado | Terminada | Se obtuvo Dice 0,85538, IoU 0,74731 y resultados por dataset |
+| U-Net V2 y FST enmascarado | Reportada históricamente; pendiente de verificación reproducible | Se reportan Dice 0,85538, IoU 0,74731 y resultados por dataset, sin artefactos versionados |
 | Construcción del manifest y control de calidad | Parcialmente terminada | Hay contratos, confianza y cuarentena; falta congelar el artefacto final V6 |
 | Stage 1 del clasificador V6 | Pendiente | Falta la ejecución GPU con evaluación por FST |
 | Domain adaptation CIRCLe | Pendiente de ejecución | Falta entrenar regularización y synthetic blend con datos reales |
@@ -269,7 +393,11 @@ Esta sección define qué debe viajar al repositorio y qué debe permanecer loca
 
 La U-Net y el análisis FST ya aportan la medición y la evidencia del problema. La mejora de fairness del clasificador solo podrá declararse después de ejecutar y comparar Stage 1, regularización y synthetic blend bajo el mismo split, semillas y backbone. Los resultados actuales deben presentarse como diagnóstico, preparación y control de calidad, no como resultado final de adaptación de dominio.
 
-## Fuentes internas
+## Fuentes internas y evidencia histórica
+
+Las rutas de resultados que siguen son referencias históricas o externas. No
+constituyen artefactos versionados ni evidencia local verificable desde un clon
+limpio; las cifras asociadas deben conservar esa calificación.
 
 - docs/19-resultados-bancos-congelados.md
 - docs/20-validacion-externa-fst-fitzpatrick17k.md
