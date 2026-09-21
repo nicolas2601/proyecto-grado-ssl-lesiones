@@ -255,11 +255,23 @@ def fst_manifest_csv(work: Path) -> Path:
 
 
 def _fst_manifest_flags(config: PipelineConfig, work: Path) -> list[str]:
-    """An explicit manifest wins; otherwise the one the ``fst`` stage is about to write."""
+    """An explicit manifest wins; otherwise the one the ``fst`` stage writes.
+
+    Without the ``fst`` stage the CSV of a previous run still counts when it is
+    on disk. When the preset asks for strata and no manifest exists anywhere,
+    fail here: an evaluation that silently drops the strata block is worse
+    than one that does not start.
+    """
     if config.fst_manifest:
         return ["--fst-manifest", config.fst_manifest]
-    if "fst" in config.stages:
-        return ["--fst-manifest", str(fst_manifest_csv(work))]
+    deduced = fst_manifest_csv(work)
+    if "fst" in config.stages or deduced.is_file():
+        return ["--fst-manifest", str(deduced)]
+    if _section(config.preset, "evaluate").get("strata_column"):
+        raise ValueError(
+            "the preset sets evaluate.strata_column but no FST manifest exists: pass "
+            f"--fst-manifest, include the fst stage or produce {deduced}"
+        )
     return []
 
 
