@@ -96,16 +96,21 @@ mediana de L* de la piel sobre el pool (`tone_tercile`, commit `bbd9bab`),
 cortes 67,25 y 78,59. "Oscuro" es el tercio inferior de este pool (L* medio
 62 en HAM10000), no un fototipo oscuro clinico.
 
-| Conjunto | Estrato | n | Dice | IoU |
-|---|---|---|---|---|
-| HAM10000 | claro | 864 | 0,862 | 0,774 |
-| HAM10000 | medio | 4 876 | 0,803 | 0,699 |
-| HAM10000 | oscuro | 4 082 | 0,750 | 0,636 |
-| HAM10000 | brecha claro - oscuro | | 0,111 | |
-| ISIC 2018 (722 con tono) | claro | 260 | 0,820 | 0,718 |
-| ISIC 2018 (722 con tono) | oscuro | 158 | 0,765 | 0,646 |
-| ISIC 2018 (722 con tono) | brecha claro - oscuro | | 0,055 | |
+| Conjunto | Estrato | n | Dice medio [IC 95 %] | IoU | HD95 mediana |
+|---|---|---|---|---|---|
+| HAM10000 | claro | 864 | 0,862 [0,854, 0,870] | 0,774 | 9,2 px |
+| HAM10000 | medio | 4 876 | 0,803 [0,798, 0,808] | 0,699 | 12,0 px |
+| HAM10000 | oscuro | 4 082 | 0,750 [0,744, 0,756] | 0,636 | 14,3 px |
+| HAM10000 | brecha claro - oscuro | | 0,111 | | |
+| ISIC 2018 (722 con tono) | claro | 260 | 0,820 [0,802, 0,838] | 0,718 | 11,1 px |
+| ISIC 2018 (722 con tono) | medio | 304 | 0,802 [0,783, 0,819] | 0,695 | 13,1 px |
+| ISIC 2018 (722 con tono) | oscuro | 158 | 0,765 [0,737, 0,788] | 0,646 | 15,5 px |
+| ISIC 2018 (722 con tono) | brecha claro - oscuro | | 0,055 | | |
 
+- En HAM10000 los tres terciles estan completamente separados (ningun par
+  de intervalos se solapa) y el borde degrada en la misma direccion: la
+  HD95 mediana pasa de 9,2 px en el tercil claro a 14,3 px en el oscuro.
+  En ISIC 2018 el tercil medio solapa con los dos extremos.
 - La brecha de HAM10000 sobrevive al control por diagnostico: dentro de
   cada una de las siete clases el Dice cae de claro a oscuro (monotono en
   seis). Es una limitacion real del metodo sin etiquetas, atribuible al
