@@ -30,6 +30,7 @@ La interfaz de MLflow sobre las ejecuciones registradas:
 from __future__ import annotations
 
 import argparse
+import importlib
 import os
 import sys
 from pathlib import Path
@@ -131,6 +132,25 @@ def build_config(args: argparse.Namespace) -> config_mod.PretrainConfig:
     )
 
 
+def resolve_wandb_module(wandb_project: str, importer=importlib.import_module):
+    """The wandb module when a project was requested, or None when it was not.
+
+    Asking for tracking and silently running untracked is how a whole GPU
+    budget gets spent with nothing to show: if the project was requested and
+    the package is missing, fail here, before anything is scheduled.
+    """
+    if not wandb_project:
+        return None
+    try:
+        return importer("wandb")
+    except ImportError as error:
+        raise RuntimeError(
+            "se pidió seguimiento en Weights & Biases con --wandb-project pero el "
+            f"paquete wandb no está disponible en {sys.executable}: instálalo en ese "
+            "intérprete o quita --wandb-project ({error})".format(error=error)
+        ) from error
+
+
 def main() -> None:
     args = parse_args()
     cfg = build_config(args)
@@ -140,12 +160,7 @@ def main() -> None:
         import mlflow
     except ImportError:
         mlflow = None
-    wandb = None
-    if args.wandb_project:
-        try:
-            import wandb
-        except ImportError:
-            print("ADVERTENCIA: wandb no está instalado; la corrida se registra solo en MLflow.")
+    wandb = resolve_wandb_module(args.wandb_project)
 
     from dermssl.pretrain import torch_loop
 

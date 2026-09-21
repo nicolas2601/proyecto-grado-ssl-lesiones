@@ -614,14 +614,14 @@ export TORCH_HOME=$HOME/work/.torch WANDB_PROJECT=dermssl-segmentacion
 SPLIT=$(sha256sum salidas/final/cache/manifest.csv | cut -c1-64)
 REV=$(python -c "import json;print(json.load(open(salidas/tone/shift2/tone_transform_manifest.json))[revision])")
 COMMON="--method simsiam_dinov2 --image-root salidas/tone/inputs/originals --split-hash $SPLIT \
-    --budget-gpu-hours 4 --batch-size-per-gpu 64 --num-workers 2 --precision bf16 \
+    --budget-gpu-hours 4 --batch-size-per-gpu 64 --num-workers 0 --precision bf16 \
     --checkpoint-fractions 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 \
     --wandb-project dermssl-segmentacion --wandb-group etapa2"
 
 # brazo A: SSL continuo sin tono (dos vistas de la misma imagen)
-torchrun --nproc_per_node=2 scripts/pretrain.py $COMMON --output-dir salidas/tone/ssl_plain
+$HOME/work/proyectonp/.venv/bin/python -m torch.distributed.run --nproc_per_node=2 scripts/pretrain.py $COMMON --output-dir salidas/tone/ssl_plain
 # brazo B (propuesto): vista original + vista con tono desplazado, misma lesion
-torchrun --nproc_per_node=2 scripts/pretrain.py $COMMON --output-dir salidas/tone/ssl_proposed \
+$HOME/work/proyectonp/.venv/bin/python -m torch.distributed.run --nproc_per_node=2 scripts/pretrain.py $COMMON --output-dir salidas/tone/ssl_proposed \
     --transformed-image-root salidas/tone/shift2 \
     --transformed-manifest-path salidas/tone/shift2/tone_transform_manifest.json \
     --data-revision pool-final --transformed-data-revision $REV
@@ -631,6 +631,12 @@ Cada brazo escribe `simsiam_dinov2_backbone_final.pt` (solo el backbone) mas
 los checkpoints por fraccion del presupuesto y `run.json`. El presupuesto
 manda: 4 horas-GPU son 2 horas de reloj con dos GPU.
 
+El lanzador es `python -m torch.distributed.run` del MISMO interprete del
+venv, nunca el `torchrun` del entorno base: los procesos hijo heredan ese
+interprete y es el unico que tiene `wandb`. Si se pide `--wandb-project` y el
+paquete no esta en ese interprete, la corrida falla al arrancar y el mensaje
+dice que interprete es, en vez de entrenar sin seguimiento.
+
 Reanudacion tras una caida del contenedor: relanzar EL MISMO comando. El
 entrenamiento busca `<output-dir>/resume.pt` y, si existe, recupera modelo,
 optimizador y el tiempo ya consumido. El checkpoint solo se escribe en las
@@ -638,10 +644,11 @@ fracciones de `--checkpoint-fractions`, asi que la cadencia fina de arriba
 (cada 10 % del presupuesto, unos 12 minutos de reloj) acota lo que se pierde.
 NO partir el presupuesto en tramos sobre la misma carpeta: al reanudar con un
 presupuesto mayor, las fracciones del tramo anterior ya estan marcadas como
-guardadas y el tramo largo correria sin ningun checkpoint. El smoke del 2026-09-21
-mostro que `--num-workers 2` no falla por `/dev/shm` (64 MB); medir el
-throughput sobre unos miles de PNG reales antes de fijar el valor, porque
-sobre 64 imagenes en cache de pagina la medicion no extrapola. MLflow no
+guardadas y el tramo largo correria sin ningun checkpoint. Medido el 2026-09-21 sobre los 55 034 PNG reales en NFS (`--max-steps 200`,
+lote 16): `--num-workers 0` da 51,2 imagenes/s y `--num-workers 2` da 34,7,
+sin errores de `/dev/shm` en ninguno de los dos. Se corre con 0: la
+decodificacion en el hilo principal gana porque los workers pagan la copia a
+memoria compartida de cada lote. MLflow no
 esta instalado en el pod: el seguimiento es Weights & Biases (proyecto
 `dermssl-segmentacion`, grupo `etapa2`), con `wandb login` hecho en el venv.
 

@@ -315,3 +315,30 @@ def test_a_cadence_that_does_not_end_at_one_is_rejected_by_validate():
     )
     with pytest.raises(ValueError):
         cfg_mod.validate(launcher.build_config(args))
+
+
+def test_asking_for_wandb_without_the_package_fails_instead_of_running_untracked():
+    """A run that was asked to track and cannot must not spend GPU hours in
+    silence; the same rule the evaluation strata follow."""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import pretrain as launcher
+
+    with pytest.raises(RuntimeError, match="wandb"):
+        launcher.resolve_wandb_module("dermssl-segmentacion", importer=_missing)
+
+
+def test_no_wandb_project_means_no_module_and_no_error():
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import pretrain as launcher
+
+    assert launcher.resolve_wandb_module("", importer=_missing) is None
+
+
+def _missing(_name):
+    raise ImportError("No module named 'wandb'")
