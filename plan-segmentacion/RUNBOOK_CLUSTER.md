@@ -563,3 +563,97 @@ Dos medidas:
 - **Nunca instalar torch con pip dentro del pod.** Vale la pena repetirlo: el
   entorno virtual se crea con `--system-site-packages` justamente para heredar
   la instalación buena.
+
+## 12. Etapa 2: pipeline propuesto (segmentacion -> tono -> CIRCLe -> SimSiam -> banco congelado)
+
+Todo bajo `~/work/proyectonp` (NFS); nada en `/tmp` (overlay de 23 GB). Un
+proceso a la vez, con `setsid nohup ... < /dev/null & disown`. Antes de
+cualquier descarga de pesos: `export TORCH_HOME=$HOME/work/.torch`, para que
+DINOv2 quede en el NFS y sobreviva a un reinicio del contenedor.
+
+Entradas: la corrida final del camino B (`salidas/final`, commit `d81a492`):
+`cache/images.npy` y `cache/manifest.csv` (58 457 a 224), las pseudo-mascaras
+de la ultima ronda `pseudo_r2/pseudo_masks.npy` (las mismas del manifiesto
+FST) y el manifiesto de tono `fst/fst_pseudo_manifest.csv` (columnas
+`image_id, fst_bucket, tone_tercile, status, L_median, b_median, ita,
+n_skin_px`, estimador con piso de b*, commit `bbd9bab` o posterior).
+
+### 12.1 Entradas de la transformacion de tono
+
+```bash
+python plan-segmentacion/comun/datos/export_tone_inputs.py \
+    --cache-dir salidas/final/cache \
+    --pseudo-masks salidas/final/pseudo_r2/pseudo_masks.npy \
+    --output-root salidas/tone/inputs --source-revision pool-final --version d81a492
+```
+
+Escribe `originals/<dataset>/<id>.png` (sin perdida, a 224) SOLO para las
+imagenes con mascara elegible (area 1-90 %), `masks/` binarias,
+`mask_manifest.json` con un registro por imagen (elegible o en cuarentena) y
+`export_summary.json` con los conteos por dataset. Las imagenes en cuarentena
+no entran en ningun brazo del preentrenamiento: el modo pareado exige que las
+rutas originales, transformadas y del manifiesto coincidan exactamente.
+
+### 12.2 Pares CIRCLe (piel mas oscura, lesion protegida)
+
+```bash
+python scripts/generate_tone_transforms.py \
+    --image-root salidas/tone/inputs/originals --mask-root salidas/tone/inputs/masks \
+    --mask-manifest salidas/tone/inputs/mask_manifest.json \
+    --output-root salidas/tone/shift2 --source-revision pool-final --shift-buckets 2
+```
+
+`shift-buckets 2` resta 16 unidades de L* a la piel (dos niveles de Groh) y
+deja la lesion pixel a pixel; el manifiesto `tone_transform_manifest.json`
+lleva los hashes de cada par y una `revision` que el preentrenamiento exige.
+
+### 12.3 Dos brazos de SimSiam sobre DINOv2 ViT-S/14, mismo root
+
+```bash
+export TORCH_HOME=$HOME/work/.torch WANDB_PROJECT=dermssl-segmentacion
+SPLIT=$(sha256sum salidas/final/cache/manifest.csv | cut -c1-64)
+REV=$(python -c "import json;print(json.load(open(salidas/tone/shift2/tone_transform_manifest.json))[revision])")
+COMMON="--method simsiam_dinov2 --image-root salidas/tone/inputs/originals --split-hash $SPLIT \
+    --budget-gpu-hours 4 --batch-size-per-gpu 64 --num-workers 0 --precision bf16 \
+    --tracking-uri file:$HOME/work/proyectonp/mlruns --wandb-group etapa2"
+
+# brazo A: SSL continuo sin tono (dos vistas de la misma imagen)
+torchrun --nproc_per_node=2 scripts/pretrain.py $COMMON --output-dir salidas/tone/ssl_plain
+# brazo B (propuesto): vista original + vista con tono desplazado, misma lesion
+torchrun --nproc_per_node=2 scripts/pretrain.py $COMMON --output-dir salidas/tone/ssl_proposed \
+    --transformed-image-root salidas/tone/shift2 \
+    --transformed-manifest-path salidas/tone/shift2/tone_transform_manifest.json \
+    --data-revision pool-final --transformed-data-revision $REV
+```
+
+Cada brazo escribe `simsiam_dinov2_backbone_final.pt` (solo el backbone) mas
+los checkpoints por fraccion del presupuesto y `run.json`. El presupuesto
+manda: 4 horas-GPU son 2 horas de reloj con dos GPU. Si `--num-workers 2` no
+falla en el smoke por `/dev/shm`, usarlo: la decodificacion en el hilo
+principal es el cuello de botella con `0`.
+
+### 12.4 Banco congelado en HAM10000 por tercil de tono
+
+```bash
+python scripts/cluster_frozen_bank.py \
+    --ham-root /home/jovyan/work/datos/ham10000 \
+    --backbone dinov2_public=dinov2_vits14:public \
+    --backbone ssl_plain=dinov2_vits14:salidas/tone/ssl_plain/simsiam_dinov2_backbone_final.pt \
+    --backbone ssl_proposed=dinov2_vits14:salidas/tone/ssl_proposed/simsiam_dinov2_backbone_final.pt \
+    --tone-manifest salidas/final/fst/fst_pseudo_manifest.csv --strata-column tone_tercile \
+    --probes logreg_balanced knn --fractions 1.0 0.1 --seeds 0 1 2 \
+    --output-dir salidas/tone/bank --cache-dir salidas/tone/bank/cache \
+    --wandb-project dermssl-segmentacion
+```
+
+Mismo protocolo que el banco v5 (particion `StratifiedGroupKFold` por
+`lesion_id`, semilla 42, primer pliegue; extraccion determinista; probes
+`logreg_balanced` y `knn`), con los estratos por `tone_tercile` sobre la
+validacion y la brecha maximo-minimo de macro-F1 entre terciles. Salidas:
+`bank.json`, `bank_rows.csv`, `strata.json`, `bank.md`.
+
+### 12.5 Que subir
+
+`salidas/tone/inputs/export_summary.json`, el `tone_transform_manifest.json`
+(solo `summary` y `revision`), `run.json` de cada brazo, y la carpeta
+`salidas/tone/bank/` completa salvo `cache/`.
