@@ -1,0 +1,22 @@
+{
+  "images": "/home/jovyan/work/proyectonp/salidas/final/cache/images.npy",
+  "excluded": 2508,
+  "excluded_no_region": 877,
+  "excluded_no_field": 0,
+  "excluded_by_area": 1631,
+  "excluded_fraction": 0.042903330653300716,
+  "mean_foreground_fraction": 0.1432734675647235,
+  "mean_ignore_fraction": 0.05760177602145931,
+  "mean_artifact_fraction": 0.006845154248757932,
+  "field_used": true,
+  "source": "student",
+  "artifact_suppression": true,
+  "low": 0.35,
+  "high": 0.65,
+  "min_area_fraction": 0.003,
+  "max_center_distance": 0.5,
+  "max_area_fraction": 0.6,
+  "saliency": "/home/jovyan/work/proyectonp/salidas/final/student_r2/predictions.npy",
+  "field": "/home/jovyan/work/proyectonp/salidas/final/cache/field.npy",
+  "reads_masks_or_labels": false
+}
