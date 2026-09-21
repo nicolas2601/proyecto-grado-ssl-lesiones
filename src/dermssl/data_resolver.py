@@ -32,6 +32,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Sequence
 
+from dermssl.pool_manifest import build_pool_manifest as _build_pool_manifest
+
 KAGGLE_INPUT = Path("/kaggle/input")
 
 # Kaggle dataset handles used by the project. Datasets themselves are NOT
@@ -47,6 +49,11 @@ BACKENDS = ("kaggle-input", "kagglehub", "local")
 
 class DataResolutionError(RuntimeError):
     """Raised when a required dataset cannot be located in any backend."""
+
+
+def build_pool_manifest(*args, **kwargs) -> dict:
+    """Expose the source-preserving FST inventory beside dataset resolution."""
+    return _build_pool_manifest(*args, **kwargs)
 
 
 @dataclass

@@ -1,21 +1,21 @@
-"""Fine-tune one baseline backbone on one medical dataset (cluster runner).
+"""Ajusta un backbone base sobre un conjunto médico (ejecutor de clúster).
 
-Same protocol as the Kaggle notebooks in notebooks/finetune*; see
-src/dermssl/finetune/protocol.py. Meant for Dr. Karen's cluster: weights
-come from a pre-seeded Hugging Face / torch cache (no internet), results go
-to a JSON file, a checkpoint, Weights & Biases (offline) and MLflow.
+Usa el mismo protocolo que los notebooks Kaggle en notebooks/finetune*; ver
+src/dermssl/finetune/protocol.py. Está pensado para el clúster de Dr. Karen:
+los pesos provienen de una caché precargada de Hugging Face / torch (sin
+internet) y los resultados van a un JSON, checkpoint, Weights & Biases y MLflow.
 
-One job by name:
+Una tarea por nombre:
     python scripts/finetune_baseline.py --model resnet50 --dataset ham10000 \
         --data-root $SCRATCH/dermssl/data --output-dir $SCRATCH/dermssl/finetune/runs/x
 
-One job by manifest index (what the SLURM array uses, 0..15):
+Una tarea por índice del manifiesto (lo que usa el arreglo SLURM, 0..15):
     python scripts/finetune_baseline.py --job-index 3 --data-root ... --output-dir ...
 
-Smoke (1 epoch on a stratified subset, validates the wiring in minutes):
+Smoke (1 época sobre un subconjunto estratificado; valida la integración en minutos):
     python scripts/finetune_baseline.py --model resnet50 --dataset ham10000 --smoke ...
 
-List the 16 jobs of the bank:
+Lista las 16 tareas del banco:
     python scripts/finetune_baseline.py --list-jobs
 """
 
@@ -39,16 +39,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--model", choices=protocol.MODELS)
     p.add_argument("--dataset", choices=tuple(protocol.DATASETS))
     p.add_argument("--job-index", type=int,
-                   help="0..15, overrides --model/--dataset from the manifest")
+                    help="0..15; reemplaza --model/--dataset desde el manifiesto")
     p.add_argument("--list-jobs", action="store_true")
     # Underscore spellings mirror Dr. Karen's CT-Encoders runner so the bank
     # can be launched on her cluster without learning a second CLI.
     p.add_argument("--data-root", "--data_path", dest="data_root",
-                   help="folder with ham10000/ isic2019/")
+                   help="carpeta con ham10000/ e isic2019/")
     p.add_argument("--output-dir", "--output_dir", dest="output_dir",
-                   help="where JSON + checkpoint are written")
+                   help="donde se escriben el JSON y el checkpoint")
     p.add_argument("--results-dir", default="",
-                   help="optional repo folder to copy the JSON into (for git push)")
+                    help="carpeta opcional del repositorio a la que copiar el JSON (para git push)")
     p.add_argument("--epochs", type=int, default=protocol.EPOCHS)
     p.add_argument("--batch", type=int, default=protocol.BATCH)
     p.add_argument("--num-workers", type=int, default=8)
@@ -73,9 +73,9 @@ def build_config(args: argparse.Namespace) -> FinetuneConfig:
         job = protocol.job_from_index(args.job_index)
         model, dataset = job.model, job.dataset
     if not model or not dataset:
-        raise ConfigError("give --model and --dataset, or --job-index")
+        raise ConfigError("indique --model y --dataset, o --job-index")
     if not args.data_root or not args.output_dir:
-        raise ConfigError("--data-root and --output-dir are required")
+        raise ConfigError("--data-root y --output-dir son obligatorios")
     # TensorBoard is on by default and lands inside the run's own output dir:
     # the UNAB platform shares one MLflow server across every student, so a
     # private event-file directory is the only dashboard that is ours.
@@ -100,7 +100,7 @@ def main(argv: list[str] | None = None) -> None:
             print(f"{job.index:2d}  {job.model:<16} {job.dataset:<9} -> {job.results_file}")
         return
     try:
-        cfg = validate(build_config(args))  # fails before torch is imported
+        cfg = validate(build_config(args))  # falla antes de importar torch
     except ConfigError as exc:
         sys.exit(f"config error: {exc}")
 

@@ -1,4 +1,4 @@
-"""Executable cells for the v5 notebook (the torch-dependent half).
+"""Celdas ejecutables para el notebook v5 (la mitad dependiente de torch).
 
 The numpy-only logic is NOT written here: it is inlined from ``src/dermssl/`` by
 ``build_notebook_v5.py``, so the code that ships in the notebook is byte-for-byte
@@ -29,6 +29,7 @@ def elapsed():
 # PERILLAS. Lo unico que se toca a mano.
 # ----------------------------------------------------------------------------
 SMOKE        = True          # True = validacion rapida del pipeline (numeros NO validos)
+KAGGLE_RUN_TOKEN = ""       # substituted by kaggle_push.stage() for each push
 DATA_BACKEND = "auto"        # "auto" | "kaggle-input" | "kagglehub" | "local"
 LOCAL_ROOT   = None          # ruta de datos ya bajados (para el cluster)
 BASE_RES     = 224           # se ajusta por backbone (ViT patch 14 vs 16)
@@ -56,7 +57,7 @@ SEEDS     = [42, 1234, 2026]
 
 if SMOKE:
     BACKBONES = ["ssl_dinov2_vits14", "sup_resnet50"]
-    PROBES    = ["knn", "knn_balanced", "logreg"]
+    PROBES    = ["knn", "knn_balanced", "logreg", "logreg_balanced"]
     FRACTIONS = (0.05, 1.00)
     SEEDS     = [42]
     print("*** MODO SMOKE: los numeros NO son validos como resultado. "
@@ -408,11 +409,50 @@ gate_list = evaluate_gates(
     grid_rows=json.loads(ok.to_json(orient="records")),
     smoke=SMOKE,
 )
+
+# --- equidad por fototipo (Fase 2: fst_manifest.csv, generado en Kaggle por --
+# torch_unet.py, Fase 3 - dermssl.fitzpatrick). Si el manifiesto todavia no
+# existe (por ejemplo, antes de correr la Fase 3), este bloque no toca
+# gate_list: la corrida se comporta exactamente como v5 (design.md, tabla
+# "Error Handling": "Manifest missing -> ... v5 behavior unchanged").
+FST_MANIFEST_PATH = WORK / "fst_manifest.csv"
+if FST_MANIFEST_PATH.is_file():
+    fst_manifest = pd.read_csv(FST_MANIFEST_PATH)
+    fst_by_id = fst_manifest.set_index("image_id")["fst_bucket"]
+
+    def fst_bucket_or_none(value):
+        """Conserva cada fila de validación y convierte valores explícitos o ausentes en unavailable."""
+        if pd.isna(value) or str(value).strip().lower() in ("", "unavailable", "nan"):
+            return None
+        try:
+            bucket = int(value)
+        except (TypeError, ValueError):
+            return None
+        return bucket if 1 <= bucket <= 6 else None
+
+    ssl_key = next((k for k in BACKBONES if k.startswith("ssl_")), None)
+    strat = {}
+    if ssl_key is not None and "logreg_balanced" in PROBES and 1.0 in FRACTIONS:
+        x_tr, y_tr = FEATURES[ssl_key]["train"]
+        x_va, y_va = FEATURES[ssl_key]["val"]
+        proba_va = run_probe("logreg_balanced", x_tr, y_tr, x_va, N_CLASSES)
+        joined = [
+            (label, proba, fst_bucket_or_none(fst_by_id.get(img_id, None)))
+            for img_id, label, proba in zip(va_ids, y_va, proba_va)
+        ]
+        if joined:
+            labels_j, proba_j, buckets_j = zip(*joined)
+            strat = stratified_summary(
+                np.array(labels_j), np.array(proba_j), np.array(buckets_j), N_CLASSES
+            )
+    gate_list.append(fairness_gate(strat))
+
 print()
 print(report(gate_list))
 
 summary = {
     "mode": "SMOKE (numeros NO validos)" if SMOKE else "corrida real",
+    "kaggle_run_token": KAGGLE_RUN_TOKEN,
     "notebook": "proyecto_ssl_lesiones_v5",
     "claim": "ninguna etiqueta toca el extractor de features; backbone congelado",
     "elapsed": elapsed(),

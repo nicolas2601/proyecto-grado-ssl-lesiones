@@ -34,5 +34,7 @@ MODULE_ORDER = (
     "metrics",
     "probes",
     "feature_cache",
+    "fitzpatrick",
     "gates",
+    "circle",
 )

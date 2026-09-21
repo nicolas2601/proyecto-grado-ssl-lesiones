@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""Generate ``notebooks/proyecto_ssl_lesiones_v5.ipynb``.
+"""Genera ``notebooks/proyecto_ssl_lesiones_v5.ipynb``.
 
-Why generate instead of editing a notebook by hand
---------------------------------------------------
-A Kaggle notebook must be self-contained: the session cannot import
-``src/dermssl`` from this repository. The naive workaround is to copy the logic
-into the notebook, which immediately drifts away from the tested copy.
+Por qué se genera en vez de editar un notebook a mano
+-----------------------------------------------------
+Un notebook de Kaggle debe ser autocontenido: la sesión no puede importar
+``src/dermssl`` desde este repositorio. Copiar la lógica al notebook provoca
+que se aleje inmediatamente de la copia probada.
 
-So the notebook is *built*: the numpy-only core in ``src/dermssl/`` is inlined
-verbatim into one cell, and the torch-dependent cells come from
-``scripts/notebook_cells_v5.py``. Result: the code that runs on Kaggle is exactly
-the code covered by ``tests/``, and the notebook is a build artefact - never
-edited by hand.
+Por eso el notebook se *construye*: el núcleo solo-Numpy de ``src/dermssl/`` se
+inserta literalmente en una celda y las celdas dependientes de torch provienen
+de ``scripts/notebook_cells_v5.py``. El código que corre en Kaggle coincide con
+el cubierto por ``tests/``; el notebook es un artefacto de construcción y no se
+edita a mano.
 
-Usage
------
-    python scripts/build_notebook_v5.py            # write the notebook
-    python scripts/build_notebook_v5.py --check    # verify it is up to date
+Uso
+---
+    python scripts/build_notebook_v5.py            # escribe el notebook
+    python scripts/build_notebook_v5.py --check    # verifica que esté actualizado
 """
 
 from __future__ import annotations
@@ -60,26 +60,25 @@ Que hay aca:
 
 BANNER = (
     "# ============================================================================\n"
-    "# {name}.py  --  inlined from src/dermssl/{name}.py (do not edit here)\n"
+    "# {name}.py  --  insertado desde src/dermssl/{name}.py (no editar aquí)\n"
     "# ============================================================================"
 )
 
 
 def module_source(name: str) -> str:
-    """Read one module, dropping the ``__future__`` import.
+    """Lee un módulo y descarta la importación ``__future__``.
 
-    Two reasons it cannot survive inlining:
+    Dos motivos por los que no puede sobrevivir a la inserción:
 
-    1. ``from __future__ import annotations`` must be the *first* statement of a
-       compilation unit, and a notebook cell is one unit - several inlined
-       modules cannot each carry it.
-    2. It turns annotations into strings, and ``@dataclass`` then resolves them
-       by looking the defining module up in ``sys.modules``. Inside a notebook
-       cell (or any ``exec``) that lookup is not guaranteed to work.
+    1. ``from __future__ import annotations`` debe ser la *primera* sentencia de
+       una unidad de compilación, y una celda de notebook es una unidad: varios
+       módulos insertados no pueden contenerla individualmente.
+    2. Convierte las anotaciones en strings y ``@dataclass`` las resuelve al
+       buscar el módulo definidor en ``sys.modules``. Esa búsqueda no está
+       garantizada dentro de una celda de notebook (ni en un ``exec``).
 
-    Dropping it is safe: every annotation used here (``Path | None``,
-    ``dict[str, Path]``) is native syntax from Python 3.10 onwards, and Kaggle
-    runs 3.10+.
+    Descartarla es seguro: cada anotación usada aquí (``Path | None``,
+    ``dict[str, Path]``) es sintaxis nativa desde Python 3.10, y Kaggle usa 3.10+.
     """
     text = (SRC / "dermssl" / f"{name}.py").read_text(encoding="utf-8")
     lines = [ln for ln in text.splitlines() if ln.strip() != "from __future__ import annotations"]
@@ -88,9 +87,9 @@ def module_source(name: str) -> str:
 
 def build_core_cell() -> str:
     parts = [
-        "# Inlined core of src/dermssl/ -- single source of truth, covered by tests/.",
-        "# Regenerate with: python scripts/build_notebook_v5.py",
-        "# NOTE: no 'from __future__ import annotations' on purpose - see module_source().",
+        "# Núcleo insertado de src/dermssl/: fuente única de verdad, cubierto por tests/.",
+        "# Regenerar con: python scripts/build_notebook_v5.py",
+        "# NOTA: se omite 'from __future__ import annotations' intencionalmente; ver module_source().",
         "",
     ]
     for name in MODULE_ORDER:
@@ -117,9 +116,9 @@ def to_cell(cell_type: str, source: str, index: int) -> dict:
 
 
 def build_notebook() -> dict:
-    """Assemble the notebook: header, config, inlined core, then the pipeline."""
+    """Ensamblar el notebook: encabezado, configuración, núcleo insertado y pipeline."""
     ordered = list(CELLS)
-    # The core must be defined after the config cell and before any cell using it.
+    # El núcleo debe definirse después de la celda de configuración y antes de usarla.
     ordered.insert(2, ("markdown", CORE_MD))
     ordered.insert(3, ("code", build_core_cell()))
 
@@ -140,11 +139,11 @@ def build_notebook() -> dict:
 
 
 def validate(notebook: dict) -> list[str]:
-    """Compile every code cell. A syntax error here is a build failure.
+    """Compila cada celda de código. Un error de sintaxis implica fallo de construcción.
 
-    This is the cheapest possible proof that the notebook is runnable: it cannot
-    catch logic errors (the unit tests do that) but it guarantees Kaggle will not
-    die on cell 1 with a SyntaxError after a 40-minute queue.
+    Es la comprobación más económica de que el notebook es ejecutable: no puede
+    detectar errores lógicos (lo hacen las pruebas unitarias), pero garantiza que
+    Kaggle no falle en la celda 1 con SyntaxError tras una cola de 40 minutos.
     """
     problems = []
     for i, cell in enumerate(notebook["cells"]):
@@ -167,14 +166,14 @@ def main() -> int:
     parser.add_argument(
         "--check",
         action="store_true",
-        help="fail if the committed notebook differs from a fresh build",
+        help="falla si el notebook versionado difiere de una construcción nueva",
     )
     args = parser.parse_args()
 
     notebook = build_notebook()
     problems = validate(notebook)
     if problems:
-        print("BUILD FAILED - syntax errors in generated cells:", file=sys.stderr)
+        print("FALLÓ LA CONSTRUCCIÓN: errores de sintaxis en celdas generadas:", file=sys.stderr)
         for p in problems:
             print(f"  {p}", file=sys.stderr)
         return 1
@@ -182,12 +181,12 @@ def main() -> int:
     payload = serialize(notebook)
     if args.check:
         if not OUT.is_file():
-            print(f"{OUT} is missing; run without --check", file=sys.stderr)
+            print(f"falta {OUT}; ejecute sin --check", file=sys.stderr)
             return 1
         if OUT.read_text(encoding="utf-8") != payload:
-            print(f"{OUT} is stale; run: python scripts/build_notebook_v5.py", file=sys.stderr)
+            print(f"{OUT} está desactualizado; ejecute: python scripts/build_notebook_v5.py", file=sys.stderr)
             return 1
-        print(f"OK - {OUT.name} is up to date ({len(notebook['cells'])} cells)")
+        print(f"CORRECTO: {OUT.name} está actualizado ({len(notebook['cells'])} celdas)")
         return 0
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

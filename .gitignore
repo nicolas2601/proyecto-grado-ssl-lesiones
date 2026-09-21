@@ -49,3 +49,12 @@ results/**/.run_state.json
 
 # --- artefactos de MLflow que bajan con `kaggle kernels output` ---
 results/**/mlruns/
+
+# --- resultados locales de diagnóstico FST y staging Kaggle ---
+/.kaggle-staging/
+/resultados_fst_*/
+/results/kaggle_v3_download/
+
+# --- bundles locales de transferencia; la fuente canónica permanece en Git ---
+/pretrain-v6-bundle.zip
+/fix-kaggle-fst-manifest-glob.zip

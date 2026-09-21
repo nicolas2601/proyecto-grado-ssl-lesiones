@@ -81,6 +81,8 @@ calibración esperado.*
 > [18 — Estructura visual y tests](docs/18-estructura-visual-y-tests-baseline.md).
 > Lectura de los resultados y la leccion de medicion:
 > [19 — Resultados de los bancos congelados](docs/19-resultados-bancos-congelados.md).
+> Validacion externa del FST contra Fitzpatrick17k-C y el bug de calibracion del umbral
+> ITA: [20 — Validacion externa FST](docs/20-validacion-externa-fst-fitzpatrick17k.md).
 
 > Banco de fine-tuning de los baselines en el cluster (un solo comando para la
 > asesora): [cluster/finetune/README.md](cluster/finetune/README.md).

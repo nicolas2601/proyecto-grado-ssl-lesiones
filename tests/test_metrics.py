@@ -166,3 +166,319 @@ def test_summarize_includes_all_headline_metrics():
         assert key in out, f"missing {key}"
     assert out["balanced_accuracy"] == pytest.approx(
         m.balanced_accuracy(y, proba.argmax(axis=1), 2))
+
+
+# --- stratified_summary: per-Fitzpatrick-bucket fairness evaluation --------
+#
+# Never fails on thin data (spec.md, fairness-evaluation req 2): buckets below
+# ``min_n`` are SKIPPED, not silently dropped from the output structure - and
+# an empty manifest (Fitzpatrick estimation not run yet) returns {}, matching
+# design.md's error table ("Manifest missing -> stratified_summary returns {}").
+
+
+def _multiclass_rows(n, n_classes, seed):
+    """Deterministic, reasonably-separated fake predictions for n rows."""
+    rng = np.random.RandomState(seed)
+    y = rng.randint(0, n_classes, n)
+    proba = rng.dirichlet(np.ones(n_classes), size=n)
+    return y, proba
+
+
+def test_stratified_summary_returns_empty_dict_for_empty_input():
+    """No fst_manifest.csv yet -> nothing to stratify. v5 behavior unchanged."""
+    out = m.stratified_summary(np.array([]), np.zeros((0, 2)), np.array([]), n_classes=2)
+    assert out == {}
+
+
+def test_stratified_summary_always_reports_all_six_buckets_and_unavailable():
+    """Every FST bucket appears in the output structure, even with zero rows."""
+    y, proba = _multiclass_rows(40, 2, seed=0)
+    buckets = np.array([1] * 40)
+    out = m.stratified_summary(y, proba, buckets, n_classes=2, min_n=30)
+    assert set(out) == {1, 2, 3, 4, 5, 6, "unavailable"}
+
+
+@pytest.mark.parametrize(
+    "count, expected_status",
+    [
+        (40, "OK"),       # populated: clears the default min_n=30
+        (10, "SKIPPED"),  # sparse: below min_n, but not empty
+        (0, "SKIPPED"),   # empty bucket: still present, never omitted
+    ],
+    ids=["populated", "sparse_skipped", "empty_skipped"],
+)
+def test_stratified_summary_bucket_status_by_population(count, expected_status):
+    """Table-driven: bucket 1 gets `count` rows, the rest fall to 'unavailable'."""
+    n_classes, total = 2, 100
+    y, proba = _multiclass_rows(total, n_classes, seed=1)
+    buckets = np.array([1] * count + [None] * (total - count), dtype=object)
+
+    out = m.stratified_summary(y, proba, buckets, n_classes=n_classes)  # default min_n=30
+
+    assert out[1]["status"] == expected_status
+    assert out[1]["count"] == count
+    if expected_status == "SKIPPED":
+        assert "reason" in out[1]
+        assert "macro_f1" not in out[1]
+    else:
+        assert out[1]["macro_f1"] == pytest.approx(
+            m.summarize(y[:count], proba[:count], n_classes)["macro_f1"]
+        )
+
+
+def test_stratified_summary_unavailable_key_groups_none_buckets():
+    """FSTEstimate.bucket=None (spec.md req 4) lands under the 'unavailable' key."""
+    n_classes = 2
+    y, proba = _multiclass_rows(50, n_classes, seed=3)
+    buckets = np.array([None] * 35 + [1] * 15, dtype=object)
+
+    out = m.stratified_summary(y, proba, buckets, n_classes=n_classes, min_n=30)
+
+    assert out["unavailable"]["status"] == "OK"
+    assert out["unavailable"]["count"] == 35
+    assert out["unavailable"]["macro_f1"] == pytest.approx(
+        m.summarize(y[:35], proba[:35], n_classes)["macro_f1"]
+    )
+    assert out[1]["status"] == "SKIPPED"
+    assert out[1]["count"] == 15
+
+
+def test_stratified_summary_min_n_is_configurable():
+    n_classes = 2
+    y, proba = _multiclass_rows(10, n_classes, seed=4)
+    buckets = np.array([1] * 10)
+
+    out = m.stratified_summary(y, proba, buckets, n_classes=n_classes, min_n=5)
+
+    assert out[1]["status"] == "OK"
+    assert out[1]["count"] == 10
+
+
+def test_stratified_summary_ok_bucket_has_the_same_metric_keys_as_summarize():
+    """'same metrics as non-stratified summary' (spec.md req 1)."""
+    n_classes = 3
+    y, proba = _multiclass_rows(40, n_classes, seed=5)
+    buckets = np.array([2] * 40)
+
+    out = m.stratified_summary(y, proba, buckets, n_classes=n_classes)
+
+    expected_keys = set(m.summarize(y, proba, n_classes)) | {"status", "count"}
+    assert set(out[2]) == expected_keys
+
+
+# --- comparison_report: Stage 2 baseline vs. mitigation reporting ---------
+#
+# spec.md, circle-adaptation req 5: "MUST report Stage 1 stratified fairness
+# metrics for three variants - baseline, regularization-only, and
+# synthetic-blend - so the relative fairness improvement (primary thesis
+# acceptance criterion) is directly computable between variants."
+#
+# Tested against synthetic, hand-built stratified_summary()-shaped fixtures -
+# NOT against real data: no fst_manifest.csv exists yet, no real Stage 2
+# Kaggle run has happened (see docs/21-checkpoint-manual-circle-stage2.md).
+# This only checks that the report structure and arithmetic are correct given
+# whatever three stratified_summary() outputs it is handed.
+
+
+def qualifying_variant_bucket(macro_f1, count=40):
+    return {"status": "OK", "count": count, "macro_f1": macro_f1}
+
+
+def skipped_variant_bucket(count=5):
+    return {"status": "SKIPPED", "count": count, "reason": f"n={count} < min_n=30"}
+
+
+def test_comparison_report_lists_all_three_variants_with_a_gap():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}
+    regularization = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.55)}
+    synthetic_blend = {1: qualifying_variant_bucket(0.62), 2: qualifying_variant_bucket(0.58)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert set(report) == {"baseline", "regularization", "synthetic_blend"}
+    for variant in report.values():
+        assert "gap" in variant
+
+
+def test_comparison_report_gap_is_max_minus_min_among_qualifying_buckets():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}
+    regularization = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.55)}
+    synthetic_blend = {1: qualifying_variant_bucket(0.62), 2: qualifying_variant_bucket(0.58)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["baseline"]["gap"] == pytest.approx(0.20)
+    assert report["regularization"]["gap"] == pytest.approx(0.10)
+    assert report["synthetic_blend"]["gap"] == pytest.approx(0.04)
+
+
+def test_comparison_report_relative_improvement_vs_baseline():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}  # gap 0.20
+    regularization = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.55)}  # 0.10
+    synthetic_blend = {1: qualifying_variant_bucket(0.61), 2: qualifying_variant_bucket(0.56)}  # 0.05
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["regularization"]["relative_improvement"] == pytest.approx(0.5)
+    assert report["synthetic_blend"]["relative_improvement"] == pytest.approx(0.75)
+    assert "relative_improvement" not in report["baseline"]
+
+
+def test_comparison_report_baseline_insufficient_data_disables_relative_improvement():
+    """<2 qualifying buckets in the baseline: nothing to compare a relative
+    improvement against, so it must not be silently reported as some number."""
+    baseline = {1: qualifying_variant_bucket(0.70), 2: skipped_variant_bucket()}
+    regularization = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.60)}
+    synthetic_blend = {1: qualifying_variant_bucket(0.62), 2: qualifying_variant_bucket(0.61)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["baseline"]["gap"] is None
+    assert report["baseline"]["status"] == "insufficient_data"
+    assert report["regularization"]["relative_improvement"] is None
+    assert report["synthetic_blend"]["relative_improvement"] is None
+    # the mitigation variants' own gaps are still reported even when the
+    # baseline cannot anchor a relative improvement
+    assert report["regularization"]["gap"] == pytest.approx(0.05)
+
+
+def test_comparison_report_mitigation_variant_insufficient_data():
+    """A mitigation variant with thin buckets reports gap=None and no
+    relative_improvement, without breaking the other variants."""
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}
+    regularization = {1: qualifying_variant_bucket(0.65), 2: skipped_variant_bucket()}
+    synthetic_blend = {1: qualifying_variant_bucket(0.62), 2: qualifying_variant_bucket(0.58)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["regularization"]["gap"] is None
+    assert report["regularization"]["relative_improvement"] is None
+    assert report["synthetic_blend"]["gap"] == pytest.approx(0.04)
+    assert report["synthetic_blend"]["relative_improvement"] is not None
+
+
+def test_comparison_report_zero_baseline_gap_avoids_division_by_zero():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.70)}  # gap 0.0
+    regularization = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.70)}
+    synthetic_blend = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.60)}
+
+    report = m.comparison_report(baseline, regularization, synthetic_blend)
+
+    assert report["baseline"]["gap"] == pytest.approx(0.0)
+    assert report["regularization"]["relative_improvement"] is None
+    assert report["synthetic_blend"]["relative_improvement"] is None
+
+
+def test_comparison_report_respects_a_custom_metric_and_min_bucket_n():
+    baseline = {
+        1: {"status": "OK", "count": 12, "auc": 0.80},
+        2: {"status": "OK", "count": 12, "auc": 0.60},
+    }
+    regularization = {
+        1: {"status": "OK", "count": 12, "auc": 0.75},
+        2: {"status": "OK", "count": 12, "auc": 0.68},
+    }
+    synthetic_blend = {
+        1: {"status": "OK", "count": 12, "auc": 0.73},
+        2: {"status": "OK", "count": 12, "auc": 0.70},
+    }
+
+    # default min_bucket_n=30 would make every bucket too thin to qualify
+    default_report = m.comparison_report(
+        baseline, regularization, synthetic_blend, metric="auc"
+    )
+    assert default_report["baseline"]["gap"] is None
+
+    report = m.comparison_report(
+        baseline, regularization, synthetic_blend, metric="auc", min_bucket_n=10
+    )
+    assert report["baseline"]["gap"] == pytest.approx(0.20)
+    assert report["regularization"]["gap"] == pytest.approx(0.07)
+
+
+def _bootstrap_fixture():
+    y = np.array([0, 0, 1, 1, 0, 0, 1, 1])
+    buckets = np.array([1, 1, 1, 1, 2, 2, 2, 2], dtype=object)
+    baseline = np.array(
+        [[0.9, 0.1], [0.8, 0.2], [0.1, 0.9], [0.2, 0.8],
+         [0.9, 0.1], [0.8, 0.2], [0.7, 0.3], [0.6, 0.4]]
+    )
+    regularization = np.array(
+        [[0.9, 0.1], [0.8, 0.2], [0.1, 0.9], [0.2, 0.8],
+         [0.9, 0.1], [0.8, 0.2], [0.4, 0.6], [0.6, 0.4]]
+    )
+    synthetic = np.array(
+        [[0.9, 0.1], [0.8, 0.2], [0.1, 0.9], [0.2, 0.8],
+         [0.9, 0.1], [0.8, 0.2], [0.4, 0.6], [0.3, 0.7]]
+    )
+    proba = {
+        "baseline": baseline,
+        "regularization": regularization,
+        "synthetic_blend": synthetic,
+    }
+    summaries = {
+        name: m.stratified_summary(y, values, buckets, n_classes=2, min_n=1)
+        for name, values in proba.items()
+    }
+    inputs = {
+        name: {"y_true": y, "proba": values, "buckets": buckets, "n_classes": 2}
+        for name, values in proba.items()
+    }
+    return summaries, inputs
+
+
+def test_comparison_report_bootstraps_gap_and_relative_improvement_intervals():
+    summaries, inputs = _bootstrap_fixture()
+
+    report = m.comparison_report(
+        summaries["baseline"],
+        summaries["regularization"],
+        summaries["synthetic_blend"],
+        min_bucket_n=1,
+        bootstrap_inputs=inputs,
+        n_resamples=200,
+        seed=7,
+    )
+
+    for variant in report.values():
+        assert variant["gap_ci95"] is not None
+        assert len(variant["gap_ci95"]) == 2
+        assert variant["gap_ci95"][0] <= variant["gap_ci95"][1]
+    assert report["regularization"]["relative_improvement_ci95"] is not None
+    assert report["synthetic_blend"]["relative_improvement_ci95"] is not None
+
+
+def test_comparison_report_without_raw_predictions_marks_intervals_unavailable():
+    baseline = {1: qualifying_variant_bucket(0.70), 2: qualifying_variant_bucket(0.50)}
+    mitigation = {1: qualifying_variant_bucket(0.65), 2: qualifying_variant_bucket(0.55)}
+
+    report = m.comparison_report(baseline, mitigation, mitigation)
+
+    assert report["baseline"]["gap_ci95"] is None
+    assert report["regularization"]["relative_improvement_ci95"] is None
+
+
+def test_comparison_report_rejects_unpaired_bootstrap_cohorts():
+    summaries, inputs = _bootstrap_fixture()
+    inputs["regularization"] = {**inputs["regularization"], "y_true": np.arange(8)}
+
+    with pytest.raises(ValueError, match="same validation cohort"):
+        m.comparison_report(
+            summaries["baseline"],
+            summaries["regularization"],
+            summaries["synthetic_blend"],
+            min_bucket_n=1,
+            bootstrap_inputs=inputs,
+            n_resamples=20,
+        )
+
+
+def test_stratified_summary_counts_explicit_unavailable_markers():
+    y = np.array([0, 1, 0, 1])
+    proba = np.array([[0.9, 0.1], [0.1, 0.9], [0.8, 0.2], [0.2, 0.8]])
+    buckets = np.array([1, "unavailable", None, float("nan")], dtype=object)
+
+    summary = m.stratified_summary(y, proba, buckets, n_classes=2, min_n=1)
+
+    assert summary[1]["count"] == 1
+    assert summary["unavailable"]["count"] == 3

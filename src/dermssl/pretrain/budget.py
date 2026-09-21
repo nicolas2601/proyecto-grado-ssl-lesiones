@@ -1,4 +1,4 @@
-"""GPU-hour budget accounting for equal-compute comparisons.
+"""Contabilidad del presupuesto de horas-GPU para comparaciones con cómputo igual.
 
 Why this module exists
 ----------------------
@@ -18,13 +18,13 @@ from __future__ import annotations
 
 
 class ComputeBudget:
-    """Tracks compute spent against a fixed GPU-hour budget."""
+    """Registra el cómputo consumido frente a un presupuesto fijo de horas-GPU."""
 
     def __init__(self, gpu_hours: float, n_gpus: int, fractions: tuple[float, ...]):
         if gpu_hours <= 0:
-            raise ValueError(f"gpu_hours must be positive, got {gpu_hours}")
-        if n_gpus <= 0:
-            raise ValueError(f"n_gpus must be positive, got {n_gpus}")
+            raise ValueError(f"gpu_hours debe ser positivo; se recibió {gpu_hours}")
+        if n_gpus < 0:
+            raise ValueError(f"n_gpus no puede ser negativo; se recibió {n_gpus}")
         self.gpu_hours = float(gpu_hours)
         self.n_gpus = int(n_gpus)
         self.fractions = tuple(fractions)
@@ -41,15 +41,11 @@ class ComputeBudget:
     def due_checkpoints(
         self, wall_seconds: float, already_saved: set[float]
     ) -> list[float]:
-        """Fractions whose compute point has been reached but not yet saved.
-
-        Returned in ascending order so a slow loop that skipped a point still
-        saves every checkpoint exactly once.
-        """
+        """Fracciones alcanzadas cuyo checkpoint todavía no se guardó."""
         done = self.fraction_done(wall_seconds)
         return [f for f in self.fractions if f <= done and f not in already_saved]
 
 
 def checkpoint_tag(fraction: float) -> str:
-    """Filename-safe tag for a compute fraction: 0.25 -> 'ckpt_c025'."""
+    """Etiqueta segura para nombre de archivo: 0.25 -> 'ckpt_c025'."""
     return f"ckpt_c{round(fraction * 100):03d}"

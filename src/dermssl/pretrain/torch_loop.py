@@ -1,4 +1,4 @@
-"""The v6 training loop: budget-driven, DDP-ready, MLflow-tracked.
+"""Bucle de entrenamiento v6: gobernado por presupuesto, listo para DDP y MLflow.
 
 Deliberately thin: every decision with logic in it (config validation, budget
 math, schedules, checkpoint tags, tracking) lives in the tested pure modules.
@@ -26,7 +26,14 @@ from torch.utils.data import DataLoader, DistributedSampler
 
 from dermssl.pretrain import budget as budget_mod
 from dermssl.pretrain import config as config_mod
-from dermssl.pretrain import schedules, torch_data, torch_dino, torch_simsiam, tracking
+from dermssl.pretrain import (
+    run_contract,
+    schedules,
+    torch_data,
+    torch_dino,
+    torch_simsiam,
+    tracking,
+)
 
 LOG_EVERY_STEPS = 50
 
@@ -47,11 +54,25 @@ def _autocast(precision: str, device: torch.device):
     return torch.autocast("cuda", dtype=dtype)
 
 
-def _build(cfg: config_mod.PretrainConfig, device: torch.device):
+def _build(
+    cfg: config_mod.PretrainConfig,
+    device: torch.device,
+    transformed_evidence: config_mod.TransformedManifestEvidence | None = None,
+):
     """(model, loss_fn, optimizer, dataset, collate) for the configured method."""
     paths = config_mod.collect_images(cfg.image_root)
     if cfg.method in config_mod.SIMSIAM_METHODS:
-        pretrained = cfg.method == "simsiam_dinov2"
+        if cfg.adaptation_mode == "original_transformed_consistency":
+            if transformed_evidence is None:
+                config_mod.validate_transformed_manifest(cfg)
+            paths = config_mod.collect_paired_images(
+                cfg.image_root,
+                cfg.transformed_image_root,
+                manifest_path=cfg.transformed_manifest_path,
+                source_revision=cfg.data_revision,
+                transformed_revision=cfg.transformed_data_revision,
+            )
+        pretrained = cfg.method in ("simsiam_dinov2", "simsiam_imagenet")
         model = torch_simsiam.SimSiam(cfg.backbone, pretrained=pretrained).to(device)
         dataset = torch_data.SimSiamPairDataset(
             paths, cfg.resolution, cfg.color_constancy_probs, cfg.seed
@@ -125,12 +146,28 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
     device = torch.device(
         f"cuda:{local_rank}" if torch.cuda.is_available() else "cpu"
     )
+    gpu_count = world_size if device.type == "cuda" else 0
     torch.manual_seed(cfg.seed + rank)
 
     out_dir = Path(cfg.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    transformed_evidence = (
+        config_mod.validate_transformed_manifest(cfg)
+        if cfg.adaptation_mode == "original_transformed_consistency"
+        else None
+    )
+    manifest = run_contract.build_run_manifest(
+        cfg,
+        gpu_count=gpu_count,
+        code_revision=os.environ.get("GIT_COMMIT", ""),
+        transformed_manifest=transformed_evidence,
+    )
+    if rank == 0:
+        run_contract.write_run_manifest(manifest, out_dir / "run.json")
 
-    model, loss_fn, optimizer, dataset, collate = _build(cfg, device)
+    model, loss_fn, optimizer, dataset, collate = _build(
+        cfg, device, transformed_evidence
+    )
     if world_size > 1:
         model = DDP(model, device_ids=[local_rank] if device.type == "cuda" else None)
     sampler = (
@@ -149,7 +186,7 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
     )
 
     compute = budget_mod.ComputeBudget(
-        cfg.budget_gpu_hours, world_size, cfg.checkpoint_fractions
+        cfg.budget_gpu_hours, gpu_count, cfg.checkpoint_fractions
     )
     base_lr = config_mod.effective_lr(cfg, world_size)
     scaler = torch.amp.GradScaler("cuda", enabled=cfg.precision == "fp16")
@@ -162,14 +199,16 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
         rank=rank,
     )
     if rank == 0 and isinstance(tracker, tracking.NullTracker):
-        print("WARNING: mlflow unavailable - this run is NOT being tracked.")
+        print("ADVERTENCIA: MLflow no está disponible; esta ejecución no tendrá seguimiento.")
     params = config_mod.mlflow_params(cfg)
     params["world_size"] = world_size
     params["effective_lr"] = base_lr
     tracker.start(params)
 
     elapsed_offset, saved_fractions = 0.0, set()
-    resume_path = out_dir / "resume.pt"
+    resume_path = Path(cfg.resume_checkpoint) if cfg.resume_checkpoint else out_dir / "resume.pt"
+    if cfg.resume_checkpoint and not resume_path.is_file():
+        raise FileNotFoundError(f"el checkpoint de reanudación no existe: {resume_path}")
     if resume_path.exists():
         state = torch.load(resume_path, map_location="cpu", weights_only=True)
         raw = model.module if isinstance(model, DDP) else model
@@ -178,13 +217,22 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
         elapsed_offset = state["elapsed_wall_seconds"]
         saved_fractions = set(state["saved_fractions"])
         if rank == 0:
-            print(f"resumed at {compute.gpu_hours_elapsed(elapsed_offset):.2f} GPU-hours")
+            if gpu_count:
+                print(
+                    f"Reanudado en {compute.gpu_hours_elapsed(elapsed_offset):.2f} horas-GPU"
+                )
+            else:
+                print(f"Reanudado tras {elapsed_offset:.2f} segundos de reloj")
 
     start = time.monotonic()
     elapsed = lambda: elapsed_offset + (time.monotonic() - start)  # noqa: E731
     step, images_seen, epoch = 0, 0, 0
+    total_ssl_loss, total_consistency_loss, total_loss = 0.0, 0.0, 0.0
+    consistency_steps = 0
 
-    while not compute.should_stop(elapsed()):
+    while not compute.should_stop(elapsed()) and (
+        cfg.max_steps == 0 or step < cfg.max_steps
+    ):
         if sampler is not None:
             sampler.set_epoch(epoch)
         for batch in loader:
@@ -200,7 +248,17 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
                         device, non_blocking=True
                     )
                     p1, p2, z1, z2 = model(v1, v2)
-                    loss = torch_simsiam.simsiam_loss(p1, p2, z1, z2)
+                    ssl_loss = torch_simsiam.simsiam_loss(p1, p2, z1, z2)
+                    if cfg.adaptation_mode == "original_transformed_consistency":
+                        consistency_loss = (
+                            torch_simsiam.original_transformed_consistency_loss(
+                                p1, p2, z1, z2
+                            )
+                        )
+                        loss = ssl_loss + cfg.consistency_weight * consistency_loss
+                    else:
+                        consistency_loss = None
+                        loss = ssl_loss
                     health = torch_simsiam.collapse_indicator(z1)
                     batch_size, guided_rate = v1.shape[0], -1.0
                 else:
@@ -210,6 +268,8 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
                     student_out = raw.student_forward(crops)
                     teacher_out = raw.teacher_forward(crops[:2])
                     loss = loss_fn(student_out, teacher_out)
+                    ssl_loss = loss
+                    consistency_loss = None  # DINO arm has no transformed-pair term (SimSiam only).
                     health = float(teacher_out[0].std(dim=0).mean().item())
                     batch_size, guided_rate = crops[0].shape[0], float(guided.mean())
 
@@ -227,13 +287,31 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
 
             step += 1
             images_seen += batch_size * world_size
+            total_ssl_loss += float(ssl_loss.detach().item())
+            total_loss += float(loss.detach().item())
+            if consistency_loss is not None:
+                total_consistency_loss += float(consistency_loss.detach().item())
+                consistency_steps += 1
             if rank == 0 and step % LOG_EVERY_STEPS == 0:
-                gpu_hours = compute.gpu_hours_elapsed(elapsed())
-                tracker.log_metric("ssl_loss", float(loss.item()), step=step)
+                elapsed_seconds = elapsed()
+                tracker.log_metric("ssl_loss", float(ssl_loss.item()), step=step)
+                tracker.log_metric("total_loss", float(loss.item()), step=step)
+                if consistency_loss is not None:
+                    tracker.log_metric(
+                        "consistency_loss", float(consistency_loss.item()), step=step
+                    )
                 tracker.log_metric("lr", lr, step=step)
                 tracker.log_metric("embedding_std", health, step=step)
-                tracker.log_metric("gpu_hours", gpu_hours, step=step)
-                tracker.log_metric("images_per_gpu_hour", images_seen / max(gpu_hours, 1e-9), step=step)
+                if gpu_count:
+                    gpu_hours = compute.gpu_hours_elapsed(elapsed_seconds)
+                    tracker.log_metric("gpu_hours", gpu_hours, step=step)
+                    tracker.log_metric(
+                        "images_per_gpu_hour",
+                        images_seen / max(gpu_hours, 1e-9),
+                        step=step,
+                    )
+                else:
+                    tracker.log_metric("wall_seconds", elapsed_seconds, step=step)
                 if guided_rate >= 0:
                     tracker.log_metric("lesion_guided_rate", guided_rate, step=step)
 
@@ -245,9 +323,11 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
                     _export_backbone(ckpt, model, cfg.method)
                     tracker.log_artifact(str(ckpt))
                     _save_checkpoint(resume_path, model, optimizer, elapsed(), saved_fractions)
-                    print(f"[{tag}] saved at {compute.gpu_hours_elapsed(elapsed()):.2f} GPU-hours")
+                    print(f"[{tag}] guardado en {compute.gpu_hours_elapsed(elapsed()):.2f} horas-GPU")
 
-            if compute.should_stop(elapsed()):
+            if compute.should_stop(elapsed()) or (
+                cfg.max_steps and step >= cfg.max_steps
+            ):
                 break
         epoch += 1
 
@@ -255,8 +335,39 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
     if rank == 0:
         _export_backbone(final_path, model, cfg.method)
         tracker.log_artifact(str(final_path))
-        tracker.log_metric("total_gpu_hours", compute.gpu_hours_elapsed(elapsed()))
+        if gpu_count:
+            tracker.log_metric("total_gpu_hours", compute.gpu_hours_elapsed(elapsed()))
+        else:
+            tracker.log_metric("total_wall_seconds", elapsed())
         tracker.log_metric("total_images_seen", float(images_seen))
+        run_contract.write_run_manifest(
+            run_contract.record_execution_evidence(
+                manifest,
+                device=str(device),
+                steps_executed=step,
+                image_count=len(dataset),
+                pair_count=(
+                    images_seen
+                    if cfg.adaptation_mode == "original_transformed_consistency"
+                    else 0
+                ),
+                ssl_loss=total_ssl_loss / step if step else None,
+                consistency_loss=(
+                    total_consistency_loss / consistency_steps
+                    if consistency_steps
+                    else None
+                ),
+                dataset_image_count=len(dataset),
+                dataset_pair_count=(
+                    len(dataset)
+                    if cfg.adaptation_mode == "original_transformed_consistency"
+                    else 0
+                ),
+                samples_processed=images_seen,
+                total_loss=total_loss / step if step else None,
+            ),
+            out_dir / "run.json",
+        )
         tracker.end()
     if world_size > 1:
         dist.destroy_process_group()

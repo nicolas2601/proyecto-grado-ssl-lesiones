@@ -1,7 +1,7 @@
-"""Markdown cells for the v5 notebook: the prose a first-time reader needs.
+"""Celdas Markdown para el notebook v5: texto necesario para una primera lectura.
 
-Kept apart from the executable cells so each file stays reviewable, and so
-editing an explanation can never break a code cell by accident.
+Se mantiene separado de las celdas ejecutables para que cada archivo sea
+revisable y editar una explicación nunca rompa una celda de código por error.
 """
 
 HEADER_MD = r'''# Objetivo 2 - v5: evaluacion 100 % auto-supervisada (backbone congelado)

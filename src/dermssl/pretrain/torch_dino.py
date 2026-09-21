@@ -45,11 +45,17 @@ class DinoHead(nn.Module):
             nn.GELU(),
             nn.Linear(HEAD_HIDDEN, HEAD_BOTTLENECK),
         )
-        self.prototypes = nn.utils.weight_norm(
+        # The legacy nn.utils.weight_norm hook-based implementation cannot be
+        # deepcopy'd (RuntimeError, "Only Tensors created explicitly by the
+        # user ... support the deepcopy protocol" - see
+        # https://github.com/pytorch/pytorch/pull/103001), which
+        # DinoContinual.__init__ needs to build the teacher from the student.
+        # The parametrizations-based replacement is deepcopy-safe.
+        self.prototypes = nn.utils.parametrizations.weight_norm(
             nn.Linear(HEAD_BOTTLENECK, out_dim, bias=False)
         )
-        self.prototypes.weight_g.data.fill_(1.0)
-        self.prototypes.weight_g.requires_grad = False
+        self.prototypes.parametrizations.weight.original0.data.fill_(1.0)
+        self.prototypes.parametrizations.weight.original0.requires_grad = False
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = F.normalize(self.mlp(x), dim=-1)

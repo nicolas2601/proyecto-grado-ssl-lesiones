@@ -1,0 +1,23 @@
+{
+  "_comment": "Corrida final en el cluster UNABIA: 3 rondas de re-etiquetado, 20 epocas de estudiante por ronda y 30 epocas contrastivas. Sube el momentum de la cola de MoCo a 0.999 y alarga el calentamiento, porque el entrenamiento es mucho mas largo que el del piloto. La evaluacion agrega Hausdorff-95, que el piloto omite por lento. Baja min_area_fraction a 0,003 para que las lesiones pequenas lleguen a ser candidatas y activa la supresion de artefactos por color. Todos los valores estan completos: el driver corre sin editar nada.",
+  "pipeline": {"rounds": 3, "epochs_per_round": 20, "seed": 42},
+  "cache": {
+    "resolution": 224, "holdout_fraction": 0.02, "threads": 16,
+    "field_black_threshold": 0.06, "field_margin_fraction": 0.04
+  },
+  "contrastive": {
+    "epochs": 30, "batch_size": 128, "lr": 0.0005, "weight_decay": 0.0001, "warmup_epochs": 2,
+    "queue_size": 16384, "momentum": 0.999, "temperature": 0.2, "layer4_stride": 2,
+    "bn_splits": 4, "precision": "bf16"
+  },
+  "ccam": {"epochs": 5, "batch_size": 64, "lr": 0.001, "alpha": 0.25, "head_kernel": 3, "precision": "bf16"},
+  "pseudo": {
+    "low": 0.35, "high": 0.65, "max_center_distance": 0.5, "max_area_fraction": 0.6,
+    "min_area_fraction": 0.003, "artifact_suppression": true
+  },
+  "student": {
+    "batch_size": 32, "lr": 0.0001, "optimizer": "adam", "warmup_epochs": 1,
+    "dice_weight": 1.0, "base_channels": 32, "selection": "best-val", "precision": "bf16"
+  },
+  "evaluate": {"batch_size": 32, "hausdorff": true}
+}
