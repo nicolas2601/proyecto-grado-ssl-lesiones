@@ -324,6 +324,65 @@ deja apagada a propósito, porque el piloto mide velocidad de entrenamiento y no
 calidad final. Si en el cierre del final el tiempo aprieta, se quita esa clave
 del preset y la evaluación vuelve a salir solo con las métricas rápidas.
 
+### Corrida v2: un solo cambio de entrenamiento, mas inferencia con volteos
+
+La corrida final dejo dos hallazgos: el tope de area de candidato (0,6 del
+campo) excluye del entrenamiento las lesiones grandes y el estudiante las
+subsegmenta, y no hay ninguna ganancia de inferencia aprovechada. La v2 cambia
+exactamente una cosa del entrenamiento y agrega una de inferencia, para que la
+atribucion sea limpia:
+
+- `plan-segmentacion/comun/configs/cluster-v2.json`: identico a
+  `cluster-final.json` salvo `pseudo.max_area_fraction` 0,75. Mismas epocas,
+  mismas rondas, misma seleccion de checkpoint por pseudo-validacion, mismo
+  umbral fijo 0,5. No se entrena mas tiempo: el riesgo de sobreajuste no crece.
+- `--tta` en `evaluate_segmentation.py`: promedia la prediccion sobre los
+  cuatro volteos (identidad, horizontal, vertical, ambos). Solo toca la
+  inferencia, y se reporta aparte para no mezclarlo con el cambio anterior.
+
+Lanzamiento, igual que la seccion 9 con el preset y el workdir de la v2:
+
+```bash
+cd ~/work/proyectonp/repo_final
+setsid nohup python plan-segmentacion/camino-b-cnn/entrenamiento/run_pipeline.py \
+  --nproc-per-node 2 \
+  --config plan-segmentacion/comun/configs/cluster-v2.json \
+  --workdir $HOME/work/proyectonp/salidas/v2 \
+  --root ham10000_p1=$HOME/work/datos/ham10000/HAM10000_images_part_1 \
+  --root ham10000_p2=$HOME/work/datos/ham10000/HAM10000_images_part_2 \
+  --root isic2019=$HOME/work/datos/isic2019 \
+  --root isic2020=$HOME/work/datos/isic2020 \
+  --wandb-project dermssl-segmentacion \
+  --eval-set isic2018=$HOME/work/proyectonp/datos_isic2018/ISIC2018_Task1-2_Training_Input:$HOME/work/proyectonp/masks_eval/isic2018/ground_truth \
+  --eval-set ham10000=$HOME/work/proyectonp/eval_ham10000_images:$HOME/work/proyectonp/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl \
+  < /dev/null > v2.log 2>&1 & disown
+```
+
+El grupo en Weights & Biases se llama `v2` (nombre del workdir). Al terminar,
+la evaluacion con volteos se corre aparte sobre el mismo checkpoint:
+
+```bash
+W=$HOME/work/proyectonp/salidas/v2
+for SET in isic2018 ham10000; do
+  case $SET in
+    isic2018) IMG=$HOME/work/proyectonp/datos_isic2018/ISIC2018_Task1-2_Training_Input
+              GT=$HOME/work/proyectonp/masks_eval/isic2018/ground_truth ;;
+    ham10000) IMG=$HOME/work/proyectonp/eval_ham10000_images
+              GT=$HOME/work/proyectonp/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl ;;
+  esac
+  python plan-segmentacion/comun/evaluacion/evaluate_segmentation.py \
+    --checkpoint $W/student_r3/best.pt --image-dir $IMG --mask-dir $GT \
+    --eval-name ${SET}_tta --output-dir $W/evaluacion_${SET}_tta \
+    --overlay-dir $W/evaluacion_${SET}_tta/overlays --hausdorff --tta \
+    --fst-manifest $W/fst/fst_pseudo_manifest.csv --batch-size 32 \
+    --wandb-project dermssl-segmentacion
+done
+```
+
+La tabla de resultados debe llevar cuatro filas por conjunto: final, v2, v2
+con volteos y el piso rnorm, y la comparacion pareada contra el final dice si
+cada cambio aporta por si solo.
+
 ### Pisos no supervisados con el mismo evaluador
 
 El resultado se lee contra dos pisos que no aprenden nada: SegRNorm y SegXNorm

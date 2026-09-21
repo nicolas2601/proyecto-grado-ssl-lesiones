@@ -226,12 +226,12 @@ def evaluate_checkpoint(args: argparse.Namespace) -> dict:
         return _row(image_id, binarize(probability), truth, args.hausdorff)
 
     def predict_for(_image_id, image):
-        return binarize(eval_student.predict_masks(model, image[None], device, 1)[0])
+        return binarize(eval_student.predict_masks(model, image[None], device, 1, tta=args.tta)[0])
 
     rows = eval_student.score_pairs(
-        model, device, pairs, resolution, args.batch_size, make_row
+        model, device, pairs, resolution, args.batch_size, make_row, tta=args.tta
     )
-    meta = {"predictions": "checkpoint", "checkpoint": str(args.checkpoint)}
+    meta = {"predictions": "checkpoint", "checkpoint": str(args.checkpoint), "tta": bool(args.tta)}
     return _write_report(args, pairs, rows, resolution, meta, predict_for)
 
 
@@ -261,6 +261,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--eval-resolution", type=int, default=0, help="Resolucion de evaluacion; 0 usa la del entrenamiento (o 224 con --pred-mask-dir)")
     parser.add_argument("--batch-size", type=int, default=32, help="Tamano de lote para la inferencia")
     parser.add_argument("--hausdorff", action="store_true", help="Calcula tambien Hausdorff-95 (mas lento)")
+    parser.add_argument("--tta", action="store_true", help="Promedia la prediccion sobre volteos horizontal y vertical (solo inferencia)")
     parser.add_argument("--eval-name", default="referencia", help="Nombre del conjunto; prefijo de las metricas")
     parser.add_argument("--fst-manifest", default="", help="Manifiesto FST (CSV image_id,fst_bucket o el JSON de fst_pseudo_manifest)")
     parser.add_argument("--fst-min-n", type=int, default=30, help="Minimo de imagenes por bucket; debajo se marca SKIPPED")
