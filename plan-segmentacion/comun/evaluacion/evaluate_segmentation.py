@@ -265,6 +265,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--eval-name", default="referencia", help="Nombre del conjunto; prefijo de las metricas")
     parser.add_argument("--fst-manifest", default="", help="Manifiesto FST (CSV image_id,fst_bucket o el JSON de fst_pseudo_manifest)")
     parser.add_argument("--fst-min-n", type=int, default=30, help="Minimo de imagenes por bucket; debajo se marca SKIPPED")
+    parser.add_argument("--strata-column", default=eval_report.BUCKET_COLUMN, help="Columna del manifiesto que define los estratos (fst_bucket o tone_tercile)")
     parser.add_argument("--overlay-dir", default="", help="Carpeta para las rejillas PNG de superposicion")
     parser.add_argument("--overlay-count", type=int, default=12, help="Imagenes por grupo (peores, mejores, aleatorias)")
     parser.add_argument("--wandb-project", default=os.environ.get("WANDB_PROJECT", ""), help="Proyecto de Weights & Biases (vacio = sin seguimiento)")
@@ -274,7 +275,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         args.eval_resolution = EXTERNAL_RESOLUTION
     if args.fst_manifest:
         try:
-            eval_report.validate_fst_manifest(Path(args.fst_manifest))
+            eval_report.validate_fst_manifest(Path(args.fst_manifest), args.strata_column)
         except ValueError as error:
             parser.error(str(error))
     return args
