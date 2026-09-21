@@ -309,6 +309,80 @@ deja apagada a propósito, porque el piloto mide velocidad de entrenamiento y no
 calidad final. Si en el cierre del final el tiempo aprieta, se quita esa clave
 del preset y la evaluación vuelve a salir solo con las métricas rápidas.
 
+### Pisos no supervisados con el mismo evaluador
+
+El resultado se lee contra dos pisos que no aprenden nada: SegRNorm y SegXNorm
+(`scripts/run_segnorm_baseline.py`, normalización de color y umbral de Otsu
+dentro del campo circular). Corren en CPU, en paralelo al entrenamiento, y se
+evalúan con el mismo `evaluate_segmentation.py` que el estudiante, así que los
+números son comparables fila a fila. No hay techo supervisado: por decisión del
+proyecto nada del trabajo de segmentación entrena con máscaras.
+
+Primero un manifiesto por conjunto de evaluación (columnas `image_id`,
+`dataset`, `path`), después las máscaras, después la evaluación externa:
+
+```bash
+cd ~/work/proyectonp/repo
+source ~/work/proyectonp/.venv/bin/activate
+BASE=~/work/proyectonp/baselines
+mkdir -p $BASE
+
+for SET in isic2018 ham10000; do
+  case $SET in
+    isic2018) IMG=$HOME/work/proyectonp/datos_isic2018/ISIC2018_Task1-2_Training_Input
+              GT=$HOME/work/proyectonp/masks_eval/isic2018/ground_truth ;;
+    ham10000) IMG=$HOME/work/proyectonp/eval_ham10000_images
+              GT=$HOME/work/proyectonp/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl ;;
+  esac
+  python - "$SET" "$IMG" "$BASE/$SET.csv" <<'EOF'
+import csv, sys
+from pathlib import Path
+name, images, out = sys.argv[1], Path(sys.argv[2]), sys.argv[3]
+with open(out, "w", newline="") as handle:
+    writer = csv.writer(handle)
+    writer.writerow(["image_id", "dataset", "path"])
+    for path in sorted(images.glob("*.jpg")):
+        writer.writerow([path.stem, name, str(path.resolve())])
+EOF
+  python scripts/run_segnorm_baseline.py --manifest $BASE/$SET.csv \
+    --output-dir $BASE/$SET --method both --roi circular
+  for METHOD in rnorm xnorm; do
+    python plan-segmentacion/comun/evaluacion/evaluate_segmentation.py \
+      --pred-mask-dir $BASE/$SET/masks --pred-mask-suffix _$METHOD \
+      --image-dir $IMG --mask-dir $GT --eval-resolution 224 \
+      --eval-name ${SET}_$METHOD --output-dir $BASE/evaluacion_${SET}_$METHOD \
+      --overlay-dir $BASE/evaluacion_${SET}_$METHOD/overlays --batch-size 32
+  done
+done
+```
+
+Las máscaras del piso quedan en `$BASE/<set>/masks/<image_id>_<método>.png`. Para
+HAM10000 se puede añadir `--fst-manifest <workdir>/fst/fst_pseudo_manifest.csv`
+a la evaluación externa y obtener el mismo desglose por tono que el estudiante.
+
+### Tabla de resultados y evidencia visual
+
+```bash
+python plan-segmentacion/comun/evaluacion/build_results_table.py \
+  --run estudiante_isic2018=<workdir>/evaluacion_isic2018/summary.json \
+  --run estudiante_ham10000=<workdir>/evaluacion_ham10000/summary.json \
+  --run rnorm_isic2018=$BASE/evaluacion_isic2018_rnorm/summary.json \
+  --run xnorm_isic2018=$BASE/evaluacion_isic2018_xnorm/summary.json \
+  --run rnorm_ham10000=$BASE/evaluacion_ham10000_rnorm/summary.json \
+  --run xnorm_ham10000=$BASE/evaluacion_ham10000_xnorm/summary.json \
+  --output <workdir>/resultados.md
+
+python plan-segmentacion/comun/datos/field_contact_sheet.py \
+  --cache-dir <workdir>/cache --output <workdir>/field_contact_sheet.png --per-group 8
+```
+
+La hoja de contacto dibuja el borde del campo detectado sobre una muestra por
+dataset y por método (`circular` / `full_frame`); es la evidencia visual de que
+el detector no se come lesiones ni deja pasar la viñeta. Los artefactos que se
+versionan en `plan-segmentacion/camino-b-cnn/resultados/<corrida>/` son
+`resultados.md`, los `summary.json`, los `per_image.csv`, los overlays y la hoja
+de contacto; nunca la cache, `field.npy` ni los checkpoints.
+
 ## 10. Reanudar después de una interrupción
 
 Las etapas de entrenamiento guardan `last.pt` en su carpeta de salida y se

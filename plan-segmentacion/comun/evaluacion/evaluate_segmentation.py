@@ -1,8 +1,14 @@
-"""Evalua un estudiante contra mascaras de referencia (solo para medir).
+"""Evalua predicciones contra mascaras de referencia (solo para medir).
 
-Este es el UNICO modulo del pipeline que abre mascaras manuales (ISIC 2018,
-PH2, Dermofit). Se ejecuta despues del entrenamiento: no selecciona
-checkpoints ni umbrales. El umbral de binarizacion es fijo en 0,5.
+Junto con ``eval_inputs`` es el UNICO lugar del pipeline que abre mascaras
+manuales (ISIC 2018, PH2, Dermofit). Se ejecuta despues del entrenamiento: no
+selecciona checkpoints ni umbrales. El umbral de binarizacion es fijo en 0,5.
+
+Hay dos fuentes de prediccion, mutuamente excluyentes:
+
+* ``--checkpoint``: se corre el estudiante sobre las imagenes;
+* ``--pred-mask-dir``: se leen mascaras PNG ya calculadas por otro metodo
+  (baselines publicados, otro pipeline). El reporte es identico.
 
 Ejemplo:
     python plan-segmentacion/comun/evaluacion/evaluate_segmentation.py \\
@@ -27,8 +33,12 @@ for _extra in (_PLAN_ROOT.parent / "src", _PLAN_ROOT / "comun" / "nucleo"):
     if str(_extra) not in sys.path:
         sys.path.insert(0, str(_extra))
 
+import eval_inputs  # noqa: E402
 import eval_report  # noqa: E402
+import eval_student  # noqa: E402
 from dermssl.cli import build_spanish_parser  # noqa: E402
+from eval_inputs import load_binary_mask as load_mask  # noqa: E402
+from eval_inputs import load_image, pair_images_and_masks  # noqa: E402
 from eval_report import summarize, write_per_image_csv, write_summary_json  # noqa: E402
 from eval_tracking import track_evaluation  # noqa: E402
 
@@ -36,8 +46,9 @@ from eval_tracking import track_evaluation  # noqa: E402
 DEFAULT_THRESHOLD = 0.5
 BASE_METRICS = ("dice", "iou", "accuracy", "sensitivity", "specificity")
 COVERAGE_METRICS = ("pred_coverage", "ref_coverage")
-IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
 OVERLAY_SEED = 0
+# External masks carry no training resolution, so the comparison grid is fixed here.
+EXTERNAL_RESOLUTION = 224
 
 
 # ------------------------------------------------------------------ metrics
@@ -104,112 +115,34 @@ def metric_columns(hausdorff: bool) -> list[str]:
     return [*BASE_METRICS, *COVERAGE_METRICS] + (["hd95"] if hausdorff else [])
 
 
-# --------------------------------------------------------------------- I/O
-def pair_images_and_masks(
-    image_dir: Path,
-    mask_dir: Path,
-    mask_suffix: str = "_segmentation",
-    mask_extension: str = ".png",
-) -> list[tuple[str, Path, Path]]:
-    """Match every image with ``<id><suffix><ext>`` in the mask folder."""
-    images = sorted(
-        p for p in Path(image_dir).iterdir() if p.suffix.lower() in IMAGE_EXTENSIONS
-    )
-    pairs, missing = [], []
-    for image_path in images:
-        mask_path = Path(mask_dir) / f"{image_path.stem}{mask_suffix}{mask_extension}"
-        if mask_path.is_file():
-            pairs.append((image_path.stem, image_path, mask_path))
-        else:
-            missing.append(image_path.stem)
-    if missing:
-        raise FileNotFoundError(
-            f"{len(missing)} images have no mask (first: {missing[:3]}); check --mask-suffix"
-        )
-    eval_report.reject_duplicate_ids([image_id for image_id, _, _ in pairs])
-    return pairs
+def _row(image_id: str, prediction: np.ndarray, truth: np.ndarray, hausdorff: bool) -> dict:
+    """One per-image row; reference masks are compared here and nowhere else."""
+    row = {"image_id": image_id, **compute_binary_metrics(prediction, truth)}
+    if hausdorff:
+        row["hd95"] = hausdorff95(prediction, truth)
+    return row
 
 
-def load_mask(path: Path, resolution: int) -> np.ndarray:
-    """Read a reference mask, resize with nearest neighbour and binarize."""
-    from PIL import Image
-
-    with Image.open(path) as image:
-        resized = image.convert("L").resize((resolution, resolution), Image.NEAREST)
-        return np.asarray(resized) > 127
-
-
-def load_image(path: Path, resolution: int) -> np.ndarray:
-    from PIL import Image
-
-    with Image.open(path) as image:
-        rgb = image.convert("RGB").resize((resolution, resolution), Image.BILINEAR)
-        return np.asarray(rgb, dtype=np.uint8)
-
-
-# --------------------------------------------------------------- inference
-def _load_student(checkpoint_path: Path, device):
-    from ckpt_io import load_checkpoint
-    from dermssl.torch_unet import UNet
-
-    checkpoint = load_checkpoint(checkpoint_path)
-    config = checkpoint.get("config", {})
-    model = UNet(base_channels=int(config.get("base_channels", 32)))
-    model.load_state_dict(checkpoint["model"])
-    return model.to(device).eval(), int(config.get("resolution", 224))
-
-
-def predict_masks(model, images: np.ndarray, device, batch_size: int) -> np.ndarray:
-    """Probabilities ``(N, H, W)`` float32 for a uint8 image stack ``(N, H, W, 3)``."""
-    import torch
-    from gpu_augment import normalize_batch, to_float_batch
-
-    outputs = []
-    with torch.no_grad():
-        for start in range(0, len(images), batch_size):
-            chunk = torch.from_numpy(images[start : start + batch_size]).to(device)
-            batch = normalize_batch(to_float_batch(chunk))
-            outputs.append(torch.sigmoid(model(batch)).squeeze(1).float().cpu().numpy())
-    return np.concatenate(outputs)
-
-
-def _score_pairs(model, device, pairs, resolution: int, args) -> list[dict]:
-    """One row per image; reference masks are read here and nowhere else."""
-    rows = []
-    for start in range(0, len(pairs), args.batch_size):
-        chunk = pairs[start : start + args.batch_size]
-        images = np.stack([load_image(image_path, resolution) for _, image_path, _ in chunk])
-        probabilities = predict_masks(model, images, device, len(chunk))
-        for (image_id, _, mask_path), probability in zip(chunk, probabilities, strict=True):
-            prediction = binarize(probability)
-            truth = load_mask(mask_path, resolution)
-            row = {"image_id": image_id, **compute_binary_metrics(prediction, truth)}
-            if args.hausdorff:
-                row["hd95"] = hausdorff95(prediction, truth)
-            rows.append(row)
-    return rows
-
-
-def _overlay_records(model, device, sources, identifiers, resolution, dice_by_id) -> list[dict]:
-    """Re-run the model on the few selected images to paint the contact sheets."""
+# ------------------------------------------------------------------ report
+def _overlay_records(sources, identifiers, resolution, dice_by_id, predict_for) -> list[dict]:
+    """Rebuild the few selected predictions to paint the contact sheets."""
     records = []
     for image_id in identifiers:
         image_path, mask_path = sources[image_id]
         image = load_image(image_path, resolution)
-        probability = predict_masks(model, image[None], device, 1)[0]
         records.append(
             {
                 "image_id": image_id,
                 "dice": dice_by_id[image_id],
                 "image": image,
                 "reference": load_mask(mask_path, resolution),
-                "prediction": binarize(probability),
+                "prediction": predict_for(image_id, image),
             }
         )
     return records
 
 
-def _write_overlays(args, model, device, pairs, rows, resolution) -> list[Path]:
+def _write_overlays(args, pairs, rows, resolution, predict_for) -> list[Path]:
     if not args.overlay_dir or not rows:
         return []
     overlay_dir = Path(args.overlay_dir)
@@ -221,23 +154,14 @@ def _write_overlays(args, model, device, pairs, rows, resolution) -> list[Path]:
     for name, identifiers in groups.items():
         if not identifiers:
             continue
-        records = _overlay_records(model, device, sources, identifiers, resolution, dice_by_id)
+        records = _overlay_records(sources, identifiers, resolution, dice_by_id, predict_for)
         paths.append(eval_report.write_overlay_grid(overlay_dir / f"{name}.png", records))
     return paths
 
 
-def evaluate(args: argparse.Namespace) -> dict:
-    import torch
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model, checkpoint_resolution = _load_student(Path(args.checkpoint), device)
-    resolution = args.eval_resolution or checkpoint_resolution
-    pairs = pair_images_and_masks(
-        Path(args.image_dir), Path(args.mask_dir), args.mask_suffix, args.mask_extension
-    )
+def _write_report(args, pairs, rows, resolution: int, meta_extra: dict, predict_for) -> dict:
+    """CSV, JSON, overlays and tracking; identical for both prediction sources."""
     columns = metric_columns(args.hausdorff)
-    rows = _score_pairs(model, device, pairs, resolution, args)
-
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     write_per_image_csv(output_dir / "per_image.csv", rows, columns)
@@ -248,25 +172,93 @@ def evaluate(args: argparse.Namespace) -> dict:
         "eval_name": args.eval_name,
         "threshold": DEFAULT_THRESHOLD,
         "resolution": resolution,
-        "checkpoint": str(args.checkpoint),
         "image_dir": str(args.image_dir),
         "note": "reference masks were read only to compute these metrics",
+        **meta_extra,
     }
     write_summary_json(output_dir / "summary.json", summary, meta, strata)
-    overlays = _write_overlays(args, model, device, pairs, rows, resolution)
+    overlays = _write_overlays(args, pairs, rows, resolution, predict_for)
     track_evaluation(args, summary, strata, rows, overlays)
     return summary
 
 
+def _reference_pairs(args) -> list[tuple[str, Path, Path]]:
+    return pair_images_and_masks(
+        Path(args.image_dir), Path(args.mask_dir), args.mask_suffix, args.mask_extension
+    )
+
+
+def evaluate_external(args: argparse.Namespace) -> dict:
+    """Score masks produced elsewhere: no model, no torch, same report."""
+    resolution = args.eval_resolution or EXTERNAL_RESOLUTION
+    pairs = _reference_pairs(args)
+    predictions = eval_inputs.pair_predictions(
+        pairs, Path(args.pred_mask_dir), args.pred_mask_suffix, args.pred_mask_extension
+    )
+
+    def predict_for(image_id, _image):
+        return load_mask(predictions[image_id], resolution)
+
+    rows = [
+        _row(
+            image_id,
+            load_mask(predictions[image_id], resolution),
+            load_mask(mask_path, resolution),
+            args.hausdorff,
+        )
+        for image_id, _, mask_path in pairs
+    ]
+    meta = {"predictions": "external", "pred_mask_dir": str(args.pred_mask_dir)}
+    return _write_report(args, pairs, rows, resolution, meta, predict_for)
+
+
+def evaluate_checkpoint(args: argparse.Namespace) -> dict:
+    """Run the student over the evaluation set and report its masks."""
+    import torch
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model, checkpoint_resolution = eval_student.load_student(Path(args.checkpoint), device)
+    resolution = args.eval_resolution or checkpoint_resolution
+    pairs = _reference_pairs(args)
+
+    def make_row(image_id, probability, mask_path):
+        truth = load_mask(mask_path, resolution)
+        return _row(image_id, binarize(probability), truth, args.hausdorff)
+
+    def predict_for(_image_id, image):
+        return binarize(eval_student.predict_masks(model, image[None], device, 1)[0])
+
+    rows = eval_student.score_pairs(
+        model, device, pairs, resolution, args.batch_size, make_row
+    )
+    meta = {"predictions": "checkpoint", "checkpoint": str(args.checkpoint)}
+    return _write_report(args, pairs, rows, resolution, meta, predict_for)
+
+
+def evaluate(args: argparse.Namespace) -> dict:
+    """Dispatch on the prediction source chosen at the command line."""
+    if args.pred_mask_dir:
+        return evaluate_external(args)
+    return evaluate_checkpoint(args)
+
+
+def _add_source_arguments(parser: argparse.ArgumentParser) -> None:
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--checkpoint", default="", help="Checkpoint del estudiante (best.pt)")
+    source.add_argument("--pred-mask-dir", default="", help="Carpeta con mascaras PNG ya predichas por otro metodo")
+    parser.add_argument("--pred-mask-suffix", default="", help="Sufijo del nombre de la mascara predicha")
+    parser.add_argument("--pred-mask-extension", default=".png", help="Extension de las mascaras predichas")
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = build_spanish_parser(description=__doc__)
-    parser.add_argument("--checkpoint", required=True, help="Checkpoint del estudiante (best.pt)")
+    _add_source_arguments(parser)
     parser.add_argument("--image-dir", required=True, help="Carpeta con las imagenes de prueba")
     parser.add_argument("--mask-dir", required=True, help="Carpeta con las mascaras de referencia")
     parser.add_argument("--output-dir", required=True, help="Carpeta de salida (CSV y JSON)")
     parser.add_argument("--mask-suffix", default="_segmentation", help="Sufijo del nombre de la mascara")
     parser.add_argument("--mask-extension", default=".png", help="Extension de las mascaras")
-    parser.add_argument("--eval-resolution", type=int, default=0, help="Resolucion de evaluacion; 0 usa la del entrenamiento")
+    parser.add_argument("--eval-resolution", type=int, default=0, help="Resolucion de evaluacion; 0 usa la del entrenamiento (o 224 con --pred-mask-dir)")
     parser.add_argument("--batch-size", type=int, default=32, help="Tamano de lote para la inferencia")
     parser.add_argument("--hausdorff", action="store_true", help="Calcula tambien Hausdorff-95 (mas lento)")
     parser.add_argument("--eval-name", default="referencia", help="Nombre del conjunto; prefijo de las metricas")
@@ -277,6 +269,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--wandb-project", default=os.environ.get("WANDB_PROJECT", ""), help="Proyecto de Weights & Biases (vacio = sin seguimiento)")
     parser.add_argument("--wandb-run-name", default="", help="Nombre de la corrida en Weights & Biases")
     args = parser.parse_args(argv)
+    if args.pred_mask_dir and not args.eval_resolution:
+        args.eval_resolution = EXTERNAL_RESOLUTION
     if args.fst_manifest:
         try:
             eval_report.validate_fst_manifest(Path(args.fst_manifest))

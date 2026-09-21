@@ -81,7 +81,9 @@ def test_only_cache_builder_and_evaluation_open_image_files():
         for p in ALL_MODULES
         if "Image.open(" in p.read_text(encoding="utf-8") and p.name != "synthetic.py"
     }
-    assert openers == {"cache_io.py", "evaluate_segmentation.py", "fst_pseudo_manifest.py"}
+    # eval_inputs.py is the decoding half of the evaluation stage: it was split out of
+    # evaluate_segmentation.py and is the only other module allowed to read masks.
+    assert openers == {"cache_io.py", "eval_inputs.py", "fst_pseudo_manifest.py"}
 
 
 def test_no_training_module_imports_the_evaluation_module():
