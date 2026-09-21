@@ -33,6 +33,7 @@ for _extra in (
 
 from dermssl.cli import build_spanish_parser  # noqa: E402
 from student_data import SELECTION_CHOICES  # noqa: E402
+from wandb_logging import add_tracking_arguments  # noqa: E402
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -68,6 +69,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Permite reemplazar predictions.npy existente",
     )
     parser.add_argument("--force-cpu", action="store_true", help="Fuerza CPU (diagnostico)")
+    add_tracking_arguments(parser)
     args = parser.parse_args(argv)
     if args.predict_only and args.no_predict:
         parser.error("--predict-only no se puede combinar con --no-predict")

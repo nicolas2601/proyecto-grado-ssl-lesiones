@@ -14,11 +14,10 @@ Ejemplo:
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import math
+import os
 import sys
-from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
@@ -28,12 +27,17 @@ for _extra in (_PLAN_ROOT.parent / "src", _PLAN_ROOT / "comun" / "nucleo"):
     if str(_extra) not in sys.path:
         sys.path.insert(0, str(_extra))
 
+import eval_report  # noqa: E402
 from dermssl.cli import build_spanish_parser  # noqa: E402
+from eval_report import summarize, write_per_image_csv, write_summary_json  # noqa: E402
+from eval_tracking import track_evaluation  # noqa: E402
 
 # Fixed by the thesis protocol: never tuned, never selected with ground truth.
 DEFAULT_THRESHOLD = 0.5
 BASE_METRICS = ("dice", "iou", "accuracy", "sensitivity", "specificity")
+COVERAGE_METRICS = ("pred_coverage", "ref_coverage")
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
+OVERLAY_SEED = 0
 
 
 # ------------------------------------------------------------------ metrics
@@ -70,6 +74,8 @@ def compute_binary_metrics(prediction: np.ndarray, truth: np.ndarray) -> dict:
         "accuracy": (true_positive + true_negative) / prediction.size,
         "sensitivity": _safe_ratio(true_positive, true_positive + false_negative),
         "specificity": _safe_ratio(true_negative, true_negative + false_positive),
+        "pred_coverage": (true_positive + false_positive) / prediction.size,
+        "ref_coverage": (true_positive + false_negative) / prediction.size,
     }
 
 
@@ -93,19 +99,9 @@ def hausdorff95(prediction: np.ndarray, truth: np.ndarray) -> float:
     return float(np.percentile(distances, 95))
 
 
-def summarize(rows: Sequence[dict], metric_names: Sequence[str]) -> dict:
-    """Mean, std, median and valid count per metric, ignoring NaN."""
-    summary = {}
-    for name in metric_names:
-        values = np.array([row[name] for row in rows], dtype=np.float64)
-        values = values[~np.isnan(values)]
-        summary[name] = {
-            "mean": float(values.mean()) if len(values) else math.nan,
-            "std": float(values.std()) if len(values) else math.nan,
-            "median": float(np.median(values)) if len(values) else math.nan,
-            "n": int(len(values)),
-        }
-    return summary
+def metric_columns(hausdorff: bool) -> list[str]:
+    """Per-image CSV columns, in report order."""
+    return [*BASE_METRICS, *COVERAGE_METRICS] + (["hd95"] if hausdorff else [])
 
 
 # --------------------------------------------------------------------- I/O
@@ -130,6 +126,7 @@ def pair_images_and_masks(
         raise FileNotFoundError(
             f"{len(missing)} images have no mask (first: {missing[:3]}); check --mask-suffix"
         )
+    eval_report.reject_duplicate_ids([image_id for image_id, _, _ in pairs])
     return pairs
 
 
@@ -148,21 +145,6 @@ def load_image(path: Path, resolution: int) -> np.ndarray:
     with Image.open(path) as image:
         rgb = image.convert("RGB").resize((resolution, resolution), Image.BILINEAR)
         return np.asarray(rgb, dtype=np.uint8)
-
-
-def write_per_image_csv(path: Path, rows: Sequence[dict], metric_names: Sequence[str]) -> None:
-    columns = ["image_id", *metric_names]
-    with Path(path).open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=columns, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def write_summary_json(path: Path, metrics: dict, meta: dict) -> None:
-    payload = {"meta": meta, "metrics": metrics}
-    Path(path).write_text(
-        json.dumps(payload, indent=2, sort_keys=True, allow_nan=True) + "\n", encoding="utf-8"
-    )
 
 
 # --------------------------------------------------------------- inference
@@ -191,17 +173,8 @@ def predict_masks(model, images: np.ndarray, device, batch_size: int) -> np.ndar
     return np.concatenate(outputs)
 
 
-def evaluate(args: argparse.Namespace) -> dict:
-    import torch
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model, checkpoint_resolution = _load_student(Path(args.checkpoint), device)
-    resolution = args.eval_resolution or checkpoint_resolution
-    pairs = pair_images_and_masks(
-        Path(args.image_dir), Path(args.mask_dir), args.mask_suffix, args.mask_extension
-    )
-    metric_names = list(BASE_METRICS) + (["hd95"] if args.hausdorff else [])
-
+def _score_pairs(model, device, pairs, resolution: int, args) -> list[dict]:
+    """One row per image; reference masks are read here and nowhere else."""
     rows = []
     for start in range(0, len(pairs), args.batch_size):
         chunk = pairs[start : start + args.batch_size]
@@ -214,20 +187,74 @@ def evaluate(args: argparse.Namespace) -> dict:
             if args.hausdorff:
                 row["hd95"] = hausdorff95(prediction, truth)
             rows.append(row)
+    return rows
+
+
+def _overlay_records(model, device, sources, identifiers, resolution, dice_by_id) -> list[dict]:
+    """Re-run the model on the few selected images to paint the contact sheets."""
+    records = []
+    for image_id in identifiers:
+        image_path, mask_path = sources[image_id]
+        image = load_image(image_path, resolution)
+        probability = predict_masks(model, image[None], device, 1)[0]
+        records.append(
+            {
+                "image_id": image_id,
+                "dice": dice_by_id[image_id],
+                "image": image,
+                "reference": load_mask(mask_path, resolution),
+                "prediction": binarize(probability),
+            }
+        )
+    return records
+
+
+def _write_overlays(args, model, device, pairs, rows, resolution) -> list[Path]:
+    if not args.overlay_dir or not rows:
+        return []
+    overlay_dir = Path(args.overlay_dir)
+    overlay_dir.mkdir(parents=True, exist_ok=True)
+    sources = {image_id: (image_path, mask_path) for image_id, image_path, mask_path in pairs}
+    dice_by_id = {row["image_id"]: row["dice"] for row in rows}
+    groups = eval_report.select_overlay_groups(rows, args.overlay_count, seed=OVERLAY_SEED)
+    paths = []
+    for name, identifiers in groups.items():
+        if not identifiers:
+            continue
+        records = _overlay_records(model, device, sources, identifiers, resolution, dice_by_id)
+        paths.append(eval_report.write_overlay_grid(overlay_dir / f"{name}.png", records))
+    return paths
+
+
+def evaluate(args: argparse.Namespace) -> dict:
+    import torch
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model, checkpoint_resolution = _load_student(Path(args.checkpoint), device)
+    resolution = args.eval_resolution or checkpoint_resolution
+    pairs = pair_images_and_masks(
+        Path(args.image_dir), Path(args.mask_dir), args.mask_suffix, args.mask_extension
+    )
+    columns = metric_columns(args.hausdorff)
+    rows = _score_pairs(model, device, pairs, resolution, args)
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    write_per_image_csv(output_dir / "per_image.csv", rows, metric_names)
+    write_per_image_csv(output_dir / "per_image.csv", rows, columns)
+    summary = summarize(rows, columns)
+    strata = eval_report.strata_from_args(args, rows)
     meta = {
         "n_images": len(rows),
+        "eval_name": args.eval_name,
         "threshold": DEFAULT_THRESHOLD,
         "resolution": resolution,
         "checkpoint": str(args.checkpoint),
         "image_dir": str(args.image_dir),
         "note": "reference masks were read only to compute these metrics",
     }
-    summary = summarize(rows, metric_names)
-    write_summary_json(output_dir / "summary.json", summary, meta)
+    write_summary_json(output_dir / "summary.json", summary, meta, strata)
+    overlays = _write_overlays(args, model, device, pairs, rows, resolution)
+    track_evaluation(args, summary, strata, rows, overlays)
     return summary
 
 
@@ -242,7 +269,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--eval-resolution", type=int, default=0, help="Resolucion de evaluacion; 0 usa la del entrenamiento")
     parser.add_argument("--batch-size", type=int, default=32, help="Tamano de lote para la inferencia")
     parser.add_argument("--hausdorff", action="store_true", help="Calcula tambien Hausdorff-95 (mas lento)")
-    return parser.parse_args(argv)
+    parser.add_argument("--eval-name", default="referencia", help="Nombre del conjunto; prefijo de las metricas")
+    parser.add_argument("--fst-manifest", default="", help="Manifiesto FST (CSV image_id,fst_bucket o el JSON de fst_pseudo_manifest)")
+    parser.add_argument("--fst-min-n", type=int, default=30, help="Minimo de imagenes por bucket; debajo se marca SKIPPED")
+    parser.add_argument("--overlay-dir", default="", help="Carpeta para las rejillas PNG de superposicion")
+    parser.add_argument("--overlay-count", type=int, default=12, help="Imagenes por grupo (peores, mejores, aleatorias)")
+    parser.add_argument("--wandb-project", default=os.environ.get("WANDB_PROJECT", ""), help="Proyecto de Weights & Biases (vacio = sin seguimiento)")
+    parser.add_argument("--wandb-run-name", default="", help="Nombre de la corrida en Weights & Biases")
+    args = parser.parse_args(argv)
+    if args.fst_manifest:
+        try:
+            eval_report.validate_fst_manifest(Path(args.fst_manifest))
+        except ValueError as error:
+            parser.error(str(error))
+    return args
 
 
 def main() -> None:

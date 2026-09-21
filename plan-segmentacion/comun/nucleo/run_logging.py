@@ -9,12 +9,17 @@ from pathlib import Path
 
 
 class JsonlLogger:
-    """Append one JSON object per line and echo it to stdout."""
+    """Append one JSON object per line, echo it and mirror it to optional sinks.
 
-    def __init__(self, path: Path, *, echo: bool = True) -> None:
+    A sink is anything with a ``log(record)`` method (see ``wandb_logging``).
+    The JSONL file stays the source of truth: sinks are best effort extras.
+    """
+
+    def __init__(self, path: Path, *, echo: bool = True, sinks: Sequence = ()) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.echo = echo
+        self.sinks = tuple(sinks)
 
     def log(self, record: dict) -> None:
         line = json.dumps(record, sort_keys=True)
@@ -22,6 +27,11 @@ class JsonlLogger:
             handle.write(line + "\n")
         if self.echo:
             print(line, flush=True)
+        for sink in self.sinks:
+            try:
+                sink.log(record)
+            except Exception as error:  # a sink must never stop the training
+                print(f"aviso: sink de metricas ignorado ({type(error).__name__})", flush=True)
 
 
 class ThroughputMeter:
