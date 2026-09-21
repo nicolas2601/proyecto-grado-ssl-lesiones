@@ -136,7 +136,13 @@ def _export_backbone(path: Path, model, method: str) -> None:
     torch.save(backbone.state_dict(), path)
 
 
-def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
+def train(
+    cfg: config_mod.PretrainConfig,
+    mlflow_module=None,
+    wandb_module=None,
+    wandb_project: str = "",
+    wandb_group: str = "",
+) -> Path:
     cfg = config_mod.validate(cfg)
     config_mod.assert_label_free(cfg)
 
@@ -197,9 +203,12 @@ def train(cfg: config_mod.PretrainConfig, mlflow_module=None) -> Path:
         tracking_uri=cfg.tracking_uri,
         run=tracking.run_name(cfg.method, cfg.backbone, cfg.seed),
         rank=rank,
+        wandb_module=wandb_module,
+        wandb_project=wandb_project,
+        wandb_group=wandb_group,
     )
     if rank == 0 and isinstance(tracker, tracking.NullTracker):
-        print("ADVERTENCIA: MLflow no está disponible; esta ejecución no tendrá seguimiento.")
+        print("ADVERTENCIA: ni MLflow ni Weights & Biases están disponibles; esta ejecución no tendrá seguimiento.")
     params = config_mod.mlflow_params(cfg)
     params["world_size"] = world_size
     params["effective_lr"] = base_lr

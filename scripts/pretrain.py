@@ -30,6 +30,7 @@ La interfaz de MLflow sobre las ejecuciones registradas:
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -70,6 +71,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=42, help="Semilla de aleatoriedad")
     parser.add_argument("--mlflow-experiment", default="obj2-ssl-pretraining", help="Nombre del experimento de MLflow")
     parser.add_argument("--tracking-uri", default="", help="URI del backend de seguimiento de MLflow")
+    parser.add_argument("--wandb-project", default=os.environ.get("WANDB_PROJECT", ""), help="Proyecto de Weights & Biases (vacío = solo MLflow)")
+    parser.add_argument("--wandb-group", default="", help="Grupo de la corrida en Weights & Biases")
     parser.add_argument(
         "--no-lesion-guided",
         action="store_true",
@@ -129,10 +132,19 @@ def main() -> None:
         import mlflow
     except ImportError:
         mlflow = None
+    wandb = None
+    if args.wandb_project:
+        try:
+            import wandb
+        except ImportError:
+            print("ADVERTENCIA: wandb no está instalado; la corrida se registra solo en MLflow.")
 
     from dermssl.pretrain import torch_loop
 
-    final = torch_loop.train(cfg, mlflow_module=mlflow)
+    final = torch_loop.train(
+        cfg, mlflow_module=mlflow, wandb_module=wandb,
+        wandb_project=args.wandb_project, wandb_group=args.wandb_group,
+    )
     print(f"Modelo base final: {final}")
 
 

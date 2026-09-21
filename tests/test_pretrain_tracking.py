@@ -112,3 +112,91 @@ def test_file_store_optin_env_is_set_for_file_uri(monkeypatch):
     monkeypatch.delenv("MLFLOW_ALLOW_FILE_STORE", raising=False)
     tr.MlflowTracker(fake, "exp", "http://server:5000", "run").start({})
     assert "MLFLOW_ALLOW_FILE_STORE" not in os.environ
+
+
+# -------------------------------------------------- Weights & Biases sink
+class FakeWandbRun:
+    def __init__(self, log):
+        self.log_calls = log
+        self.config = {}
+
+    def log(self, payload, step=None):
+        self.log_calls.append(("log", payload, step))
+
+
+class FakeWandb:
+    """Records the init/log/save/finish slice of the wandb API."""
+
+    def __init__(self):
+        self.calls = []
+        self.run = None
+
+    def init(self, **kwargs):
+        self.calls.append(("init", kwargs))
+        self.run = FakeWandbRun(self.calls)
+        return self.run
+
+    def save(self, path, base_path=None):
+        self.calls.append(("save", path))
+
+    def finish(self):
+        self.calls.append(("finish",))
+
+
+def test_wandb_tracker_delegates_in_order():
+    fake = FakeWandb()
+    tracker = tr.WandbTracker(fake, project="dermssl-pretrain", run="r1", group="etapa2")
+    tracker.start({"lr": 0.05})
+    tracker.log_metric("loss", 1.5, step=10)
+    tracker.log_artifact("/tmp/ckpt.pt")
+    tracker.end()
+
+    names = [c[0] for c in fake.calls]
+    assert names == ["init", "log", "save", "finish"]
+    init_kwargs = fake.calls[0][1]
+    assert init_kwargs["project"] == "dermssl-pretrain"
+    assert init_kwargs["name"] == "r1"
+    assert init_kwargs["group"] == "etapa2"
+    assert init_kwargs["config"] == {"lr": 0.05}
+    assert ("log", {"loss": 1.5}, 10) in fake.calls
+
+
+def test_wandb_tracker_never_raises_when_the_sink_fails():
+    class Broken:
+        def init(self, **kwargs):
+            raise RuntimeError("no network")
+
+    tracker = tr.WandbTracker(Broken(), project="p", run="r", group="")
+    tracker.start({})
+    tracker.log_metric("loss", 1.0, step=1)
+    tracker.log_artifact("/tmp/x")
+    tracker.end()
+
+
+def test_composite_tracker_fans_out_to_every_sink():
+    mlflow, wandb = FakeMlflow(), FakeWandb()
+    tracker = tr.CompositeTracker([
+        tr.MlflowTracker(mlflow, experiment="e", tracking_uri="", run="r"),
+        tr.WandbTracker(wandb, project="p", run="r", group=""),
+    ])
+    tracker.start({"a": 1})
+    tracker.log_metric("loss", 2.0, step=3)
+    tracker.end()
+    assert ("log_metric", "loss", 2.0, 3) in mlflow.calls
+    assert ("log", {"loss": 2.0}, 3) in wandb.calls
+    assert ("finish",) in wandb.calls
+
+
+def test_build_tracker_adds_wandb_only_with_a_project():
+    mlflow, wandb = FakeMlflow(), FakeWandb()
+    only_mlflow = tr.build_tracker(mlflow, experiment="e", tracking_uri="", run="r", rank=0,
+                                   wandb_module=wandb, wandb_project="")
+    assert isinstance(only_mlflow, tr.MlflowTracker)
+    both = tr.build_tracker(mlflow, experiment="e", tracking_uri="", run="r", rank=0,
+                            wandb_module=wandb, wandb_project="p")
+    assert isinstance(both, tr.CompositeTracker)
+    wandb_only = tr.build_tracker(None, experiment="e", tracking_uri="", run="r", rank=0,
+                                  wandb_module=wandb, wandb_project="p")
+    assert isinstance(wandb_only, tr.WandbTracker)
+    assert isinstance(tr.build_tracker(None, experiment="e", tracking_uri="", run="r", rank=1,
+                                       wandb_module=wandb, wandb_project="p"), tr.NullTracker)
