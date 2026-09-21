@@ -39,7 +39,9 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 - **Objetivo 2 · v6 (pre-entrenamiento propio en GPU):** 🔧 **construido, pendiente de cluster.**
   Dos brazos 100 % sin etiquetas: DINOv2 continual (principal) + SimSiam desde cero (purista),
   a igual presupuesto de GPU-horas, con MLflow. Ver [16 — Plan v6](docs/16-plan-v6-pretraining-gpu.md).
-  ⚠️ Fixes DDP pendientes antes de correr multi-GPU (documentados en Engram #1328).
+  Fix DDP aplicado el 2026-09-21 (commit `98bd32c`): DINOv2 registra `mask_token`, que el forward
+  nunca toca, y el reducer de DDP lo trataba como error; se envuelve con `static_graph=True`.
+  Los dos brazos corren en dos GPUs.
 - **Bancos de baselines congelados (tarea de la dirección):** ✅ **CORRIDOS en Kaggle.**
   **8 modelos** con backbone congelado sobre **HAM10000** (7 clases), **ISIC 2019**
   (8 clases, la única tarea comparable con el ancla de Gessert) e **ISIC 2020**
