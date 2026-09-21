@@ -360,7 +360,7 @@ with open(out, "w", newline="") as handle:
         writer.writerow([path.stem, name, str(path.resolve())])
 EOF
   python scripts/run_segnorm_baseline.py --manifest $BASE/$SET.csv \
-    --output-dir $BASE/$SET --method both --roi circular
+    --output-dir $BASE/$SET --method both --roi circular --max-side 1024
   for METHOD in rnorm xnorm; do
     python plan-segmentacion/comun/evaluacion/evaluate_segmentation.py \
       --pred-mask-dir $BASE/$SET/masks --pred-mask-suffix _$METHOD \
@@ -370,6 +370,15 @@ EOF
   done
 done
 ```
+
+`--max-side 1024` reduce cada imagen al abrirla: los JPEG de ISIC 2018 son de
+4000 x 3000 y el piso trabaja en coma flotante por canal, así que a resolución
+nativa cada proceso ocupa cientos de MB y tarda ocho segundos por imagen. La
+evaluación reescala la máscara a 224 de todos modos. Para acelerar, se parte
+el manifiesto en trozos (`body[i::N]`) y se lanza un proceso por trozo, con
+`setsid nohup` cada uno; no más de cuatro a la vez mientras corra un
+entrenamiento, porque el pod se reinició dos veces con diez y doce procesos
+decodificando a resolución nativa en paralelo con la corrida final.
 
 Las máscaras del piso quedan en `$BASE/<set>/masks/<image_id>_<método>.png`. Para
 HAM10000 se puede añadir `--fst-manifest <workdir>/fst/fst_pseudo_manifest.csv`

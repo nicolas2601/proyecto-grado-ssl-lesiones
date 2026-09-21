@@ -833,3 +833,24 @@ def test_cli_cleans_created_parents_when_staging_creation_fails(tmp_path, monkey
         ])
 
     assert not output_dir.parent.exists()
+
+
+def test_cli_max_side_downscales_the_image_before_segmenting(tmp_path):
+    from scripts.run_segnorm_baseline import run
+    from PIL import Image
+
+    big = np.kron(red_dominant_disk(), np.ones((8, 8, 1)))  # 8x the synthetic size
+    image_path = tmp_path / "big.png"
+    Image.fromarray((big * 255).astype(np.uint8)).save(image_path)
+    manifest_path = _write_manifest(
+        tmp_path, [{"dataset_id": "synthetic", "image_id": "big", "image_path": str(image_path)}]
+    )
+    output_dir = tmp_path / "small"
+
+    run(["--manifest", str(manifest_path), "--output-dir", str(output_dir), "--method", "rnorm",
+         "--max-side", "64"])
+
+    with Image.open(output_dir / "masks" / "big_rnorm.png") as mask:
+        assert max(mask.size) == 64
+    records = json.loads((output_dir / "diagnostics.json").read_text(encoding="utf-8"))
+    assert records[0]["max_side"] == 64
