@@ -112,6 +112,27 @@ def test_jsonl_logger_appends_valid_lines(tmp_path):
     assert [json.loads(line)["epoch"] for line in lines] == [0, 1]
 
 
+class _RecordingSink:
+    def __init__(self):
+        self.records = []
+
+    def log(self, record):
+        self.records.append(record)
+
+
+def test_jsonl_logger_forwards_every_record_to_its_sinks(tmp_path):
+    first, second = _RecordingSink(), _RecordingSink()
+    logger = run_logging.JsonlLogger(tmp_path / "m.jsonl", echo=False, sinks=(first, second))
+    logger.log({"epoch": 0, "loss": 1.5})
+    assert first.records == second.records == [{"epoch": 0, "loss": 1.5}]
+
+
+def test_jsonl_logger_still_writes_the_file_when_it_has_sinks(tmp_path):
+    path = tmp_path / "m.jsonl"
+    run_logging.JsonlLogger(path, echo=False, sinks=(_RecordingSink(),)).log({"epoch": 7})
+    assert json.loads(path.read_text(encoding="utf-8"))["epoch"] == 7
+
+
 def test_throughput_meter_uses_injected_clock():
     clock = iter([10.0, 14.0])
     meter = run_logging.ThroughputMeter(clock=lambda: next(clock))

@@ -28,6 +28,7 @@ for _extra in (
         sys.path.insert(0, str(_extra))
 
 from dermssl.cli import build_spanish_parser  # noqa: E402
+from wandb_logging import add_tracking_arguments, sink_from_args  # noqa: E402
 
 HEAD_CHECKPOINT = "last.pt"
 SALIENCY_FILE = "saliency.npy"
@@ -54,6 +55,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     preload.add_argument("--no-preload", action="store_false", dest="preload", help="Conserva images.npy como memmap")
     parser.set_defaults(preload=False)
     parser.add_argument("--force-cpu", action="store_true", help="Fuerza CPU (diagnostico)")
+    add_tracking_arguments(parser)
     return parser.parse_args(argv)
 
 
@@ -64,7 +66,7 @@ def _augment(base, generator):
     return ga.normalize_batch(ga.color_jitter(out, generator, 0.2, 0.2, 0.2, 0.0, probability=0.5))
 
 
-def train_head(args, context, provider, head, images, train_indices, output_dir) -> list[dict]:
+def train_head(args, context, provider, head, images, train_indices, output_dir, sink=None) -> list[dict]:
     import torch
 
     import dist_utils as du
@@ -86,7 +88,8 @@ def train_head(args, context, provider, head, images, train_indices, output_dir)
         history, start_epoch = state["history"], state["epoch"] + 1
 
     trainable = du.wrap_ddp(head, context)
-    logger = JsonlLogger(output_dir / "metrics.jsonl", echo=True) if context.is_main else None
+    sinks = (sink,) if sink is not None else ()
+    logger = JsonlLogger(output_dir / "metrics.jsonl", echo=True, sinks=sinks) if context.is_main else None
     meter = ThroughputMeter()
     for epoch in range(start_epoch, args.epochs):
         head.train()
@@ -179,7 +182,8 @@ def run(args: argparse.Namespace) -> dict:
     provider = ResNet50MoCoFeatures.from_checkpoint(Path(args.backbone)).to(context.device)
     head = CCAMHead(provider.out_channels, args.head_kernel).to(context.device)
 
-    history = train_head(args, context, provider, head, images, train_indices, output_dir)
+    sink = sink_from_args(args, "ccam", is_main=context.is_main)
+    history = train_head(args, context, provider, head, images, train_indices, output_dir, sink)
     saliency_path = write_saliency(args, context, provider, head, images, output_dir)
 
     summary = timing_summary(history)
@@ -189,6 +193,7 @@ def run(args: argparse.Namespace) -> dict:
             json.dumps(vars(args), indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
         print(f"saliencia escrita en {saliency_path}")
+    sink.finish()
     du.cleanup(context)
     return summary
 

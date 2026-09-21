@@ -31,6 +31,7 @@ for _extra in (
         sys.path.insert(0, str(_extra))
 
 from dermssl.cli import build_spanish_parser  # noqa: E402
+from wandb_logging import add_tracking_arguments, sink_from_args  # noqa: E402
 
 LAST_CHECKPOINT = "last.pt"
 BACKBONE_FILE = "backbone.pt"
@@ -62,6 +63,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.set_defaults(preload=False)
     parser.add_argument("--init-weights", default="", help="Pesos SSL externos (desvia el escenario puro)")
     parser.add_argument("--force-cpu", action="store_true", help="Fuerza CPU (diagnostico)")
+    add_tracking_arguments(parser)
     return parser.parse_args(argv)
 
 
@@ -122,7 +124,12 @@ def run(args: argparse.Namespace) -> dict:
         steps_per_epoch = min(steps_per_epoch, args.max_steps_per_epoch)
     total_steps = steps_per_epoch * args.epochs
     warmup_steps = steps_per_epoch * args.warmup_epochs
-    logger = JsonlLogger(output_dir / "metrics.jsonl", echo=context.is_main) if context.is_main else None
+    sink = sink_from_args(args, "moco", is_main=context.is_main)
+    logger = (
+        JsonlLogger(output_dir / "metrics.jsonl", echo=context.is_main, sinks=(sink,))
+        if context.is_main
+        else None
+    )
     meter = ThroughputMeter()
 
     for epoch in range(start_epoch, args.epochs):
@@ -188,6 +195,7 @@ def run(args: argparse.Namespace) -> dict:
         (output_dir / "run_config.json").write_text(
             json.dumps(vars(args), indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
+    sink.finish()
     du.barrier(context)
     du.cleanup(context)
     return summary

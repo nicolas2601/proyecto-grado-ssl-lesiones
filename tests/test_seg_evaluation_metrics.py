@@ -127,3 +127,88 @@ def test_evaluation_arguments_parse_without_torch():
         ["--checkpoint", "c.pt", "--image-dir", "i", "--mask-dir", "m", "--output-dir", "o"]
     )
     assert args.mask_suffix == "_segmentation"
+
+
+def test_coverage_columns_report_the_lesion_fraction_of_each_mask():
+    gt = _square(size=8, top=2, left=2, side=4)  # 16 of 64 pixels
+    pred = np.zeros((8, 8), dtype=bool)
+    pred[0:2, 0:4] = True  # 8 of 64 pixels
+    metrics = ev.compute_binary_metrics(pred, gt)
+    assert metrics["pred_coverage"] == pytest.approx(8 / 64)
+    assert metrics["ref_coverage"] == pytest.approx(16 / 64)
+
+
+def test_coverage_is_zero_for_an_empty_prediction():
+    metrics = ev.compute_binary_metrics(np.zeros((4, 4), bool), np.zeros((4, 4), bool))
+    assert metrics["pred_coverage"] == 0.0 and metrics["ref_coverage"] == 0.0
+
+
+def test_evaluation_defaults_cover_strata_overlays_and_tracking():
+    args = ev.parse_args(
+        ["--checkpoint", "c.pt", "--image-dir", "i", "--mask-dir", "m", "--output-dir", "o"]
+    )
+    assert args.eval_name == "referencia"
+    assert args.fst_manifest == "" and args.fst_min_n == 30
+    assert args.overlay_dir == "" and args.overlay_count == 12
+    assert args.wandb_project == "" and args.wandb_run_name == ""
+
+
+def test_evaluation_accepts_the_strata_and_overlay_flags(tmp_path):
+    manifest = tmp_path / "f.csv"
+    manifest.write_text("image_id,fst_bucket\na,2\n", encoding="utf-8")
+    args = ev.parse_args(
+        ["--checkpoint", "c.pt", "--image-dir", "i", "--mask-dir", "m", "--output-dir", "o",
+         "--fst-manifest", str(manifest), "--fst-min-n", "5", "--overlay-dir", "ov",
+         "--overlay-count", "3", "--eval-name", "isic", "--wandb-project", "p"]
+    )
+    assert args.fst_manifest == str(manifest) and args.fst_min_n == 5
+    assert args.overlay_dir == "ov" and args.overlay_count == 3
+    assert args.eval_name == "isic" and args.wandb_project == "p"
+
+
+def test_the_metric_columns_include_coverage_and_optional_hausdorff():
+    assert ev.metric_columns(hausdorff=False)[-2:] == ["pred_coverage", "ref_coverage"]
+    assert ev.metric_columns(hausdorff=True)[-1] == "hd95"
+
+
+def test_duplicate_image_ids_fail_loudly(tmp_path):
+    images, masks = tmp_path / "i", tmp_path / "m"
+    images.mkdir(), masks.mkdir()
+    Image.new("RGB", (4, 4)).save(images / "ISIC_1.jpg")
+    Image.new("RGB", (4, 4)).save(images / "ISIC_1.png")
+    Image.new("L", (4, 4)).save(masks / "ISIC_1_segmentation.png")
+    with pytest.raises(ValueError, match="ISIC_1"):
+        ev.pair_images_and_masks(images, masks)
+
+
+def test_unique_image_ids_are_accepted(tmp_path):
+    images, masks = tmp_path / "i", tmp_path / "m"
+    images.mkdir(), masks.mkdir()
+    for name in ("ISIC_1", "ISIC_2"):
+        Image.new("RGB", (4, 4)).save(images / f"{name}.jpg")
+        Image.new("L", (4, 4)).save(masks / f"{name}_segmentation.png")
+    assert [p[0] for p in ev.pair_images_and_masks(images, masks)] == ["ISIC_1", "ISIC_2"]
+
+
+def _base_argv(tmp_path):
+    return ["--checkpoint", "c.pt", "--image-dir", "i", "--mask-dir", "m",
+            "--output-dir", str(tmp_path / "o")]
+
+
+def test_a_missing_fst_manifest_is_rejected_before_any_inference(tmp_path):
+    with pytest.raises(SystemExit):
+        ev.parse_args([*_base_argv(tmp_path), "--fst-manifest", str(tmp_path / "nope.csv")])
+
+
+def test_an_fst_manifest_without_the_bucket_column_is_rejected(tmp_path):
+    path = tmp_path / "fst.csv"
+    path.write_text("image_id,ITA\na,1.0\n", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        ev.parse_args([*_base_argv(tmp_path), "--fst-manifest", str(path)])
+
+
+def test_a_valid_fst_manifest_passes_argument_parsing(tmp_path):
+    path = tmp_path / "fst.csv"
+    path.write_text("image_id,fst_bucket\na,2\n", encoding="utf-8")
+    args = ev.parse_args([*_base_argv(tmp_path), "--fst-manifest", str(path)])
+    assert args.fst_manifest == str(path)

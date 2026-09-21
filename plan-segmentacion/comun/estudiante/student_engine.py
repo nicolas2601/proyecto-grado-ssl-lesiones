@@ -24,6 +24,7 @@ from cache_io import IGNORE, open_cache, read_manifest, split_indices, create_ca
 from ckpt_io import load_checkpoint, save_checkpoint
 from dermssl.torch_unet import UNet
 from run_logging import JsonlLogger, ThroughputMeter, timing_summary
+from wandb_logging import sink_from_args
 from sampling import shard_batches
 from schedules import cosine_lr
 from selection import CheckpointSelector
@@ -170,7 +171,8 @@ def train(args, context) -> dict:
         steps_per_epoch = min(steps_per_epoch, args.max_steps_per_epoch)
     total_steps = steps_per_epoch * args.epochs
     warmup_steps = steps_per_epoch * args.warmup_epochs
-    logger = JsonlLogger(output_dir / "metrics.jsonl") if context.is_main else None
+    sink = sink_from_args(args, "student", is_main=context.is_main)
+    logger = JsonlLogger(output_dir / "metrics.jsonl", sinks=(sink,)) if context.is_main else None
     meter = ThroughputMeter()
 
     for epoch in range(start_epoch, args.epochs):
@@ -227,6 +229,7 @@ def train(args, context) -> dict:
         (output_dir / "run_config.json").write_text(
             json.dumps(vars(args), indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
+    sink.finish()
     return summary
 
 
