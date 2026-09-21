@@ -73,6 +73,21 @@ _SRGB_TO_XYZ = np.array(
 )
 
 
+MIN_B_FOR_ITA = 5.0
+"""Smallest skin b* (CIELAB yellow-blue axis) for which an ITA is reported.
+
+``ITA = arctan((L*-50)/b*)`` saturates at +-90 degrees as b* -> 0, and the
+SIGN of b* alone then decides between the lightest and the darkest Groh
+bucket, whatever L* is. Real skin is yellowish (b* > 0); a non-positive or
+near-zero median under polarised dermoscopy is a capture artefact (gel,
+glass, blue cast), not a phototype. Below this floor the estimate carries
+``status="ita_indeterminate"``, no bucket, and the skin medians so callers
+can still stratify by L* (see plan-segmentacion fst_pseudo_manifest).
+"""
+
+ITA_INDETERMINATE = "ita_indeterminate"
+
+
 def _inverse_gamma(channel: np.ndarray) -> np.ndarray:
     """sRGB companding removal: gamma-encoded [0, 1] -> linear-light [0, 1]."""
     linear_low = channel / 12.92
@@ -151,13 +166,16 @@ class FSTEstimate:
     bucket: int | None  # 1..6, None when unavailable
     ita: float  # NaN when unavailable
     skin_fraction: float
-    status: str  # "ok" | "no_skin" | "degenerate_mask" | "ita_out_of_range"
+    status: str  # "ok" | "no_skin" | "degenerate_mask" | "ita_indeterminate" | "ita_out_of_range"
     fallback_used: bool
     confidence: float
     artifact_detected: bool
     mask_producer: str | None = None
     mask_version: str | None = None
     mask_sha256: str | None = None
+    L_median: float = float("nan")  # median CIELAB L* over the skin pixels
+    b_median: float = float("nan")  # median CIELAB b* over the skin pixels
+    n_skin_px: int = 0  # skin pixels behind the medians (0 when none)
 
 
 def _is_degenerate(mask: np.ndarray) -> bool:
@@ -223,6 +241,23 @@ def _resolve_border(gray: np.ndarray, border_mask: np.ndarray | None) -> np.ndar
             f"border_mask shape {extra.shape} does not match the image {border.shape}"
         )
     return border | extra
+
+
+def _skin_ita(lab_pixels: np.ndarray) -> tuple[float, float, float, str]:
+    """Median L*, median b*, ITA and status for skin pixels shaped ``(n, 3)``.
+
+    The b* floor is checked BEFORE the angle is formed: past it the ITA is
+    a saturated +-90 that only reports the sign of b*. The NaN case (L*=50
+    exactly with b*=0) is caught by the same ``not >=`` comparison.
+    """
+    L_med = float(np.median(lab_pixels[:, 0]))
+    b_med = float(np.median(lab_pixels[:, 2]))
+    if not b_med >= MIN_B_FOR_ITA:
+        return L_med, b_med, float("nan"), ITA_INDETERMINATE
+    ita = float(ita_degrees(np.asarray(L_med), np.asarray(b_med)))
+    if not (-90.0 <= ita <= 90.0):
+        return L_med, b_med, ita, "ita_out_of_range"
+    return L_med, b_med, ita, "ok"
 
 
 def estimate_fst(
@@ -299,30 +334,24 @@ def estimate_fst(
             artifact_detected=artifact_detected,
         )
 
-    lab = srgb_to_lab(img)
-    skin_lab = lab[skin]
-    L_med = np.median(skin_lab[:, 0])
-    b_med = np.median(skin_lab[:, 2])
-    ita = float(ita_degrees(np.asarray(L_med), np.asarray(b_med)))
-
-    # Finite ITA cannot leave [-90, 90] by arctan construction (see
-    # ita_degrees) - but an achromatic skin median at L*=50 makes the
-    # (L*-50)/b* ratio a literal 0/0, which is NaN, and NaN comparisons
-    # are always False. Check explicitly (never a bare assert, which would
-    # both crash the whole batch on one atypical image - the opposite of
-    # lesion_guided.py's philosophy - and be silently skipped entirely
-    # under python -O / PYTHONOPTIMIZE=1) and degrade gracefully, matching
-    # every other "no result" branch in this function and the contract
-    # documented on FSTEstimate.status.
-    if not (-90.0 <= ita <= 90.0):
+    # Never a bare assert on the ITA range: it would crash the whole batch
+    # on one atypical image (the opposite of lesion_guided.py's philosophy)
+    # and be skipped under python -O. Every "no result" branch degrades to
+    # an explicit status, per the contract documented on FSTEstimate.
+    L_med, b_med, ita, status = _skin_ita(srgb_to_lab(img)[skin])
+    n_skin_px = int(skin.sum())
+    if status != "ok":
         return FSTEstimate(
             bucket=None,
             ita=ita,
             skin_fraction=skin_fraction,
-            status="ita_out_of_range",
+            status=status,
             fallback_used=fallback_used,
             confidence=0.0,
             artifact_detected=artifact_detected,
+            L_median=L_med,
+            b_median=b_med,
+            n_skin_px=n_skin_px,
         )
 
     return FSTEstimate(
@@ -333,6 +362,9 @@ def estimate_fst(
         fallback_used=fallback_used,
         confidence=float(np.clip(confidence, 0.0, 1.0)),
         artifact_detected=artifact_detected,
+        L_median=L_med,
+        b_median=b_med,
+        n_skin_px=n_skin_px,
     )
 
 
@@ -394,20 +426,20 @@ def estimate_fst_whole_image(img: np.ndarray) -> FSTEstimate:
         img, np.zeros(img.shape[:2], dtype=bool)
     )
 
-    lab = srgb_to_lab(img)
-    L_med = np.median(lab[..., 0])
-    b_med = np.median(lab[..., 2])
-    ita = float(ita_degrees(np.asarray(L_med), np.asarray(b_med)))
-
-    if not (-90.0 <= ita <= 90.0):
+    L_med, b_med, ita, status = _skin_ita(srgb_to_lab(img).reshape(-1, 3))
+    n_skin_px = int(img.shape[0] * img.shape[1])
+    if status != "ok":
         return FSTEstimate(
             bucket=None,
             ita=ita,
             skin_fraction=1.0,
-            status="ita_out_of_range",
+            status=status,
             fallback_used=False,
             confidence=0.0,
             artifact_detected=artifact_detected,
+            L_median=L_med,
+            b_median=b_med,
+            n_skin_px=n_skin_px,
         )
 
     return FSTEstimate(
@@ -418,4 +450,7 @@ def estimate_fst_whole_image(img: np.ndarray) -> FSTEstimate:
         fallback_used=False,
         confidence=1.0,
         artifact_detected=artifact_detected,
+        L_median=L_med,
+        b_median=b_med,
+        n_skin_px=n_skin_px,
     )
