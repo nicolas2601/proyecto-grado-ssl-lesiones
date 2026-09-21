@@ -173,3 +173,69 @@ def test_compute_field_cache_rejects_a_cache_without_three_channels():
     out = np.zeros((1, 8, 8), dtype=np.uint8)
     with pytest.raises(ValueError, match="H, W, 3"):
         field_roi.compute_field_cache(np.zeros((1, 8, 8), dtype=np.uint8), out)
+
+
+def _soft_falloff(base, size=64, corner_level=0.45):
+    """Full frame with optical vignetting: corners keep ``corner_level`` of the centre."""
+    yy, xx = np.mgrid[:size, :size]
+    center = (size - 1) / 2.0
+    radius = np.sqrt((yy - center) ** 2 + (xx - center) ** 2) / (center * np.sqrt(2))
+    factor = 1.0 - (1.0 - corner_level) * radius
+    image = np.asarray(base, dtype=np.float64)[None, None, :] * factor[..., None]
+    return np.clip(image, 0, 255).astype(np.uint8)
+
+
+def test_light_skin_with_soft_optical_vignetting_is_a_full_frame():
+    valid, stats = field_roi.field_validity_mask(_soft_falloff((230, 170, 150)))
+    assert stats["method"] == "full_frame"
+    assert valid.all()
+
+
+def test_dark_skin_with_moderate_optical_vignetting_is_a_full_frame():
+    valid, stats = field_roi.field_validity_mask(_soft_falloff((78, 52, 44), corner_level=0.6))
+    assert stats["method"] == "full_frame"
+
+
+def test_dark_skin_with_corners_as_dark_as_a_ring_is_read_as_a_ring():
+    # Known limit: at half the centre a Fitzpatrick VI corner is indistinguishable
+    # from a brownish dermoscope ring, so the conservative circle wins.
+    valid, stats = field_roi.field_validity_mask(_soft_falloff((78, 52, 44), corner_level=0.5))
+    assert stats["method"] == "circular"
+
+
+def test_inscribed_dermoscope_field_with_black_corners_stays_circular():
+    image = _vignetted(size=64, radius=31, inside=200, outside=8)
+    valid, stats = field_roi.field_validity_mask(image)
+    assert stats["method"] == "circular"
+    assert not valid[0, 0]
+
+
+def test_brownish_dark_ring_is_not_read_as_skin():
+    yy, xx = np.mgrid[:64, :64]
+    circle = (yy - 31.5) ** 2 + (xx - 31.5) ** 2 <= 31**2
+    image = np.zeros((64, 64, 3), dtype=np.uint8)
+    image[...] = (40, 25, 20)
+    image[circle] = (210, 160, 140)
+    valid, stats = field_roi.field_validity_mask(image)
+    assert stats["method"] == "circular"
+
+
+def test_a_single_black_corner_is_a_partial_vignette_and_keeps_the_full_frame():
+    image = _soft_falloff((230, 170, 150), corner_level=0.7)
+    image[-6:, -6:] = 5  # one corner cut by a dermoscope circle larger than the frame
+    valid, stats = field_roi.field_validity_mask(image)
+    assert stats["method"] == "full_frame"
+
+
+def test_two_black_corners_are_a_vignette():
+    image = _soft_falloff((230, 170, 150), corner_level=0.7)
+    image[-6:, -6:] = 5
+    image[:6, :6] = 5
+    valid, stats = field_roi.field_validity_mask(image)
+    assert stats["method"] == "circular"
+
+
+def test_pale_skin_with_dim_corners_is_a_full_frame():
+    # HAM10000 style: corners near a third of the centre, chroma about 0.06.
+    valid, stats = field_roi.field_validity_mask(_soft_falloff((210, 180, 165), corner_level=0.35))
+    assert stats["method"] == "full_frame"
