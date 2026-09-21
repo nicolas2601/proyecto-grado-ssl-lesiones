@@ -249,6 +249,48 @@ El contraste con Fitzpatrick17k-C también debe leerse como validación externa 
 - Se agregó validación externa provisional con Fitzpatrick17k-C. Esta sirve como contraste técnico, no como validación clínica definitiva.
 - La clasificación FST se reporta con método, máscara, cobertura, confianza y estado de disponibilidad para que una cifra no oculte fallos del pipeline.
 
+### Resultados de la segmentación sin máscaras ni etiquetas (camino B, 2026-09-21)
+
+Corridas ejecutadas en el pod UNABIA (dos RTX PRO 4000) sobre el pool único de
+58 457 imágenes (HAM10000, ISIC 2019 sin HAM, ISIC 2020), sin máscaras ni
+etiquetas en el entrenamiento; las máscaras de referencia de ISIC 2018 Task 1
+(2 594) y HAM10000 (10 015) solo entran en la etapa de evaluación. Detalle,
+artefactos y bitácora en `plan-segmentacion/camino-b-cnn/resultados/`
+(`README.md`, `2026-09-20-piloto/`, `2026-09-21-final/`). Proyecto de Weights
+& Biases `dermssl-segmentacion`, grupos `piloto` y `final`.
+
+| Corrida (commit) | Conjunto | Dice medio [IC 95 %] | Dice mediana | IoU | HD95 mediana |
+|---|---|---|---|---|---|
+| final (`d81a492`) | ISIC 2018 | 0,718 [0,709, 0,726] | 0,792 | 0,602 | 13,6 px |
+| final (`d81a492`) | HAM10000 | 0,785 [0,781, 0,788] | 0,852 | 0,678 | 12,6 px |
+| piloto (`f19ab56`) | ISIC 2018 | 0,652 [0,643, 0,661] | 0,726 | 0,528 | 22,9 px |
+| piloto (`f19ab56`) | HAM10000 | 0,759 [0,755, 0,762] | 0,810 | 0,638 | - |
+
+Lecturas que sostienen las cifras:
+
+- En ISIC 2018, 722 ids están dentro del pool de entrenamiento por la
+  deduplicación (Dice 0,801, transductivo) y 1 872 fuera (0,686); la cifra de
+  generalización es la segunda.
+- La brecha de Dice entre fototipos en HAM10000 bajó de 0,071 (piloto) a 0,027
+  (final), con todos los buckets poblados entre 0,765 y 0,791. Los buckets
+  provienen del estimador ITA sobre la pseudo-máscara, cuya validación externa
+  quedó por debajo de la línea base trivial, así que la brecha es un indicio.
+- Entre piloto y final cambiaron tres cosas, todas sin etiquetas: el detector
+  del campo del dermatoscopio (v2, esquinas por brillo relativo o croma de
+  piel; ISIC 2020 pasó de 1 975 a 129 campos circulares), la supresión de tinta
+  quirúrgica y brillos como píxeles ignorados en la pseudo-máscara (0,68 % de
+  los píxeles) y el área mínima de candidato de 0,01 a 0,003. Las lesiones
+  menores al 10 % del cuadro subieron de Dice 0,464 a 0,646 en ISIC 2018; las
+  mayores al 60 % bajaron de 0,801 a 0,684 porque el cap de área de candidato
+  (0,6 del campo) las excluye del entrenamiento. Ese cap es el cambio con más
+  retorno para una corrida siguiente.
+- El re-etiquetado converge en dos rondas (fracción de primer plano 0,131,
+  0,148, 0,143) y no deriva hacia el campo entero, que era el modo de fallo
+  original de las máscaras de la V2.
+- Los pisos no supervisados SegRNorm y SegXNorm se evalúan con el mismo
+  protocolo y se agregan a `resultados.md` de la corrida final al cerrar. No
+  hay techo supervisado por decisión del proyecto.
+
 ## 5. Representaciones SSL y baselines
 
 El protocolo separa el preentrenamiento de la evaluación clínica. Se consideran representaciones SSL, incluyendo DINOv2 y SimSiam, y baselines supervisados como ResNet50 ImageNet. Las comparaciones deben conservar el mismo split, semillas, resolución, backbone congelado y protocolo de probe.
