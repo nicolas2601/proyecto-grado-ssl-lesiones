@@ -39,6 +39,7 @@ TRACKED_STAGES = ("contrastive", "ccam", "student", "evaluate")
 RUNTIME_FLAG_STAGES = frozenset({"contrastive", "ccam", "student"})
 
 FIELD_FILE = "field.npy"
+IMAGES_FILE = "images.npy"
 MANIFEST_FILE = "manifest.csv"
 FST_DIR = "fst"
 FST_JSON_FILE = "fst_pseudo_manifest.json"
@@ -207,9 +208,13 @@ def _cache_stage(config: PipelineConfig, cache: Path) -> Stage:
 
 def _pseudo_stage(config: PipelineConfig, name: str, cache: Path, saliency: Path,
                   output: Path, source: str) -> Stage:
+    """``artifact_suppression`` is a switch, not a flag: it selects ``--images``."""
+    section = dict(_section(config.preset, "pseudo"))
+    suppress = section.pop("artifact_suppression", True)
+    images = ["--images", str(cache / IMAGES_FILE)] if suppress else []
     fixed = ["--saliency", str(saliency), "--output-dir", str(output), "--source", source,
-             *_field_flags(config, cache)]
-    return _stage(config, name, "pseudo", fixed, _section(config.preset, "pseudo"))
+             *_field_flags(config, cache), *images]
+    return _stage(config, name, "pseudo", fixed, section)
 
 
 def _student_rounds(config: PipelineConfig, work: Path, cache: Path,

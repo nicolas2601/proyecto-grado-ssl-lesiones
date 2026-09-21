@@ -31,6 +31,19 @@ sin editar nada. El procedimiento exacto está en
   el piloto mide velocidad, no calidad.
 - `pseudo`: umbrales del módulo de incertidumbre, incluido `max_area_fraction`,
   que descarta una región cuando ocupa más de esa fracción del campo válido.
+  - `min_area_fraction`: área mínima que debe tener una región para ser
+    candidata a lesión, como fracción del campo válido. El valor por defecto
+    viene de USL-Net (500 píxeles sobre 224x224, cerca del 1 %) y deja fuera
+    toda lesión pequeña, que en ISIC2018 es buena parte del conjunto.
+    `cluster-final.json` lo baja a `0.003` para que esas lesiones sí lleguen a
+    ser candidatas. Bajarlo más deja pasar ruido pequeño como si fuera lesión.
+  - `artifact_suppression`: con `true` (el valor por defecto) el driver le pasa
+    a la etapa de pseudo-máscaras el `images.npy` de la caché con `--images`, y
+    los píxeles de tinta quirúrgica violeta y de brillo especular dejan de ser
+    candidatos y quedan marcados como ignorar. Es una decisión por color, sin
+    máscaras ni etiquetas. Con `false` el driver omite `--images` y la etapa
+    trabaja solo con la saliencia. No se traduce nunca a una bandera propia:
+    es un interruptor que elige si `--images` viaja o no.
 
 Cada clave se convierte en una bandera cambiando los guiones bajos por guiones:
 `max_area_fraction` se vuelve `--max-area-fraction`. Un valor `true` se vuelve

@@ -22,6 +22,8 @@ WORST_COUNT = 10
 UNAVAILABLE = "unavailable"
 VALID_BUCKETS = tuple(str(value) for value in range(1, 7))
 STRATA_METRICS = ("dice", "iou")
+IN_POOL = "in_pool"
+OUT_OF_POOL = "out_of_pool"
 
 
 # ------------------------------------------------------------------ summary
@@ -122,6 +124,20 @@ def _bucket_summary(bucket_rows: Sequence[Mapping], min_n: int) -> dict:
     return entry
 
 
+def _pool_summaries(grouped: Mapping[str, Sequence[Mapping]], min_n: int) -> dict:
+    """Everything the manifest gave a skin tone, against everything it did not.
+
+    Two aggregates over the same rows the buckets split: they answer how the
+    model does on the population the stratification can actually compare, and
+    on the remainder, which no bucket ever reports.
+    """
+    inside = [row for key, group in grouped.items() if key != UNAVAILABLE for row in group]
+    return {
+        IN_POOL: _bucket_summary(inside, min_n),
+        OUT_OF_POOL: _bucket_summary(grouped.get(UNAVAILABLE, []), min_n),
+    }
+
+
 def stratified_summary(
     rows: Sequence[Mapping], buckets: Mapping[str, str], *, min_n: int = 30
 ) -> dict:
@@ -138,7 +154,13 @@ def stratified_summary(
     }
     gap = max(qualifying.values()) - min(qualifying.values()) if qualifying else None
     worst = min(qualifying, key=qualifying.get) if qualifying else None
-    return {"min_n": int(min_n), "buckets": summaries, "gap_dice": gap, "worst_bucket": worst}
+    return {
+        "min_n": int(min_n),
+        "buckets": summaries,
+        "gap_dice": gap,
+        "worst_bucket": worst,
+        **_pool_summaries(grouped, min_n),
+    }
 
 
 # ------------------------------------------------------------------ writers
