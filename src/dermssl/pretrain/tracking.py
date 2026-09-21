@@ -27,12 +27,33 @@ Usage on the cluster (rank 0):
 
 from __future__ import annotations
 
+import hashlib
 import os
+from pathlib import Path
 from typing import Any
 
 
-def run_name(method: str, backbone: str, seed: int) -> str:
-    return f"{method}-{backbone}-s{seed}"
+def run_name(method: str, backbone: str, seed: int, arm: str = "") -> str:
+    """Readable run name; ``arm`` tells two runs of the same recipe apart.
+
+    Both arms of the thesis share method, backbone and seed - what separates
+    them is the second view - so without the arm they land in the dashboard
+    under the same name.
+    """
+    base = f"{method}-{backbone}-s{seed}"
+    return f"{base}-{arm}" if arm else base
+
+
+def run_id_for(output_dir: str | Path) -> str:
+    """Stable W&B id derived from the run's output directory.
+
+    A pod restart relaunches the same command, and the training resumes from
+    ``resume.pt``; without a stable id W&B opens a second run and the arm's
+    curves arrive split in two. The output directory is the one input that is
+    unique per arm and identical across a relaunch.
+    """
+    resolved = str(Path(output_dir)).rstrip("/")
+    return hashlib.sha1(resolved.encode("utf-8")).hexdigest()[:12]
 
 
 class NullTracker:
@@ -89,11 +110,19 @@ class WandbTracker:
     of GPU work, so each call swallows its exception and prints once.
     """
 
-    def __init__(self, wandb_module: Any, project: str, run: str, group: str = ""):
+    def __init__(
+        self,
+        wandb_module: Any,
+        project: str,
+        run: str,
+        group: str = "",
+        run_id: str = "",
+    ):
         self._wandb = wandb_module
         self._project = project
         self._run = run
         self._group = group
+        self._run_id = run_id
         self._active = None
         self._warned = False
 
@@ -109,7 +138,7 @@ class WandbTracker:
         def action() -> None:
             self._active = self._wandb.init(
                 project=self._project, name=self._run, group=self._group or None,
-                config=dict(params), resume="allow",
+                config=dict(params), resume="allow", id=self._run_id or None,
             )
 
         self._guard(action)
@@ -162,6 +191,7 @@ def build_tracker(
     wandb_module: Any | None = None,
     wandb_project: str = "",
     wandb_group: str = "",
+    wandb_run_id: str = "",
 ) -> NullTracker | MlflowTracker | WandbTracker | CompositeTracker:
     """The sinks available on rank 0, or NullTracker.
 
@@ -178,7 +208,10 @@ def build_tracker(
             mlflow_module, experiment=experiment, tracking_uri=tracking_uri, run=run
         ))
     if wandb_module is not None and wandb_project:
-        sinks.append(WandbTracker(wandb_module, project=wandb_project, run=run, group=wandb_group))
+        sinks.append(WandbTracker(
+            wandb_module, project=wandb_project, run=run, group=wandb_group,
+            run_id=wandb_run_id,
+        ))
     if not sinks:
         return NullTracker()
     if len(sinks) == 1:

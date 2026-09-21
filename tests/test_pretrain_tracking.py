@@ -200,3 +200,31 @@ def test_build_tracker_adds_wandb_only_with_a_project():
     assert isinstance(wandb_only, tr.WandbTracker)
     assert isinstance(tr.build_tracker(None, experiment="e", tracking_uri="", run="r", rank=1,
                                        wandb_module=wandb, wandb_project="p"), tr.NullTracker)
+
+
+# ------------------------------------------- resuming into the same W&B run
+def test_wandb_tracker_passes_a_run_id_so_a_relaunch_resumes():
+    """A pod restart relaunches the same command; without a stable id W&B
+    opens a NEW run and the arm's curves end up split across two."""
+    fake = FakeWandb()
+    tracker = tr.WandbTracker(fake, project="p", run="r", group="g", run_id="abc123")
+    tracker.start({})
+    assert fake.calls[0][1]["id"] == "abc123"
+    assert fake.calls[0][1]["resume"] == "allow"
+
+
+def test_the_run_id_is_derived_from_the_output_directory():
+    """Two arms share the method, backbone and seed, so the run NAME is
+    identical; the output directory is what actually distinguishes them."""
+    plain = tr.run_id_for("/work/salidas/tone/ssl_plain")
+    proposed = tr.run_id_for("/work/salidas/tone/ssl_proposed")
+    assert plain != proposed
+    assert plain == tr.run_id_for("/work/salidas/tone/ssl_plain/")
+    assert len(plain) == 12 and plain.isalnum()
+
+
+def test_the_run_name_carries_the_arm_so_two_arms_are_told_apart():
+    assert tr.run_name("simsiam_dinov2", "dinov2_vits14", 42, arm="ssl_plain") == (
+        "simsiam_dinov2-dinov2_vits14-s42-ssl_plain"
+    )
+    assert tr.run_name("simsiam", "resnet50", 42) == "simsiam-resnet50-s42"
