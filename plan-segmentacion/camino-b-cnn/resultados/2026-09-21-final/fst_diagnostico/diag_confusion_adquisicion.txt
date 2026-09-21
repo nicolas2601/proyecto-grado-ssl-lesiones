@@ -1,0 +1,65 @@
+Salida de tools/diag_confusion_adquisicion.py
+Ejecutado en el pod UNABIA el 2026-09-21 sobre salidas/final (estimador FST v1,
+antes del guard de b*). Las lineas de progreso "  N/10015" se omitieron.
+
+HAM en el cache: 10015
+procesadas: 9868
+
+Prevalencia global:
+  nv      6617  67.06%
+  mel     1078  10.92%
+  bkl     1079  10.93%
+  bcc      513   5.20%
+  akiec    325   3.29%
+  vasc     142   1.44%
+  df       114   1.16%
+
+=== Por signo de b* (el que define el bucket ITA) ===
+grupo                 n       nv     mel     bkl     bcc   akiec    vasc      df
+b* > 0             6395   73.76%   7.57%   8.02%   4.60%   3.49%   1.47%   1.09%
+b* <= 0            3473   54.71%  17.10%  16.30%   6.31%   2.94%   1.38%   1.27%
+  melanoma entre grupos: chi2=209.3  p=1.948e-47
+
+Cortes de tercil de L*: 65.61 / 71.61
+
+=== Por tercil de L* (proxy de tono propuesto) ===
+grupo                 n       nv     mel     bkl     bcc   akiec    vasc      df
+L* oscuro          3289   63.55%  12.89%  16.02%   2.92%   2.80%   1.09%   0.73%
+L* medio           3290   69.76%   9.27%   9.39%   5.62%   3.65%   1.00%   1.31%
+L* claro           3289   67.86%  10.61%   7.39%   7.05%   3.44%   2.22%   1.43%
+  melanoma entre grupos: chi2=22.7  p=1.202e-05
+
+=== Cruce signo de b* x tercil de L* ===
+tercil           b*>0    b*<=0
+oscuro           2089     1200
+medio            2253     1037
+claro            2053     1236
+
+LECTURA
+1. El grupo b* <= 0 -- que es exactamente el "fototipo VI" del estimador v1 --
+   tiene 2,26 veces la tasa de melanoma del grupo b* > 0 (17,10 % contra 7,57 %)
+   y 2,03 veces la de bkl. La prevalencia global de melanoma es 10,92 %.
+   Cualquier "brecha por fototipo" medida sobre los buckets ITA v1 seria
+   prevalencia de enfermedad, no tono de piel.
+2. El tercil de L* tiene un chi cuadrado de 22,7 contra 209,3 del signo de b*:
+   un orden de magnitud menos de asociacion. Ademas no es monotona en melanoma
+   (12,89 / 9,27 / 10,61), lo esperable de un confusor debil y no de un efecto
+   sistematico. Sigue siendo significativa por el tamano de muestra, asi que el
+   tercil tampoco esta libre de confusion y hay que declararlo.
+3. bkl si es monotona y fuerte por tercil (16,02 / 9,39 / 7,39). Puede ser real
+   (fotoenvejecimiento) o de adquisicion; conviene mencionarlo, no esconderlo.
+4. El signo de b* y el tercil de L* son casi independientes: si el bucket ITA
+   midiera tono, los b* <= 0 se concentrarian en el tercil oscuro y se reparten
+   parejo. Es la confirmacion, por una via distinta a la de la mediana de L*, de
+   que ITA-bucket v1 y tono de piel son cosas no relacionadas.
+5. Implicacion para el guard: los supervivientes de b* > 0 NO son submuestra
+   aleatoria, quedan empobrecidos en melanoma (7,57 % contra 10,92 % global).
+   Toda metrica calculada sobre los buckets ITA supervivientes esta sesgada
+   respecto al conjunto completo y debe reportarse junto al n.
+
+NOTA SOBRE LAS 147 IMAGENES DESCARTADAS
+De las 10015 de HAM en el cache se procesaron 9868. Las 147 restantes tienen
+menos de 200 pixeles de piel dentro del campo del dermatoscopio y fuera de la
+lesion, umbral minimo para que la mediana de L*/b* sea estable. Es la razon por
+la que este script reporta 9868 y diag_ita_signo.py reporta 9822 (ese ademas
+exige bucket FST numerico, lo que excluye los "unavailable").

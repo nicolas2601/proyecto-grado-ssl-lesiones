@@ -170,7 +170,12 @@ imagenes con b* <= 0 la tasa de melanoma es 17,10 % frente a 7,57 % con b* > 0
 (chi cuadrado 209,3), asi que cualquier brecha por "fototipo VI" habria sido
 prevalencia de enfermedad, no tono. Los `summary.json` con el bloque
 contaminado se conservan en el pod como `*.v1_signo_b`; el diagnostico esta en
-`2026-09-21-final/fst_diagnostico/`.
+`2026-09-21-final/fst_diagnostico/` (scripts como `.py.txt`, salidas verbatim
+e histograma del ITA). Para reproducir esas cifras los scripts deben leer
+`salidas/final/fst.v1_signo_b/fst_pseudo_manifest.json`: el manifiesto vivo
+ya sale del estimador corregido y da otros numeros. Los dos scripts reportan
+n distinto (9 868 y 9 822) porque el segundo exige bucket numerico y ambos
+descartan 147 imagenes con menos de 200 pixeles de piel.
 
 ### Estimador corregido (commit `c272bdb`) y estrato principal (`bbd9bab`)
 

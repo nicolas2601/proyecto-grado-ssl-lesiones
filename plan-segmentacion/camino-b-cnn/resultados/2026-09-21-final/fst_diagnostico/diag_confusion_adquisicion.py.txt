@@ -1,0 +1,87 @@
+"""Cruce de confusion: el signo de b* correlaciona con el diagnostico?
+
+Si b* <= 0 concentra melanoma, entonces cualquier "brecha por fototipo" medida
+sobre los buckets ITA seria confusion de adquisicion (equipo/centro), no un
+efecto de tono de piel. Mismo chequeo por tercil de L*, que es el proxy de tono
+que si tiene sentido en dermoscopia.
+
+Solo lee.
+"""
+import csv
+import json
+
+import numpy as np
+from scipy import stats
+from skimage.color import rgb2lab
+
+ROOT = "/home/jovyan/work/proyectonp"
+HAM_META = "/home/jovyan/work/datos/ham10000/HAM10000_metadata.csv"
+CLASES = ["nv", "mel", "bkl", "bcc", "akiec", "vasc", "df"]
+
+manifest = list(csv.DictReader(open(f"{ROOT}/salidas/final/cache/manifest.csv")))
+dx = {r["image_id"]: r["dx"] for r in csv.DictReader(open(HAM_META))}
+
+images = np.load(f"{ROOT}/salidas/final/cache/images.npy", mmap_mode="r")
+field = np.load(f"{ROOT}/salidas/final/cache/field.npy", mmap_mode="r")
+masks = np.load(f"{ROOT}/salidas/final/pseudo_r2/pseudo_masks.npy", mmap_mode="r")
+
+idx = [(int(r["index"]), r["image_id"]) for r in manifest if r["image_id"] in dx]
+print(f"HAM en el cache: {len(idx)}")
+
+rows = []
+for i, (ix, iid) in enumerate(idx):
+    if i % 2000 == 0:
+        print(f"  {i}/{len(idx)}", flush=True)
+    piel = (np.asarray(field[ix]) > 0) & (np.asarray(masks[ix]) == 0)
+    if piel.sum() < 200:
+        continue
+    lab = rgb2lab(np.asarray(images[ix]) / 255.0)
+    rows.append({
+        "dx": dx[iid],
+        "L": float(np.median(lab[..., 0][piel])),
+        "b": float(np.median(lab[..., 2][piel])),
+    })
+
+print(f"procesadas: {len(rows)}")
+n = len(rows)
+base = {c: sum(1 for r in rows if r["dx"] == c) for c in CLASES}
+print("\nPrevalencia global:")
+for c in CLASES:
+    print(f"  {c:6s} {base[c]:5d}  {100*base[c]/n:5.2f}%")
+
+
+def tabla(grupos, titulo):
+    print(f"\n=== {titulo} ===")
+    print(f"{'grupo':16s} {'n':>6s} " + "".join(f"{c:>8s}" for c in CLASES))
+    for nombre, g in grupos:
+        if not g:
+            continue
+        pct = [100 * sum(1 for r in g if r["dx"] == c) / len(g) for c in CLASES]
+        print(f"{nombre:16s} {len(g):6d} " + "".join(f"{p:7.2f}%" for p in pct))
+    # Melanoma: chi-cuadrado entre los grupos
+    tab = [[sum(1 for r in g if r["dx"] == "mel"),
+            sum(1 for r in g if r["dx"] != "mel")] for _, g in grupos if g]
+    if len(tab) >= 2:
+        chi2, p, _, _ = stats.chi2_contingency(np.array(tab))
+        print(f"  melanoma entre grupos: chi2={chi2:.1f}  p={p:.3e}")
+
+
+b = np.array([r["b"] for r in rows])
+tabla([("b* > 0", [r for r in rows if r["b"] > 0]),
+       ("b* <= 0", [r for r in rows if r["b"] <= 0])],
+      "Por signo de b* (el que define el bucket ITA)")
+
+L = np.array([r["L"] for r in rows])
+q1, q2 = np.percentile(L, [33.333, 66.667])
+print(f"\nCortes de tercil de L*: {q1:.2f} / {q2:.2f}")
+tabla([("L* oscuro", [r for r in rows if r["L"] <= q1]),
+       ("L* medio", [r for r in rows if q1 < r["L"] <= q2]),
+       ("L* claro", [r for r in rows if r["L"] > q2])],
+      "Por tercil de L* (proxy de tono propuesto)")
+
+# Son independientes el signo de b* y el tercil de L*?
+print("\n=== Cruce signo de b* x tercil de L* ===")
+print(f"{'tercil':12s} {'b*>0':>8s} {'b*<=0':>8s}")
+for nombre, sel in [("oscuro", L <= q1), ("medio", (L > q1) & (L <= q2)), ("claro", L > q2)]:
+    pos = int(((b > 0) & sel).sum()); neg = int(((b <= 0) & sel).sum())
+    print(f"{nombre:12s} {pos:8d} {neg:8d}")
