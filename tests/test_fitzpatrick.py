@@ -514,3 +514,71 @@ def test_estimate_fst_from_mask_record_forwards_the_border_mask():
 
     assert with_band.skin_fraction == pytest.approx(without.skin_fraction - 16 / 64, abs=1e-6)
     assert with_band.mask_sha256 == without.mask_sha256
+
+
+# ------------------------------------------------- b* floor (ITA saturation)
+def test_estimate_fst_is_indeterminate_when_the_skin_b_is_not_positive():
+    """Bluish skin (b* < 0) drives ``(L*-50)/b*`` to -90 degrees regardless of
+    L*, which the Groh table maps to the darkest bucket: the bucket then
+    encodes the SIGN of b*, not the tone. Such readings are reported as
+    indeterminate, with the medians kept for L*-based stratification."""
+    img, dist = disk_srgb_image(skin_rgb=(0.60, 0.62, 0.74))
+
+    result = fp.estimate_fst(img, mask=dist <= 15)
+
+    assert result.status == "ita_indeterminate"
+    assert result.bucket is None
+    assert np.isnan(result.ita)
+    assert result.b_median < 0
+    assert 0 < result.L_median < 100
+    assert result.confidence == 0.0
+
+
+def test_estimate_fst_is_indeterminate_when_the_skin_chroma_is_below_the_floor():
+    """Neutral grey skin: b* ~ 0 makes the ratio explode to +90 (bucket 1)."""
+    img, dist = disk_srgb_image(skin_rgb=(0.65, 0.65, 0.65))
+
+    result = fp.estimate_fst(img, mask=dist <= 15)
+
+    assert result.status == "ita_indeterminate"
+    assert result.bucket is None
+    assert abs(result.b_median) < fp.MIN_B_FOR_ITA
+
+
+def test_estimate_fst_reports_the_skin_medians_and_the_pixel_count_when_ok():
+    img, dist = disk_srgb_image()
+
+    result = fp.estimate_fst(img)
+
+    assert result.status == "ok"
+    assert result.b_median >= fp.MIN_B_FOR_ITA
+    assert 0 < result.L_median < 100
+    assert result.n_skin_px == round(result.skin_fraction * img.shape[0] * img.shape[1])
+
+
+def test_estimate_fst_indeterminate_still_counts_the_skin_pixels():
+    img, dist = disk_srgb_image(skin_rgb=(0.65, 0.65, 0.65))
+
+    result = fp.estimate_fst(img, mask=dist <= 15)
+
+    assert result.n_skin_px == int((dist > 15).sum())
+
+
+def test_estimate_fst_whole_image_is_indeterminate_for_a_neutral_frame():
+    img = np.full((32, 32, 3), 0.65)
+
+    result = fp.estimate_fst_whole_image(img)
+
+    assert result.status == "ita_indeterminate"
+    assert result.bucket is None
+    assert result.n_skin_px == 32 * 32
+
+
+def test_estimate_fst_whole_image_reports_the_medians_when_ok():
+    img, _ = disk_srgb_image()
+
+    result = fp.estimate_fst_whole_image(img)
+
+    assert result.status == "ok"
+    assert result.b_median >= fp.MIN_B_FOR_ITA
+    assert result.n_skin_px == img.shape[0] * img.shape[1]
