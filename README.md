@@ -31,6 +31,11 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
   v5 evalúa con el **backbone congelado** (DINOv2, cero etiquetas en el extractor) + probes
   kNN/prototipos/linear: las features de DINOv2 superan a las supervisadas de ImageNet en las
   6 comparaciones. Ver [15 — Auditoría SSL puro y plan v5](docs/15-auditoria-ssl-puro-y-plan-v5.md).
+- **Pipeline propuesto (segmentación sin etiquetas → tono de piel → SSL con adaptación de tono → clasificador):**
+  segmentación y equidad por tono cerradas en el pod UNABIA (Dice 0,718 ISIC 2018 / 0,785 HAM10000 sin
+  máscaras en entrenamiento; brecha de 0,111 entre terciles de luminosidad en HAM10000, real y documentada);
+  preentrenamiento y banco por tono en ejecución. Documento único:
+  [22 — Pipeline propuesto](docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md).
 - **Objetivo 2 · v6 (pre-entrenamiento propio en GPU):** 🔧 **construido, pendiente de cluster.**
   Dos brazos 100 % sin etiquetas: DINOv2 continual (principal) + SimSiam desde cero (purista),
   a igual presupuesto de GPU-horas, con MLflow. Ver [16 — Plan v6](docs/16-plan-v6-pretraining-gpu.md).
