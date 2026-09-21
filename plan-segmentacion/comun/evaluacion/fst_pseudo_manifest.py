@@ -35,10 +35,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--pseudo-masks", type=Path, required=True, help="pseudo_masks.npy")
     parser.add_argument("--output-json", type=Path, required=True, help="Canonical JSON output")
     parser.add_argument(
+        "--output-csv",
+        type=Path,
+        default=None,
+        help="Optional image_id,fst_bucket table for tone-stratified evaluation",
+    )
+    parser.add_argument(
         "--stats-json",
         type=Path,
         default=None,
         help="Optional pseudo_masks_stats.json; defaults to the mask directory when present",
+    )
+    parser.add_argument(
+        "--field",
+        type=Path,
+        default=None,
+        help="Optional field.npy (N, H, W); pixels outside the dermoscope field are not skin",
     )
     parser.add_argument(
         "--source-revision",
@@ -75,9 +87,29 @@ def _image_path(raw_path: str, manifest_path: Path) -> Path:
     return path if path.is_absolute() else manifest_path.parent / path
 
 
-def _load_image(path: Path) -> np.ndarray:
+def _load_image(path: Path, shape: tuple[int, int]) -> np.ndarray:
+    """Decode one frame at the pseudo-mask resolution.
+
+    The masks live at the cache resolution while the source files keep their
+    native size (600x450 is typical), so the frame is resized with the same
+    bilinear transform the cache builder uses. Without it every real image
+    fails the mask shape check.
+    """
+    height, width = shape
     with Image.open(path) as image:
-        return np.asarray(image.convert("RGB"), dtype=np.float32) / 255.0
+        image.draft("RGB", (width, height))
+        rgb = image.convert("RGB").resize((width, height), Image.BILINEAR)
+    return np.asarray(rgb, dtype=np.float32) / 255.0
+
+
+def _write_csv(path: Path, records: list[dict[str, Any]]) -> None:
+    """Write the minimal image_id,fst_bucket table the evaluation stratifies by."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(("image_id", "fst_bucket"))
+        for record in records:
+            writer.writerow((record["image_id"], record["FST_bucket"]))
 
 
 def _metadata(stats: dict[str, Any]) -> dict[str, Any]:
@@ -115,26 +147,86 @@ def _dataset_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def run(args: argparse.Namespace) -> dict[str, Any]:
-    rows = _read_manifest(args.manifest)
-    pseudo_masks = np.load(args.pseudo_masks, mmap_mode="r")
-    if pseudo_masks.ndim != 3 or pseudo_masks.dtype != np.uint8:
-        raise ValueError("pseudo_masks must be uint8 with shape (N, H, W)")
-    if rows and max(row["index"] for row in rows) >= len(pseudo_masks):
-        raise ValueError("manifest index exceeds pseudo_masks length")
+def _load_field(path: Path | None, masks: np.ndarray) -> np.ndarray | None:
+    if path is None:
+        return None
+    field = np.load(path, mmap_mode="r")
+    if field.shape != masks.shape:
+        raise ValueError(f"field {field.shape} does not match pseudo_masks {masks.shape}")
+    return field
 
-    stats = _load_stats(args.pseudo_masks, args.stats_json)
-    metadata = _metadata(stats)
+
+def _border_mask(pseudo: np.ndarray, field: np.ndarray | None, index: int) -> np.ndarray:
+    """Pixels that are not skin: the ignore band plus everything outside the field."""
+    border = pseudo == 255
+    if field is None:
+        return border
+    return border | ~np.asarray(field[index], dtype=bool)
+
+
+def _base_record(
+    row: dict[str, Any],
+    metadata: dict[str, Any],
+    image_path: Path,
+    pseudo: np.ndarray,
+    mask_record: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "index": row["index"],
+        "dataset": row["dataset"],
+        "image_id": row["image_id"],
+        "split": row["split"],
+        "image_path": str(image_path),
+        "mask_source": metadata["mask_source"],
+        "mask_round": metadata["mask_round"],
+        "mask_coverage": float((pseudo == 1).mean()),
+        "ignore_fraction": float((pseudo == 255).mean()),
+        "ITA": None,
+        "FST_bucket": "unavailable",
+        "confidence": 0.0,
+        "quality": (
+            "insufficient_mask_coverage" if not mask_record["eligible"] else mask_record["quality"]
+        ),
+        "status": "quarantine",
+        "mask": mask_record,
+        "mask_metadata": metadata["mask_metadata"],
+    }
+
+
+def _apply_estimate(
+    record: dict[str, Any],
+    image_path: Path,
+    lesion: np.ndarray,
+    mask_record: dict[str, Any],
+    border: np.ndarray,
+) -> None:
+    estimate = fitzpatrick.estimate_fst_from_mask_record(
+        _load_image(image_path, lesion.shape),
+        mask=lesion,
+        mask_record=mask_record,
+        border_mask=border,
+    )
+    valid = estimate.status == "ok"
+    bucket = estimate.bucket if valid and estimate.bucket is not None else "unavailable"
+    record.update(
+        {
+            "ITA": float(estimate.ita) if valid and math.isfinite(estimate.ita) else None,
+            "FST_bucket": bucket,
+            "confidence": float(estimate.confidence),
+            "status": estimate.status if valid else "quarantine",
+            "quality": mask_record["quality"] if valid else f"invalid_estimate:{estimate.status}",
+        }
+    )
+
+
+def _records(args: argparse.Namespace, rows, masks, field, metadata) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for row in rows:
         index = row["index"]
-        pseudo = np.asarray(pseudo_masks[index])
+        pseudo = np.asarray(masks[index])
         if not np.isin(pseudo, (0, 1, 255)).all():
             raise ValueError("pseudo_masks may contain only 0, 1 and 255")
-        valid = pseudo != 255
         lesion = pseudo == 1
-        mask_coverage = float(lesion.mean())
-        ignore_fraction = float((~valid).mean())
         image_path = _image_path(row["path"], args.manifest).resolve()
         mask_record = mask_manifest.build_mask_record(
             dataset=row["dataset"],
@@ -144,66 +236,41 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             producer=str(metadata["mask_source"]),
             version=str(metadata["mask_round"] or "unknown"),
         )
-
-        record: dict[str, Any] = {
-            "index": index,
-            "dataset": row["dataset"],
-            "image_id": row["image_id"],
-            "split": row["split"],
-            "image_path": str(image_path),
-            "mask_source": metadata["mask_source"],
-            "mask_round": metadata["mask_round"],
-            "mask_coverage": mask_coverage,
-            "ignore_fraction": ignore_fraction,
-            "ITA": None,
-            "FST_bucket": "unavailable",
-            "confidence": 0.0,
-            "quality": (
-                "insufficient_mask_coverage"
-                if not mask_record["eligible"]
-                else mask_record["quality"]
-            ),
-            "status": "quarantine",
-            "mask": mask_record,
-            "mask_metadata": metadata["mask_metadata"],
-        }
+        record = _base_record(row, metadata, image_path, pseudo, mask_record)
         if mask_record["eligible"]:
-            estimate = fitzpatrick.estimate_fst_from_mask_record(
-                _load_image(image_path),
-                mask=lesion,
-                mask_record=mask_record,
-                valid_pixel_mask=valid,
+            _apply_estimate(
+                record, image_path, lesion, mask_record, _border_mask(pseudo, field, index)
             )
-            estimate_valid = estimate.status == "ok"
-            record.update(
-                {
-                    "ITA": None if not math.isfinite(estimate.ita) else float(estimate.ita),
-                    "FST_bucket": estimate.bucket if estimate.bucket is not None else "unavailable",
-                    "confidence": float(estimate.confidence),
-                    "status": estimate.status if estimate_valid else "quarantine",
-                    "quality": (
-                        mask_record["quality"]
-                        if estimate_valid
-                        else f"invalid_estimate:{estimate.status}"
-                    ),
-                }
-            )
-            if not estimate_valid:
-                record["ITA"] = None
-                record["FST_bucket"] = "unavailable"
         records.append(record)
+    return records
+
+
+def run(args: argparse.Namespace) -> dict[str, Any]:
+    rows = _read_manifest(args.manifest)
+    pseudo_masks = np.load(args.pseudo_masks, mmap_mode="r")
+    if pseudo_masks.ndim != 3 or pseudo_masks.dtype != np.uint8:
+        raise ValueError("pseudo_masks must be uint8 with shape (N, H, W)")
+    if rows and max(row["index"] for row in rows) >= len(pseudo_masks):
+        raise ValueError("manifest index exceeds pseudo_masks length")
+
+    field = _load_field(args.field, pseudo_masks)
+    metadata = _metadata(_load_stats(args.pseudo_masks, args.stats_json))
+    records = _records(args, rows, pseudo_masks, field, metadata)
 
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for record in records:
         grouped[record["dataset"]].append(record)
     manifest = {
         "schema_version": SCHEMA_VERSION,
+        "field_used": field is not None,
         "records": records,
         "summary": {"total": len(records), "by_dataset": {
             dataset: _dataset_summary(dataset_rows)
             for dataset, dataset_rows in sorted(grouped.items())
         }},
     }
+    if args.output_csv is not None:
+        _write_csv(args.output_csv, records)
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_json.write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False, allow_nan=False) + "\n",

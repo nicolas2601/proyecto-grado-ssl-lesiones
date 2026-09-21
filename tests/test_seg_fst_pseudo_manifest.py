@@ -1,5 +1,6 @@
 """TDD contract for the Camino B pseudo-mask -> ITA/FST adapter."""
 
+import csv
 import json
 
 import numpy as np
@@ -124,7 +125,7 @@ def test_ignore_pixels_are_excluded_from_ita_calculation(tmp_path):
     expected = fitzpatrick.estimate_fst(
         image.astype(np.float32) / 255.0,
         mask=pseudo == 1,
-        valid_pixel_mask=pseudo != 255,
+        border_mask=pseudo == 255,
     )
 
     assert output["records"][0]["ITA"] == expected.ita
@@ -225,3 +226,171 @@ def test_parse_args_exposes_standalone_cli_contract():
     assert args.manifest.name == "manifest.csv"
     assert args.pseudo_masks.name == "masks.npy"
     assert args.output_json.name == "out.json"
+
+
+def _write_field(tmp_path, valid_rows=6):
+    field = np.zeros((1, 8, 8), dtype=np.uint8)
+    field[0, :valid_rows] = 1
+    path = tmp_path / "field.npy"
+    np.save(path, field)
+    return path
+
+
+def _run_with_field(tmp_path, manifest_path, masks_path, field_path=None):
+    argv = [
+        "--manifest",
+        str(manifest_path),
+        "--pseudo-masks",
+        str(masks_path),
+        "--output-json",
+        str(tmp_path / "fst_manifest.json"),
+    ]
+    if field_path is not None:
+        argv += ["--field", str(field_path)]
+    return fpm.run(fpm.parse_args(argv))
+
+
+def test_the_field_is_excluded_from_the_ita_and_reported(tmp_path):
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    image_path = tmp_path / "images" / "ham" / "image-a.png"
+    image = np.full((8, 8, 3), (180, 130, 100), dtype=np.uint8)
+    image[6:] = (40, 40, 40)  # grey vignette rows, well above the black threshold
+    Image.fromarray(image).save(image_path)
+    field_path = _write_field(tmp_path)
+
+    output = _run_with_field(tmp_path, manifest_path, masks_path, field_path)
+    pseudo = np.load(masks_path)[0]
+    field = np.load(field_path)[0].astype(bool)
+    expected = fitzpatrick.estimate_fst(
+        image.astype(np.float32) / 255.0,
+        mask=pseudo == 1,
+        border_mask=(pseudo == 255) | ~field,
+    )
+
+    assert output["field_used"] is True
+    assert output["records"][0]["ITA"] == expected.ita
+
+
+def test_without_the_field_flag_the_manifest_says_so(tmp_path):
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    output = _run_with_field(tmp_path, manifest_path, masks_path)
+    assert output["field_used"] is False
+
+
+def test_a_field_shorter_than_the_masks_is_rejected(tmp_path):
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    field_path = tmp_path / "field.npy"
+    np.save(field_path, np.ones((1, 4, 4), dtype=np.uint8))
+
+    with pytest.raises(ValueError, match="field"):
+        _run_with_field(tmp_path, manifest_path, masks_path, field_path)
+
+
+def _skin_gradient(height=40, width=24):
+    ramp = np.linspace(150.0, 210.0, height).reshape(height, 1)
+    image = np.zeros((height, width, 3), dtype=np.uint8)
+    image[..., 0] = ramp
+    image[..., 1] = ramp * 0.72
+    image[..., 2] = ramp * 0.55
+    return image
+
+
+def test_an_image_larger_than_the_mask_is_resized_before_estimating(tmp_path):
+    """Real frames are 600x450 while the masks live at the cache resolution."""
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    image_path = tmp_path / "images" / "ham" / "image-a.png"
+    large = _skin_gradient()
+    Image.fromarray(large).save(image_path)
+
+    output = _run_with_field(tmp_path, manifest_path, masks_path)
+
+    pseudo = np.load(masks_path)[0]
+    resized = Image.fromarray(large).resize((8, 8), Image.BILINEAR)
+    expected = fitzpatrick.estimate_fst(
+        np.asarray(resized, dtype=np.float32) / 255.0,
+        mask=pseudo == 1,
+        border_mask=pseudo == 255,
+    )
+    assert expected.status == "ok"
+    assert output["records"][0]["ITA"] == expected.ita
+
+
+def test_the_field_still_applies_when_the_image_is_resized(tmp_path):
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    Image.fromarray(_skin_gradient()).save(tmp_path / "images" / "ham" / "image-a.png")
+    field_path = _write_field(tmp_path)
+
+    output = _run_with_field(tmp_path, manifest_path, masks_path, field_path)
+
+    assert output["field_used"] is True
+    assert output["records"][0]["ITA"] is not None
+
+
+def _csv_rows(path):
+    return list(csv.DictReader(path.read_text(encoding="utf-8").splitlines()))
+
+
+def test_output_csv_writes_one_bucket_per_image(tmp_path):
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    csv_path = tmp_path / "fst.csv"
+    output = fpm.run(
+        fpm.parse_args(
+            [
+                "--manifest",
+                str(manifest_path),
+                "--pseudo-masks",
+                str(masks_path),
+                "--output-json",
+                str(tmp_path / "fst_manifest.json"),
+                "--output-csv",
+                str(csv_path),
+            ]
+        )
+    )
+
+    rows = _csv_rows(csv_path)
+    assert list(rows[0]) == ["image_id", "fst_bucket"]
+    assert [row["image_id"] for row in rows] == ["img-a"]
+    assert rows[0]["fst_bucket"] == str(output["records"][0]["FST_bucket"])
+    assert rows[0]["fst_bucket"] in {"1", "2", "3", "4", "5", "6"}
+
+
+def test_output_csv_marks_quarantined_images_as_unavailable(tmp_path):
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    masks = np.load(masks_path)
+    masks[:] = 0
+    np.save(masks_path, masks)
+    csv_path = tmp_path / "fst.csv"
+    fpm.run(
+        fpm.parse_args(
+            [
+                "--manifest",
+                str(manifest_path),
+                "--pseudo-masks",
+                str(masks_path),
+                "--output-json",
+                str(tmp_path / "fst_manifest.json"),
+                "--output-csv",
+                str(csv_path),
+            ]
+        )
+    )
+
+    assert _csv_rows(csv_path)[0]["fst_bucket"] == "unavailable"
+
+
+def test_without_output_csv_no_bucket_table_is_written(tmp_path):
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    args = fpm.parse_args(
+        [
+            "--manifest",
+            str(manifest_path),
+            "--pseudo-masks",
+            str(masks_path),
+            "--output-json",
+            str(tmp_path / "fst_manifest.json"),
+        ]
+    )
+    assert args.output_csv is None
+    fpm.run(args)
+    assert not (tmp_path / "fst.csv").exists()

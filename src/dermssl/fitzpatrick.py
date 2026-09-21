@@ -207,11 +207,30 @@ def detect_dermoscopy_artifacts(img: np.ndarray, lesion_mask: np.ndarray) -> boo
     )
 
 
+def _resolve_border(gray: np.ndarray, border_mask: np.ndarray | None) -> np.ndarray:
+    """Near-black pixels, plus any region the caller declares is not skin.
+
+    Luminance alone cannot see a grey vignette ring (0.05-0.20 is common and
+    sits far above ``BORDER_LUMINANCE_THRESHOLD``). Callers that know where the
+    dermoscope field ends pass that knowledge in explicitly.
+    """
+    border = gray < BORDER_LUMINANCE_THRESHOLD
+    if border_mask is None:
+        return border
+    extra = np.asarray(border_mask, dtype=bool)
+    if extra.shape != border.shape:
+        raise ValueError(
+            f"border_mask shape {extra.shape} does not match the image {border.shape}"
+        )
+    return border | extra
+
+
 def estimate_fst(
     img: np.ndarray,
     mask: np.ndarray | None = None,
     *,
     mask_confidence: float | None = None,
+    border_mask: np.ndarray | None = None,
 ) -> FSTEstimate:
     """Mask-guided FST estimate for one sRGB image, float (H, W, 3) in [0, 1].
 
@@ -225,6 +244,10 @@ def estimate_fst(
     downstream code relies on ``~mask`` being logical negation, which on an
     integer dtype would instead be bitwise NOT on the raw integers (wrong
     fancy-indexing into ``lab[skin]``, silently, no error raised).
+
+    ``border_mask`` (bool (H, W), True = not skin) is unioned with the
+    near-black border: pass the complement of the dermoscope field of view to
+    keep the vignette out of the ITA. Omitting it keeps the previous behaviour.
     """
     if mask_confidence is not None and not 0.0 <= mask_confidence <= 1.0:
         raise ValueError("mask_confidence must be within [0, 1]")
@@ -233,7 +256,7 @@ def estimate_fst(
         mask = np.asarray(mask, dtype=bool)
 
     gray = img.mean(axis=-1)
-    border = gray < BORDER_LUMINANCE_THRESHOLD
+    border = _resolve_border(gray, border_mask)
 
     fallback_used = (
         mask is None
@@ -318,6 +341,7 @@ def estimate_fst_from_mask_record(
     *,
     mask: np.ndarray | None,
     mask_record: dict,
+    border_mask: np.ndarray | None = None,
 ) -> FSTEstimate:
     """Estimate FST only from a QA-eligible ``true=lesion`` mask record."""
     if mask_record.get("mask_semantics") != "true=lesion":
@@ -343,7 +367,10 @@ def estimate_fst_from_mask_record(
     if mask is None:
         raise ValueError("eligible mask record requires its boolean mask")
 
-    return replace(estimate_fst(img, mask=np.asarray(mask, dtype=bool)), **provenance)
+    estimate = estimate_fst(
+        img, mask=np.asarray(mask, dtype=bool), border_mask=border_mask
+    )
+    return replace(estimate, **provenance)
 
 
 def estimate_fst_whole_image(img: np.ndarray) -> FSTEstimate:
