@@ -195,7 +195,7 @@ sobreviva a una desconexión del navegador.
 
 ```bash
 cd ~/work/proyectonp/repo
-nohup python plan-segmentacion/camino-b-cnn/entrenamiento/run_pipeline.py \
+setsid nohup python plan-segmentacion/camino-b-cnn/entrenamiento/run_pipeline.py \
   --nproc-per-node 2 \
   --config plan-segmentacion/comun/configs/cluster-piloto.json \
   --workdir $HOME/work/proyectonp/salidas/piloto \
@@ -206,8 +206,20 @@ nohup python plan-segmentacion/camino-b-cnn/entrenamiento/run_pipeline.py \
   --wandb-project dermssl-segmentacion \
   --eval-set isic2018=$HOME/work/proyectonp/datos_isic2018/ISIC2018_Task1-2_Training_Input:$HOME/work/proyectonp/masks_eval/isic2018/ground_truth \
   --eval-set ham10000=$HOME/work/proyectonp/eval_ham10000_images:$HOME/work/proyectonp/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl \
-  > pilot.log 2>&1 &
+  < /dev/null > pilot.log 2>&1 & disown
 ```
+
+`setsid` es obligatorio, no cosmético. La terminal de JupyterHub muere sin
+aviso (culling por inactividad o corte del WebSocket) y se lleva consigo a todo
+el grupo de procesos de la sesión; un `nohup ... &` a secas deja al pipeline en
+ese grupo y lo mata a mitad de camino. Con `setsid` el proceso obtiene su propia
+sesión, sin terminal controlante. Confirmar antes de darlo por lanzado:
+
+```bash
+ps -o pid,pgid,sid,tty,etime,cmd -C python | rg run_pipeline
+```
+
+La columna `TTY` debe decir `?` y `SID` debe coincidir con el `PID` del driver.
 
 Para seguir el avance:
 
@@ -215,7 +227,7 @@ Para seguir el avance:
 tail -f ~/work/proyectonp/repo/pilot.log
 ```
 
-Antes de lanzar conviene mirar `--dry-run` en lugar de `nohup`: imprime todos
+Antes de lanzar conviene mirar `--dry-run` en lugar de `setsid nohup`: imprime todos
 los comandos sin ejecutar nada, y es la forma más barata de confirmar que las
 rutas quedaron bien.
 
@@ -280,7 +292,7 @@ Con los tiempos del piloto en la mano se decide si el presupuesto de
 
 ```bash
 cd ~/work/proyectonp/repo
-nohup python plan-segmentacion/camino-b-cnn/entrenamiento/run_pipeline.py \
+setsid nohup python plan-segmentacion/camino-b-cnn/entrenamiento/run_pipeline.py \
   --nproc-per-node 2 \
   --config plan-segmentacion/comun/configs/cluster-final.json \
   --workdir $HOME/work/proyectonp/salidas/final \
@@ -291,8 +303,11 @@ nohup python plan-segmentacion/camino-b-cnn/entrenamiento/run_pipeline.py \
   --wandb-project dermssl-segmentacion \
   --eval-set isic2018=$HOME/work/proyectonp/datos_isic2018/ISIC2018_Task1-2_Training_Input:$HOME/work/proyectonp/masks_eval/isic2018/ground_truth \
   --eval-set ham10000=$HOME/work/proyectonp/eval_ham10000_images:$HOME/work/proyectonp/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl \
-  > final.log 2>&1 &
+  < /dev/null > final.log 2>&1 & disown
 ```
+
+Verificar `TTY = ?` con el mismo `ps` de la sección 7 antes de cerrar la
+terminal. Los pisos de la sección 9 se lanzan igual, con `setsid nohup`.
 
 Si `cluster-final.json` no cabe, se baja el presupuesto desde la línea de
 comandos sin editar el preset, con `--rounds` y `--epochs-per-round`.
