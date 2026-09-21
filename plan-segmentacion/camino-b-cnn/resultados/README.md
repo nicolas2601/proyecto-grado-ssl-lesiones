@@ -32,6 +32,52 @@ Nunca la cache, los checkpoints, `field.npy` ni el manifiesto FST completo
 - Hardware: dos NVIDIA RTX PRO 4000 de 24 GB en el pod UNABIA, DDP con
   `torchrun`, bf16.
 
+## Como se ven las mascaras
+
+Cada rejilla muestra, por fila, la imagen, la mascara de referencia, la mascara
+predicha y la superposicion (verde: referencia; rojo: prediccion) con el Dice
+de esa imagen en la etiqueta. Son muestras aleatorias, no las mejores.
+
+Corrida final, HAM10000, muestra aleatoria:
+
+![Final HAM10000, muestra aleatoria](2026-09-21-final/evaluacion_ham10000/overlays/random.png)
+
+Corrida final, ISIC 2018, muestra aleatoria:
+
+![Final ISIC 2018, muestra aleatoria](2026-09-21-final/evaluacion_isic2018/overlays/random.png)
+
+Los peores casos de la corrida final en ISIC 2018 (Dice 0): tinta quirurgica
+violeta, cabello denso, gel, reglas y brillos con lesiones palidas:
+
+![Final ISIC 2018, peores casos](2026-09-21-final/evaluacion_isic2018/overlays/worst.png)
+
+Los mejores casos, para calibrar el ojo: `2026-09-21-final/evaluacion_*/overlays/best.png`.
+Para comparar con lo que hacia la V2 de la rama (mascara sobre todo el campo
+del dermatoscopio), el piloto y el final se ven en `2026-09-20-piloto/` y los
+pisos sin aprendizaje en `2026-09-21-final/baselines_v2/`.
+
+Deteccion del campo del dermatoscopio (borde rojo = limite del campo valido;
+una fila por dataset y por tipo, circular o cuadro completo):
+
+![Hoja de contacto del campo, corrida final](2026-09-21-final/field_contact_sheet.png)
+
+## Parametros exactos de la corrida final
+
+Preset `plan-segmentacion/comun/configs/cluster-final.json`, commit `d81a492`,
+semilla 42, dos GPU con `torchrun`, bf16.
+
+| Etapa | Parametros |
+|---|---|
+| Cache | 224 x 224, 2 % de pseudo-validacion, campo del dermatoscopio con umbral minimo 0,06 y margen 0,04 |
+| Contrastivo (MoCo v2) | ResNet-50 desde cero, 30 epocas, batch 128 por GPU, AdamW lr 5e-4, wd 1e-4, warmup 2, cola 16 384, momento 0,999, temperatura 0,2, split-BN 4 |
+| CCAM | cabeza 3 x 3 sobre layer3 + layer4 congeladas, 5 epocas, batch 64, lr 1e-3, alpha 0,25 |
+| Pseudo-mascaras | fondo < 0,35, lesion > 0,65, ignorar entre medio; region mas central; area minima 0,003 y maxima 0,6 del campo; distancia maxima al centro 0,5; tinta y brillos ignorados |
+| Estudiante (U-Net) | 32 canales base (7,8 M parametros), BCE + Dice sobre pixeles confiables, Adam lr 1e-4, warmup 1, batch 32 por GPU, 3 rondas x 20 epocas, checkpoint por perdida de pseudo-validacion |
+| Evaluacion | umbral fijo 0,5, 224 x 224, Hausdorff-95, bootstrap de 1 000 remuestreos |
+
+Augmentacion en GPU: recorte aleatorio, volteos, jitter de color fuerte,
+escala de grises, desenfoque, viñeta sintetica (p = 0,3), nunca sobre la mascara.
+
 ## Corridas
 
 | Corrida | Commit | Preset | Grupo W&B | Duracion | Estado |
@@ -165,3 +211,53 @@ retorno para una corrida siguiente: subir el cap a 0,75 manteniendo el resto.
   reinicios del pod durante la corrida buena. Dos corridas anteriores del
   mismo commit murieron con el pod al convivir con doce procesos de pisos a
   resolucion nativa; la bitacora documenta ambas.
+
+## Sirve ya como entrada del ITA y de la clasificacion
+
+La mascara se usa aguas abajo para excluir la lesion antes de medir el tono de
+la piel (ITA) y, mas adelante, como region de interes del clasificador. Para
+eso no hace falta un borde perfecto: hace falta que la lesion quede fuera del
+conjunto de pixeles de piel y que las imagenes sin mascara confiable se
+detecten. Con la corrida final:
+
+- Mediana de Dice 0,79 (ISIC 2018) y 0,85 (HAM10000); nueve de cada diez
+  imagenes superan 0,40 y 0,51 respectivamente.
+- La cuarentena funciona: 3 479 de 58 457 imagenes del pool (6 %) quedan sin
+  bucket por mascara no elegible, en vez de recibir un ITA inventado.
+- El sesgo es hacia subsegmentar (cobertura predicha 0,17 frente a 0,21 de
+  referencia en ISIC 2018). Para el ITA eso significa que parte del borde de la
+  lesion puede colarse como "piel" y oscurecer la lectura. Mitigacion barata
+  antes de usarla: dilatar la mascara unos 8 a 12 pixeles a 224 (o el 5 % del
+  lado) al construir el conjunto de piel. `fst_pseudo_manifest.py` ya excluye
+  ademas la banda ignorada y el exterior del campo.
+- Fototipos: en HAM10000 la brecha de Dice entre buckets es 0,027, con todos
+  los buckets poblados entre 0,765 y 0,791. El estimador de buckets es el
+  propio ITA sobre la pseudo-mascara y su validacion externa quedo por debajo
+  de la linea base trivial, asi que la equidad de la segmentacion se afirma
+  con cautela.
+
+Conclusion: es utilizable ya como paso previo del ITA y del clasificador, con
+la dilatacion anterior y respetando la cuarentena. Donde no es utilizable sin
+revision es en imagenes con tinta, gel o cabello denso: ahi la mascara puede
+caer sobre el artefacto y no sobre la lesion.
+
+## Que se puede mejorar y como
+
+Por retorno esperado, todo sin etiquetas:
+
+1. Cap de area de candidato 0,6 a 0,75 (`pseudo.max_area_fraction`). Las
+   lesiones que ocupan mas del 60 % del cuadro rinden 0,64-0,68 frente a 0,85
+   del grueso porque el cap las saca del entrenamiento; una mascara de campo
+   entero sigue en 0,9-1,0 y el cap seguiria atrapandola. Costo: una corrida.
+2. Tinta y brillos como fondo en lugar de ignorados. Hoy el estudiante no
+   aprende a rechazarlos; marcarlos como fondo lo obliga. Riesgo: si la regla
+   de color toca una lesion azulada, la castiga. Verificar con los peores casos.
+3. Inferencia con volteos (test-time augmentation) y promedio de las tres
+   rondas del estudiante. Suele dar decimas de Dice sin reentrenar.
+4. Resolucion 320 en lugar de 224 para lesiones pequenas y bordes; cuesta
+   el doble de tiempo por epoca.
+5. Piso adicional zero-shot con SAM y prompt central, previsto en el plan,
+   para situar el resultado frente a un modelo fundacional sin etiquetas.
+
+Lo que no se hace por decision del proyecto: entrenar con mascaras o usar un
+techo supervisado.
