@@ -118,3 +118,130 @@ def test_batch_conversion_can_keep_probabilities_unnormalized():
     out = np.zeros(probabilities.shape, dtype=np.uint8)
     stats = um.saliency_array_to_pseudo_masks(probabilities, out, orient=False, normalize=False)
     assert stats["excluded"] == 1  # a flat 0.5 map has no confident lesion
+
+
+def _disk(size=64, radius=26):
+    yy, xx = np.mgrid[:size, :size]
+    center = (size - 1) / 2.0
+    return (yy - center) ** 2 + (xx - center) ** 2 <= radius**2
+
+
+def test_candidates_outside_the_field_are_never_selected():
+    saliency = _blob()
+    saliency[0:16, 0:16] = 1.0  # a bright vignette corner outside the field
+    field = _disk()
+    mask = um.saliency_to_pseudo_mask(saliency, field=field, normalize=False).mask
+    assert mask[32, 32] == cache_io.FOREGROUND
+    assert mask[4, 4] == cache_io.BACKGROUND
+
+
+def test_every_pixel_outside_the_field_is_background():
+    field = _disk()
+    mask = um.saliency_to_pseudo_mask(_blob(), field=field, normalize=False).mask
+    assert np.all(mask[~field] == cache_io.BACKGROUND)
+
+
+def test_a_region_covering_the_whole_field_invalidates_the_sample():
+    field = _disk()
+    saliency = np.where(field, 1.0, 0.0).astype(np.float32)
+    result = um.saliency_to_pseudo_mask(saliency, field=field, normalize=False)
+    assert result.valid is False
+    assert result.reason == "area"
+    assert np.all(result.mask == cache_io.IGNORE)
+
+
+def test_the_area_cap_also_applies_without_a_field():
+    saliency = np.ones((32, 32), dtype=np.float32)
+    result = um.saliency_to_pseudo_mask(saliency, normalize=False)
+    assert result.valid is False and result.reason == "area"
+
+
+def test_a_generous_area_cap_keeps_the_sample():
+    field = _disk()
+    saliency = np.where(field, 1.0, 0.0).astype(np.float32)
+    result = um.saliency_to_pseudo_mask(
+        saliency, field=field, normalize=False, max_area_fraction=1.0
+    )
+    assert result.valid is True
+
+
+def test_orientation_uses_the_field_edge_not_the_black_image_border():
+    field = _disk()
+    saliency = np.where(field, 0.8, 0.0).astype(np.float32)
+    saliency[_disk(radius=8)] = 0.2  # dark lesion inside a bright field
+    without_field = um.orient_saliency(saliency)
+    with_field = um.orient_saliency(saliency, field=field)
+    assert without_field[32, 32] < without_field[32, 20]  # the vignette hides the contrast
+    assert with_field[32, 32] > with_field[32, 20]
+
+
+def test_orientation_without_a_field_keeps_the_previous_behaviour():
+    saliency = 1.0 - _blob()
+    assert np.array_equal(um.orient_saliency(saliency, field=None), um.orient_saliency(saliency))
+
+
+def test_a_field_with_a_different_shape_raises():
+    with pytest.raises(ValueError):
+        um.saliency_to_pseudo_mask(_blob(), field=np.ones((8, 8), bool))
+
+
+def test_batch_conversion_counts_regions_excluded_by_area():
+    field = _disk()
+    saturated = np.where(field, 1.0, 0.0).astype(np.float32)
+    saliency = np.stack([_blob(), saturated])
+    fields = np.stack([field, field]).astype(np.uint8)
+    out = np.zeros(saliency.shape, dtype=np.uint8)
+    stats = um.saliency_array_to_pseudo_masks(
+        saliency, out, orient=False, normalize=False, fields=fields
+    )
+    assert stats["excluded"] == 1
+    assert stats["excluded_by_area"] == 1
+    assert np.all(out[1] == cache_io.IGNORE)
+    assert out[0, 0, 0] == cache_io.BACKGROUND
+
+
+def test_the_minimum_area_is_measured_against_the_field_not_the_frame():
+    """Both area limits must share one reference, or they contradict each other."""
+    field = _disk(radius=10)
+    saliency = np.zeros((64, 64), dtype=np.float32)
+    saliency[30:34, 30:34] = 1.0  # 16 pixels, centred, small for the frame
+    options = {"normalize": False, "min_area_fraction": 0.04, "max_area_fraction": 1.0}
+
+    assert um.saliency_to_pseudo_mask(saliency, field=field, **options).valid is True
+    assert um.saliency_to_pseudo_mask(saliency, **options).valid is False
+
+
+def test_an_empty_field_is_reported_as_missing_not_as_an_area_problem():
+    result = um.saliency_to_pseudo_mask(
+        _blob(), field=np.zeros((64, 64), dtype=bool), normalize=False
+    )
+    assert result.valid is False
+    assert result.reason == um.REASON_NO_FIELD
+    assert np.all(result.mask == cache_io.IGNORE)
+
+
+def test_batch_conversion_counts_samples_whose_field_is_empty():
+    saliency = np.stack([_blob(), _blob()])
+    fields = np.stack([_disk(), np.zeros((64, 64), dtype=bool)]).astype(np.uint8)
+    out = np.zeros(saliency.shape, dtype=np.uint8)
+    stats = um.saliency_array_to_pseudo_masks(
+        saliency, out, orient=False, normalize=False, fields=fields
+    )
+    assert stats["excluded"] == 1
+    assert stats["excluded_no_field"] == 1
+    assert stats["excluded_by_area"] == 0
+    assert stats["excluded_no_region"] == 0
+
+
+def test_an_unknown_exclusion_reason_is_counted_instead_of_crashing(monkeypatch):
+    def odd_result(saliency, **kwargs):
+        mask = np.full(saliency.shape, cache_io.IGNORE, dtype=np.uint8)
+        return um.PseudoMaskResult(mask=mask, valid=False, reason="mystery")
+
+    monkeypatch.setattr(um, "saliency_to_pseudo_mask", odd_result)
+    out = np.zeros((1, 8, 8), dtype=np.uint8)
+    stats = um.saliency_array_to_pseudo_masks(
+        np.zeros((1, 8, 8), dtype=np.float32), out, orient=False, normalize=False
+    )
+    assert stats["excluded"] == 1
+    assert stats["excluded_by_area"] == 0

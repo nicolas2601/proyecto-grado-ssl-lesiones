@@ -3,8 +3,10 @@
 Lee solo imagenes: nunca abre mascaras, diagnosticos ni etiquetas. Escribe:
 
     images.npy       (N, R, R, 3) uint8, memmap
+    field.npy        (N, R, R) uint8 {0, 1}, campo valido del dermatoscopio
     manifest.csv     index, dataset, image_id, path, split (train / val)
     cache_info.json  resolucion, conteos, particion y semilla
+    field_stats.json umbrales del campo y fracciones medias
 
 La particion `val` (~2 % del pool) es la pseudo-validacion: sirve para
 seleccionar el checkpoint del estudiante con la perdida sobre pseudo-etiquetas,
@@ -31,6 +33,7 @@ for _extra in (_PLAN_ROOT.parent / "src", _PLAN_ROOT / "comun" / "nucleo"):
         sys.path.insert(0, str(_extra))
 
 import cache_io  # noqa: E402
+import field_roi  # noqa: E402
 import synthetic  # noqa: E402
 from dermssl.cli import build_spanish_parser  # noqa: E402
 
@@ -48,6 +51,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=0, help="Usa solo las primeras N imagenes (0 = todas)")
     parser.add_argument("--no-dedupe", action="store_true", help="Conserva ids repetidos entre datasets")
     parser.add_argument("--synthetic", type=int, default=0, help="Genera N imagenes sinteticas (smoke test)")
+    parser.add_argument("--field-black-threshold", type=float, default=field_roi.DEFAULT_BLACK_THRESHOLD, help="Umbral de luminancia (fraccion de 255) del campo del dermatoscopio")
+    parser.add_argument("--field-margin-fraction", type=float, default=field_roi.DEFAULT_MARGIN_FRACTION, help="Margen hacia adentro, como fraccion del radio ajustado")
+    parser.add_argument("--no-field", action="store_true", help="No calcula field.npy (solo para depuracion)")
     return parser.parse_args(argv)
 
 
@@ -70,6 +76,26 @@ def _fill_cache(records, cache, resolution: int, threads: int) -> None:
             if count % 2000 == 0:
                 print(f"cache: {count}/{len(records)} imagenes", flush=True)
     cache.flush()
+
+
+def _write_field(args: argparse.Namespace, output_dir: Path, count: int) -> dict | None:
+    if args.no_field:
+        return None
+    images = cache_io.open_cache(output_dir / "images.npy")
+    field = cache_io.create_cache(
+        output_dir / "field.npy", (count, args.resolution, args.resolution), "uint8"
+    )
+    stats = field_roi.compute_field_cache(
+        images,
+        field,
+        black_threshold=args.field_black_threshold,
+        margin_fraction=args.field_margin_fraction,
+    )
+    field.flush()
+    (output_dir / "field_stats.json").write_text(
+        json.dumps(stats, indent=2) + "\n", encoding="utf-8"
+    )
+    return stats
 
 
 def run(args: argparse.Namespace) -> dict:
@@ -99,6 +125,7 @@ def run(args: argparse.Namespace) -> dict:
         "holdout_fraction": args.holdout_fraction,
         "val_count": splits.count(cache_io.SPLIT_VALIDATION),
         "seed": args.seed,
+        "field": _write_field(args, output_dir, len(records)),
         "reads_masks_or_labels": False,
     }
     (output_dir / "cache_info.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")

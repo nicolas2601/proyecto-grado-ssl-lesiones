@@ -9,7 +9,9 @@ uint8 con 0 = fondo, 1 = lesion, 255 = ignorar, y `pseudo_masks_stats.json`.
   Se usan tal cual, sin normalizar ni orientar.
 
 Umbrales de USL-Net: menor a 0,35 es fondo, mayor a 0,65 es candidato a lesion,
-lo intermedio se ignora. No lee mascaras ni etiquetas.
+lo intermedio se ignora. Con `--field` los candidatos se limitan al campo del
+dermatoscopio, lo de afuera queda como fondo y una region que cubre mas de
+`--max-area-fraction` del campo descarta la imagen. No lee mascaras ni etiquetas.
 
     python make_pseudo_masks.py --saliency salidas/ccam/saliency.npy \\
         --output-dir salidas/pseudo_r0 --source ccam
@@ -44,6 +46,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--high", type=float, default=um.DEFAULT_HIGH, help="Umbral superior (lesion)")
     parser.add_argument("--min-area-fraction", type=float, default=um.DEFAULT_MIN_AREA_FRACTION, help="Area minima de una region, como fraccion de la imagen")
     parser.add_argument("--max-center-distance", type=float, default=um.DEFAULT_MAX_CENTER_DISTANCE, help="Distancia maxima al centro (fraccion de la semidiagonal)")
+    parser.add_argument("--field", default=None, help="Archivo field.npy (N, H, W) con el campo valido del dermatoscopio")
+    parser.add_argument("--max-area-fraction", type=float, default=um.DEFAULT_MAX_AREA_FRACTION, help="Area maxima de la region ganadora, como fraccion del campo")
     return parser.parse_args(argv)
 
 
@@ -54,6 +58,9 @@ def run(args: argparse.Namespace) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     saliency = cache_io.open_cache(Path(args.saliency))
+    fields = None if args.field is None else cache_io.open_cache(Path(args.field))
+    if fields is not None and fields.shape[:3] != saliency.shape[:3]:
+        sys.exit(f"error: --field {fields.shape} no coincide con la saliencia {saliency.shape}")
     masks = cache_io.create_cache(output_dir / MASKS_FILE, saliency.shape, "uint8")
     from_ccam = args.source == "ccam"
     stats = um.saliency_array_to_pseudo_masks(
@@ -61,27 +68,33 @@ def run(args: argparse.Namespace) -> dict:
         masks,
         orient=from_ccam,
         normalize=from_ccam,
+        fields=fields,
         low=args.low,
         high=args.high,
         min_area_fraction=args.min_area_fraction,
         max_center_distance=args.max_center_distance,
+        max_area_fraction=args.max_area_fraction,
     )
     masks.flush()
 
-    stats.update(
-        {
-            "source": args.source,
-            "low": args.low,
-            "high": args.high,
-            "min_area_fraction": args.min_area_fraction,
-            "max_center_distance": args.max_center_distance,
-            "saliency": str(args.saliency),
-            "reads_masks_or_labels": False,
-        }
-    )
+    stats.update(_provenance(args))
     (output_dir / STATS_FILE).write_text(json.dumps(stats, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(stats, indent=2))
     return stats
+
+
+def _provenance(args: argparse.Namespace) -> dict:
+    return {
+        "source": args.source,
+        "low": args.low,
+        "high": args.high,
+        "min_area_fraction": args.min_area_fraction,
+        "max_center_distance": args.max_center_distance,
+        "max_area_fraction": args.max_area_fraction,
+        "saliency": str(args.saliency),
+        "field": None if args.field is None else str(args.field),
+        "reads_masks_or_labels": False,
+    }
 
 
 def main() -> None:

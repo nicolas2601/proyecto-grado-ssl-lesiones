@@ -178,9 +178,47 @@ def gaussian_blur(
     return torch.where(gate, blurred, images)
 
 
+def random_vignette(
+    images: torch.Tensor,
+    generator: torch.Generator,
+    *,
+    probability: float = 0.3,
+    radius_range: tuple[float, float] = (0.7, 0.85),
+    strength_range: tuple[float, float] = (0.3, 0.8),
+    gamma_range: tuple[float, float] = (1.5, 3.0),
+) -> torch.Tensor:
+    """Multiplicative radial darkening, the optical signature of a dermoscope.
+
+    Half of the pool is captured through a dermoscope and half is not, so the
+    vignette is a domain cue the backbone can latch onto instead of the lesion.
+    Adding it at random on both sides removes the shortcut. The attenuation is
+    ``1 - strength * clip((r - r0) / (1 - r0), 0, 1) ** gamma`` with ``r``
+    normalized so that it is 1 at the edge midpoints, measured from a centre
+    jittered by up to 5 percent. Never applied to masks: it changes colour, not
+    geometry, so labels stay valid as they are.
+    """
+    count, _, height, width = images.shape
+    device = images.device
+    rows = torch.linspace(-1.0, 1.0, height, device=device).view(1, -1, 1)
+    columns = torch.linspace(-1.0, 1.0, width, device=device).view(1, 1, -1)
+    offset_y = _uniform(count, -0.05, 0.05, generator, device).view(-1, 1, 1)
+    offset_x = _uniform(count, -0.05, 0.05, generator, device).view(-1, 1, 1)
+    radius = torch.sqrt((rows - offset_y) ** 2 + (columns - offset_x) ** 2)
+
+    start = _uniform(count, radius_range[0], radius_range[1], generator, device).view(-1, 1, 1)
+    strength = _uniform(count, strength_range[0], strength_range[1], generator, device)
+    gamma = _uniform(count, gamma_range[0], gamma_range[1], generator, device).view(-1, 1, 1)
+    falloff = ((radius - start) / (1.0 - start).clamp(min=1e-3)).clamp(0.0, 1.0) ** gamma
+    factor = (1.0 - strength.view(-1, 1, 1) * falloff).unsqueeze(1)
+    darkened = (images * factor).clamp(0.0, 1.0)
+    gate = _per_sample_gate(count, probability, generator, device)
+    return torch.where(gate, darkened, images)
+
+
 def moco_augment(images: torch.Tensor, generator: torch.Generator) -> torch.Tensor:
-    """MoCo v2 view: resized crop, flip, color jitter, grayscale and blur."""
+    """MoCo v2 view: resized crop, flip, vignette, color jitter, grayscale and blur."""
     out, _ = random_resized_crop(images, generator, scale=(0.2, 1.0))
+    out = random_vignette(out, generator, probability=0.3)
     out = color_jitter(out, generator, 0.4, 0.4, 0.4, 0.1, probability=0.8)
     out = random_grayscale(out, generator, probability=0.2)
     return gaussian_blur(out, generator, probability=0.5)
@@ -189,7 +227,11 @@ def moco_augment(images: torch.Tensor, generator: torch.Generator) -> torch.Tens
 def student_augment(
     images: torch.Tensor, masks: torch.Tensor, generator: torch.Generator
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Student view: geometric transform shared with the mask, strong color jitter."""
+    """Student view: geometric transform shared with the mask, vignette and jitter.
+
+    The vignette is photometric, so it touches the image only; the mask keeps
+    the labels produced by the shared geometric transform.
+    """
     out, out_masks = random_resized_crop(
         images,
         generator,
@@ -199,6 +241,7 @@ def student_augment(
         vertical_flip=True,
         masks=masks,
     )
+    out = random_vignette(out, generator, probability=0.3)
     out = color_jitter(out, generator, 0.4, 0.4, 0.4, 0.1, probability=0.8)
     out = random_grayscale(out, generator, probability=0.1)
     return out, out_masks

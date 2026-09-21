@@ -82,3 +82,43 @@ def test_no_images_is_an_error(tmp_path):
 def test_roots_or_synthetic_is_required(tmp_path):
     with pytest.raises(SystemExit):
         prepare_cache.run(_args(tmp_path))
+
+
+def test_cache_also_writes_the_field_of_view_mask(tmp_path):
+    root = _make_pool(tmp_path)
+    info = prepare_cache.run(_args(tmp_path, "--root", f"ham10000={root}"))
+
+    field = cache_io.open_cache(tmp_path / "cache" / "field.npy")
+    assert field.shape == (6, 8, 8) and field.dtype == np.uint8
+    assert set(np.unique(np.asarray(field))) <= {0, 1}
+    stats = json.loads((tmp_path / "cache" / "field_stats.json").read_text(encoding="utf-8"))
+    assert stats["images"] == 6
+    assert stats["black_threshold"] == prepare_cache.field_roi.DEFAULT_BLACK_THRESHOLD
+    assert info["field"]["images"] == 6
+    assert info["reads_masks_or_labels"] is False
+
+
+def test_field_flags_are_forwarded_and_can_be_disabled(tmp_path):
+    root = _make_pool(tmp_path)
+    info = prepare_cache.run(
+        _args(
+            tmp_path,
+            "--root",
+            f"ham10000={root}",
+            "--field-black-threshold",
+            "0.2",
+            "--field-margin-fraction",
+            "0.1",
+        )
+    )
+    assert info["field"]["black_threshold"] == 0.2
+    assert info["field"]["margin_fraction"] == 0.1
+
+    other = tmp_path / "second"
+    info = prepare_cache.run(
+        prepare_cache.parse_args(
+            ["--output-dir", str(other / "cache"), "--resolution", "8", "--root", f"ham10000={root}", "--no-field"]
+        )
+    )
+    assert info["field"] is None
+    assert not (other / "cache" / "field.npy").exists()

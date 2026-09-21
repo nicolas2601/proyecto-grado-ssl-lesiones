@@ -108,3 +108,40 @@ def test_checkpoint_roundtrip_is_atomic(tmp_path):
     loaded = ckpt_io.load_checkpoint(path)
     assert loaded["epoch"] == 3 and loaded["selector"]["a"] == 1.5
     assert not list(path.parent.glob("*.tmp"))
+
+
+def test_vignette_darkens_the_border_and_keeps_the_centre():
+    images = torch.ones(4, 3, 32, 32)
+    out = ga.random_vignette(images, _generator(3), probability=1.0)
+    assert float(out[:, :, 16, 16].mean()) > 0.99
+    assert float(out[:, :, 0, 0].mean()) < 0.8
+    assert float(out[:, :, 0, 0].max()) < float(out[:, :, 16, 16].min())
+
+
+def test_vignette_probability_zero_is_identity():
+    images = _batch(size=32)
+    assert torch.equal(ga.random_vignette(images, _generator(), probability=0.0), images)
+
+
+def test_vignette_stays_in_unit_range_and_is_reproducible():
+    images = _batch(size=32)
+    first = ga.random_vignette(images, _generator(7), probability=1.0)
+    second = ga.random_vignette(images, _generator(7), probability=1.0)
+    assert torch.equal(first, second)
+    assert float(first.min()) >= 0.0 and float(first.max()) <= 1.0
+
+
+def test_vignette_never_brightens_a_pixel():
+    images = _batch(size=32)
+    out = ga.random_vignette(images, _generator(5), probability=1.0)
+    assert bool((out <= images + 1e-6).all())
+
+
+def test_moco_and_student_views_include_the_vignette():
+    images = torch.ones(64, 3, 32, 32)
+    moco = ga.moco_augment(images, _generator(11))
+    assert float(moco[:, :, 0, 0].mean()) < float(moco[:, :, 16, 16].mean())
+    masks = torch.full((64, 1, 32, 32), 255.0)
+    student, student_masks = ga.student_augment(images, masks, _generator(13))
+    assert float(student[:, :, 0, 0].mean()) < float(student[:, :, 16, 16].mean())
+    assert set(torch.unique(student_masks).tolist()) == {255.0}
