@@ -391,3 +391,67 @@ def test_summarize_reports_a_bootstrap_confidence_interval_of_the_mean():
 def test_summarize_confidence_interval_is_nan_without_values():
     stats = er.summarize([], ["dice"])["dice"]
     assert math.isnan(stats["ci95_low"]) and math.isnan(stats["ci95_high"])
+
+
+# ------------------------------------------------ strata by another column
+def test_read_strata_manifest_reads_the_requested_column(tmp_path):
+    path = tmp_path / "fst.csv"
+    path.write_text(
+        "image_id,fst_bucket,tone_tercile\na,1,dark\nb,unavailable,light\nc,2,unavailable\n",
+        encoding="utf-8",
+    )
+    assert er.read_strata_manifest(path, "tone_tercile") == {
+        "a": "dark", "b": "light", "c": "unavailable"
+    }
+
+
+def test_read_strata_manifest_with_the_bucket_column_keeps_the_bucket_check(tmp_path):
+    path = tmp_path / "fst.csv"
+    path.write_text("image_id,fst_bucket,tone_tercile\na,9,dark\n", encoding="utf-8")
+    with pytest.raises(ValueError):
+        er.read_strata_manifest(path, "fst_bucket")
+
+
+def test_read_strata_manifest_rejects_a_missing_column(tmp_path):
+    path = tmp_path / "fst.csv"
+    path.write_text("image_id,fst_bucket\na,1\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="tone_tercile"):
+        er.read_strata_manifest(path, "tone_tercile")
+
+
+def test_read_strata_manifest_rejects_an_empty_value(tmp_path):
+    path = tmp_path / "fst.csv"
+    path.write_text("image_id,tone_tercile\na,\n", encoding="utf-8")
+    with pytest.raises(ValueError):
+        er.read_strata_manifest(path, "tone_tercile")
+
+
+def test_validate_fst_manifest_checks_the_requested_column(tmp_path):
+    path = tmp_path / "fst.csv"
+    path.write_text("image_id,fst_bucket\na,1\n", encoding="utf-8")
+    er.validate_fst_manifest(path)
+    with pytest.raises(ValueError, match="tone_tercile"):
+        er.validate_fst_manifest(path, column="tone_tercile")
+
+
+def test_strata_from_args_uses_the_requested_column_and_records_it(tmp_path):
+    path = tmp_path / "fst.csv"
+    path.write_text(
+        "image_id,fst_bucket,tone_tercile\nimg0,1,dark\nimg1,6,dark\nimg2,unavailable,light\n",
+        encoding="utf-8",
+    )
+    args = argparse.Namespace(fst_manifest=str(path), fst_min_n=1, strata_column="tone_tercile")
+    strata = er.strata_from_args(args, _rows([0.2, 0.8, 0.5]))
+    assert strata["column"] == "tone_tercile"
+    assert strata["buckets"]["dark"]["dice"]["mean"] == pytest.approx(0.5)
+    assert strata["buckets"]["light"]["n"] == 1
+    assert "1" not in strata["buckets"]
+
+
+def test_strata_from_args_defaults_to_the_fst_bucket_column(tmp_path):
+    path = tmp_path / "fst.csv"
+    path.write_text("image_id,fst_bucket\nimg0,4\n", encoding="utf-8")
+    args = argparse.Namespace(fst_manifest=str(path), fst_min_n=1)
+    strata = er.strata_from_args(args, _rows([0.2]))
+    assert strata["column"] == "fst_bucket"
+    assert strata["buckets"]["4"]["n"] == 1

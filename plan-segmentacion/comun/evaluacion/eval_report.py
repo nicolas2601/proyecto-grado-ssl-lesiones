@@ -23,6 +23,7 @@ WORST_COUNT = 10
 BOOTSTRAP_RESAMPLES = 1000
 BOOTSTRAP_SEED = 0
 UNAVAILABLE = "unavailable"
+BUCKET_COLUMN = "fst_bucket"
 VALID_BUCKETS = tuple(str(value) for value in range(1, 7))
 STRATA_METRICS = ("dice", "iou")
 IN_POOL = "in_pool"
@@ -86,15 +87,16 @@ def _manifest_rows(path: Path) -> list[Mapping]:
         return list(csv.DictReader(handle))
 
 
-def _bucket_of(row: Mapping, image_id: str):
-    """The bucket column is ``fst_bucket`` in the CSV and ``FST_bucket`` in the JSON."""
+def _column_of(row: Mapping, column: str, image_id: str):
+    """Case-insensitive lookup: ``fst_bucket`` in the CSV is ``FST_bucket`` in the JSON."""
+    wanted = column.lower()
     for name in row:
-        if str(name).lower() == "fst_bucket":
+        if str(name).lower() == wanted:
             return row[name]
-    raise ValueError(f"the manifest row for {image_id!r} has no fst_bucket column")
+    raise ValueError(f"the manifest row for {image_id!r} has no {column} column")
 
 
-def validate_fst_manifest(path: Path) -> None:
+def validate_fst_manifest(path: Path, column: str = BUCKET_COLUMN) -> None:
     """Fail before inference when the manifest cannot feed the stratification."""
     path = Path(path)
     if not path.is_file():
@@ -105,24 +107,38 @@ def validate_fst_manifest(path: Path) -> None:
     names = {str(name).lower() for name in rows[0]}
     if "image_id" not in names:
         raise ValueError(f"al manifiesto FST le falta la columna image_id: {path}")
-    if "fst_bucket" not in names:
-        raise ValueError(f"al manifiesto FST le falta la columna fst_bucket: {path}")
+    if column.lower() not in names:
+        raise ValueError(f"al manifiesto FST le falta la columna {column}: {path}")
+
+
+def _check_stratum(column: str, value: str, image_id: str) -> None:
+    if column.lower() == BUCKET_COLUMN:
+        if value not in VALID_BUCKETS and value != UNAVAILABLE:
+            raise ValueError(f"invalid fst_bucket {value!r} for {image_id!r}")
+        return
+    if not value:
+        raise ValueError(f"empty {column} for {image_id!r}")
+
+
+def read_strata_manifest(path: Path, column: str) -> dict[str, str]:
+    """``image_id`` to stratum label read from ``column`` of the FST manifest.
+
+    ``fst_bucket`` values must be 1..6 or ``unavailable``; any other column
+    (``tone_tercile`` for instance) only needs non-empty labels. The JSON
+    manifest stores buckets as integers, so every value becomes a string.
+    """
+    strata: dict[str, str] = {}
+    for row in _manifest_rows(Path(path)):
+        image_id = str(row["image_id"]).strip()
+        value = str(_column_of(row, column, image_id)).strip()
+        _check_stratum(column, value, image_id)
+        strata[image_id] = value
+    return strata
 
 
 def read_fst_manifest(path: Path) -> dict[str, str]:
-    """``image_id`` to bucket, from either manifest written by the FST stage.
-
-    Buckets are 1..6 or ``unavailable``; the JSON manifest stores them as
-    integers, so every value is normalised to a string key.
-    """
-    buckets: dict[str, str] = {}
-    for row in _manifest_rows(Path(path)):
-        image_id = str(row["image_id"]).strip()
-        bucket = str(_bucket_of(row, image_id)).strip()
-        if bucket not in VALID_BUCKETS and bucket != UNAVAILABLE:
-            raise ValueError(f"invalid fst_bucket {bucket!r} for {image_id!r}")
-        buckets[image_id] = bucket
-    return buckets
+    """``image_id`` to Fitzpatrick bucket, from either manifest written by the FST stage."""
+    return read_strata_manifest(path, BUCKET_COLUMN)
 
 
 def _bucket_summary(bucket_rows: Sequence[Mapping], min_n: int) -> dict:
@@ -289,8 +305,9 @@ def strata_from_args(args, rows: Sequence[Mapping]) -> dict | None:
     """Stratification requested on the command line, or None."""
     if not args.fst_manifest:
         return None
-    buckets = read_fst_manifest(Path(args.fst_manifest))
-    return stratified_summary(rows, buckets, min_n=args.fst_min_n)
+    column = getattr(args, "strata_column", "") or BUCKET_COLUMN
+    strata = read_strata_manifest(Path(args.fst_manifest), column)
+    return {"column": column, **stratified_summary(rows, strata, min_n=args.fst_min_n)}
 
 
 def reject_duplicate_ids(identifiers: Sequence[str]) -> None:

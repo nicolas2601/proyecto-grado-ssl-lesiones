@@ -25,8 +25,17 @@ for _extra in (_PLAN_ROOT.parent / "src", _PLAN_ROOT / "comun" / "nucleo"):
 
 from dermssl import fitzpatrick, mask_manifest
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 DEFAULT_STATS_NAME = "pseudo_masks_stats.json"
+CSV_COLUMNS = (
+    "image_id", "fst_bucket", "tone_tercile", "status", "L_median", "b_median", "ita", "n_skin_px"
+)
+TONE_LABELS = ("dark", "medium", "light")
+TONE_UNAVAILABLE = "unavailable"
+MIN_IMAGES_FOR_TERCILES = 3
+# Statuses whose skin medians describe real skin: the ITA bucket may be
+# missing (b* floor) but the L* median is still a valid tone reading.
+SKIN_STATUSES = ("ok", fitzpatrick.ITA_INDETERMINATE)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -102,14 +111,32 @@ def _load_image(path: Path, shape: tuple[int, int]) -> np.ndarray:
     return np.asarray(rgb, dtype=np.float32) / 255.0
 
 
+def _csv_value(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, float):
+        return f"{value:.4f}"
+    return str(value)
+
+
 def _write_csv(path: Path, records: list[dict[str, Any]]) -> None:
-    """Write the minimal image_id,fst_bucket table the evaluation stratifies by."""
+    """Write the per-image table the evaluation stratifies by.
+
+    ``fst_bucket`` and ``tone_tercile`` are the two stratification columns;
+    the medians, the ITA and the skin pixel count travel with them so the
+    strata can be audited without reopening the JSON.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
-        writer.writerow(("image_id", "fst_bucket"))
+        writer.writerow(CSV_COLUMNS)
         for record in records:
-            writer.writerow((record["image_id"], record["FST_bucket"]))
+            writer.writerow((
+                record["image_id"], record["FST_bucket"], record["tone_tercile"],
+                record["status"], _csv_value(record["L_median"]),
+                _csv_value(record["b_median"]), _csv_value(record["ITA"]),
+                record["n_skin_px"],
+            ))
 
 
 def _metadata(stats: dict[str, Any]) -> dict[str, Any]:
@@ -134,6 +161,9 @@ def _dataset_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
         for row in rows
         if row["FST_bucket"] != "unavailable"
     )
+    tones = Counter(
+        str(row["tone_tercile"]) for row in rows if row["tone_tercile"] != TONE_UNAVAILABLE
+    )
     return {
         "n": len(rows),
         "states": states,
@@ -144,7 +174,39 @@ def _dataset_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "n": int(len(values)),
         },
         "FST_distribution": dict(sorted(buckets.items())),
+        "tone_distribution": {label: tones[label] for label in TONE_LABELS if tones[label]},
     }
+
+
+def _tone_eligible(record: dict[str, Any]) -> bool:
+    L_median = record["L_median"]
+    return record["status"] in SKIN_STATUSES and isinstance(L_median, float)
+
+
+def _tone_label(L_median: float, low: float, high: float) -> str:
+    if L_median <= low:
+        return TONE_LABELS[0]
+    if L_median > high:
+        return TONE_LABELS[2]
+    return TONE_LABELS[1]
+
+
+def assign_tone_terciles(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Label every record with a skin-lightness tercile over the whole pool.
+
+    The cuts are the 1/3 and 2/3 quantiles of the skin L* median across all
+    datasets, so the label is a transparent proxy for tone that does not
+    depend on b* (see ``fitzpatrick.MIN_B_FOR_ITA``). Returns the cuts and
+    the number of images behind them; images without skin stay unavailable.
+    """
+    eligible = [record for record in records if _tone_eligible(record)]
+    if len(eligible) < MIN_IMAGES_FOR_TERCILES:
+        return {"low": None, "high": None, "n": len(eligible)}
+    values = np.asarray([record["L_median"] for record in eligible], dtype=np.float64)
+    low, high = (float(cut) for cut in np.quantile(values, (1 / 3, 2 / 3)))
+    for record in eligible:
+        record["tone_tercile"] = _tone_label(record["L_median"], low, high)
+    return {"low": low, "high": high, "n": len(eligible)}
 
 
 def _load_field(path: Path | None, masks: np.ndarray) -> np.ndarray | None:
@@ -183,6 +245,10 @@ def _base_record(
         "ignore_fraction": float((pseudo == 255).mean()),
         "ITA": None,
         "FST_bucket": "unavailable",
+        "L_median": None,
+        "b_median": None,
+        "n_skin_px": 0,
+        "tone_tercile": TONE_UNAVAILABLE,
         "confidence": 0.0,
         "quality": (
             "insufficient_mask_coverage" if not mask_record["eligible"] else mask_record["quality"]
@@ -210,13 +276,20 @@ def _apply_estimate(
     bucket = estimate.bucket if valid and estimate.bucket is not None else "unavailable"
     record.update(
         {
-            "ITA": float(estimate.ita) if valid and math.isfinite(estimate.ita) else None,
+            "ITA": _finite_or_none(estimate.ita) if valid else None,
             "FST_bucket": bucket,
+            "L_median": _finite_or_none(estimate.L_median),
+            "b_median": _finite_or_none(estimate.b_median),
+            "n_skin_px": int(estimate.n_skin_px),
             "confidence": float(estimate.confidence),
-            "status": estimate.status if valid else "quarantine",
+            "status": estimate.status if estimate.status in SKIN_STATUSES else "quarantine",
             "quality": mask_record["quality"] if valid else f"invalid_estimate:{estimate.status}",
         }
     )
+
+
+def _finite_or_none(value: float) -> float | None:
+    return float(value) if math.isfinite(value) else None
 
 
 def _records(args: argparse.Namespace, rows, masks, field, metadata) -> list[dict[str, Any]]:
@@ -256,6 +329,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     field = _load_field(args.field, pseudo_masks)
     metadata = _metadata(_load_stats(args.pseudo_masks, args.stats_json))
     records = _records(args, rows, pseudo_masks, field, metadata)
+    tone_cuts = assign_tone_terciles(records)
 
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for record in records:
@@ -264,10 +338,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "schema_version": SCHEMA_VERSION,
         "field_used": field is not None,
         "records": records,
-        "summary": {"total": len(records), "by_dataset": {
-            dataset: _dataset_summary(dataset_rows)
-            for dataset, dataset_rows in sorted(grouped.items())
-        }},
+        "summary": {
+            "total": len(records),
+            "tone_tercile_cuts": tone_cuts,
+            "by_dataset": {
+                dataset: _dataset_summary(dataset_rows)
+                for dataset, dataset_rows in sorted(grouped.items())
+            },
+        },
     }
     if args.output_csv is not None:
         _write_csv(args.output_csv, records)
