@@ -66,6 +66,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--resolution", type=int, default=224, help="Resolución global de entrada")
     parser.add_argument("--batch-size-per-gpu", type=int, default=64, help="Tamaño de lote por GPU")
     parser.add_argument("--budget-gpu-hours", type=float, default=8.0, help="Presupuesto máximo en horas-GPU")
+    parser.add_argument(
+        "--checkpoint-fractions",
+        type=float,
+        nargs="+",
+        default=list(config_mod.PretrainConfig.checkpoint_fractions),
+        help="Fracciones ascendentes del presupuesto en que se guarda el checkpoint; la última debe ser 1.0",
+    )
     parser.add_argument("--num-workers", type=int, default=8, help="Procesos de carga de datos")
     parser.add_argument("--precision", default="bf16", choices=config_mod.PRECISIONS, help="Precisión numérica")
     parser.add_argument("--seed", type=int, default=42, help="Semilla de aleatoriedad")
@@ -114,6 +121,7 @@ def build_config(args: argparse.Namespace) -> config_mod.PretrainConfig:
         budget_gpu_hours=(
             SMOKE_BUDGET_GPU_HOURS if args.smoke else args.budget_gpu_hours
         ),
+        checkpoint_fractions=tuple(args.checkpoint_fractions),
         num_workers=args.num_workers,
         precision=args.precision,
         seed=args.seed,

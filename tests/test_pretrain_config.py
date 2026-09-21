@@ -279,3 +279,39 @@ def test_collect_paired_images_requires_a_transformation_for_each_original(tmp_p
             source_revision="pool-v1",
             transformed_revision=manifest["revision"],
         )
+
+
+# ------------------------------------------- checkpoint cadence from the CLI
+def test_the_launcher_exposes_the_checkpoint_fractions():
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import pretrain as launcher
+
+    default = launcher.parse_args(
+        ["--method", "simsiam", "--image-root", "/i", "--output-dir", "/o"]
+    )
+    assert default.checkpoint_fractions == list(cfg_mod.PretrainConfig.checkpoint_fractions)
+
+    fine = launcher.parse_args(
+        ["--method", "simsiam", "--image-root", "/i", "--output-dir", "/o",
+         "--checkpoint-fractions", "0.2", "0.4", "0.6", "0.8", "1.0"]
+    )
+    config = launcher.build_config(fine)
+    assert config.checkpoint_fractions == (0.2, 0.4, 0.6, 0.8, 1.0)
+
+
+def test_a_cadence_that_does_not_end_at_one_is_rejected_by_validate():
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import pretrain as launcher
+
+    args = launcher.parse_args(
+        ["--method", "simsiam", "--image-root", "/i", "--output-dir", "/o",
+         "--checkpoint-fractions", "0.3", "0.6"]
+    )
+    with pytest.raises(ValueError):
+        cfg_mod.validate(launcher.build_config(args))
