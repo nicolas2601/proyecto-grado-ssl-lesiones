@@ -265,6 +265,34 @@ def stratified_summary(
     return result
 
 
+def stratified_by_label(y_true: np.ndarray, proba: np.ndarray, labels: np.ndarray,
+                         n_classes: int, min_n: int = 30) -> dict:
+    """``stratified_summary()``, keyed by whatever labels ``labels`` actually contains
+    (e.g. a manifest's ``tone_tercile`` column) instead of the fixed FST bucket set -
+    a never-observed label is simply not a key. ``UNAVAILABLE_BUCKET`` is always a key;
+    same OK/SKIPPED semantics as ``stratified_summary``; empty input returns ``{}``."""
+    y_true = np.asarray(y_true)
+    if y_true.size == 0:
+        return {}
+    proba = np.asarray(proba, dtype=float)
+    labels = np.asarray(labels, dtype=object)
+    observed = sorted({str(v) for v in labels if not _is_unavailable_bucket(v)})
+    result: dict = {}
+    for key in (*observed, UNAVAILABLE_BUCKET):
+        if key == UNAVAILABLE_BUCKET:
+            mask = np.array([_is_unavailable_bucket(v) for v in labels])
+        else:
+            mask = np.array([not _is_unavailable_bucket(v) and str(v) == key for v in labels])
+        count = int(mask.sum())
+        if count < min_n:
+            result[key] = {"status": "SKIPPED", "count": count,
+                            "reason": f"n={count} < min_n={min_n}"}
+        else:
+            result[key] = {"status": "OK", "count": count,
+                            **summarize(y_true[mask], proba[mask], n_classes)}
+    return result
+
+
 DEFAULT_COMPARISON_METRIC = "macro_f1"
 DEFAULT_COMPARISON_MIN_BUCKET_N = 30
 COMPARISON_VARIANTS = ("baseline", "regularization", "synthetic_blend")

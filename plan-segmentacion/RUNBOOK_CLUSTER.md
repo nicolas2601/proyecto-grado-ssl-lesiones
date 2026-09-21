@@ -644,14 +644,16 @@ python scripts/cluster_frozen_bank.py \
     --backbone ssl_plain=dinov2_vits14:salidas/tone/ssl_plain/simsiam_dinov2_backbone_final.pt \
     --backbone ssl_proposed=dinov2_vits14:salidas/tone/ssl_proposed/simsiam_dinov2_backbone_final.pt \
     --tone-manifest salidas/final/fst/fst_pseudo_manifest.csv --strata-column tone_tercile \
-    --probes logreg_balanced knn --fractions 1.0 0.1 --seeds 0 1 2 \
+    --probes logreg logreg_balanced knn --fractions 1.0 0.1 --seeds 0 1 2 \
     --output-dir salidas/tone/bank --cache-dir salidas/tone/bank/cache \
     --wandb-project dermssl-segmentacion
 ```
 
 Mismo protocolo que el banco v5 (particion `StratifiedGroupKFold` por
 `lesion_id`, semilla 42, primer pliegue; extraccion determinista; probes
-`logreg_balanced` y `knn`), con los estratos por `tone_tercile` sobre la
+`logreg`, `logreg_balanced` y `knn`; el `logreg` del backbone publico debe
+reproducir el macro-F1 0,547 del banco v5, que es la prueba de sanidad), con
+los estratos por `tone_tercile` sobre la
 validacion y la brecha maximo-minimo de macro-F1 entre terciles. Salidas:
 `bank.json`, `bank_rows.csv`, `strata.json`, `bank.md`.
 
