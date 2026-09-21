@@ -2,6 +2,10 @@
 
 Estado: implementación y pruebas del plan CNN sin etiquetas (Camino B) preparadas y staged, 2026-09-20. La validación en el clúster y la evaluación experimental siguen pendientes. Este documento no afirma éxito científico final; se actualizará con evidencia reproducible de los pilotos.
 
+## Estado 2026-09-21
+
+El pipeline ya conoce el campo del dermatoscopio, así que las pseudo-máscaras dejan de quedarse con el círculo brillante completo: el campo se calcula una sola vez en la caché, restringe los candidatos del módulo de incertidumbre y limita el área máxima de una región. La evaluación reporta percentiles, cobertura, estratificación por tono de piel y rejillas visuales, y admite varios conjuntos de referencia en una misma corrida. El entrenamiento y la evaluación pueden enviar métricas a Weights & Biases sin que la clave toque la línea de comandos. Los presets `cluster-piloto.json` y `cluster-final.json` vienen completos, sin marcadores por rellenar. El procedimiento de punta a punta en el clúster UNABIA, con los comandos exactos, está en [RUNBOOK_CLUSTER.md](RUNBOOK_CLUSTER.md). Falta correr el piloto y reportar los números: nada de lo anterior afirma todavía un resultado experimental.
+
 ## 1. Contexto y decisión
 
 En la reunión con el profesor (2026-09-18) se acordó hacer más pruebas en el servidor con este enfoque:
