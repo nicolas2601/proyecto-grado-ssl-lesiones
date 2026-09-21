@@ -14,6 +14,8 @@ recorded. Hence a facade with two implementations:
 * ``NullTracker`` accepts everything and records nothing, used both as the
   fallback and on nonzero DDP ranks, where logging would create one duplicate
   MLflow run per GPU.
+* ``WandbTracker`` mirrors the same calls in Weights & Biases when a project
+  is requested; ``CompositeTracker`` fans out to both sinks.
 
 Usage on the cluster (rank 0):
     import mlflow
@@ -79,20 +81,106 @@ class MlflowTracker:
         self._mlflow.end_run()
 
 
+class WandbTracker:
+    """Mirror of the run in Weights & Biases; every call is fail-safe.
+
+    The sink is optional visibility, never a dependency of the training: an
+    offline pod, a lost ``~/.netrc`` or a network hiccup must not kill hours
+    of GPU work, so each call swallows its exception and prints once.
+    """
+
+    def __init__(self, wandb_module: Any, project: str, run: str, group: str = ""):
+        self._wandb = wandb_module
+        self._project = project
+        self._run = run
+        self._group = group
+        self._active = None
+        self._warned = False
+
+    def _guard(self, action, *args: Any) -> None:
+        try:
+            action(*args)
+        except Exception as error:  # noqa: BLE001 - a sink failure is not a run failure
+            if not self._warned:
+                print(f"ADVERTENCIA: Weights & Biases dejo de registrar ({error}).")
+                self._warned = True
+
+    def start(self, params: dict[str, Any]) -> None:
+        def action() -> None:
+            self._active = self._wandb.init(
+                project=self._project, name=self._run, group=self._group or None,
+                config=dict(params), resume="allow",
+            )
+
+        self._guard(action)
+
+    def log_metric(self, key: str, value: float, step: int | None = None) -> None:
+        if self._active is None:
+            return
+        self._guard(lambda: self._active.log({key: value}, step=step))
+
+    def log_artifact(self, path: str) -> None:
+        if self._active is None:
+            return
+        self._guard(lambda: self._wandb.save(path, base_path=os.path.dirname(path)))
+
+    def end(self) -> None:
+        if self._active is None:
+            return
+        self._guard(self._wandb.finish)
+
+
+class CompositeTracker:
+    """Fans every call out to each sink, in order."""
+
+    def __init__(self, sinks: list[Any]):
+        self._sinks = list(sinks)
+
+    def start(self, params: dict[str, Any]) -> None:
+        for sink in self._sinks:
+            sink.start(params)
+
+    def log_metric(self, key: str, value: float, step: int | None = None) -> None:
+        for sink in self._sinks:
+            sink.log_metric(key, value, step=step)
+
+    def log_artifact(self, path: str) -> None:
+        for sink in self._sinks:
+            sink.log_artifact(path)
+
+    def end(self) -> None:
+        for sink in self._sinks:
+            sink.end()
+
+
 def build_tracker(
     mlflow_module: Any | None,
     experiment: str,
     tracking_uri: str,
     run: str,
     rank: int,
-) -> NullTracker | MlflowTracker:
-    """MlflowTracker on rank 0 when mlflow exists; NullTracker otherwise.
+    wandb_module: Any | None = None,
+    wandb_project: str = "",
+    wandb_group: str = "",
+) -> NullTracker | MlflowTracker | WandbTracker | CompositeTracker:
+    """The sinks available on rank 0, or NullTracker.
 
-    The caller decides how loudly to announce a NullTracker on rank 0 - the
-    launch script prints a warning so an untracked run is never a surprise.
+    MLflow when its module exists; Weights & Biases when its module exists
+    AND a project was requested; both together when both apply. The caller
+    decides how loudly to announce a NullTracker on rank 0 - the launch
+    script prints a warning so an untracked run is never a surprise.
     """
-    if rank != 0 or mlflow_module is None:
+    if rank != 0:
         return NullTracker()
-    return MlflowTracker(
-        mlflow_module, experiment=experiment, tracking_uri=tracking_uri, run=run
-    )
+    sinks: list[Any] = []
+    if mlflow_module is not None:
+        sinks.append(MlflowTracker(
+            mlflow_module, experiment=experiment, tracking_uri=tracking_uri, run=run
+        ))
+    if wandb_module is not None and wandb_project:
+        sinks.append(WandbTracker(wandb_module, project=wandb_project, run=run, group=wandb_group))
+    if not sinks:
+        return NullTracker()
+    if len(sinks) == 1:
+        return sinks[0]
+    return CompositeTracker(sinks)
