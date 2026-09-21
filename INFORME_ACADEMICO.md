@@ -283,8 +283,9 @@ Lecturas que sostienen las cifras:
   `c272bdb`) y la estratificación principal pasa a terciles de luminosidad de
   la piel (`tone_tercile`, commit `bbd9bab`). Con la corrida de estratos
   sobre ese commit (misma inferencia, métricas globales idénticas), la
-  brecha de Dice en HAM10000 entre el tercil claro (0,862, n = 864) y el
-  oscuro (0,750, n = 4 082) es 0,111, y sobrevive al control por
+  brecha de Dice en HAM10000 entre el tercil claro (0,862 [0,854, 0,870],
+  n = 864) y el oscuro (0,750 [0,744, 0,756], n = 4 082) es 0,111, con los
+  tres terciles sin solapamiento entre sus intervalos, y sobrevive al control por
   diagnóstico: cae de claro a oscuro dentro de las siete clases, monótona en
   seis. Es una limitación real del método sin etiquetas (menos contraste
   lesión/fondo a menor luminosidad), no un artefacto de composición. En
