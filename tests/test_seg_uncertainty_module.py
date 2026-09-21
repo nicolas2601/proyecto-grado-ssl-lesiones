@@ -1,0 +1,120 @@
+"""Pure tests for the uncertainty module and the central-component filter."""
+
+import numpy as np
+import pytest
+
+import seg_paths  # noqa: F401
+import cache_io
+import uncertainty_module as um
+
+
+def _blob(size=64, center=(32, 32), radius=10, peak=1.0):
+    yy, xx = np.mgrid[:size, :size]
+    distance = np.sqrt((yy - center[0]) ** 2 + (xx - center[1]) ** 2)
+    return np.clip(peak * (1 - distance / (radius * 1.6)), 0, 1).astype(np.float32)
+
+
+def test_normalize_saliency_maps_to_unit_range():
+    out = um.normalize_saliency(np.array([[2.0, 4.0], [6.0, 10.0]]))
+    assert out.min() == 0.0 and out.max() == 1.0
+
+
+def test_normalize_constant_map_is_all_zero():
+    assert um.normalize_saliency(np.full((4, 4), 3.0)).max() == 0.0
+
+
+def test_orient_flips_when_border_is_brighter_than_center():
+    saliency = 1.0 - _blob()
+    oriented = um.orient_saliency(saliency)
+    assert oriented[32, 32] > oriented[0, 0]
+
+
+def test_orient_keeps_map_when_center_is_brighter():
+    saliency = _blob()
+    assert np.array_equal(um.orient_saliency(saliency), saliency)
+
+
+def test_central_region_prefers_the_region_near_the_center():
+    binary = np.zeros((64, 64), dtype=bool)
+    binary[28:38, 28:38] = True  # central, 100 px
+    binary[2:22, 2:22] = True  # corner, larger, 400 px
+    region = um.select_central_region(binary, min_area=20, max_center_distance=0.9)
+    assert region is not None
+    assert region[32, 32] and not region[10, 10]
+
+
+def test_central_region_drops_components_smaller_than_min_area():
+    binary = np.zeros((64, 64), dtype=bool)
+    binary[31:33, 31:33] = True  # 4 px, central but tiny
+    binary[4:20, 4:20] = True
+    region = um.select_central_region(binary, min_area=50, max_center_distance=1.0)
+    assert region is not None and region[10, 10] and not region[32, 32]
+
+
+def test_central_region_rejects_when_too_far_from_center():
+    binary = np.zeros((64, 64), dtype=bool)
+    binary[0:8, 0:8] = True
+    assert um.select_central_region(binary, min_area=10, max_center_distance=0.5) is None
+
+
+def test_central_region_of_empty_map_is_none():
+    assert um.select_central_region(np.zeros((8, 8), bool), 1, 1.0) is None
+
+
+def test_pseudo_mask_has_three_bands_and_valid_flag():
+    result = um.saliency_to_pseudo_mask(_blob(peak=1.0))
+    mask = result.mask
+    assert result.valid is True
+    assert mask.dtype == np.uint8
+    assert mask[32, 32] == cache_io.FOREGROUND
+    assert mask[0, 0] == cache_io.BACKGROUND
+    assert set(np.unique(mask)) == {cache_io.BACKGROUND, cache_io.FOREGROUND, cache_io.IGNORE}
+
+
+def test_pseudo_mask_thresholds_follow_the_paper_bands():
+    saliency = np.full((8, 8), 0.5, dtype=np.float32)
+    saliency[0, 0], saliency[7, 7] = 0.0, 1.0
+    saliency[3, 3] = 0.34  # below 0.35: background
+    result = um.saliency_to_pseudo_mask(
+        saliency, normalize=False, min_area_fraction=0.0, max_center_distance=10.0
+    )
+    assert result.mask[3, 3] == cache_io.BACKGROUND
+    assert result.mask[4, 4] == cache_io.IGNORE  # 0.5 is in the uncertain band
+    assert result.mask[7, 7] == cache_io.FOREGROUND
+
+
+def test_non_selected_high_regions_are_ignored_not_background():
+    saliency = _blob()
+    saliency[2:14, 2:14] = 1.0  # a second high region near a corner
+    mask = um.saliency_to_pseudo_mask(saliency).mask
+    assert mask[8, 8] == cache_io.IGNORE
+
+
+def test_sample_without_foreground_is_excluded():
+    result = um.saliency_to_pseudo_mask(np.full((32, 32), 0.2, dtype=np.float32), normalize=False)
+    assert result.valid is False
+    assert np.all(result.mask == cache_io.IGNORE)
+
+
+def test_invalid_thresholds_raise():
+    with pytest.raises(ValueError):
+        um.saliency_to_pseudo_mask(_blob(), low=0.7, high=0.3)
+
+
+def test_batch_conversion_writes_masks_and_reports_stats():
+    saliency = np.stack([_blob(), np.full((64, 64), 0.2, np.float32), 1.0 - _blob()])
+    out = np.zeros(saliency.shape, dtype=np.uint8)
+    stats = um.saliency_array_to_pseudo_masks(saliency, out, orient=True, chunk_size=2)
+    assert stats["images"] == 3
+    assert stats["excluded"] == 1
+    assert out[0, 32, 32] == cache_io.FOREGROUND
+    assert out[2, 32, 32] == cache_io.FOREGROUND  # oriented before thresholding
+    assert np.all(out[1] == cache_io.IGNORE)
+    assert 0.0 < stats["mean_foreground_fraction"] < 1.0
+
+
+def test_batch_conversion_can_keep_probabilities_unnormalized():
+    probabilities = np.full((1, 32, 32), 0.5, dtype=np.float32)
+    out = np.zeros(probabilities.shape, dtype=np.uint8)
+    stats = um.saliency_array_to_pseudo_masks(probabilities, out, orient=False, normalize=False)
+    assert stats["excluded"] == 1  # a flat 0.5 map has no confident lesion
