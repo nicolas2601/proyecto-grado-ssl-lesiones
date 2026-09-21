@@ -1,0 +1,10 @@
+{
+  "images": 58457,
+  "circular_count": 7528,
+  "fallback_count": 0,
+  "full_frame_count": 50929,
+  "mean_field_fraction": 0.9654211209762602,
+  "mean_valid_fraction": 0.9511696640575862,
+  "black_threshold": 0.06,
+  "margin_fraction": 0.04
+}
