@@ -271,10 +271,18 @@ Lecturas que sostienen las cifras:
 - En ISIC 2018, 722 ids están dentro del pool de entrenamiento por la
   deduplicación (Dice 0,801, transductivo) y 1 872 fuera (0,686); la cifra de
   generalización es la segunda.
-- La brecha de Dice entre fototipos en HAM10000 bajó de 0,071 (piloto) a 0,027
-  (final), con todos los buckets poblados entre 0,765 y 0,791. Los buckets
-  provienen del estimador ITA sobre la pseudo-máscara, cuya validación externa
-  quedó por debajo de la línea base trivial, así que la brecha es un indicio.
+- Corrección (2026-09-21): la brecha de Dice entre fototipos reportada con la
+  corrida final (0,071 en el piloto, 0,027 en la final) queda retirada. El
+  bucket ITA no medía el tono sino el signo de b*: `ITA = arctan((L*-50)/b*)`
+  satura en ±90° cuando b* tiende a cero, y en HAM10000 los buckets 1 y 6
+  tenían la misma mediana de L* (69,55 y 68,81) separados solo por el signo,
+  con |b*| < 5 en el 40,7 % de las imágenes. El signo de b* además está
+  asociado al diagnóstico (melanoma 17,10 % con b* ≤ 0 frente a 7,57 % con
+  b* > 0), por lo que la brecha habría medido prevalencia de enfermedad. El
+  estimador exige ahora b* ≥ 5 (`ita_indeterminate` por debajo, commit
+  `c272bdb`) y la estratificación principal pasa a terciles de luminosidad de
+  la piel (`tone_tercile`, commit `bbd9bab`); las cifras por tercil se
+  incorporan con la corrida de estratos sobre ese commit.
 - Entre piloto y final cambiaron tres cosas, todas sin etiquetas: el detector
   del campo del dermatoscopio (v2, esquinas por brillo relativo o croma de
   piel; ISIC 2020 pasó de 1 975 a 129 campos circulares), la supresión de tinta
