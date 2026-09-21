@@ -287,9 +287,15 @@ Lecturas que sostienen las cifras:
 - El re-etiquetado converge en dos rondas (fracción de primer plano 0,131,
   0,148, 0,143) y no deriva hacia el campo entero, que era el modo de fallo
   original de las máscaras de la V2.
-- Los pisos no supervisados SegRNorm y SegXNorm se evalúan con el mismo
-  protocolo y se agregan a `resultados.md` de la corrida final al cerrar. No
-  hay techo supervisado por decisión del proyecto.
+- Pisos no supervisados con el mismo evaluador (normalización de color y Otsu
+  dentro del campo, sin aprendizaje): SegRNorm da Dice 0,716 en ISIC 2018 y
+  0,765 en HAM10000; SegXNorm 0,695 y 0,733. Comparación pareada por imagen:
+  en ISIC 2018 el estudiante empata con SegRNorm en Dice (+0,002, IC
+  [-0,007, +0,011]) pero mejora el borde (HD95 -7,4 px, IC [-8,6, -6,1]) y el
+  decil peor (p10 0,40 frente a 0,35); en HAM10000 mejora el Dice (+0,020, IC
+  [+0,016, +0,023]) y empata en HD95. Contra SegXNorm gana en todo. El único
+  indicador donde un piso supera al estudiante es el p10 de HAM10000. No hay
+  techo supervisado por decisión del proyecto.
 
 ## 5. Representaciones SSL y baselines
 

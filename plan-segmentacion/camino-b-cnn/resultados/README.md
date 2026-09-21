@@ -55,8 +55,44 @@ brillos, area minima 0,003, MoCo 30 epocas y tres rondas de re-etiquetado de
 
 Los intervalos del piloto se calcularon a posteriori desde `per_image.csv`
 con el mismo bootstrap; el HD95 del piloto sobre ISIC 2018 viene de una
-evaluacion aparte con `--hausdorff`. Los pisos SegRNorm y SegXNorm se agregan a
-`2026-09-21-final/resultados.md` cuando termine su evaluacion.
+evaluacion aparte con `--hausdorff`.
+
+## Pisos no supervisados
+
+SegRNorm (`rnorm`) y SegXNorm (`xnorm`): normalizacion de color y umbral de
+Otsu dentro del campo circular, sin aprendizaje, en CPU, con `--max-side 1024`.
+Mismo evaluador, mismas imagenes, mismas mascaras de referencia. Artefactos en
+`2026-09-21-final/baselines_v2/`.
+
+| Metodo | Conjunto | Dice medio [IC 95 %] | Dice mediana | Dice p10 | IoU | Sens. | Espec. | HD95 medio |
+|---|---|---|---|---|---|---|---|---|
+| estudiante final | ISIC 2018 | 0,718 [0,709, 0,726] | 0,792 | 0,402 | 0,602 | 0,783 | 0,973 | 26,1 px |
+| rnorm | ISIC 2018 | 0,716 [0,707, 0,724] | 0,789 | 0,348 | 0,600 | 0,722 | 0,961 | 33,5 px |
+| xnorm | ISIC 2018 | 0,695 [0,687, 0,704] | 0,768 | 0,318 | 0,575 | 0,686 | 0,963 | 33,1 px |
+| estudiante final | HAM10000 | 0,785 [0,781, 0,788] | 0,852 | 0,507 | 0,678 | 0,777 | 0,982 | 22,4 px |
+| rnorm | HAM10000 | 0,765 [0,762, 0,768] | 0,819 | 0,530 | 0,645 | 0,684 | 0,983 | 22,7 px |
+| xnorm | HAM10000 | 0,733 [0,729, 0,736] | 0,788 | 0,485 | 0,604 | 0,636 | 0,985 | 23,0 px |
+
+Comparacion pareada por imagen (bootstrap de la diferencia estudiante menos
+piso, 5 000 remuestreos, semilla fija; el script del cluster con 10 000
+remuestreos da los mismos intervalos a la tercera cifra):
+
+| Diferencia | Dice | HD95 |
+|---|---|---|
+| ISIC 2018, estudiante menos rnorm | +0,002 [-0,007, +0,011], empate | -7,4 px [-8,6, -6,1], gana el estudiante |
+| ISIC 2018, estudiante menos xnorm | +0,022 [+0,013, +0,032], gana el estudiante | -7,0 px [-8,2, -5,7], gana el estudiante |
+| HAM10000, estudiante menos rnorm | +0,020 [+0,016, +0,023], gana el estudiante | -0,2 px [-0,7, +0,3], empate |
+| HAM10000, estudiante menos xnorm | +0,052 [+0,049, +0,056], gana el estudiante | -0,5 px [-1,0, 0,0], gana por poco |
+
+Lectura honesta: en ISIC 2018 el metodo aprendido no mejora el solapamiento
+medio frente a rnorm, pero produce bordes mejores (7 px menos de HD95) y menos
+fallos catastroficos (p10 0,40 frente a 0,35); en HAM10000 mejora el
+solapamiento y empata en bordes. Contra xnorm gana en todo. El unico indicador
+en que un piso supera al estudiante es el p10 de HAM10000 (rnorm 0,530 frente a
+0,507). "Supera a los pisos" a secas seria una afirmacion incorrecta.
+
+Piloto frente a final, pareado: +0,066 [+0,059, +0,072] en ISIC 2018 y
++0,026 [+0,023, +0,029] en HAM10000; ambos excluyen el cero.
 
 ## Dentro y fuera del pool de entrenamiento
 
@@ -112,6 +148,11 @@ retorno para una corrida siguiente: subir el cap a 0,75 manteniendo el resto.
   circulares (los falsos circulares del piloto eran viñeteo optico de camara),
   HAM10000 de 1 322 a 687, ISIC 2019 de 7 465 a 6 712 (viñetas reales de
   BCN20000). Evidencia visual en `field_contact_sheet.png` de cada corrida.
+  El detector inscribe un circulo en la caja de los pixeles claros: cuando el
+  campo toca los cuatro bordes del cuadro, ese circulo es el disco inscrito
+  (72,3 % del area), que es el caso de 3 863 de las 7 528 imagenes circulares;
+  el resto tiene un radio propio, mas pequeno, tipico de los dermatoscopios
+  con campo chico.
 - Pseudo-mascaras por ronda: excluidas 8,4 % (r0), 4,4 % (r1), 4,3 % (r2);
   fraccion de primer plano 0,131, 0,148, 0,143. El re-etiquetado converge en
   dos rondas y no deriva hacia el campo entero. Tinta y brillos ocupan el
