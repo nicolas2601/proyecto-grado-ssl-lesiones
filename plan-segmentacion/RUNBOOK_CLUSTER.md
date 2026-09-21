@@ -430,6 +430,48 @@ corre `--stages evaluate` a secas, la evaluación sale sin estratificación por
 tono aunque el CSV ya exista en disco. Se apunta a mano, o se corre
 `--stages fst evaluate`.
 
+### Reinicio del contenedor del pod
+
+El pod puede reiniciarse entero sin aviso (visto el 2026-09-21 a los diez
+minutos de la corrida final, con el servidor sin actividad de Jupyter). Un
+reinicio mata todos los procesos, incluso los lanzados con `setsid`, y borra
+todo lo que no esté en `~/work`: en particular `~/.netrc`, donde `wandb login`
+guarda la clave. El pipeline vuelve a arrancar sin quejarse y solo deja una
+línea en el log: `seguimiento W&B deshabilitado`.
+
+Dos medidas:
+
+1. **Mantener el servidor activo mientras dure la corrida.** El culler de
+   JupyterHub mide la actividad de kernels y terminales, no los procesos
+   sueltos. Se abre un notebook `~/work/proyectonp/keepalive.ipynb` y se
+   ejecuta una celda que imprime cada minuto:
+
+   ```python
+   import datetime
+   import time
+
+   while True:
+       print(datetime.datetime.now().isoformat(), "keepalive", flush=True)
+       time.sleep(60)
+   ```
+
+   La barra de estado debe decir `Kernel status: Busy` durante toda la corrida.
+   Si el hub impone además una edad máxima al servidor, eso solo lo cambia el
+   administrador del clúster.
+
+2. **Recuperación en tres pasos, no en uno.** Tras un reinicio:
+
+   ```bash
+   source ~/work/proyectonp/.venv/bin/activate
+   wandb login            # ~/.netrc se perdió con el contenedor
+   wandb login --verify
+   ```
+
+   Luego se relanza el mismo comando de la sección 9 con `>>` en el log para
+   no pisar lo anterior, y se comprueba que el log nuevo **no** contenga la
+   línea `seguimiento W&B deshabilitado`. Las etapas de entrenamiento reanudan
+   desde `last.pt`; la cache se recalcula (unos cuatro minutos).
+
 ## 11. Problemas conocidos
 
 - **Borrar en NFS con archivos abiertos.** Si se hace `rm -rf` sobre una carpeta
