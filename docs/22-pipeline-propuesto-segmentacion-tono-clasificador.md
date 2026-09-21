@@ -155,8 +155,28 @@ Referencia de los bancos previos (Kaggle, backbone congelado, probe
 afirmar que el SSL le gane al supervisado: la ventaja del supervisado
 desaparece a igual tamano, con intervalos solapados.
 
-Resultados de esta etapa: pendientes de la corrida en el pod (se agregan en
-esta seccion con su commit, run de W&B y artefactos bajo `results/tone/`).
+### Datos que entran al preentrenamiento (2026-09-21, pod UNABIA)
+
+| Paso | Salida | Conteo |
+|---|---|---|
+| Exportador de entradas de tono | `salidas/tone/inputs/` | 55 034 elegibles de 58 457 (94,1 %); 3 423 en cuarentena, todas por area de mascara fuera del 1-90 % |
+| Pares de tono (`--shift-buckets 2`) | `salidas/tone/shift2/` | 55 034 transformados, 0 rechazados |
+
+Cuarentena por dataset: HAM10000 111 + 81, ISIC 2019 1 535, ISIC 2020 1 696.
+El pareado queda 1 a 1, asi que los dos brazos ven exactamente el mismo
+conjunto de imagenes y la unica diferencia entre ellos es la segunda vista.
+Revision del manifiesto de tono (la que exige el modo pareado):
+`a754961bfd97bee21b4e48edd35b71314ed82b50cc6355480252b4d075e60e51`.
+
+La cuarentena de la exportacion (3 423) y las imagenes sin tercil de tono
+del manifiesto FST (3 479) son dos filtros distintos sobre el mismo pool:
+el primero pide una mascara de area valida, el segundo ademas pide piel
+suficiente para medir la mediana. La diferencia de 56 imagenes es esa
+condicion extra, no una inconsistencia.
+
+Resultados de los dos brazos y del banco: pendientes de la corrida en el pod
+(se agregan en esta seccion con su commit, run de W&B y artefactos bajo
+`results/tone/`).
 
 ## 5. Reproduccion
 
