@@ -125,6 +125,25 @@ def _save_checkpoint(
     )
 
 
+def _wrap_ddp(model, local_rank: int, device):
+    """DDP that tolerates parameters the forward never touches.
+
+    DINOv2 registers ``mask_token``, which only participates when a mask is
+    passed to the forward - never in this loop. DDP's reducer treats an
+    unused parameter as a bug ("Expected to have finished reduction in the
+    prior iteration") unless it is told the graph is identical every step,
+    which here it is: the same two views through the same modules. A static
+    graph buys that tolerance without the per-iteration traversal that
+    ``find_unused_parameters`` costs, and it is what makes the two-GPU arms
+    of the thesis run at all.
+    """
+    return DDP(
+        model,
+        device_ids=[local_rank] if device.type == "cuda" else None,
+        static_graph=True,
+    )
+
+
 def _export_backbone(path: Path, model, method: str) -> None:
     """Backbone-only weights in the shape the v5 evaluation loads."""
     raw = model.module if isinstance(model, DDP) else model
@@ -175,7 +194,7 @@ def train(
         cfg, device, transformed_evidence
     )
     if world_size > 1:
-        model = DDP(model, device_ids=[local_rank] if device.type == "cuda" else None)
+        model = _wrap_ddp(model, local_rank, device)
     sampler = (
         DistributedSampler(dataset, shuffle=True) if world_size > 1 else None
     )

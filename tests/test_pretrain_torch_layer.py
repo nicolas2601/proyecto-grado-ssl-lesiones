@@ -189,3 +189,4 @@ def test_smoke_run_limits_steps_and_accepts_the_transformed_image_root():
     assert "SMOKE_MAX_STEPS" in script_source
     assert "max_steps" in script_source
     assert "cfg.max_steps" in loop_source
+
