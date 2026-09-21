@@ -446,3 +446,20 @@ def test_the_final_preset_forwards_both_new_pseudo_keys(tmp_path):
     stage = next(s for s in rp.build_stage_commands(config) if s.name == "pseudo_r0")
     assert _flag(stage, "--min-area-fraction") == "0.003"
     assert _flag(stage, "--images").endswith("cache/images.npy")
+
+
+# ------------------------------------------- manifest deduction without the fst stage
+def test_without_the_fst_stage_an_existing_csv_is_still_used(tmp_path):
+    config = _config(tmp_path, stages=["evaluate"])
+    csv_path = config.workdir / "fst" / "fst_pseudo_manifest.csv"
+    csv_path.parent.mkdir(parents=True)
+    csv_path.write_text("image_id,fst_bucket\n", encoding="utf-8")
+    stage = next(s for s in rp.build_stage_commands(config) if s.name.startswith("evaluate"))
+    assert _flag(stage, "--fst-manifest") == str(csv_path)
+
+
+def test_a_configured_strata_column_without_any_manifest_fails_before_running(tmp_path):
+    config = _config(tmp_path, stages=["evaluate"])
+    config.preset["evaluate"] = {"strata_column": "tone_tercile"}
+    with pytest.raises(ValueError, match="strata_column"):
+        rp.build_stage_commands(config)
