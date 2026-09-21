@@ -276,6 +276,17 @@ def _ensure_inside(path: Path, directory: Path) -> None:
         raise ValueError("output path must remain inside the output directory") from error
 
 
+def _downscaled(image, max_side: int):
+    """Shrink so the longest side is ``max_side`` pixels; native size when zero."""
+    from PIL import Image  # local: the script only imports Pillow inside run()
+
+    if max_side <= 0 or max(image.size) <= max_side:
+        return image
+    scale = max_side / max(image.size)
+    size = (max(1, round(image.size[0] * scale)), max(1, round(image.size[1] * scale)))
+    return image.resize(size, Image.BILINEAR)
+
+
 def run(argv: list[str] | None = None) -> list[dict]:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True)
@@ -299,7 +310,15 @@ def run(argv: list[str] | None = None) -> list[dict]:
     parser.add_argument("--roi-black-threshold", type=float, default=0.02)
     parser.add_argument("--roi-margin", type=int, default=0)
     parser.add_argument("--contact-sheet", action="store_true")
+    parser.add_argument(
+        "--max-side",
+        type=int,
+        default=0,
+        help="downscale the longest image side to this many pixels before segmenting (0 = native)",
+    )
     args = parser.parse_args(argv)
+    if args.max_side < 0:
+        parser.error("--max-side must be zero or positive")
     output = Path(args.output_dir).expanduser().resolve()
     if output.exists():
         raise FileExistsError(output)
@@ -344,7 +363,7 @@ def run(argv: list[str] | None = None) -> list[dict]:
         for record in selected:
             image_path = _resolve_image_path(record, path_base)
             with Image.open(image_path) as source:
-                image = np.asarray(source.convert("RGB"))
+                image = np.asarray(_downscaled(source.convert("RGB"), args.max_side))
             source_metadata.append(
                 {
                     "image_id": record["image_id"],
@@ -370,6 +389,7 @@ def run(argv: list[str] | None = None) -> list[dict]:
                     "image_id": record["image_id"],
                     **result.diagnostics,
                     "mask_path": f"masks/{output_name}",
+                    "max_side": args.max_side,
                 }
                 if "dataset_id" in record:
                     diagnostic["dataset_id"] = record["dataset_id"]
