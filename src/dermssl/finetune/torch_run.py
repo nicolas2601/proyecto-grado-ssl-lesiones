@@ -193,9 +193,10 @@ def load_backbone(name: str):
         interp = transforms.InterpolationMode.BICUBIC
     kwargs = {"img_size": res} if "patch14" in tag else {}
     m = timm.create_model(tag, pretrained=True, num_classes=0, **kwargs)
-    if name == "vgg19":
+    if name in protocol.CONV_GAP_FROM_TIMM:
         # num_classes=0 leaves VGG's 4096-d pre-logits in place; the bank reads
-        # every CNN at the GAP of its last conv block.
+        # every CNN at the GAP of its last conv block. The list lives in
+        # protocol so adding a backbone here does not mean editing this branch.
         return _gap(m.features), interp
     return m, interp
 

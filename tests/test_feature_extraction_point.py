@@ -38,14 +38,32 @@ def test_feature_widths_are_the_conv_gap_or_cls_widths():
     }
 
 
+def test_the_list_of_backbones_read_at_the_conv_gap_is_pinned():
+    """The declared list, not an `if` buried in each runner."""
+    assert protocol.CONV_GAP_FROM_TIMM == ("vgg19",)
+
+
 def test_vgg19_is_read_at_the_conv_block_in_the_notebook_builder():
-    assert 'name == "vgg19"' in BASELINE_BUILDER
+    # The generated notebook runs on Kaggle without the package, so it carries
+    # its own copy; what must hold is that the copy covers the declared list.
+    for model in protocol.CONV_GAP_FROM_TIMM:
+        assert f'name == "{model}"' in BASELINE_BUILDER, (
+            f"{model} esta declarado en CONV_GAP_FROM_TIMM y el notebook no lo trata")
     assert "gap(m.features)" in BASELINE_BUILDER
 
 
-def test_vgg19_is_read_at_the_conv_block_in_the_cluster_runner():
-    assert 'name == "vgg19"' in TORCH_RUN
+def test_the_cluster_runner_reads_the_declared_list_instead_of_a_hardcoded_name():
+    """A dead flag is worse than no flag: it looks honoured and is not.
+
+    CONV_GAP_FROM_TIMM existed while both runners branched on a literal
+    "vgg19", so adding a backbone to the list would have changed nothing and
+    the new model would have been read at the wrong depth - the exact failure
+    the list was introduced to prevent.
+    """
+    assert "protocol.CONV_GAP_FROM_TIMM" in TORCH_RUN
     assert "_gap(m.features)" in TORCH_RUN
+    assert 'name == "vgg19"' not in TORCH_RUN, (
+        "volvio el nombre hardcodeado; la lista deja de gobernar")
 
 
 def test_both_runners_assert_the_width_instead_of_trusting_it():
