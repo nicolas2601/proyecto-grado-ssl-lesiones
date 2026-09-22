@@ -509,6 +509,52 @@ def _check_looks_like_a_pipeline_root(settings: Settings) -> None:
     )
 
 
+# A stage marked running for longer than any stage can take is not running.
+STALE_RUNNING_HOURS = 24.0
+
+
+def _hours_since(stamp: str) -> float | None:
+    """Age of a state timestamp, or None when it cannot be read.
+
+    An unparseable stamp must not silence the warning: unknown age is not
+    young. Returning None makes the caller treat it as stale.
+    """
+    try:
+        started = time.strptime(stamp, "%Y-%m-%dT%H:%M:%S")
+    except (TypeError, ValueError):
+        return None
+    return (time.time() - time.mktime(started)) / 3600.0
+
+
+def _warn_about_stale_running(settings: Settings, state: dict) -> None:
+    """Say out loud when the state file records a corpse.
+
+    The other diagonal of the artefact check: `ok` with no artefact means a
+    wrong tree, and `running` from twelve hours ago means an orchestrator
+    that died mid-stage. Nothing notices the second one, because the entry
+    is never rewritten - the process that would have closed it is gone. The
+    run continues, since the artefact decides completion and not this file,
+    but a reader deserves to know the history is lying.
+    """
+    stages = state.get("stages") or {}
+    by_name = {stage.name: stage for stage in all_stages(settings)}
+    for name, entry in sorted(stages.items()):
+        if entry.get("status") != "running":
+            continue
+        started = entry.get("started_at", "")
+        age = _hours_since(started)
+        stage = by_name.get(name)
+        if stage is not None and stage.done_when.is_file():
+            print(f"[{name}] el estado dice 'running' desde {started} pero su "
+                  f"artefacto existe: la etapa termino y nadie cerro el registro")
+            continue
+        if age is not None and age < STALE_RUNNING_HOURS:
+            continue          # puede ser una corrida viva de verdad
+        print(f"[{name}] ADVERTENCIA: el estado dice 'running' desde {started} y "
+              f"no hay artefacto. Ninguna etapa tarda tanto: no es una corrida "
+              f"en curso, es un orquestador que murio a mitad sin cerrar el registro")
+
+
 def check_outputs_tree(settings: Settings, state: dict) -> None:
     """Refuse to run when the outputs tree is not the one that holds the work.
 
@@ -525,6 +571,7 @@ def check_outputs_tree(settings: Settings, state: dict) -> None:
             "Si es una corrida nueva, crealo explicitamente. Si no, la ruta esta "
             "mal o el volumen no esta montado: seguir reentrenaria todo desde cero."
         )
+    _warn_about_stale_running(settings, state)
     done_before = [
         name for name, entry in (state.get("stages") or {}).items()
         if entry.get("status") == "ok"

@@ -11,6 +11,7 @@ file is what separates them, because it names stages that did finish.
 
 import json
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -136,3 +137,74 @@ def test_the_message_names_what_it_found_instead(tmp_path):
     with pytest.raises(SystemExit) as excinfo:
         run_stage2.check_outputs_tree(settings, {"stages": {}})
     assert "inputs" in str(excinfo.value), "debe decir que encontro, no solo que falta"
+
+
+# ------------------------------------------------- the other diagonal
+def test_a_running_entry_with_no_artefact_is_called_out(tmp_path, capsys):
+    """An orchestrator that died mid-stage leaves `running` forever.
+
+    Nothing rewrites that entry: the process that would have closed it is
+    gone. The run continues - the artefact decides completion, not this
+    file - but the history says a stage is in flight that nobody is running.
+    """
+    settings = _settings(tmp_path)
+    (settings.outputs / "tone").mkdir(parents=True)
+    state = {"stages": {"ssl_plain": {"status": "running", "started_at": "2026-09-21T01:08:08"}}}
+
+    run_stage2.check_outputs_tree(settings, state)
+
+    printed = capsys.readouterr().out
+    assert "ADVERTENCIA" in printed
+    assert "2026-09-21T01:08:08" in printed
+    assert "murio a mitad" in printed
+
+
+def test_a_running_entry_whose_artefact_exists_is_reported_differently(tmp_path, capsys):
+    """Finished but never closed: the same lie, the opposite cause."""
+    settings = _settings(tmp_path)
+    arm = next(s for s in run_stage2.all_stages(settings) if s.name == "ssl_proposed")
+    arm.done_when.parent.mkdir(parents=True)
+    arm.done_when.write_bytes(b"weights")
+    state = {"stages": {"ssl_proposed": {"status": "running", "started_at": "07:26:09"}}}
+
+    run_stage2.check_outputs_tree(settings, state)
+
+    printed = capsys.readouterr().out
+    assert "su artefacto existe" in printed
+    assert "ADVERTENCIA" not in printed, "no es una alarma: termino, solo no se cerro"
+
+
+def test_a_clean_state_says_nothing(tmp_path, capsys):
+    settings = _settings(tmp_path)
+    (settings.outputs / "tone").mkdir(parents=True)
+    run_stage2.check_outputs_tree(settings, {"stages": {}})
+    assert capsys.readouterr().out == ""
+
+
+def test_the_warning_does_not_stop_the_run(tmp_path):
+    """The artefact decides completion; a stale record is noise, not a blocker."""
+    settings = _settings(tmp_path)
+    (settings.outputs / "tone").mkdir(parents=True)
+    state = {"stages": {"ssl_plain": {"status": "running", "started_at": "2026-09-21T01:08:08"}}}
+    run_stage2.check_outputs_tree(settings, state)   # no levanta
+
+
+def test_a_recent_running_entry_is_left_alone(tmp_path, capsys):
+    """A live concurrent run must not be called a corpse."""
+    settings = _settings(tmp_path)
+    (settings.outputs / "tone").mkdir(parents=True)
+    now = time.strftime("%Y-%m-%dT%H:%M:%S")
+    run_stage2.check_outputs_tree(
+        settings, {"stages": {"ssl_plain": {"status": "running", "started_at": now}}}
+    )
+    assert "ADVERTENCIA" not in capsys.readouterr().out
+
+
+def test_an_unreadable_timestamp_does_not_silence_the_warning(tmp_path, capsys):
+    """Unknown age is not young."""
+    settings = _settings(tmp_path)
+    (settings.outputs / "tone").mkdir(parents=True)
+    run_stage2.check_outputs_tree(
+        settings, {"stages": {"ssl_plain": {"status": "running", "started_at": "ayer"}}}
+    )
+    assert "ADVERTENCIA" in capsys.readouterr().out
