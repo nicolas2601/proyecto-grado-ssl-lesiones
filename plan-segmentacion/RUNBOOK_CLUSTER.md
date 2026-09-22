@@ -687,7 +687,34 @@ comparacion valida es la interna entre los backbones de esta corrida, que
 comparten protocolo. Como referencia secundaria, `logreg_balanced` del
 publico da 0,558.
 
-### 12.5 Que subir
+### 12.6 Una sola linea, idempotente, para toda la etapa
+
+`scripts/run_stage2.py` corre las cinco etapas en orden. Cada una declara el
+artefacto que prueba que termino: si existe, se salta; si no, se lanza tal
+cual. El entrenamiento ademas reanuda solo desde su `resume.pt`. Despues de
+una caida del contenedor la recuperacion es repetir la MISMA linea.
+
+```bash
+cd $HOME/work/proyectonp/repo_final
+$HOME/work/proyectonp/.venv/bin/python scripts/run_stage2.py \
+    --repo . --outputs $HOME/work/proyectonp/salidas \
+    --ham-root /home/jovyan/work/datos/ham10000 \
+    --budget-gpu-hours 12 --dry-run
+```
+
+`--dry-run` imprime que falta y con que comando, sin lanzar nada: correrlo
+primero siempre. Quitarlo para ejecutar. `--only <etapa>` corre una sola
+(`export`, `tone_pairs`, `ssl_plain`, `ssl_proposed`, `bank`).
+
+El orquestador fija `TMPDIR`, `TORCH_HOME`, `WANDB_DIR`, `HF_HOME` y
+`XDG_CACHE_HOME` dentro de `salidas/scratch`, que vive en el NFS. Sin eso una
+corrida larga llena los 25 GB libres del overlay del contenedor y se cae
+sola: un `resume.pt` pesa 400 MB y los pesos de torch.hub 88 MB.
+
+Checkpoints cada 5 % del presupuesto (veinte por brazo), asi que una caida
+cuesta como mucho ese 5 %.
+
+## 12.5 Que subir
 
 `salidas/tone/inputs/export_summary.json`, el `tone_transform_manifest.json`
 (solo `summary` y `revision`), `run.json` de cada brazo, y la carpeta
