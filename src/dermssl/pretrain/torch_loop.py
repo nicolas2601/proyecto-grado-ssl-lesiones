@@ -111,7 +111,13 @@ def _build(
 
 
 def _save_checkpoint(
-    path: Path, model, optimizer, elapsed: float, saved_fractions: set[float]
+    path: Path,
+    model,
+    optimizer,
+    elapsed: float,
+    saved_fractions: set[float],
+    step: int = 0,
+    images_seen: int = 0,
 ) -> None:
     raw = model.module if isinstance(model, DDP) else model
     torch.save(
@@ -120,9 +126,32 @@ def _save_checkpoint(
             "optimizer_state_dict": optimizer.state_dict(),
             "elapsed_wall_seconds": elapsed,
             "saved_fractions": sorted(saved_fractions),
+            "step": int(step),
+            "images_seen": int(images_seen),
         },
         path,
     )
+
+
+def _clip_gradients(parameters, max_norm: float) -> float:
+    """Clip in place and return the pre-clip norm, so it can be logged.
+
+    ``clip_grad_norm_`` already computes the norm; dropping its return value
+    is what left us unable to say how much of a loss rescaling survived the
+    clip. Measuring it costs nothing and turns that argument into a number.
+    """
+    return float(torch.nn.utils.clip_grad_norm_(parameters, max_norm))
+
+
+def _counters_from(state: dict) -> tuple[int, int]:
+    """``(step, images_seen)`` recorded in a resume checkpoint.
+
+    Checkpoints written before 2026-09-22 carry neither, and a resumed run
+    that restarts them at zero reports only the tail of the budget: the arm
+    that died at 80 percent looked like it had seen one epoch instead of
+    five. Missing keys default to zero so an old checkpoint still loads.
+    """
+    return int(state.get("step", 0)), int(state.get("images_seen", 0))
 
 
 def _wrap_ddp(model, local_rank: int, device):
@@ -237,6 +266,7 @@ def train(
     tracker.start(params)
 
     elapsed_offset, saved_fractions = 0.0, set()
+    resumed_counters = (0, 0)
     resume_path = Path(cfg.resume_checkpoint) if cfg.resume_checkpoint else out_dir / "resume.pt"
     if cfg.resume_checkpoint and not resume_path.is_file():
         raise FileNotFoundError(f"el checkpoint de reanudación no existe: {resume_path}")
@@ -247,6 +277,7 @@ def train(
         optimizer.load_state_dict(state["optimizer_state_dict"])
         elapsed_offset = state["elapsed_wall_seconds"]
         saved_fractions = set(state["saved_fractions"])
+        resumed_counters = _counters_from(state)
         if rank == 0:
             if gpu_count:
                 print(
@@ -257,7 +288,8 @@ def train(
 
     start = time.monotonic()
     elapsed = lambda: elapsed_offset + (time.monotonic() - start)  # noqa: E731
-    step, images_seen, epoch = 0, 0, 0
+    step, images_seen = resumed_counters
+    epoch = 0
     total_ssl_loss, total_consistency_loss, total_loss = 0.0, 0.0, 0.0
     consistency_steps = 0
 
@@ -281,12 +313,9 @@ def train(
                     p1, p2, z1, z2 = model(v1, v2)
                     ssl_loss = torch_simsiam.simsiam_loss(p1, p2, z1, z2)
                     if cfg.adaptation_mode == "original_transformed_consistency":
-                        consistency_loss = (
-                            torch_simsiam.original_transformed_consistency_loss(
-                                p1, p2, z1, z2
-                            )
+                        loss, consistency_loss = torch_simsiam.paired_objective(
+                            ssl_loss, cfg.consistency_weight
                         )
-                        loss = ssl_loss + cfg.consistency_weight * consistency_loss
                     else:
                         consistency_loss = None
                         loss = ssl_loss
@@ -306,7 +335,7 @@ def train(
 
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(
+            grad_norm = _clip_gradients(
                 [p for g in optimizer.param_groups for p in g["params"]], 3.0
             )
             scaler.step(optimizer)
@@ -333,6 +362,7 @@ def train(
                     )
                 tracker.log_metric("lr", lr, step=step)
                 tracker.log_metric("embedding_std", health, step=step)
+                tracker.log_metric("grad_norm", grad_norm, step=step)
                 if gpu_count:
                     gpu_hours = compute.gpu_hours_elapsed(elapsed_seconds)
                     tracker.log_metric("gpu_hours", gpu_hours, step=step)
@@ -353,7 +383,10 @@ def train(
                     ckpt = out_dir / f"{cfg.method}_{tag}.pt"
                     _export_backbone(ckpt, model, cfg.method)
                     tracker.log_artifact(str(ckpt))
-                    _save_checkpoint(resume_path, model, optimizer, elapsed(), saved_fractions)
+                    _save_checkpoint(
+                        resume_path, model, optimizer, elapsed(), saved_fractions,
+                        step=step, images_seen=images_seen,
+                    )
                     print(f"[{tag}] guardado en {compute.gpu_hours_elapsed(elapsed()):.2f} horas-GPU")
 
             if compute.should_stop(elapsed()) or (

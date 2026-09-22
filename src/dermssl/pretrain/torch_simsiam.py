@@ -94,8 +94,33 @@ def original_transformed_consistency_loss(
     z_original: torch.Tensor,
     z_transformed: torch.Tensor,
 ) -> torch.Tensor:
-    """Representation consistency between one original and its transformation."""
+    """Representation consistency between one original and its transformation.
+
+    Identical to ``simsiam_loss`` by construction: when the two views ARE the
+    original and its tone-shifted copy, the symmetrised negative cosine over
+    that pair IS the consistency. Kept as a named entry point for callers
+    that build the pair themselves; the training loop uses
+    ``paired_objective`` instead, which is what stops the term from being
+    added to itself.
+    """
     return simsiam_loss(p_original, p_transformed, z_original, z_transformed)
+
+
+def paired_objective(
+    ssl_loss: torch.Tensor, weight: float = 1.0
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """``(loss, consistency)`` for the original/transformed arm.
+
+    The proposed arm feeds the original as view 1 and its tone-shifted copy
+    as view 2, so ``ssl_loss`` already measures the consistency between them.
+    Summing a separately computed "consistency" term over the same four
+    tensors - which is what this loop did until 2026-09-22 - doubles the
+    gradient and makes the arm incomparable with the plain one (AdamW
+    absorbs most of a constant factor, but not the weight decay term, and
+    the reported losses become indistinguishable). Weighting is the knob;
+    the default of 1.0 keeps both arms on the same footing.
+    """
+    return weight * ssl_loss, ssl_loss
 
 
 def collapse_indicator(z: torch.Tensor) -> float:

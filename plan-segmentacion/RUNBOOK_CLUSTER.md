@@ -654,15 +654,20 @@ esta instalado en el pod: el seguimiento es Weights & Biases (proyecto
 
 ### 12.4 Banco congelado en HAM10000 por tercil de tono
 
+El script vive en el repo y las salidas en `$HOME/work/proyectonp/salidas`,
+que NO cuelga del checkout: las rutas van absolutas o el comando falla al
+abrir los backbones.
+
 ```bash
-python scripts/cluster_frozen_bank.py \
+SAL=$HOME/work/proyectonp/salidas
+$HOME/work/proyectonp/.venv/bin/python scripts/cluster_frozen_bank.py \
     --ham-root /home/jovyan/work/datos/ham10000 \
     --backbone dinov2_public=dinov2_vits14:public \
-    --backbone ssl_plain=dinov2_vits14:salidas/tone/ssl_plain/simsiam_dinov2_backbone_final.pt \
-    --backbone ssl_proposed=dinov2_vits14:salidas/tone/ssl_proposed/simsiam_dinov2_backbone_final.pt \
-    --tone-manifest salidas/final/fst/fst_pseudo_manifest.csv --strata-column tone_tercile \
+    --backbone ssl_plain=dinov2_vits14:$SAL/tone/ssl_plain/simsiam_dinov2_backbone_final.pt \
+    --backbone ssl_proposed=dinov2_vits14:$SAL/tone/ssl_proposed/simsiam_dinov2_backbone_final.pt \
+    --tone-manifest $SAL/final/fst/fst_pseudo_manifest.csv --strata-column tone_tercile \
     --probes logreg logreg_balanced knn --fractions 1.0 0.1 --seeds 0 1 2 \
-    --output-dir salidas/tone/bank --cache-dir salidas/tone/bank/cache \
+    --output-dir $SAL/tone/bank --cache-dir $SAL/tone/bank/cache \
     --wandb-project dermssl-segmentacion
 ```
 

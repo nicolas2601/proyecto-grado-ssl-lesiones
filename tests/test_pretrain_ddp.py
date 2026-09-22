@@ -38,3 +38,25 @@ def test_ddp_on_cpu_passes_no_device_ids(monkeypatch):
 
     assert captured["device_ids"] is None
     assert captured["static_graph"] is True
+
+
+# ------------------------------------------------- gradient norm is measured
+def test_the_clipped_gradient_norm_is_returned_for_logging():
+    """Without the returned norm, 'the clipping absorbed the doubling' stays
+    an argument instead of a measurement."""
+    model = torch.nn.Linear(4, 2)
+    loss = model(torch.ones(1, 4)).sum()
+    loss.backward()
+    norm = torch_loop._clip_gradients(model.parameters(), max_norm=3.0)
+    assert isinstance(norm, float)
+    assert norm >= 0.0
+
+
+def test_the_norm_reflects_a_gradient_over_the_threshold():
+    model = torch.nn.Linear(4, 2)
+    with torch.no_grad():
+        model.weight.fill_(1.0)
+    loss = (model(torch.full((1, 4), 100.0)).sum()) * 100.0
+    loss.backward()
+    norm = torch_loop._clip_gradients(model.parameters(), max_norm=3.0)
+    assert norm > 3.0
