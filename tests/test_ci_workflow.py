@@ -85,3 +85,16 @@ def test_requirements_dev_does_not_hardcode_a_test_count():
     text = (REPO / "requirements-dev.txt").read_text()
     assert not re.search(r"\d+\s+passed", text), (
         "hard-coded test count in requirements-dev.txt: it goes stale silently")
+
+
+def test_ci_runs_on_every_branch():
+    """A branch CI ignores looks exactly like a branch CI passed.
+
+    `proposed-cluster` accumulated eleven commits without a single CI run,
+    because the name matched neither `main` nor `feature/**`. Nothing
+    reported that: the absence of a red check reads as green.
+    """
+    ci = (Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml").read_text()
+    assert 'branches: ["**"]' in ci, (
+        "el disparador vuelve a ser una lista de nombres; una rama fuera de "
+        "la lista corre sin verificar y parece verificada")

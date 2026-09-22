@@ -5,9 +5,12 @@ name: CI
 # missing optional dependency, generated notebooks drifting from their builder,
 # and documentation numbers typed by hand.
 
+# Every branch, not a list. `proposed-cluster` carried eleven commits with no
+# CI run at all because the name matched neither `main` nor `feature/**`, and
+# nothing said so: a branch CI ignores looks exactly like a branch CI passed.
 on:
   push:
-    branches: [main, "feature/**"]
+    branches: ["**"]
   pull_request:
     branches: [main]
   workflow_dispatch:
