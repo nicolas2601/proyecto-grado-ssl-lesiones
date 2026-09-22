@@ -12,6 +12,11 @@ exactly as it was, and the training loop itself resumes from its own
         --ham-root /home/jovyan/work/datos/ham10000
 
 Run it again as many times as the pod needs; it only ever does what is left.
+
+``--outputs`` must already exist: the script will not create it. "The
+artefact is not there" is how both a fresh run and a wrong path look from
+the inside, and the wrong path costs forty-eight GPU-hours of silent
+retraining. Creating the tree once, by hand, is what separates them.
 """
 
 from __future__ import annotations
@@ -473,11 +478,47 @@ def _launch(stage: Stage, settings: Settings, state: dict, state_path: Path) -> 
     return False
 
 
+def check_outputs_tree(settings: Settings, state: dict) -> None:
+    """Refuse to run when the outputs tree is not the one that holds the work.
+
+    Completion is decided by "does this artefact exist", so a wrong or
+    unmounted --outputs makes every stage look pending and the orchestrator
+    cheerfully retrains forty-eight GPU-hours. Absence and never-ran are
+    indistinguishable from the inside; the state file is what tells them
+    apart, because it lists stages that did finish.
+    """
+    if not settings.outputs.exists():
+        raise SystemExit(
+            f"no existe el directorio de salidas: {settings.outputs}\n"
+            "Si es una corrida nueva, crealo explicitamente. Si no, la ruta esta "
+            "mal o el volumen no esta montado: seguir reentrenaria todo desde cero."
+        )
+    done_before = [
+        name for name, entry in (state.get("stages") or {}).items()
+        if entry.get("status") == "ok"
+    ]
+    if not done_before:
+        return
+    by_name = {stage.name: stage for stage in all_stages(settings)}
+    missing = [
+        name for name in done_before
+        if name in by_name and not by_name[name].done_when.is_file()
+    ]
+    if missing:
+        raise SystemExit(
+            f"el estado dice que estas etapas terminaron, pero su artefacto no esta: "
+            f"{sorted(missing)}\n"
+            f"Revisa {settings.outputs}: o es la ruta equivocada, o se borraron. "
+            "No sigo, porque reentrenar lo que ya corrio cuesta horas de GPU."
+        )
+
+
 def run(settings: Settings) -> dict:
     """Run what is left of the pipeline; returns what was launched and what failed."""
     stages = build_stages(settings)
     if not settings.code_revision:
         settings.code_revision = detect_code_revision(settings.repo)
+    check_outputs_tree(settings, _load_state(settings.outputs / STATE_FILE))
     if not settings.dry_run:
         _prepare_scratch(settings)
     state_path = settings.outputs / STATE_FILE

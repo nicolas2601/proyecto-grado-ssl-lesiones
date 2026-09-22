@@ -20,6 +20,10 @@ import run_stage2 as orch  # noqa: E402
 
 
 def _args(tmp_path, **overrides):
+    # The orchestrator no longer creates the outputs tree: a path that does
+    # not exist is how a wrong --outputs looks, and it used to mean silently
+    # retraining everything. Creating it is now the operator's deliberate act.
+    (tmp_path / "salidas").mkdir(parents=True, exist_ok=True)
     values = dict(
         repo=tmp_path / "repo",
         outputs=tmp_path / "salidas",
