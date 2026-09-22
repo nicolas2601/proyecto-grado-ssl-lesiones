@@ -17,6 +17,7 @@ Run it again as many times as the pod needs; it only ever does what is left.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -30,6 +31,9 @@ from pathlib import Path
 # difference between losing twelve minutes and losing half a run.
 CHECKPOINT_FRACTIONS = tuple(round(0.05 * i, 2) for i in range(1, 21))
 SOURCE_REVISION = "pool-final"
+POOL_HASH_FILE = "pool_split_hash.json"
+# Replaced with the real hash when the stage launches; see resolve_argv.
+SPLIT_HASH_TOKEN = "@POOL_SPLIT_HASH@"
 STATE_FILE = "stage2_state.json"
 BACKBONE_FILE = "simsiam_dinov2_backbone_final.pt"
 METHOD = "simsiam_dinov2"
@@ -69,6 +73,7 @@ class Settings:
     only: str | None = None
     dry_run: bool = False
     max_retries: int = 2
+    code_revision: str = ""
 
 
 @dataclass
@@ -81,6 +86,82 @@ class Stage:
 
 def _script(settings: Settings, *parts: str) -> str:
     return str(Path(settings.repo, *parts))
+
+
+def _pool_dir(settings: Settings) -> Path:
+    return settings.outputs / "tone" / "inputs" / "originals"
+
+
+def compute_pool_split_hash(pool: Path) -> str:
+    """SHA-256 of the sorted pool listing: which images the run trained on.
+
+    ``split_hash`` is the field that answers "over what data". Derived from
+    the pool itself it is recomputable by anyone holding the folder, and it
+    changes if and only if the pool changes - which a hardcoded constant
+    cannot do, and which is why the constant would lie exactly like the
+    zeroed placeholder did.
+    """
+    names = sorted(str(p.relative_to(pool)) for p in pool.rglob("*.png"))
+    if not names:
+        raise ValueError(f"el pool esta vacio: {pool}")
+    digest = hashlib.sha256()
+    digest.update(f"{len(names)}\n".encode())
+    for name in names:
+        digest.update(name.encode() + b"\n")
+    return digest.hexdigest()
+
+
+def pool_split_hash(settings: Settings) -> str:
+    """The pool hash, written once and checked on every later launch.
+
+    If a later launch derives a different hash the pool moved under us, and
+    the arms already trained are no longer comparable with the ones about to
+    start. That must stop the run, not be silently recorded as a second
+    value: a paired comparison across two different pools is not a
+    comparison.
+    """
+    receipt = settings.outputs / "tone" / "inputs" / POOL_HASH_FILE
+    current = compute_pool_split_hash(_pool_dir(settings))
+    if receipt.is_file():
+        previous = json.loads(receipt.read_text(encoding="utf-8"))["split_hash"]
+        if previous != current:
+            raise ValueError(
+                f"el pool cambio desde la primera corrida: {previous[:12]}... -> "
+                f"{current[:12]}...; los brazos ya entrenados no son comparables "
+                f"con los que faltan. Revisa {_pool_dir(settings)} antes de seguir."
+            )
+        return previous
+    receipt.parent.mkdir(parents=True, exist_ok=True)
+    receipt.write_text(
+        json.dumps({"split_hash": current, "pool": str(_pool_dir(settings))}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return current
+
+
+def resolve_argv(argv: list[str], settings: Settings) -> list[str]:
+    """Substitute the pool-hash placeholder, now that the pool exists.
+
+    Stages are built before the export stage has run, so the hash cannot be
+    computed at construction time. The placeholder is replaced when the stage
+    is actually launched.
+    """
+    if SPLIT_HASH_TOKEN not in argv:
+        return argv
+    value = pool_split_hash(settings)
+    return [value if item == SPLIT_HASH_TOKEN else item for item in argv]
+
+
+def _preview_argv(stage: Stage, settings: Settings) -> list[str]:
+    """The command a dry run shows, with the hash resolved when it can be.
+
+    A preview that still shows the placeholder is fine before the pool
+    exists; pretending it failed would be worse than showing the token.
+    """
+    try:
+        return resolve_argv(stage.argv, settings)
+    except (OSError, ValueError):
+        return stage.argv
 
 
 def _fractions_argv() -> list[str]:
@@ -152,6 +233,8 @@ def _pretrain_argv(settings: Settings, output_dir: Path, arch: str) -> list[str]
         "--batch-size-per-gpu", str(settings.batch_size_per_gpu),
         "--num-workers", str(settings.num_workers),
         "--precision", "bf16",
+        "--split-hash", SPLIT_HASH_TOKEN,
+        "--data-revision", SOURCE_REVISION,
         *_fractions_argv(),
         "--wandb-project", settings.wandb_project,
         "--wandb-group", settings.wandb_group,
@@ -179,7 +262,6 @@ def _proposed_stage(settings: Settings, arch: str) -> Stage:
             *_pretrain_argv(settings, output_dir, arch),
             "--transformed-image-root", str(shift),
             "--transformed-manifest-path", str(shift / "tone_transform_manifest.json"),
-            "--data-revision", SOURCE_REVISION,
         ],
         done_when=output_dir / BACKBONE_FILE,
         note=f"proposed arm on {arch}: the original against its tone-shifted copy",
@@ -279,7 +361,30 @@ def stage_environment(settings: Settings, base_env: dict | None = None) -> dict:
         "HF_HOME": str(scratch / "huggingface"),
         "XDG_CACHE_HOME": str(scratch / "cache"),
     })
+    if settings.code_revision and not env.get("GIT_COMMIT"):
+        env["GIT_COMMIT"] = settings.code_revision
     return env
+
+
+def detect_code_revision(repo: Path) -> str:
+    """The commit the arms are trained from; the loop reads it as GIT_COMMIT.
+
+    Without it every run.json records ``code_revision: null`` and nobody can
+    tell which version of the training code produced a checkpoint. Resolved
+    once per run, not per attempt: the environment is rebuilt on every retry
+    and shelling out to git there would add a subprocess to each one. An
+    empty string when git is unavailable is honest; a made-up value is not.
+    """
+    try:
+        completed = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=str(repo),
+            capture_output=True, text=True, timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    if completed.returncode != 0:
+        return ""
+    return (completed.stdout or "").strip()
 
 
 def _prepare_scratch(settings: Settings) -> None:
@@ -300,19 +405,20 @@ def _save_state(path: Path, state: dict) -> None:
 
 def _launch(stage: Stage, settings: Settings, state: dict, state_path: Path) -> bool:
     """Run one stage, retrying it; True when it ended with code zero."""
+    argv = resolve_argv(stage.argv, settings)
     for attempt in range(1, settings.max_retries + 1):
         entry = {
             "status": "running",
             "attempt": attempt,
             "started_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "command": " ".join(stage.argv),
+            "command": " ".join(argv),
         }
         state["stages"][stage.name] = entry
         _save_state(state_path, state)
-        print(f"[{stage.name}] intento {attempt}/{settings.max_retries}: {' '.join(stage.argv)}")
+        print(f"[{stage.name}] intento {attempt}/{settings.max_retries}: {' '.join(argv)}")
 
         completed = subprocess.run(
-            stage.argv, cwd=str(settings.repo), env=stage_environment(settings)
+            argv, cwd=str(settings.repo), env=stage_environment(settings)
         )
         entry["returncode"] = completed.returncode
         entry["ended_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -322,12 +428,16 @@ def _launch(stage: Stage, settings: Settings, state: dict, state_path: Path) -> 
         if completed.returncode == 0:
             return True
         print(f"[{stage.name}] salio con codigo {completed.returncode}")
+        print(f"[{stage.name}] el motivo esta en el stderr del subproceso; si el log "
+              f"no lo trae, relanza con 2>&1 o repite el comando de arriba a mano")
     return False
 
 
 def run(settings: Settings) -> dict:
     """Run what is left of the pipeline; returns what was launched and what failed."""
     stages = build_stages(settings)
+    if not settings.code_revision:
+        settings.code_revision = detect_code_revision(settings.repo)
     if not settings.dry_run:
         _prepare_scratch(settings)
     state_path = settings.outputs / STATE_FILE
@@ -340,7 +450,8 @@ def run(settings: Settings) -> dict:
             print(f"[{stage.name}] ya esta: {stage.done_when}")
             continue
         if settings.dry_run:
-            print(f"[{stage.name}] pendiente ({stage.note})\n    {' '.join(stage.argv)}")
+            preview = " ".join(_preview_argv(stage, settings))
+            print(f"[{stage.name}] pendiente ({stage.note})\n    {preview}")
             continue
         if _launch(stage, settings, state, state_path):
             launched.append(stage.name)

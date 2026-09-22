@@ -131,7 +131,8 @@ def test_a_failing_stage_is_retried_and_then_reported(tmp_path, monkeypatch):
     attempts = []
 
     def always_fails(argv, **kwargs):
-        attempts.append(argv)
+        if argv[0] != "git":       # the commit lookup is not a stage attempt
+            attempts.append(argv)
         return subprocess.CompletedProcess(argv, returncode=1)
 
     monkeypatch.setattr(orch.subprocess, "run", always_fails)
@@ -146,7 +147,8 @@ def test_a_stage_that_succeeds_is_not_retried(tmp_path, monkeypatch):
     attempts = []
 
     def succeeds(argv, **kwargs):
-        attempts.append(argv)
+        if argv[0] != "git":       # the commit lookup is not a stage attempt
+            attempts.append(argv)
         return subprocess.CompletedProcess(argv, returncode=0)
 
     monkeypatch.setattr(orch.subprocess, "run", succeeds)
