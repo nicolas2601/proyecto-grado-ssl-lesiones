@@ -113,3 +113,10 @@ jobs:
       # compares published against generated; this makes that failure explicit.
       - name: Fail if the published tables drift from the data
         run: pytest -q tests/test_readme_tables_fresh.py -rs
+
+      # Same guard for resultados/README.md, the document the committee reads:
+      # its tables come from resultados/clasificacion/bank.json. Skips while no
+      # bank is committed, and starts failing the moment the data lands and
+      # someone edits a number by hand.
+      - name: Fail if the results README drifts from the bank
+        run: pytest -q tests/test_resultados_readme_fresh.py -rs
