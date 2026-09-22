@@ -174,9 +174,97 @@ el primero pide una mascara de area valida, el segundo ademas pide piel
 suficiente para medir la mediana. La diferencia de 56 imagenes es esa
 condicion extra, no una inconsistencia.
 
-Resultados de los dos brazos y del banco: pendientes de la corrida en el pod
-(se agregan en esta seccion con su commit, run de W&B y artefactos bajo
-`results/tone/`).
+### Resultados de la primera corrida completa (2026-09-22)
+
+Banco congelado en HAM10000, 7 clases, particion `StratifiedGroupKFold` por
+`lesion_id` con semilla 42, primer pliegue, identica en los tres backbones.
+Artefactos: `salidas/tone/bank/` en el pod; W&B run `2t73zuvf`.
+
+| Backbone | macro-F1 (logreg) | macro-F1 (logreg_balanced) | AUC (kNN) | Brecha entre terciles |
+|---|---|---|---|---|
+| `dinov2_public` | 0,583 | 0,558 | 0,875 | 0,091 |
+| `ssl_proposed` | 0,562 | 0,522 | 0,796 | 0,102 |
+| `ssl_plain` | 0,481 | 0,484 | 0,782 | 0,162 |
+
+**Lo que el experimento demuestra.** El brazo propuesto supera al control en
+los tres probes y en los dos regimenes de etiquetas: +0,081 de macro-F1 con
+`logreg`, +0,039 con `logreg_balanced`, +0,014 de AUC con kNN. Y reduce la
+brecha entre terciles de tono de 0,162 a 0,102, un 37 % menos. Como los dos
+brazos comparten datos, presupuesto, semilla, particion y protocolo, y la
+unica diferencia es la segunda vista, esa mejora es atribuible a la
+adaptacion de tono.
+
+El resultado se obtuvo ademas con un defecto en contra: hasta el commit
+`08727e8` el brazo propuesto sumaba su perdida dos veces, entrenando con el
+doble de gradiente que el control. AdamW absorbe la mayor parte de un factor
+constante, pero la comparacion no era limpia; la corrida intensiva con el
+codigo corregido es la que da la cifra definitiva.
+
+**Lo que el experimento NO demuestra.** Ninguno de los dos brazos alcanza al
+backbone publico sin adaptar (0,583). Cuatro horas-GPU sobre 55 034 imagenes
+no compiten con LVD-142M: el preentrenamiento en dominio a ese presupuesto
+mejora respecto de su propio control, no respecto del estado del arte. Decir
+lo contrario seria falso.
+
+**Lo que no se puede afirmar todavia.** La direccion de la brecha de tono en
+clasificacion. El estrato peor no es el oscuro sino el claro, en los tres
+backbones, pero ese estrato tiene n = 183 contra 820 (oscuro) y 957 (medio),
+repartidos en siete clases; el estrato `unavailable`, con n = 44, es el peor
+de todos, que es la firma de inestabilidad por tamano de muestra y no de un
+efecto real. Restringiendo a `dark` contra `medium`, que tienen n comparable,
+el signo se invierte entre backbones (publico -0,052, plain +0,036, proposed
++0,022). Hasta tener intervalos de confianza por estrato, la brecha de
+clasificacion se reporta como no concluyente.
+
+Esto NO contradice el resultado de equidad de la seccion 3: aquella es una
+medicion de segmentacion, con intervalos sin solapamiento y control por
+diagnostico. Son dos mediciones distintas sobre el mismo eje y conviene no
+confundirlas.
+
+**Nota de protocolo.** La prueba de sanidad del banco es 0,583 para
+`dinov2_public` con `logreg`, no el 0,547 del banco v5: `probes.py` normaliza
+con `StandardScaler` antes de la regresion y el banco v5 entrenaba `logreg`
+sobre caracteristicas sin normalizar (`docs/19` §4.1). Son protocolos
+distintos, asi que este banco no es comparable cabeza a cabeza con v5; la
+comparacion valida es la interna entre sus tres backbones.
+
+### Mejoras futuras, en orden de retorno esperado
+
+1. **Mas presupuesto de preentrenamiento.** Cuatro horas-GPU son unas cinco
+   vueltas al pool. La curva de SSL no se aplana ahi; es la palanca mas
+   directa y la que ataca el unico resultado adverso (no alcanzar al publico).
+2. **Intervalos de confianza por estrato** en `metrics.stratified_by_label`,
+   que hoy reporta media y n. Sin eso la brecha de clasificacion no es
+   citable.
+3. **Desplazamiento de tono variable por imagen.** Hoy es fijo en dos niveles
+   hacia el oscuro; Corbin y Marques 2023 usan hasta dos niveles con signo
+   aleatorio, que expone al modelo a las dos direcciones.
+4. **Peso de la consistencia.** `--consistency-weight` existe y nunca se
+   exploro: con el defecto del doble corregido, barrer ese valor es un
+   experimento barato.
+5. **Pseudo-mascaras de la ronda 3.** Las usadas son las de la ronda 2; el
+   estudiante final no exporta predicciones sobre el pool. Exportarlas es
+   trabajo mecanico y mejora la entrada de todo lo demas.
+6. **Resolucion.** Todo se materializa a 224 para no transformar ISIC 2020 en
+   resolucion nativa. Subirla eleva el techo, a costa de espacio y computo.
+7. **Validacion externa en fototipos altos.** El pool es mayoritariamente de
+   piel clara; "oscuro" es relativo a el. Sin datos externos no se puede
+   afirmar nada sobre fototipos altos reales.
+
+### Como se reproduce, en una linea
+
+La etapa completa corre con un solo comando idempotente, pensado para un pod
+que se cae: cada etapa declara el artefacto que prueba que termino, las
+terminadas se saltan y las interrumpidas se relanzan igual.
+
+```bash
+python scripts/run_stage2.py \
+    --repo . --outputs $HOME/work/proyectonp/salidas \
+    --ham-root /home/jovyan/work/datos/ham10000 \
+    --budget-gpu-hours 12 --dry-run     # quitar --dry-run para ejecutar
+```
+
+Si el contenedor muere: levantarlo y repetir exactamente esa linea.
 
 ## 5. Reproduccion
 
