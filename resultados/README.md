@@ -114,7 +114,13 @@ fototipo oscuro clinico. El pool es mayoritariamente piel clara.
 
 ## 4. Clasificacion: los seis backbones
 
-<!-- PENDIENTE: tabla de la corrida de 2026-09-22 -->
+<!-- TABLA-CLASIFICACION:INICIO -->
+
+_Pendiente: las tablas se generan solas desde `bank.json` con
+`scripts/build_results_readme.py` en cuanto cierre el banco. No se transcriben
+a mano: un numero copiado sobrevive a la corrida que lo cambio._
+
+<!-- TABLA-CLASIFICACION:FIN -->
 
 Diseno de la comparacion. Cada arquitectura entra con **su propia** linea
 base publica, porque comparar un ViT-S adaptado contra un ViT-B publico
