@@ -312,6 +312,32 @@ def compute_gap(strata: dict, metric: str) -> tuple[float | None, str | None]:
     gap = max(qualifying.values()) - min(qualifying.values())
     return gap, worst_label
 
+def gap_is_established(strata: dict, metric: str) -> bool | None:
+    """Whether the best and worst strata are actually separated.
+
+    A gap between point estimates says nothing on its own: the first bank
+    reported the light tercile as the worst in every backbone, but that
+    stratum had 183 rows against 957 and the ordering was noise. True when
+    the extreme strata's intervals do not overlap, False when they do, and
+    None when there are no intervals to judge - which is not the same as
+    "no gap" and must not be reported as one.
+    """
+    qualifying = {
+        label: entry for label, entry in strata.items()
+        if entry.get("status") == "OK" and label != UNAVAILABLE_BUCKET
+    }
+    if len(qualifying) < 2:
+        return None
+    low_key, high_key = f"{metric}_ci95_low", f"{metric}_ci95_high"
+    if any(low_key not in entry or high_key not in entry for entry in qualifying.values()):
+        return None
+    best = max(qualifying, key=lambda label: qualifying[label][metric])
+    worst = min(qualifying, key=lambda label: qualifying[label][metric])
+    if best == worst:
+        return False
+    return qualifying[worst][high_key] < qualifying[best][low_key]
+
+
 def build_strata_entry(
     y_val: np.ndarray, proba: np.ndarray, labels: np.ndarray, column: str,
     probe: str, fraction: float, n_classes: int, min_n: int,
@@ -322,6 +348,7 @@ def build_strata_entry(
     return {
         "column": column, "probe": probe, "fraction": fraction, "labels": strat,
         "gap_macro_f1": gap_macro_f1, "gap_auc": gap_auc, "worst_label": worst_label,
+        "gap_established": gap_is_established(strat, STRATA_HEADLINE_METRIC),
     }
 
 def json_safe(obj):

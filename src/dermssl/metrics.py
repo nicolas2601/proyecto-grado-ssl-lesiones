@@ -265,6 +265,51 @@ def stratified_summary(
     return result
 
 
+BOOTSTRAP_RESAMPLES = 1000
+BOOTSTRAP_SEED = 0
+MIN_VALUES_FOR_INTERVAL = 2
+
+
+def bootstrap_interval(
+    values: np.ndarray,
+    resamples: int = BOOTSTRAP_RESAMPLES,
+    seed: int = BOOTSTRAP_SEED,
+) -> tuple[float, float]:
+    """Seeded 95 percent percentile bootstrap of the mean.
+
+    NaN when there are fewer than two values: an interval over one sample is
+    not an interval, and returning zero width there would be worse than
+    returning nothing - it would claim certainty the data does not support.
+    """
+    values = np.asarray(values, dtype=np.float64)
+    if values.size < MIN_VALUES_FOR_INTERVAL:
+        return float("nan"), float("nan")
+    rng = np.random.default_rng(seed)
+    draws = rng.choice(values, size=(resamples, values.size), replace=True)
+    low, high = np.percentile(draws.mean(axis=1), [2.5, 97.5])
+    return float(low), float(high)
+
+
+def _macro_f1_interval(y_true: np.ndarray, proba: np.ndarray, n_classes: int) -> tuple[float, float]:
+    """Interval of the stratum's macro-F1, resampling its rows.
+
+    Each resample recomputes macro-F1 over the drawn rows, so the width
+    reflects how few images the stratum actually has - which is the whole
+    question when one tercile has 183 rows and another 957.
+    """
+    y_true = np.asarray(y_true)
+    if y_true.size < MIN_VALUES_FOR_INTERVAL:
+        return float("nan"), float("nan")
+    rng = np.random.default_rng(BOOTSTRAP_SEED)
+    pred = np.asarray(proba).argmax(axis=1)
+    scores = []
+    for _ in range(BOOTSTRAP_RESAMPLES):
+        index = rng.integers(0, y_true.size, size=y_true.size)
+        scores.append(macro_f1(y_true[index], pred[index], n_classes))
+    low, high = np.percentile(scores, [2.5, 97.5])
+    return float(low), float(high)
+
+
 def stratified_by_label(y_true: np.ndarray, proba: np.ndarray, labels: np.ndarray,
                          n_classes: int, min_n: int = 30) -> dict:
     """``stratified_summary()``, keyed by whatever labels ``labels`` actually contains
@@ -288,8 +333,13 @@ def stratified_by_label(y_true: np.ndarray, proba: np.ndarray, labels: np.ndarra
             result[key] = {"status": "SKIPPED", "count": count,
                             "reason": f"n={count} < min_n={min_n}"}
         else:
-            result[key] = {"status": "OK", "count": count,
-                            **summarize(y_true[mask], proba[mask], n_classes)}
+            low, high = _macro_f1_interval(y_true[mask], proba[mask], n_classes)
+            result[key] = {
+                "status": "OK", "count": count,
+                **summarize(y_true[mask], proba[mask], n_classes),
+                "macro_f1_ci95_low": low,
+                "macro_f1_ci95_high": high,
+            }
     return result
 
 
