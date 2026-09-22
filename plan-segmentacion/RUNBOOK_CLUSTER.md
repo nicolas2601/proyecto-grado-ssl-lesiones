@@ -673,11 +673,19 @@ $HOME/work/proyectonp/.venv/bin/python scripts/cluster_frozen_bank.py \
 
 Mismo protocolo que el banco v5 (particion `StratifiedGroupKFold` por
 `lesion_id`, semilla 42, primer pliegue; extraccion determinista; probes
-`logreg`, `logreg_balanced` y `knn`; el `logreg` del backbone publico debe
-reproducir el macro-F1 0,547 del banco v5, que es la prueba de sanidad), con
-los estratos por `tone_tercile` sobre la
+`logreg`, `logreg_balanced` y `knn`), con los estratos por `tone_tercile` sobre la
 validacion y la brecha maximo-minimo de macro-F1 entre terciles. Salidas:
 `bank.json`, `bank_rows.csv`, `strata.json`, `bank.md`.
+
+Prueba de sanidad: `dinov2_public` con `logreg` al 100 % de etiquetas da
+**0,583** de macro-F1 en HAM10000 (medido 2026-09-22). El 0,547 del banco v5
+NO sirve de referencia: `probes.py` normaliza con `StandardScaler` antes de
+la regresion y el banco v5 entrenaba `logreg` sobre features sin normalizar
+(docs/19 §4.1), que era el protocolo que penalizaba a los espacios de mayor
+dimension. Por eso este banco no es comparable cabeza a cabeza con v5; la
+comparacion valida es la interna entre los backbones de esta corrida, que
+comparten protocolo. Como referencia secundaria, `logreg_balanced` del
+publico da 0,558.
 
 ### 12.5 Que subir
 
