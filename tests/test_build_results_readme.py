@@ -189,3 +189,68 @@ def test_only_arms_with_a_manifest_are_read(tmp_path):
     tone = _tone(tmp_path, {"ssl_plain_vits14": _arm_run()})
     (tone / "ssl_proposed_vits14").mkdir()          # started, not finished
     assert set(gen.read_runs(tone)) == {"ssl_plain_vits14"}
+
+
+# ------------------------------------------------- the full metric panel
+def _metric_row(backbone, probe="logreg", fraction=1.0, seed=0, **metrics):
+    row = {
+        "backbone": backbone, "probe": probe, "fraction": fraction, "seed": seed,
+        "error": None, "accuracy": 0.747, "balanced_accuracy": 0.618,
+        "macro_f1": 0.595, "macro_precision": 0.598, "macro_recall": 0.618,
+        "auc": 0.907, "ece": 0.162,
+    }
+    row.update(metrics)
+    return row
+
+
+def test_the_panel_reports_the_seven_metrics():
+    bank = {"rows": [_metric_row("dinov2_public_vitb14")]}
+    row = [l for l in gen.metrics_table(bank) if l.startswith("| `")][0]
+    for value in ("0,747", "0,618", "0,595", "0,598", "0,907", "0,162"):
+        assert value in row, f"falta {value}"
+
+
+def test_the_panel_says_that_lower_ece_is_better():
+    bank = {"rows": [_metric_row("x")]}
+    joined = "\n".join(gen.metrics_table(bank))
+    assert "En ECE menor es mejor" in joined, (
+        "sin la direccion, un ECE alto se lee como si fuera bueno"
+    )
+
+
+def test_the_panel_uses_one_probe_for_every_backbone():
+    """Best-probe-per-model inflates each row by a max over noisy estimates."""
+    bank = {"rows": [
+        _metric_row("a", probe="logreg", macro_f1=0.50),
+        _metric_row("a", probe="knn", macro_f1=0.90),   # mejor, pero no es el fijado
+    ]}
+    row = [l for l in gen.metrics_table(bank) if l.startswith("| `")][0]
+    assert "0,500" in row and "0,900" not in row
+
+
+def test_the_panel_averages_the_seeds():
+    bank = {"rows": [
+        _metric_row("a", seed=0, accuracy=0.70),
+        _metric_row("a", seed=1, accuracy=0.80),
+    ]}
+    row = [l for l in gen.metrics_table(bank) if l.startswith("| `")][0]
+    assert "0,750" in row
+
+
+def test_the_panel_drops_errored_rows():
+    bank = {"rows": [
+        _metric_row("a", accuracy=0.70),
+        {**_metric_row("a", seed=1, accuracy=0.0), "error": "ValueError: boom"},
+    ]}
+    row = [l for l in gen.metrics_table(bank) if l.startswith("| `")][0]
+    assert "0,700" in row
+
+
+def test_a_nan_metric_becomes_a_dash_not_a_zero():
+    bank = {"rows": [_metric_row("a", auc=float("nan"))]}
+    row = [l for l in gen.metrics_table(bank) if l.startswith("| `")][0]
+    assert "| - |" in row
+
+
+def test_an_empty_bank_says_so():
+    assert "Sin filas" in gen.metrics_table({"rows": []})[0]

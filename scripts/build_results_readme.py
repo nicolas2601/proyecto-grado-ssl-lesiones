@@ -85,6 +85,67 @@ def classification_table(bank: dict) -> list[str]:
     return lines
 
 
+FULL_METRICS = (
+    ("accuracy", "acc", False),
+    ("balanced_accuracy", "bal_acc", False),
+    ("macro_f1", "F1 macro", False),
+    ("macro_precision", "Prec macro", False),
+    ("macro_recall", "Recall macro", False),
+    ("auc", "AUC", False),
+    ("ece", "ECE", True),          # calibracion: MENOR es mejor
+)
+
+
+def _mean_metrics(rows: list[dict], probe: str, fraction: float) -> dict[str, dict[str, float]]:
+    """Every metric per backbone, averaged over seeds, at one fixed probe."""
+    collected: dict[str, dict[str, list[float]]] = {}
+    for row in rows:
+        if row.get("probe") != probe or float(row.get("fraction", -1)) != fraction:
+            continue
+        if row.get("error"):
+            continue
+        bucket = collected.setdefault(row["backbone"], {})
+        for key, _, _ in FULL_METRICS:
+            value = row.get(key)
+            if value is None or value != value:   # None or NaN
+                continue
+            bucket.setdefault(key, []).append(float(value))
+    return {
+        name: {key: sum(values) / len(values) for key, values in bucket.items() if values}
+        for name, bucket in collected.items()
+    }
+
+
+def metrics_table(bank: dict, probe: str = HEADLINE_PROBE, fraction: float = FULL_FRACTION) -> list[str]:
+    """The full metric panel, at a probe fixed in advance.
+
+    Reporting each backbone at *its own best* probe inflates every number by
+    a maximum taken over three noisy estimates, and inflates the winner most.
+    The probe and the label regime are fixed here for all backbones, which is
+    the comparison the protocol declares.
+    """
+    per_backbone = _mean_metrics(bank.get("rows", []), probe, fraction)
+    if not per_backbone:
+        return ["_Sin filas de clasificacion en `bank.json`._"]
+
+    header = " | ".join(label for _, label, _ in FULL_METRICS)
+    lines = [
+        f"| Backbone | {header} |",
+        "|---|" + "---|" * len(FULL_METRICS),
+    ]
+    order = sorted(per_backbone, key=lambda k: per_backbone[k].get("macro_f1", 0.0), reverse=True)
+    for name in order:
+        values = " | ".join(_fmt(per_backbone[name].get(key)) for key, _, _ in FULL_METRICS)
+        lines.append(f"| `{name}` | {values} |")
+    lines += [
+        "",
+        f"Probe `{probe}` al {fraction:.0%} de etiquetas, promedio de semillas, "
+        "el mismo para todos.",
+        "**En ECE menor es mejor**; en el resto, mayor es mejor.",
+    ]
+    return lines
+
+
 def strata_table(strata: dict) -> list[str]:
     """Per backbone: the tone gap and whether the intervals actually separate."""
     if not strata:
@@ -170,6 +231,10 @@ def render(bank: dict, strata: dict) -> str:
         "### Rendimiento",
         "",
         *classification_table(bank),
+        "",
+        "### Metricas completas",
+        "",
+        *metrics_table(bank),
         "",
         "### Equidad por tono de piel",
         "",
