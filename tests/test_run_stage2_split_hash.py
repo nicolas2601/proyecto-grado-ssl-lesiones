@@ -118,6 +118,11 @@ def test_the_arms_of_one_run_share_the_same_hash(tmp_path):
     """A paired comparison across two pools is not a comparison."""
     settings = _settings(tmp_path, archs=("dinov2_vits14", "dinov2_vitb14"))
     _pool(settings)
+    shift = settings.outputs / "tone" / "shift2"      # the paired arms read it too
+    shift.mkdir(parents=True, exist_ok=True)
+    (shift / "tone_transform_manifest.json").write_text(
+        json.dumps({"revision": "r" * 64}), encoding="utf-8"
+    )
     arms = [s for s in run_stage2.all_stages(settings) if s.name.startswith("ssl_")]
     hashes = set()
     for arm in arms:

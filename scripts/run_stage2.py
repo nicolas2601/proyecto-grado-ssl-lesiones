@@ -34,6 +34,9 @@ SOURCE_REVISION = "pool-final"
 POOL_HASH_FILE = "pool_split_hash.json"
 # Replaced with the real hash when the stage launches; see resolve_argv.
 SPLIT_HASH_TOKEN = "@POOL_SPLIT_HASH@"
+# Likewise for the tone-transform manifest revision; config.py rejects a value
+# that does not match the manifest, so it can only be read from the manifest.
+SHIFT_REVISION_TOKEN = "@SHIFT_MANIFEST_REVISION@"
 STATE_FILE = "stage2_state.json"
 BACKBONE_FILE = "simsiam_dinov2_backbone_final.pt"
 METHOD = "simsiam_dinov2"
@@ -139,17 +142,47 @@ def pool_split_hash(settings: Settings) -> str:
     return current
 
 
-def resolve_argv(argv: list[str], settings: Settings) -> list[str]:
-    """Substitute the pool-hash placeholder, now that the pool exists.
+def shift_manifest_revision(settings: Settings) -> str:
+    """The revision recorded inside the tone-transform manifest.
 
-    Stages are built before the export stage has run, so the hash cannot be
-    computed at construction time. The placeholder is replaced when the stage
-    is actually launched.
+    config.py refuses a transformed_data_revision that disagrees with the
+    manifest, so this value has exactly one honest source. Regenerating the
+    transforms changes it, which a constant here could not follow.
     """
-    if SPLIT_HASH_TOKEN not in argv:
+    manifest = settings.outputs / "tone" / "shift2" / "tone_transform_manifest.json"
+    revision = json.loads(manifest.read_text(encoding="utf-8")).get("revision")
+    if not revision:
+        raise ValueError(f"{manifest} no declara 'revision'")
+    return revision
+
+
+def resolve_argv(argv: list[str], settings: Settings) -> list[str]:
+    """Substitute the placeholders, now that their sources exist.
+
+    Stages are built before the export and tone_pairs stages have run, so
+    neither the pool hash nor the manifest revision can be computed at
+    construction time. They are replaced when the stage is actually launched.
+    """
+    resolvers = {
+        SPLIT_HASH_TOKEN: pool_split_hash,
+        SHIFT_REVISION_TOKEN: shift_manifest_revision,
+    }
+    pending = {token for token in resolvers if token in argv}
+    if not pending:
         return argv
-    value = pool_split_hash(settings)
-    return [value if item == SPLIT_HASH_TOKEN else item for item in argv]
+    values = {token: resolvers[token](settings) for token in pending}
+    return [values.get(item, item) for item in argv]
+
+
+def _reproducible_command(argv: list[str], settings: Settings) -> str:
+    """The command with the environment that makes it runnable by hand."""
+    base = dict(os.environ)
+    overrides = {
+        key: value for key, value in stage_environment(settings).items()
+        if base.get(key) != value
+    }
+    prefix = " ".join(f"{key}={value}" for key, value in sorted(overrides.items()))
+    return f"env {prefix} {' '.join(argv)}" if prefix else " ".join(argv)
 
 
 def _preview_argv(stage: Stage, settings: Settings) -> list[str]:
@@ -262,6 +295,7 @@ def _proposed_stage(settings: Settings, arch: str) -> Stage:
             *_pretrain_argv(settings, output_dir, arch),
             "--transformed-image-root", str(shift),
             "--transformed-manifest-path", str(shift / "tone_transform_manifest.json"),
+            "--transformed-data-revision", SHIFT_REVISION_TOKEN,
         ],
         done_when=output_dir / BACKBONE_FILE,
         note=f"proposed arm on {arch}: the original against its tone-shifted copy",
@@ -415,7 +449,12 @@ def _launch(stage: Stage, settings: Settings, state: dict, state_path: Path) -> 
         }
         state["stages"][stage.name] = entry
         _save_state(state_path, state)
-        print(f"[{stage.name}] intento {attempt}/{settings.max_retries}: {' '.join(argv)}")
+        # With the env prefix, because the bare command is NOT reproducible:
+        # copied without TORCH_HOME it reads an empty hub cache and both ranks
+        # race to download the same zip - the failure the warmup stage exists
+        # to prevent, reintroduced by whoever pastes the log line to debug.
+        print(f"[{stage.name}] intento {attempt}/{settings.max_retries}: "
+              f"{_reproducible_command(argv, settings)}")
 
         completed = subprocess.run(
             argv, cwd=str(settings.repo), env=stage_environment(settings)
@@ -429,7 +468,8 @@ def _launch(stage: Stage, settings: Settings, state: dict, state_path: Path) -> 
             return True
         print(f"[{stage.name}] salio con codigo {completed.returncode}")
         print(f"[{stage.name}] el motivo esta en el stderr del subproceso; si el log "
-              f"no lo trae, relanza con 2>&1 o repite el comando de arriba a mano")
+              f"no lo trae, relanza con 2>&1. El comando de arriba incluye su "
+              f"entorno: copialo entero, sin las variables no es reproducible")
     return False
 
 
