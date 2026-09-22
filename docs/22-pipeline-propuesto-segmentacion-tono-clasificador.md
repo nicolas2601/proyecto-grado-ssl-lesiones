@@ -43,7 +43,9 @@ pool sin etiquetas (58 457 imagenes: HAM10000, ISIC 2019 sin HAM, ISIC 2020)
 Restricciones que gobiernan el diseno:
 
 - Ninguna mascara ni etiqueta de diagnostico entra al entrenamiento de [1]
-  ni de [4]. Las mascaras de referencia (ISIC 2018 Task 1, HAM10000) y las
+  ni de [4]. El pool de preentrenamiento es HAM10000, ISIC 2019 e ISIC 2020;
+  **ISIC 2018 no entra**, y por eso sirve como conjunto de evaluacion externa.
+  Las mascaras de referencia (ISIC 2018 Task 1, HAM10000) y las
   etiquetas `dx` de HAM10000 solo se usan para evaluar.
 - Todo se ejecuta en el pod UNABIA (dos RTX PRO 4000 de 24 GB) con el
   procedimiento de `plan-segmentacion/RUNBOOK_CLUSTER.md`.

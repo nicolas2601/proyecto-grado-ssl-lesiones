@@ -33,6 +33,13 @@ Ninguna mascara de referencia ni etiqueta de diagnostico entra al
 entrenamiento. Las mascaras de ISIC 2018 y HAM10000 y las etiquetas `dx`
 solo se usan para evaluar.
 
+**ISIC 2018 NO forma parte del pool de entrenamiento.** El preentrenamiento
+usa exclusivamente HAM10000, ISIC 2019 e ISIC 2020. ISIC 2018 entra solo
+como **conjunto de evaluacion externa** de la segmentacion, y esa es su
+razon de ser: HAM10000 esta dentro del pool, asi que medir sobre el es
+medir en distribucion. ISIC 2018 es el unico conjunto con mascaras que el
+modelo nunca vio, y por eso es el que responde si el metodo generaliza.
+
 | Etapa | Que produce | Estado |
 |---|---|---|
 | Segmentacion (camino B) | Pseudo-mascara por imagen | Cerrada |
@@ -61,10 +68,15 @@ Commit `d81a492`, preset `cluster-final`. MoCo v2 sobre el pool, saliencia
 CCAM, modulo de incertidumbre y U-Net estudiante con re-etiquetado en tres
 rondas.
 
-| Conjunto | n | Dice medio [IC 95 %] | Dice mediana | IoU | HD95 mediana |
-|---|---|---|---|---|---|
-| ISIC 2018 | 2 594 | 0,718 [0,709, 0,726] | 0,792 | 0,602 | 13,6 px |
-| HAM10000 | 10 015 | 0,785 [0,781, 0,788] | 0,852 | 0,678 | 12,6 px |
+| Conjunto | Papel | n | Dice medio [IC 95 %] | Dice mediana | IoU | HD95 mediana |
+|---|---|---|---|---|---|---|
+| ISIC 2018 | **externo**, fuera del pool | 2 594 | 0,718 [0,709, 0,726] | 0,792 | 0,602 | 13,6 px |
+| HAM10000 | en distribucion, dentro del pool | 10 015 | 0,785 [0,781, 0,788] | 0,852 | 0,678 | 12,6 px |
+
+El Dice mas alto en HAM10000 no significa que el metodo funcione mejor ahi
+en sentido util: significa que HAM10000 esta dentro del pool sobre el que se
+entreno sin etiquetas. La cifra que habla de generalizacion es la de ISIC
+2018, que es mas baja y es la honesta.
 
 Contra los pisos sin aprendizaje (normalizacion de color y Otsu dentro del
 campo del dermatoscopio), pareado por imagen:
