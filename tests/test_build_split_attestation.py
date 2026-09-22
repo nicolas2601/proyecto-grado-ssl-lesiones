@@ -125,3 +125,39 @@ def test_an_empty_tone_directory_is_refused(tmp_path, monkeypatch):
     ])
     with pytest.raises(SystemExit, match="run.json"):
         att.main()
+
+
+# ------------------------------------------------- the third state has a name
+def test_two_nulls_are_neither_agreement_nor_disagreement():
+    """Absence of evidence, said with those words."""
+    arms = {"a": _run(code_revision=None), "b": _run(code_revision=None)}
+    assert att.same_code_verdict(arms) == att.SAME_CODE_UNKNOWABLE
+
+
+def test_matching_revisions_say_so():
+    arms = {"a": _run(code_revision="91d9d7e"), "b": _run(code_revision="91d9d7e")}
+    assert att.same_code_verdict(arms) == "si"
+
+
+def test_different_revisions_say_so():
+    arms = {"a": _run(code_revision="91d9d7e"), "b": _run(code_revision="301046f")}
+    assert att.same_code_verdict(arms) == "no"
+
+
+def test_one_known_and_one_missing_is_not_a_match():
+    """The dangerous middle: a known revision must not carry the unknown one."""
+    arms = {"a": _run(code_revision="91d9d7e"), "b": _run(code_revision=None)}
+    assert att.same_code_verdict(arms) == att.SAME_CODE_UNKNOWABLE
+
+
+def test_a_single_arm_cannot_be_compared_with_itself():
+    assert att.same_code_verdict({"a": _run()}) == att.SAME_CODE_UNKNOWABLE
+
+
+def test_the_attestation_explains_what_unknowable_does_not_mean():
+    result = att.build({"a": _run(code_revision=None), "b": _run(code_revision=None)},
+                       POOL_HASH, POOL_COUNT)
+    assert result["mismo_codigo_entre_brazos"] == att.SAME_CODE_UNKNOWABLE
+    note = result["sobre_el_codigo"]
+    assert "NO significa que" in note, "debe negar la lectura de 'codigo distinto'"
+    assert "por fuera" in note, "debe decir que la garantia se sostiene fuera del artefacto"

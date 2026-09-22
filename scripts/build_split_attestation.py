@@ -48,6 +48,29 @@ def gaps_for(arm: str, run: dict) -> list[str]:
     return found
 
 
+SAME_CODE_UNKNOWABLE = "no se puede saber"
+
+
+def same_code_verdict(arms: dict[str, dict]) -> str:
+    """Whether the arms can be shown to have run the same code.
+
+    Three states, and the third one has to say what it says. Two arms with
+    `code_revision: null` are not an agreement and not a disagreement - they
+    are an absence of evidence, and a verdict of `false` would be read as
+    "different" while `unknown` would be read as "not checked yet". Neither
+    is true. The arms compared here were launched from the same checkout;
+    that is knowledge from outside the artefacts, and it belongs in the
+    prose, not in a field that looks like it was measured.
+    """
+    revisions = {arm: run.get("code_revision") for arm, run in arms.items()}
+    known = {arm: rev for arm, rev in revisions.items() if rev}
+    if len(known) < 2:
+        return SAME_CODE_UNKNOWABLE
+    if len(known) < len(revisions):
+        return SAME_CODE_UNKNOWABLE
+    return "si" if len(set(known.values())) == 1 else "no"
+
+
 def build(arms: dict[str, dict], pool_hash: str, pool_count: int) -> dict:
     """The attestation: the gaps, the later check, and what it cannot settle."""
     per_arm = {}
@@ -69,6 +92,7 @@ def build(arms: dict[str, dict], pool_hash: str, pool_count: int) -> dict:
     ]
     return {
         "fecha": date.today().isoformat(),
+        "mismo_codigo_entre_brazos": same_code_verdict(arms),
         "pool_split_hash_recalculado": pool_hash,
         "pool_imagenes": pool_count,
         "brazos": per_arm,
@@ -77,6 +101,13 @@ def build(arms: dict[str, dict], pool_hash: str, pool_count: int) -> dict:
             f"Los brazos {corroborated or 'ninguno'} declararon el mismo "
             "dataset_image_count, lo que es consistente con haber entrenado sobre "
             "este mismo pool."
+        ),
+        "sobre_el_codigo": (
+            "Un veredicto de 'no se puede saber' significa que al menos un brazo "
+            "no registro con que version del codigo entreno. NO significa que "
+            "corrieran codigo distinto, ni que la comparacion no sirva: significa "
+            "que esa garantia no sale del artefacto y tiene que sostenerse por "
+            "fuera, diciendo como."
         ),
         "que_NO_prueba": (
             "Que el pool fuera identico durante el entrenamiento de los brazos con "
