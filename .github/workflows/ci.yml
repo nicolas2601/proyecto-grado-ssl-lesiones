@@ -70,13 +70,13 @@ jobs:
       - name: Run the suite with every optional dependency present
         env:
           CI_REQUIRE_FULL_DEPS: "1"
-        run: pytest -q -rs --strict-markers
+        run: pytest -q -rs --strict-markers -n 2 --dist loadfile
 
       - name: Fail if any test was skipped for a missing dependency
         env:
           CI_REQUIRE_FULL_DEPS: "1"
         run: |
-          pytest -q -rs --strict-markers 2>&1 | tee /tmp/pytest.log
+          pytest -q -rs --strict-markers -n 2 --dist loadfile 2>&1 | tee /tmp/pytest.log
           if grep -qi "could not import" /tmp/pytest.log; then
             echo "::error::a test module was skipped for a missing import"
             grep -i "could not import" /tmp/pytest.log

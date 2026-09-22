@@ -12,6 +12,11 @@
 # written here on purpose: a hard-coded number goes stale the moment a test is
 # added, and tests/test_ci_workflow.py fails if one reappears.
 pytest>=8.0
+# Runs each test FILE in its own worker process (--dist loadfile). The suite
+# loads torch, scikit-learn, scikit-image and scipy; accumulating all of them
+# in one interpreter segfaults the run (exit 139), which reads as a CI failure
+# with no failing test to point at.
+pytest-xdist>=3.5
 numpy>=1.26
 pandas>=2.0
 scikit-learn>=1.5
