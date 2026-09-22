@@ -84,6 +84,31 @@ Prueba de sanidad: `dinov2_public` con `logreg` al 100 % de etiquetas debe dar
 **0,583** de macro-F1. Si se aleja mas de 0,02, la medicion cambio y las
 cifras no son comparables.
 
+## 3.1 Comprobacion rapida, sin escribir codigo
+
+`scripts/try_model.py` carga un checkpoint publicado, verifica que encaje con
+la arquitectura y que quede congelado, y o bien imprime el vector de una
+imagen o bien entrena un probe lineal sobre una muestra de HAM10000 y reporta
+las metricas. Corre en CPU.
+
+```bash
+# 1. el checkpoint se carga y produce features
+python scripts/try_model.py --backbone simsiam_dinov2_backbone_final.pt --image lesion.jpg
+
+# 2. el checkpoint sirve para clasificar
+python scripts/try_model.py --backbone simsiam_dinov2_backbone_final.pt \
+    --ham-root /datos/ham10000 --limit 400
+
+# 3. comparar contra el publico sin adaptar
+python scripts/try_model.py --backbone public --ham-root /datos/ham10000 --limit 400
+```
+
+Si el checkpoint pertenece a otra arquitectura el script lo dice y termina,
+en vez de cargar pesos a medias y devolver numeros sin sentido. Las cifras de
+esta comprobacion NO son las del informe: usan una muestra chica y una
+particion aleatoria simple, no la particion por `lesion_id`. Sirven para
+confirmar que el archivo funciona, no para citar.
+
 ## 4. Para que sirve y para que no
 
 Sirve como **extractor de caracteristicas congelado** para clasificacion de
