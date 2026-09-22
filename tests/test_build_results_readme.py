@@ -131,3 +131,61 @@ def test_check_mode_passes_once_the_document_was_generated(tmp_path, monkeypatch
         "--readme", str(readme), "--check",
     ])
     gen.main()  # no SystemExit
+
+
+# ------------------------------------------------- the equal-compute picture
+def _arm_run(mode="two_view_ssl", steps=6286, samples=804608, budget=12.0):
+    return {
+        "adaptation_mode": mode, "budget_gpu_hours": budget,
+        "execution": {"steps_executed": steps, "samples_processed": samples},
+    }
+
+
+def _tone(tmp_path, arms):
+    tone = tmp_path / "tone"
+    for name, run in arms.items():
+        (tone / name).mkdir(parents=True)
+        (tone / name / "run.json").write_text(json.dumps(run), encoding="utf-8")
+    return tone
+
+
+def test_the_training_table_shows_budget_and_samples_together(tmp_path):
+    runs = {"ssl_plain_vits14": _arm_run()}
+    row = [l for l in gen.training_table(runs) if l.startswith("| `")][0]
+    assert "12,0" in row, "el presupuesto en horas-GPU"
+    assert "804.608" in row, "y las muestras, en la misma fila"
+    assert "6.286" in row
+
+
+def test_the_paired_arm_shows_it_processed_fewer_samples(tmp_path):
+    runs = {
+        "ssl_plain_vits14": _arm_run(steps=6286, samples=804608),
+        "ssl_proposed_vits14": _arm_run(
+            mode="original_transformed_consistency", steps=3100, samples=396800
+        ),
+    }
+    joined = "\n".join(gen.training_table(runs))
+    assert "396.800" in joined
+    assert "menos muestras que su" in joined, "la asimetria debe quedar explicada"
+
+
+def test_the_samples_per_step_is_derived_not_transcribed():
+    runs = {"x": _arm_run(steps=100, samples=12800)}
+    row = [l for l in gen.training_table(runs) if l.startswith("| `")][0]
+    assert "128,0" in row
+
+
+def test_an_arm_without_execution_data_renders_dashes():
+    row = [l for l in gen.training_table({"x": {"adaptation_mode": "two_view_ssl"}})
+           if l.startswith("| `")][0]
+    assert row.count("| - |") >= 1
+
+
+def test_no_runs_yet_says_pending():
+    assert "Pendiente" in gen.training_table({})[0]
+
+
+def test_only_arms_with_a_manifest_are_read(tmp_path):
+    tone = _tone(tmp_path, {"ssl_plain_vits14": _arm_run()})
+    (tone / "ssl_proposed_vits14").mkdir()          # started, not finished
+    assert set(gen.read_runs(tone)) == {"ssl_plain_vits14"}

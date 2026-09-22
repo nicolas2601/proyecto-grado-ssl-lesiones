@@ -21,6 +21,8 @@ from pathlib import Path
 
 BEGIN = "<!-- TABLA-CLASIFICACION:INICIO -->"
 END = "<!-- TABLA-CLASIFICACION:FIN -->"
+TRAINING_BEGIN = "<!-- TABLA-ENTRENAMIENTO:INICIO -->"
+TRAINING_END = "<!-- TABLA-ENTRENAMIENTO:FIN -->"
 HEADLINE_PROBE = "logreg"
 FULL_FRACTION = 1.0
 
@@ -31,6 +33,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--bank", type=Path, required=True, help="Directory holding bank.json and strata.json")
     parser.add_argument("--readme", type=Path, required=True, help="Markdown file with the markers")
+    parser.add_argument("--runs", type=Path, help="salidas/tone directory, for the training table")
     parser.add_argument("--check", action="store_true", help="Fail instead of writing when the file would change")
     return parser.parse_args(argv)
 
@@ -106,6 +109,60 @@ def strata_table(strata: dict) -> list[str]:
     return lines
 
 
+def _int(value) -> str:
+    if value is None:
+        return "-"
+    return f"{int(value):,}".replace(",", ".")
+
+
+def training_table(runs: dict[str, dict]) -> list[str]:
+    """Budget, steps and samples per arm - the equal-compute picture.
+
+    The paired arm reads two images per step, so at the same GPU-hour budget
+    it processes fewer samples than its own control. Reporting only the
+    budget hides that; reporting only the samples makes the comparison look
+    unfair. Both columns, side by side, and the reader can see the trade.
+    """
+    if not runs:
+        return ["_Pendiente: se genera desde los `run.json` de los brazos._"]
+    lines = [
+        "| Brazo | Modo | Presupuesto (h-GPU) | Pasos | Muestras | Muestras/paso |",
+        "|---|---|---|---|---|---|",
+    ]
+    for arm in sorted(runs):
+        run = runs[arm]
+        execution = run.get("execution") or {}
+        steps = execution.get("steps_executed")
+        samples = execution.get("samples_processed")
+        ratio = _fmt(samples / steps, 1) if steps and samples else "-"
+        lines.append(
+            f"| `{arm}` | {run.get('adaptation_mode') or '-'} | "
+            f"{_fmt(run.get('budget_gpu_hours'), 1)} | {_int(steps)} | "
+            f"{_int(samples)} | {ratio} |"
+        )
+    lines += [
+        "",
+        "El presupuesto es en **horas-GPU**, no en epocas ni en muestras. Los",
+        "brazos pareados leen la imagen original y su copia con el tono",
+        "desplazado, asi que **a igual presupuesto procesan menos muestras que su",
+        "propio control**. Esa es la comparacion que declara la tesis; su limite,",
+        "en las dos direcciones, esta en la seccion 7.",
+    ]
+    return lines
+
+
+def read_runs(tone: Path) -> dict[str, dict]:
+    """The run.json of every arm that already finished."""
+    runs = {}
+    for manifest in sorted(tone.glob("*/run.json")):
+        runs[manifest.parent.name] = json.loads(manifest.read_text(encoding="utf-8"))
+    return runs
+
+
+def render_training(runs: dict[str, dict]) -> str:
+    return "\n".join([TRAINING_BEGIN, "", *training_table(runs), "", TRAINING_END])
+
+
 def render(bank: dict, strata: dict) -> str:
     lines = [
         BEGIN,
@@ -126,12 +183,12 @@ def render(bank: dict, strata: dict) -> str:
     return "\n".join(lines)
 
 
-def replace_block(markdown: str, block: str) -> str:
-    start = markdown.find(BEGIN)
-    end = markdown.find(END)
+def replace_block(markdown: str, block: str, begin: str = BEGIN, end_marker: str = END) -> str:
+    start = markdown.find(begin)
+    end = markdown.find(end_marker)
     if start == -1 or end == -1:
-        raise SystemExit(f"faltan los marcadores {BEGIN} / {END} en el documento")
-    return markdown[:start] + block + markdown[end + len(END):]
+        raise SystemExit(f"faltan los marcadores {begin} / {end_marker} en el documento")
+    return markdown[:start] + block + markdown[end + len(end_marker):]
 
 
 def main() -> None:
@@ -142,6 +199,10 @@ def main() -> None:
 
     current = args.readme.read_text(encoding="utf-8")
     updated = replace_block(current, render(bank, strata))
+    if args.runs:
+        updated = replace_block(
+            updated, render_training(read_runs(args.runs)), TRAINING_BEGIN, TRAINING_END
+        )
 
     if args.check:
         if current != updated:

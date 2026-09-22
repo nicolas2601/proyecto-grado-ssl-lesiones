@@ -45,6 +45,14 @@ solo se usan para evaluar.
      2026-09-22. Hasta entonces las cifras que aparecen son de la corrida
      preliminar de 4 horas-GPU y estan marcadas como tales. -->
 
+### Lo que consumio cada brazo
+
+<!-- TABLA-ENTRENAMIENTO:INICIO -->
+
+_Pendiente: se genera desde los `run.json` de los brazos._
+
+<!-- TABLA-ENTRENAMIENTO:FIN -->
+
 ---
 
 ## 2. Segmentacion sin mascaras ni etiquetas
