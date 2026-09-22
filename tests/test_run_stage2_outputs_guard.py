@@ -89,3 +89,50 @@ def test_run_refuses_before_launching_anything(tmp_path, monkeypatch):
     with pytest.raises(SystemExit):
         run_stage2.run(settings)
     assert launched == [], "se lanzo una etapa pese al arbol inconsistente"
+
+
+# ------------------------------------------------- existence is not correspondence
+def test_a_subdirectory_of_the_real_root_is_refused(tmp_path):
+    """The mistake that cost the morning: --outputs .../salidas/tone.
+
+    That directory exists, so an existence check waves it through. Every
+    path then becomes salidas/tone/tone/..., every stage reads as pending,
+    and the run retrains twenty-four GPU-hours looking completely normal.
+    """
+    settings = _settings(tmp_path)
+    tone = settings.outputs / "tone"
+    for child in ("inputs", "shift2", "ssl_plain_vits14"):
+        (tone / child).mkdir(parents=True)
+
+    wrong = run_stage2.Settings(
+        repo=settings.repo, outputs=tone, python="python", ham_root=settings.ham_root,
+    )
+    with pytest.raises(SystemExit, match="no parece la raiz"):
+        run_stage2.check_outputs_tree(wrong, {"stages": {}})
+
+
+def test_the_real_root_is_accepted(tmp_path):
+    settings = _settings(tmp_path)
+    (settings.outputs / "tone").mkdir(parents=True)
+    run_stage2.check_outputs_tree(settings, {"stages": {}})   # no levanta
+
+
+def test_an_empty_directory_is_accepted_as_a_fresh_run(tmp_path):
+    settings = _settings(tmp_path)
+    settings.outputs.mkdir(parents=True)
+    run_stage2.check_outputs_tree(settings, {"stages": {}})   # no levanta
+
+
+def test_a_root_with_only_the_state_file_is_accepted(tmp_path):
+    settings = _settings(tmp_path)
+    settings.outputs.mkdir(parents=True)
+    (settings.outputs / run_stage2.STATE_FILE).write_text("{}", encoding="utf-8")
+    run_stage2.check_outputs_tree(settings, {"stages": {}})
+
+
+def test_the_message_names_what_it_found_instead(tmp_path):
+    settings = _settings(tmp_path)
+    (settings.outputs / "inputs").mkdir(parents=True)
+    with pytest.raises(SystemExit) as excinfo:
+        run_stage2.check_outputs_tree(settings, {"stages": {}})
+    assert "inputs" in str(excinfo.value), "debe decir que encontro, no solo que falta"

@@ -478,6 +478,37 @@ def _launch(stage: Stage, settings: Settings, state: dict, state_path: Path) -> 
     return False
 
 
+# What a real outputs root holds. Passing salidas/tone instead of salidas is
+# the mistake this catches: that directory exists, so an existence check waves
+# it through, and every path becomes salidas/tone/tone/... - every stage reads
+# as pending and the run retrains everything with an air of normality.
+PIPELINE_ENTRIES = ("tone", "final", "scratch", STATE_FILE)
+
+
+def _check_looks_like_a_pipeline_root(settings: Settings) -> None:
+    """Existence is not correspondence.
+
+    A wrong path that happens to exist passes an existence check. This asks
+    the stronger question - does this directory look like the root of this
+    pipeline - which a subdirectory of it does not.
+    """
+    if not settings.outputs.is_dir():
+        return
+    present = {entry.name for entry in settings.outputs.iterdir()}
+    if not present:
+        return
+    if present & set(PIPELINE_ENTRIES):
+        return
+    raise SystemExit(
+        f"{settings.outputs} no parece la raiz de salidas del pipeline: no "
+        f"contiene ninguno de {list(PIPELINE_ENTRIES)}, y si contiene "
+        f"{sorted(present)[:4]}.\n"
+        "Si apuntaste a un subdirectorio (por ejemplo .../salidas/tone en vez "
+        "de .../salidas), todas las etapas van a leerse como pendientes y la "
+        "corrida reentrenaria todo."
+    )
+
+
 def check_outputs_tree(settings: Settings, state: dict) -> None:
     """Refuse to run when the outputs tree is not the one that holds the work.
 
@@ -487,6 +518,7 @@ def check_outputs_tree(settings: Settings, state: dict) -> None:
     indistinguishable from the inside; the state file is what tells them
     apart, because it lists stages that did finish.
     """
+    _check_looks_like_a_pipeline_root(settings)
     if not settings.outputs.exists():
         raise SystemExit(
             f"no existe el directorio de salidas: {settings.outputs}\n"
