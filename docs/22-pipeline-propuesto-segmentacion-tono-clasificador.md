@@ -241,9 +241,14 @@ comparacion valida es la interna entre sus tres backbones.
 3. **Desplazamiento de tono variable por imagen.** Hoy es fijo en dos niveles
    hacia el oscuro; Corbin y Marques 2023 usan hasta dos niveles con signo
    aleatorio, que expone al modelo a las dos direcciones.
-4. **Peso de la consistencia.** `--consistency-weight` existe y nunca se
-   exploro: con el defecto del doble corregido, barrer ese valor es un
-   experimento barato.
+4. **Un objetivo con dos terminos de verdad.** Hoy el brazo propuesto usa una
+   sola perdida: SimSiam entre la original y su copia con tono desplazado. Eso
+   ensena invarianza al tono, pero mezcla en el mismo termino la invarianza a
+   la augmentacion. Un objetivo con tres vistas — dos augmentaciones de la
+   original mas la transformada — separaria las dos senales y recien ahi
+   `--consistency-weight` seria una palanca real. Con el diseno actual ese
+   flag apenas mueve nada: escala la perdida entera y AdamW es casi invariante
+   a la escala, asi que barrerlo no es el experimento barato que parece.
 5. **Pseudo-mascaras de la ronda 3.** Las usadas son las de la ronda 2; el
    estudiante final no exporta predicciones sobre el pool. Exportarlas es
    trabajo mecanico y mejora la entrada de todo lo demas.
