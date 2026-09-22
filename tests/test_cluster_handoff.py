@@ -61,6 +61,14 @@ def test_the_clone_url_is_the_one_this_repo_actually_lives_at():
 
     remote = subprocess.run(["git", "remote", "get-url", "origin"],
                             capture_output=True, text=True, cwd=REPO).stdout.strip()
+    if "github.com" not in remote:
+        # On the pod, origin is a git bundle: the transport we chose instead
+        # of putting a GitHub credential on a shared cluster. There is no
+        # slug to compare against and there never will be, so asserting here
+        # would report a defect in a checkout that is exactly as intended.
+        # Where origin IS GitHub - a laptop, CI - the check still runs.
+        pytest.skip(f"origin no es un remoto de GitHub ({remote!r}): "
+                    "no hay slug contra el cual comparar")
     slug = re.sub(r"^.*github\.com[:/]|\.git$", "", remote)
     assert "/" in slug, f"cannot read a github slug from {remote!r}"
 
