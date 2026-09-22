@@ -1,0 +1,22 @@
+ISIC2018 evaluadas: 2594
+ISIC2018 con tercil de tono (dentro del pool): 722
+
+=== Composicion: % de cada banda de ref_coverage dentro de cada tercil ===
+tercil       n      [0.00,0.10)    [0.10,0.25)    [0.25,0.60)    [0.60,1.01)
+light      260            12.7%          37.3%          43.5%           6.5%
+medium     304            14.5%          36.8%          40.1%           8.6%
+dark       158            19.0%          36.1%          28.5%          16.5%
+
+=== Dice por tercil DENTRO de cada banda de tamano ===
+(se omite una celda con menos de 30 imagenes)
+banda                          light              medium                dark      gap
+[0.00,0.10)            0.7950 (n=33)       0.7526 (n=44)       0.7934 (n=30)  +0.0424
+[0.10,0.25)            0.8742 (n=97)      0.8647 (n=112)       0.8533 (n=57)  +0.0209
+[0.25,0.60)           0.8166 (n=113)      0.8026 (n=122)       0.7143 (n=45)  +0.1023
+[0.60,1.01)                -- (n=17)           -- (n=26)           -- (n=26)  --
+
+=== Global sobre las mismas imagenes, para comparar ===
+  light    n=  260 Dice 0.8205
+  medium   n=  304 Dice 0.8024
+  dark     n=  158 Dice 0.7651
+  gap global (claro - oscuro): +0.0554
