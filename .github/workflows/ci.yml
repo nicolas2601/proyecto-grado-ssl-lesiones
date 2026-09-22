@@ -35,6 +35,11 @@ jobs:
   tests:
     name: pytest (py${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    # The per-test deadline does not cover collection, and a module that
+    # blocks while being imported hangs before any test owns the clock. This
+    # is the outer bound that holds whatever the cause: the job dies, the log
+    # becomes readable, and the runner stops burning.
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
