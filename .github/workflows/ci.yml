@@ -85,7 +85,7 @@ jobs:
           # 83 percent"; with the fault handler the SIGSEGV dumps the Python
           # stack and the C frames, so it says which test and which extension.
           PYTHONFAULTHANDLER: "1"
-        run: pytest -q -rs --strict-markers -n 2 --dist loadfile --max-worker-restart 0 -p no:randomly
+        run: pytest -q -rs --strict-markers --strict-config -n 2 --dist loadfile --max-worker-restart 0 -p no:randomly
 
       - name: Fail if any test was skipped for a missing dependency
         env:

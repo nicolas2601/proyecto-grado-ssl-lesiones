@@ -55,16 +55,30 @@ def _collect() -> tuple[int, int]:
     return len(files), tests
 
 
+def collection_summary(files: int, on_disk: int, tests: int) -> str:
+    """The one line that would have shown the pod's missing file."""
+    gap = "" if files >= on_disk else "  <-- FALTAN ARCHIVOS"
+    return f"[recoleccion] {files}/{on_disk} archivos, {tests} tests{gap}"
+
+
 def _files_on_disk() -> int:
     return len(list((REPO / "tests").glob("test_*.py")))
 
 
-def test_the_suite_still_collects_what_it_claims():
+def test_the_suite_still_collects_what_it_claims(capsys):
     files, tests = _collect()
+    on_disk = _files_on_disk()
     full_env = os.environ.get("CI_REQUIRE_FULL_DEPS") == "1"
 
+    # Always print the ratio, in every environment. On the pod the suite
+    # collected 92 of 93 files and reported green: the missing one was the
+    # test that verifies the deadline, absent precisely because the deadline
+    # plugin was absent. A printed 92/93 would have said so on the first
+    # line. A number nobody prints is a number nobody checks.
+    with capsys.disabled():
+        print("\n" + collection_summary(files, on_disk, tests))
+
     if full_env:
-        on_disk = _files_on_disk()
         assert files >= on_disk, (
             f"hay {on_disk} archivos de test en disco y solo {files} se "
             "recolectaron, con todas las dependencias presentes. Los que "
@@ -79,3 +93,17 @@ def test_the_suite_still_collects_what_it_claims():
     assert tests >= floor, (
         f"se recolectaron {tests} tests, el piso es {floor}. "
         "Una corrida verde con menos tests no es una corrida verde.")
+
+
+def test_the_summary_flags_a_missing_file():
+    """92/93 on the pod, and nothing said so."""
+    assert "FALTAN ARCHIVOS" in collection_summary(92, 93, 1345)
+
+
+def test_the_summary_is_quiet_when_nothing_is_missing():
+    assert "FALTAN" not in collection_summary(93, 93, 1409)
+
+
+def test_the_summary_carries_both_numbers():
+    line = collection_summary(92, 93, 1345)
+    assert "92/93" in line and "1345" in line
