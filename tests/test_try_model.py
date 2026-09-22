@@ -87,6 +87,8 @@ def test_the_preprocessing_matches_the_bank(monkeypatch):
 def test_parse_args_requires_a_backbone():
     args = try_model.parse_args(["--backbone", "public", "--image", "/x.png"])
     assert args.backbone == "public"
-    assert args.arch == "dinov2_vits14"
+    # Unset means "deduce it from the manifest next to the weights", not ViT-S:
+    # more than one architecture is published. See tests/test_try_model_arch.py.
+    assert args.arch is None
     with pytest.raises(SystemExit):
         try_model.parse_args([])

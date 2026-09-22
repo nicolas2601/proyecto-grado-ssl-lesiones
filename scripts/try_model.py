@@ -5,11 +5,14 @@ it is frozen and complete, extract features for a folder of labelled images,
 fit a linear probe and report the metrics. No GPU required - it runs on CPU,
 slower.
 
-    python scripts/try_model.py --backbone simsiam_dinov2_backbone_final.pt \\
+    python scripts/try_model.py --backbone ssl_proposed_dinov2_vitb14_backbone.pt \\
         --ham-root /data/ham10000 --limit 400
 
 With ``--image`` it instead prints the feature vector for a single file,
 which is the check to run first when a download is suspect.
+
+The architecture is read from the run.json published next to the checkpoint,
+so a ViT-B download does not have to be paired with a remembered flag.
 """
 
 from __future__ import annotations
@@ -33,7 +36,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--backbone", required=True,
                         help="Path to a published .pt, or the literal 'public' for the unadapted DINOv2")
-    parser.add_argument("--arch", default=ARCH, help="torch.hub name of the architecture")
+    parser.add_argument("--arch", default=None,
+                        help="torch.hub name of the architecture; deduced from the run.json "
+                             "next to the checkpoint when omitted")
     parser.add_argument("--image", type=Path, default=None,
                         help="Single image: print its feature vector and exit")
     parser.add_argument("--ham-root", type=Path, default=None,
@@ -43,6 +48,35 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--resolution", type=int, default=RESOLUTION)
     parser.add_argument("--device", default=None, help="cuda or cpu; autodetected when omitted")
     return parser.parse_args(argv)
+
+
+def manifest_beside(checkpoint: str) -> Path | None:
+    """The run.json published next to a checkpoint, in either release layout."""
+    path = Path(checkpoint)
+    candidates = [path.parent / "run.json"]
+    if path.name.endswith("_backbone.pt"):
+        arm = path.name[: -len("_backbone.pt")]
+        candidates.insert(0, path.parent / f"{arm}_run.json")
+    return next((c for c in candidates if c.is_file()), None)
+
+
+def resolve_arch(checkpoint: str, explicit: str | None) -> str:
+    """Prefer the architecture recorded with the weights over a fixed default.
+
+    More than one architecture is published, and the default used to be
+    ViT-S. Handed a ViT-B checkpoint it failed with a shape error that reads
+    like a corrupt download instead of a missing flag. The manifest travels
+    next to the weights precisely so nobody has to remember which is which.
+    """
+    if explicit:
+        return explicit
+    if checkpoint == "public":
+        return ARCH
+    manifest = manifest_beside(checkpoint)
+    if manifest is None:
+        return ARCH
+    recorded = json.loads(manifest.read_text(encoding="utf-8")).get("backbone")
+    return recorded or ARCH
 
 
 def load_backbone(path: str, arch: str, device):
@@ -161,8 +195,9 @@ def evaluate_probe(model, ham_root: Path, limit: int, resolution: int, device) -
 def main() -> None:
     args = parse_args()
     device = _resolve_device(args.device)
-    model = load_backbone(args.backbone, args.arch, device)
-    print(f"backbone cargado: {args.backbone} ({args.arch}) en {device}, congelado")
+    arch = resolve_arch(args.backbone, args.arch)
+    model = load_backbone(args.backbone, arch, device)
+    print(f"backbone cargado: {args.backbone} ({arch}) en {device}, congelado")
 
     if args.image is not None:
         print(json.dumps(describe_one(model, args.image, args.resolution, device), indent=2))
