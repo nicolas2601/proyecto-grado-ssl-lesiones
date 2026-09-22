@@ -43,7 +43,7 @@ def _args(tmp_path, **overrides):
 def test_every_stage_declares_the_artefact_that_proves_it_finished(tmp_path):
     stages = orch.build_stages(_args(tmp_path))
     assert [s.name for s in stages] == [
-        "export", "tone_pairs", "ssl_plain", "ssl_proposed", "bank"
+        "export", "tone_pairs", "warmup", "ssl_plain", "ssl_proposed", "bank"
     ]
     for stage in stages:
         assert stage.done_when, f"{stage.name} has no completion artefact"
@@ -69,7 +69,7 @@ def test_pending_stages_keep_their_order_and_drop_the_finished_ones(tmp_path):
         stage.done_when.write_text("{}", encoding="utf-8")
 
     pending = [s.name for s in orch.pending_stages(stages)]
-    assert pending == ["ssl_plain", "ssl_proposed", "bank"]
+    assert pending == ["warmup", "ssl_plain", "ssl_proposed", "bank"]
 
 
 def test_the_budget_and_the_checkpoint_cadence_reach_both_arms(tmp_path):
@@ -122,7 +122,7 @@ def test_a_dry_run_reports_every_stage_without_launching_anything(tmp_path, caps
     printed = capsys.readouterr().out
     assert result["dry_run"] is True
     assert result["launched"] == []
-    for name in ("export", "tone_pairs", "ssl_plain", "ssl_proposed", "bank"):
+    for name in ("export", "tone_pairs", "warmup", "ssl_plain", "ssl_proposed", "bank"):
         assert name in printed
 
 
@@ -223,7 +223,7 @@ def test_two_architectures_produce_four_pretraining_arms(tmp_path):
     settings = _args(tmp_path, archs=["dinov2_vits14", "dinov2_vitb14"])
     names = [s.name for s in orch.build_stages(settings)]
     assert names == [
-        "export", "tone_pairs",
+        "export", "tone_pairs", "warmup",
         "ssl_plain_vits14", "ssl_proposed_vits14",
         "ssl_plain_vitb14", "ssl_proposed_vitb14",
         "bank",
@@ -262,3 +262,28 @@ def test_only_accepts_an_architecture_suffixed_arm(tmp_path):
     settings = _args(tmp_path, archs=["dinov2_vits14", "dinov2_vitb14"], only="ssl_proposed_vitb14")
     stages = orch.build_stages(settings)
     assert [s.name for s in stages] == ["ssl_proposed_vitb14"]
+
+
+# ------------------------------------------- one process fills the hub cache
+def test_a_warmup_stage_precedes_the_first_arm(tmp_path):
+    names = [s.name for s in orch.build_stages(_args(tmp_path))]
+    assert names.index("warmup") < names.index("ssl_plain")
+    assert names[:3] == ["export", "tone_pairs", "warmup"]
+
+
+def test_the_warmup_downloads_every_architecture_in_a_single_process(tmp_path):
+    settings = _args(tmp_path, archs=["dinov2_vits14", "dinov2_vitb14"])
+    warmup = {s.name: s for s in orch.build_stages(settings)}["warmup"]
+    joined = " ".join(warmup.argv)
+
+    assert "torch.distributed.run" not in joined, "the warmup must not be distributed"
+    assert "dinov2_vits14" in joined and "dinov2_vitb14" in joined
+
+
+def test_the_warmup_is_marked_done_by_its_own_receipt(tmp_path):
+    warmup = {s.name: s for s in orch.build_stages(_args(tmp_path))}["warmup"]
+    assert warmup.done_when.name == "hub_warmup.json"
+    assert not orch.is_done(warmup)
+    warmup.done_when.parent.mkdir(parents=True, exist_ok=True)
+    warmup.done_when.write_text("{}", encoding="utf-8")
+    assert orch.is_done(warmup)
