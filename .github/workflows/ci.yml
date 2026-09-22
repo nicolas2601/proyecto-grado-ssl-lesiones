@@ -72,14 +72,22 @@ jobs:
       # failure. Without it a bare pytest hides tests/test_probes.py and
       # tests/test_notebook_metrics_binary.py - the binary-AUC fix among them -
       # and still reports green.
+      # WANDB_MODE=disabled because the hang was wandb: the run reached 96 %,
+      # stopped, and the job cleanup reported an orphan `wandb-core`. A test
+      # reached the tracking client, which forked a helper and blocked trying
+      # to talk to the network. Tests must never call out.
       - name: Run the suite with every optional dependency present
         env:
           CI_REQUIRE_FULL_DEPS: "1"
+          WANDB_MODE: disabled
+          WANDB_SILENT: "true"
         run: pytest -q -rs --strict-markers -n 2 --dist loadfile
 
       - name: Fail if any test was skipped for a missing dependency
         env:
           CI_REQUIRE_FULL_DEPS: "1"
+          WANDB_MODE: disabled
+          WANDB_SILENT: "true"
         run: |
           pytest -q -rs --strict-markers -n 2 --dist loadfile 2>&1 | tee /tmp/pytest.log
           if grep -qi "could not import" /tmp/pytest.log; then
