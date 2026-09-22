@@ -124,6 +124,21 @@ def _tone_pairs_stage(settings: Settings) -> Stage:
     )
 
 
+def _warmup_stage(settings: Settings) -> Stage:
+    receipt = settings.outputs / "scratch" / "hub_warmup.json"
+    return Stage(
+        name="warmup",
+        argv=[
+            settings.python,
+            _script(settings, "scripts", "warm_hub_cache.py"),
+            "--archs", *settings.archs,
+            "--receipt", str(receipt),
+        ],
+        done_when=receipt,
+        note="fill the torch.hub cache from one process, before any distributed arm",
+    )
+
+
 def _pretrain_argv(settings: Settings, output_dir: Path, arch: str) -> list[str]:
     return [
         settings.python, "-m", "torch.distributed.run",
@@ -215,7 +230,7 @@ def _bank_stage(settings: Settings) -> Stage:
 
 def all_stages(settings: Settings) -> list[Stage]:
     """Export, the tone pairs, both arms of every architecture, and the bank."""
-    stages = [_export_stage(settings), _tone_pairs_stage(settings)]
+    stages = [_export_stage(settings), _tone_pairs_stage(settings), _warmup_stage(settings)]
     for arch in settings.archs:
         stages.append(_plain_stage(settings, arch))
         stages.append(_proposed_stage(settings, arch))
