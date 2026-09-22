@@ -53,6 +53,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      # torch and wandb are not in requirements-dev because a GPU wheel has no
+      # business in a test image, but fifteen tests import torch and one imports
+      # wandb. Without them CI_REQUIRE_FULL_DEPS turns those into failures - the
+      # check working as designed, on dependencies nobody had installed. The CPU
+      # wheel is ~200 MB instead of ~2.5 GB and runs the same assertions.
+      - name: Install the CPU-only torch and the tracking client
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          pip install wandb
+
       # CI_REQUIRE_FULL_DEPS turns "module skipped, no scikit-learn" into a
       # failure. Without it a bare pytest hides tests/test_probes.py and
       # tests/test_notebook_metrics_binary.py - the binary-AUC fix among them -

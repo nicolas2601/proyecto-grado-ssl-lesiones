@@ -10,7 +10,6 @@ established.
 """
 
 import numpy as np
-import pytest
 
 from dermssl.metrics import bootstrap_interval, stratified_by_label
 
