@@ -201,6 +201,18 @@ De la corrida preliminar, y a confirmar con la definitiva:
   todos, que es la firma de inestabilidad por tamano de muestra. La corrida
   definitiva incorpora **intervalos de confianza por estrato** y un campo
   `gap_established` que dice si los extremos estan realmente separados.
+- **Que el metodo propuesto sea mejor *como objetivo*, separado de su costo.**
+  El brazo pareado lee dos imagenes por paso, asi que **al mismo presupuesto
+  de horas-GPU procesa menos muestras que su propio control**. Esa es la
+  comparacion que la tesis declara y la que le importa a quien tiene una GPU
+  y un plazo: a igual computo, cual conviene. Pero tiene un limite que hay
+  que decir en voz alta y en las dos direcciones. Si el propuesto **gana**,
+  gana habiendo visto menos datos, y el resultado es mas fuerte de lo que
+  parece. Si **pierde**, no se puede concluir que el emparejado por tono sea
+  peor: puede estar perdiendo por haber visto menos muestras, no por el
+  objetivo. Distinguir las dos cosas exige una corrida adicional a igual
+  numero de muestras, que no se hizo. Por eso las tablas reportan pasos y
+  muestras de cada brazo, y no solo el presupuesto.
 - **Nada sobre fototipos altos reales.** El pool es mayoritariamente piel
   clara. Sin datos externos no hay base para afirmar comportamiento en piel
   oscura en sentido clinico.
