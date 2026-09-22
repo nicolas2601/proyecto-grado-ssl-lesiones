@@ -703,8 +703,32 @@ $HOME/work/proyectonp/.venv/bin/python scripts/run_stage2.py \
 ```
 
 `--dry-run` imprime que falta y con que comando, sin lanzar nada: correrlo
-primero siempre. Quitarlo para ejecutar. `--only <etapa>` corre una sola
-(`export`, `tone_pairs`, `ssl_plain`, `ssl_proposed`, `bank`).
+primero siempre. Quitarlo para ejecutar. `--only <etapa>` corre una sola.
+
+### Las dos arquitecturas
+
+`--archs dinov2_vits14 dinov2_vitb14` genera cuatro brazos de
+preentrenamiento — control y propuesto para cada tamano — y un banco con seis
+backbones: cada arquitectura entra con sus pesos publicos sin adaptar, su
+control y su propuesto. Comparar un ViT-S adaptado contra un ViT-B publico
+confundiria la adaptacion con la capacidad, asi que cada tamano trae su
+propia linea base a la misma tabla.
+
+El presupuesto es en horas-GPU, no en epocas: a igual presupuesto el backbone
+grande ve menos muestras. Esa es la comparacion a igual computo que declara
+la tesis, no un descuido.
+
+```bash
+$HOME/work/proyectonp/.venv/bin/python scripts/run_stage2.py \
+    --repo . --outputs $HOME/work/proyectonp/salidas \
+    --ham-root /home/jovyan/work/datos/ham10000 \
+    --archs dinov2_vits14 dinov2_vitb14 \
+    --budget-gpu-hours 12 --dry-run
+```
+
+Con cuatro brazos de 12 horas-GPU son 48 horas-GPU, unas 24 horas de reloj
+con dos tarjetas, mas el banco. Las etapas terminadas se saltan, asi que se
+puede cortar y retomar cuantas veces haga falta.
 
 El orquestador fija `TMPDIR`, `TORCH_HOME`, `WANDB_DIR`, `HF_HOME` y
 `XDG_CACHE_HOME` dentro de `salidas/scratch`, que vive en el NFS. Sin eso una

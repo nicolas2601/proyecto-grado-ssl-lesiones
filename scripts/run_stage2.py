@@ -34,6 +34,22 @@ STATE_FILE = "stage2_state.json"
 BACKBONE_FILE = "simsiam_dinov2_backbone_final.pt"
 METHOD = "simsiam_dinov2"
 ARCH = "dinov2_vits14"
+# Both DINOv2 sizes, compared at EQUAL COMPUTE rather than equal epochs: the
+# budget is in GPU-hours, so the larger backbone simply sees fewer samples in
+# the same time. That is the comparison the thesis claims to make.
+DEFAULT_ARCHS = (ARCH,)
+
+
+def _arch_suffix(arch: str) -> str:
+    """``dinov2_vitb14`` -> ``vitb14``; the tail that names an arm."""
+    return arch.split("_")[-1]
+
+
+def _arm_name(kind: str, arch: str, archs: list[str]) -> str:
+    """``ssl_plain`` with one architecture, ``ssl_plain_vitb14`` with several."""
+    if len(archs) == 1:
+        return f"ssl_{kind}"
+    return f"ssl_{kind}_{_arch_suffix(arch)}"
 
 
 @dataclass
@@ -49,6 +65,7 @@ class Settings:
     wandb_project: str = "dermssl-segmentacion"
     wandb_group: str = "etapa2"
     seeds: list[int] = field(default_factory=lambda: [0, 1, 2])
+    archs: list[str] = field(default_factory=lambda: list(DEFAULT_ARCHS))
     only: str | None = None
     dry_run: bool = False
     max_retries: int = 2
@@ -107,12 +124,13 @@ def _tone_pairs_stage(settings: Settings) -> Stage:
     )
 
 
-def _pretrain_argv(settings: Settings, output_dir: Path) -> list[str]:
+def _pretrain_argv(settings: Settings, output_dir: Path, arch: str) -> list[str]:
     return [
         settings.python, "-m", "torch.distributed.run",
         f"--nproc_per_node={settings.nproc_per_node}",
         _script(settings, "scripts", "pretrain.py"),
         "--method", METHOD,
+        "--backbone", arch,
         "--image-root", str(settings.outputs / "tone" / "inputs" / "originals"),
         "--output-dir", str(output_dir),
         "--budget-gpu-hours", str(settings.budget_gpu_hours),
@@ -125,44 +143,62 @@ def _pretrain_argv(settings: Settings, output_dir: Path) -> list[str]:
     ]
 
 
-def _plain_stage(settings: Settings) -> Stage:
-    output_dir = settings.outputs / "tone" / "ssl_plain"
+def _plain_stage(settings: Settings, arch: str) -> Stage:
+    name = _arm_name("plain", arch, settings.archs)
+    output_dir = settings.outputs / "tone" / name
     return Stage(
-        name="ssl_plain",
-        argv=_pretrain_argv(settings, output_dir),
+        name=name,
+        argv=_pretrain_argv(settings, output_dir, arch),
         done_when=output_dir / BACKBONE_FILE,
-        note="control arm: two views of the same image",
+        note=f"control arm on {arch}: two views of the same image",
     )
 
 
-def _proposed_stage(settings: Settings) -> Stage:
-    output_dir = settings.outputs / "tone" / "ssl_proposed"
+def _proposed_stage(settings: Settings, arch: str) -> Stage:
+    name = _arm_name("proposed", arch, settings.archs)
+    output_dir = settings.outputs / "tone" / name
     shift = settings.outputs / "tone" / "shift2"
     return Stage(
-        name="ssl_proposed",
+        name=name,
         argv=[
-            *_pretrain_argv(settings, output_dir),
+            *_pretrain_argv(settings, output_dir, arch),
             "--transformed-image-root", str(shift),
             "--transformed-manifest-path", str(shift / "tone_transform_manifest.json"),
             "--data-revision", SOURCE_REVISION,
         ],
         done_when=output_dir / BACKBONE_FILE,
-        note="proposed arm: the original against its tone-shifted copy",
+        note=f"proposed arm on {arch}: the original against its tone-shifted copy",
     )
+
+
+def _bank_backbones(settings: Settings) -> list[str]:
+    """Every adapted arm plus the unadapted public weights of ITS OWN size.
+
+    Comparing an adapted ViT-S against a public ViT-B would confound the
+    adaptation with the capacity, so each architecture brings its own
+    baseline into the same table.
+    """
+    tone = settings.outputs / "tone"
+    specs: list[str] = []
+    for arch in settings.archs:
+        label = "dinov2_public" if len(settings.archs) == 1 else f"dinov2_public_{_arch_suffix(arch)}"
+        specs += ["--backbone", f"{label}={arch}:public"]
+    for arch in settings.archs:
+        for kind in ("plain", "proposed"):
+            name = _arm_name(kind, arch, settings.archs)
+            specs += ["--backbone", f"{name}={arch}:{tone / name / BACKBONE_FILE}"]
+    return specs
 
 
 def _bank_stage(settings: Settings) -> Stage:
     bank = settings.outputs / "tone" / "bank"
-    tone = settings.outputs / "tone"
     return Stage(
         name="bank",
         argv=[
             settings.python,
             _script(settings, "scripts", "cluster_frozen_bank.py"),
             "--ham-root", str(settings.ham_root),
-            "--backbone", f"dinov2_public={ARCH}:public",
-            "--backbone", f"ssl_plain={ARCH}:{tone / 'ssl_plain' / BACKBONE_FILE}",
-            "--backbone", f"ssl_proposed={ARCH}:{tone / 'ssl_proposed' / BACKBONE_FILE}",
+            *_bank_backbones(settings),
             "--tone-manifest", str(settings.outputs / "final" / "fst" / "fst_pseudo_manifest.csv"),
             "--strata-column", "tone_tercile",
             "--probes", "logreg", "logreg_balanced", "knn",
@@ -177,22 +213,27 @@ def _bank_stage(settings: Settings) -> Stage:
     )
 
 
-BUILDERS = {
-    "export": _export_stage,
-    "tone_pairs": _tone_pairs_stage,
-    "ssl_plain": _plain_stage,
-    "ssl_proposed": _proposed_stage,
-    "bank": _bank_stage,
-}
+def all_stages(settings: Settings) -> list[Stage]:
+    """Export, the tone pairs, both arms of every architecture, and the bank."""
+    stages = [_export_stage(settings), _tone_pairs_stage(settings)]
+    for arch in settings.archs:
+        stages.append(_plain_stage(settings, arch))
+        stages.append(_proposed_stage(settings, arch))
+    stages.append(_bank_stage(settings))
+    return stages
 
 
 def build_stages(settings: Settings) -> list[Stage]:
     """Every stage in order, or the single one named by ``--only``."""
+    stages = all_stages(settings)
     if settings.only is None:
-        return [builder(settings) for builder in BUILDERS.values()]
-    if settings.only not in BUILDERS:
-        raise ValueError(f"etapa desconocida: {settings.only!r}; use {sorted(BUILDERS)}")
-    return [BUILDERS[settings.only](settings)]
+        return stages
+    chosen = [stage for stage in stages if stage.name == settings.only]
+    if not chosen:
+        raise ValueError(
+            f"etapa desconocida: {settings.only!r}; use {[s.name for s in stages]}"
+        )
+    return chosen
 
 
 def is_done(stage: Stage) -> bool:
@@ -311,7 +352,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--wandb-project", default="dermssl-segmentacion")
     parser.add_argument("--wandb-group", default="etapa2")
     parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
-    parser.add_argument("--only", default=None, help=f"Run a single stage: {sorted(BUILDERS)}")
+    parser.add_argument(
+        "--archs", nargs="+", default=list(DEFAULT_ARCHS),
+        help="torch.hub DINOv2 names; one arm pair per architecture, compared at equal compute",
+    )
+    parser.add_argument("--only", default=None, help="Run a single stage by name")
     parser.add_argument("--max-retries", type=int, default=2, help="Attempts per stage before stopping the chain")
     parser.add_argument("--dry-run", action="store_true", help="Print what is pending and exit")
     return parser.parse_args(argv)
@@ -324,7 +369,7 @@ def main() -> None:
         budget_gpu_hours=args.budget_gpu_hours, nproc_per_node=args.nproc_per_node,
         batch_size_per_gpu=args.batch_size_per_gpu, num_workers=args.num_workers,
         wandb_project=args.wandb_project, wandb_group=args.wandb_group, seeds=args.seeds,
-        only=args.only, dry_run=args.dry_run, max_retries=args.max_retries,
+        archs=args.archs, only=args.only, dry_run=args.dry_run, max_retries=args.max_retries,
     )
     result = run(settings)
     print(json.dumps(result, indent=2, ensure_ascii=False))

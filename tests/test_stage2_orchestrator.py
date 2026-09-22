@@ -216,3 +216,49 @@ def test_the_stage_runs_with_that_environment(tmp_path, monkeypatch):
     orch.run(settings)
 
     assert str(settings.outputs) in seen["env"]["TORCH_HOME"]
+
+
+# ------------------------------------------------- two architectures, four arms
+def test_two_architectures_produce_four_pretraining_arms(tmp_path):
+    settings = _args(tmp_path, archs=["dinov2_vits14", "dinov2_vitb14"])
+    names = [s.name for s in orch.build_stages(settings)]
+    assert names == [
+        "export", "tone_pairs",
+        "ssl_plain_vits14", "ssl_proposed_vits14",
+        "ssl_plain_vitb14", "ssl_proposed_vitb14",
+        "bank",
+    ]
+
+
+def test_each_arm_carries_its_own_architecture_and_directory(tmp_path):
+    settings = _args(tmp_path, archs=["dinov2_vits14", "dinov2_vitb14"])
+    stages = {s.name: s for s in orch.build_stages(settings)}
+    small = stages["ssl_plain_vits14"].argv
+    large = stages["ssl_plain_vitb14"].argv
+
+    assert small[small.index("--backbone") + 1] == "dinov2_vits14"
+    assert large[large.index("--backbone") + 1] == "dinov2_vitb14"
+    assert small[small.index("--output-dir") + 1].endswith("ssl_plain_vits14")
+    assert large[large.index("--output-dir") + 1].endswith("ssl_plain_vitb14")
+
+
+def test_the_bank_compares_every_arm_against_its_own_public_baseline(tmp_path):
+    settings = _args(tmp_path, archs=["dinov2_vits14", "dinov2_vitb14"])
+    argv = {s.name: s for s in orch.build_stages(settings)}["bank"].argv
+    backbones = [argv[i + 1] for i, flag in enumerate(argv) if flag == "--backbone"]
+
+    assert "dinov2_public_vits14=dinov2_vits14:public" in backbones
+    assert "dinov2_public_vitb14=dinov2_vitb14:public" in backbones
+    assert sum(1 for b in backbones if b.startswith("ssl_")) == 4
+    assert len(backbones) == 6
+
+
+def test_a_single_architecture_keeps_the_short_arm_names(tmp_path):
+    stages = [s.name for s in orch.build_stages(_args(tmp_path))]
+    assert "ssl_plain" in stages and "ssl_proposed" in stages
+
+
+def test_only_accepts_an_architecture_suffixed_arm(tmp_path):
+    settings = _args(tmp_path, archs=["dinov2_vits14", "dinov2_vitb14"], only="ssl_proposed_vitb14")
+    stages = orch.build_stages(settings)
+    assert [s.name for s in stages] == ["ssl_proposed_vitb14"]
