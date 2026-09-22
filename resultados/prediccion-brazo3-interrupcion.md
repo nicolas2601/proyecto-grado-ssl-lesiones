@@ -74,3 +74,38 @@ viejo: lectura 1. Si hubiera cerrado a las 20:02, era la 2.
 existe y los tres procesos tienen CPU avanzando. El brazo esta trabajando,
 que es lo que predice la lectura 1 — pero eso es consistencia, no
 confirmacion, y el documento se cierra sin declararlo resuelto.
+
+---
+
+## Resultado (agregado al cerrar, 20:21:09)
+
+**Lectura 1, sin ambiguedad.** El brazo hizo el trabajo completo de 12.00
+horas-GPU y el cuelgue NO se contabilizo como computo.
+
+| | predicho | medido | error |
+|---|---|---|---|
+| `steps_executed` | 5891 | **5894** | +3 (0,05 %) |
+| `samples_processed` | 753 987 | **754 432** | +445 (0,06 %) |
+| hora de cierre | 20:20:38 | **20:21:09** | +31 s |
+
+La banda era 5714-6067; cayo a tres pasos del centro. La prediccion
+secundaria — que el reloj se restaura desde `elapsed_wall_seconds` y no
+desde el arranque, de modo que faltaba exactamente un intervalo de
+checkpoint — acerto con 31 segundos de error sobre un calculo hecho 18
+minutos antes.
+
+`c100` a las 20:02:40 lo escribio el proceso viejo en su teardown, como
+decia la prediccion.
+
+**Esta fila no lleva nota.** El presupuesto efectivo es verificable y es el
+mismo que el de los otros brazos, asi que entra a la comparacion en igualdad
+de condiciones.
+
+Backbone final: 346 388 719 bytes, sha256 `11da3a058b5cf2f2f6e28a86...`
+
+### Lo que se valida, mas alla del numero
+
+La cadena de recuperacion funciono sin intervencion humana y por primera vez
+de verdad: el watchdog de NCCL mato el proceso colgado, `--max-retries` lo
+relanzo, y el resume retomo desde 11.40 horas-GPU. El costo real de una
+falla que parecia grave fueron ~18 minutos de reloj.
