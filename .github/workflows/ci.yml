@@ -81,7 +81,11 @@ jobs:
           CI_REQUIRE_FULL_DEPS: "1"
           WANDB_MODE: disabled
           WANDB_SILENT: "true"
-        run: pytest -q -rs --strict-markers -n 2 --dist loadfile --max-worker-restart 0
+          # Names the crash. Today the log says "a worker died somewhere around
+          # 83 percent"; with the fault handler the SIGSEGV dumps the Python
+          # stack and the C frames, so it says which test and which extension.
+          PYTHONFAULTHANDLER: "1"
+        run: pytest -q -rs --strict-markers -n 2 --dist loadfile --max-worker-restart 0 -p no:randomly
 
       - name: Fail if any test was skipped for a missing dependency
         env:
