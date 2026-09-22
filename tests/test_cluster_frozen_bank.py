@@ -101,7 +101,9 @@ def test_stratified_by_label_ok_entry_has_same_metric_keys_as_summarize():
 
     out = m.stratified_by_label(y, proba, labels, n_classes=n_classes, min_n=30)
 
-    expected_keys = set(m.summarize(y, proba, n_classes)) | {"status", "count"}
+    expected_keys = set(m.summarize(y, proba, n_classes)) | {
+        "status", "count", "macro_f1_ci95_low", "macro_f1_ci95_high",
+    }
     assert set(out["medium"]) == expected_keys
 
 

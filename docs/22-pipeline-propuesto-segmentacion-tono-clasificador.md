@@ -235,9 +235,12 @@ comparacion valida es la interna entre sus tres backbones.
 1. **Mas presupuesto de preentrenamiento.** Cuatro horas-GPU son unas cinco
    vueltas al pool. La curva de SSL no se aplana ahi; es la palanca mas
    directa y la que ataca el unico resultado adverso (no alcanzar al publico).
-2. **Intervalos de confianza por estrato** en `metrics.stratified_by_label`,
-   que hoy reporta media y n. Sin eso la brecha de clasificacion no es
-   citable.
+2. ~~Intervalos de confianza por estrato~~ **hecho** (commit de 2026-09-22):
+   `metrics.stratified_by_label` reporta `macro_f1_ci95_low/high` por estrato
+   y el banco agrega `gap_established`, que dice si los estratos extremos
+   estan realmente separados o si sus intervalos se solapan. Un `null` ahi
+   significa "no hay con que juzgarlo", que NO es lo mismo que "no hay
+   brecha".
 3. **Desplazamiento de tono variable por imagen.** Hoy es fijo en dos niveles
    hacia el oscuro; Corbin y Marques 2023 usan hasta dos niveles con signo
    aleatorio, que expone al modelo a las dos direcciones.
