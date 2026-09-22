@@ -187,8 +187,10 @@ Artefactos: `salidas/tone/bank/` en el pod; W&B run `2t73zuvf`.
 | `ssl_plain` | 0,481 | 0,484 | 0,782 | 0,162 |
 
 **Lo que el experimento demuestra.** El brazo propuesto supera al control en
-los tres probes y en los dos regimenes de etiquetas: +0,081 de macro-F1 con
-`logreg`, +0,039 con `logreg_balanced`, +0,014 de AUC con kNN. Y reduce la
+**cinco de las seis** combinaciones de probe y regimen de etiquetas: +0,081 de
+macro-F1 con `logreg` al 100 %, +0,083 al 10 %, +0,039 con `logreg_balanced`
+al 100 %, +0,057 al 10 %, y +0,014 de AUC con kNN al 100 %. La excepcion es
+kNN al 10 % de etiquetas, donde pierde por 0,010 (0,705 contra 0,715). Y reduce la
 brecha entre terciles de tono de 0,162 a 0,102, un 37 % menos. Como los dos
 brazos comparten datos, presupuesto, semilla, particion y protocolo, y la
 unica diferencia es la segunda vista, esa mejora es atribuible a la

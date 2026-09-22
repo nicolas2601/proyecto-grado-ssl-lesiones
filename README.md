@@ -37,7 +37,7 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
   preentrenamiento y banco por tono en ejecución. Documento único:
   [22 — Pipeline propuesto](docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md).
   Primera corrida completa (2026-09-22): el brazo con adaptación de tono supera a su control
-  en los tres probes (macro-F1 0,562 vs 0,481) y reduce la brecha entre terciles de tono un 37 %;
+  en cinco de seis combinaciones de probe y régimen (macro-F1 0,562 vs 0,481) y reduce la brecha entre terciles de tono un 37 %;
   ninguno alcanza al DINOv2 público sin adaptar (0,583) con 4 h-GPU de presupuesto.
   Modelo y uso: [23 — Modelo descargable](docs/23-modelo-descargable-y-uso.md).
 - **Objetivo 2 · v6 (pre-entrenamiento propio en GPU):** 🔧 **construido, pendiente de cluster.**
