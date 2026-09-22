@@ -17,6 +17,10 @@ pytest>=8.0
 # in one interpreter segfaults the run (exit 139), which reads as a CI failure
 # with no failing test to point at.
 pytest-xdist>=3.5
+# A hung test is worse than a failing one: it burns the runner until the job
+# limit and names nothing. With a per-test deadline the hang becomes a normal
+# failure with a test id attached.
+pytest-timeout>=2.3
 numpy>=1.26
 pandas>=2.0
 scikit-learn>=1.5
