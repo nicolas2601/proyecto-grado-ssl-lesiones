@@ -128,7 +128,9 @@ def metrics_table(bank: dict, probe: str = HEADLINE_PROBE, fraction: float = FUL
     if not per_backbone:
         return ["_Sin filas de clasificacion en `bank.json`._"]
 
-    header = " | ".join(label for _, label, _ in FULL_METRICS)
+    header = " | ".join(
+        f"{label} ↓" if lower_is_better else label for _, label, lower_is_better in FULL_METRICS
+    )
     lines = [
         f"| Backbone | {header} |",
         "|---|" + "---|" * len(FULL_METRICS),
@@ -137,12 +139,18 @@ def metrics_table(bank: dict, probe: str = HEADLINE_PROBE, fraction: float = FUL
     for name in order:
         values = " | ".join(_fmt(per_backbone[name].get(key)) for key, _, _ in FULL_METRICS)
         lines.append(f"| `{name}` | {values} |")
+
+    inverted = [label for _, label, lower_is_better in FULL_METRICS if lower_is_better]
     lines += [
         "",
         f"Probe `{probe}` al {fraction:.0%} de etiquetas, promedio de semillas, "
         "el mismo para todos.",
-        "**En ECE menor es mejor**; en el resto, mayor es mejor.",
     ]
+    if inverted:
+        lines.append(
+            f"**En {', '.join(inverted)} menor es mejor** (marcado con ↓ en la cabecera); "
+            "en el resto, mayor es mejor."
+        )
     return lines
 
 

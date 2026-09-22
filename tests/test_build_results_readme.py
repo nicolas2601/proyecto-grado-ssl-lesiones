@@ -254,3 +254,19 @@ def test_a_nan_metric_becomes_a_dash_not_a_zero():
 
 def test_an_empty_bank_says_so():
     assert "Sin filas" in gen.metrics_table({"rows": []})[0]
+
+
+def test_the_direction_travels_with_the_metric_not_as_a_footnote(monkeypatch):
+    """A new lower-is-better metric must mark itself, without editing prose."""
+    monkeypatch.setattr(gen, "FULL_METRICS", (
+        ("macro_f1", "F1 macro", False),
+        ("ece", "ECE", True),
+        ("hd95", "HD95", True),          # una metrica invertida mas
+    ))
+    bank = {"rows": [_metric_row("a", **{"hd95": 12.6})]}
+    joined = "\n".join(gen.metrics_table(bank))
+    assert "ECE ↓" in joined and "HD95 ↓" in joined
+    assert "F1 macro ↓" not in joined
+    assert "En ECE, HD95 menor es mejor" in joined, (
+        "la nota debe derivarse de las banderas, no estar escrita a mano"
+    )
