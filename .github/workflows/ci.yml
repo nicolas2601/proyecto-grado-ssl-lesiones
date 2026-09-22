@@ -81,7 +81,7 @@ jobs:
           CI_REQUIRE_FULL_DEPS: "1"
           WANDB_MODE: disabled
           WANDB_SILENT: "true"
-        run: pytest -q -rs --strict-markers -n 2 --dist loadfile
+        run: pytest -q -rs --strict-markers -n 2 --dist loadfile --max-worker-restart 0
 
       - name: Fail if any test was skipped for a missing dependency
         env:
@@ -89,7 +89,7 @@ jobs:
           WANDB_MODE: disabled
           WANDB_SILENT: "true"
         run: |
-          pytest -q -rs --strict-markers -n 2 --dist loadfile 2>&1 | tee /tmp/pytest.log
+          pytest -q -rs --strict-markers -n 2 --dist loadfile --max-worker-restart 0 2>&1 | tee /tmp/pytest.log
           if grep -qi "could not import" /tmp/pytest.log; then
             echo "::error::a test module was skipped for a missing import"
             grep -i "could not import" /tmp/pytest.log
