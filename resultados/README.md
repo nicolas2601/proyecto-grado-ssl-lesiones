@@ -146,8 +146,16 @@ confundiria la adaptacion con la capacidad del modelo.
 Protocolo: `StratifiedGroupKFold` por `lesion_id`, semilla 42, primer
 pliegue, identico en los seis. Probes `logreg`, `logreg_balanced` y `knn`, a
 100 % y 10 % de etiquetas, tres semillas. El presupuesto es en **horas-GPU**,
-no en epocas: a igual presupuesto el backbone grande ve menos muestras, y esa
-es la comparacion a igual computo que declara la tesis.
+no en epocas ni en muestras: a igual presupuesto el backbone grande ve menos
+muestras, y esa es la comparacion que declara la tesis.
+
+La frase precisa es **"a igual presupuesto de computo"**, nunca "a igual
+entrenamiento" ni "a igual numero de muestras". Lo que se iguala son las
+12,00 horas-GPU que recibe cada brazo; lo que no se iguala es el trabajo
+hecho dentro de ellas, porque un paso del ViT-B cuesta mas que uno del
+ViT-S y un paso pareado lee dos imagenes en vez de una. Por eso la tabla de
+arriba muestra horas-GPU y muestras **una al lado de la otra**: es lo que
+impide leer "igual computo" como "igual entrenamiento".
 
 ### Corrida preliminar (4 horas-GPU, solo ViT-S, con un defecto conocido)
 
@@ -213,7 +221,8 @@ De la corrida preliminar, y a confirmar con la definitiva:
   El brazo pareado lee dos imagenes por paso, asi que **al mismo presupuesto
   de horas-GPU procesa menos muestras que su propio control**. Esa es la
   comparacion que la tesis declara y la que le importa a quien tiene una GPU
-  y un plazo: a igual computo, cual conviene. Pero tiene un limite que hay
+  y un plazo: a igual presupuesto de computo, cual conviene. Pero tiene un
+  limite que hay
   que decir en voz alta y en las dos direcciones. Si el propuesto **gana**,
   gana habiendo visto menos datos, y el resultado es mas fuerte de lo que
   parece. Si **pierde**, no se puede concluir que el emparejado por tono sea
