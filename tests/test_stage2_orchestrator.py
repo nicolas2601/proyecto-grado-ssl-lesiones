@@ -179,3 +179,40 @@ def test_parse_args_exposes_the_operator_contract():
     assert args.only == "bank"
     assert args.dry_run is True
     assert args.nproc_per_node == 2
+
+
+# ------------------------------------------- everything writes to the NFS share
+def test_the_environment_pins_every_scratch_path_inside_the_outputs_tree(tmp_path):
+    settings = _args(tmp_path)
+    env = orch.stage_environment(settings, base_env={"PATH": "/usr/bin"})
+
+    for key in ("TMPDIR", "TORCH_HOME", "WANDB_DIR", "HF_HOME", "XDG_CACHE_HOME"):
+        assert key in env, f"{key} left pointing at the overlay"
+        assert str(settings.outputs) in env[key], f"{key} escapes the outputs tree"
+    assert env["PATH"] == "/usr/bin", "the inherited environment must survive"
+
+
+def test_the_scratch_directories_are_created_before_a_stage_runs(tmp_path, monkeypatch):
+    settings = _args(tmp_path, dry_run=False, only="export")
+    monkeypatch.setattr(
+        orch.subprocess, "run",
+        lambda argv, **kw: subprocess.CompletedProcess(argv, returncode=0),
+    )
+    orch.run(settings)
+
+    for name in ("tmp", "torch", "wandb"):
+        assert (settings.outputs / "scratch" / name).is_dir()
+
+
+def test_the_stage_runs_with_that_environment(tmp_path, monkeypatch):
+    settings = _args(tmp_path, dry_run=False, only="export")
+    seen = {}
+
+    def capture(argv, **kwargs):
+        seen.update(kwargs)
+        return subprocess.CompletedProcess(argv, returncode=0)
+
+    monkeypatch.setattr(orch.subprocess, "run", capture)
+    orch.run(settings)
+
+    assert str(settings.outputs) in seen["env"]["TORCH_HOME"]

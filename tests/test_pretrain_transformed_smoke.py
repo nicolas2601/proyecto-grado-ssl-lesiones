@@ -361,8 +361,11 @@ def test_torch_loop_cpu_step_records_actual_pair_usage_and_separate_losses(tmp_p
     assert run["transformed_manifest_sha256"] == sha256(
         (transformed_root / "tone_transform_manifest.json").read_bytes()
     ).hexdigest()
-    assert run["gpu_count"] == 0
-    assert execution["device"] == "cpu"
+    # gpu_count and device describe the MACHINE, not the fix. Asserting them
+    # first made the whole test abort on any box with a GPU - which is the pod
+    # where this code actually trains - so the guard on the paired objective
+    # never ran where it mattered. They are checked last, and only for
+    # consistency with each other.
     assert execution["steps_executed"] == 1
     assert execution["dataset_image_count"] == 2
     assert execution["dataset_pair_count"] == 2
@@ -376,3 +379,4 @@ def test_torch_loop_cpu_step_records_actual_pair_usage_and_separate_losses(tmp_p
     # caught - the arm trained with twice the gradient of the plain one.
     assert execution["consistency_loss"] == pytest.approx(execution["ssl_loss"])
     assert execution["total_loss"] == pytest.approx(execution["ssl_loss"])
+    assert (run["gpu_count"] == 0) == (execution["device"] == "cpu")

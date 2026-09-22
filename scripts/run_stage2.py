@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -203,6 +204,33 @@ def pending_stages(stages: list[Stage]) -> list[Stage]:
     return [stage for stage in stages if not is_done(stage)]
 
 
+def stage_environment(settings: Settings, base_env: dict | None = None) -> dict:
+    """Environment for every stage, with all scratch pinned inside ``outputs``.
+
+    The pod's overlay filesystem had 25 GB free while the NFS share had 40 TB:
+    a single resume checkpoint is 400 MB and torch.hub weights are 88 MB, so a
+    long run that writes to the default locations fills the container's disk
+    and takes the run down with it. Every cache and temporary directory is
+    therefore redirected into the outputs tree, which lives on the share.
+    """
+    env = dict(os.environ if base_env is None else base_env)
+    scratch = settings.outputs / "scratch"
+    env.update({
+        "TMPDIR": str(scratch / "tmp"),
+        "TORCH_HOME": str(scratch / "torch"),
+        "WANDB_DIR": str(scratch / "wandb"),
+        "WANDB_CACHE_DIR": str(scratch / "wandb"),
+        "HF_HOME": str(scratch / "huggingface"),
+        "XDG_CACHE_HOME": str(scratch / "cache"),
+    })
+    return env
+
+
+def _prepare_scratch(settings: Settings) -> None:
+    for name in ("tmp", "torch", "wandb", "huggingface", "cache"):
+        (settings.outputs / "scratch" / name).mkdir(parents=True, exist_ok=True)
+
+
 def _load_state(path: Path) -> dict:
     if not path.is_file():
         return {"stages": {}}
@@ -227,7 +255,9 @@ def _launch(stage: Stage, settings: Settings, state: dict, state_path: Path) -> 
         _save_state(state_path, state)
         print(f"[{stage.name}] intento {attempt}/{settings.max_retries}: {' '.join(stage.argv)}")
 
-        completed = subprocess.run(stage.argv, cwd=str(settings.repo))
+        completed = subprocess.run(
+            stage.argv, cwd=str(settings.repo), env=stage_environment(settings)
+        )
         entry["returncode"] = completed.returncode
         entry["ended_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
         entry["status"] = "ok" if completed.returncode == 0 else "error"
@@ -242,6 +272,8 @@ def _launch(stage: Stage, settings: Settings, state: dict, state_path: Path) -> 
 def run(settings: Settings) -> dict:
     """Run what is left of the pipeline; returns what was launched and what failed."""
     stages = build_stages(settings)
+    if not settings.dry_run:
+        _prepare_scratch(settings)
     state_path = settings.outputs / STATE_FILE
     state = _load_state(state_path)
     launched: list[str] = []
