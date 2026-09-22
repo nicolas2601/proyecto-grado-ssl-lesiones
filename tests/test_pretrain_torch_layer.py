@@ -175,10 +175,11 @@ def test_original_transformed_mode_uses_paired_images_and_named_consistency_loss
     model_source = (ROOT / "src" / "dermssl" / "pretrain" / "torch_simsiam.py").read_text()
 
     assert "collect_paired_images" in loop_source
-    assert "original_transformed_consistency_loss" in loop_source
+    assert "paired_objective" in loop_source
     assert "transformed_image_root" in loop_source
     assert "tuple[Path, Path]" in data_source
     assert "original_transformed_consistency_loss" in model_source
+    assert "def paired_objective" in model_source
 
 
 def test_smoke_run_limits_steps_and_accepts_the_transformed_image_root():

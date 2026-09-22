@@ -369,7 +369,10 @@ def test_torch_loop_cpu_step_records_actual_pair_usage_and_separate_losses(tmp_p
     assert execution["samples_processed"] == 2
     assert execution["pair_count"] == 2
     assert execution["ssl_loss"] is not None
-    assert execution["consistency_loss"] is not None
-    assert execution["total_loss"] == pytest.approx(
-        execution["ssl_loss"] + execution["consistency_loss"]
-    )
+    # The two views ARE the original and its tone-shifted copy, so the SimSiam
+    # loss over that pair already is the consistency: the manifest reports the
+    # same value under both names. Until 2026-09-22 this assertion read
+    # ``total == ssl + consistency`` and so froze the defect it should have
+    # caught - the arm trained with twice the gradient of the plain one.
+    assert execution["consistency_loss"] == pytest.approx(execution["ssl_loss"])
+    assert execution["total_loss"] == pytest.approx(execution["ssl_loss"])
