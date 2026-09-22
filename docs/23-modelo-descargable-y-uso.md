@@ -120,6 +120,23 @@ entreno sobre un pool mayoritariamente de piel clara, y su desempeno cae en
 el tercil de piel menos luminosa (seccion 3 del documento 22). Cualquier uso
 sobre pacientes reales requiere validacion independiente.
 
+## 4.1 Como se publica
+
+`scripts/publish_model_release.sh` arma el release de GitHub:
+
+```bash
+scripts/publish_model_release.sh v1.0-tone /ruta/a/salidas/tone
+```
+
+Copia los dos backbones con su `run.json`, agrega los resultados del banco,
+calcula los SHA-256 de todo, redacta las notas con la tabla de archivos, la
+comprobacion rapida y la advertencia de uso clinico, y publica con `gh`.
+
+Se niega a publicar un checkpoint cuyo `run.json` no exista. Un `.pt` sin su
+evidencia no es citable: no se sabe con que datos, que presupuesto ni que
+particion salio, y en una tesis eso lo vuelve inservible aunque el archivo
+funcione.
+
 ## 5. Trazabilidad
 
 Cada archivo publicado se acompana de su `run.json`, que registra el metodo,
