@@ -7,6 +7,8 @@ in-process import. Modeled on ``tests/test_pretrain_torch_layer.py``."""
 import ast
 import importlib.util
 import py_compile
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -21,6 +23,35 @@ def _load_kaggle_script():
     assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
+
+
+def _imports_without_torch(*modules: str) -> subprocess.CompletedProcess:
+    """Assert in a FRESH interpreter that importing these pulls in no torch.
+
+    The previous version deleted torch from sys.modules and imported in
+    process. That removes the Python entries and leaves the C extension
+    loaded, so the next `import torch` re-runs overrides.py against an
+    already-initialised module and raises "function '_has_torch_function'
+    already has a docstring" - in whatever test happens to run next, which is
+    never this one. Three files did it; fifty-eight failures on the pod came
+    from those three, and the CI segfault is very likely the same wound.
+
+    A subprocess is also the stronger claim: a genuinely clean interpreter,
+    not one whose module dictionary was edited.
+    """
+    imports = "; ".join(f"import {name}" for name in modules)
+    root = Path(__file__).resolve().parents[1]
+    env = dict(os.environ)
+    # The child does not inherit the paths conftest inserts, so it needs them
+    # here or it fails on ModuleNotFoundError and says nothing about torch.
+    env["PYTHONPATH"] = os.pathsep.join([str(root / "src"), str(root)])
+    return subprocess.run(
+        [sys.executable, "-c",
+         f"import sys; {imports}; "
+         "leaked = sorted(m for m in sys.modules if m == 'torch' or m.startswith('torch.')); "
+         "assert not leaked, leaked"],
+        capture_output=True, text=True, timeout=120, env=env,
+    )
 
 
 def test_torch_unet_module_exists():
@@ -46,12 +77,8 @@ def test_importing_dermssl_never_imports_torch():
     no GPU stack. ``torch_unet.py`` sits beside ``gates.py``/``metrics.py``
     but is NOT in ``MODULE_ORDER`` and NOT imported by ``__init__.py``, so
     importing the top package must never pull in torch."""
-    for name in list(sys.modules):
-        if name == "torch" or name.startswith("torch."):
-            del sys.modules[name]
-    import dermssl  # noqa: F401
-
-    assert "torch" not in sys.modules
+    result = _imports_without_torch("dermssl")
+    assert result.returncode == 0, result.stderr
 
 
 def test_torch_unet_not_wired_into_module_order():
