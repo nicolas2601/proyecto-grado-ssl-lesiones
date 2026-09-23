@@ -51,7 +51,11 @@ def _fmt(value, digits: int = 3) -> str:
 
 
 def _rows_by_backbone(rows: list[dict], probe: str, fraction: float) -> dict[str, float]:
-    """Mean of the headline metric per backbone, averaged over seeds."""
+    """Mean of the headline metric per backbone across whatever seeds exist.
+
+    "Across seeds" is arithmetic, not evidence: ``replication`` decides whether
+    those seeds ever differed.
+    """
     collected: dict[str, list[float]] = {}
     for row in rows:
         if row.get("probe") != probe or float(row.get("fraction", -1)) != fraction:
@@ -97,7 +101,11 @@ FULL_METRICS = (
 
 
 def _mean_metrics(rows: list[dict], probe: str, fraction: float) -> dict[str, dict[str, float]]:
-    """Every metric per backbone, averaged over seeds, at one fixed probe."""
+    """Every metric per backbone across seeds, at one fixed probe.
+
+    Averaging identical values returns the value; ``replication`` decides what
+    the table is allowed to claim about it.
+    """
     collected: dict[str, dict[str, list[float]]] = {}
     for row in rows:
         if row.get("probe") != probe or float(row.get("fraction", -1)) != fraction:
@@ -114,6 +122,49 @@ def _mean_metrics(rows: list[dict], probe: str, fraction: float) -> dict[str, di
         name: {key: sum(values) / len(values) for key, values in bucket.items() if values}
         for name, bucket in collected.items()
     }
+
+
+def replication(rows: list[dict], probe: str, fraction: float) -> tuple[int, bool]:
+    """How many seeds are present, and whether any of them actually moved.
+
+    The seed controls the label subsample and nothing else. At ``fraction=1.0``
+    there is nothing left to subsample, so the three runs are the same run
+    repeated: identical to the last decimal, spread exactly zero. Calling that
+    a mean over seeds claims a replication that was never performed.
+
+    Returned, not written by hand, because a footnote typed once is a footnote
+    that keeps being true after it stops being true.
+    """
+    seeds: set = set()
+    per_metric: dict[str, set[float]] = {}
+    for row in rows:
+        if row.get("probe") != probe or float(row.get("fraction", -1)) != fraction:
+            continue
+        if row.get("error"):
+            continue
+        seeds.add(row.get("seed"))
+        for key, _, _ in FULL_METRICS:
+            value = row.get(key)
+            if value is None or value != value:
+                continue
+            per_metric.setdefault(f"{row['backbone']}/{key}", set()).add(float(value))
+    varies = any(len(values) > 1 for values in per_metric.values())
+    return len(seeds), varies
+
+
+def replication_note(n_seeds: int, varies: bool, fraction: float) -> str:
+    """One sentence that says what the numbers in the row are."""
+    if n_seeds <= 1:
+        return "Una sola corrida por backbone: no hay replicacion que promediar."
+    if varies:
+        return f"Promedio de {n_seeds} semillas, que difieren entre si."
+    return (
+        f"Las {n_seeds} semillas dan valores IDENTICOS a todos los decimales: al "
+        f"{fraction:.0%} de etiquetas no queda nada que submuestrear, asi que son la "
+        "misma corrida repetida. **El n efectivo es 1 y la columna no lleva "
+        "dispersion**; la banda tiene que venir de un bootstrap sobre el test, no "
+        "de las semillas."
+    )
 
 
 def metrics_table(bank: dict, probe: str = HEADLINE_PROBE, fraction: float = FULL_FRACTION) -> list[str]:
@@ -141,10 +192,11 @@ def metrics_table(bank: dict, probe: str = HEADLINE_PROBE, fraction: float = FUL
         lines.append(f"| `{name}` | {values} |")
 
     inverted = [label for _, label, lower_is_better in FULL_METRICS if lower_is_better]
+    n_seeds, varies = replication(bank.get("rows", []), probe, fraction)
     lines += [
         "",
-        f"Probe `{probe}` al {fraction:.0%} de etiquetas, promedio de semillas, "
-        "el mismo para todos.",
+        f"Probe `{probe}` al {fraction:.0%} de etiquetas, el mismo para todos.",
+        replication_note(n_seeds, varies, fraction),
     ]
     if inverted:
         lines.append(
