@@ -221,8 +221,17 @@ def strata_table(strata: dict) -> list[str]:
             f"| `{name}` | {_fmt(entry.get('gap_macro_f1'))} | "
             f"{entry.get('worst_label') or '-'} | {verdict} |"
         )
+    # The bank computes strata at its own probe, which need not be the one the
+    # metrics table above uses. Printing it from the data keeps the two
+    # sections from being read as one comparison when they are two.
+    regimes = sorted({(e.get("probe"), e.get("fraction")) for e in strata.values()}, key=str)
+    described = ", ".join(
+        f"probe `{probe}` al {fraction:.0%}" if isinstance(fraction, (int, float)) else f"probe `{probe}`"
+        for probe, fraction in regimes
+    )
     lines += [
         "",
+        f"Estratos medidos con {described}.",
         "Un `no` significa que los intervalos de los estratos extremos se solapan:",
         "esa brecha NO se cita como efecto de tono por grande que sea el numero.",
         "`sin datos` no es lo mismo que ausencia de brecha.",

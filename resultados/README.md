@@ -56,7 +56,18 @@ modelo nunca vio, y por eso es el que responde si el metodo generaliza.
 
 <!-- TABLA-ENTRENAMIENTO:INICIO -->
 
-_Pendiente: se genera desde los `run.json` de los brazos._
+| Brazo | Modo | Presupuesto (h-GPU) | Pasos | Muestras | Muestras/paso |
+|---|---|---|---|---|---|
+| `ssl_plain_vitb14` | two_view_ssl | 12,0 | 5.894 | 754.432 | 128,0 |
+| `ssl_plain_vits14` | two_view_ssl | 12,0 | 6.286 | 804.608 | 128,0 |
+| `ssl_proposed_vitb14` | original_transformed_consistency | 12,0 | 5.702 | 729.856 | 128,0 |
+| `ssl_proposed_vits14` | original_transformed_consistency | 12,0 | 6.110 | 782.080 | 128,0 |
+
+El presupuesto es en **horas-GPU**, no en epocas ni en muestras. Los
+brazos pareados leen la imagen original y su copia con el tono
+desplazado, asi que **a igual presupuesto procesan menos muestras que su
+propio control**. Esa es la comparacion que declara la tesis; su limite,
+en las dos direcciones, esta en la seccion 7.
 
 <!-- TABLA-ENTRENAMIENTO:FIN -->
 
@@ -136,9 +147,49 @@ fototipo oscuro clinico. El pool es mayoritariamente piel clara.
 
 <!-- TABLA-CLASIFICACION:INICIO -->
 
-_Pendiente: las tablas se generan solas desde `bank.json` con
-`scripts/build_results_readme.py` en cuanto cierre el banco. No se transcriben
-a mano: un numero copiado sobrevive a la corrida que lo cambio._
+### Rendimiento
+
+| Backbone | macro-F1 (logreg, 100 %) | macro-F1 (logreg, 10 %) | macro-F1 (balanced, 100 %) |
+|---|---|---|---|
+| `dinov2_public_vitb14` | 0,616 | 0,449 | 0,613 |
+| `ssl_plain_vitb14` | 0,586 | 0,446 | 0,554 |
+| `dinov2_public_vits14` | 0,583 | 0,470 | 0,558 |
+| `ssl_plain_vits14` | 0,531 | 0,335 | 0,509 |
+| `ssl_proposed_vitb14` | 0,524 | 0,363 | 0,537 |
+| `ssl_proposed_vits14` | 0,484 | 0,319 | 0,506 |
+
+### Metricas completas
+
+| Backbone | acc | bal_acc | F1 macro | Prec macro | Recall macro | AUC | ECE ↓ |
+|---|---|---|---|---|---|---|---|
+| `dinov2_public_vitb14` | 0,782 | 0,592 | 0,616 | 0,651 | 0,592 | 0,926 | 0,131 |
+| `ssl_plain_vitb14` | 0,799 | 0,543 | 0,586 | 0,655 | 0,543 | 0,945 | 0,016 |
+| `dinov2_public_vits14` | 0,791 | 0,560 | 0,583 | 0,627 | 0,560 | 0,932 | 0,081 |
+| `ssl_plain_vits14` | 0,783 | 0,477 | 0,531 | 0,686 | 0,477 | 0,931 | 0,021 |
+| `ssl_proposed_vitb14` | 0,791 | 0,477 | 0,524 | 0,634 | 0,477 | 0,943 | 0,030 |
+| `ssl_proposed_vits14` | 0,775 | 0,436 | 0,484 | 0,599 | 0,436 | 0,921 | 0,038 |
+
+Probe `logreg` al 100% de etiquetas, el mismo para todos.
+Las 3 semillas dan valores IDENTICOS a todos los decimales: al 100% de etiquetas no queda nada que submuestrear, asi que son la misma corrida repetida. **El n efectivo es 1 y la columna no lleva dispersion**; la banda tiene que venir de un bootstrap sobre el test, no de las semillas.
+**En ECE menor es mejor** (marcado con ↓ en la cabecera); en el resto, mayor es mejor.
+
+### Equidad por tono de piel
+
+| Backbone | Brecha macro-F1 | Estrato peor | Intervalos separados |
+|---|---|---|---|
+| `dinov2_public_vitb14` | 0,014 | dark | no |
+| `dinov2_public_vits14` | 0,091 | light | no |
+| `ssl_plain_vitb14` | 0,108 | light | no |
+| `ssl_plain_vits14` | 0,048 | light | no |
+| `ssl_proposed_vitb14` | 0,034 | light | no |
+| `ssl_proposed_vits14` | 0,097 | light | no |
+
+Estratos medidos con probe `logreg_balanced` al 100%.
+Un `no` significa que los intervalos de los estratos extremos se solapan:
+esa brecha NO se cita como efecto de tono por grande que sea el numero.
+`sin datos` no es lo mismo que ausencia de brecha.
+
+_Generado desde `bank.json` por `scripts/build_results_readme.py`; modo de la corrida: full._
 
 <!-- TABLA-CLASIFICACION:FIN -->
 
@@ -189,15 +240,25 @@ probe y regimen; la excepcion es kNN al 10 % de etiquetas (0,705 contra
 
 ## 5. Que gano
 
-<!-- PENDIENTE: completar con la corrida definitiva -->
+Leido sobre la tabla de metricas completas, con el probe fijado **antes** de
+tener datos (`HEADLINE_PROBE = "logreg"`, commit `3381cfa`, 2026-09-21, un dia
+antes de que cerrara el banco).
 
-De la corrida preliminar, y a confirmar con la definitiva:
-
-- **La adaptacion de tono aporta sobre su propio control**: +0,081 de macro-F1
-  con `logreg` al 100 % de etiquetas, +0,083 al 10 %, y la brecha entre
-  terciles baja de 0,162 a 0,102 (un 37 % menos). Como los dos brazos
-  comparten datos, presupuesto, semilla, particion y protocolo, y la unica
-  diferencia es la segunda vista, la mejora es atribuible a la adaptacion.
+- **El preentrenamiento SSL en el dominio produce los backbones mejor
+  calibrados, y por mucho.** Los cuatro brazos propios tienen un ECE varias
+  veces menor que los dos DINOv2 publicos. Es la diferencia mas grande de todo
+  el panel y la unica que no depende del probe: aparece igual con `logreg` y
+  con `logreg_balanced`. Para un clasificador medico, una probabilidad que
+  significa lo que dice es una propiedad util por si sola.
+- **`ssl_plain_vitb14` supera a DINOv2 ViT-B publico en accuracy, AUC,
+  precision macro y calibracion**, con 12 horas-GPU sobre ~55 mil imagenes
+  contra un modelo entrenado en LVD-142M. En AUC los dos ViT-B propios superan
+  a DINOv2 ViT-B; en ViT-S el control queda a la par de DINOv2 y el propuesto
+  por debajo.
+- **La cadena de entrenamiento es reproducible y resistente a fallas**: un
+  cuelgue de NCCL al 95 % se recupero solo, y el resultado cayo dentro de la
+  prediccion registrada antes de conocerlo
+  ([prediccion-brazo3-interrupcion.md](prediccion-brazo3-interrupcion.md)).
 - **La segmentacion sin etiquetas es utilizable** como paso previo: mediana
   de Dice 0,79 y 0,85, y la cuarentena detecta el 6 % de imagenes sin mascara
   confiable en vez de inventar una.
@@ -206,14 +267,24 @@ De la corrida preliminar, y a confirmar con la definitiva:
 
 ## 6. Que perdio
 
-<!-- PENDIENTE: completar con la corrida definitiva -->
-
-- **Ningun brazo adaptado alcanzo al backbone publico sin adaptar** en la
-  corrida preliminar (0,562 contra 0,583 con 4 horas-GPU). Cuatro horas de
-  GPU sobre 55 mil imagenes no compiten con LVD-142M. La corrida definitiva
-  triplica el presupuesto; si aun asi no alcanza, se reporta igual.
-- **kNN al 10 % de etiquetas**: el propuesto queda por debajo del control
-  (0,705 contra 0,715). Es la unica de las seis comparaciones que pierde.
+- **El emparejamiento por tono no mejora al control; lo empeora.** Con el
+  probe registrado, `ssl_proposed` queda por debajo de `ssl_plain` en macro-F1,
+  balanced accuracy y AUC **en los dos tamanos y en los dos regimenes de
+  etiquetas**: doce comparaciones, doce en contra. La ganancia de la corrida preliminar (+0,081) **no se
+  replica**: aquella corrida tenia el termino de perdida duplicado
+  (`08727e8`), y con el defecto corregido y el triple de presupuesto la
+  direccion se invierte.
+- **Ningun backbone propio alcanza a DINOv2 publico en macro-F1 ni en
+  balanced accuracy.** Los propios aciertan mas en global y separan mejor
+  (AUC), pero recuperan peor las clases minoritarias. Es el patron de un
+  clasificador que se apoya en la clase mayoritaria (nevo): accuracy alta,
+  recall macro bajo.
+- **Con `logreg_balanced` el propuesto ViT-B gana en balanced accuracy y
+  AUC.** Se reporta porque existe, pero **no se usa como resultado**: ese
+  probe no fue el registrado, y elegir el probe despues de ver cual favorece
+  al metodo es exactamente la seleccion que invalida una comparacion. Que el
+  veredicto cambie con el probe es, en si mismo, evidencia de que la
+  diferencia es chica.
 - **El estudiante de segmentacion no supera al piso mas fuerte** en
   solapamiento medio sobre ISIC 2018; gana en borde y en fallos
   catastroficos.
@@ -222,26 +293,29 @@ De la corrida preliminar, y a confirmar con la definitiva:
 
 ## 7. Que no se puede afirmar
 
-- **La direccion de la brecha de tono en clasificacion.** En la corrida
-  preliminar el estrato peor no era el oscuro sino el claro, en los tres
-  backbones — pero ese estrato tenia 183 muestras contra 820 y 957, sobre
-  siete clases. El estrato sin tono asignado, con 44 muestras, era el peor de
-  todos, que es la firma de inestabilidad por tamano de muestra. La corrida
-  definitiva incorpora **intervalos de confianza por estrato** y un campo
-  `gap_established` que dice si los extremos estan realmente separados.
-- **Que el metodo propuesto sea mejor *como objetivo*, separado de su costo.**
-  El brazo pareado lee dos imagenes por paso, asi que **al mismo presupuesto
-  de horas-GPU procesa menos muestras que su propio control**. Esa es la
-  comparacion que la tesis declara y la que le importa a quien tiene una GPU
-  y un plazo: a igual presupuesto de computo, cual conviene. Pero tiene un
-  limite que hay
-  que decir en voz alta y en las dos direcciones. Si el propuesto **gana**,
-  gana habiendo visto menos datos, y el resultado es mas fuerte de lo que
-  parece. Si **pierde**, no se puede concluir que el emparejado por tono sea
-  peor: puede estar perdiendo por haber visto menos muestras, no por el
-  objetivo. Distinguir las dos cosas exige una corrida adicional a igual
-  numero de muestras, que no se hizo. Por eso las tablas reportan pasos y
-  muestras de cada brazo, y no solo el presupuesto.
+- **Ninguna diferencia de clasificacion tiene todavia intervalo de
+  confianza.** Al 100 % de etiquetas las tres semillas son la misma corrida
+  (n efectivo = 1, ver la nota bajo la tabla). El bootstrap pareado sobre el
+  test esta en curso; hasta que llegue, "supera" en esta pagina significa
+  "estimacion puntual mayor", no "diferencia establecida".
+- **Ningun efecto de tono en clasificacion, en ninguna direccion.** En los
+  seis backbones los intervalos de los estratos extremos se solapan
+  (`Intervalos separados = no`). El estrato claro tiene 183 muestras contra
+  820 y 957, y es el que mueve cada brecha. Ni "la adaptacion cierra la
+  brecha" ni "la adaptacion la amplia" son afirmables con estos datos: la
+  brecha cambia de orden segun se mida en macro-F1 o en AUC, que es lo que
+  hace el ruido.
+- **Que el propuesto pierda por el objetivo y no por ver menos datos**, solo
+  en parte. El brazo pareado procesa menos muestras que su control al mismo
+  presupuesto, pero la diferencia es de un **3 %** (tabla de entrenamiento).
+  Un 3 % menos de datos explica mal una caida de varios puntos de macro-F1,
+  asi que la lectura mas probable es que el objetivo actual no ayuda. La
+  prueba definitiva es una corrida a igual numero de muestras, que no se
+  hizo.
+- **La version de scikit-learn del banco no quedo registrada.** El pliegue de
+  `StratifiedGroupKFold` depende de ella. La identidad del conjunto de test
+  se verifica por reproduccion exacta de las metricas publicadas, no por un
+  registro de ids que el banco no guardo.
 - **Nada sobre fototipos altos reales.** El pool es mayoritariamente piel
   clara. Sin datos externos no hay base para afirmar comportamiento en piel
   oscura en sentido clinico.
@@ -254,9 +328,9 @@ De la corrida preliminar, y a confirmar con la definitiva:
 
 En orden de retorno esperado:
 
-1. **Mas presupuesto de preentrenamiento.** Es la palanca que ataca el unico
-   resultado adverso. La corrida definitiva ya triplica el presupuesto de la
-   preliminar.
+1. **Bootstrap pareado sobre el test** (en curso). No mejora el modelo, pero
+   decide cuales de las diferencias de arriba existen. Es lo primero porque
+   cambia el verbo de cada frase de las secciones 5 y 6.
 2. **Un objetivo con dos terminos de verdad.** Hoy el brazo propuesto usa una
    sola perdida que mezcla invarianza a la augmentacion con invarianza al
    tono. Tres vistas — dos augmentaciones de la original mas la transformada
