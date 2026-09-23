@@ -23,6 +23,8 @@ BEGIN = "<!-- TABLA-CLASIFICACION:INICIO -->"
 END = "<!-- TABLA-CLASIFICACION:FIN -->"
 TRAINING_BEGIN = "<!-- TABLA-ENTRENAMIENTO:INICIO -->"
 TRAINING_END = "<!-- TABLA-ENTRENAMIENTO:FIN -->"
+CONTRAST_BEGIN = "<!-- TABLA-CONTRASTES:INICIO -->"
+CONTRAST_END = "<!-- TABLA-CONTRASTES:FIN -->"
 HEADLINE_PROBE = "logreg"
 FULL_FRACTION = 1.0
 
@@ -34,6 +36,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--bank", type=Path, required=True, help="Directory holding bank.json and strata.json")
     parser.add_argument("--readme", type=Path, required=True, help="Markdown file with the markers")
     parser.add_argument("--runs", type=Path, help="salidas/tone directory, for the training table")
+    parser.add_argument("--bootstrap", type=Path, help="bootstrap.json with the paired contrast intervals")
     parser.add_argument("--check", action="store_true", help="Fail instead of writing when the file would change")
     return parser.parse_args(argv)
 
@@ -281,6 +284,100 @@ def training_table(runs: dict[str, dict]) -> list[str]:
     return lines
 
 
+def _contrast_rows(bootstrap: dict) -> list[dict]:
+    """The list of paired contrasts, wherever the file keeps them.
+
+    The bootstrap writer may name the container `contrasts` or `rows`, or hand
+    back a bare list. Reading all three keeps the table from silently emptying
+    if the schema is nudged."""
+    if isinstance(bootstrap, list):
+        return bootstrap
+    for key in ("results", "contrasts", "rows", "intervals"):
+        value = bootstrap.get(key)
+        if isinstance(value, list):
+            return value
+    return []
+
+
+def _pair(row: dict) -> tuple[str, str]:
+    """The (arm, control) names, tolerant of the older a/b spelling."""
+    arm = row.get("arm") or row.get("a") or row.get("variant") or "?"
+    control = row.get("control") or row.get("b") or row.get("baseline") or "?"
+    return arm, control
+
+
+def _verdict(row: dict) -> str:
+    """What the interval says, in words, taken from the file's own direction.
+
+    The direction field already accounts for ECE being lower-is-better, so the
+    verdict MUST read it rather than infer a side from the sign of the delta -
+    inferring from the sign is exactly the inverted-label bug that hit HD95 and
+    would flip every ECE row. excludes_zero decides whether there is an effect
+    at all; only then does direction name the side."""
+    if not row.get("excludes_zero"):
+        return "no se distingue del ruido"
+    arm, control = _pair(row)
+    direction = row.get("direction")
+    if direction == "arm_better":
+        return f"gana `{arm}`"
+    if direction == "control_better":
+        return f"gana `{control}`"
+    if direction in ("indistinguishable", None):
+        # excludes_zero true but no side: report it, never guess from the sign.
+        return "efecto presente, direccion sin declarar"
+    return str(direction)
+
+
+def _ci(row: dict) -> str:
+    low, high = row.get("ci95_low"), row.get("ci95_high")
+    if low is None or high is None:
+        return "-"
+    return f"[{_fmt(low, 4)}, {_fmt(high, 4)}]"
+
+
+def contrasts_table(bootstrap: dict) -> list[str]:
+    """Every paired contrast with its 95% interval and a data-derived verdict.
+
+    Point estimates without a band invite reading noise as signal; this table
+    is the band. It renders ALL contrasts the file carries, in file order, so
+    no favourable row can be quietly kept and no adverse one dropped."""
+    rows = _contrast_rows(bootstrap)
+    if not rows:
+        return ["_Pendiente: se genera desde `bootstrap.json` cuando cierre el remuestreo._"]
+    lines = [
+        "| Contraste | Metrica | Delta | IC 95 % | Veredicto |",
+        "|---|---|---|---|---|",
+    ]
+    for row in rows:
+        arm, control = _pair(row)
+        lines.append(
+            f"| `{arm}` - `{control}` | {row.get('metric', '-')} | "
+            f"{_fmt(row.get('point_delta'), 4)} | {_ci(row)} | {_verdict(row)} |"
+        )
+    seed = bootstrap.get("rng_seed") if isinstance(bootstrap, dict) else None
+    resamples = bootstrap.get("n_resamples") if isinstance(bootstrap, dict) else None
+    tail = "Contraste pareado (los dos brazos remuestrean los MISMOS indices), "
+    tail += "estratificado por clase"
+    if resamples:
+        tail += f", {int(resamples):,} resamples".replace(",", ".")
+    if seed is not None:
+        tail += f", semilla {seed}"
+    lines += [
+        "",
+        tail + ".",
+        "Un intervalo que **incluye el cero** significa que la diferencia no se "
+        "distingue del ruido, por grande que sea el punto. Ningun 'gana' se cita "
+        "sin que su intervalo excluya el cero.",
+        "",
+        "_Generado desde `bootstrap.json` por `scripts/build_results_readme.py`._",
+    ]
+    return lines
+
+
+def render_contrasts(bootstrap: dict) -> str:
+    return "\n".join([CONTRAST_BEGIN, "", *contrasts_table(bootstrap), "", CONTRAST_END])
+
+
 def read_runs(tone: Path) -> dict[str, dict]:
     """The run.json of every arm that already finished."""
     runs = {}
@@ -336,6 +433,11 @@ def main() -> None:
     if args.runs:
         updated = replace_block(
             updated, render_training(read_runs(args.runs)), TRAINING_BEGIN, TRAINING_END
+        )
+    if args.bootstrap:
+        bootstrap = json.loads(args.bootstrap.read_text(encoding="utf-8"))
+        updated = replace_block(
+            updated, render_contrasts(bootstrap), CONTRAST_BEGIN, CONTRAST_END
         )
 
     if args.check:

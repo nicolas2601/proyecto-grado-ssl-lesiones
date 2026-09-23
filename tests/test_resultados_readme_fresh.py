@@ -50,3 +50,23 @@ def test_the_document_still_has_the_markers_the_generator_needs():
         "alguien borro los marcadores; el generador no puede escribir las tablas "
         "y el documento se vuelve transcripcion a mano"
     )
+
+
+def test_the_contrast_table_matches_the_committed_bootstrap():
+    """The CI bands are the load-bearing claim; they must not drift either."""
+    boot_file = BANK_DIR / "bootstrap.json"
+    if not boot_file.is_file():
+        pytest.skip(f"todavia no hay bootstrap commiteado en {boot_file.relative_to(REPO)}")
+
+    import json
+
+    bootstrap = json.loads(boot_file.read_text(encoding="utf-8"))
+    current = README.read_text(encoding="utf-8")
+    expected = gen.replace_block(
+        current, gen.render_contrasts(bootstrap), gen.CONTRAST_BEGIN, gen.CONTRAST_END
+    )
+    assert current == expected, (
+        "la tabla de contrastes quedo desactualizada respecto de bootstrap.json.\n"
+        "Corre: python scripts/build_results_readme.py --bank resultados/clasificacion "
+        "--bootstrap resultados/clasificacion/bootstrap.json --readme resultados/README.md"
+    )

@@ -45,12 +45,8 @@ modelo nunca vio, y por eso es el que responde si el metodo generaliza.
 | Segmentacion (camino B) | Pseudo-mascara por imagen | Cerrada |
 | Tono de piel | Tercil de luminosidad y buckets ITA por imagen | Cerrada |
 | Pares de tono | 55 034 pares original / piel oscurecida | Cerrada |
-| Preentrenamiento ×4 | Backbones adaptados (ViT-S y ViT-B, con y sin tono) | PENDIENTE |
-| Banco congelado | Tabla de clasificacion con 6 backbones | PENDIENTE |
-
-<!-- RESULTADOS: las secciones 4 a 7 se completan con la corrida de
-     2026-09-22. Hasta entonces las cifras que aparecen son de la corrida
-     preliminar de 4 horas-GPU y estan marcadas como tales. -->
+| Preentrenamiento ×4 | Backbones adaptados (ViT-S y ViT-B, con y sin tono) | Cerrada |
+| Banco congelado | Tabla de clasificacion con 6 backbones | Cerrada |
 
 ### Lo que consumio cada brazo
 
@@ -260,6 +256,50 @@ El propuesto supera al control en **cinco de las seis** combinaciones de
 probe y regimen; la excepcion es kNN al 10 % de etiquetas (0,705 contra
 0,715).
 
+### Contrastes con intervalo de confianza (bootstrap pareado)
+
+Cada diferencia de arriba es una estimacion puntual. La tabla siguiente le
+pone banda: bootstrap pareado sobre el test (los dos brazos remuestrean los
+MISMOS indices, para no inflar la varianza), a `logreg` y 100 % de etiquetas.
+**Un intervalo que incluye el cero no se cita como efecto**, por grande que
+sea el punto.
+
+<!-- TABLA-CONTRASTES:INICIO -->
+
+| Contraste | Metrica | Delta | IC 95 % | Veredicto |
+|---|---|---|---|---|
+| `ssl_proposed_vits14` - `ssl_plain_vits14` | macro_f1 | -0,0467 | [-0,0878, -0,0036] | gana `ssl_plain_vits14` |
+| `ssl_proposed_vits14` - `ssl_plain_vits14` | balanced_accuracy | -0,0404 | [-0,0769, -0,0060] | gana `ssl_plain_vits14` |
+| `ssl_proposed_vits14` - `ssl_plain_vits14` | auc | -0,0095 | [-0,0216, 0,0045] | no se distingue del ruido |
+| `ssl_proposed_vits14` - `ssl_plain_vits14` | ece | 0,0175 | [-0,0036, 0,0293] | no se distingue del ruido |
+| `ssl_proposed_vitb14` - `ssl_plain_vitb14` | macro_f1 | -0,0619 | [-0,1131, -0,0109] | gana `ssl_plain_vitb14` |
+| `ssl_proposed_vitb14` - `ssl_plain_vitb14` | balanced_accuracy | -0,0655 | [-0,1119, -0,0193] | gana `ssl_plain_vitb14` |
+| `ssl_proposed_vitb14` - `ssl_plain_vitb14` | auc | -0,0013 | [-0,0070, 0,0054] | no se distingue del ruido |
+| `ssl_proposed_vitb14` - `ssl_plain_vitb14` | ece | 0,0136 | [-0,0068, 0,0254] | no se distingue del ruido |
+| `ssl_proposed_vits14` - `dinov2_public_vits14` | macro_f1 | -0,0989 | [-0,1499, -0,0495] | gana `dinov2_public_vits14` |
+| `ssl_proposed_vits14` - `dinov2_public_vits14` | balanced_accuracy | -0,1241 | [-0,1711, -0,0802] | gana `dinov2_public_vits14` |
+| `ssl_proposed_vits14` - `dinov2_public_vits14` | auc | -0,0111 | [-0,0289, 0,0050] | no se distingue del ruido |
+| `ssl_proposed_vits14` - `dinov2_public_vits14` | ece | -0,0429 | [-0,0596, -0,0216] | gana `ssl_proposed_vits14` |
+| `ssl_proposed_vitb14` - `dinov2_public_vitb14` | macro_f1 | -0,0922 | [-0,1473, -0,0420] | gana `dinov2_public_vitb14` |
+| `ssl_proposed_vitb14` - `dinov2_public_vitb14` | balanced_accuracy | -0,1150 | [-0,1678, -0,0657] | gana `dinov2_public_vitb14` |
+| `ssl_proposed_vitb14` - `dinov2_public_vitb14` | auc | 0,0177 | [0,0065, 0,0306] | gana `ssl_proposed_vitb14` |
+| `ssl_proposed_vitb14` - `dinov2_public_vitb14` | ece | -0,1010 | [-0,1177, -0,0758] | gana `ssl_proposed_vitb14` |
+| `ssl_plain_vits14` - `dinov2_public_vits14` | macro_f1 | -0,0522 | [-0,1038, -0,0041] | gana `dinov2_public_vits14` |
+| `ssl_plain_vits14` - `dinov2_public_vits14` | balanced_accuracy | -0,0837 | [-0,1305, -0,0408] | gana `dinov2_public_vits14` |
+| `ssl_plain_vits14` - `dinov2_public_vits14` | auc | -0,0016 | [-0,0181, 0,0147] | no se distingue del ruido |
+| `ssl_plain_vits14` - `dinov2_public_vits14` | ece | -0,0604 | [-0,0711, -0,0343] | gana `ssl_plain_vits14` |
+| `ssl_plain_vitb14` - `dinov2_public_vitb14` | macro_f1 | -0,0302 | [-0,0753, 0,0161] | no se distingue del ruido |
+| `ssl_plain_vitb14` - `dinov2_public_vitb14` | balanced_accuracy | -0,0495 | [-0,0938, -0,0034] | gana `dinov2_public_vitb14` |
+| `ssl_plain_vitb14` - `dinov2_public_vitb14` | auc | 0,0190 | [0,0074, 0,0320] | gana `ssl_plain_vitb14` |
+| `ssl_plain_vitb14` - `dinov2_public_vitb14` | ece | -0,1146 | [-0,1239, -0,0882] | gana `ssl_plain_vitb14` |
+
+Contraste pareado (los dos brazos remuestrean los MISMOS indices), estratificado por clase. 1.000 resamples, semilla 20260923.
+Un intervalo que **incluye el cero** significa que la diferencia no se distingue del ruido, por grande que sea el punto. Ningun 'gana' se cita sin que su intervalo excluya el cero.
+
+_Generado desde `bootstrap.json` por `scripts/build_results_readme.py`._
+
+<!-- TABLA-CONTRASTES:FIN -->
+
 ---
 
 ## 5. Que gano
@@ -268,21 +308,21 @@ Leido sobre la tabla de metricas completas, con el probe fijado **antes** de
 tener datos (`HEADLINE_PROBE = "logreg"`, commit `3381cfa`, 2026-09-21, un dia
 antes de que cerrara el banco).
 
-- **La adaptacion de dominio sobre DINOv2 produce los backbones mejor
-  calibrados, y por mucho.** Los cuatro brazos adaptados tienen un ECE varias
-  veces menor que los dos DINOv2 publicos sin adaptar. Es la diferencia mas
-  grande de todo el panel y la unica que no depende del probe: aparece igual
-  con `logreg` y con `logreg_balanced`. Como los cuatro parten de los mismos
-  pesos publicos, la mejora de calibracion es atribuible a las 12 horas-GPU de
+- **La calibracion es el resultado mas fuerte del trabajo, y ahora con banda.**
+  El ECE de los cuatro brazos adaptados es varias veces menor que el de DINOv2
+  publico, y el contraste pareado **excluye el cero en los cuatro, con margen
+  amplio** (por ejemplo `ssl_plain_vitb14` vs DINOv2 ViT-B: d=-0,1146, IC
+  [-0,1239, -0,0882]; ver la tabla de contrastes). Como los cuatro parten de
+  los mismos pesos publicos, la mejora es atribuible a las 12 horas-GPU de
   SimSiam sobre dermatoscopias, no a la arquitectura. Para un clasificador
   medico, una probabilidad que significa lo que dice es una propiedad util por
   si sola.
-- **`ssl_plain_vitb14` (DINOv2 ViT-B + adaptacion de dominio) supera a DINOv2
-  ViT-B sin adaptar en accuracy, AUC, precision macro y calibracion.** No es
-  "un SSL desde cero le gana a DINOv2": es que agregarle 12 horas-GPU de
-  SimSiam de dominio al backbone publico lo mejora. En AUC los dos ViT-B
-  adaptados superan a su base publica; en ViT-S el control queda a la par y el
-  propuesto por debajo.
+- **Contra DINOv2 publico, la adaptacion de dominio gana de forma afirmable en
+  AUC y en calibracion — en los dos tamanos ViT-B.** `ssl_plain_vitb14` supera
+  a DINOv2 ViT-B en AUC (d=+0,0190, IC [+0,0074, +0,0320]) y `ssl_proposed_vitb14`
+  tambien (d=+0,0177, IC [+0,0065, +0,0306]). No es "un SSL desde cero le gana a
+  DINOv2": es que agregarle 12 horas-GPU de SimSiam de dominio al backbone
+  publico lo mejora en esos ejes. En ViT-S el AUC no se distingue del publico.
 - **La cadena de entrenamiento es reproducible y resistente a fallas**: un
   cuelgue de NCCL al 95 % se recupero solo, y el resultado cayo dentro de la
   prediccion registrada antes de conocerlo
@@ -295,18 +335,24 @@ antes de que cerrara el banco).
 
 ## 6. Que perdio
 
-- **El emparejamiento por tono no mejora al control; lo empeora.** Con el
-  probe registrado, `ssl_proposed` queda por debajo de `ssl_plain` en macro-F1,
-  balanced accuracy y AUC **en los dos tamanos y en los dos regimenes de
-  etiquetas**: doce comparaciones, doce en contra. La ganancia de la corrida preliminar (+0,081) **no se
-  replica**: aquella corrida tenia el termino de perdida duplicado
-  (`08727e8`), y con el defecto corregido y el triple de presupuesto la
-  direccion se invierte.
-- **Ningun backbone adaptado alcanza a DINOv2 publico en macro-F1 ni en
-  balanced accuracy.** Los adaptados aciertan mas en global y separan mejor
-  (AUC), pero recuperan peor las clases minoritarias: la adaptacion de dominio
-  mejora accuracy, AUC y calibracion pero no el recall de las clases raras. Es
-  el patron de un clasificador que se apoya en la clase mayoritaria (nevo):
+- **El emparejamiento por tono no aporta, y ahora esta afirmado con banda.**
+  De los 8 contrastes del propuesto contra su propio control, **cero favorecen
+  al propuesto**. Pierde de forma afirmable (IC que excluye el cero) en macro-F1
+  y balanced accuracy en los dos tamanos; en AUC y ECE la diferencia **no se
+  distingue del ruido** (ViT-B AUC: d=-0,0013, IC [-0,0070, +0,0054]). La
+  ganancia de la corrida preliminar (+0,081) **no se replica**: aquella corrida
+  tenia el termino de perdida duplicado (`08727e8`) y ademas corrio con el peso
+  de consistencia en 1,0, que es la identidad — el brazo "propuesto" entreno con
+  la perdida del control sin escalar. Con el defecto corregido y el triple de
+  presupuesto, la direccion se invierte.
+- **DINOv2 publico no queda batido en todo, pero tampoco batido.** En balanced
+  accuracy DINOv2 ViT-B supera a los adaptados de forma afirmable (vs
+  `ssl_plain_vitb14`: d=-0,0495, IC [-0,0938, -0,0034]). En macro-F1 la
+  diferencia contra `ssl_plain_vitb14` **no se distingue del ruido** (d=-0,0302,
+  IC [-0,0753, +0,0161]): no es correcto decir "DINOv2 gana en F1". Los
+  adaptados separan mejor (AUC) y calibran mucho mejor, pero recuperan peor las
+  clases minoritarias. Es el patron de un clasificador que se apoya en la clase
+  mayoritaria (nevo):
   accuracy alta, recall macro bajo.
 - **Con `logreg_balanced` el propuesto ViT-B gana en balanced accuracy y
   AUC.** Se reporta porque existe, pero **no se usa como resultado**: ese
@@ -322,11 +368,12 @@ antes de que cerrara el banco).
 
 ## 7. Que no se puede afirmar
 
-- **Ninguna diferencia de clasificacion tiene todavia intervalo de
-  confianza.** Al 100 % de etiquetas las tres semillas son la misma corrida
-  (n efectivo = 1, ver la nota bajo la tabla). El bootstrap pareado sobre el
-  test esta en curso; hasta que llegue, "supera" en esta pagina significa
-  "estimacion puntual mayor", no "diferencia establecida".
+- **Las diferencias afirmables son solo las que la tabla de contrastes marca
+  con IC que excluye el cero.** El resto son estimaciones puntuales que no se
+  distinguen del ruido, y no se citan como resultado por grande que sea el
+  numero. La banda viene del bootstrap pareado (1000 resamples, seed 20260923),
+  no de las tres semillas: al 100 % de etiquetas las semillas son la misma
+  corrida (n efectivo = 1).
 - **Ningun efecto de tono en clasificacion, en ninguna direccion.** En los
   seis backbones los intervalos de los estratos extremos se solapan
   (`Intervalos separados = no`). El estrato claro tiene 183 muestras contra
@@ -341,10 +388,13 @@ antes de que cerrara el banco).
   asi que la lectura mas probable es que el objetivo actual no ayuda. La
   prueba definitiva es una corrida a igual numero de muestras, que no se
   hizo.
-- **La version de scikit-learn del banco no quedo registrada.** El pliegue de
-  `StratifiedGroupKFold` depende de ella. La identidad del conjunto de test
-  se verifica por reproduccion exacta de las metricas publicadas, no por un
-  registro de ids que el banco no guardo.
+- **La version de scikit-learn del banco no quedo registrada, pero la
+  reproduccion la vuelve inofensiva.** El pliegue de `StratifiedGroupKFold`
+  depende de ella; el volcado del bootstrap corrio con scikit-learn 1.9.0 y
+  reprodujo `bank_rows.csv` con **sha256 identico byte a byte** al publicado
+  (`67d6063...`), asi que ni la version ni el fold se movieron. La identidad del
+  conjunto de test queda verificada por esa reproduccion, no por un registro de
+  ids que el banco no guardo.
 - **Nada sobre fototipos altos reales.** El pool es mayoritariamente piel
   clara. Sin datos externos no hay base para afirmar comportamiento en piel
   oscura en sentido clinico.
