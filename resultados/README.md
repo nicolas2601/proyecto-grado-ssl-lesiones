@@ -145,6 +145,14 @@ fototipo oscuro clinico. El pool es mayoritariamente piel clara.
 
 ## 4. Clasificacion: los seis backbones
 
+**Datos.** Los backbones se preentrenan sin etiquetas sobre el pool (HAM10000
++ ISIC 2019 sin HAM + ISIC 2020, ver seccion 1). La evaluacion de
+clasificacion que sigue es **solo sobre HAM10000**, las 7 clases `dx`, con
+`StratifiedGroupKFold` por `lesion_id` (semilla 42, primer pliegue): 8 011
+imagenes de entrenamiento del probe y 2 004 de validacion, sin fuga de lesion
+entre ambas. ISIC 2019 e ISIC 2020 no traen las 7 etiquetas `dx`, por eso no
+entran a esta tabla; ISIC 2018 no se usa en clasificacion.
+
 **Que probe manda para que.** El resultado principal se lee con `logreg`
 (`HEADLINE_PROBE`, fijado en el commit `3381cfa`, antes de que existiera el
 banco). Los estratos por tono usan `logreg_balanced`
