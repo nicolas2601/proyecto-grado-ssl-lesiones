@@ -145,6 +145,15 @@ fototipo oscuro clinico. El pool es mayoritariamente piel clara.
 
 ## 4. Clasificacion: los seis backbones
 
+**Que probe manda para que.** El resultado principal se lee con `logreg`
+(`HEADLINE_PROBE`, fijado en el commit `3381cfa`, antes de que existiera el
+banco). Los estratos por tono usan `logreg_balanced`
+(`STRATA_PREFERRED_PROBE`), porque un estrato chico como el claro necesita el
+probe balanceado para no colapsar en la clase mayoritaria. Son dos constantes
+distintas a proposito: leer la tabla principal con el probe de los estratos
+invierte parte del veredicto, y esa mezcla es un error facil — se declara aca
+para que nadie lo repita.
+
 <!-- TABLA-CLASIFICACION:INICIO -->
 
 ### Rendimiento
