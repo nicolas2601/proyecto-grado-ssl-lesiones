@@ -105,3 +105,24 @@ def test_a_missing_field_renders_a_dash_not_a_crash(tmp_path):
     (tmp_path / "ssl_plain_vits14_run.json").write_text("{}", encoding="utf-8")
     row = [line for line in gen.arm_table(gen.discover_arms(tmp_path)) if line.startswith("| `")][0]
     assert "| - |" in row
+
+
+def test_the_mode_legend_names_the_modes_the_manifests_carry(tmp_path):
+    """The legend used to hardcode `paired`; the arms report
+    `original_transformed_consistency`, so the word matched nothing in the
+    table. It now derives from the data."""
+    _flat_arm(tmp_path, "ssl_plain_vitb14", backbone="dinov2_vitb14",
+              adaptation_mode="two_view_ssl")
+    _flat_arm(tmp_path, "ssl_proposed_vitb14", backbone="dinov2_vitb14",
+              adaptation_mode="original_transformed_consistency")
+    notes = gen.render_notes("v1.0", gen.discover_arms(tmp_path), "")
+    assert "`original_transformed_consistency`" in notes
+    assert "`two_view_ssl`" in notes
+    assert "`paired`" not in notes
+
+
+def test_the_legend_does_not_invent_a_method_for_an_unknown_mode(tmp_path):
+    _flat_arm(tmp_path, "ssl_plain_vits14", adaptation_mode="something_new")
+    notes = gen.render_notes("v1.0", gen.discover_arms(tmp_path), "")
+    assert "`something_new`" in notes
+    assert "metodo propuesto" not in notes

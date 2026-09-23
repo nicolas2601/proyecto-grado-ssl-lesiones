@@ -96,6 +96,35 @@ def _label_free(arms: dict[str, dict[str, Path]]) -> bool:
     return all(_read(entry["run"]).get("label_free") is True for entry in arms.values())
 
 
+PROPOSED_MODE = "original_transformed_consistency"
+CONTROL_MODE = "two_view_ssl"
+
+
+def _mode_legend(arms: dict[str, dict[str, Path]]) -> list[str]:
+    """Name the modes the manifests actually carry, not a mode string from
+    an older schema. The legend used to say `paired`; the arms report
+    `original_transformed_consistency`, so a reader matching the word against
+    the table found nothing."""
+    modes = {_read(entry["run"]).get("adaptation_mode") for entry in arms.values()}
+    proposed = PROPOSED_MODE if PROPOSED_MODE in modes else None
+    control = CONTROL_MODE if CONTROL_MODE in modes else None
+    lines = []
+    if proposed:
+        lines.append(
+            f"Los arms con modo `{proposed}` son el metodo propuesto (leen la "
+            "imagen original y su copia con el tono desplazado)."
+        )
+    if control:
+        lines.append(
+            f"Los arms con modo `{control}` son el control, con el mismo "
+            "presupuesto de computo pero sin el emparejamiento por tono."
+        )
+    if not lines:
+        # Don't invent a legend for modes we don't recognise; name them plainly.
+        lines.append("Modos presentes: " + ", ".join(f"`{m}`" for m in sorted(modes) if m) + ".")
+    return lines
+
+
 def render_notes(tag: str, arms: dict[str, dict[str, Path]], checksums: str) -> str:
     label_free = _label_free(arms)
     pretraining = (
@@ -110,13 +139,11 @@ def render_notes(tag: str, arms: dict[str, dict[str, Path]], checksums: str) -> 
         "",
         *arm_table(arms),
         "",
-        "Los arms con modo `paired` son el metodo propuesto (pares de tono);",
-        "los demas son el control entrenado con el mismo presupuesto.",
+        *_mode_legend(arms),
         "",
         "| Archivo | Que es |",
         "|---|---|",
         "| `*_run.json` | Evidencia de cada corrida: presupuesto, semilla, hash de particion |",
-        "| `bank.json`, `strata.json`, `bank.md` | Resultados del banco congelado |",
         "",
         "Comprobacion rapida de que el archivo descargado sirve:",
         "",
