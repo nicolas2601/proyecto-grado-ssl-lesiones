@@ -214,14 +214,21 @@ Diseno de la comparacion. Cada arquitectura entra con **su propia** linea
 base publica, porque comparar un ViT-S adaptado contra un ViT-B publico
 confundiria la adaptacion con la capacidad del modelo.
 
+**Los cuatro brazos SSL NO parten de cero.** Se inicializan con los pesos
+publicos de DINOv2 (`initial_weights = dinov2-public-lvd142m` en los cuatro
+`run.json`) y hacen SimSiam de dominio encima. Por eso la comparacion honesta
+es **"DINOv2 + adaptacion de dominio" contra "DINOv2 solo"**, no "un SSL
+entrenado desde cero contra DINOv2". La ganancia mide lo que aporta la
+adaptacion sobre el backbone publico, no reemplaza a LVD-142M.
+
 | Backbone | Origen | Papel |
 |---|---|---|
-| `dinov2_public_vits14` | DINOv2 ViT-S/14 LVD-142M | Referencia del tamano chico |
-| `dinov2_public_vitb14` | DINOv2 ViT-B/14 LVD-142M | Referencia del tamano grande |
-| `ssl_plain_vits14` | SimSiam sobre el pool, dos vistas | Control chico |
-| `ssl_proposed_vits14` | SimSiam con pares de tono | Propuesto chico |
-| `ssl_plain_vitb14` | SimSiam sobre el pool, dos vistas | Control grande |
-| `ssl_proposed_vitb14` | SimSiam con pares de tono | Propuesto grande |
+| `dinov2_public_vits14` | DINOv2 ViT-S/14 LVD-142M, sin adaptar | Referencia del tamano chico |
+| `dinov2_public_vitb14` | DINOv2 ViT-B/14 LVD-142M, sin adaptar | Referencia del tamano grande |
+| `ssl_plain_vits14` | DINOv2 ViT-S + SimSiam de dominio (dos vistas) | Control chico |
+| `ssl_proposed_vits14` | DINOv2 ViT-S + SimSiam con pares de tono | Propuesto chico |
+| `ssl_plain_vitb14` | DINOv2 ViT-B + SimSiam de dominio (dos vistas) | Control grande |
+| `ssl_proposed_vitb14` | DINOv2 ViT-B + SimSiam con pares de tono | Propuesto grande |
 
 Protocolo: `StratifiedGroupKFold` por `lesion_id`, semilla 42, primer
 pliegue, identico en los seis. Probes `logreg`, `logreg_balanced` y `knn`, a
@@ -261,17 +268,21 @@ Leido sobre la tabla de metricas completas, con el probe fijado **antes** de
 tener datos (`HEADLINE_PROBE = "logreg"`, commit `3381cfa`, 2026-09-21, un dia
 antes de que cerrara el banco).
 
-- **El preentrenamiento SSL en el dominio produce los backbones mejor
-  calibrados, y por mucho.** Los cuatro brazos propios tienen un ECE varias
-  veces menor que los dos DINOv2 publicos. Es la diferencia mas grande de todo
-  el panel y la unica que no depende del probe: aparece igual con `logreg` y
-  con `logreg_balanced`. Para un clasificador medico, una probabilidad que
-  significa lo que dice es una propiedad util por si sola.
-- **`ssl_plain_vitb14` supera a DINOv2 ViT-B publico en accuracy, AUC,
-  precision macro y calibracion**, con 12 horas-GPU sobre ~55 mil imagenes
-  contra un modelo entrenado en LVD-142M. En AUC los dos ViT-B propios superan
-  a DINOv2 ViT-B; en ViT-S el control queda a la par de DINOv2 y el propuesto
-  por debajo.
+- **La adaptacion de dominio sobre DINOv2 produce los backbones mejor
+  calibrados, y por mucho.** Los cuatro brazos adaptados tienen un ECE varias
+  veces menor que los dos DINOv2 publicos sin adaptar. Es la diferencia mas
+  grande de todo el panel y la unica que no depende del probe: aparece igual
+  con `logreg` y con `logreg_balanced`. Como los cuatro parten de los mismos
+  pesos publicos, la mejora de calibracion es atribuible a las 12 horas-GPU de
+  SimSiam sobre dermatoscopias, no a la arquitectura. Para un clasificador
+  medico, una probabilidad que significa lo que dice es una propiedad util por
+  si sola.
+- **`ssl_plain_vitb14` (DINOv2 ViT-B + adaptacion de dominio) supera a DINOv2
+  ViT-B sin adaptar en accuracy, AUC, precision macro y calibracion.** No es
+  "un SSL desde cero le gana a DINOv2": es que agregarle 12 horas-GPU de
+  SimSiam de dominio al backbone publico lo mejora. En AUC los dos ViT-B
+  adaptados superan a su base publica; en ViT-S el control queda a la par y el
+  propuesto por debajo.
 - **La cadena de entrenamiento es reproducible y resistente a fallas**: un
   cuelgue de NCCL al 95 % se recupero solo, y el resultado cayo dentro de la
   prediccion registrada antes de conocerlo
@@ -291,11 +302,12 @@ antes de que cerrara el banco).
   replica**: aquella corrida tenia el termino de perdida duplicado
   (`08727e8`), y con el defecto corregido y el triple de presupuesto la
   direccion se invierte.
-- **Ningun backbone propio alcanza a DINOv2 publico en macro-F1 ni en
-  balanced accuracy.** Los propios aciertan mas en global y separan mejor
-  (AUC), pero recuperan peor las clases minoritarias. Es el patron de un
-  clasificador que se apoya en la clase mayoritaria (nevo): accuracy alta,
-  recall macro bajo.
+- **Ningun backbone adaptado alcanza a DINOv2 publico en macro-F1 ni en
+  balanced accuracy.** Los adaptados aciertan mas en global y separan mejor
+  (AUC), pero recuperan peor las clases minoritarias: la adaptacion de dominio
+  mejora accuracy, AUC y calibracion pero no el recall de las clases raras. Es
+  el patron de un clasificador que se apoya en la clase mayoritaria (nevo):
+  accuracy alta, recall macro bajo.
 - **Con `logreg_balanced` el propuesto ViT-B gana en balanced accuracy y
   AUC.** Se reporta porque existe, pero **no se usa como resultado**: ese
   probe no fue el registrado, y elegir el probe despues de ver cual favorece
