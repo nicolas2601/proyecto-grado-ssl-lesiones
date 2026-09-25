@@ -1,0 +1,194 @@
+{
+ "arm": "ssl_proposed_vitb14",
+ "backbone": "dinov2_vitb14",
+ "feature_dim": 768,
+ "classes": [
+  "akiec",
+  "bcc",
+  "bkl",
+  "df",
+  "mel",
+  "nv",
+  "vasc"
+ ],
+ "tolerance": 0.01,
+ "source": "fresh float32 forward on this checkpoint (NOT the bank's cached features)",
+ "tolerance_note": "Measured on the reference implementation: repeating the same fp32 extraction moves probabilities by 0.0e+00; the resize-256 bug moves them by 5.7e-02. The tolerance sits between the two so the fixture actually separates a correct pipeline from a broken one.",
+ "known_drift_modes": {
+  "resize_256_instead_of_255": "max|dproba| ~= 5.7e-02, and top-1 usually does NOT change. This is the dangerous one: it ships silently without this fixture.",
+  "l2_normalised_features": "max|dproba| ~= 1.0, top-1 collapses. Impossible to miss.",
+  "forward_features_x_norm_clstoken": "IDENTICAL to plain model(x) for this DINOv2 ViT -- verified, not assumed. Either call is safe here."
+ },
+ "bank_cache_note": "bank_cached_probabilities are what the published bank produced from features extracted under CUDA autocast. They differ from the fp32 values by up to ~1.6e-2. That gap is extraction precision, not a pipeline error -- do not chase it. The published metrics live in classifier_manifest.json; this file verifies the pipeline, it does not certify those metrics.",
+ "how_to_use": "Run your full pipeline on each image_id (HAM10000 600x450 originals, NOT the 224x224 ISIC2019 copies) and compare the 7 probabilities within tolerance.",
+ "cases": [
+  {
+   "image_id": "ISIC_0032014",
+   "true_class": "akiec",
+   "predicted_class": "akiec",
+   "probabilities": {
+    "akiec": 0.3247770667076111,
+    "bcc": 0.2172875702381134,
+    "bkl": 0.13872481882572174,
+    "df": 0.18988695740699768,
+    "mel": 0.08857309073209763,
+    "nv": 0.040464457124471664,
+    "vasc": 0.00028592240414582193
+   },
+   "bank_cached_probabilities": {
+    "akiec": 0.33207619190216064,
+    "bcc": 0.2170378714799881,
+    "bkl": 0.1349928081035614,
+    "df": 0.19263164699077606,
+    "mel": 0.08400344103574753,
+    "nv": 0.03898785635828972,
+    "vasc": 0.00027018311084248126
+   },
+   "max_abs_diff_vs_bank_cache": 0.0072991251945495605
+  },
+  {
+   "image_id": "ISIC_0024504",
+   "true_class": "bcc",
+   "predicted_class": "bcc",
+   "probabilities": {
+    "akiec": 0.019468437880277634,
+    "bcc": 0.9526711702346802,
+    "bkl": 0.003709149546921253,
+    "df": 0.0010150675661861897,
+    "mel": 0.008628691546618938,
+    "nv": 0.012868145480751991,
+    "vasc": 0.0016393371624872088
+   },
+   "bank_cached_probabilities": {
+    "akiec": 0.019866978749632835,
+    "bcc": 0.9523276090621948,
+    "bkl": 0.004074647091329098,
+    "df": 0.0010008844546973705,
+    "mel": 0.008148162625730038,
+    "nv": 0.012969477102160454,
+    "vasc": 0.0016123512759804726
+   },
+   "max_abs_diff_vs_bank_cache": 0.00048052892088890076
+  },
+  {
+   "image_id": "ISIC_0027388",
+   "true_class": "bkl",
+   "predicted_class": "akiec",
+   "probabilities": {
+    "akiec": 0.4064839780330658,
+    "bcc": 0.09101856499910355,
+    "bkl": 0.284475177526474,
+    "df": 0.1683046966791153,
+    "mel": 0.028434395790100098,
+    "nv": 0.021020101383328438,
+    "vasc": 0.00026309239910915494
+   },
+   "bank_cached_probabilities": {
+    "akiec": 0.41993045806884766,
+    "bcc": 0.09007270634174347,
+    "bkl": 0.27584099769592285,
+    "df": 0.16733822226524353,
+    "mel": 0.02821136638522148,
+    "nv": 0.018336202949285507,
+    "vasc": 0.0002699317701626569
+   },
+   "max_abs_diff_vs_bank_cache": 0.01344648003578186
+  },
+  {
+   "image_id": "ISIC_0030244",
+   "true_class": "df",
+   "predicted_class": "df",
+   "probabilities": {
+    "akiec": 0.047009244561195374,
+    "bcc": 0.19614563882350922,
+    "bkl": 0.15024952590465546,
+    "df": 0.3539545238018036,
+    "mel": 0.06654961407184601,
+    "nv": 0.15210504829883575,
+    "vasc": 0.033986449241638184
+   },
+   "bank_cached_probabilities": {
+    "akiec": 0.04451344907283783,
+    "bcc": 0.20586007833480835,
+    "bkl": 0.1402149647474289,
+    "df": 0.3677714169025421,
+    "mel": 0.0667186826467514,
+    "nv": 0.1414128988981247,
+    "vasc": 0.03350850194692612
+   },
+   "max_abs_diff_vs_bank_cache": 0.013816893100738525
+  },
+  {
+   "image_id": "ISIC_0032840",
+   "true_class": "mel",
+   "predicted_class": "nv",
+   "probabilities": {
+    "akiec": 0.007359473966062069,
+    "bcc": 0.10383058339357376,
+    "bkl": 0.0267583429813385,
+    "df": 0.013661027885973454,
+    "mel": 0.4151865243911743,
+    "nv": 0.4300508499145508,
+    "vasc": 0.0031531197018921375
+   },
+   "bank_cached_probabilities": {
+    "akiec": 0.008035929873585701,
+    "bcc": 0.11053004115819931,
+    "bkl": 0.026856698095798492,
+    "df": 0.01434213388711214,
+    "mel": 0.4227179288864136,
+    "nv": 0.414072722196579,
+    "vasc": 0.0034444762859493494
+   },
+   "max_abs_diff_vs_bank_cache": 0.015978127717971802
+  },
+  {
+   "image_id": "ISIC_0029064",
+   "true_class": "nv",
+   "predicted_class": "nv",
+   "probabilities": {
+    "akiec": 4.109338624402881e-05,
+    "bcc": 0.00018563434423413128,
+    "bkl": 0.005788148380815983,
+    "df": 0.0006671909359283745,
+    "mel": 0.0012167553650215268,
+    "nv": 0.9907149076461792,
+    "vasc": 0.001386252697557211
+   },
+   "bank_cached_probabilities": {
+    "akiec": 4.567122959997505e-05,
+    "bcc": 0.0002140462602255866,
+    "bkl": 0.006286095827817917,
+    "df": 0.0007551286253146827,
+    "mel": 0.0012738659279420972,
+    "nv": 0.9899094104766846,
+    "vasc": 0.001515741809271276
+   },
+   "max_abs_diff_vs_bank_cache": 0.0008054971694946289
+  },
+  {
+   "image_id": "ISIC_0028146",
+   "true_class": "vasc",
+   "predicted_class": "nv",
+   "probabilities": {
+    "akiec": 0.0006965376669541001,
+    "bcc": 0.003150052158161998,
+    "bkl": 0.046491388231515884,
+    "df": 0.0021669366396963596,
+    "mel": 0.10112054646015167,
+    "nv": 0.6335710287094116,
+    "vasc": 0.21280351281166077
+   },
+   "bank_cached_probabilities": {
+    "akiec": 0.0006916339625604451,
+    "bcc": 0.0030283855739980936,
+    "bkl": 0.04911995679140091,
+    "df": 0.002158776391297579,
+    "mel": 0.09920196980237961,
+    "nv": 0.6220982670783997,
+    "vasc": 0.22370101511478424
+   },
+   "max_abs_diff_vs_bank_cache": 0.011472761631011963
+  }
+ ]
+}

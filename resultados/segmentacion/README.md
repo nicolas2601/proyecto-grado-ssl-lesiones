@@ -42,16 +42,16 @@ de esa imagen en la etiqueta. Son muestras aleatorias, no las mejores.
 
 Corrida final, HAM10000, muestra aleatoria:
 
-![Final HAM10000, muestra aleatoria](2026-09-21-final/evaluacion_ham10000/overlays/random.png)
+![Final HAM10000, muestra aleatoria](../../plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/evaluacion_ham10000/overlays/random.png)
 
 Corrida final, ISIC 2018, muestra aleatoria:
 
-![Final ISIC 2018, muestra aleatoria](2026-09-21-final/evaluacion_isic2018/overlays/random.png)
+![Final ISIC 2018, muestra aleatoria](../../plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/evaluacion_isic2018/overlays/random.png)
 
 Los peores casos de la corrida final en ISIC 2018 (Dice 0): tinta quirurgica
 violeta, cabello denso, gel, reglas y brillos con lesiones palidas:
 
-![Final ISIC 2018, peores casos](2026-09-21-final/evaluacion_isic2018/overlays/worst.png)
+![Final ISIC 2018, peores casos](../../plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/evaluacion_isic2018/overlays/worst.png)
 
 Los mejores casos, para calibrar el ojo: `2026-09-21-final/evaluacion_*/overlays/best.png`.
 Para comparar con lo que hacia la V2 de la rama (mascara sobre todo el campo
@@ -61,7 +61,7 @@ pisos sin aprendizaje en `2026-09-21-final/baselines_v2/`.
 Deteccion del campo del dermatoscopio (borde rojo = limite del campo valido;
 una fila por dataset y por tipo, circular o cuadro completo):
 
-![Hoja de contacto del campo, corrida final](2026-09-21-final/field_contact_sheet.png)
+![Hoja de contacto del campo, corrida final](../../plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/field_contact_sheet.png)
 
 ## Parametros exactos de la corrida final
 

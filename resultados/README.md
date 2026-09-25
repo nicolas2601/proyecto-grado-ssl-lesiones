@@ -4,6 +4,16 @@ Todo lo que produjo el proyecto, en un solo lugar: segmentacion sin
 etiquetas, tono de piel, los cuatro brazos de preentrenamiento y el
 clasificador. Que gano, que perdio, y como mejorarlo.
 
+> Navegación: [README principal](../README.md) · [análisis final](../docs/24-analisis-final-resultados-y-escenarios-ada.md) · [fuentes y ramas](../docs/00-fuentes-y-ramas.md) · [demo](../demo/README.md).
+
+## Regla de lectura
+
+Esta carpeta es la fuente canónica de los resultados del pipeline propuesto.
+Cada conclusión debe leerse junto con el artefacto que la produce: JSON,
+CSV, manifiesto, log o commit. Los bancos anteriores permanecen en
+[`results/`](../results/README.md) y no sustituyen los artefactos de esta
+carpeta.
+
 Cada cifra cita el commit, el preset y el artefacto del que sale. Lo que no
 esta medido se dice que no esta medido.
 

@@ -74,8 +74,10 @@ python scripts/pretrain.py --method simsiam_dinov2 --smoke \
 
 Decision 2026-09-03: W&B es el dashboard que ve todo el equipo (el laboratorio
 ya lo usa offline + sync); MLflow file-store queda como rastro local en el
-cluster; los JSON de resultados se versionan en `results/` y se suben a GitHub
-con `cluster/finetune/publish_results.sh`.
+cluster. Los resultados historicos de runners se conservan en `results/`,
+mientras que la corrida final del pipeline propuesto se lee en
+[`resultados/`](../resultados/README.md). El script de publicacion se mantiene
+para los bancos que todavia producen salidas bajo `results/`.
 
 ## 4b. Detalle previo (pretraining v6)
 

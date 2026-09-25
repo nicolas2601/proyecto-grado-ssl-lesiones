@@ -111,13 +111,19 @@ Checkpoints por modelo (generado con
 - Metrica principal: balanced accuracy y F1 macro. Ancla de literatura:
   Gessert (ganador ISIC 2019) = 0.636 de balanced accuracy en test oficial.
 
-## Pendiente
+## Bancos relacionados
 
-- Banco sobre ISIC 2020 RESIZED (pedido de la direccion, 2026-08-28): generado
-  en `notebooks/baselines_isic2020/` como tarea BINARIA (benigno/maligno), split
-  agrupado por `patient_id` real. Los 2 bancos sacan precision/F1 por clase,
-  matriz de confusion e IC bootstrap 95% (re-correr el de HAM10000 para
-  obtenerlas). ISIC 2019 quedo fuera del alcance (decision 2026-09-03).
+- Banco ISIC 2019: [`../baselines_isic2019/`](../baselines_isic2019/), tarea de
+  ocho clases y la unica comparable directamente con el ancla de Gessert.
+- Banco ISIC 2020: [`../baselines_isic2020/`](../baselines_isic2020/), tarea
+  binaria agrupada por `patient_id`.
+- Fine-tuning y probe de learning rate:
+  [`../finetune/`](../finetune/), [`../finetune_isic2019/`](../finetune_isic2019/)
+  y [`../finetune_lrprobe/`](../finetune_lrprobe/).
+
+Las tablas finales se consultan en [`resultados/`](../../resultados/README.md)
+y los JSON historicos en [`results/`](../../results/README.md). No mezclar una
+corrida smoke con una corrida `SMOKE=False`.
 
 ## Resultados de la corrida real (2026-09-03, SMOKE=False, seed 42)
 

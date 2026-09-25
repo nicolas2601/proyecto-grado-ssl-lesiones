@@ -3,6 +3,25 @@
 > Repositorio privado de trabajo. Documentación, investigación, decisiones técnicas, el pipeline
 > que estamos corriendo y las problemáticas abiertas del proyecto.
 
+## Navegación de la rama consolidada
+
+Esta rama se llama `proyecto-de-grado` y consolida el snapshot de
+`proposed-cluster` con el demo local, los catálogos y la trazabilidad de ramas.
+
+| Necesito... | Ir a... |
+|---|---|
+| Leer el estado científico final | [`resultados/README.md`](resultados/README.md) y [`docs/24`](docs/24-analisis-final-resultados-y-escenarios-ada.md) |
+| Entender qué rama produjo cada cosa | [`docs/00-fuentes-y-ramas.md`](docs/00-fuentes-y-ramas.md) |
+| Encontrar una decisión | [`docs/README.md`](docs/README.md), [`docs/04`](docs/04-decisiones-tecnicas.md) y [`docs/13`](docs/13-por-que-estas-decisiones.md) |
+| Ver resultados históricos/baselines | [`results/README.md`](results/README.md) y las tablas generadas de este README |
+| Abrir el demo | [`demo/README.md`](demo/README.md) |
+| Encontrar figuras | [`assets/README.md`](assets/README.md) |
+
+> Las tablas extensas de este README se conservan porque los tests de frescura
+> las comparan contra los JSON generados. Para interpretar el resultado final,
+> prevalecen [`resultados/`](resultados/README.md) y `docs/24`; las cifras de
+> corridas anteriores se mantienen como histórico reproducible.
+
 ## Resumen en una línea
 
 Sistema de **apoyo** al tamizaje de lesiones cutáneas basado en **aprendizaje autosupervisado
@@ -22,24 +41,21 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
 ## Estado actual (rápido)
 
 - **Objetivo 1 (EDA):** ✅ Completado (notebook + 13 figuras 300 DPI + Tabla I).
-- **Objetivo 2 (algoritmo SSL):** ✅ **Corrida definitiva v4 ejecutada** (Kaggle T4 x2). **El SSL
+- **Objetivo 2 · v4 (histórico):** ✅ **Corrida definitiva ejecutada** (Kaggle T4 x2). **El SSL
   domain-adaptive SUPERA a ImageNet** en macro-F1 (0.6907 ± 0.006 vs 0.6614 ± 0.004, Δ +0.0294, fuera
   del ruido) y en AUC → **valida la hipótesis del anteproyecto**. Modelo SSL entregable con **4/4 KPIs
   clínicos cumplidos**. Ver [**Informe**](INFORME.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
-- **Objetivo 2 · v5 (SSL puro):** ✅ **corrido en Kaggle — el SSL gana 6/6.** Auditoría del v4:
+- **Objetivo 2 · v5 (histórico, SSL puro):** ✅ **corrido en Kaggle.** Auditoría del v4:
   su "SSL" arrancaba de pesos ImageNet supervisados, así que **no era auto-supervisado puro**.
   v5 evalúa con el **backbone congelado** (DINOv2, cero etiquetas en el extractor) + probes
   kNN/prototipos/linear: las features de DINOv2 superan a las supervisadas de ImageNet en las
   6 comparaciones. Ver [15 — Auditoría SSL puro y plan v5](docs/15-auditoria-ssl-puro-y-plan-v5.md).
-- **Pipeline propuesto (segmentación sin etiquetas → tono de piel → SSL con adaptación de tono → clasificador):**
-  segmentación y equidad por tono cerradas en el pod UNABIA (Dice 0,718 ISIC 2018 / 0,785 HAM10000 sin
-  máscaras en entrenamiento; brecha de 0,111 entre terciles de luminosidad en HAM10000, real y documentada);
-  preentrenamiento y banco por tono en ejecución. Documento único:
-  [22 — Pipeline propuesto](docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md).
-  Primera corrida completa (2026-09-22): el brazo con adaptación de tono supera a su control
-  en cinco de seis combinaciones de probe y régimen (macro-F1 0,562 vs 0,481) y reduce la brecha entre terciles de tono un 37 %;
-  ninguno alcanza al DINOv2 público sin adaptar (0,583) con 4 h-GPU de presupuesto.
-  Modelo y uso: [23 — Modelo descargable](docs/23-modelo-descargable-y-uso.md).
+- **Pipeline propuesto (fuente final):** segmentación y equidad por tono tienen
+  corrida versionada; el banco clasificador final también está sellado en
+  [`resultados/`](resultados/README.md). La lectura científica más reciente
+  está en [24 — Análisis final](docs/24-analisis-final-resultados-y-escenarios-ada.md).
+  La corrida preliminar de 4 horas-GPU (incluida más abajo como historia) no
+  reemplaza al banco final de 12 horas-GPU por brazo.
 - **Objetivo 2 · v6 (pre-entrenamiento propio en GPU):** 🔧 **construido, pendiente de cluster.**
   Dos brazos 100 % sin etiquetas: DINOv2 continual (principal) + SimSiam desde cero (purista),
   a igual presupuesto de GPU-horas, con MLflow. Ver [16 — Plan v6](docs/16-plan-v6-pretraining-gpu.md).
@@ -56,11 +72,13 @@ control de sesgo y honestidad científica. Contexto: epidemiología de Santander
   motiva el v6. Tablas completas abajo y en
   [`notebooks/baselines/`](notebooks/baselines/README.md); JSONs en `results/baselines/`,
   `results/baselines_isic2019/` y `results/baselines_isic2020/`.
-- **Siguiente hito:** fixes DDP → pre-entrenamiento v6 en el clúster de la asesora.
+- **Siguiente hito:** auditar los píxeles modificados por las pseudo-máscaras y
+  cerrar la atestación de pertenencia al pool antes de otra corrida grande.
 
-> ⚠️ **Resultados preliminares.** Obtenidos con los **recursos actuales** (GPU T4 de estudiante,
-> dataset acotado) — no el modelo final. El entrenamiento definitivo (más cómputo, DINOv2/ViT,
-> validación externa) se hará con las GPUs de la UNAB. Aun así, esta corrida **valida la hipótesis**.
+> **Regla de interpretación.** Los resultados v4/v5 y las corridas preliminares
+> se conservan para trazabilidad. No son intercambiables con el banco final de
+> `resultados/`; ninguna cifra preliminar debe presentarse como validación
+> clínica o como ganador del pipeline propuesto.
 
 ## Arquitectura del sistema
 
@@ -944,4 +962,3 @@ alcance, no algo que se arregle escribiendo:
 3. **Criterio de convergencia en vez de epocas fijas** (early stopping con
    paciencia) sigue vigente: cuatro de las ocho corridas de ISIC 2019 quedaron
    truncadas, y dos de ellas no son DINOv2.
-

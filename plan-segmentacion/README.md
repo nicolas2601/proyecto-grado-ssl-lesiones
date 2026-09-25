@@ -1,10 +1,20 @@
 # Plan: segmentación de lesiones autosupervisada (sin máscaras ni etiquetas)
 
-Estado: implementación y pruebas del plan CNN sin etiquetas (Camino B) preparadas y staged, 2026-09-20. La validación en el clúster y la evaluación experimental siguen pendientes. Este documento no afirma éxito científico final; se actualizará con evidencia reproducible de los pilotos.
+Estado: el Camino B tiene una corrida final versionada (`2026-09-21-final`,
+commit `d81a492`) y sus resultados estan enlazados abajo. El codigo y los
+presets siguen siendo reproducibles; las conclusiones cientificas se leen en
+los artefactos y en [el analisis final](../docs/24-analisis-final-resultados-y-escenarios-ada.md),
+no en este plan historico.
 
 ## Estado 2026-09-21
 
-El pipeline ya conoce el campo del dermatoscopio, así que las pseudo-máscaras dejan de quedarse con el círculo brillante completo: el campo se calcula una sola vez en la caché, restringe los candidatos del módulo de incertidumbre y limita el área máxima de una región. La evaluación reporta percentiles, cobertura, estratificación por tono de piel y rejillas visuales, y admite varios conjuntos de referencia en una misma corrida. El entrenamiento y la evaluación pueden enviar métricas a Weights & Biases sin que la clave toque la línea de comandos. Los presets `cluster-piloto.json` y `cluster-final.json` vienen completos, sin marcadores por rellenar. El procedimiento de punta a punta en el clúster UNABIA, con los comandos exactos, está en [RUNBOOK_CLUSTER.md](RUNBOOK_CLUSTER.md). Falta correr el piloto y reportar los números: nada de lo anterior afirma todavía un resultado experimental.
+El pipeline ya conoce el campo del dermatoscopio, asi que las pseudo-mascaras
+restringen los candidatos del modulo de incertidumbre y el area de cada region.
+La evaluacion reporta percentiles, cobertura, estratificacion por tono y
+rejillas visuales. La corrida final, sus JSON/CSV y los diagnosticos visuales
+estan en [`camino-b-cnn/resultados/`](camino-b-cnn/resultados/README.md). El
+procedimiento de punta a punta en el cluster UNABIA esta en
+[RUNBOOK_CLUSTER.md](RUNBOOK_CLUSTER.md).
 
 ## 1. Contexto y decisión
 
@@ -15,7 +25,10 @@ En la reunión con el profesor (2026-09-18) se acordó hacer más pruebas en el 
 - Con la máscara obtenida, calcular el **ITA y el tipo Fitzpatrick (FST)** siguiendo el flujo del paper de referencia (Corbin y Marques, IEEE Access 2023).
 - Después, aplicar la **transformación de color** de ese paper y la **adaptación de dominio con DINOv2** (pesos de Hugging Face).
 
-Alcance de este documento: **solo la etapa de segmentación**. La etapa de clasificación y preentrenamiento (SimSiam sobre DINOv2) la desarrolla Nicolás por separado; su prueba de infraestructura está en https://nicolaspruebasweb.vercel.app/.
+Alcance de este documento: **solo la etapa de segmentacion**. La etapa de
+clasificacion y preentrenamiento (SimSiam sobre DINOv2) se documenta en
+[docs/22](../docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md) y
+en [`resultados/`](../resultados/README.md).
 
 Por qué importa la máscara: se usa solo para excluir la lesión antes de calcular el ITA de la piel sana. Lo crítico es separar bien lesión y piel, también en piel oscura. La precisión de los bordes es secundaria.
 

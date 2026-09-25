@@ -3,8 +3,8 @@
 | Campo | Valor |
 |---|---|
 | Fecha de corte | 2026-09-23 |
-| Rama consolidada | `proposed-cluster` |
-| Commit del checkout | `c7dce5830a7a9f1512a5995528315e34bac380c2` |
+| Rama consolidada | `proyecto-de-grado` (snapshot de `proposed-cluster`) |
+| Commit base de evidencia | `39e0b19` (`proposed-cluster`) |
 | Corrida de segmentación | `2026-09-21-final`, preset `cluster-final`, commit de ejecución `d81a492` |
 | Banco clasificador | Artefactos en `resultados/clasificacion/`, documentación final hasta `c7dce58` |
 
@@ -34,7 +34,7 @@ Las métricas redondeadas en las tablas se muestran con la precisión publicada 
 
 ### 3.1 Rama y artefactos
 
-**Base verificada:** el análisis toma `origin/proposed-cluster` en `c7dce58` como fuente. Este archivo es un nuevo cambio documental que se registra aparte. Los artefactos principales son:
+**Base verificada:** el análisis toma los artefactos de `proposed-cluster` hasta `c7dce58`; esta rama los conserva y agrega el índice de consolidación. Los artefactos principales son:
 
 | Resultado | Ruta de referencia |
 |---|---|
@@ -53,7 +53,7 @@ La segmentación final se ejecutó con preset `cluster-final` y commit `d81a492`
 
 | Documento | Estado que representa | Uso correcto en este análisis |
 |---|---|---|
-| `README.md` | Resumen v4 de julio de 2026 | Histórico; no usar sus cifras como resultados de `proposed-cluster`. |
+| `README.md` anterior | Resumen v4 de julio de 2026 | Histórico; la entrada actual es el README de `proyecto-de-grado`. |
 | `docs/11-resultados-finales.md` | Corrida v4 con ResNet-50 y dos semillas | Histórico, con protocolo distinto al banco final. |
 | `docs/08-estado-actual-y-next-steps.md` | Estado de agosto y banco de baselines previo | Histórico; no representa las corridas de septiembre. |
 | `docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md` | Corrida preliminar de 4 horas-GPU | No es el resultado final. El brazo propuesto tenía un término de pérdida duplicado; está corregido en el commit `08727e8`. |
