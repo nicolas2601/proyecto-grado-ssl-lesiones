@@ -227,6 +227,8 @@ Reglas que se aplican a cada experimento de la v7:
 - **`~/work` está montado 777, sin sticky bit, dueño `nobody:nogroup`, y el export usa `sec=sys`** (el servidor autentica por UID, y todo pod de JupyterHub corre como `uid=1000`). Un archivo `chmod 600` protege la lectura, pero un directorio 777 sin sticky permite a cualquiera **borrarlo y reemplazarlo**. La credencial va en un subdirectorio propio con `chmod 700`, no suelta en `~/work`.
 - `require_wandb` verifica esto antes de correr: si `NETRC` apunta a un archivo inexistente (wandb caería de vuelta al `~/.netrc` efímero) o con permisos más abiertos que 600, la corrida aborta.
 
+8. **Verificar mientras el paso intermedio existe, no contra una reconstrucción.** La regla 5 dice *qué* verificar; esta dice *cuándo*. Si un control depende de un valor intermedio, se calcula en el momento en que ese valor está vivo. Reconstruirlo después no da lo mismo y el fallo es silencioso: el control compara contra un número que el artefacto no puede alcanzar y falla —o pasa— por un motivo que no es cierto. Caso medido el 2026-09-26: el Dice a 224 del paso 0 tenía que compararse contra el `per_image.csv` publicado, pero el artefacto guarda máscaras a resolución original. Umbralizar las probabilidades a 224 (el camino publicado) y re-aplastar la máscara binaria ya terminada a 224 **no son la misma operación**: dan un Dice de 0,950 entre sí, con 2.504 de 50.176 píxeles distintos. Por eso el control corre dentro del bucle de predicción y no después, desde el `.npy`.
+
 ### 10.1 Controles cerrados del paso 0 de C1 (2026-09-26)
 
 Checkpoint `salidas/final/student_r3/best.pt`, sha256 `ac87b133…c5cc0`, mtime 2026-09-21 09:08:04, 31.132.335 bytes. Muestra: las primeras 20 filas de `salidas/final/evaluacion_isic2018/per_image.csv` (`ISIC_0000000`…`ISIC_0000022`), sin TTA, umbral 0,5.
@@ -243,7 +245,8 @@ Limitaciones que estos controles NO cubren, escritas para no venderlos como más
 
 - El test que fija el sha de producción detecta un typo o un revert, pero **no es una medición viva del pod**: si alguien edita el literal del test y el valor de producción a la vez, no lo ve.
 - El test de importación en intérprete limpio detecta ciclos que fallan **en el import inicial**. Una circularidad diferida (dentro de una función, activada en tiempo de ejecución) pasa igual.
-- El control (ii) se midió sobre 20 imágenes de ISIC 2018. No dice nada sobre HAM10000, que es donde corre C1.
+- El control (ii) se midió sobre 20 imágenes de ISIC 2018. No dice nada sobre HAM10000, que es donde corre C1; eso se cierra en el paso (e).
+- **Deuda declarada:** la ronda 7 la dio opencode (veredicto FAIL, dos hallazgos, ambos cerrados) más la revisión de la sesión par. Un tercer revisor lanzado en paralelo nunca devolvió, así que el diff quedó con dos revisiones independientes y no tres.
 
 ### 10.2 Orden de ejecución de C1, corregido al ejecutarlo
 
