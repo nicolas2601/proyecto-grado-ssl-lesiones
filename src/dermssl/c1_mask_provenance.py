@@ -35,19 +35,36 @@ ALLOWED_MASK_PRODUCERS = ("student_r3",)
 # than a comment someone has to read.
 PUBLISHED_SEGMENTATION = ("final", "d81a492")
 
-# The sha256 of salidas/final/student_r3/best.pt. Deliberately None until it is
-# MEASURED on the pod and the file is shown to behave like the published run:
-#   a) sha256 of the file + its mtime against 2026-09-21-final/final.log
-#   b) Dice over ~20 ISIC 2018 images with reference masks, inside the published
-#      range (0,718 [0,709; 0,726], docs/24 §4.3). The reference masks are used
-#      ONLY for this check and never enter C1.
-# Then this constant is set, citing the measured Dice and the date.
+# The sha256 of salidas/final/student_r3/best.pt, MEASURED on the pod on
+# 2026-09-26 and verified to behave like the published run:
 #
-# While it is None every manifest is REFUSED. Failing closed is the point: the
-# previous version let the producer assert its own run identity, so an artifact
+#   path   /home/jovyan/work/proyectonp/salidas/final/student_r3/best.pt
+#   mtime  2026-09-21 09:08:04 UTC, 31.132.335 bytes -- the timestamp the final
+#          run wrote it, which final.log references
+#   check  evaluate_segmentation.py (published, unmodified, no --tta) over the
+#          first 20 ids of salidas/final/evaluacion_isic2018/per_image.csv:
+#          20/20 matched, mean |delta| 3,2e-06, max |delta| 4,08e-05 against the
+#          PUBLISHED per-image Dice. The residue is cuDNN non-determinism.
+#   scope  docs/24 §4.3 reports 0,718 [0,709; 0,726] over the whole set; the
+#          same CSV averages 0,7177 over its 2594 rows, so the published number
+#          is verified too.
+#
+# The check is per-image and PAIRED, not a comparison of means: those 20 images
+# average 0,855 in the published CSV, so "within 0,05 of 0,718" would have
+# failed a perfect reproduction. With a per-image std near 0,25 the standard
+# error at n=20 is ~0,056, and a mean-vs-mean test fails roughly one run in
+# three even when nothing is wrong. Same id, same checkpoint, same script: the
+# number has to come out identical, not close.
+#
+# The reference masks are used ONLY for this check and never enter C1.
+#
+# While it is None every manifest is REFUSED. Failing closed was the point: an
+# earlier version let the producer assert its own run identity, so an artifact
 # built from the v2 ablation was accepted as "final" simply because the default
 # said so. A field the producer fills cannot testify about the producer.
-FINAL_STUDENT_R3_SHA256: str | None = None
+FINAL_STUDENT_R3_SHA256: str | None = (
+    "ac87b133dd50e74a88d9137b2f1ba76b986ee176017b8b009b0caf52a00c5cc0"
+)
 
 
 def checkpoint_registry() -> dict[str, tuple[str, str]]:

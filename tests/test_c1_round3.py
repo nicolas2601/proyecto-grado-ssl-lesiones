@@ -300,11 +300,31 @@ class TestRunIdentityIsTiedToCheckpointContent:
         payload.update(over)
         return payload
 
-    def test_fails_closed_while_the_sha_is_unmeasured(self):
-        """Nothing may run on an unverified checkpoint -- not even the happy path."""
-        assert mp.FINAL_STUDENT_R3_SHA256 is None, "pending measurement on the pod"
+    def test_fails_closed_while_the_sha_is_unmeasured(self, monkeypatch):
+        """Nothing may run on an unverified checkpoint -- not even the happy path.
+
+        The constant is set now (measured 2026-09-26), so the gate is exercised
+        by putting it back to None rather than by reading production state: a
+        test that asserts the current value would have to be edited every time
+        the value changes, and it is the REFUSAL that has to keep working.
+        """
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", None)
+        assert mp.checkpoint_registry() == {}
         with pytest.raises(ValueError, match="todav|not registered|unregistered"):
             mp.MaskSource.from_manifest(self._manifest())
+
+    def test_the_registered_sha_is_the_one_measured_on_the_pod(self):
+        """Pin the digest itself, so a typo or a revert is a failing test.
+
+        Nothing else in the suite would notice: every other case monkeypatches
+        the constant, so a corrupted production value passes all of them and
+        only fails on the pod, hours into a run.
+        """
+        assert mp.FINAL_STUDENT_R3_SHA256 == (
+            "ac87b133dd50e74a88d9137b2f1ba76b986ee176017b8b009b0caf52a00c5cc0"
+        )
+        assert mx.is_sha256(mp.FINAL_STUDENT_R3_SHA256)
+        assert mp.resolve_run(mp.FINAL_STUDENT_R3_SHA256) == mp.PUBLISHED_SEGMENTATION
 
     def test_accepts_the_registered_checkpoint(self, monkeypatch):
         monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
