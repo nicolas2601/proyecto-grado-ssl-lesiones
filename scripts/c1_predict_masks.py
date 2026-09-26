@@ -146,6 +146,67 @@ def evaluate_reference_gate(paired: dict) -> tuple[bool, list[str]]:
     return not reasons, reasons
 
 
+class ReferenceVerifier:
+    """Dice at 224 against the reference, computed INSIDE the prediction loop.
+
+    It has to happen here, not afterwards from the ``.npy``. Re-squashing the
+    finished original-resolution mask back to 224 does not reproduce the
+    published mask: measured Dice 0,95 between them, 2504 of 50176 pixels
+    different. Thresholding probabilities at 224 and downsampling a binary
+    mask to 224 are different operations, and only the first is what produced
+    the published number.
+
+    The reference masks are read ONLY to verify the artifact. They never reach
+    C1, which is what keeps the arm self-supervised.
+    """
+
+    def __init__(self, mask_dir: Path, published_csv: Path, resolution: int):
+        self._mask_dir = Path(mask_dir)
+        self._resolution = resolution
+        self._published = self._load_published(Path(published_csv))
+        self._diffs: list[float] = []
+        self._matched: list[str] = []
+
+    @staticmethod
+    def _load_published(path: Path) -> dict[str, float]:
+        import csv  # noqa: PLC0415
+
+        with open(path, newline="", encoding="utf-8") as handle:
+            return {row["image_id"]: float(row["dice"]) for row in csv.DictReader(handle)}
+
+    def record_batch(self, image_ids, probabilities) -> None:
+        from eval_inputs import load_binary_mask  # noqa: PLC0415
+        from evaluate_segmentation import (  # noqa: PLC0415
+            DEFAULT_THRESHOLD,
+            binarize,
+            compute_binary_metrics,
+        )
+
+        for image_id, probability in zip(image_ids, probabilities, strict=True):
+            expected = self._published.get(image_id)
+            if expected is None:
+                continue  # not in the published evaluation; nothing to compare against
+            mask_path = self._mask_dir / f"{image_id}_segmentation.png"
+            if not mask_path.is_file():
+                continue
+            truth = load_binary_mask(mask_path, self._resolution)
+            predicted = binarize(probability, DEFAULT_THRESHOLD)
+            dice = compute_binary_metrics(predicted, truth)["dice"]
+            self._diffs.append(abs(dice - expected))
+            self._matched.append(image_id)
+
+    def summary(self) -> dict:
+        diffs = np.asarray(self._diffs, dtype=np.float64)
+        return {
+            "n_matched": len(self._matched),
+            "n_published": len(self._published),
+            # NaN rather than 0,0 with nothing recorded: a max over an empty
+            # set is not "no drift", and evaluate_reference_gate refuses both.
+            "max_abs_diff": float(diffs.max()) if diffs.size else float("nan"),
+            "mean_abs_diff": float(diffs.mean()) if diffs.size else float("nan"),
+        }
+
+
 def evaluate_crop_gates(summary: dict) -> tuple[bool, list[str]]:
     """``(passes, reasons)`` for the crop-retention gate.
 
@@ -219,6 +280,21 @@ def parse_args() -> argparse.Namespace:
         help="proyecto de Weights & Biases; si se pide y no se puede registrar, aborta",
     )
     parser.add_argument("--wandb-group", default="v7-c1", help="grupo del run en W&B")
+    parser.add_argument(
+        "--reference-mask-dir",
+        type=Path,
+        default=None,
+        help=(
+            "mascaras de referencia de HAM10000, SOLO para verificar el artefacto. "
+            "Nunca entran a C1; se usan para reproducir el Dice publicado."
+        ),
+    )
+    parser.add_argument(
+        "--published-per-image",
+        type=Path,
+        default=None,
+        help="per_image.csv de la evaluacion publicada, para la comparacion pareada",
+    )
     return parser.parse_args()
 
 
@@ -335,6 +411,7 @@ def predict_all(
     device,
     masks_path: Path,
     batch_size: int,
+    verifier: "ReferenceVerifier | None" = None,
 ) -> tuple[np.ndarray, list[str], int]:
     """Write one uint8 mask per image into a memmapped .npy, in path order.
 
@@ -367,6 +444,11 @@ def predict_all(
         probabilities = eval_student.predict_masks(
             model, images, device, len(chunk), tta=USE_TTA
         )
+        if verifier is not None:
+            # While the 224 probabilities still exist: a mask re-squashed from
+            # the original grid is NOT the published mask (Dice 0,95 between
+            # them), so this cannot be done afterwards from the .npy.
+            verifier.record_batch([path.stem for path in chunk], probabilities)
         for offset, (path, probability) in enumerate(zip(chunk, probabilities, strict=True)):
             full = upsample_probabilities(probability, height, width)
             masks[start + offset] = mx.encode_mask(binarize(full, DEFAULT_THRESHOLD))
@@ -447,9 +529,23 @@ def main() -> int:
     print(f"images     : {len(paths)}")
     print(f"inference  : {INFERENCE_PATH} (tta={USE_TTA}, upsample={UPSAMPLE})")
 
+    # Both or neither: half the inputs would silently skip the check.
+    if bool(args.reference_mask_dir) != bool(args.published_per_image):
+        raise SystemExit(
+            "ABORT: --reference-mask-dir y --published-per-image van juntos. Con uno "
+            "solo la verificacion contra la segmentacion publicada se saltea en silencio."
+        )
+    verifier = None
+    if args.reference_mask_dir:
+        verifier = ReferenceVerifier(
+            mask_dir=args.reference_mask_dir.expanduser(),
+            published_csv=args.published_per_image.expanduser(),
+            resolution=224,
+        )
+
     try:
         masks, image_ids, resolution = predict_all(
-            paths, checkpoint, device, masks_path, args.batch_size
+            paths, checkpoint, device, masks_path, args.batch_size, verifier
         )
     except BaseException:
         # A half-written .npy has a valid header and the wrong contents: it would
@@ -491,6 +587,12 @@ def main() -> int:
     )
     passes, reasons = evaluate_crop_gates(retention)
 
+    reference = verifier.summary() if verifier is not None else None
+    if reference is not None:
+        reference_ok, reference_reasons = evaluate_reference_gate(reference)
+        passes = passes and reference_ok
+        reasons = reasons + reference_reasons
+
     if tracker is not None:
         tracker.start(
             {
@@ -520,6 +622,10 @@ def main() -> int:
             tracker.log_metric("crop_fraction_below_half", retention["fraction_below_half"])
         # Logged whether it passed or failed: a dashboard that only holds the
         # runs that cleared the gate is evidence for one side.
+        if reference is not None:
+            tracker.log_metric("reference_n_matched", float(reference["n_matched"]))
+            tracker.log_metric("reference_max_abs_diff", reference["max_abs_diff"])
+            tracker.log_metric("reference_mean_abs_diff", reference["mean_abs_diff"])
         tracker.log_metric("crop_gate_passes", 1.0 if passes else 0.0)
         tracker.end()
         if tracker.run_url:
@@ -545,8 +651,14 @@ def main() -> int:
             "If this count is large, those conditions are collapsing toward the baseline."
         )
 
+    if reference is not None:
+        print("\nverificacion contra la segmentacion publicada (solo para verificar)")
+        print(f"  emparejadas          : {reference['n_matched']}/{reference['n_published']}")
+        print(f"  |delta| medio        : {reference['mean_abs_diff']:.3e}")
+        print(f"  |delta| maximo       : {reference['max_abs_diff']:.3e}")
+
     if not passes:
-        print("\n=== CROP GATE FAILED — DO NOT RUN THE BANK GATE OR C1 ===")
+        print("\n=== GATE FAILED — DO NOT RUN THE BANK GATE OR C1 ===")
         for reason in reasons:
             print(f"  {reason}")
         print(

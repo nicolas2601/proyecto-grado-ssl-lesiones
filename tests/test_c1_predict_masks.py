@@ -364,3 +364,97 @@ class TestReferenceGate:
 
     def test_the_threshold_is_the_documented_one(self, script):
         assert script.MAX_ABS_DIFF_VS_PUBLISHED == 1e-3
+
+
+class TestReferenceVerifier:
+    """Dice at 224 has to be computed while the probabilities still exist.
+
+    Measured: re-squashing the finished original-resolution mask back to 224
+    does NOT reproduce the published mask -- Dice 0,95 between them, 2504 of
+    50176 pixels different. Thresholding probabilities at 224 and resizing a
+    binary mask down to 224 are different operations, so the check has to
+    happen inside the prediction loop, not afterwards from the .npy.
+    """
+
+    def _reference(self, tmp_path, ids, filled):
+        from PIL import Image
+
+        mask_dir = tmp_path / "ref"
+        mask_dir.mkdir()
+        for image_id in ids:
+            array = np.zeros((450, 600), dtype=np.uint8)
+            if filled:
+                array[100:300, 100:400] = 255
+            Image.fromarray(array).save(mask_dir / f"{image_id}_segmentation.png")
+        return mask_dir
+
+    def _published(self, tmp_path, rows):
+        path = tmp_path / "per_image.csv"
+        lines = ["image_id,dice"] + [f"{i},{d}" for i, d in rows]
+        path.write_text("\n".join(lines) + "\n")
+        return path
+
+    def test_a_faithful_run_reports_no_drift(self, script, tmp_path):
+        ids = ["ISIC_0000001", "ISIC_0000002"]
+        mask_dir = self._reference(tmp_path, ids, filled=True)
+
+        # Probabilities that threshold to exactly the reference at 224.
+        from PIL import Image
+
+        ref224 = np.asarray(
+            Image.open(mask_dir / f"{ids[0]}_segmentation.png")
+            .convert("L")
+            .resize((224, 224), Image.NEAREST)
+        ) > 127
+        probabilities = np.where(ref224, 0.9, 0.1).astype(np.float32)
+
+        verifier = script.ReferenceVerifier(
+            mask_dir=mask_dir,
+            published_csv=self._published(tmp_path, [(i, 1.0) for i in ids]),
+            resolution=224,
+        )
+        verifier.record_batch(ids, np.stack([probabilities, probabilities]))
+        summary = verifier.summary()
+
+        assert summary["n_matched"] == 2
+        assert summary["max_abs_diff"] < 1e-9
+
+    def test_drift_against_the_published_value_is_reported(self, script, tmp_path):
+        ids = ["ISIC_0000001"]
+        mask_dir = self._reference(tmp_path, ids, filled=True)
+        probabilities = np.full((224, 224), 0.9, dtype=np.float32)  # predicts everything
+
+        verifier = script.ReferenceVerifier(
+            mask_dir=mask_dir,
+            published_csv=self._published(tmp_path, [(ids[0], 1.0)]),
+            resolution=224,
+        )
+        verifier.record_batch(ids, probabilities[None])
+        summary = verifier.summary()
+        assert summary["max_abs_diff"] > 0.1, "a full-frame prediction cannot score 1,0"
+
+    def test_an_id_absent_from_the_csv_is_not_counted_as_matched(self, script, tmp_path):
+        ids = ["ISIC_0000001", "ISIC_9999999"]
+        mask_dir = self._reference(tmp_path, ids, filled=True)
+        probabilities = np.full((224, 224), 0.9, dtype=np.float32)
+
+        verifier = script.ReferenceVerifier(
+            mask_dir=mask_dir,
+            published_csv=self._published(tmp_path, [(ids[0], 1.0)]),
+            resolution=224,
+        )
+        verifier.record_batch(ids, np.stack([probabilities, probabilities]))
+        summary = verifier.summary()
+        assert summary["n_matched"] == 1
+        assert summary["n_published"] == 1
+
+    def test_nothing_recorded_yields_no_matches_rather_than_a_pass(self, script, tmp_path):
+        verifier = script.ReferenceVerifier(
+            mask_dir=self._reference(tmp_path, ["ISIC_0000001"], filled=True),
+            published_csv=self._published(tmp_path, [("ISIC_0000001", 1.0)]),
+            resolution=224,
+        )
+        summary = verifier.summary()
+        assert summary["n_matched"] == 0
+        ok, _ = script.evaluate_reference_gate(summary)
+        assert not ok
