@@ -361,7 +361,22 @@ setsid nohup python plan-segmentacion/camino-b-cnn/entrenamiento/run_pipeline.py
 El grupo en Weights & Biases se llama `v2` (nombre del workdir). Al terminar,
 la evaluacion con volteos se corre aparte sobre el mismo checkpoint:
 
+> **AVISO — este bloque NO es el checkpoint publicado.** Todo lo de esta seccion
+> apunta a `salidas/v2`, que es la **ablacion de `pseudo.max_area_fraction`
+> (0,6 -> 0,75), commit `91814a9`**: Dice 0,716 ISIC / 0,783 HAM10000, pierde
+> contra la corrida final y quedo **descartada** como configuracion por defecto
+> (docs/24, tabla de corridas: *"se cierra el cambio del tope de area"*).
+>
+> El checkpoint publicado es **`salidas/final/student_r3/best.pt`**, commit
+> `d81a492`, Dice **0,718 / 0,785** — la "Configuracion principal".
+>
+> Cualquier trabajo aguas abajo que consuma mascaras de segmentacion (por
+> ejemplo el experimento C1) debe usar `salidas/final`. Copiar `W=...salidas/v2`
+> de aqui sin leer este aviso ya causo un error una vez: la diferencia de Dice
+> es de 0,002, asi que nada aguas abajo se ve mal cuando se usa el equivocado.
+
 ```bash
+# OJO: salidas/v2 = ablacion descartada. Para uso aguas abajo: salidas/final.
 W=$HOME/work/proyectonp/salidas/v2
 for SET in isic2018 ham10000; do
   case $SET in
