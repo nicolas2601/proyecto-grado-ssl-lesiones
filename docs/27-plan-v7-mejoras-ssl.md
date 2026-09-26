@@ -219,3 +219,15 @@ Reglas que se aplican a cada experimento de la v7:
 4. **Commit antes de correr.** El código se commitea antes de cada corrida, porque los artefactos registran `code_revision`: código sin commitear produce resultados no reproducibles.
 5. **Verificar el comportamiento, no solo el archivo.** Un sha prueba que el archivo no cambió; que sea el correcto lo prueba reproducir su métrica publicada. La comparación es **per-imagen y emparejada contra el `per_image.csv` publicado**, nunca contra la media global: mismo id, mismo checkpoint, mismo script, así que el número tiene que salir idéntico y no solo parecido. Comparar medias no sirve con muestras chicas — con una desviación per-imagen de ~0,25 el error estándar a n=20 es ~0,056, de modo que un criterio de "±0,05 de la media publicada" reprueba una reproducción perfecta una de cada tres veces; y si la muestra no es aleatoria falla siempre (las primeras 20 imágenes de ISIC 2018 promedian 0,855, no 0,718). Se registra en el reporte: n, ids, |Δ| medio y |Δ| máximo.
 6. **Reportar a Pau los fallos también.** Cada control que se cierra y cada resultado, bueno o malo, se le avisa. Un canal que solo reporta éxitos deja de ser información.
+
+### 10.1 Controles cerrados del paso 0 de C1 (2026-09-26)
+
+Checkpoint `salidas/final/student_r3/best.pt`, sha256 `ac87b133…c5cc0`, mtime 2026-09-21 09:08:04, 31.132.335 bytes. Muestra: las primeras 20 filas de `salidas/final/evaluacion_isic2018/per_image.csv` (`ISIC_0000000`…`ISIC_0000022`), sin TTA, umbral 0,5.
+
+| Control | Qué mide | Resultado |
+|---|---|---|
+| (i) reproducción de la métrica publicada | `evaluate_segmentation.py` sin modificar contra el `per_image.csv` publicado, per-imagen | 20/20 emparejadas; media 0,855194 vs 0,855193 publicada; \|Δ\| medio 3,2e-06; \|Δ\| máx 4,08e-05 (18 de 20 exactas) |
+| CSV publicado completo | media de las 2594 filas contra el 0,718 de docs/24 §4.3 | 0,717677 |
+| (ii) Dice a resolución original | la máscara que consume C1, contra la referencia **sin redimensionar** | media 0,855350 vs 0,855193 a 224; Δ medio +1,57e-04 (std 3,9e-04; rango −5,6e-04 a +1,07e-03); 0 máscaras vacías |
+
+Lectura del control (ii): pasar de la grilla 224 aplastada a la resolución original **no degrada** el Dice, así que el número publicado describe también las máscaras que ve el clasificador. Sobre estas 20 imágenes el orden de operaciones casi no importa (subir probabilidades y después umbralizar da 0,855350; umbralizar y después subir etiquetas da 0,855403, \|Δ\| máx 4,1e-04): son lesiones grandes y compactas, donde el borde pesa poco. El orden **no** se elige por este número, sino porque redimensionar etiquetas introduce un segundo umbral implícito — un píxel de probabilidad 0,55 aislado cubre 1 píxel si se sube la probabilidad y 5 si se sube la etiqueta (`tests/test_c1_predict_masks.py`). El control confirma que la elección es segura en el caso típico, no que sea irrelevante.
