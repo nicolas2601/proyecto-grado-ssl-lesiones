@@ -54,6 +54,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -93,6 +94,56 @@ UPSAMPLE = "bilinear_prob_then_threshold"
 # more than this we stop and decide again with the number in hand.
 MAX_FRACTION_EMPTIED_BY_CROP = 0.02
 MAX_FRACTION_BELOW_HALF = 0.05
+
+
+# The artifact has to BE the published segmentation, not merely resemble it.
+# Same checkpoint, same inference, same images: the per-image Dice has to come
+# out identical, and the residue is cuDNN non-determinism (4e-05 measured on
+# ISIC). 1e-3 leaves two orders of magnitude of room above that and still
+# catches a real divergence.
+MAX_ABS_DIFF_VS_PUBLISHED = 1e-3
+
+
+def evaluate_reference_gate(paired: dict) -> tuple[bool, list[str]]:
+    """``(passes, reasons)`` for the per-image comparison against HAM10000.
+
+    Paired by ``image_id`` against the published ``per_image.csv``, never a
+    comparison of means: a mean can match while individual images are wrong,
+    and with a non-random subset it does not even match (the first 20 ISIC
+    images average 0,855 against a published 0,718).
+
+    An incomplete join FAILS rather than averaging over whatever matched, and
+    a non-finite drift FAILS rather than slipping through -- ``nan > 1e-3`` is
+    False, which is exactly how a gate turns into a no-op.
+    """
+    reasons: list[str] = []
+
+    n_matched = paired["n_matched"]
+    n_published = paired["n_published"]
+    if n_matched == 0:
+        reasons.append(
+            "no se emparejo ninguna imagen con el per_image.csv publicado: sin "
+            "comparacion no hay gate aprobado"
+        )
+    elif n_matched != n_published:
+        reasons.append(
+            f"solo se emparejaron {n_matched} de {n_published} imagenes publicadas; "
+            "un join parcial promedia sobre las que casualmente coincidieron"
+        )
+
+    drift = paired["max_abs_diff"]
+    if not math.isfinite(drift):
+        reasons.append(
+            f"max_abs_diff es {drift}: toda comparacion contra NaN es False, asi que "
+            "el umbral no lo frenaria y el gate quedaria en no-op"
+        )
+    elif drift > MAX_ABS_DIFF_VS_PUBLISHED:
+        reasons.append(
+            f"max_abs_diff {drift:.3e} por encima de {MAX_ABS_DIFF_VS_PUBLISHED:.0e}: "
+            "el artefacto NO reproduce la segmentacion publicada"
+        )
+
+    return not reasons, reasons
 
 
 def evaluate_crop_gates(summary: dict) -> tuple[bool, list[str]]:

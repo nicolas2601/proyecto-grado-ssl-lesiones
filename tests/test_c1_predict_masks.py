@@ -307,3 +307,60 @@ class TestCropGates:
     def test_the_thresholds_are_the_documented_ones(self, script):
         assert script.MAX_FRACTION_EMPTIED_BY_CROP == 0.02
         assert script.MAX_FRACTION_BELOW_HALF == 0.05
+
+
+class TestReferenceGate:
+    """The artifact has to BE the published segmentation, not merely resemble it.
+
+    Same discipline as the ISIC check: paired per-image comparison against the
+    published per_image.csv, never a comparison of means. The reference masks
+    are read ONLY to verify the artifact and never enter C1.
+    """
+
+    def _paired(self, **over):
+        payload = {
+            "n_matched": 10_015,
+            "n_published": 10_015,
+            "max_abs_diff": 8e-6,
+            "mean_abs_diff": 1.2e-6,
+        }
+        payload.update(over)
+        return payload
+
+    def test_a_faithful_artifact_passes(self, script):
+        ok, reasons = script.evaluate_reference_gate(self._paired())
+        assert ok
+        assert reasons == []
+
+    def test_drift_above_the_threshold_fails(self, script):
+        ok, reasons = script.evaluate_reference_gate(self._paired(max_abs_diff=2e-3))
+        assert not ok
+        assert any("max_abs_diff" in r or "publicad" in r for r in reasons)
+
+    def test_the_threshold_itself_passes(self, script):
+        """The gate is 'above 1e-3', so exactly 1e-3 is not a failure."""
+        ok, _ = script.evaluate_reference_gate(self._paired(max_abs_diff=1e-3))
+        assert ok
+
+    def test_an_unmatched_image_fails(self, script):
+        """A partial join would average over whatever happened to match."""
+        ok, reasons = script.evaluate_reference_gate(self._paired(n_matched=10_000))
+        assert not ok
+        assert any("empareja" in r or "matched" in r for r in reasons)
+
+    def test_nan_drift_cannot_pass(self, script):
+        """`nan > 1e-3` is False, which is how a gate becomes a no-op."""
+        ok, reasons = script.evaluate_reference_gate(
+            self._paired(max_abs_diff=float("nan"))
+        )
+        assert not ok
+        assert any("NaN" in r or "finit" in r for r in reasons)
+
+    def test_zero_matches_is_not_a_pass(self, script):
+        ok, _ = script.evaluate_reference_gate(
+            self._paired(n_matched=0, n_published=0)
+        )
+        assert not ok
+
+    def test_the_threshold_is_the_documented_one(self, script):
+        assert script.MAX_ABS_DIFF_VS_PUBLISHED == 1e-3
