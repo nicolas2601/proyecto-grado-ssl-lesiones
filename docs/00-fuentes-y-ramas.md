@@ -14,7 +14,7 @@ mantienen intactas para poder comparar, recuperar o auditar cualquier cambio.
 
 | Rama | Punta verificada | Papel | Estado |
 |---|---|---|---|
-| `proyecto-de-grado` | `39e0b19` + consolidación documental | Fuente de trabajo unificada | Activa |
+| `proyecto-de-grado` | `bcbe9b4` + consolidación documental | Fuente de trabajo unificada | Activa |
 | `proposed-cluster` | `39e0b19` | Resultados finales del pipeline propuesto | Fuente de evidencia de origen |
 | `feature/v6-gpu-ssl-pretraining` | `33b64fd` | Código v6, DDP, preentrenamiento y segmentación integrada | Línea técnica conservada |
 | `feature/proposed-pipeline-tone` | `c30b063` | Implementación experimental de adaptación por tono | Línea de investigación conservada |

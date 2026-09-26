@@ -59,3 +59,6 @@ results/**/mlruns/
 # --- bundles locales de transferencia; la fuente canónica permanece en Git ---
 /pretrain-v6-bundle.zip
 /fix-kaggle-fst-manifest-glob.zip
+
+# Tooling cache (skill registry), not a deliverable
+.atl/

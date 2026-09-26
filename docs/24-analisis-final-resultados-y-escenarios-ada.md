@@ -53,7 +53,7 @@ La segmentación final se ejecutó con preset `cluster-final` y commit `d81a492`
 
 | Documento | Estado que representa | Uso correcto en este análisis |
 |---|---|---|
-| `README.md` anterior | Resumen v4 de julio de 2026 | Histórico; la entrada actual es el README de `proyecto-de-grado`. |
+| `README.md` | Portada mínima: objetivos, arquitectura y equipo | Las tablas largas de baselines viven en [`resultados/baselines/README.md`](../resultados/baselines/README.md), que es donde las compara el test de frescura. Usar `resultados/` y este informe para la lectura final. |
 | `docs/11-resultados-finales.md` | Corrida v4 con ResNet-50 y dos semillas | Histórico, con protocolo distinto al banco final. |
 | `docs/08-estado-actual-y-next-steps.md` | Estado de agosto y banco de baselines previo | Histórico; no representa las corridas de septiembre. |
 | `docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md` | Corrida preliminar de 4 horas-GPU | No es el resultado final. El brazo propuesto tenía un término de pérdida duplicado; está corregido en el commit `08727e8`. |

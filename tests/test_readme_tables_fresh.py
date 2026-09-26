@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
+TABLES_README = REPO / "resultados" / "baselines" / "README.md"
 sys.path.insert(0, str(REPO / "scripts"))
 
 sys.path.insert(0, str(REPO / "src"))
@@ -25,13 +26,13 @@ from dermssl.finetune import protocol  # noqa: E402
 # they must stay fresh like the other two. A bank only counts once all of its
 # JSONs have landed - see _published_banks below.
 BANKS = {"baselines": REPO / "notebooks" / "baselines" / "README.md",
-         "baselines_isic2019": REPO / "README.md",
-         "baselines_isic2020": REPO / "README.md",
+         "baselines_isic2019": TABLES_README,
+         "baselines_isic2020": TABLES_README,
          # The fine-tuning banks live one level deeper because the cluster and
          # Kaggle both write results/finetune/<dataset>/. They join the
          # freshness check on their eighth JSON, like every other bank.
-         "finetune/ham10000": REPO / "README.md",
-         "finetune/isic2019": REPO / "README.md"}
+         "finetune/ham10000": TABLES_README,
+         "finetune/isic2019": TABLES_README}
 
 
 def _read_utf8(path: Path) -> str:
@@ -65,7 +66,7 @@ def _table_rows(markdown: str) -> set[str]:
 @pytest.mark.parametrize("bank", _published_banks())
 def test_every_generated_row_appears_in_a_readme(bank):
     generated = _table_rows(brt.render(REPO / "results" / bank))
-    published = _table_rows(_read_utf8(REPO / "README.md"))
+    published = _table_rows(_read_utf8(TABLES_README))
     published |= _table_rows(_read_utf8(BANKS[bank]))
     missing = {r for r in generated if r not in published and "Modelo" not in r}
     assert not missing, (
@@ -78,7 +79,7 @@ def test_readmes_carry_no_number_from_a_superseded_run(bank):
     """Guards the specific rot that happened on 2026-09-03: vit_b16 changed
     weights and vgg19's extraction point moved, but the tables stayed."""
     rows = _rows(bank)
-    published = (_read_utf8(REPO / "README.md") + _read_utf8(BANKS[bank]))
+    published = _read_utf8(BANKS[bank])
     for row in rows:
         model = brt.DISPLAY[row.model]
         for line in published.splitlines():
@@ -94,7 +95,7 @@ def test_readmes_carry_no_number_from_a_superseded_run(bank):
 
 def test_the_superseded_vit_b16_number_is_gone():
     published = (
-        _read_utf8(REPO / "README.md")
+        _read_utf8(TABLES_README)
         + _read_utf8(REPO / "notebooks" / "baselines" / "README.md")
     )
     stale = "| ViT-B/16 | Supervisado | 768 | 0.761 |"
@@ -132,7 +133,7 @@ def _finetune_section() -> str:
     Located by intent, not by exact prose: the heading has been reworded twice
     and pinning the sentence made this guard fail on a rename instead of on a
     wrong number, which is the opposite of what it is for."""
-    readme = (REPO / "README.md").read_text()
+    readme = TABLES_README.read_text()
     heads = [m for m in re.finditer(r"^## .*fine-tuning.*$", readme, re.M | re.I)
              if "sin fine-tuning" not in m.group(0).lower()]
     assert len(heads) == 1, (
@@ -287,7 +288,7 @@ def test_the_partial_finetuning_count_matches_what_landed():
     between."""
     import re
 
-    readme = (REPO / "README.md").read_text()
+    readme = TABLES_README.read_text()
     m = re.search(r"Corridas cerradas hasta ahora \((\d+) de (\d+) en HAM10000\)", readme)
     if not m:
         return  # the bank finished and the heading was replaced by the table
@@ -307,7 +308,7 @@ def test_the_lr_probe_rows_are_published_and_fresh():
     if len(list(probe.glob("results_*.json"))) < 2:
         pytest.skip("the LR probe has not landed")
     generated = _table_rows(brt.render(probe))
-    published = _table_rows((REPO / "README.md").read_text())
+    published = _table_rows(TABLES_README.read_text())
     missing = {r for r in generated if r not in published and "Modelo" not in r}
     assert not missing, (
         "LR probe rows are not in the README - re-run "

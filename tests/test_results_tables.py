@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
+TABLES_README = REPO / "resultados" / "baselines" / "README.md"
 sys.path.insert(0, str(REPO / "scripts"))
 
 import build_results_tables as brt  # noqa: E402
@@ -199,7 +200,7 @@ def test_the_coupling_artefact_is_large_at_our_noise_level():
     assert 0.55 < rate < 0.70, rate
     # Spanish typography puts a space before the sign ("61.6 %"), so compare
     # with the separator collapsed rather than demanding one spelling.
-    readme = re.sub(r"\s+%", "%", (REPO / "README.md").read_text())
+    readme = re.sub(r"\s+%", "%", TABLES_README.read_text())
     assert f"{rate:.1%}" in readme, (
         f"the README must cite the measured rate, {rate:.1%}")
 
