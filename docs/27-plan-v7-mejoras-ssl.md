@@ -213,7 +213,7 @@ Salen de las seis rondas de revisión independiente del código de C1, antes de 
 
 Reglas que se aplican a cada experimento de la v7:
 
-1. **Revisión independiente antes de la GPU.** opencode revisa el código hasta dar PASS sin P1. Se lanza siempre con `timeout`; si a los 2 minutos no creó su sesión (`opencode session list`), está colgada y se relanza. Dos gotchas medidos el 2026-09-26: (a) **el código de salida no prueba que haya reporte** — una ronda que no pudo leer su material se cortó a mitad de camino y salió igual con `exit 0`, así que se verifica que la salida contenga el VEREDICTO, no que el proceso haya terminado; (b) **opencode rechaza leer fuera del repo** (`permission requested: external_directory (/tmp/*); auto-rejecting`), de modo que el diff o el material a revisar se deja dentro del repo, en un archivo listado en `.gitignore`.
+1. **Revisión independiente antes de la GPU.** opencode revisa el código hasta dar PASS sin P1. Se lanza siempre con `timeout`; si a los 2 minutos no creó su sesión (`opencode session list`), está colgada y se relanza. Dos gotchas medidos el 2026-09-26: (a) **el código de salida no prueba que haya reporte** — una ronda que no pudo leer su material se cortó a mitad de camino y salió igual con `exit 0`, así que se verifica que la salida contenga el VEREDICTO, no que el proceso haya terminado; (b) **opencode rechaza leer fuera del repo** (`permission requested: external_directory (/tmp/*); auto-rejecting`), de modo que el diff o el material a revisar se deja dentro del repo, en un archivo listado en `.gitignore`. (c) **Después de una prueba de mutación, borrar `__pycache__`**: restaurar el archivo con `cp` deja el bytecode de la versión mutada si coinciden tamaño y segundo de `mtime`, y el intérprete sigue ejecutando el código viejo mientras el traceback muestra las líneas del archivo nuevo.
 2. **Fallar cerrado.** Si falta un dato de procedencia (sha, corrida, split), el sistema se niega a correr. Nunca se fija un valor "provisional para probar el flujo".
 3. **Medir, no asumir.** Todo valor de referencia (sha de un checkpoint, rango de Dice esperado) se mide en el pod y se cita con su origen antes de usarlo.
 4. **Commit antes de correr.** El código se commitea antes de cada corrida, porque los artefactos registran `code_revision`: código sin commitear produce resultados no reproducibles.
@@ -231,4 +231,34 @@ Checkpoint `salidas/final/student_r3/best.pt`, sha256 `ac87b133…c5cc0`, mtime 
 | CSV publicado completo | media de las 2594 filas contra el 0,718 de docs/24 §4.3 | 0,717677 |
 | (ii) Dice a resolución original | la máscara que consume C1, contra la referencia **sin redimensionar** | media 0,855350 vs 0,855193 a 224; Δ medio +1,57e-04 (std 3,9e-04; rango −5,6e-04 a +1,07e-03); 0 máscaras vacías |
 
-Lectura del control (ii): pasar de la grilla 224 aplastada a la resolución original **no degrada** el Dice, así que el número publicado describe también las máscaras que ve el clasificador. Sobre estas 20 imágenes el orden de operaciones casi no importa (subir probabilidades y después umbralizar da 0,855350; umbralizar y después subir etiquetas da 0,855403, \|Δ\| máx 4,1e-04): son lesiones grandes y compactas, donde el borde pesa poco. El orden **no** se elige por este número, sino porque redimensionar etiquetas introduce un segundo umbral implícito — un píxel de probabilidad 0,55 aislado cubre 1 píxel si se sube la probabilidad y 5 si se sube la etiqueta (`tests/test_c1_predict_masks.py`). El control confirma que la elección es segura en el caso típico, no que sea irrelevante.
+Lectura del control (ii): pasar de la grilla 224 aplastada a la resolución original **no degrada** el Dice, así que el número publicado describe también las máscaras que ve el clasificador.
+
+Limitaciones que estos controles NO cubren, escritas para no venderlos como más fuertes de lo que son:
+
+- El test que fija el sha de producción detecta un typo o un revert, pero **no es una medición viva del pod**: si alguien edita el literal del test y el valor de producción a la vez, no lo ve.
+- El test de importación en intérprete limpio detecta ciclos que fallan **en el import inicial**. Una circularidad diferida (dentro de una función, activada en tiempo de ejecución) pasa igual.
+- El control (ii) se midió sobre 20 imágenes de ISIC 2018. No dice nada sobre HAM10000, que es donde corre C1.
+
+### 10.2 El recorte del banco: se mide, no se cambia
+
+La geometría del banco es `Resize(255, BILINEAR)` + `CenterCrop(224)`. **No se cambia**: es la misma con la que se produjeron los resultados de la v6 y es el protocolo estándar de evaluación de DINOv2; cambiarla rompería la comparabilidad que C1 necesita preservar.
+
+Pero descarta bastante imagen, y conviene tener el número. Medido el 2026-09-26: en una imagen cuadrada de 450 el recorte tira 27,4 px de cada lado en la grilla original (22,8 % del área); en HAM10000, que es 450×600, el `Resize` sobre el lado corto da 255×340 y el recorte descarta **27 px arriba y abajo y 102 px a cada lado** en la grilla original. Una lesión de 10×10 pegada a una esquina queda en 0 px; una de 30×30, en 4 px.
+
+Por eso el paso (e) mide `mask_area_retained_after_crop` por imagen (`src/dermssl/c1_extraction.py`) y lo registra en el manifiesto y como histograma en W&B.
+
+**Cuidado con la definición.** La medida es *máscara tras el recorte / máscara tras el MISMO resize*, no contra la grilla original: `Resize(255)` sobre 450×600 lleva el área a 0,321 de su valor por el puro downscale, así que un umbral escrito contra la razón ingenua se dispara en el 100 % de las imágenes aunque el recorte no haya quitado un solo píxel. Una máscara vacía da NaN, no 1,0: no había lesión que conservar, y reportar 1,0 dejaría que "el segmentador no encontró nada" promediara como un puntaje perfecto.
+
+**Gates del paso (e)**, fijados antes de ver el dato:
+
+| Condición | Umbral | Acción |
+|---|---|---|
+| Imágenes con máscara vacía **después** del recorte | > 2 % de 10.015 | FRENAR |
+| Imágenes que retienen menos de la mitad de su máscara | > 5 % | FRENAR |
+| Tasa de fallback CLS en la condición (c), en la corrida de C1 | > 1 % | FRENAR |
+
+Frenar no significa cambiar la geometría: significa volver a decidir con el dato en la mano. Las tres métricas van a W&B.
+
+**Predicción registrada antes del dato:** pasa con holgura, menos del 1 % de máscaras vacías, porque en HAM10000 la lesión suele estar centrada.
+
+**Confusor declarado para el análisis de C1:** la condición (a) `bbox_crop` **no** atraviesa la geometría base — recorta a la caja de la lesión y reescala —, así que para lesiones cerca del borde ve más lesión que las condiciones (0), (b) y (c). Si (a) gana, hay que poder distinguir si gana por el método o por este confusor. Por eso la tabla de C1 lleva un análisis secundario estratificado por `mask_area_retained_after_crop` (≥ 0,9 contra < 0,9). Sobre estas 20 imágenes el orden de operaciones casi no importa (subir probabilidades y después umbralizar da 0,855350; umbralizar y después subir etiquetas da 0,855403, \|Δ\| máx 4,1e-04): son lesiones grandes y compactas, donde el borde pesa poco. El orden **no** se elige por este número, sino porque redimensionar etiquetas introduce un segundo umbral implícito — un píxel de probabilidad 0,55 aislado cubre 1 píxel si se sube la probabilidad y 5 si se sube la etiqueta (`tests/test_c1_predict_masks.py`). El control confirma que la elección es segura en el caso típico, no que sea irrelevante.

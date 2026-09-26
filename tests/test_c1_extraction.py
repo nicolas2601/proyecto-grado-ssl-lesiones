@@ -168,3 +168,55 @@ class TestEveryC1ModuleCanBeImportedFirst:
         assert result.returncode == 0, (
             f"dermssl.{module} cannot be imported first:\n{result.stderr}"
         )
+
+
+class TestMaskAreaRetainedAfterCrop:
+    """How much lesion the bank geometry discards, isolated from the downscale.
+
+    The obvious definition -- surviving pixels divided by pixels in the
+    ORIGINAL grid -- measures the wrong thing. ``Resize(255)`` on a 450x600
+    image scales linear size by 0,567, so area drops to 0,321 of the original
+    for a lesion that loses nothing at all to the crop. A gate written against
+    that number fires on every single image.
+
+    So the denominator is the mask after the SAME resize and before the crop.
+    """
+
+    def _mask(self, shape=(450, 600), box=(150, 300, 225, 375)):
+        mask = np.zeros(shape, dtype=bool)
+        y0, y1, x0, x1 = box
+        mask[y0:y1, x0:x1] = True
+        return mask
+
+    def test_a_centred_lesion_keeps_everything(self):
+        assert ex.mask_area_retained_after_crop(self._mask()) == pytest.approx(1.0)
+
+    def test_the_downscale_alone_does_not_count_as_loss(self):
+        """The bug this metric is written to avoid."""
+        mask = self._mask()
+        naive = ex._baseline_geometry_mask(mask).sum() / mask.sum()
+        assert naive < 0.35, "sanity: the naive ratio really is dominated by the resize"
+        assert ex.mask_area_retained_after_crop(mask) > 0.99
+
+    def test_a_corner_lesion_is_reported_as_lost(self):
+        retained = ex.mask_area_retained_after_crop(
+            self._mask(shape=(450, 450), box=(0, 10, 0, 10))
+        )
+        assert retained == pytest.approx(0.0)
+
+    def test_a_partially_cropped_lesion_lands_between(self):
+        retained = ex.mask_area_retained_after_crop(
+            self._mask(shape=(450, 450), box=(0, 60, 0, 60))
+        )
+        assert 0.0 < retained < 1.0
+
+    def test_an_empty_mask_is_nan_not_one(self):
+        """0/0 must not read as 'kept everything'; there was nothing to keep."""
+        import math
+
+        retained = ex.mask_area_retained_after_crop(np.zeros((450, 600), dtype=bool))
+        assert math.isnan(retained)
+
+    def test_it_refuses_a_non_boolean_mask(self):
+        with pytest.raises(TypeError, match="bool"):
+            ex.mask_area_retained_after_crop(np.zeros((450, 600), dtype=np.uint8))

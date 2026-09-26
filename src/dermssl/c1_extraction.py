@@ -113,6 +113,37 @@ def _baseline_geometry_mask(mask: np.ndarray) -> np.ndarray:
     return _center_crop(_resize_shorter_side(mask, _INTERMEDIATE), RESOLUTION)
 
 
+def mask_area_retained_after_crop(mask: np.ndarray) -> float:
+    """Fraction of the lesion that survives the CenterCrop, in [0, 1].
+
+    The bank geometry is not changed -- it is the one the v6 numbers were
+    produced with, and Resize+CenterCrop is the standard DINOv2 evaluation
+    protocol. It is measured instead, because on HAM10000 (450x600) the crop
+    discards about 102 pixels of each side in the original grid, so a lesion
+    near an edge can vanish and only show up downstream as a fallback.
+
+    The denominator is the mask after the SAME resize, NOT the mask in the
+    original grid. Dividing by the original would measure the downscale, not
+    the crop: Resize(255) on a 450x600 image takes area to 0,321 of its
+    original value for a lesion that loses nothing, so a threshold written
+    against that ratio fires on every image.
+
+    Returns NaN for an empty mask: there was no lesion to keep, and reporting
+    1,0 would let "the segmenter found nothing" average in as a perfect score.
+    """
+    array = np.asarray(mask)
+    if array.dtype != np.bool_:
+        raise TypeError(
+            f"expected a bool mask, got {array.dtype}; a uint8 mask would count "
+            "255 as one pixel of lesion per 255, not as one pixel"
+        )
+    resized = _resize_shorter_side(array, _INTERMEDIATE)
+    before_crop = int(resized.sum())
+    if before_crop == 0:
+        return float("nan")
+    return float(_center_crop(resized, RESOLUTION).sum()) / before_crop
+
+
 def build_eval_input(
     image: np.ndarray,
     lesion: TrackedMask,
