@@ -221,6 +221,12 @@ Reglas que se aplican a cada experimento de la v7:
 6. **Reportar a Pau los fallos también.** Cada control que se cierra y cada resultado, bueno o malo, se le avisa. Un canal que solo reporta éxitos deja de ser información.
 7. **Toda corrida queda en W&B, y el link va en el aviso a Pau.** Cada corrida registra su config (backbone, condición, `code_revision`, `split_hash`, sha de las máscaras), sus métricas y sus artefactos en W&B. Si se pidió W&B y no está disponible, la corrida falla antes de arrancar: ya pasó una vez que W&B quedó "deshabilitado" en silencio porque el paquete no estaba en el Python con que se lanzó (hay que usar el venv de `~/work/proyectonp/.venv`).
 
+**Dónde viven las credenciales en el pod (medido el 2026-09-26).** `$HOME` (`/home/jovyan`) está en el **overlay del contenedor y es efímero**: se pierde cuando el pod se recrea, y con él `~/.netrc` y `~/.bashrc`. Solo `~/work` es persistente (NFS, `192.168.247.100:/compartido_serv_unab/home/nmoreno534`). Eso explica por qué la credencial de W&B que existía el 21-sep ya no estaba el 26-sep. Entonces:
+
+- La credencial se deja en `~/work` y se apunta con `NETRC=/home/jovyan/work/<ruta>` **en la línea de comando de cada corrida**, no en el `.bashrc`, porque el `.bashrc` también es efímero. Verificado en el paquete instalado (`wandb/sdk/lib/wbauth/wbnetrc.py:196`), no en la documentación: wandb respeta `$NETRC`.
+- **`~/work` está montado 777, sin sticky bit, dueño `nobody:nogroup`, y el export usa `sec=sys`** (el servidor autentica por UID, y todo pod de JupyterHub corre como `uid=1000`). Un archivo `chmod 600` protege la lectura, pero un directorio 777 sin sticky permite a cualquiera **borrarlo y reemplazarlo**. La credencial va en un subdirectorio propio con `chmod 700`, no suelta en `~/work`.
+- `require_wandb` verifica esto antes de correr: si `NETRC` apunta a un archivo inexistente (wandb caería de vuelta al `~/.netrc` efímero) o con permisos más abiertos que 600, la corrida aborta.
+
 ### 10.1 Controles cerrados del paso 0 de C1 (2026-09-26)
 
 Checkpoint `salidas/final/student_r3/best.pt`, sha256 `ac87b133…c5cc0`, mtime 2026-09-21 09:08:04, 31.132.335 bytes. Muestra: las primeras 20 filas de `salidas/final/evaluacion_isic2018/per_image.csv` (`ISIC_0000000`…`ISIC_0000022`), sin TTA, umbral 0,5.

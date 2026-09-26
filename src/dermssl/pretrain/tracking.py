@@ -81,6 +81,8 @@ def require_wandb(
             "--wandb-project."
         )
 
+    _check_netrc_permissions(environ)
+
     try:
         module = importer("wandb")
     except ImportError as error:
@@ -100,10 +102,62 @@ def require_wandb(
     return module
 
 
+def _check_netrc_permissions(environ: dict[str, str]) -> None:
+    """Refuse a credential file that others can read or replace.
+
+    Only checked when ``NETRC`` is set, because that is the case we create: the
+    pod's ``$HOME`` is an ephemeral overlay, so a credential has to live on the
+    NFS share to survive a restart, and that share is mounted 777 with no
+    sticky bit and ``sec=sys`` (the server authenticates by UID and every
+    JupyterHub pod runs as uid 1000). The file's own mode is what is left.
+
+    A missing file is refused too: ``wandb`` falls back to ``~/.netrc`` when
+    the declared path does not exist, so a typo in the variable would quietly
+    read the ephemeral file the variable existed to avoid.
+    """
+    declared = environ.get("NETRC")
+    if not declared:
+        return
+
+    path = Path(declared)
+    if not path.exists():
+        raise WandbUnavailable(
+            f"NETRC apunta a {declared!r} y ese archivo no existe. wandb caeria de "
+            "vuelta a ~/.netrc, que en este pod es efimero: la corrida quedaria sin "
+            "registrar despues del proximo reinicio."
+        )
+
+    mode = path.stat().st_mode & 0o777
+    if mode & 0o077:
+        raise WandbUnavailable(
+            f"NETRC {declared!r} tiene permisos {mode:03o}: legible o escribible por "
+            "otros. En el NFS compartido eso significa que la credencial se puede "
+            "leer o reemplazar. Corregilo con `chmod 600`."
+        )
+
+
+WANDB_HOST = "api.wandb.ai"
+
+
 def _has_credential(wandb_module: Any, environ: dict[str, str]) -> bool:
-    """A key in the environment, or one ``wandb login`` left in ~/.netrc."""
+    """A key in the environment, a declared netrc holding one, or a loaded one.
+
+    The declared-netrc branch is not redundant. ``wandb.api.api_key`` is empty
+    until the module resolves it, so a pod whose credential lives in a netrc
+    pointed at by ``NETRC`` would be rejected as credential-free and the run
+    would be refused for the opposite of the real reason.
+    """
     if environ.get("WANDB_API_KEY"):
         return True
+
+    declared = environ.get("NETRC")
+    if declared and Path(declared).exists():
+        try:
+            if WANDB_HOST in Path(declared).read_text(encoding="utf-8"):
+                return True
+        except OSError:
+            pass  # unreadable is handled by the permission check above
+
     api = getattr(wandb_module, "api", None)
     return bool(getattr(api, "api_key", None))
 

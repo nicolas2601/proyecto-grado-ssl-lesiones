@@ -351,3 +351,67 @@ class TestStrictWandbTracker:
 
     def test_run_url_is_empty_before_start(self):
         assert tr.WandbTracker(FakeWandbWithApi(), project="p", run="r").run_url == ""
+
+
+class TestNetrcPermissions:
+    """A credential file others can read is a credential others have.
+
+    The pod's ~/work is an NFS export mounted 777, with no sticky bit and
+    sec=sys (the server authenticates by UID, and every JupyterHub pod runs as
+    uid 1000). Putting a netrc there is the only way to survive a container
+    restart -- $HOME is an ephemeral overlay -- so the file's own mode is the
+    last line of defence and it gets checked rather than assumed.
+    """
+
+    def _netrc(self, tmp_path, mode):
+        path = tmp_path / ".netrc"
+        path.write_text("machine api.wandb.ai login user password secret\n")
+        path.chmod(mode)
+        return path
+
+    def test_a_world_readable_netrc_is_refused(self, tmp_path):
+        path = self._netrc(tmp_path, 0o644)
+        with pytest.raises(tr.WandbUnavailable, match="permisos|600"):
+            tr.require_wandb("p", environ={"NETRC": str(path)})
+
+    def test_a_group_readable_netrc_is_refused(self, tmp_path):
+        path = self._netrc(tmp_path, 0o640)
+        with pytest.raises(tr.WandbUnavailable, match="permisos|600"):
+            tr.require_wandb("p", environ={"NETRC": str(path)})
+
+    def test_a_world_writable_netrc_is_refused(self, tmp_path):
+        """Writable means replaceable: someone else's credential, silently."""
+        path = self._netrc(tmp_path, 0o606)
+        with pytest.raises(tr.WandbUnavailable, match="permisos|600"):
+            tr.require_wandb("p", environ={"NETRC": str(path)})
+
+    def test_a_missing_netrc_at_the_declared_path_is_refused(self, tmp_path):
+        """Pointing NETRC at nothing means wandb silently falls back to ~/.netrc."""
+        with pytest.raises(tr.WandbUnavailable, match="no existe|NETRC"):
+            tr.require_wandb("p", environ={"NETRC": str(tmp_path / "ausente")})
+
+    def test_a_600_netrc_is_accepted(self, tmp_path):
+        path = self._netrc(tmp_path, 0o600)
+        fake = FakeWandbWithApi(api_key=None)
+        assert (
+            tr.require_wandb(
+                "p", importer=_importer_for(fake), environ={"NETRC": str(path)}
+            )
+            is fake
+        )
+
+    def test_a_400_netrc_is_accepted(self, tmp_path):
+        """Stricter than 600 is fine; only MORE open is refused."""
+        path = self._netrc(tmp_path, 0o400)
+        fake = FakeWandbWithApi(api_key=None)
+        assert (
+            tr.require_wandb(
+                "p", importer=_importer_for(fake), environ={"NETRC": str(path)}
+            )
+            is fake
+        )
+
+    def test_without_the_variable_nothing_is_checked(self, tmp_path):
+        """No NETRC means the default path, which is not ours to police."""
+        fake = FakeWandbWithApi()
+        assert tr.require_wandb("p", importer=_importer_for(fake), environ={}) is fake
