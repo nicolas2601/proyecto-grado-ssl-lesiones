@@ -1,7 +1,7 @@
 # Plan v7 — mejoras SSL: segmentación, clasificación y comparativa justa
 
 **Fecha:** 2026-09-26
-**Estado:** plan aprobado para ejecutar por fases. Ningún experimento arranca sin su predicción registrada.
+**Estado:** plan diseñado por la sesión planificadora y aprobado por Nicolás el 2026-09-26 para ejecutarse por fases. Ningún experimento arranca sin su predicción registrada ni sin pasar los controles de la sección 10.
 **Fuentes que integra:** pedidos del profesor Andrés (reunión 2026-09-25), [plan de corrección de Pau](26-plan-correccion-segmentacion-y-clasificador.md), [análisis final y escenarios ADA](24-analisis-final-resultados-y-escenarios-ada.md), [resultados vigentes](../resultados/README.md) y la literatura nueva (sección 5).
 
 ---
@@ -166,7 +166,7 @@ Cada ficha tiene: qué es, por qué, chequeo SSL, costo, **predicción registrad
 | Rol | Hace |
 |---|---|
 | **cluster** (pod UNABIA, GPU) | Ejecuta todos los experimentos, con TDD en el código nuevo. Registra `code_revision`, `split_hash` y la predicción antes de correr. |
-| **opencode** (GPT-5.6-luna, razonamiento máximo) | **Validación independiente con otro modelo, como anti-sesgo.** Antes de cada corrida, revisa el código: ¿respeta la regla SSL? ¿hay fuga de datos (val en el pool, máscara de referencia en test)? ¿el preprocesamiento coincide con el banco? Después de cada corrida, revisa si la conclusión se sigue del dato. Se invoca con `opencode run -m openai/gpt-5.6-luna --dir <repo> -f <archivos> "<pregunta>"`. |
+| **opencode** (GPT-5.6-luna, razonamiento máximo) | **Validación independiente con otro modelo, como anti-sesgo.** Antes de cada corrida, revisa el código: ¿respeta la regla SSL? ¿hay fuga de datos (val en el pool, máscara de referencia en test)? ¿el preprocesamiento coincide con el banco? Después de cada corrida, revisa si la conclusión se sigue del dato. Se invoca con `timeout 1500 opencode run -m openai/gpt-5.6-luna --dir <repo> "<pregunta>"` (ver sección 10, regla 1). |
 | **Nico + sesión planificadora** | Planifican, registran las predicciones, revisan lo crítico (veredictos, gates entre fases) y deciden cuándo pasar de fase. |
 | **Pau** | Dueña de la línea de segmentación (S1-S3 son su plan). Revisa los resultados de segmentación. |
 
@@ -194,3 +194,27 @@ Cada avance a Pau lo redacta la sesión planificadora y lo envía cluster por Wh
 2. **Fuga de datos no detectada** (IDs de val en el pool, máscara de referencia colada en test). Mitigación: la revisión de opencode antes de cada corrida chequea exactamente esto.
 3. **El pod se cae a mitad de una corrida larga** (ya pasó cuatro veces). Mitigación: la cadena de checkpoints, el watchdog y `--max-retries` que ya funcionaron en la v6.
 4. **El mapeo de clases de D1 queda mal definido** y la evaluación cross-dominio no es comparable. Mitigación: el mapeo se registra y se revisa antes de correr.
+5. **Un número plausible pero equivocado.** Es la falla que más se repitió en la revisión del código de C1 (sección 10): ninguno de esos errores habría producido una excepción, todos habrían producido una tabla creíble. Mitigación: los controles de la sección 10 son obligatorios en cada experimento.
+
+---
+
+## 10. Controles obligatorios para cada experimento
+
+Salen de las seis rondas de revisión independiente del código de C1, antes de gastar GPU. Esas rondas atraparon errores que no habrían fallado, sino dado resultados creíbles y falsos:
+
+| Error encontrado | Qué habría pasado | Control que lo evita |
+|---|---|---|
+| Imágenes en 0–255 hacia un U-Net entrenado en 0–1 | Todas las máscaras mal, sin ningún error | La función valida su propio contrato de entrada; no confía en el caller |
+| Checkpoint de la ablación `v2` en vez del de la corrida `final` | Máscaras de un modelo descartado; Δ Dice 0,002, invisible aguas abajo | La identidad del artefacto se deriva de su contenido (sha256 contra un registro), no de una etiqueta que pone el productor |
+| El control de reproducción aprobaba con `NaN` | Una deriva de 1,0 reportada como "reproduce" | Toda comparación se escribe para que `NaN` falle (`~(x <= tol)`), y la tolerancia se valida como finita |
+| Conteo de fallbacks que siempre daba 0 | Un número que parece medido y no lo es | Una métrica que no aplica se reporta como "no aplica", con un assert que falla si deja de ser cierto |
+| `if args.limit` leía el 0 como "sin límite"; `str.replace` sin ancla no hacía nada | Operaciones que "no hacen nada" sin avisar | Validación en el borde (argparse) y `assert` del ancla antes de reemplazar |
+
+Reglas que se aplican a cada experimento de la v7:
+
+1. **Revisión independiente antes de la GPU.** opencode revisa el código hasta dar PASS sin P1. Se lanza siempre con `timeout`; si a los 2 minutos no creó su sesión (`opencode session list`), está colgada y se relanza.
+2. **Fallar cerrado.** Si falta un dato de procedencia (sha, corrida, split), el sistema se niega a correr. Nunca se fija un valor "provisional para probar el flujo".
+3. **Medir, no asumir.** Todo valor de referencia (sha de un checkpoint, rango de Dice esperado) se mide en el pod y se cita con su origen antes de usarlo.
+4. **Commit antes de correr.** El código se commitea antes de cada corrida, porque los artefactos registran `code_revision`: código sin commitear produce resultados no reproducibles.
+5. **Verificar el comportamiento, no solo el archivo.** Un sha prueba que el archivo no cambió; que sea el correcto lo prueba reproducir su métrica publicada sobre una muestra.
+6. **Reportar a Pau los fallos también.** Cada control que se cierra y cada resultado, bueno o malo, se le avisa. Un canal que solo reporta éxitos deja de ser información.
