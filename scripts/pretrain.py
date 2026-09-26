@@ -38,6 +38,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from dermssl.pretrain import config as config_mod  # noqa: E402
+from dermssl.pretrain import tracking  # noqa: E402
 from dermssl.cli import build_spanish_parser  # noqa: E402
 
 SMOKE_BUDGET_GPU_HOURS = 0.05  # 3 minutos de reloj en 1 GPU
@@ -135,20 +136,12 @@ def build_config(args: argparse.Namespace) -> config_mod.PretrainConfig:
 def resolve_wandb_module(wandb_project: str, importer=importlib.import_module):
     """The wandb module when a project was requested, or None when it was not.
 
-    Asking for tracking and silently running untracked is how a whole GPU
-    budget gets spent with nothing to show: if the project was requested and
-    the package is missing, fail here, before anything is scheduled.
+    Thin alias kept for the existing callers; the check itself lives in
+    ``dermssl.pretrain.tracking`` so the C1 scripts and the bank gate use the
+    same one. Two copies of this rule is how one of them starts accepting an
+    offline run.
     """
-    if not wandb_project:
-        return None
-    try:
-        return importer("wandb")
-    except ImportError as error:
-        raise RuntimeError(
-            "se pidió seguimiento en Weights & Biases con --wandb-project pero el "
-            f"paquete wandb no está disponible en {sys.executable}: instálalo en ese "
-            "intérprete o quita --wandb-project ({error})".format(error=error)
-        ) from error
+    return tracking.require_wandb(wandb_project, importer=importer)
 
 
 def main() -> None:

@@ -28,9 +28,84 @@ Usage on the cluster (rank 0):
 from __future__ import annotations
 
 import hashlib
+import importlib
 import os
+import sys
 from pathlib import Path
 from typing import Any
+
+
+class WandbUnavailable(RuntimeError):
+    """Tracking was asked for and cannot be delivered.
+
+    Separate from the fail-safe path on purpose. Not asking for W&B is fine and
+    stays silent; asking for it and not getting it is an error, because the run
+    would spend GPU hours and leave nothing anyone can link to.
+    """
+
+
+# ``offline`` and ``dryrun`` write to disk and never reach wandb.ai, so the run
+# has no URL. Every result is reported to Pau with its link, so a mode that
+# cannot produce one is refused rather than discovered afterwards.
+_MODES_WITHOUT_A_URL = frozenset({"offline", "dryrun", "disabled"})
+
+
+def require_wandb(
+    wandb_project: str,
+    *,
+    importer=importlib.import_module,
+    environ: dict[str, str] | None = None,
+) -> Any | None:
+    """The wandb module when a project was requested, or ``None`` when it was not.
+
+    Raises :class:`WandbUnavailable` when tracking was requested and cannot be
+    provided. Checked here rather than at ``init`` because ``WandbTracker``
+    swallows its own exceptions by design, so a missing credential surfaces as
+    one printed warning in the middle of a training log and nothing else.
+
+    Engram #1590 is the concrete case: wandb lived in
+    ``~/work/proyectonp/.venv`` and the run used ``/opt/conda/bin/python``, so
+    the import failed and the whole budget produced no dashboard. The message
+    names the interpreter because the fix is always "use the other python".
+    """
+    if not wandb_project:
+        return None
+
+    environ = os.environ if environ is None else environ
+
+    mode = environ.get("WANDB_MODE", "").strip().lower()
+    if mode in _MODES_WITHOUT_A_URL:
+        raise WandbUnavailable(
+            f"WANDB_MODE={mode!r} no publica el run en wandb.ai, asi que la corrida "
+            "no tendria link que reportar. Quita WANDB_MODE o no pidas "
+            "--wandb-project."
+        )
+
+    try:
+        module = importer("wandb")
+    except ImportError as error:
+        raise WandbUnavailable(
+            "se pidio seguimiento en Weights & Biases con --wandb-project pero el "
+            f"paquete wandb no esta disponible en {sys.executable}: instalalo en ese "
+            f"interprete o quita --wandb-project ({error})"
+        ) from error
+
+    if not _has_credential(module, environ):
+        raise WandbUnavailable(
+            "wandb esta instalado pero no hay credencial: ni WANDB_API_KEY en el "
+            "entorno ni una clave guardada por `wandb login`. Sin credencial "
+            "wandb.init falla y el tracker se lo traga, asi que la corrida quedaria "
+            "sin registrar."
+        )
+    return module
+
+
+def _has_credential(wandb_module: Any, environ: dict[str, str]) -> bool:
+    """A key in the environment, or one ``wandb login`` left in ~/.netrc."""
+    if environ.get("WANDB_API_KEY"):
+        return True
+    api = getattr(wandb_module, "api", None)
+    return bool(getattr(api, "api_key", None))
 
 
 def run_name(method: str, backbone: str, seed: int, arm: str = "") -> str:
@@ -117,6 +192,7 @@ class WandbTracker:
         run: str,
         group: str = "",
         run_id: str = "",
+        strict: bool = False,
     ):
         self._wandb = wandb_module
         self._project = project
@@ -125,11 +201,22 @@ class WandbTracker:
         self._run_id = run_id
         self._active = None
         self._warned = False
+        # Fail-safe is right for a 20-hour pretrain, where losing the sink is
+        # cheaper than losing the run. It is wrong for a verification gate whose
+        # entire output IS the dashboard entry, so that caller opts in here.
+        self._strict = strict
+
+    @property
+    def run_url(self) -> str:
+        """The link to report, or "" before ``start`` (or when the sink failed)."""
+        return str(getattr(self._active, "url", "") or "")
 
     def _guard(self, action, *args: Any) -> None:
         try:
             action(*args)
         except Exception as error:  # noqa: BLE001 - a sink failure is not a run failure
+            if self._strict:
+                raise
             if not self._warned:
                 print(f"ADVERTENCIA: Weights & Biases dejo de registrar ({error}).")
                 self._warned = True
@@ -142,6 +229,11 @@ class WandbTracker:
             )
 
         self._guard(action)
+        if self._strict and self._active is None:
+            raise WandbUnavailable(
+                "wandb.init no devolvio un run, asi que cada log posterior seria un "
+                "no-op silencioso y la corrida quedaria sin registrar."
+            )
 
     def log_metric(self, key: str, value: float, step: int | None = None) -> None:
         if self._active is None:

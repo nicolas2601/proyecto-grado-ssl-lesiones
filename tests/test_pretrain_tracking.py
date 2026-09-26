@@ -2,6 +2,11 @@
 mlflow module it is handed - which is how we test it without mlflow."""
 
 
+import re
+import sys
+
+import pytest
+
 from dermssl.pretrain import tracking as tr
 
 
@@ -228,3 +233,121 @@ def test_the_run_name_carries_the_arm_so_two_arms_are_told_apart():
         "simsiam_dinov2-dinov2_vits14-s42-ssl_plain"
     )
     assert tr.run_name("simsiam", "resnet50", 42) == "simsiam-resnet50-s42"
+
+
+# ── W&B fail-closed: pedir seguimiento y no tenerlo es un error, no un aviso ──
+
+
+class FakeWandbWithApi:
+    """The slice of wandb this code touches."""
+
+    class _Api:
+        def __init__(self, api_key):
+            self.api_key = api_key
+
+    def __init__(self, api_key="k" * 40, init_returns="run"):
+        self.api = self._Api(api_key)
+        self._init_returns = init_returns
+        self.calls = []
+
+    def init(self, **kwargs):
+        self.calls.append(("init", kwargs))
+        if isinstance(self._init_returns, Exception):
+            raise self._init_returns
+        return self._init_returns
+
+
+def _importer_for(module):
+    def importer(name):
+        assert name == "wandb"
+        return module
+
+    return importer
+
+
+def _missing_importer(name):
+    raise ImportError(f"No module named {name!r}")
+
+
+class TestRequireWandb:
+    """Every case passes ``environ`` explicitly: tests/conftest.py sets
+    WANDB_MODE=disabled for the whole suite, so a case that omits it exercises
+    the offline branch instead of the one it names.
+
+    Engram #1590: wandb lived in ~/work/proyectonp/.venv and the run used
+    /opt/conda/bin/python, so tracking was 'disabled' in silence and a whole
+    GPU budget produced nothing anyone could link to."""
+
+    def test_no_project_means_no_module_and_no_error(self):
+        assert tr.require_wandb("", importer=_missing_importer) is None
+
+    def test_a_missing_package_is_an_error_not_a_warning(self):
+        with pytest.raises(tr.WandbUnavailable, match="wandb"):
+            tr.require_wandb(
+                "dermssl-segmentacion", importer=_missing_importer, environ={}
+            )
+
+    def test_the_error_names_the_interpreter(self):
+        """The fix is always 'use the other python'; the message has to say which."""
+        with pytest.raises(tr.WandbUnavailable, match=re.escape(sys.executable)):
+            tr.require_wandb(
+                "dermssl-segmentacion", importer=_missing_importer, environ={}
+            )
+
+    def test_an_importable_package_without_credentials_is_refused(self):
+        """wandb imports fine and init then fails; the guard would swallow it."""
+        fake = FakeWandbWithApi(api_key=None)
+        with pytest.raises(tr.WandbUnavailable, match="credencial|login|WANDB_API_KEY"):
+            tr.require_wandb("p", importer=_importer_for(fake), environ={})
+
+    def test_the_environment_variable_counts_as_a_credential(self):
+        fake = FakeWandbWithApi(api_key=None)
+        module = tr.require_wandb(
+            "p", importer=_importer_for(fake), environ={"WANDB_API_KEY": "x" * 40}
+        )
+        assert module is fake
+
+    def test_a_netrc_credential_counts(self):
+        fake = FakeWandbWithApi(api_key="k" * 40)
+        assert tr.require_wandb("p", importer=_importer_for(fake), environ={}) is fake
+
+    def test_offline_mode_is_refused_because_it_produces_no_link(self):
+        """Pau is sent the run URL; an offline run has none."""
+        fake = FakeWandbWithApi()
+        with pytest.raises(tr.WandbUnavailable, match="offline|WANDB_MODE"):
+            tr.require_wandb(
+                "p", importer=_importer_for(fake), environ={"WANDB_MODE": "offline"}
+            )
+
+
+class TestStrictWandbTracker:
+    def test_strict_start_propagates_instead_of_printing(self):
+        fake = FakeWandbWithApi(init_returns=RuntimeError("no network"))
+        tracker = tr.WandbTracker(fake, project="p", run="r", strict=True)
+        with pytest.raises(RuntimeError, match="no network"):
+            tracker.start({})
+
+    def test_strict_refuses_an_init_that_returned_nothing(self):
+        """wandb.init can return None; every later log would be a silent no-op."""
+        fake = FakeWandbWithApi(init_returns=None)
+        tracker = tr.WandbTracker(fake, project="p", run="r", strict=True)
+        with pytest.raises(tr.WandbUnavailable, match="init"):
+            tracker.start({})
+
+    def test_lenient_start_still_swallows(self):
+        """Default stays fail-safe: an old run must not die because of a sink."""
+        fake = FakeWandbWithApi(init_returns=RuntimeError("no network"))
+        tracker = tr.WandbTracker(fake, project="p", run="r")
+        tracker.start({})
+
+    def test_run_url_is_exposed_for_reporting(self):
+        class Run:
+            url = "https://wandb.ai/team/p/runs/abc"
+
+        fake = FakeWandbWithApi(init_returns=Run())
+        tracker = tr.WandbTracker(fake, project="p", run="r", strict=True)
+        tracker.start({})
+        assert tracker.run_url == "https://wandb.ai/team/p/runs/abc"
+
+    def test_run_url_is_empty_before_start(self):
+        assert tr.WandbTracker(FakeWandbWithApi(), project="p", run="r").run_url == ""

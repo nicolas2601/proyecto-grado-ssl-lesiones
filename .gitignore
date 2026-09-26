@@ -62,3 +62,5 @@ results/**/mlruns/
 
 # Tooling cache (skill registry), not a deliverable
 .atl/
+.round7.diff
+.round7_prompt.txt

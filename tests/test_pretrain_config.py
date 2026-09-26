@@ -326,8 +326,12 @@ def test_asking_for_wandb_without_the_package_fails_instead_of_running_untracked
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
     import pretrain as launcher
 
+    # conftest sets WANDB_MODE=disabled for the whole suite, so without an
+    # explicit environment this would exercise the offline branch instead.
     with pytest.raises(RuntimeError, match="wandb"):
-        launcher.resolve_wandb_module("dermssl-segmentacion", importer=_missing)
+        launcher.tracking.require_wandb(
+            "dermssl-segmentacion", importer=_missing, environ={}
+        )
 
 
 def test_no_wandb_project_means_no_module_and_no_error():
