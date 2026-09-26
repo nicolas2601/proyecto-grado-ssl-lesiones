@@ -242,3 +242,68 @@ class TestProbabilitiesAreCheckedBeforeTheyBecomeAMask:
         probabilities = np.array([[0.0, 1.0], [0.5, 0.25]], dtype=np.float32)
         resized = script.upsample_probabilities(probabilities, 4, 4)
         assert resized.shape == (4, 4)
+
+
+class TestCropGates:
+    """Thresholds fixed in docs/27 §10.3 BEFORE the data, so they are a
+    prediction rather than a rationalisation of whatever came out."""
+
+    def _summary(self, **over):
+        payload = {
+            "n_images": 10_015,
+            "n_with_lesion": 10_000,
+            "n_empty_from_segmenter": 15,
+            "n_emptied_by_crop": 50,
+            "n_below_half": 200,
+            "fraction_empty_from_segmenter": 15 / 10_015,
+            "fraction_emptied_by_crop": 50 / 10_015,
+            "fraction_below_half": 200 / 10_000,
+        }
+        payload.update(over)
+        return payload
+
+    def test_the_predicted_case_passes(self, script):
+        ok, reasons = script.evaluate_crop_gates(self._summary())
+        assert ok
+        assert reasons == []
+
+    def test_too_many_emptied_by_crop_fails(self, script):
+        ok, reasons = script.evaluate_crop_gates(
+            self._summary(fraction_emptied_by_crop=0.025)
+        )
+        assert not ok
+        assert any("emptied_by_crop" in r or "recorte" in r for r in reasons)
+
+    def test_exactly_at_the_threshold_passes(self, script):
+        """The gate is 'more than 2%', so 2,0% is not a failure."""
+        ok, _ = script.evaluate_crop_gates(self._summary(fraction_emptied_by_crop=0.02))
+        assert ok
+
+    def test_too_many_below_half_fails(self, script):
+        ok, reasons = script.evaluate_crop_gates(self._summary(fraction_below_half=0.06))
+        assert not ok
+        assert any("below_half" in r or "mitad" in r for r in reasons)
+
+    def test_both_can_fail_at_once(self, script):
+        ok, reasons = script.evaluate_crop_gates(
+            self._summary(fraction_emptied_by_crop=0.9, fraction_below_half=0.9)
+        )
+        assert not ok
+        assert len(reasons) == 2, "both failures must be reported, not just the first"
+
+    def test_empty_from_segmenter_is_reported_not_gated(self, script):
+        """It is the segmenter's problem, not the crop's; it must not FAIL here."""
+        ok, _ = script.evaluate_crop_gates(
+            self._summary(fraction_empty_from_segmenter=0.9)
+        )
+        assert ok
+
+    def test_a_missing_below_half_rate_is_refused(self, script):
+        """None means no mask had a lesion at all -- that is not a pass."""
+        ok, reasons = script.evaluate_crop_gates(self._summary(fraction_below_half=None))
+        assert not ok
+        assert any("lesion" in r for r in reasons)
+
+    def test_the_thresholds_are_the_documented_ones(self, script):
+        assert script.MAX_FRACTION_EMPTIED_BY_CROP == 0.02
+        assert script.MAX_FRACTION_BELOW_HALF == 0.05

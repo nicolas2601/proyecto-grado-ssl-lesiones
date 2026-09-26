@@ -239,7 +239,21 @@ Limitaciones que estos controles NO cubren, escritas para no venderlos como más
 - El test de importación en intérprete limpio detecta ciclos que fallan **en el import inicial**. Una circularidad diferida (dentro de una función, activada en tiempo de ejecución) pasa igual.
 - El control (ii) se midió sobre 20 imágenes de ISIC 2018. No dice nada sobre HAM10000, que es donde corre C1.
 
-### 10.2 El recorte del banco: se mide, no se cambia
+### 10.2 Orden de ejecución de C1, corregido al ejecutarlo
+
+El orden planeado era: gate del banco (d) y después el paso 0 (e). **Está invertido respecto a la dependencia real**, y se descubió al ir a ejecutarlo. `scripts/c1_verify_bank_reproduction.py` exige `--masks` y `--masks-manifest`: construye un `TrackedMask` por imagen para pasárselo a `build_eval_input`. La condición (0) **no usa** la máscara —verificado: dos máscaras completamente distintas producen la misma imagen— pero sí la **exige**, porque `TrackedMask` exige un manifiesto válido, que desde la ronda 7 exige además el bloque `inference`.
+
+Se descartó ablandar ese contrato o verificar el gate contra un artefacto `--limit`: el gate existe para proteger las 24 celdas, no el paso 0, y verificar contra el artefacto real es estrictamente más fuerte que verificar contra un smoke que después se descarta.
+
+**Orden vigente:**
+
+1. **Paso 0 completo** (10.015 imágenes) con W&B estricto → produce el artefacto y corre sus propios gates: retención del recorte (§10.3) y Dice per-imagen contra la referencia de HAM10000, solo para verificar el artefacto y **nunca** como entrada de C1. Si alguno falla, se frena acá.
+2. **Gate del banco** contra ese artefacto.
+3. **C1**, empezando por `dinov2_public` y `ssl_proposed` ViT-B, que es la pregunta del profesor.
+
+Un paso invertido que se descubre ejecutando también es un dato, y por eso queda escrito.
+
+### 10.3 El recorte del banco: se mide, no se cambia
 
 La geometría del banco es `Resize(255, BILINEAR)` + `CenterCrop(224)`. **No se cambia**: es la misma con la que se produjeron los resultados de la v6 y es el protocolo estándar de evaluación de DINOv2; cambiarla rompería la comparabilidad que C1 necesita preservar.
 

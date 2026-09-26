@@ -68,9 +68,11 @@ for _extra in (REPO / "src", _EVALUACION, REPO / "plan-segmentacion" / "comun" /
     if str(_extra) not in sys.path:
         sys.path.insert(0, str(_extra))
 
+from dermssl import c1_extraction as ex  # noqa: E402
 from dermssl import c1_mask_export as mx  # noqa: E402
 from dermssl import c1_mask_provenance as mp  # noqa: E402
 from dermssl import cli_args  # noqa: E402
+from dermssl.pretrain import tracking  # noqa: E402
 
 IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png")
 MASKS_NAME = "c1_pseudo_masks.npy"
@@ -84,6 +86,46 @@ EXPECTED_HAM10000 = 10_015
 INFERENCE_PATH = "plan-segmentacion/comun/evaluacion/eval_student.predict_masks"
 USE_TTA = False
 UPSAMPLE = "bilinear_prob_then_threshold"
+
+# Fixed in docs/27 §10.3 BEFORE the data, so they are a prediction rather than
+# a rationalisation of whatever came out. The bank geometry is not changed --
+# it is the one the v6 numbers came from -- it is measured, and if it costs
+# more than this we stop and decide again with the number in hand.
+MAX_FRACTION_EMPTIED_BY_CROP = 0.02
+MAX_FRACTION_BELOW_HALF = 0.05
+
+
+def evaluate_crop_gates(summary: dict) -> tuple[bool, list[str]]:
+    """``(passes, reasons)`` for the crop-retention gate.
+
+    Every failing condition is reported, not just the first: stopping at one
+    hides how bad the rest is, and the decision afterwards needs the whole
+    picture. ``n_empty_from_segmenter`` is deliberately NOT gated here -- a
+    mask that arrived empty is the segmenter finding nothing, which is a
+    different problem with a different owner, and it is reported separately.
+    """
+    reasons: list[str] = []
+
+    emptied = summary["fraction_emptied_by_crop"]
+    if emptied > MAX_FRACTION_EMPTIED_BY_CROP:
+        reasons.append(
+            f"n_emptied_by_crop: {emptied:.2%} de las imagenes tenia lesion y la perdio "
+            f"entera en el recorte, por encima del {MAX_FRACTION_EMPTIED_BY_CROP:.0%}"
+        )
+
+    below_half = summary["fraction_below_half"]
+    if below_half is None:
+        reasons.append(
+            "fraction_below_half es None: ninguna mascara tenia lesion, asi que no hay "
+            "tasa que evaluar. Un lote sin lesiones no es un gate aprobado."
+        )
+    elif below_half > MAX_FRACTION_BELOW_HALF:
+        reasons.append(
+            f"n_below_half: {below_half:.2%} de las mascaras CON lesion retiene menos de "
+            f"la mitad, por encima del {MAX_FRACTION_BELOW_HALF:.0%}"
+        )
+
+    return not reasons, reasons
 
 
 def parse_args() -> argparse.Namespace:
@@ -120,6 +162,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help=f"proceed even if the folder does not hold {EXPECTED_HAM10000} images",
     )
+    parser.add_argument(
+        "--wandb-project",
+        default="",
+        help="proyecto de Weights & Biases; si se pide y no se puede registrar, aborta",
+    )
+    parser.add_argument("--wandb-group", default="v7-c1", help="grupo del run en W&B")
     return parser.parse_args()
 
 
@@ -281,8 +329,29 @@ def predict_all(
     return masks, image_ids, resolution
 
 
+def build_step0_tracker(wandb_project: str, group: str, environ=None, importer=None):
+    """Strict W&B tracker for step 0, or ``None`` when tracking was not asked for.
+
+    Strict because this run produces the artifact all 24 cells consume: if it
+    cannot be registered, nobody can point at where it came from afterwards.
+    """
+    extra = {} if importer is None else {"importer": importer}
+    module = tracking.require_wandb(wandb_project, environ=environ, **extra)
+    if module is None:
+        return None
+    return tracking.WandbTracker(
+        module, project=wandb_project, run="c1-step0-masks", group=group, strict=True
+    )
+
+
 def main() -> int:
     args = parse_args()
+
+    # Before torch, before reading 10.015 images: a run that cannot be
+    # registered produces an artifact nobody can trace, and tracing it is the
+    # whole point of this script.
+    tracker = build_step0_tracker(args.wandb_project, args.wandb_group)
+
     image_dir = args.image_dir.expanduser().resolve()
     checkpoint = args.checkpoint.expanduser().resolve()
     output_dir = args.output_dir.expanduser().resolve()
@@ -363,16 +432,79 @@ def main() -> int:
         json.dumps(manifest, indent=1, ensure_ascii=False), encoding="utf-8"
     )
 
-    print("\n=== STEP 0 OK ===")
+    # How much lesion the bank crop costs, measured on the artifact that C1
+    # will actually consume rather than estimated from a worked example.
+    stored = np.load(masks_path, mmap_mode="r")
+    retention = ex.summarise_crop_retention(
+        np.asarray(stored[i]) == mx.LESION_LABEL for i in range(len(image_ids))
+    )
+    passes, reasons = evaluate_crop_gates(retention)
+
+    if tracker is not None:
+        tracker.start(
+            {
+                "artifact": "c1_pseudo_masks",
+                "checkpoint_sha256": checkpoint_sha,
+                "masks_sha256": manifest["masks_sha256"],
+                "segmentation_run": segmentation_run,
+                "segmentation_commit": segmentation_commit,
+                "code_revision": manifest["code_revision"],
+                "n_images": len(image_ids),
+                "partial": partial,
+                **{f"inference_{k}": v for k, v in manifest["inference"].items()},
+            }
+        )
+        for key in ("n_empty", "mean_foreground_fraction"):
+            tracker.log_metric(f"coverage_{key}", float(coverage[key]))
+        for key in (
+            "n_empty_from_segmenter",
+            "n_emptied_by_crop",
+            "n_below_half",
+            "n_with_lesion",
+            "fraction_empty_from_segmenter",
+            "fraction_emptied_by_crop",
+        ):
+            tracker.log_metric(f"crop_{key}", float(retention[key]))
+        if retention["fraction_below_half"] is not None:
+            tracker.log_metric("crop_fraction_below_half", retention["fraction_below_half"])
+        # Logged whether it passed or failed: a dashboard that only holds the
+        # runs that cleared the gate is evidence for one side.
+        tracker.log_metric("crop_gate_passes", 1.0 if passes else 0.0)
+        tracker.end()
+        if tracker.run_url:
+            print(f"\nW&B run: {tracker.run_url}")
+
+    print("\n=== STEP 0 ===")
     print(f"masks     : {masks_path}")
     print(f"sha256    : {manifest['masks_sha256']}")
     print(f"empty     : {coverage['n_empty']}/{coverage['n_images']}")
     print(f"mean fg   : {coverage['mean_foreground_fraction']:.4f}")
+    print("\ncrop retention (bank geometry: Resize(255) + CenterCrop(224))")
+    print(f"  empty from segmenter : {retention['n_empty_from_segmenter']}/{retention['n_images']}"
+          f" ({retention['fraction_empty_from_segmenter']:.2%})")
+    print(f"  emptied by the crop  : {retention['n_emptied_by_crop']}/{retention['n_images']}"
+          f" ({retention['fraction_emptied_by_crop']:.2%})")
+    if retention["fraction_below_half"] is not None:
+        print(f"  retains under half   : {retention['n_below_half']}/{retention['n_with_lesion']}"
+              f" ({retention['fraction_below_half']:.2%} of those WITH a lesion)")
+
     if coverage["n_empty"]:
         print(
-            "NOTE: empty masks force the bbox fallback in (a) and the CLS fallback in (c). "
+            "\nNOTE: empty masks force the bbox fallback in (a) and the CLS fallback in (c). "
             "If this count is large, those conditions are collapsing toward the baseline."
         )
+
+    if not passes:
+        print("\n=== CROP GATE FAILED — DO NOT RUN THE BANK GATE OR C1 ===")
+        for reason in reasons:
+            print(f"  {reason}")
+        print(
+            "\nFrenar no significa cambiar la geometria del banco: significa volver a "
+            "decidir con el dato en la mano (docs/27 §10.3)."
+        )
+        return 1
+
+    print("\n=== STEP 0 OK — crop gate passed ===")
     return 0
 
 
