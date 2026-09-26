@@ -220,3 +220,77 @@ class TestMaskAreaRetainedAfterCrop:
     def test_it_refuses_a_non_boolean_mask(self):
         with pytest.raises(TypeError, match="bool"):
             ex.mask_area_retained_after_crop(np.zeros((450, 600), dtype=np.uint8))
+
+
+class TestCropRetentionSummary:
+    """Two ways to end up with no lesion, and they are different failures.
+
+    A mask that was already empty means the SEGMENTER found nothing. A mask
+    that was full and is empty after the crop means the GEOMETRY threw the
+    lesion away. Averaging them into one "empty" count hides whichever is
+    smaller, and they call for opposite responses.
+    """
+
+    def _centred(self, shape=(450, 600)):
+        mask = np.zeros(shape, dtype=bool)
+        mask[150:300, 225:375] = True
+        return mask
+
+    def _corner(self, shape=(450, 600)):
+        mask = np.zeros(shape, dtype=bool)
+        mask[:10, :10] = True
+        return mask
+
+    def _edge_partial(self, shape=(450, 600)):
+        mask = np.zeros(shape, dtype=bool)
+        mask[:120, :120] = True
+        return mask
+
+    def test_it_separates_the_two_empty_cases(self):
+        summary = ex.summarise_crop_retention(
+            [self._centred(), np.zeros((450, 600), dtype=bool), self._corner()]
+        )
+        assert summary["n_empty_from_segmenter"] == 1
+        assert summary["n_emptied_by_crop"] == 1
+
+    def test_an_already_empty_mask_is_not_blamed_on_the_crop(self):
+        summary = ex.summarise_crop_retention([np.zeros((450, 600), dtype=bool)])
+        assert summary["n_empty_from_segmenter"] == 1
+        assert summary["n_emptied_by_crop"] == 0
+
+    def test_the_below_half_count_excludes_already_empty_masks(self):
+        """Denominator is the masks that HAD a lesion; the rest is not a rate."""
+        summary = ex.summarise_crop_retention(
+            [self._centred(), np.zeros((450, 600), dtype=bool), self._corner()]
+        )
+        assert summary["n_with_lesion"] == 2
+        assert summary["n_below_half"] == 1  # the corner one, retained 0,0
+
+    def test_it_reports_numerator_and_denominator_not_just_a_rate(self):
+        summary = ex.summarise_crop_retention([self._centred(), self._corner()])
+        assert summary["n_images"] == 2
+        assert summary["n_with_lesion"] == 2
+        assert "fraction_emptied_by_crop" in summary
+        assert "fraction_below_half" in summary
+
+    def test_rates_are_over_the_right_denominators(self):
+        masks = [self._centred(), self._corner(), np.zeros((450, 600), dtype=bool)]
+        summary = ex.summarise_crop_retention(masks)
+        # emptied_by_crop is over ALL images; below_half is over those with a lesion
+        assert summary["fraction_emptied_by_crop"] == pytest.approx(1 / 3)
+        assert summary["fraction_below_half"] == pytest.approx(1 / 2)
+
+    def test_no_lesion_anywhere_does_not_divide_by_zero(self):
+        summary = ex.summarise_crop_retention([np.zeros((450, 600), dtype=bool)] * 3)
+        assert summary["n_with_lesion"] == 0
+        assert summary["fraction_below_half"] is None
+
+    def test_an_empty_batch_is_refused(self):
+        """Zero images would satisfy every gate vacuously."""
+        with pytest.raises(ValueError, match="vac|sin imagen|empty"):
+            ex.summarise_crop_retention([])
+
+    def test_a_partially_cropped_lesion_is_neither_empty_nor_below_half(self):
+        summary = ex.summarise_crop_retention([self._edge_partial()])
+        assert summary["n_emptied_by_crop"] == 0
+        assert summary["retained"][0] > 0.0

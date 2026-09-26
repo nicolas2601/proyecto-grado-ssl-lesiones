@@ -144,6 +144,63 @@ def mask_area_retained_after_crop(mask: np.ndarray) -> float:
     return float(_center_crop(resized, RESOLUTION).sum()) / before_crop
 
 
+def summarise_crop_retention(masks) -> dict:
+    """Per-batch view of what the bank crop costs, for the step-(e) gate.
+
+    Two ways to end up with no lesion, kept apart because they are different
+    failures and call for opposite responses:
+
+    * ``n_empty_from_segmenter`` -- the mask was already empty. That is the
+      segmenter finding nothing, and the crop had nothing to do with it.
+    * ``n_emptied_by_crop`` -- the mask had a lesion and lost all of it to the
+      CenterCrop. That is the geometry.
+
+    Averaging the two hides whichever is smaller. ``n_below_half`` is counted
+    only over the masks that HAD a lesion, and both its numerator and its
+    denominator are reported, because a bare rate over a denominator nobody
+    states is how a gate ends up measured against the wrong population.
+    """
+    masks = list(masks)
+    if not masks:
+        raise ValueError(
+            "no se puede resumir un lote vacio de mascaras: cero imagenes satisface "
+            "todos los umbrales de forma vacua y el gate quedaria en no-op"
+        )
+
+    retained: list[float] = []
+    n_empty_from_segmenter = 0
+    n_emptied_by_crop = 0
+    n_below_half = 0
+
+    for mask in masks:
+        array = np.asarray(mask)
+        value = mask_area_retained_after_crop(array)
+        retained.append(value)
+        if not array.any():
+            n_empty_from_segmenter += 1
+            continue
+        if value == 0.0:
+            n_emptied_by_crop += 1
+        if value < 0.5:
+            n_below_half += 1
+
+    n_images = len(masks)
+    n_with_lesion = n_images - n_empty_from_segmenter
+    return {
+        "n_images": n_images,
+        "n_with_lesion": n_with_lesion,
+        "n_empty_from_segmenter": n_empty_from_segmenter,
+        "n_emptied_by_crop": n_emptied_by_crop,
+        "n_below_half": n_below_half,
+        "fraction_empty_from_segmenter": n_empty_from_segmenter / n_images,
+        "fraction_emptied_by_crop": n_emptied_by_crop / n_images,
+        # None rather than 0.0: with no lesion anywhere there is no rate to
+        # report, and 0.0 would read as "nothing fell below half".
+        "fraction_below_half": (n_below_half / n_with_lesion) if n_with_lesion else None,
+        "retained": retained,
+    }
+
+
 def build_eval_input(
     image: np.ndarray,
     lesion: TrackedMask,

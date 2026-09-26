@@ -46,10 +46,84 @@ from dermssl import c1_mask_export as mx  # noqa: E402
 from dermssl import c1_mask_provenance as mp
 from dermssl import c1_provenance as pv  # noqa: E402
 from dermssl import cli_args  # noqa: E402
-from dermssl import torch_c1_extraction as tex  # noqa: E402
+from dermssl.pretrain import tracking  # noqa: E402
+
+# torch_c1_extraction imports torch at module level, so it is imported lazily
+# inside extract_baseline. Two reasons: the W&B check has to be able to abort
+# before anything heavy loads, and the pure parts of this file (the tracking
+# config, the report logging) stay testable on a machine with no GPU stack.
 
 DEFAULT_TOLERANCE = 1e-4
 BASELINE_CONDITION = "none"
+
+
+def tracking_config(
+    *,
+    backbone: str,
+    source: str,
+    tolerance: float,
+    code_revision: str,
+    masks_sha256: str,
+    n_images: int,
+) -> dict:
+    """Everything needed to tell one run of this gate from another.
+
+    ``condition`` is in here so the zero fallback count is readable: without
+    it, "0 CLS fallbacks" on a dashboard looks like a measurement of condition
+    (c) rather than a structural property of (0), which never pools patches.
+    """
+    return {
+        "gate": "bank_reproduction",
+        "condition": BASELINE_CONDITION,
+        "backbone": backbone,
+        "source": source,
+        "tolerance": tolerance,
+        "code_revision": code_revision,
+        "masks_sha256": masks_sha256,
+        "n_images": n_images,
+    }
+
+
+def log_report(tracker, report: dict) -> None:
+    """Log the verdict whether it passed or failed.
+
+    A gate that only records its successes turns the dashboard into evidence
+    for one side. ``reproduces`` goes in as 1,0/0,0 rather than a bool so it
+    charts alongside the drift.
+    """
+    tracker.log_metric("max_abs_diff", float(report["max_abs_diff"]))
+    tracker.log_metric("mean_abs_diff", float(report["mean_abs_diff"]))
+    tracker.log_metric("n_rows_over_tolerance", float(report["n_rows_over_tolerance"]))
+    tracker.log_metric("n_rows", float(report["n_rows"]))
+    tracker.log_metric("reproduces", 1.0 if report["reproduces"] else 0.0)
+
+
+def build_gate_tracker(
+    wandb_project: str,
+    run: str,
+    group: str,
+    environ: dict[str, str] | None = None,
+    importer=None,
+):
+    """A strict W&B tracker, or ``None`` when tracking was not requested.
+
+    Strict because this gate's entire output is the verdict, and the verdict is
+    reported as a link. Fail-safe is right for a 20-hour pretrain, where losing
+    the sink is cheaper than losing the run; here losing the sink loses the
+    result. Raises before anything expensive happens.
+    """
+    # ``importer`` is injected rather than defaulted at call time because
+    # require_wandb captures its own default when it is DEFINED: patching
+    # tracking.importlib afterwards does nothing, which made an earlier version
+    # of the "missing package" test pass only because wandb happened to be
+    # absent from this interpreter.
+    extra = {} if importer is None else {"importer": importer}
+    module = tracking.require_wandb(wandb_project, environ=environ, **extra)
+    if module is None:
+        return None
+    return tracking.WandbTracker(
+        module, project=wandb_project, run=run, group=group, strict=True
+    )
 
 
 def _tolerance(raw: str) -> float:
@@ -81,7 +155,28 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--device", default=None)
     parser.add_argument("--report", type=Path, default=None, help="write the JSON report here")
+    parser.add_argument(
+        "--wandb-project",
+        default="",
+        help="proyecto de Weights & Biases; si se pide y no se puede registrar, el gate aborta",
+    )
+    parser.add_argument("--wandb-group", default="v7-c1", help="grupo del run en W&B")
     return parser.parse_args()
+
+
+def code_revision(repo: Path) -> str:
+    import subprocess  # noqa: PLC0415
+
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return out.stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "unknown"
 
 
 def load_bank_features(cache_dir: Path, backbone: str) -> np.ndarray:
@@ -111,6 +206,8 @@ def extract_baseline(
     """
     from PIL import Image  # noqa: PLC0415
 
+    from dermssl import torch_c1_extraction as tex  # noqa: PLC0415
+
     rows = []
     tally = pv.FallbackTally()
     for index, image_id in enumerate(image_ids):
@@ -136,6 +233,14 @@ def extract_baseline(
 
 def main() -> int:
     args = parse_args()
+
+    # Before torch, before the backbone, before anything that costs time: if
+    # tracking was requested and cannot be delivered, this gate has no output
+    # worth producing, because its output is the link.
+    tracker = build_gate_tracker(
+        args.wandb_project, f"bank-gate-{args.backbone}", args.wandb_group
+    )
+
     import torch  # noqa: PLC0415
 
     device = torch.device(args.device or ("cuda" if torch.cuda.is_available() else "cpu"))
@@ -171,6 +276,18 @@ def main() -> int:
     print(f"images   : {len(val_ids)}")
     print(f"tolerance: {args.tolerance:g}")
 
+    if tracker is not None:
+        tracker.start(
+            tracking_config(
+                backbone=args.backbone,
+                source=args.source,
+                tolerance=args.tolerance,
+                code_revision=code_revision(REPO),
+                masks_sha256=mask_source.masks_sha256,
+                n_images=len(val_ids),
+            )
+        )
+
     model = build_backbone(args.arch, args.source, device)
     c1_features, tally = extract_baseline(
         model, args.image_dir.expanduser(), val_ids, masks, mask_source, device
@@ -190,6 +307,15 @@ def main() -> int:
 
     if args.report:
         args.report.expanduser().write_text(json.dumps(report, indent=1), encoding="utf-8")
+
+    if tracker is not None:
+        # Logged on BOTH outcomes. A dashboard that only holds the runs that
+        # passed is evidence for one side, and a failing gate is exactly the
+        # result someone needs to be able to look up afterwards.
+        log_report(tracker, report)
+        tracker.end()
+        if tracker.run_url:
+            print(f"\nW&B run: {tracker.run_url}")
 
     print(f"\nmax_abs_diff  : {report['max_abs_diff']:.3e}")
     print(f"mean_abs_diff : {report['mean_abs_diff']:.3e}")

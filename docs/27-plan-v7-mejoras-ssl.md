@@ -251,14 +251,19 @@ Por eso el paso (e) mide `mask_area_retained_after_crop` por imagen (`src/dermss
 
 **Gates del paso (e)**, fijados antes de ver el dato:
 
-| Condición | Umbral | Acción |
-|---|---|---|
-| Imágenes con máscara vacía **después** del recorte | > 2 % de 10.015 | FRENAR |
-| Imágenes que retienen menos de la mitad de su máscara | > 5 % | FRENAR |
-| Tasa de fallback CLS en la condición (c), en la corrida de C1 | > 1 % | FRENAR |
+| Métrica | Denominador | Umbral | Acción |
+|---|---|---|---|
+| `n_emptied_by_crop` — tenía lesión y la perdió entera en el recorte | las 10.015 | > 2 % | FRENAR |
+| `n_below_half` — retiene menos de la mitad de su máscara | solo las que **tenían** lesión | > 5 % | FRENAR |
+| `n_empty_from_segmenter` — ya venía vacía del segmentador | las 10.015 | se reporta aparte | informativo |
+| Tasa de fallback CLS en la condición (c), en la corrida de C1 | imágenes de la celda | > 1 % | FRENAR |
 
-Frenar no significa cambiar la geometría: significa volver a decidir con el dato en la mano. Las tres métricas van a W&B.
+Las dos formas de quedarse sin lesión se cuentan por separado a propósito: una máscara vacía de entrada es **el segmentador** que no encontró nada, y una que se vacía en el recorte es **la geometría**. Promediarlas esconde la menor de las dos, y piden respuestas opuestas. `n_below_half` se calcula solo sobre las que tenían lesión, y se reportan numerador y denominador, porque una tasa sobre un denominador que nadie declara es como un gate termina medido contra la población equivocada.
 
-**Predicción registrada antes del dato:** pasa con holgura, menos del 1 % de máscaras vacías, porque en HAM10000 la lesión suele estar centrada.
+Frenar no significa cambiar la geometría: significa volver a decidir con el dato en la mano. Todas las métricas van a W&B.
+
+**Predicción registrada antes del dato:** pasa con holgura — menos del 1 % vaciadas por el recorte y menos del 1 % vacías de origen — porque en HAM10000 la lesión suele estar centrada.
+
+**El control que falta y dónde se cierra:** el control (ii) se midió sobre ISIC 2018, no sobre HAM10000, que es donde corre C1. Se cierra en el paso (e): HAM10000 tiene sus 10.015 máscaras de referencia, así que cuando existan las máscaras de C1 se calcula el Dice per-imagen contra esa referencia — **solo para verificar el artefacto, nunca como entrada de C1** — y se compara contra el 0,785 publicado (per-imagen si existe el `per_image.csv` de esa evaluación; si no, la media con su IC).
 
 **Confusor declarado para el análisis de C1:** la condición (a) `bbox_crop` **no** atraviesa la geometría base — recorta a la caja de la lesión y reescala —, así que para lesiones cerca del borde ve más lesión que las condiciones (0), (b) y (c). Si (a) gana, hay que poder distinguir si gana por el método o por este confusor. Por eso la tabla de C1 lleva un análisis secundario estratificado por `mask_area_retained_after_crop` (≥ 0,9 contra < 0,9). Sobre estas 20 imágenes el orden de operaciones casi no importa (subir probabilidades y después umbralizar da 0,855350; umbralizar y después subir etiquetas da 0,855403, \|Δ\| máx 4,1e-04): son lesiones grandes y compactas, donde el borde pesa poco. El orden **no** se elige por este número, sino porque redimensionar etiquetas introduce un segundo umbral implícito — un píxel de probabilidad 0,55 aislado cubre 1 píxel si se sube la probabilidad y 5 si se sube la etiqueta (`tests/test_c1_predict_masks.py`). El control confirma que la elección es segura en el caso típico, no que sea irrelevante.
