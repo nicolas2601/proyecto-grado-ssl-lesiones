@@ -233,7 +233,18 @@ class MaskSource:
                 f"{expected_commit!r}. The manifest contradicts itself."
             )
 
-        digest = str(manifest["masks_sha256"])
+        # Round 6 fixed this for checkpoint_sha256 and left the field one line
+        # over unguarded: str() on an arbitrary object is a coercion, not a
+        # check, so anything whose __str__ prints a digest becomes that digest.
+        # This hash is what ties a published number to a file on disk.
+        digest = manifest["masks_sha256"]
+        if not isinstance(digest, str):
+            raise TypeError(
+                f"masks_sha256 debe ser str, no {type(digest).__name__}. "
+                "Coercionarlo con str() aceptaria cualquier objeto cuyo __str__ "
+                "devuelva algo con forma de digest: la conversion implicita repara "
+                "el valor en vez de rechazarlo."
+            )
         if not is_sha256(digest):
             raise ValueError(
                 f"masks_sha256 is not a lowercase sha256 hex digest: {digest!r}"

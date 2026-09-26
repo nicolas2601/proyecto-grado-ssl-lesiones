@@ -64,3 +64,4 @@ results/**/mlruns/
 .atl/
 .round7.diff
 .round7_prompt.txt
+.round7_out.txt

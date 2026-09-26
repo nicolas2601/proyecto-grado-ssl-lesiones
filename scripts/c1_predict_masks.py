@@ -166,6 +166,41 @@ def original_shape(path: Path) -> tuple[int, int]:
     return height, width
 
 
+def assert_probability_map(array: np.ndarray) -> None:
+    """Raise unless ``array`` is a finite probability map in [0, 1].
+
+    ``predict_masks`` returns ``torch.sigmoid`` output, so this holds today.
+    The contract lives at the callee anyway, for the same reason
+    ``image_contract`` does: whoever changes the inference path next will not
+    re-derive the invariant, and every way of breaking it is silent.
+
+    NaN is the sharpest case. PIL propagates it through the resize and
+    ``nan > 0.5`` is False, so a NaN map becomes an EMPTY mask -- which then
+    trips the bbox and CLS fallbacks and reads as a hard image rather than as
+    a broken forward pass. A range check alone would not catch it either:
+    every comparison against NaN is False, so it slips past min/max bounds.
+    """
+    if array.size == 0:
+        raise ValueError(
+            f"el mapa de probabilidades tiene forma {array.shape} y ningun pixel. "
+            "Un array vacio pasa todo chequeo de rango de forma vacua y llegaria "
+            "a la mascara como un no-op silencioso."
+        )
+    if not np.isfinite(array).all():
+        raise ValueError(
+            "el mapa de probabilidades tiene NaN o infinito. Un rango no alcanza: "
+            "toda comparacion contra NaN es False, asi que pasaria los limites y "
+            "`nan > 0,5` produciria una mascara VACIA sin ningun error."
+        )
+    low, high = float(array.min()), float(array.max())
+    if low < 0.0 or high > 1.0:
+        raise ValueError(
+            f"el mapa de probabilidades va de {low:.4g} a {high:.4g}, fuera de [0, 1]. "
+            "Si son logits en vez de probabilidades, todos los pixeles superan 0,5 "
+            "de una y la mascara sale entera."
+        )
+
+
 def upsample_probabilities(probabilities: np.ndarray, height: int, width: int) -> np.ndarray:
     """Bilinear resize of the PROBABILITY map back to the original grid.
 
@@ -177,6 +212,10 @@ def upsample_probabilities(probabilities: np.ndarray, height: int, width: int) -
     from PIL import Image  # noqa: PLC0415
 
     array = np.asarray(probabilities, dtype=np.float32)
+    # Before the early return, not after: a map that already matches the target
+    # shape skips the resize, and skipping the check with it is how the one
+    # case nobody tests becomes the one case nobody validates.
+    assert_probability_map(array)
     if array.shape == (height, width):
         return array
     resized = Image.fromarray(array, mode="F").resize((width, height), Image.BILINEAR)

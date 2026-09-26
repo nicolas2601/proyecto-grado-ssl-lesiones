@@ -191,3 +191,54 @@ class TestInferenceIsRecordedInTheManifest:
         }
         assert script.INFERENCE_PATH.endswith("eval_student.predict_masks")
         assert script.UPSAMPLE == "bilinear_prob_then_threshold"
+
+
+class TestProbabilitiesAreCheckedBeforeTheyBecomeAMask:
+    """Round 7 (P1). ``predict_masks`` returns ``torch.sigmoid`` output, so
+    [0, 1] holds today. The contract is at the callee anyway, for the same
+    reason ``image_contract`` is: the next person to change the inference path
+    will not re-derive this invariant, and every way of breaking it is silent.
+
+    NaN is the sharpest case. PIL propagates it through the resize, and
+    ``nan > 0.5`` is False, so a NaN probability map becomes an EMPTY mask --
+    which then trips the bbox/CLS fallback and looks like a hard image rather
+    than a broken forward pass.
+    """
+
+    def test_a_nan_probability_is_refused(self, script):
+        probabilities = np.full((4, 4), np.nan, dtype=np.float32)
+        with pytest.raises(ValueError, match="NaN|finit"):
+            script.upsample_probabilities(probabilities, 8, 8)
+
+    def test_a_single_nan_among_valid_values_is_refused(self, script):
+        probabilities = np.full((4, 4), 0.7, dtype=np.float32)
+        probabilities[2, 2] = np.nan
+        with pytest.raises(ValueError, match="NaN|finit"):
+            script.upsample_probabilities(probabilities, 8, 8)
+
+    def test_values_above_one_are_refused(self, script):
+        """Logits instead of probabilities: every pixel clears 0,5 at once."""
+        probabilities = np.full((2, 2), 2.0, dtype=np.float32)
+        with pytest.raises(ValueError, match=r"\[0, 1\]|rango|range"):
+            script.upsample_probabilities(probabilities, 4, 4)
+
+    def test_negative_values_are_refused(self, script):
+        probabilities = np.full((2, 2), -0.5, dtype=np.float32)
+        with pytest.raises(ValueError, match=r"\[0, 1\]|rango|range"):
+            script.upsample_probabilities(probabilities, 4, 4)
+
+    def test_an_empty_map_is_refused(self, script):
+        """An empty array satisfies every range check vacuously."""
+        with pytest.raises(ValueError, match="vac|empty|sin pixel"):
+            script.upsample_probabilities(np.zeros((0, 4), dtype=np.float32), 4, 4)
+
+    def test_the_check_also_runs_when_no_resize_is_needed(self, script):
+        """The early return for a matching shape must not skip the contract."""
+        probabilities = np.full((4, 4), np.nan, dtype=np.float32)
+        with pytest.raises(ValueError, match="NaN|finit"):
+            script.upsample_probabilities(probabilities, 4, 4)
+
+    def test_the_valid_range_still_passes(self, script):
+        probabilities = np.array([[0.0, 1.0], [0.5, 0.25]], dtype=np.float32)
+        resized = script.upsample_probabilities(probabilities, 4, 4)
+        assert resized.shape == (4, 4)

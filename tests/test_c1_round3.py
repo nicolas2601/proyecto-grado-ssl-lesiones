@@ -567,3 +567,47 @@ class TestThePublishedInferenceMatchesThePublishedModules:
 
     def test_the_keys_are_the_ones_the_exporter_writes(self):
         assert set(mp.PUBLISHED_INFERENCE) == set(mx.INFERENCE_KEYS)
+
+
+class TestMasksShaIsNotCoerced:
+    """Round 7 (P2). The round-6 fix landed on ``checkpoint_sha256`` only.
+
+    ``digest = str(manifest["masks_sha256"])`` turns any object whose
+    ``__str__`` returns a registered-looking digest into that digest. The
+    artifact hash is what ties a published number to a file on disk, so
+    coercing it is the same defect one field over.
+    """
+
+    class _LooksLikeASha:
+        def __str__(self) -> str:
+            return "a" * 64
+
+    def _manifest(self, **over):
+        payload = {
+            "producer": "student_r3",
+            "producer_is_label_free": True,
+            "masks_sha256": "a" * 64,
+            "checkpoint_sha256": _FINAL_SHA,
+            "image_ids": ["ISIC_0000001"],
+            "mask_shape": [450, 600],
+            "segmentation_run": "final",
+            "segmentation_commit": "d81a492",
+            "inference": dict(mp.PUBLISHED_INFERENCE),
+        }
+        payload.update(over)
+        return payload
+
+    def test_an_object_that_prints_like_a_digest_is_refused(self, monkeypatch):
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        with pytest.raises(TypeError, match="masks_sha256"):
+            mp.MaskSource.from_manifest(self._manifest(masks_sha256=self._LooksLikeASha()))
+
+    @pytest.mark.parametrize("bad", [None, 12345, b"a" * 64, ["a" * 64]])
+    def test_non_string_hashes_are_refused(self, monkeypatch, bad):
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        with pytest.raises(TypeError, match="masks_sha256"):
+            mp.MaskSource.from_manifest(self._manifest(masks_sha256=bad))
+
+    def test_a_real_digest_still_passes(self, monkeypatch):
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        assert mp.MaskSource.from_manifest(self._manifest()).masks_sha256 == "a" * 64

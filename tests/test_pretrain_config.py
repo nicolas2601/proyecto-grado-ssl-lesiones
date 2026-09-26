@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+from dermssl.pretrain import tracking
+
 from dermssl.pretrain import config as cfg_mod
 
 
@@ -346,3 +348,72 @@ def test_no_wandb_project_means_no_module_and_no_error():
 
 def _missing(_name):
     raise ImportError("No module named 'wandb'")
+
+
+class TestWandbAbortsBeforeTouchingTheGpu:
+    """WHEN it aborts matters as much as THAT it aborts.
+
+    Failing after the data loaders are built, or worse three hours into a
+    20-hour pretrain, turns a configuration mistake into lost GPU time. The
+    check has to run while the only thing that happened is argument parsing,
+    so this pins the ORDER, which a later refactor could silently invert.
+
+    The mirror image is also load-bearing: a network hiccup at hour three must
+    NOT kill the run. That stays fail-safe in WandbTracker._guard and is
+    covered in tests/test_pretrain_tracking.py.
+    """
+
+    def _launcher(self):
+        import sys
+        from pathlib import Path
+
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+        import pretrain as launcher
+
+        return launcher
+
+    def test_it_raises_before_importing_the_training_loop(self, monkeypatch, tmp_path):
+        import sys
+
+        launcher = self._launcher()
+        monkeypatch.delitem(sys.modules, "dermssl.pretrain.torch_loop", raising=False)
+
+        def refuse(project, **kwargs):
+            raise tracking.WandbUnavailable("sin credencial")
+
+        monkeypatch.setattr(launcher.tracking, "require_wandb", refuse)
+        # validate() is not what is under test here, and it would fail first on
+        # paths that do not exist, hiding whether the W&B check ran at all.
+        monkeypatch.setattr(launcher.config_mod, "validate", lambda cfg: cfg)
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            [
+                "pretrain.py",
+                "--method", cfg_mod.METHODS[0],
+                "--image-root", str(tmp_path),
+                "--output-dir", str(tmp_path / "out"),
+                "--wandb-project", "p",
+            ],
+        )
+
+        with pytest.raises(tracking.WandbUnavailable):
+            launcher.main()
+
+        assert "dermssl.pretrain.torch_loop" not in sys.modules, (
+            "el chequeo de W&B corrio DESPUES de importar el loop de entrenamiento; "
+            "para entonces ya se pago el costo de arranque que el abort queria evitar"
+        )
+
+    def test_the_check_precedes_the_import_in_the_source(self):
+        """Belt and braces: the behavioural test above only proves the import did
+        not happen in THIS path. This proves the statements are in that order."""
+        from pathlib import Path
+
+        source = (Path(__file__).resolve().parents[1] / "scripts" / "pretrain.py").read_text(
+            encoding="utf-8"
+        )
+        body = source.split("def main()", 1)[1]
+        assert body.index("resolve_wandb_module") < body.index(
+            "from dermssl.pretrain import torch_loop"
+        )
