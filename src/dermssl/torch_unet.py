@@ -34,6 +34,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from dermssl.image_contract import assert_unit_float_image
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms as T
@@ -306,6 +308,8 @@ def infer_mask_with_confidence(
     thresholding. Confidence is mean distance from the decision boundary,
     scaled to [0, 1]; it is used only to trigger the documented fallback.
     """
+    assert_unit_float_image(img)
+
     model.eval()
     h, w = img.shape[:2]
 
