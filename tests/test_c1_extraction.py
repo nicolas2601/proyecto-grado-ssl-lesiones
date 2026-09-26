@@ -22,7 +22,6 @@ def _registered_checkpoint(monkeypatch):
 
 from dermssl import c1_extraction as ex
 from dermssl import c1_mask_provenance as mp
-from dermssl import c1_provenance as pv
 from dermssl import mask_conditions as mc
 
 
@@ -129,3 +128,42 @@ class TestNeutralBackground:
     def test_none_condition_leaves_pixels_alone(self):
         prepared = ex.build_eval_input(_image(value=200), _tracked(_lesion()), "none")
         assert prepared.image.min() == 200
+
+
+class TestEveryC1ModuleCanBeImportedFirst:
+    """No module may depend on another having been imported before it.
+
+    The C1 package was split into five modules that import each other, and for
+    a while the suite only passed because of the order the test files happened
+    to import them in: importing ``c1_provenance`` first raised, importing
+    ``mask_conditions`` first did not. Seventy-six tests were green on luck.
+
+    A fresh interpreter per module is the only way to see it -- inside one
+    process the first import wins and every later one is a cache hit.
+    """
+
+    MODULES = (
+        "c1_extraction",
+        "c1_mask_export",
+        "c1_mask_provenance",
+        "c1_provenance",
+        "image_contract",
+        "mask_conditions",
+    )
+
+    @pytest.mark.parametrize("module", MODULES)
+    def test_it_imports_in_a_clean_interpreter(self, module):
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        src = Path(__file__).resolve().parents[1] / "src"
+        result = subprocess.run(
+            [sys.executable, "-c", f"import dermssl.{module}"],
+            capture_output=True,
+            text=True,
+            env={"PYTHONPATH": str(src), "PATH": "/usr/bin:/bin"},
+        )
+        assert result.returncode == 0, (
+            f"dermssl.{module} cannot be imported first:\n{result.stderr}"
+        )

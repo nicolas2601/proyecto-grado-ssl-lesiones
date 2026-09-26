@@ -98,6 +98,45 @@ def summarise_coverage(masks: np.ndarray) -> dict[str, float | int]:
     }
 
 
+# Everything that changes a mask without changing the checkpoint. The published
+# evaluation and C1 share a checkpoint and still disagree if either of these
+# differs, so recording the checkpoint alone does not identify the masks:
+#   path        the function that ran the network, so a reader can diff it
+#   tta         flip-averaging changes the probabilities
+#   resolution  the grid the network saw
+#   threshold   where the sigmoid was cut
+#   upsample    whether probabilities or labels were resized back
+INFERENCE_KEYS = ("path", "tta", "resolution", "threshold", "upsample")
+
+
+def _validate_inference(inference: dict[str, Any]) -> dict[str, Any]:
+    """Every key present and typed, with no defaults.
+
+    A default here would repeat the bug that made ``segmentation_run`` unsafe:
+    the producer would describe its own inference, and a run with TTA on would
+    record ``tta: false`` because nobody passed it.
+    """
+    missing = [key for key in INFERENCE_KEYS if key not in inference]
+    if missing:
+        raise ValueError(
+            f"inference is missing {missing}; every field is required because a "
+            "default would let a run describe itself as the published one"
+        )
+    unknown = sorted(set(inference) - set(INFERENCE_KEYS))
+    if unknown:
+        raise ValueError(f"inference has unexpected keys {unknown}; expected {list(INFERENCE_KEYS)}")
+    if not isinstance(inference["tta"], bool):
+        raise TypeError(
+            f"inference['tta'] must be bool, not {type(inference['tta']).__name__}; "
+            "a truthy string would record TTA as enabled either way"
+        )
+    if not isinstance(inference["resolution"], int) or isinstance(inference["resolution"], bool):
+        raise TypeError("inference['resolution'] must be an int")
+    if not isinstance(inference["threshold"], float):
+        raise TypeError("inference['threshold'] must be a float")
+    return {key: inference[key] for key in INFERENCE_KEYS}
+
+
 def build_masks_manifest(
     *,
     n_images: int,
@@ -109,6 +148,7 @@ def build_masks_manifest(
     mask_shape: list[int],
     segmentation_run: str,
     segmentation_commit: str,
+    inference: dict[str, Any],
     partial: bool = False,
     coverage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -139,6 +179,14 @@ def build_masks_manifest(
         ),
         "checkpoint_path": checkpoint_path,
         "checkpoint_sha256": checkpoint_sha256,
+        "inference": _validate_inference(inference),
+        "inference_note": (
+            "The same weights produce different masks under a different inference "
+            "path. C1 reuses the published one (eval_student.predict_masks, which "
+            "applies ImageNet normalisation) instead of reimplementing it, and "
+            "upsamples the probabilities to the original grid BEFORE thresholding "
+            "so the decision is taken once."
+        ),
         "masks_sha256": masks_sha256,
         "code_revision": code_revision,
         "partial": bool(partial),

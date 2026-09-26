@@ -19,10 +19,9 @@ import pytest
 from dermssl import c1_mask_export as mx
 from dermssl import c1_mask_provenance as mp
 from dermssl import c1_provenance as pv
-from dermssl import image_contract as ic
 
-
-# ── P1.1 input scale ──────────────────────────────────────────────────────────
+# P1.1 (input scale) moved to tests/test_image_contract.py when the contract
+# became its own module; the import it left behind failed ruff in CI.
 
 
 # ── P1.3 tolerance bypass ─────────────────────────────────────────────────────
@@ -79,6 +78,13 @@ class TestShaValidation:
             "mask_shape": [64, 64],
             "segmentation_run": "final",
             "segmentation_commit": "d81a492",
+            "inference": {
+                "path": "plan-segmentacion/comun/evaluacion/eval_student.predict_masks",
+                "tta": False,
+                "resolution": 224,
+                "threshold": 0.5,
+                "upsample": "bilinear_prob_then_threshold",
+            },
         }
         payload.update(over)
         return payload
@@ -110,6 +116,13 @@ class TestPartialArtifacts:
             "mask_shape": [64, 64],
             "segmentation_run": "final",
             "segmentation_commit": "d81a492",
+            "inference": {
+                "path": "plan-segmentacion/comun/evaluacion/eval_student.predict_masks",
+                "tta": False,
+                "resolution": 224,
+                "threshold": 0.5,
+                "upsample": "bilinear_prob_then_threshold",
+            },
         }
         payload.update(over)
         return mx.build_masks_manifest(**payload)
@@ -180,6 +193,13 @@ class TestSegmentationRunIdentity:
             "mask_shape": [64, 64],
             "segmentation_run": "final",
             "segmentation_commit": "d81a492",
+            "inference": {
+                "path": "plan-segmentacion/comun/evaluacion/eval_student.predict_masks",
+                "tta": False,
+                "resolution": 224,
+                "threshold": 0.5,
+                "upsample": "bilinear_prob_then_threshold",
+            },
         }
         payload.update(over)
         return payload
@@ -222,6 +242,13 @@ class TestManifestCarriesRunIdentity:
             "mask_shape": [64, 64],
             "segmentation_run": "final",
             "segmentation_commit": "d81a492",
+            "inference": {
+                "path": "plan-segmentacion/comun/evaluacion/eval_student.predict_masks",
+                "tta": False,
+                "resolution": 224,
+                "threshold": 0.5,
+                "upsample": "bilinear_prob_then_threshold",
+            },
         }
         payload.update(over)
         return mx.build_masks_manifest(**payload)
@@ -296,6 +323,13 @@ class TestRunIdentityIsTiedToCheckpointContent:
             "mask_shape": [64, 64],
             "segmentation_run": "final",
             "segmentation_commit": "d81a492",
+            "inference": {
+                "path": "plan-segmentacion/comun/evaluacion/eval_student.predict_masks",
+                "tta": False,
+                "resolution": 224,
+                "threshold": 0.5,
+                "upsample": "bilinear_prob_then_threshold",
+            },
         }
         payload.update(over)
         return payload
@@ -389,6 +423,13 @@ class TestCheckpointShaMustBeARealString:
             "mask_shape": [64, 64],
             "segmentation_run": "final",
             "segmentation_commit": "d81a492",
+            "inference": {
+                "path": "plan-segmentacion/comun/evaluacion/eval_student.predict_masks",
+                "tta": False,
+                "resolution": 224,
+                "threshold": 0.5,
+                "upsample": "bilinear_prob_then_threshold",
+            },
         }
 
     def test_object_impersonating_a_digest_is_refused(self, registered_checkpoint):

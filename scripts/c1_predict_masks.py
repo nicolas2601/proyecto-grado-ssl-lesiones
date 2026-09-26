@@ -13,6 +13,25 @@ SSL: student_r3 is the path-B U-Net trained without reference masks or dx
 labels (docs/23). Its predictions are a self-supervised signal, so using them
 as classifier input keeps C1 label-free. Reference masks appear nowhere here.
 
+Inference: this script does not implement inference. It calls the published
+``eval_student.load_student`` and ``eval_student.predict_masks`` -- the exact
+functions behind the reported Dice -- because an independent implementation
+already diverged twice without raising anything:
+
+  * the repo holds two U-Net lineages whose checkpoints disagree on the state
+    key (``model`` vs ``model_state_dict``). Only the KeyError stopped the
+    wrong lineage from loading;
+  * the published path normalises with ImageNet statistics and
+    ``dermssl.torch_unet.infer_mask`` does not. Same weights, same image,
+    different masks, no error.
+
+Geometry: ``predict_masks`` returns probabilities on the squashed
+``resolution x resolution`` grid the network was trained on. C1 needs a mask on
+the ORIGINAL grid, so the probabilities are resized bilinearly first and
+thresholded after. Thresholding at 224 and resizing labels afterwards would
+take the decision on a coarser grid and then interpolate between 0 and 1,
+which is a second, undeclared threshold.
+
 WHICH student_r3: the one under ``salidas/final/``, not ``salidas/v2/``. Two
 checkpoints share the name on the pod and the repo records both paths. The
 published Dice (0,718 ISIC / 0,785 HAM10000) belongs to the FINAL run,
@@ -41,7 +60,13 @@ from pathlib import Path
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO / "src"))
+# Same recipe as evaluate_segmentation.py: the published evaluation modules
+# import each other by bare name, so their folder and comun/nucleo have to be
+# importable for eval_student to resolve ckpt_io and gpu_augment.
+_EVALUACION = REPO / "plan-segmentacion" / "comun" / "evaluacion"
+for _extra in (REPO / "src", _EVALUACION, REPO / "plan-segmentacion" / "comun" / "nucleo"):
+    if str(_extra) not in sys.path:
+        sys.path.insert(0, str(_extra))
 
 from dermssl import c1_mask_export as mx  # noqa: E402
 from dermssl import c1_mask_provenance as mp  # noqa: E402
@@ -51,6 +76,14 @@ IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png")
 MASKS_NAME = "c1_pseudo_masks.npy"
 MANIFEST_NAME = "c1_pseudo_masks_manifest.json"
 EXPECTED_HAM10000 = 10_015
+
+# Recorded in the manifest so the masks can be told apart from any other run of
+# the same checkpoint. TTA stays off because the published Dice is the no-TTA
+# number; turning it on here would make C1's masks better than the ones the
+# thesis reports.
+INFERENCE_PATH = "plan-segmentacion/comun/evaluacion/eval_student.predict_masks"
+USE_TTA = False
+UPSAMPLE = "bilinear_prob_then_threshold"
 
 
 def parse_args() -> argparse.Namespace:
@@ -70,6 +103,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--image-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--device", default=None, help="cuda or cpu; auto-detected by default")
+    parser.add_argument(
+        "--batch-size",
+        type=cli_args.positive_int,
+        default=32,
+        help="images per forward pass; 32 is the default of the published evaluation",
+    )
     parser.add_argument(
         "--limit",
         type=cli_args.positive_int,
@@ -107,17 +146,41 @@ def code_revision(repo: Path) -> str:
         return "unknown"
 
 
-def load_image(path: Path) -> np.ndarray:
-    """RGB as float32 in [0, 1] -- the scale student_r3 was trained on.
+def _published_threshold() -> float:
+    """The published 0,5, read from the published module rather than copied.
 
-    ``infer_mask_with_confidence`` does NOT divide by 255 (it expects
-    to_tensor output), so handing it a raw uint8 array saturates the network
-    and returns masks that look plausible and are not. The callee now rejects
-    that, but dividing here is the actual fix.
+    A literal here would keep saying 0,5 after someone changed the protocol,
+    and the manifest would document a threshold the masks were not built with.
+    """
+    from evaluate_segmentation import DEFAULT_THRESHOLD  # noqa: PLC0415
+
+    return float(DEFAULT_THRESHOLD)
+
+
+def original_shape(path: Path) -> tuple[int, int]:
+    """``(height, width)`` of the file on disk, without decoding the pixels."""
+    from PIL import Image  # noqa: PLC0415
+
+    with Image.open(path) as image:
+        width, height = image.size
+    return height, width
+
+
+def upsample_probabilities(probabilities: np.ndarray, height: int, width: int) -> np.ndarray:
+    """Bilinear resize of the PROBABILITY map back to the original grid.
+
+    Resizing before the threshold keeps the 0,5 decision as the only one; the
+    alternative interpolates between two labels and calls the result a mask.
+    PIL rather than a hand-rolled kernel, because the published pipeline
+    resizes through PIL too and the two have to agree on pixel centres.
     """
     from PIL import Image  # noqa: PLC0415
 
-    return np.asarray(Image.open(path).convert("RGB"), dtype=np.float32) / 255.0
+    array = np.asarray(probabilities, dtype=np.float32)
+    if array.shape == (height, width):
+        return array
+    resized = Image.fromarray(array, mode="F").resize((width, height), Image.BILINEAR)
+    return np.asarray(resized, dtype=np.float32)
 
 
 def resolve_device(requested: str | None):
@@ -133,35 +196,50 @@ def predict_all(
     checkpoint: Path,
     device,
     masks_path: Path,
-) -> tuple[np.ndarray, list[str]]:
-    """Write one uint8 mask per image into a memmapped .npy, in path order."""
-    from dermssl.torch_unet import infer_mask, load_checkpoint  # noqa: PLC0415
+    batch_size: int,
+) -> tuple[np.ndarray, list[str], int]:
+    """Write one uint8 mask per image into a memmapped .npy, in path order.
 
-    model = load_checkpoint(str(checkpoint), device)
+    Returns the training resolution alongside the masks so the manifest states
+    the grid the network actually saw rather than a constant copied here.
+    """
+    import eval_student  # noqa: PLC0415
+    from eval_inputs import load_image  # noqa: PLC0415
+    from evaluate_segmentation import DEFAULT_THRESHOLD, binarize  # noqa: PLC0415
 
-    first = load_image(paths[0])
-    height, width = first.shape[:2]
+    model, resolution = eval_student.load_student(checkpoint, device)
+
+    height, width = original_shape(paths[0])
     masks = np.lib.format.open_memmap(
         masks_path, mode="w+", dtype=np.uint8, shape=(len(paths), height, width)
     )
 
     image_ids: list[str] = []
-    for index, path in enumerate(paths):
-        image = first if index == 0 else load_image(path)
-        if image.shape[:2] != (height, width):
-            raise SystemExit(
-                f"ABORT: {path.name} is {image.shape[:2]} but the artifact is "
-                f"{(height, width)}. A ragged stack cannot be indexed positionally; "
-                "resize upstream or store per-image files instead."
-            )
-        masks[index] = mx.encode_mask(infer_mask(model, image, device))
-        image_ids.append(path.stem)
+    for start in range(0, len(paths), batch_size):
+        chunk = paths[start : start + batch_size]
+        for path in chunk:
+            shape = original_shape(path)
+            if shape != (height, width):
+                raise SystemExit(
+                    f"ABORT: {path.name} is {shape} but the artifact is "
+                    f"{(height, width)}. A ragged stack cannot be indexed positionally; "
+                    "resize upstream or store per-image files instead."
+                )
+        images = np.stack([load_image(path, resolution) for path in chunk])
+        probabilities = eval_student.predict_masks(
+            model, images, device, len(chunk), tta=USE_TTA
+        )
+        for offset, (path, probability) in enumerate(zip(chunk, probabilities, strict=True)):
+            full = upsample_probabilities(probability, height, width)
+            masks[start + offset] = mx.encode_mask(binarize(full, DEFAULT_THRESHOLD))
+            image_ids.append(path.stem)
 
-        if (index + 1) % 500 == 0:
-            print(f"  {index + 1}/{len(paths)}", flush=True)
+        done = start + len(chunk)
+        if done % 500 < batch_size:
+            print(f"  {done}/{len(paths)}", flush=True)
 
     masks.flush()
-    return masks, image_ids
+    return masks, image_ids, resolution
 
 
 def main() -> int:
@@ -208,9 +286,12 @@ def main() -> int:
     print(f"device     : {device}")
     print(f"checkpoint : {checkpoint.name}")
     print(f"images     : {len(paths)}")
+    print(f"inference  : {INFERENCE_PATH} (tta={USE_TTA}, upsample={UPSAMPLE})")
 
     try:
-        masks, image_ids = predict_all(paths, checkpoint, device, masks_path)
+        masks, image_ids, resolution = predict_all(
+            paths, checkpoint, device, masks_path, args.batch_size
+        )
     except BaseException:
         # A half-written .npy has a valid header and the wrong contents: it would
         # hash fine on its own and silently become the input to all 24 cells.
@@ -231,6 +312,13 @@ def main() -> int:
         code_revision=code_revision(REPO),
         mask_shape=list(np.load(masks_path, mmap_mode="r").shape[1:]),
         coverage=coverage,
+        inference={
+            "path": INFERENCE_PATH,
+            "tta": USE_TTA,
+            "resolution": resolution,
+            "threshold": _published_threshold(),
+            "upsample": UPSAMPLE,
+        },
     )
     (output_dir / MANIFEST_NAME).write_text(
         json.dumps(manifest, indent=1, ensure_ascii=False), encoding="utf-8"

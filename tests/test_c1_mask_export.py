@@ -47,6 +47,13 @@ class TestManifest:
             "mask_shape": [450, 600],
             "segmentation_run": "final",
             "segmentation_commit": "d81a492",
+            "inference": {
+                "path": "plan-segmentacion/comun/evaluacion/eval_student.predict_masks",
+                "tta": False,
+                "resolution": 224,
+                "threshold": 0.5,
+                "upsample": "bilinear_prob_then_threshold",
+            },
         }
         payload.update(overrides)
         return mx.build_masks_manifest(**payload)
@@ -84,6 +91,69 @@ class TestManifest:
 
     def test_is_json_serialisable(self):
         json.dumps(self._manifest())
+
+    def test_records_the_inference_that_produced_the_masks(self):
+        """The checkpoint alone does not identify a mask."""
+        inference = self._manifest()["inference"]
+        assert inference["path"].endswith("eval_student.predict_masks")
+        assert inference["tta"] is False
+        assert inference["resolution"] == 224
+        assert inference["threshold"] == 0.5
+        assert inference["upsample"] == "bilinear_prob_then_threshold"
+
+
+class TestInferenceBlockHasNoDefaults:
+    """Same failure mode as ``segmentation_run``: a producer describing itself.
+
+    A default of ``tta: False`` would let a TTA run record ``tta: false`` simply
+    because the caller forgot the argument, and the masks would be documented as
+    something they are not.
+    """
+
+    def _inference(self, **over):
+        payload = {
+            "path": "plan-segmentacion/comun/evaluacion/eval_student.predict_masks",
+            "tta": False,
+            "resolution": 224,
+            "threshold": 0.5,
+            "upsample": "bilinear_prob_then_threshold",
+        }
+        payload.update(over)
+        return payload
+
+    @pytest.mark.parametrize("dropped", mx.INFERENCE_KEYS)
+    def test_every_field_is_required(self, dropped):
+        payload = self._inference()
+        del payload[dropped]
+        with pytest.raises(ValueError, match=dropped):
+            mx._validate_inference(payload)
+
+    def test_unknown_keys_are_refused(self):
+        """A typo would otherwise be silently dropped and the field left unrecorded."""
+        with pytest.raises(ValueError, match="unexpected|tta_enabled"):
+            mx._validate_inference(self._inference(tta_enabled=True))
+
+    @pytest.mark.parametrize("truthy", ["false", 1, "no"])
+    def test_a_truthy_tta_is_not_a_bool(self, truthy):
+        """`bool("false")` is True; coercion here would invert the record."""
+        with pytest.raises(TypeError, match="tta"):
+            mx._validate_inference(self._inference(tta=truthy))
+
+    def test_resolution_must_be_an_int(self):
+        with pytest.raises(TypeError, match="resolution"):
+            mx._validate_inference(self._inference(resolution="224"))
+
+    def test_a_bool_is_not_a_resolution(self):
+        """`isinstance(True, int)` is True, so bool has to be excluded by hand."""
+        with pytest.raises(TypeError, match="resolution"):
+            mx._validate_inference(self._inference(resolution=True))
+
+    def test_threshold_must_be_a_float(self):
+        with pytest.raises(TypeError, match="threshold"):
+            mx._validate_inference(self._inference(threshold="0.5"))
+
+    def test_the_valid_block_is_returned_with_exactly_the_known_keys(self):
+        assert mx._validate_inference(self._inference()) == self._inference()
 
 
 class TestArtifactVerification:
