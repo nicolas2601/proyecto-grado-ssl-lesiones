@@ -48,6 +48,7 @@ def _tracked(mask: np.ndarray, image_id: str = "IMG_0001"):
             "mask_shape": list(mask.shape),
             "segmentation_run": "final",
             "segmentation_commit": "d81a492",
+            "inference": dict(mp.PUBLISHED_INFERENCE),
         }
     )
     return mp.TrackedMask(array=mask, source=source, image_id=image_id)

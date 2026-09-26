@@ -444,3 +444,126 @@ class TestCheckpointShaMustBeARealString:
 
     def test_a_plain_string_still_works(self, registered_checkpoint):
         assert mp.MaskSource.from_manifest(self._manifest(registered_checkpoint))
+
+
+# ── ronda 7: la inferencia declarada tambien se verifica ──────────────────────
+
+
+class TestConsumerRefusesAnUndeclaredInference:
+    """Same hole as ``segmentation_run``, one level down.
+
+    A checkpoint does not identify a mask: the published path normalises with
+    ImageNet statistics, another lineage does not, TTA averages four views, and
+    the threshold is a free parameter. A manifest that omits all of that
+    describes a file, not a result -- and until now the consumer accepted it.
+
+    Hardened before the first artifact exists on purpose. Waiting until after
+    would exempt the only artifact the thesis actually uses.
+    """
+
+    def _manifest(self, **over):
+        payload = {
+            "producer": "student_r3",
+            "producer_is_label_free": True,
+            "masks_sha256": "a" * 64,
+            "checkpoint_sha256": _FINAL_SHA,
+            "image_ids": ["ISIC_0000001"],
+            "mask_shape": [450, 600],
+            "segmentation_run": "final",
+            "segmentation_commit": "d81a492",
+            "inference": dict(mp.PUBLISHED_INFERENCE),
+        }
+        payload.update(over)
+        return payload
+
+    def _with_inference(self, **over):
+        inference = dict(mp.PUBLISHED_INFERENCE)
+        inference.update(over)
+        return self._manifest(inference=inference)
+
+    def test_the_published_inference_is_accepted(self, monkeypatch):
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        source = mp.MaskSource.from_manifest(self._manifest())
+        assert source.inference == mp.PUBLISHED_INFERENCE
+
+    def test_a_manifest_without_the_block_is_refused(self, monkeypatch):
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        manifest = self._manifest()
+        del manifest["inference"]
+        with pytest.raises(ValueError, match="inference"):
+            mp.MaskSource.from_manifest(manifest)
+
+    def test_tta_on_is_refused(self, monkeypatch):
+        """The published Dice is the no-TTA number; TTA masks are better than it."""
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        with pytest.raises(ValueError, match="tta"):
+            mp.MaskSource.from_manifest(self._with_inference(tta=True))
+
+    def test_a_moved_threshold_is_refused(self, monkeypatch):
+        """0,4 is a different segmenter; the protocol fixes it at 0,5."""
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        with pytest.raises(ValueError, match="threshold"):
+            mp.MaskSource.from_manifest(self._with_inference(threshold=0.4))
+
+    def test_another_inference_path_is_refused(self, monkeypatch):
+        """The exact bug: dermssl.torch_unet.infer_mask skips ImageNet normalisation."""
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        with pytest.raises(ValueError, match="path|infer_mask"):
+            mp.MaskSource.from_manifest(
+                self._with_inference(path="dermssl.torch_unet.infer_mask")
+            )
+
+    def test_a_different_resolution_is_refused(self, monkeypatch):
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        with pytest.raises(ValueError, match="resolution"):
+            mp.MaskSource.from_manifest(self._with_inference(resolution=256))
+
+    def test_resizing_labels_instead_of_probabilities_is_refused(self, monkeypatch):
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        with pytest.raises(ValueError, match="upsample"):
+            mp.MaskSource.from_manifest(
+                self._with_inference(upsample="threshold_then_bilinear_labels")
+            )
+
+    def test_a_truthy_tta_is_not_a_false_tta(self, monkeypatch):
+        """`bool("false")` is True; a string here must not be coerced either way."""
+        monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", _FINAL_SHA)
+        with pytest.raises((ValueError, TypeError), match="tta"):
+            mp.MaskSource.from_manifest(self._with_inference(tta="false"))
+
+
+class TestThePublishedInferenceMatchesThePublishedModules:
+    """The constants are copies; these tests are what keeps them honest.
+
+    ``c1_mask_provenance`` stays torch-free and importable from ``src`` alone,
+    so it cannot import ``evaluate_segmentation`` (which lives under
+    plan-segmentacion and needs two more entries on sys.path). The values are
+    therefore registered here and tied to their source by test, the same way
+    the checkpoint sha is.
+    """
+
+    def _published_module(self):
+        import sys
+        from pathlib import Path
+
+        plan = Path(__file__).resolve().parents[1] / "plan-segmentacion" / "comun"
+        for extra in (plan / "evaluacion", plan / "nucleo"):
+            if str(extra) not in sys.path:
+                sys.path.insert(0, str(extra))
+        import evaluate_segmentation
+
+        return evaluate_segmentation
+
+    def test_the_threshold_is_the_published_one(self):
+        assert mp.PUBLISHED_INFERENCE["threshold"] == self._published_module().DEFAULT_THRESHOLD
+
+    def test_the_path_names_a_function_that_exists(self):
+        self._published_module()  # puts the evaluation folder on sys.path
+        import eval_student
+
+        module, _, function = mp.PUBLISHED_INFERENCE["path"].rpartition(".")
+        assert module.endswith("eval_student")
+        assert callable(getattr(eval_student, function))
+
+    def test_the_keys_are_the_ones_the_exporter_writes(self):
+        assert set(mp.PUBLISHED_INFERENCE) == set(mx.INFERENCE_KEYS)

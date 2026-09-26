@@ -36,6 +36,7 @@ def _manifest(**overrides):
         "mask_shape": [64, 64],
         "segmentation_run": "final",
         "segmentation_commit": "d81a492",
+        "inference": dict(mp.PUBLISHED_INFERENCE),
     }
     payload.update(overrides)
     return payload

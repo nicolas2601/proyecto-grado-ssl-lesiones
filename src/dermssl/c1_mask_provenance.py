@@ -14,7 +14,10 @@ Depends on nothing else in the C1 package, so it can be imported first.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+from types import MappingProxyType
+from typing import Any
 
 import numpy as np
 
@@ -34,6 +37,32 @@ ALLOWED_MASK_PRODUCERS = ("student_r3",)
 # identity is declared in the manifest and checked here, as a contract rather
 # than a comment someone has to read.
 PUBLISHED_SEGMENTATION = ("final", "d81a492")
+
+# The inference that produced the published Dice. A checkpoint does not identify
+# a mask: the published path normalises with ImageNet statistics and
+# ``dermssl.torch_unet.infer_mask`` does not, TTA averages four flipped views,
+# and the threshold is a free parameter. Same weights, different masks, no error.
+#
+# These are registered values rather than imports on purpose. This module stays
+# torch-free and importable from ``src`` alone, while ``evaluate_segmentation``
+# lives under plan-segmentacion and needs two more entries on sys.path -- adding
+# them here would make the C1 package unimportable anywhere the segmentation
+# tree is absent. The link to the source is a test instead
+# (TestThePublishedInferenceMatchesThePublishedModules), the same way the
+# checkpoint sha is measured rather than derived.
+PUBLISHED_INFERENCE: Mapping[str, Any] = MappingProxyType(
+    {
+        "path": "plan-segmentacion/comun/evaluacion/eval_student.predict_masks",
+        "tta": False,
+        # config["resolution"] of the final checkpoint, read on the pod 2026-09-26.
+        "resolution": 224,
+        "threshold": 0.5,
+        # Probabilities resized to the original grid, THEN thresholded. The other
+        # order interpolates between two labels, which is a second, undeclared
+        # threshold: an isolated 0,55 pixel covers 1 pixel one way and 5 the other.
+        "upsample": "bilinear_prob_then_threshold",
+    }
+)
 
 # The sha256 of salidas/final/student_r3/best.pt, MEASURED on the pod on
 # 2026-09-26 and verified to behave like the published run:
@@ -93,6 +122,46 @@ def resolve_run(checkpoint_sha256: str) -> tuple[str, str]:
     return registry[checkpoint_sha256]
 
 
+def check_inference(declared: object) -> dict[str, Any]:
+    """Refuse anything that is not the published inference, field by field.
+
+    Equality against the whole block would say "no coincide" and leave the
+    reader to diff two dicts; naming the field is what makes the failure
+    actionable, and ``tta`` in particular has to be compared by identity
+    because ``"false" == False`` is False but ``bool("false")`` is True.
+    """
+    if not isinstance(declared, Mapping):
+        raise ValueError(
+            "el manifiesto no trae el bloque 'inference'. Un checkpoint no "
+            "identifica una mascara: el camino publicado normaliza con "
+            "estadisticas de ImageNet y dermssl.torch_unet.infer_mask no, TTA "
+            "promedia cuatro vistas y el umbral es un parametro libre. Sin ese "
+            "bloque el manifiesto describe un archivo, no un resultado."
+        )
+
+    missing = [key for key in PUBLISHED_INFERENCE if key not in declared]
+    if missing:
+        raise ValueError(f"al bloque 'inference' le faltan campos: {missing}")
+
+    for key, expected in PUBLISHED_INFERENCE.items():
+        found = declared[key]
+        if key == "tta":
+            if found is not False:
+                raise ValueError(
+                    f"inference['tta'] es {found!r}; C1 corre sin TTA porque el "
+                    "Dice publicado es el numero sin TTA. Con TTA las mascaras "
+                    "son mejores que las que reporta la tesis."
+                )
+            continue
+        if type(found) is not type(expected) or found != expected:
+            raise ValueError(
+                f"inference[{key!r}] es {found!r} y la corrida publicada usa "
+                f"{expected!r}. Cambiarlo produce mascaras distintas con el mismo "
+                "checkpoint, sin ningun error."
+            )
+    return dict(PUBLISHED_INFERENCE)
+
+
 @dataclass(frozen=True)
 class MaskSource:
     """Where a mask came from, checked rather than declared.
@@ -111,6 +180,13 @@ class MaskSource:
     segmentation_run: str = ""
     segmentation_commit: str = ""
     partial: bool = False
+    # Pairs rather than a dict so the frozen dataclass stays hashable; read it
+    # through the ``inference`` property.
+    inference_items: tuple[tuple[str, Any], ...] = field(default_factory=tuple)
+
+    @property
+    def inference(self) -> dict[str, Any]:
+        return dict(self.inference_items)
 
     @classmethod
     def from_manifest(cls, manifest: dict, *, allow_partial: bool = False) -> MaskSource:
@@ -171,10 +247,13 @@ class MaskSource:
                 "the input to the 24 cells; pass allow_partial=True to opt in."
             )
 
+        inference = check_inference(manifest.get("inference"))
+
         return cls(
             segmentation_run=run,
             segmentation_commit=commit,
             partial=partial,
+            inference_items=tuple(sorted(inference.items())),
             producer=producer,
             masks_sha256=digest,
             image_ids=tuple(manifest["image_ids"]),
