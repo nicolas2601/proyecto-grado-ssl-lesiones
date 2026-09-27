@@ -63,3 +63,26 @@ def select_winner(
     best = max(results[n]["macro_f1"] for n in names)
     close = [n for n in names if best - results[n]["macro_f1"] < tie]
     return min(close, key=lambda n: (results[n]["ece"], -results[n]["macro_f1"]))
+
+
+def bootstrap_ci(
+    y_true,
+    proba,
+    metric_fn,
+    *,
+    n_resamples: int = 1000,
+    seed: int = 20260923,
+    alpha: float = 0.05,
+) -> tuple[float, float]:
+    """Percentile interval of one variant's metric on the holdout.
+
+    Reported beside the selection so a near-tie is read as noise; the
+    selection rule itself never looks at it.
+    """
+    y_true, proba = np.asarray(y_true), np.asarray(proba)
+    rng = np.random.RandomState(seed)
+    n = len(y_true)
+    values = np.array(
+        [metric_fn(y_true[picks], proba[picks]) for picks in (rng.randint(0, n, n) for _ in range(n_resamples))]
+    )
+    return float(np.percentile(values, 100 * alpha / 2)), float(np.percentile(values, 100 * (1 - alpha / 2)))

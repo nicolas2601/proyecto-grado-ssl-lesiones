@@ -97,3 +97,30 @@ class TestSelectionRule:
     def test_no_candidates_refuses(self):
         with pytest.raises(ValueError):
             sh.select_winner({}, candidates=[])
+
+
+class TestBootstrapCI:
+    """Reported next to the selection, never used by it (docs/28 4.1)."""
+
+    def _data(self):
+        rng = np.random.default_rng(0)
+        y = rng.integers(0, 3, 300)
+        proba = rng.random((300, 3))
+        proba[np.arange(300), y] += 0.8
+        return y, proba / proba.sum(axis=1, keepdims=True)
+
+    def test_the_interval_contains_the_point_and_is_reproducible(self):
+        from dermssl import paired_bootstrap as pb
+
+        y, proba = self._data()
+        low, high = sh.bootstrap_ci(y, proba, pb.metric_macro_f1)
+        point = pb.metric_macro_f1(y, proba)
+        assert low <= point <= high
+        assert (low, high) == sh.bootstrap_ci(y, proba, pb.metric_macro_f1)
+
+    def test_the_interval_has_width(self):
+        from dermssl import paired_bootstrap as pb
+
+        y, proba = self._data()
+        low, high = sh.bootstrap_ci(y, proba, pb.metric_ece)
+        assert high > low

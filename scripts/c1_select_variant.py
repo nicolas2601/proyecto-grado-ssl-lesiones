@@ -28,12 +28,14 @@ from c1_build_val_index import rebuild_split  # noqa: E402
 
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import metrics as _metrics  # noqa: E402
+from dermssl import paired_bootstrap as pb  # noqa: E402
 from dermssl import probes  # noqa: E402
 from dermssl import selection_holdout as sh  # noqa: E402
 
 RESOLUTION = 224
 PROBE = "logreg"
 REPORTED = ("macro_f1", "balanced_accuracy", "auc", "ece")
+CI_METRICS = ("macro_f1", "ece")  # Reported beside the rule, never used by it.
 
 
 def parse_args() -> argparse.Namespace:
@@ -62,7 +64,11 @@ def score(spec: str, holdout: dict, image_index, id2label, device, args) -> dict
     proba = probes.run_probe(PROBE, x_fit, y_fit, x_hold, n_classes)
     summary = _metrics.summarize(y_hold, proba, n_classes)
     print(f"{name}: " + " | ".join(f"{k} {summary[k]:.4f}" for k in REPORTED))
-    return {"spec": f"{arch}:{source}", **{k: float(summary[k]) for k in REPORTED}}
+    return {
+        "spec": f"{arch}:{source}",
+        **{k: float(summary[k]) for k in REPORTED},
+        "ci95": {k: sh.bootstrap_ci(y_hold, proba, pb.METRIC_FUNCTIONS[k]) for k in CI_METRICS},
+    }, proba, y_hold
 
 
 def main() -> int:
@@ -85,11 +91,24 @@ def main() -> int:
 
     device = torch.device(args.device or ("cuda" if torch.cuda.is_available() else "cpu"))
     names = [bank.parse_backbone_spec(s)[0] for s in args.variant]
-    results = {
-        bank.parse_backbone_spec(spec)[0]: score(spec, holdout, image_index, split["id2label"], device, args)
-        for spec in args.variant + args.reference
-    }
+    results, probas = {}, {}
+    for spec in args.variant + args.reference:
+        name = bank.parse_backbone_spec(spec)[0]
+        results[name], probas[name], y_hold = score(
+            spec, holdout, image_index, split["id2label"], device, args
+        )
     winner = sh.select_winner(results, candidates=names)
+    paired = {
+        other: {
+            metric: pb.contrast_record(
+                arm=winner, control=other, metric=metric, probe=PROBE, fraction=1.0, seed=0,
+                y_true=y_hold, arm_proba=probas[winner], control_proba=probas[other],
+            )
+            for metric in CI_METRICS
+        }
+        for other in results
+        if other != winner
+    }
     document = {
         "rule": f"max macro_f1; within {sh.TIE_MACRO_F1} of the best, lowest ece (docs/28 4.1)",
         "probe": PROBE,
@@ -97,6 +116,7 @@ def main() -> int:
         "candidates": names,
         "results": results,
         "winner": winner,
+        "paired_vs_winner": paired,
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1), encoding="utf-8")
