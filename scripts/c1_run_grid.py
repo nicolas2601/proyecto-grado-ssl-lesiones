@@ -184,6 +184,19 @@ def extract_cell(model, image_dir, image_ids, masks, mask_source, condition, dev
     return np.stack(rows)
 
 
+def non_finite_reasons(train_features, val_features, proba, metrics) -> list[str]:
+    reasons = []
+    for name, array in (("features train", train_features), ("features val", val_features),
+                        ("proba", proba)):
+        bad = int((~np.isfinite(np.asarray(array, dtype=np.float64))).sum())
+        if bad:
+            reasons.append(f"{bad} valores no finitos en {name}")
+    bad_metrics = [k for k, v in metrics.items() if not np.isfinite(float(v))]
+    if bad_metrics:
+        reasons.append(f"metricas no finitas: {bad_metrics}")
+    return reasons
+
+
 def evaluate_cell(train_features, train_labels, val_features, val_labels, probe, n_classes):
     proba = probes.run_probe(probe, train_features, train_labels, val_features, n_classes)
     summary = _metrics.summarize(val_labels, np.asarray(proba), n_classes)
@@ -307,14 +320,26 @@ def main() -> int:
             mask_source, condition, device, val_tally,
         )
 
-        passes, reasons = cg.evaluate_cell_gates(val_tally)
+        # Review (both reviewers): the TRAIN side is gated too. The probe is
+        # fitted on train, so a degraded train set contaminates every val
+        # number even when val itself looks clean.
+        val_passes, val_reasons = cg.evaluate_cell_gates(val_tally)
+        train_passes, train_reasons = cg.evaluate_cell_gates(train_tally)
+        reasons = [f"val: {r}" for r in val_reasons] + [f"train: {r}" for r in train_reasons]
         cell_summary = cg.summarise_cell(val_tally)
-        for reason in reasons:
-            print(f"  GATE: {reason}")
 
         proba, cell_metrics = evaluate_cell(
             train_features, train_labels, val_features, val_labels, args.probe, n_classes
         )
+        # Review (opencode): a NaN in features, proba or a metric compares
+        # False against every threshold and serialises into the JSON as if it
+        # were a number. Non-finite anything fails the cell.
+        finite_reasons = non_finite_reasons(train_features, val_features, proba, cell_metrics)
+        reasons += finite_reasons
+        passes = val_passes and train_passes and not finite_reasons
+        cell_summary = {**cell_summary, "gate_passes": passes, "gate_reasons": reasons}
+        for reason in reasons:
+            print(f"  GATE: {reason}")
         print(f"  macro_f1 {cell_metrics['macro_f1']:.4f} | "
               f"bal_acc {cell_metrics['balanced_accuracy']:.4f} | "
               f"auc {cell_metrics['auc']:.4f} | ece {cell_metrics['ece']:.4f}")

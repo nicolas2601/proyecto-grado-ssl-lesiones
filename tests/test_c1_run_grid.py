@@ -197,3 +197,19 @@ class TestLimitSubsamplesInsteadOfTruncating:
 
     def test_no_limit_keeps_everything(self):
         assert len(grid._stride(100, None)) == 100
+
+
+class TestNonFiniteFailsTheCell:
+    def test_clean_arrays_give_no_reasons(self):
+        ok = np.ones((4, 3))
+        assert grid.non_finite_reasons(ok, ok, ok, {"macro_f1": 0.5}) == []
+
+    def test_a_nan_in_proba_is_caught(self):
+        bad = np.ones((4, 3)); bad[1, 1] = np.nan
+        ok = np.ones((4, 3))
+        assert any("proba" in r for r in grid.non_finite_reasons(ok, ok, bad, {"macro_f1": 0.5}))
+
+    def test_a_nan_metric_is_caught(self):
+        ok = np.ones((4, 3))
+        reasons = grid.non_finite_reasons(ok, ok, ok, {"auc": float("nan")})
+        assert any("auc" in r for r in reasons)
