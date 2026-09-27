@@ -47,6 +47,21 @@ class PreparedInput:
     mask: np.ndarray  # bool HW, same size as image
     used_bbox_fallback: bool
 
+    @property
+    def empty_after_geometry(self) -> bool:
+        """No lesion survived to the 224 grid.
+
+        Derived rather than stored so it cannot drift from the mask it
+        describes: a stored flag set at construction is one refactor away from
+        being right about a mask that has since changed.
+
+        What it costs depends on the condition, which is why the gate lives in
+        :mod:`dermssl.c1_cell_gates` and not here: ``neutral_bg`` greys the
+        whole image, ``mask_pool`` falls back to CLS, and ``none`` does not
+        care at all.
+        """
+        return not bool(self.mask.any())
+
 
 def _pil_resize(array: np.ndarray, width: int, height: int, nearest: bool) -> np.ndarray:
     """Resize through PIL, which is exactly what torchvision uses on PIL input.
