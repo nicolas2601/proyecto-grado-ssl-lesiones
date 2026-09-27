@@ -66,3 +66,14 @@ def test_top1_summary_counts_the_threshold_inclusively():
     summary = nd.summarize_top1(np.array([0.5, 0.95, 0.99, 0.2]), threshold=0.95)
     assert summary["n_at_or_above"] == 2
     assert set(summary["percentiles"]) == {"50", "90", "99", "99.9"}
+
+
+def test_pool_max_cosine_flags_every_copy_not_just_the_top1():
+    rng = np.random.default_rng(3)
+    queries = rng.normal(size=(2, 8)).astype(np.float32)
+    pool = rng.normal(size=(5, 8)).astype(np.float32)
+    pool[1] = queries[0] * 2  # two copies of the same query
+    pool[3] = queries[0] + 1e-4
+    best = nd.pool_max_cosine(queries, pool, chunk=2)
+    assert best.shape == (5,)
+    assert (np.flatnonzero(best > 0.999) == [1, 3]).all()

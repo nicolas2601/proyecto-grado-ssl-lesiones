@@ -88,3 +88,13 @@ def summarize_top1(top1: np.ndarray, *, threshold: float) -> dict:
         "n_at_or_above": int((top1 >= threshold).sum()),
         "n_queries": int(len(top1)),
     }
+
+
+def pool_max_cosine(queries: np.ndarray, pool: np.ndarray, *, chunk: int = 4096) -> np.ndarray:
+    """Per pool row, its highest cosine against any query.
+
+    A lesion photographed again can sit in the pool more than once, so the
+    exclusion looks at every pool image, not only each query top-1.
+    """
+    q, p = unit_rows(queries), unit_rows(pool)
+    return np.concatenate([(p[s:s + chunk] @ q.T).max(axis=1) for s in range(0, len(p), chunk)])
