@@ -28,7 +28,9 @@ Inferencia: la adaptación completa reescribe capas tempranas que DINOv2 ya ten�
 | Ancla de pesos | L2-SP hacia los pesos de DINOv2 público, λ ∈ {1e-4, 1e-3} (se elige en el piloto) | Li et al., ICML 2018 |
 | Ancla de features | coseno entre el CLS entrenado y el de DINOv2 público congelado, λ_d ∈ {0, 0,1} (se elige en el piloto) | DINOv3, Gram anchoring (Siméoni et al., 2025), versión liviana |
 | Color jitter | hue baja de 0,1 a 0,02 en los dos brazos; brillo, contraste y saturación se mantienen | Planckian Jitter (2022): el jitter RGB agresivo destruye color diagnóstico |
-| Vista de tono (solo propuesto) | el desplazamiento de tono se aplica sobre una vista con su propia augmentación completa (ya es así), más un término de consistencia REAL con peso w ∈ {0,1, 0,5}, sumado a SimSiam | CIRCLe (Pakzad et al., 2022); Tian et al. (2021) sobre vistas informativas |
+| Vista de tono (solo propuesto) | SimSiam sigue con sus dos vistas independientes (original y desplazada, cada una con su augmentación completa). Aparte, un término de consistencia REAL con peso w ∈ {0,1, 0,5}, sumado a SimSiam, entre el crop de la vista 1 y **ese mismo crop** sobre la imagen desplazada (mismo recorte, mismos volteos, mismas tiradas fotométricas; solo cambia el tono), con la original detached | CIRCLe (Pakzad et al., 2022); Tian et al. (2021) sobre vistas informativas |
+
+**Por qué el término de tono usa el mismo crop (revisión Opus P2, 2026-09-27).** La primera versión comparaba el original y el desplazado con crops independientes. Sobre las features del backbone y sin predictor, eso pide invarianza a encuadre y a tono a la vez, y la invarianza al encuadre SimSiam ya la entrena. Además, un término sin predictor que empuja features de crops distintos a coincidir es justamente la ablación que colapsa en Chen y He (2021). CIRCLe compara la misma imagen con el tono cambiado, así que ahora la tercera vista repite exactamente la geometría y la fotometría de la vista 1 (`SimSiamPairDataset(tone_view=True)`) y el término mide solo el tono. Cuesta un forward extra del backbone sobre la vista de tono. Se loguea `lever_backbone_std` para vigilar el colapso.
 
 ## 3. Confusores que se arreglan
 
@@ -54,6 +56,8 @@ Inferencia: la adaptación completa reescribe capas tempranas que DINOv2 ya ten�
 | 1 | A2 | plain | `--anchor-l2sp 1e-3 --anchor-distill 0.1` |
 | 2 | B1 | propuesto | config ganadora de la oleada 1 + `--tone-consistency-weight 0.1` |
 | 2 | B2 | propuesto | config ganadora de la oleada 1 + `--tone-consistency-weight 0.5` |
+
+El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops independientes que existía cuando se lanzó la oleada 1; la oleada 1 no lo usa, así que no la afecta.
 
 **Regla de selección, por oleada:** gana la variante con mayor macro-F1 en el holdout interno. Si `|Δ macro-F1| < 0,005`, gana la de menor ECE. La oleada 2 hereda las anclas de la ganadora de la oleada 1, así que los dos brazos difieren solo en el tono.
 
