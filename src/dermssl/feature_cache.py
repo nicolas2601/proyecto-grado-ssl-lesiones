@@ -54,6 +54,17 @@ def cache_key(
     )
 
 
+class LegacyEntryRefused(RuntimeError):
+    """A digest-free entry was found where digests are required.
+
+    Raised rather than treated as a miss. A miss means "extract it then",
+    which is safe but silent; this is not a missing entry, it is an entry
+    nobody can verify, sitting in a directory where every write is supposed
+    to record one. Something put it there outside the pipeline, and a run
+    that quietly re-extracts over it destroys the only evidence of that.
+    """
+
+
 @dataclass
 class CachedFeatures:
     key: str
@@ -159,11 +170,19 @@ class FeatureCache:
         )
         return CachedFeatures(key, features, labels, full_meta)
 
-    def load(self, key: str) -> CachedFeatures | None:
+    def load(self, key: str, *, require_digest: bool = False) -> CachedFeatures | None:
         """Return the entry, or None when absent or inconsistent.
 
         Returning None (rather than raising) is deliberate: the caller's natural
         reaction is "then extract it", which is always correct.
+
+        ``require_digest`` is the exception to that, and it is for C1. The
+        legacy door -- accepting entries written before digests existed --
+        exists so the published v6 bank cache keeps working. It would also let
+        any stale cache from an older run walk into the 24 cells, including
+        one extracted before the centre-crop fix, whose features are a row
+        off. C1 therefore asks for the digest and gets a
+        :class:`LegacyEntryRefused` instead of a silent re-extraction.
         """
         f_path, l_path, m_path = self.paths_for(key)
         if not all(p.is_file() for p in (f_path, l_path, m_path)):
@@ -192,7 +211,16 @@ class FeatureCache:
         # re-extract the whole published bank and make it look corrupt.
         for name, array in (("features_sha256", features), ("labels_sha256", labels)):
             recorded = meta.get(name)
-            if recorded is not None and recorded != _digest(array):
+            if recorded is None:
+                if require_digest:
+                    raise LegacyEntryRefused(
+                        f"la entrada {key!r} no tiene {name}: fue escrita antes de que "
+                        "existieran los digests, o por algo fuera de este pipeline. C1 no "
+                        "la carga: un cache anterior al arreglo del recorte tiene features "
+                        "corridos una fila y se verian sanos"
+                    )
+                continue
+            if recorded != _digest(array):
                 return None
 
         return CachedFeatures(key, features, labels, meta)
@@ -202,13 +230,20 @@ class FeatureCache:
         key: str,
         extract_fn,
         meta: dict | None = None,
+        *,
+        require_digest: bool = False,
     ) -> CachedFeatures:
         """Load ``key`` if cached, otherwise call ``extract_fn() -> (X, y)``.
 
         This single call is what makes the notebook resume-safe: a session that
         dies after extracting the training features re-uses them on restart.
+
+        ``require_digest`` is forwarded, not re-implemented: a caller that
+        asked for verified entries and then reached the cache through this
+        method instead of :meth:`load` would have walked straight past its own
+        requirement.
         """
-        cached = self.load(key)
+        cached = self.load(key, require_digest=require_digest)
         if cached is not None:
             return cached
         features, labels = extract_fn()

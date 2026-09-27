@@ -242,3 +242,83 @@ class TestAnInterruptedWriteCannotProduceAMixedEntry:
         # The meta lands last: it is what makes the entry visible to `has`.
         assert seen[-1].endswith(".meta.json")
         assert not list((tmp_path / "cache").glob("*.tmp*"))
+
+
+class TestC1RefusesEntriesWithoutADigest:
+    """The legacy door is open for the v6 bank only.
+
+    Entries written before digests existed still load, so the published bank
+    cache on the pod keeps working. But that door would also let ANY stale
+    cache from some earlier run walk into the 24 C1 cells -- and a cache that
+    predates the centre-crop fix holds features extracted one row off.
+
+    So C1 asks for digests. A missing one RAISES rather than returning None:
+    None means "extract it then", which is safe but silent, and nobody would
+    ever learn that something wrote an unverifiable entry into the C1 cache
+    directory. That is a fact worth stopping for.
+    """
+
+    def _cache_with_legacy_entry(self, tmp_path):
+        import json
+
+        import numpy as np
+
+        from dermssl.feature_cache import FeatureCache
+
+        cache = FeatureCache(tmp_path / "cache")
+        cache.save("k", np.zeros((4, 3), dtype=np.float32), np.arange(4))
+        _, _, meta_path = cache.paths_for("k")
+        meta = json.loads(meta_path.read_text())
+        del meta["features_sha256"]
+        del meta["labels_sha256"]
+        meta_path.write_text(json.dumps(meta))
+        return cache
+
+    def test_the_default_still_accepts_a_legacy_entry(self, tmp_path):
+        cache = self._cache_with_legacy_entry(tmp_path)
+
+        assert cache.load("k") is not None
+
+    def test_requiring_a_digest_raises_instead_of_returning_none(self, tmp_path):
+        from dermssl.feature_cache import LegacyEntryRefused
+
+        cache = self._cache_with_legacy_entry(tmp_path)
+
+        with pytest.raises(LegacyEntryRefused, match="digest"):
+            cache.load("k", require_digest=True)
+
+    def test_a_digested_entry_passes_the_strict_read(self, tmp_path):
+        import numpy as np
+
+        from dermssl.feature_cache import FeatureCache
+
+        cache = FeatureCache(tmp_path / "cache")
+        features = np.arange(12, dtype=np.float32).reshape(4, 3)
+        cache.save("k", features, np.arange(4))
+
+        loaded = cache.load("k", require_digest=True)
+
+        assert loaded is not None
+        assert np.array_equal(loaded.features, features)
+
+    def test_an_absent_entry_is_still_a_plain_miss(self, tmp_path):
+        """Nothing to refuse: there is no entry, so 'extract it' is right."""
+        from dermssl.feature_cache import FeatureCache
+
+        cache = FeatureCache(tmp_path / "cache")
+
+        assert cache.load("nope", require_digest=True) is None
+
+    def test_get_or_extract_propagates_the_requirement(self, tmp_path):
+        """Otherwise C1 would reach the legacy entry through the other door."""
+        import numpy as np
+
+        from dermssl.feature_cache import LegacyEntryRefused
+
+        cache = self._cache_with_legacy_entry(tmp_path)
+
+        def extract():
+            raise AssertionError("no debio re-extraer: tenia que fallar antes")
+
+        with pytest.raises(LegacyEntryRefused):
+            cache.get_or_extract("k", extract, require_digest=True)
