@@ -22,7 +22,8 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Callable, Sequence
+from uuid import uuid4
 
 import numpy as np
 
@@ -59,6 +60,47 @@ class CachedFeatures:
     features: np.ndarray
     labels: np.ndarray
     meta: dict
+
+
+def _digest(array: np.ndarray) -> str:
+    """sha256 of the array's bytes AND its shape/dtype.
+
+    The raw buffer alone is not enough: the same bytes reshaped are a
+    different array, and a labels file re-saved with another dtype would hash
+    identically while loading as something else.
+    """
+    hasher = hashlib.sha256()
+    hasher.update(str(array.shape).encode("utf-8"))
+    hasher.update(str(array.dtype).encode("utf-8"))
+    hasher.update(np.ascontiguousarray(array).tobytes())
+    return hasher.hexdigest()
+
+
+def _atomic_write(path: Path, write: Callable[[Path], None]) -> None:
+    """Write through a unique temporary and rename into place.
+
+    ``Path.replace`` is atomic within a filesystem, so a reader sees either
+    the old file or the new one, never a partial. The temporary name carries
+    a uuid because two processes writing the same key would otherwise share
+    one scratch file and interleave into it.
+
+    ``np.save`` appends ``.npy`` when the path lacks it, so the temporary
+    keeps that suffix and the real name is restored by the rename.
+    """
+    temporary = path.with_name(f".{path.name}.{uuid4().hex}.tmp{path.suffix}")
+    try:
+        write(temporary)
+        written = temporary
+        if not written.exists():
+            # np.save("x.tmp.npy") is fine, but a caller that passed a path
+            # without the suffix gets it appended; find what actually landed.
+            candidate = written.with_name(written.name + ".npy")
+            if candidate.exists():
+                written = candidate
+        written.replace(path)
+    finally:
+        for leftover in path.parent.glob(f".{path.name}.*.tmp*"):
+            leftover.unlink(missing_ok=True)
 
 
 class FeatureCache:
@@ -99,11 +141,22 @@ class FeatureCache:
             "schema": SCHEMA_VERSION,
             "n_samples": int(len(features)),
             "dim": int(features.shape[1]) if features.ndim == 2 else None,
+            # What was written, so a later read can tell whether the three
+            # files belong to the SAME write. See the docstring below.
+            "features_sha256": _digest(features),
+            "labels_sha256": _digest(labels),
             **(meta or {}),
         }
-        np.save(f_path, features)
-        np.save(l_path, labels)
-        m_path.write_text(json.dumps(full_meta, indent=2), encoding="utf-8")
+        # Each file lands by rename, and the meta lands LAST because it is what
+        # makes the entry visible to `has`. A reader therefore never sees a
+        # half-written array, and never sees an entry whose meta arrived before
+        # its data.
+        _atomic_write(f_path, lambda path: np.save(path, features))
+        _atomic_write(l_path, lambda path: np.save(path, labels))
+        _atomic_write(
+            m_path,
+            lambda path: path.write_text(json.dumps(full_meta, indent=2), encoding="utf-8"),
+        )
         return CachedFeatures(key, features, labels, full_meta)
 
     def load(self, key: str) -> CachedFeatures | None:
@@ -127,6 +180,21 @@ class FeatureCache:
             return None
         if meta.get("n_samples") not in (None, len(features)):
             return None
+
+        # Do the three files come from the SAME write? A crash between the two
+        # np.save calls leaves the new features next to the previous entry's
+        # labels, and every other check here passes: the files exist, both
+        # arrays load, the lengths agree, the schema matches. The cache would
+        # then serve one run's features with another run's answer key.
+        #
+        # Entries written before these digests existed (the v6 bank cache on
+        # the pod) have no digest and are accepted: refusing them would
+        # re-extract the whole published bank and make it look corrupt.
+        for name, array in (("features_sha256", features), ("labels_sha256", labels)):
+            recorded = meta.get(name)
+            if recorded is not None and recorded != _digest(array):
+                return None
+
         return CachedFeatures(key, features, labels, meta)
 
     def get_or_extract(

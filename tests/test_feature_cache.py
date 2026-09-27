@@ -125,3 +125,120 @@ def test_manifest_lists_saved_entries(tmp_path):
     cache.save("k2", np.zeros((3, 2), dtype=np.float32), np.array([0, 1, 0]))
     keys = {entry["key"] for entry in cache.manifest()}
     assert keys == {"k1", "k2"}
+
+
+class TestAnInterruptedWriteCannotProduceAMixedEntry:
+    """The failure a truncated file does NOT cover.
+
+    Measured, not assumed: a truncated ``.npy`` raises ``ValueError`` on load,
+    and ``load`` already catches that, so a write interrupted mid-features
+    self-heals. The hole is elsewhere. Three separate writes mean a crash
+    BETWEEN them can leave:
+
+        features -> the new array (complete)
+        labels   -> the previous entry's array (complete)
+        meta     -> the previous entry's meta (complete)
+
+    Every existing check passes: the files are all there, both arrays load,
+    the lengths agree, the schema matches. The cache then serves one run's
+    features paired with another run's labels, and every downstream number is
+    computed against the wrong answer key.
+
+    So the entry carries the digests of what was written, and load refuses a
+    set that does not match them.
+    """
+
+    def _cache(self, tmp_path):
+        from dermssl.feature_cache import FeatureCache
+
+        return FeatureCache(tmp_path / "cache")
+
+    def test_a_saved_entry_records_the_digest_of_both_arrays(self, tmp_path):
+        import numpy as np
+
+        cache = self._cache(tmp_path)
+        entry = cache.save("k", np.ones((4, 3), dtype=np.float32), np.arange(4))
+
+        assert len(entry.meta["features_sha256"]) == 64
+        assert len(entry.meta["labels_sha256"]) == 64
+
+    def test_labels_left_over_from_a_previous_write_are_refused(self, tmp_path):
+        """The exact mixed state: new features, old labels, old meta."""
+        import numpy as np
+
+        cache = self._cache(tmp_path)
+        cache.save("k", np.zeros((4, 3), dtype=np.float32), np.array([0, 0, 0, 0]))
+        features_path, _, _ = cache.paths_for("k")
+
+        # A second write that got as far as the features and then died.
+        np.save(features_path, np.ones((4, 3), dtype=np.float32))
+
+        assert cache.load("k") is None, "sirvio features nuevas con labels viejas"
+
+    def test_features_left_over_from_a_previous_write_are_refused(self, tmp_path):
+        import numpy as np
+
+        cache = self._cache(tmp_path)
+        cache.save("k", np.zeros((4, 3), dtype=np.float32), np.arange(4))
+        _, labels_path, _ = cache.paths_for("k")
+
+        np.save(labels_path, np.arange(4) + 100)
+
+        assert cache.load("k") is None
+
+    def test_an_intact_entry_still_loads(self, tmp_path):
+        import numpy as np
+
+        cache = self._cache(tmp_path)
+        features = np.arange(12, dtype=np.float32).reshape(4, 3)
+        cache.save("k", features, np.arange(4))
+
+        loaded = cache.load("k")
+
+        assert loaded is not None
+        assert np.array_equal(loaded.features, features)
+
+    def test_an_entry_written_before_digests_existed_still_loads(self, tmp_path):
+        """Backward compatibility with the bank cache already on the pod.
+
+        Those entries have no digests. Refusing them would silently re-extract
+        the whole v6 bank and, worse, make a cache written by the published
+        run look corrupt.
+        """
+        import json
+
+        import numpy as np
+
+        cache = self._cache(tmp_path)
+        cache.save("k", np.zeros((4, 3), dtype=np.float32), np.arange(4))
+        _, _, meta_path = cache.paths_for("k")
+        meta = json.loads(meta_path.read_text())
+        del meta["features_sha256"]
+        del meta["labels_sha256"]
+        meta_path.write_text(json.dumps(meta))
+
+        assert cache.load("k") is not None
+
+    def test_nothing_is_visible_until_the_whole_entry_is_written(self, tmp_path):
+        """Each file lands by rename, so a reader never sees a partial one."""
+        import numpy as np
+        from pathlib import Path
+
+        cache = self._cache(tmp_path)
+        seen: list[str] = []
+        original = Path.replace
+
+        def spy(self, target):
+            seen.append(Path(target).name)
+            return original(self, target)
+
+        import pytest as _pytest
+
+        with _pytest.MonkeyPatch.context() as patch:
+            patch.setattr(Path, "replace", spy)
+            cache.save("k", np.zeros((4, 3), dtype=np.float32), np.arange(4))
+
+        assert len(seen) == 3, f"no todo se escribio por rename: {seen}"
+        # The meta lands last: it is what makes the entry visible to `has`.
+        assert seen[-1].endswith(".meta.json")
+        assert not list((tmp_path / "cache").glob("*.tmp*"))

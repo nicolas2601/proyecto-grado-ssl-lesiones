@@ -108,6 +108,10 @@ Cada ficha tiene: qué es, por qué, chequeo SSL, costo, **predicción registrad
 - **Costo:** solo inferencia, del orden de minutos a una hora por condición. Las 24 celdas (6 × 4) son factibles en una tarde de GPU.
 - **Predicción registrada:** la condición (c) mask-pooling sube el balanced accuracy de DINOv2 público, porque aísla la lesión del fondo de piel. El recorte (a) puede perder el contexto del borde y rendir igual o peor que (c). Si "público + (c)" alcanza o supera al propuesto con IC que excluye el cero, el aporte del propuesto se explica por la segmentación y no por el tono.
 - **Criterio:** la tabla factorial con bootstrap pareado decide. Un "gana" solo cuenta si su intervalo excluye el cero.
+- **Qué métrica decide, fijado el 2026-09-27, ANTES de correr.** La predicción de arriba se escribió en *balanced accuracy*, pero el headline del banco v6 para el probe `logreg` es *macro-F1* (`probes.headline_metric`). Dejar la contradicción abierta permitiría elegir después la métrica que más favorezca, que es la forma más cómoda de racionalizar. Entonces, las tres reglas:
+  1. La **tabla principal** usa **macro-F1** como headline, por consistencia con la v6. Cambiar el headline haría incomparables las dos tablas.
+  2. La **predicción registrada se evalúa en balanced accuracy**, tal como se registró. No se reescribe para que coincida con el headline: una predicción corregida después del hecho no predice nada.
+  3. **Las dos métricas se reportan siempre**, en la misma tabla y para cada celda, junto con AUC y ECE. Si apuntan a lados distintos, eso es el resultado y se dice; no se elige una.
 
 **S-diag — DINO segmenta sin entrenar nada (pedido 3.2.2, variante INSID3).**
 - **Qué:** features densas de DINOv2 congelado (tokens de parche) → similitud y clustering para segmentar la lesión, sin entrenar ninguna capa. Se compara contra el U-Net actual en el mismo protocolo de evaluación (Dice, HD95, cobertura, en ISIC 2018 externo y HAM10000).
