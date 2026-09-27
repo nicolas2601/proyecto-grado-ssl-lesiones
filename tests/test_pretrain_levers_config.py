@@ -116,10 +116,20 @@ class TestExclusionCannotBeSilent:
             paths.append(path)
         return paths
 
-    def test_every_requested_id_must_be_found(self, tmp_path):
+    def test_an_exclusion_that_matches_nothing_is_refused(self, tmp_path):
+        """Misaligned names match zero ids: the exact silent failure of review P1-1."""
         pool = self._pool(tmp_path, [("ISIC_1.jpg", b"a"), ("ISIC_2.jpg", b"b")])
-        with pytest.raises(ValueError, match="no aparecen"):
-            cfg_mod.apply_exclusion(pool, frozenset({"ISIC_1", "ISIC_9"}))
+        with pytest.raises(ValueError, match="ningun"):
+            cfg_mod.apply_exclusion(pool, frozenset({"HAM_1", "HAM_2"}))
+
+    def test_ids_absent_from_the_pool_are_reported_not_fatal(self, tmp_path):
+        """The tone pool holds 9 823 of HAM's 10 015 images; an id that is not
+        in the pool cannot leak into it, so it is counted, not refused."""
+        pool = self._pool(tmp_path, [("ISIC_1.jpg", b"a"), ("ISIC_2.jpg", b"b")])
+        kept, report = cfg_mod.apply_exclusion(pool, frozenset({"ISIC_1", "ISIC_9"}))
+        assert [p.name for p in kept] == ["ISIC_2.jpg"]
+        assert report["n_ids_not_in_pool"] == 1
+        assert len(report["ids_not_in_pool_sha256"]) == 64
 
     def test_a_byte_identical_copy_under_another_id_is_also_dropped(self, tmp_path):
         pool = self._pool(tmp_path, [
@@ -129,7 +139,8 @@ class TestExclusionCannotBeSilent:
         ])
         kept, report = cfg_mod.apply_exclusion(pool, frozenset({"ISIC_1"}))
         assert [p.name for p in kept] == ["ISIC_2.jpg"]
-        assert report == {"n_ids": 1, "n_removed_by_id": 1, "n_removed_by_content": 1}
+        assert (report["n_ids"], report["n_removed_by_id"], report["n_removed_by_content"]) == (1, 1, 1)
+        assert report["n_ids_not_in_pool"] == 0
 
     def test_pairs_are_matched_on_the_original_image(self, tmp_path):
         originals = self._pool(tmp_path, [("ISIC_1.jpg", b"x"), ("ISIC_2.jpg", b"y")])

@@ -256,17 +256,17 @@ def apply_exclusion(paths: list, ids: frozenset[str]) -> tuple[list, dict]:
 
     Review P1-1: matching by stem alone excluded nothing, silently, when the
     names did not line up, and kept any copy of a validation image that a
-    second source ships under another id. Every requested id must be found;
+    second source ships under another id. A zero-match exclusion is refused;
     content copies are caught by size first, so only same-size files are
     hashed.
     """
     found = {_original(e).stem for e in paths} & ids
-    missing = sorted(ids - found)
-    if missing:
+    if not found:
         raise ValueError(
-            f"{len(missing)} ids a excluir no aparecen en el pool (p. ej. {missing[:5]}): "
-            "una exclusion que no encuentra sus ids no excluye nada"
+            f"ningun id de los {len(ids)} a excluir aparece en el pool (p. ej. "
+            f"{sorted(ids)[:3]}): con nombres desalineados la exclusion no excluye nada"
         )
+    missing = sorted(ids - found)
     by_id = [e for e in paths if _original(e).stem in ids]
     rest = [e for e in paths if _original(e).stem not in ids]
     sizes = {_original(e).stat().st_size for e in by_id}
@@ -276,7 +276,14 @@ def apply_exclusion(paths: list, ids: frozenset[str]) -> tuple[list, dict]:
         if _original(e).stat().st_size in sizes and _content_digest(_original(e)) in digests
     }
     kept = [e for e in rest if id(e) not in copies]
-    report = {"n_ids": len(ids), "n_removed_by_id": len(by_id), "n_removed_by_content": len(copies)}
+    report = {
+        "n_ids": len(ids),
+        "n_removed_by_id": len(by_id),
+        "n_removed_by_content": len(copies),
+        # Absent ids cannot leak; they are counted so the gap stays auditable.
+        "n_ids_not_in_pool": len(missing),
+        "ids_not_in_pool_sha256": hashlib.sha256("\n".join(missing).encode()).hexdigest(),
+    }
     return kept, report
 
 
