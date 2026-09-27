@@ -226,6 +226,14 @@ class TestToneConsistency:
         p1, p2, z1, z2, h1, h2 = _model()(*_views(), return_features=True)
         assert h1.shape[-1] == 8 and p1.shape[-1] == torch_simsiam.PROJ_DIM
 
+    def test_the_tone_feature_is_the_backbone_on_the_tone_view(self):
+        model = _model()
+        v1, v2 = _views()
+        tone = 0.5 * v1
+        outputs = model(v1, v2, tone_view=tone)
+        assert len(outputs) == 7
+        assert torch.allclose(outputs[6], model.backbone(tone))
+
     def test_a_lever_without_its_input_refuses(self):
         with pytest.raises(ValueError):
             ad.compose_objective(torch.tensor(0.0), Levers(tone_consistency_weight=1.0))
@@ -281,7 +289,10 @@ def _one_step(levers: Levers, *, freeze: bool = True):
     # the feature anchor have zero gradient by construction.
     for seed in (5, 6):
         v1, v2 = _views(seed)
-        outputs = model(v1, v2, return_features=True) if need else model(v1, v2)
+        if levers.tone_consistency_weight > 0:
+            outputs = model(v1, v2, return_features=True, tone_view=0.9 * v1)
+        else:
+            outputs = model(v1, v2, return_features=True) if need else model(v1, v2)
         ssl = torch_simsiam.simsiam_loss(*outputs[:4])
         loss, _ = torch_loop._lever_objective(ssl, levers, anchors, model, outputs, v1)
         opt.zero_grad()

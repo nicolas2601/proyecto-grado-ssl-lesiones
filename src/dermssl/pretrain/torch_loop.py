@@ -89,7 +89,12 @@ def _build(
         extras["anchors"] = adaptation.build_anchors(model.backbone, levers)
         adaptation.freeze_blocks(model.backbone, levers.freeze_blocks)
         dataset = torch_data.SimSiamPairDataset(
-            paths, cfg.resolution, cfg.color_constancy_probs, cfg.seed, cfg.hue_jitter
+            paths,
+            cfg.resolution,
+            cfg.color_constancy_probs,
+            cfg.seed,
+            cfg.hue_jitter,
+            tone_view=levers.tone_consistency_weight > 0,
         )
         if pretrained:
             # Converged ViT weights: AdamW, like the continual DINO arm.
@@ -142,7 +147,7 @@ def _lever_objective(base_loss, levers, anchors, model, outputs, original_view):
         base_loss,
         levers,
         tone=(
-            adaptation.tone_consistency(h_original, outputs[5])
+            adaptation.tone_consistency(h_original, outputs[6])
             if levers.tone_consistency_weight > 0 else None
         ),
         l2sp=adaptation.l2sp_penalty(raw.backbone, anchors) if levers.anchor_l2sp > 0 else None,
@@ -364,7 +369,13 @@ def train(
                     v1, v2 = batch[0].to(device, non_blocking=True), batch[1].to(
                         device, non_blocking=True
                     )
-                    outputs = model(v1, v2, return_features=True) if need_features else model(v1, v2)
+                    if levers.tone_consistency_weight > 0:
+                        v_tone = batch[2].to(device, non_blocking=True)
+                        outputs = model(v1, v2, return_features=True, tone_view=v_tone)
+                    elif need_features:
+                        outputs = model(v1, v2, return_features=True)
+                    else:
+                        outputs = model(v1, v2)
                     p1, p2, z1, z2 = outputs[:4]
                     ssl_loss = torch_simsiam.simsiam_loss(p1, p2, z1, z2)
                     if cfg.adaptation_mode == "original_transformed_consistency":
@@ -381,7 +392,7 @@ def train(
                     if need_features:
                         # The tone term has no predictor: watch the backbone itself.
                         lever_parts["backbone_std"] = torch.tensor(
-                            torch_simsiam.collapse_indicator(outputs[5])
+                            torch_simsiam.collapse_indicator(outputs[-1])
                         )
                     batch_size, guided_rate = v1.shape[0], -1.0
                 else:

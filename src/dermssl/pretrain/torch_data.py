@@ -16,6 +16,7 @@ concern in docs/15 was about label supervision, not about constants.
 
 from __future__ import annotations
 
+import copy
 from pathlib import Path
 
 import numpy as np
@@ -78,12 +79,16 @@ class SimSiamPairDataset(Dataset):
         cc_probs: tuple[tuple[str, float], ...],
         seed: int,
         hue_jitter: float = 0.1,
+        tone_view: bool = False,
     ):
         self.paths = paths
         self.geometric = _geometric(resolution, scale=(0.2, 1.0))
         self.cc_probs = cc_probs
         self.seed = seed
         self.hue_jitter = hue_jitter
+        # docs/28: a third view, the tone-shifted image through the SAME crop,
+        # flips and photometric draws as view 1. Only the tone differs.
+        self.tone_view = tone_view
 
     def __len__(self) -> int:
         return len(self.paths)
@@ -93,6 +98,8 @@ class SimSiamPairDataset(Dataset):
         entry = self.paths[idx]
         if isinstance(entry, tuple):
             original, transformed = entry
+            if self.tone_view:
+                return self._with_tone_view(original, transformed, rng)
             return (
                 _finish_view(
                     self.geometric(Image.open(original).convert("RGB")),
@@ -112,6 +119,29 @@ class SimSiamPairDataset(Dataset):
             _finish_view(self.geometric(img), rng, self.cc_probs, self.hue_jitter)
             for _ in range(2)
         )
+
+
+    def _with_tone_view(self, original, transformed, rng):
+        """``(v1, v2, v1_tone)``: v1 and v2 exactly as without the tone view.
+
+        The torch and numpy random states are rewound after v1 so the tone
+        view replays the same crop, flips and photometric draws on the
+        tone-shifted image, then restored so v2 is untouched.
+        """
+        original_img = Image.open(original).convert("RGB")
+        transformed_img = Image.open(transformed).convert("RGB")
+        if original_img.size != transformed_img.size:
+            raise ValueError(
+                f"{original} y {transformed} tienen tamaños distintos: el mismo crop no existe"
+            )
+        torch_state, rng_before = torch.get_rng_state(), copy.deepcopy(rng)
+        view1 = _finish_view(self.geometric(original_img), rng, self.cc_probs, self.hue_jitter)
+        torch_after, rng_after = torch.get_rng_state(), rng
+        torch.set_rng_state(torch_state)
+        tone = _finish_view(self.geometric(transformed_img), rng_before, self.cc_probs, self.hue_jitter)
+        torch.set_rng_state(torch_after)
+        view2 = _finish_view(self.geometric(transformed_img), rng_after, self.cc_probs, self.hue_jitter)
+        return view1, view2, tone
 
 
 class DinoMultiCropDataset(Dataset):

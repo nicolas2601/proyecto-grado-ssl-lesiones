@@ -75,16 +75,24 @@ class SimSiam(nn.Module):
         )
 
     def forward(
-        self, view1: torch.Tensor, view2: torch.Tensor, return_features: bool = False
+        self,
+        view1: torch.Tensor,
+        view2: torch.Tensor,
+        return_features: bool = False,
+        tone_view: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, ...]:
         """``(p1, p2, z1, z2)``, plus the backbone features when asked.
 
         The features come out of the SAME forward so DDP syncs their
         gradients; a separate method call on the wrapped module would not.
+        With ``tone_view`` (view 1's crop on the tone-shifted image) its
+        backbone feature is appended as a seventh output.
         """
         h1, h2 = self.backbone(view1), self.backbone(view2)
         z1, z2 = self.projector(h1), self.projector(h2)
         p1, p2 = self.predictor(z1), self.predictor(z2)
+        if tone_view is not None:
+            return p1, p2, z1.detach(), z2.detach(), h1, h2, self.backbone(tone_view)
         if return_features:
             return p1, p2, z1.detach(), z2.detach(), h1, h2
         return p1, p2, z1.detach(), z2.detach()
