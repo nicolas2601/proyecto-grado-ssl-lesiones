@@ -327,7 +327,7 @@ def train(
         wandb_module=wandb_module,
         wandb_project=wandb_project,
         wandb_group=wandb_group,
-        wandb_run_id=tracking.run_id_for(cfg.output_dir),
+        wandb_run_id=tracking.attempt_run_id(cfg.output_dir) if rank == 0 else "",
     )
     if rank == 0 and isinstance(tracker, tracking.NullTracker):
         print("ADVERTENCIA: ni MLflow ni Weights & Biases están disponibles; esta ejecución no tendrá seguimiento.")

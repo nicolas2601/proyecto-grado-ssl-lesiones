@@ -31,6 +31,7 @@ import hashlib
 import importlib
 import os
 import sys
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -183,6 +184,27 @@ def run_id_for(output_dir: str | Path) -> str:
     """
     resolved = str(Path(output_dir)).rstrip("/")
     return hashlib.sha1(resolved.encode("utf-8")).hexdigest()[:12]
+
+
+ATTEMPT_FILE = "wandb_attempt.txt"
+
+
+def attempt_run_id(output_dir: str | Path, token_factory=None) -> str:
+    """W&B id stable across a relaunch, new for every fresh attempt.
+
+    The attempt token lives inside the output directory, so a pod restart
+    that relaunches into the same directory resumes the same run, while a
+    retry after moving a failed directory aside starts a new one instead of
+    resuming the failed run's history and config.
+    """
+    out = Path(output_dir)
+    marker = out / ATTEMPT_FILE
+    if not marker.is_file():
+        out.mkdir(parents=True, exist_ok=True)
+        marker.write_text((token_factory or (lambda: uuid.uuid4().hex))(), encoding="utf-8")
+    token = marker.read_text(encoding="utf-8").strip()
+    resolved = str(out).rstrip("/")
+    return hashlib.sha1(f"{resolved}#{token}".encode("utf-8")).hexdigest()[:12]
 
 
 class NullTracker:

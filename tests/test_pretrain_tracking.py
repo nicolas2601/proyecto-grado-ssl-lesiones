@@ -415,3 +415,20 @@ class TestNetrcPermissions:
         """No NETRC means the default path, which is not ours to police."""
         fake = FakeWandbWithApi()
         assert tr.require_wandb("p", importer=_importer_for(fake), environ={}) is fake
+
+
+def test_a_relaunch_in_the_same_directory_keeps_the_run_id(tmp_path):
+    """A pod restart resumes from resume.pt in the same directory: same W&B run."""
+    first = tr.attempt_run_id(tmp_path / "pilot_B1", token_factory=lambda: "aaa")
+    again = tr.attempt_run_id(tmp_path / "pilot_B1", token_factory=lambda: "bbb")
+    assert first == again and len(first) == 12
+
+
+def test_a_new_attempt_at_the_same_path_gets_a_new_run_id(tmp_path):
+    """2026-09-27: B1-spec OOMed, its directory was moved aside, and the retry
+    at the same path silently resumed the failed W&B run."""
+    out = tmp_path / "pilot_B1"
+    failed = tr.attempt_run_id(out, token_factory=lambda: "aaa")
+    out.rename(tmp_path / "pilot_B1_oom")
+    retry = tr.attempt_run_id(out, token_factory=lambda: "bbb")
+    assert retry != failed
