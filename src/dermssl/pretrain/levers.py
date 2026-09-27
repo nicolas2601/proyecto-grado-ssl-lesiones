@@ -16,11 +16,14 @@ class Levers:
     anchor_l2sp: float = 0.0
     anchor_distill: float = 0.0
     tone_consistency_weight: float = 0.0
+    head_warmup_steps: int = 0
 
     def is_default(self) -> bool:
         return self == Levers()
 
     def validate(self, *, paired: bool) -> "Levers":
+        if self.head_warmup_steps < 0:
+            raise ValueError(f"head_warmup_steps={self.head_warmup_steps}: debe ser >= 0")
         if self.freeze_blocks < 0:
             raise ValueError(f"freeze_blocks={self.freeze_blocks}: debe ser >= 0")
         if not 0.0 < self.layer_decay <= 1.0:

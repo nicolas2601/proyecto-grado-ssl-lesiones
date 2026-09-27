@@ -137,6 +137,20 @@ def _exclude(paths: list, excluded: frozenset[str]) -> tuple[list, dict | None]:
     return config_mod.apply_exclusion(paths, excluded)
 
 
+def _apply_head_warmup(model, levers, step: int) -> None:
+    """During the first ``head_warmup_steps`` drop every backbone gradient.
+
+    ``grad = None`` makes AdamW skip the parameter entirely: no update, no
+    weight decay, no optimizer state. The graph is unchanged, so DDP with a
+    static graph keeps working; only the step is withheld (LP-FT, docs/28).
+    """
+    if step >= levers.head_warmup_steps:
+        return
+    raw = model.module if isinstance(model, DDP) else model
+    for param in raw.backbone.parameters():
+        param.grad = None
+
+
 def _lever_objective(base_loss, levers, anchors, model, outputs, original_view):
     """``base_loss`` plus the docs/28 levers; with every lever off, ``base_loss`` itself."""
     if levers.is_default():
@@ -409,6 +423,8 @@ def train(
                     batch_size, guided_rate = crops[0].shape[0], float(guided.mean())
 
             scaler.scale(loss).backward()
+            if cfg.method in config_mod.SIMSIAM_METHODS:
+                _apply_head_warmup(model, levers, step)
             scaler.unscale_(optimizer)
             grad_norm = _clip_gradients(
                 [p for g in optimizer.param_groups for p in g["params"]],

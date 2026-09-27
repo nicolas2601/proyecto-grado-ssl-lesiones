@@ -341,3 +341,57 @@ class TestOneStepEndToEnd:
         """A flag that parses and changes nothing is the defect this guards."""
         changed = any(not torch.equal(a, b) for a, b in zip(_one_step(levers), _v6_step()))
         assert changed
+
+
+class TestHeadWarmup:
+    """docs/28 wave 1b (Kumar et al. 2022): heads first, backbone untouched."""
+
+    def _step(self, model, opt, levers, step):
+        from dermssl.pretrain import torch_loop
+
+        v1, v2 = _views(step + 10)
+        loss = torch_simsiam.simsiam_loss(*model(v1, v2))
+        opt.zero_grad()
+        loss.backward()
+        torch_loop._apply_head_warmup(model, levers, step)
+        opt.step()
+
+    def test_during_warmup_the_backbone_does_not_move_at_all(self):
+        model = _model(seed=4)
+        levers = Levers(head_warmup_steps=2)
+        opt = torch.optim.AdamW(ad.param_groups(model, levers), lr=1e-2, weight_decay=0.1)
+        before = [p.detach().clone() for p in model.backbone.parameters()]
+        heads_before = [p.detach().clone() for p in model.projector.parameters()]
+        self._step(model, opt, levers, step=0)
+        assert all(torch.equal(a, b) for a, b in zip(before, model.backbone.parameters()))
+        assert any(not torch.equal(a, b) for a, b in zip(heads_before, model.projector.parameters()))
+
+    def test_layernorms_are_frozen_too_during_warmup(self):
+        model = _model(seed=4)
+        levers = Levers(head_warmup_steps=1)
+        opt = torch.optim.AdamW(ad.param_groups(model, levers), lr=1e-2, weight_decay=0.1)
+        norm = model.backbone.blocks[0].norm1.weight.detach().clone()
+        self._step(model, opt, levers, step=0)
+        assert torch.equal(norm, model.backbone.blocks[0].norm1.weight)
+
+    def test_after_warmup_the_backbone_trains(self):
+        model = _model(seed=4)
+        levers = Levers(head_warmup_steps=1)
+        opt = torch.optim.AdamW(ad.param_groups(model, levers), lr=1e-2)
+        before = [p.detach().clone() for p in model.backbone.parameters()]
+        self._step(model, opt, levers, step=1)
+        assert any(not torch.equal(a, b) for a, b in zip(before, model.backbone.parameters()))
+
+    def test_zero_warmup_never_touches_gradients(self):
+        from dermssl.pretrain import torch_loop
+
+        model = _model()
+        loss = torch_simsiam.simsiam_loss(*model(*_views()))
+        loss.backward()
+        grads = [p.grad.clone() for p in model.backbone.parameters()]
+        torch_loop._apply_head_warmup(model, Levers(), step=0)
+        assert all(torch.equal(g, p.grad) for g, p in zip(grads, model.backbone.parameters()))
+
+    def test_a_negative_warmup_refuses(self):
+        with pytest.raises(ValueError):
+            Levers(head_warmup_steps=-1).validate(paired=False)

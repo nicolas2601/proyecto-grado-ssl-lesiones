@@ -70,6 +70,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--anchor-l2sp", type=float, default=0.0, help="Peso de L2-SP hacia los pesos iniciales de DINOv2")
     parser.add_argument("--anchor-distill", type=float, default=0.0, help="Peso del ancla coseno del CLS contra DINOv2 público congelado")
     parser.add_argument("--tone-consistency-weight", type=float, default=0.0, help="Peso del término de consistencia de tono sumado a SimSiam (distinto de --consistency-weight, que reescala)")
+    parser.add_argument("--head-warmup-steps", type=int, default=0, help="Primeros K pasos: solo proyector y predictor, backbone entero quieto (LP-FT)")
     parser.add_argument("--hue-jitter", type=float, default=0.1, help="Componente de tono del ColorJitter")
     parser.add_argument("--exclude-ids-file", default="", help="Ids (JSON o uno por línea) que se sacan del pool, p. ej. la validación de C1")
     parser.add_argument("--max-steps", type=int, default=0, help="Máximo de pasos; cero mantiene el presupuesto por GPU")
@@ -130,6 +131,7 @@ def build_config(args: argparse.Namespace) -> config_mod.PretrainConfig:
         anchor_l2sp=args.anchor_l2sp,
         anchor_distill=args.anchor_distill,
         tone_consistency_weight=args.tone_consistency_weight,
+        head_warmup_steps=args.head_warmup_steps,
         hue_jitter=args.hue_jitter,
         exclude_ids_file=args.exclude_ids_file,
         max_steps=SMOKE_MAX_STEPS if args.smoke else args.max_steps,

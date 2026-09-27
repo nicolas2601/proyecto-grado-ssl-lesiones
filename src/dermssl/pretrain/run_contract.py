@@ -110,6 +110,7 @@ def build_run_manifest(
             "anchor_l2sp": cfg.anchor_l2sp,
             "anchor_distill": cfg.anchor_distill,
             "tone_consistency_weight": cfg.tone_consistency_weight,
+            "head_warmup_steps": cfg.head_warmup_steps,
         },
         "exclude_ids_file": cfg.exclude_ids_file or None,
         "exclude_ids_sha256": _file_sha256(cfg.exclude_ids_file),

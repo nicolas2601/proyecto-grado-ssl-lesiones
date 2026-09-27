@@ -129,6 +129,7 @@ class PretrainConfig:
     anchor_l2sp: float = 0.0
     anchor_distill: float = 0.0
     tone_consistency_weight: float = 0.0
+    head_warmup_steps: int = 0
     hue_jitter: float = 0.1
     exclude_ids_file: str = ""  # Ids (one per line or JSON list) kept out of the pool.
     mlflow_experiment: str = "obj2-ssl-pretraining"
@@ -214,6 +215,7 @@ def levers_of(cfg: PretrainConfig):
         anchor_l2sp=cfg.anchor_l2sp,
         anchor_distill=cfg.anchor_distill,
         tone_consistency_weight=cfg.tone_consistency_weight,
+        head_warmup_steps=cfg.head_warmup_steps,
     )
 
 
@@ -224,6 +226,11 @@ def _validate_levers(cfg: PretrainConfig) -> None:
     if not levers.is_default() and cfg.method != "simsiam_dinov2":
         raise ValueError(
             f"las palancas de docs/28 solo aplican a simsiam_dinov2 (ViT); método {cfg.method!r}"
+        )
+    if cfg.max_steps and cfg.head_warmup_steps >= cfg.max_steps:
+        raise ValueError(
+            f"head_warmup_steps={cfg.head_warmup_steps} >= max_steps={cfg.max_steps}: "
+            "el backbone no entrenaria nunca"
         )
     if not 0.0 <= cfg.hue_jitter <= 0.5:
         raise ValueError(f"hue_jitter={cfg.hue_jitter}: ColorJitter exige [0, 0.5]")

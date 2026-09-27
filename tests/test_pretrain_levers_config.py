@@ -44,7 +44,7 @@ class TestDefaultsReproduceV6:
         assert hp["hue_jitter"] == 0.1 and hp["grad_clip_norm"] == cfg_mod.GRAD_CLIP_NORM
         assert manifest["adaptation_levers"] == {
             "freeze_blocks": 0, "layer_decay": 1.0, "anchor_l2sp": 0.0,
-            "anchor_distill": 0.0, "tone_consistency_weight": 0.0,
+            "anchor_distill": 0.0, "tone_consistency_weight": 0.0, "head_warmup_steps": 0,
         }
         assert manifest["exclude_ids_sha256"] is None
 
@@ -153,3 +153,11 @@ def test_hue_jitter_on_the_dino_arm_is_refused():
     """Review P2: it was validated and recorded but never reached the DINO dataset."""
     with pytest.raises(ValueError, match="hue_jitter"):
         cfg_mod.validate(make_config(method="dino_continual", hue_jitter=0.02))
+
+
+def test_head_warmup_is_wired_and_bounded_by_max_steps():
+    args = launcher.parse_args(BASE + ["--head-warmup-steps", "150", "--max-steps", "950"])
+    cfg = launcher.build_config(args)
+    assert cfg_mod.levers_of(cfg).head_warmup_steps == 150
+    with pytest.raises(ValueError, match="head_warmup"):
+        cfg_mod.validate(make_config(head_warmup_steps=950, max_steps=950))
