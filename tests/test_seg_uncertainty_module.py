@@ -352,3 +352,59 @@ def test_batch_conversion_without_images_reports_no_artifact_fraction():
         _blob()[None], out, orient=False, normalize=False
     )
     assert stats["mean_artifact_fraction"] == 0.0
+
+
+# ---- S1 (docs/26 §2.4): union of every region that passes area + centrality
+def _two_central_blobs():
+    binary = np.zeros((64, 64), dtype=bool)
+    binary[26:34, 22:30] = True  # left fragment, near the center
+    binary[30:38, 34:42] = True  # right fragment, near the center
+    binary[0:6, 0:6] = True  # corner shadow, far from the center
+    return binary
+
+
+def test_union_keeps_every_central_fragment_of_a_split_lesion():
+    region = um.select_central_region(
+        _two_central_blobs(), min_area=20, max_center_distance=0.5, mode="union"
+    )
+    assert region[28, 25] and region[34, 38]
+
+
+def test_union_still_rejects_the_border_shadow():
+    region = um.select_central_region(
+        _two_central_blobs(), min_area=20, max_center_distance=0.5, mode="union"
+    )
+    assert not region[2, 2]
+
+
+def test_the_default_mode_is_still_the_single_central_region():
+    """The published pipeline must reproduce unless S1 is asked for."""
+    region = um.select_central_region(_two_central_blobs(), min_area=20, max_center_distance=0.5)
+    assert region[28, 25] != region[34, 38]
+
+
+def test_union_and_central_agree_on_what_is_empty():
+    """The union can only change WHICH pixels are painted, never whether an
+    image has a region: excluded_no_region cannot move under S1."""
+    far = np.zeros((64, 64), dtype=bool)
+    far[0:8, 0:8] = True
+    assert um.select_central_region(far, 10, 0.5, mode="union") is None
+    assert um.select_central_region(far, 10, 0.5) is None
+
+
+def test_an_unknown_mode_is_refused():
+    with pytest.raises(ValueError):
+        um.select_central_region(_two_central_blobs(), 20, 0.5, mode="largest")
+
+
+def test_batch_stats_count_images_where_the_union_joined_regions():
+    saliency = np.zeros((2, 64, 64), dtype=np.float32)
+    saliency[0][_two_central_blobs()] = 1.0
+    saliency[1][28:36, 28:36] = 1.0
+    out = np.zeros(saliency.shape, dtype=np.uint8)
+    stats = um.saliency_array_to_pseudo_masks(
+        saliency, out, orient=False, normalize=False, region_mode="union",
+        min_area_fraction=20 / (64 * 64), max_area_fraction=0.9,
+    )
+    assert stats["n_multi_region"] == 1
+    assert stats["region_mode"] == "union"

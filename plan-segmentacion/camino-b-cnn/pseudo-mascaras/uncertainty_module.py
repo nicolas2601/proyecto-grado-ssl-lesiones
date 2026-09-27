@@ -56,6 +56,7 @@ class PseudoMaskResult:
     mask: np.ndarray
     valid: bool
     reason: str = REASON_VALID
+    n_regions: int = 0
 
 
 def _excluded(shape: tuple[int, int], reason: str) -> PseudoMaskResult:
@@ -65,35 +66,59 @@ def _excluded(shape: tuple[int, int], reason: str) -> PseudoMaskResult:
     )
 
 
+REGION_MODES = ("central", "union")
+
+
 def select_central_region(
-    candidates: np.ndarray, min_area: int, max_center_distance: float
+    candidates: np.ndarray,
+    min_area: int,
+    max_center_distance: float,
+    mode: str = "central",
 ) -> np.ndarray | None:
     """Keep the connected region whose centroid is closest to the image center.
 
     Regions smaller than ``min_area`` pixels are discarded first. The centroid
     distance is normalized by the half-diagonal; a winner farther than
     ``max_center_distance`` means the sample has no trustworthy lesion.
+
+    ``mode="union"`` (S1, docs/26 §2.4) keeps EVERY region that passes the
+    same two filters, so a lesion split into several blobs by hair or
+    highlights stays whole, while border shadows are still rejected. It
+    returns ``None`` in exactly the same cases as ``"central"``.
     """
+    regions = accepted_regions(candidates, min_area, max_center_distance, mode)
+    if not regions:
+        return None
+    return np.logical_or.reduce(regions)
+
+
+def accepted_regions(
+    candidates: np.ndarray, min_area: int, max_center_distance: float, mode: str = "central"
+) -> list[np.ndarray]:
+    """The region masks that make up the foreground under ``mode``."""
+    if mode not in REGION_MODES:
+        raise ValueError(f"region mode {mode!r} unknown; expected one of {REGION_MODES}")
     labels, count = ndimage.label(candidates, structure=_EIGHT_CONNECTIVITY)
     if count == 0:
-        return None
+        return []
     height, width = candidates.shape
     center = np.array([(height - 1) / 2.0, (width - 1) / 2.0])
     half_diagonal = math.hypot(height, width) / 2.0
 
     areas = np.bincount(labels.ravel())[1:]
     centroids = ndimage.center_of_mass(candidates, labels, index=range(1, count + 1))
-    best_label, best_key = None, None
+    scored = []
     for label_index, (area, centroid) in enumerate(zip(areas, centroids, strict=True), start=1):
         if area < min_area:
             continue
         distance = float(np.linalg.norm(np.asarray(centroid) - center)) / half_diagonal
-        key = (distance, -area)
-        if best_key is None or key < best_key:
-            best_label, best_key = label_index, key
-    if best_label is None or best_key[0] > max_center_distance:
-        return None
-    return labels == best_label
+        scored.append(((distance, -area), label_index))
+    passing = sorted(item for item in scored if item[0][0] <= max_center_distance)
+    if not passing:
+        return []
+    if mode == "central":
+        return [labels == passing[0][1]]
+    return [labels == label_index for _, label_index in passing]
 
 
 def saliency_to_pseudo_mask(
@@ -107,6 +132,7 @@ def saliency_to_pseudo_mask(
     field: np.ndarray | None = None,
     artifact: np.ndarray | None = None,
     normalize: bool = True,
+    region_mode: str = "central",
 ) -> PseudoMaskResult:
     """Convert one saliency map into a three-valued pseudo-mask.
 
@@ -130,12 +156,15 @@ def saliency_to_pseudo_mask(
     if artifact is not None:
         candidates = candidates & ~artifact
     min_area = max(1, math.ceil(min_area_fraction * reference))
-    foreground = select_central_region(candidates, min_area, max_center_distance)
-    if foreground is None:
+    regions = accepted_regions(candidates, min_area, max_center_distance, region_mode)
+    if not regions:
         return _excluded(saliency.shape, REASON_NO_REGION)
+    foreground = np.logical_or.reduce(regions)
     if float(foreground.sum()) / reference > max_area_fraction:
         return _excluded(saliency.shape, REASON_AREA)
-    return PseudoMaskResult(mask=_paint(saliency, low, foreground, field, artifact), valid=True)
+    return PseudoMaskResult(
+        mask=_paint(saliency, low, foreground, field, artifact), valid=True, n_regions=len(regions)
+    )
 
 
 def _paint(
@@ -200,6 +229,7 @@ def saliency_array_to_pseudo_masks(
     chunk_size = max(1, chunk_size)
     reasons = {REASON_NO_REGION: 0, REASON_NO_FIELD: 0, REASON_AREA: 0}
     fractions = {FOREGROUND: 0.0, IGNORE: 0.0}
+    n_multi_region = 0
     artifact_total = 0.0
     for start in range(0, total, chunk_size):
         stop = start + chunk_size
@@ -215,10 +245,15 @@ def saliency_array_to_pseudo_masks(
             out[start + offset] = result.mask
             if not result.valid:
                 reasons[result.reason] = reasons.get(result.reason, 0) + 1
+            n_multi_region += int(result.n_regions > 1)
             for label in fractions:
                 fractions[label] += float((result.mask == label).mean())
     fractions["artifact"] = artifact_total
-    return _summarize(total, reasons, fractions, field_used=fields is not None)
+    stats = _summarize(total, reasons, fractions, field_used=fields is not None)
+    # docs/26 §2.5: how many images the union actually changed.
+    stats["n_multi_region"] = n_multi_region
+    stats["region_mode"] = mask_kwargs.get("region_mode", "central")
+    return stats
 
 
 def _summarize(total: int, reasons: dict, fractions: dict, *, field_used: bool) -> dict:

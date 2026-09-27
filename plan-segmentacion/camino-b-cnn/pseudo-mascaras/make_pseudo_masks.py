@@ -50,6 +50,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--low", type=float, default=um.DEFAULT_LOW, help="Umbral inferior (fondo)")
     parser.add_argument("--high", type=float, default=um.DEFAULT_HIGH, help="Umbral superior (lesion)")
     parser.add_argument("--min-area-fraction", type=float, default=um.DEFAULT_MIN_AREA_FRACTION, help="Area minima de una region, como fraccion de la imagen")
+    parser.add_argument("--region-mode", choices=um.REGION_MODES, default="central", help="central: una region (publicado); union: todas las que pasan area y centralidad (S1, docs/26)")
     parser.add_argument("--max-center-distance", type=float, default=um.DEFAULT_MAX_CENTER_DISTANCE, help="Distancia maxima al centro (fraccion de la semidiagonal)")
     parser.add_argument("--field", default=None, help="Archivo field.npy (N, H, W) con el campo valido del dermatoscopio")
     parser.add_argument("--max-area-fraction", type=float, default=um.DEFAULT_MAX_AREA_FRACTION, help="Area maxima de la region ganadora, como fraccion del campo")
@@ -84,6 +85,7 @@ def run(args: argparse.Namespace) -> dict:
         min_area_fraction=args.min_area_fraction,
         max_center_distance=args.max_center_distance,
         max_area_fraction=args.max_area_fraction,
+        region_mode=args.region_mode,
     )
     masks.flush()
 
@@ -114,6 +116,7 @@ def _provenance(args: argparse.Namespace) -> dict:
         "min_area_fraction": args.min_area_fraction,
         "max_center_distance": args.max_center_distance,
         "max_area_fraction": args.max_area_fraction,
+        "region_mode": args.region_mode,
         "saliency": str(args.saliency),
         "field": None if args.field is None else str(args.field),
         "reads_masks_or_labels": False,
