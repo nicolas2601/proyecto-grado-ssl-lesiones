@@ -51,6 +51,7 @@ def test_the_torch_modules_exist():
         "torch_data.py",
         "torch_dino.py",
         "torch_loop.py",
+        "torch_resume.py",
         "torch_simsiam.py",
     ]
 

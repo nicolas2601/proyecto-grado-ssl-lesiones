@@ -103,6 +103,7 @@ def build_run_manifest(
             "resolution": cfg.resolution,
             "hue_jitter": cfg.hue_jitter,
             "grad_checkpoint": cfg.grad_checkpoint,
+            "checkpoint_every_steps": cfg.checkpoint_every_steps,
             "grad_clip_norm": config_mod.GRAD_CLIP_NORM,
         },
         "adaptation_levers": {

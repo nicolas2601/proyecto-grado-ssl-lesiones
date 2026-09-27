@@ -72,6 +72,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--tone-consistency-weight", type=float, default=0.0, help="Peso del término de consistencia de tono sumado a SimSiam (distinto de --consistency-weight, que reescala)")
     parser.add_argument("--head-warmup-steps", type=int, default=0, help="Primeros K pasos: solo proyector y predictor, backbone entero quieto (LP-FT)")
     parser.add_argument(
+        "--checkpoint-every-steps", type=int, default=0,
+        help="Checkpoint de reanudación cada N pasos (0: solo las fracciones del presupuesto)",
+    )
+    parser.add_argument(
         "--grad-checkpoint", action="store_true",
         help="Recalcula los bloques ViT en el backward: menos memoria, misma matemática",
     )
@@ -138,6 +142,7 @@ def build_config(args: argparse.Namespace) -> config_mod.PretrainConfig:
         head_warmup_steps=args.head_warmup_steps,
         hue_jitter=args.hue_jitter,
         grad_checkpoint=args.grad_checkpoint,
+        checkpoint_every_steps=args.checkpoint_every_steps,
         exclude_ids_file=args.exclude_ids_file,
         max_steps=SMOKE_MAX_STEPS if args.smoke else args.max_steps,
         resolution=args.resolution,

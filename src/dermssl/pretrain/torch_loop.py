@@ -27,6 +27,7 @@ from torch.utils.data import DataLoader, DistributedSampler
 from dermssl.pretrain import budget as budget_mod
 from dermssl.pretrain import config as config_mod
 from dermssl.pretrain import (
+    torch_resume as resume_state,
     run_contract,
     schedules,
     torch_data,
@@ -183,9 +184,10 @@ def _save_checkpoint(
     step: int = 0,
     images_seen: int = 0,
     loss_totals: dict | None = None,
+    position: dict | None = None,
 ) -> None:
     raw = model.module if isinstance(model, DDP) else model
-    torch.save(
+    resume_state.atomic_save(
         {
             "model_state_dict": raw.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
@@ -194,6 +196,8 @@ def _save_checkpoint(
             "step": int(step),
             "images_seen": int(images_seen),
             "loss_totals": loss_totals,
+            # Epoch, batch within it and random state: what an exact replay needs.
+            **(position or {}),
         },
         path,
     )
@@ -296,13 +300,17 @@ def train(
     if world_size > 1:
         model = _wrap_ddp(model, local_rank, device)
     sampler = (
-        DistributedSampler(dataset, shuffle=True) if world_size > 1 else None
+        DistributedSampler(dataset, shuffle=True)
+        if world_size > 1
+        else resume_state.ResumableRandomSampler(len(dataset), cfg.seed)
     )
     loader = DataLoader(
         dataset,
         batch_size=cfg.batch_size_per_gpu,
-        shuffle=sampler is None,
         sampler=sampler,
+        # Own generator: the loader's per-iterator seed draw must not touch the
+        # global RNG, or a resumed run draws it at a different moment.
+        generator=torch.Generator().manual_seed(cfg.seed),
         num_workers=cfg.num_workers,
         pin_memory=device.type == "cuda",
         persistent_workers=cfg.num_workers > 0,
@@ -336,7 +344,7 @@ def train(
     params["effective_lr"] = base_lr
     tracker.start(params)
 
-    elapsed_offset, saved_fractions = 0.0, set()
+    elapsed_offset, saved_fractions, position = 0.0, set(), {}
     resumed_counters = (0, 0)
     totals = adaptation.LossTotals()
     resume_path = Path(cfg.resume_checkpoint) if cfg.resume_checkpoint else out_dir / "resume.pt"
@@ -351,6 +359,7 @@ def train(
         saved_fractions = set(state["saved_fractions"])
         resumed_counters = _counters_from(state)
         totals = adaptation.LossTotals.from_state(state.get("loss_totals"))
+        position = state
         if rank == 0:
             if gpu_count:
                 print(
@@ -362,14 +371,20 @@ def train(
     start = time.monotonic()
     elapsed = lambda: elapsed_offset + (time.monotonic() - start)  # noqa: E731
     step, images_seen = resumed_counters
-    epoch = 0
+    epoch, batch_in_epoch = position.get("epoch", 0), position.get("batch_in_epoch", 0)
+    if isinstance(sampler, resume_state.ResumableRandomSampler):
+        sampler.start_at(batch_in_epoch * cfg.batch_size_per_gpu)
+    if "rng" in position:
+        resume_state.restore_rng(position["rng"])
+    where = lambda: {  # noqa: E731
+        "epoch": epoch, "batch_in_epoch": batch_in_epoch, "rng": resume_state.capture_rng(),
+    }
     need_features = levers.tone_consistency_weight > 0 or levers.anchor_distill > 0
 
     while not compute.should_stop(elapsed()) and (
         cfg.max_steps == 0 or step < cfg.max_steps
     ):
-        if sampler is not None:
-            sampler.set_epoch(epoch)
+        sampler.set_epoch(epoch)
         for batch in loader:
             fraction = schedules.progress(
                 step=step,
@@ -440,6 +455,7 @@ def train(
                 raw.ema_update(schedules.ema_momentum_at(fraction, cfg.momentum_teacher))
 
             step += 1
+            batch_in_epoch += 1
             images_seen += batch_size * world_size
             totals.add(
                 ssl=float(ssl_loss.detach().item()),
@@ -484,15 +500,22 @@ def train(
                     _save_checkpoint(
                         resume_path, model, optimizer, elapsed(), saved_fractions,
                         step=step, images_seen=images_seen,
-                        loss_totals=totals.state(),
+                        loss_totals=totals.state(), position=where(),
                     )
                     print(f"[{tag}] guardado en {compute.gpu_hours_elapsed(elapsed()):.2f} horas-GPU")
+
+            if rank == 0 and cfg.checkpoint_every_steps and step % cfg.checkpoint_every_steps == 0:
+                _save_checkpoint(
+                    resume_path, model, optimizer, elapsed(), saved_fractions,
+                    step=step, images_seen=images_seen,
+                    loss_totals=totals.state(), position=where(),
+                )
 
             if compute.should_stop(elapsed()) or (
                 cfg.max_steps and step >= cfg.max_steps
             ):
                 break
-        epoch += 1
+        epoch, batch_in_epoch = epoch + 1, 0
 
     final_path = out_dir / f"{cfg.method}_backbone_final.pt"
     if rank == 0:
