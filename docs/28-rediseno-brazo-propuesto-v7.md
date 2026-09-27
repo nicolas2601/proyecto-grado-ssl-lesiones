@@ -57,6 +57,8 @@ Inferencia: la adaptación completa reescribe capas tempranas que DINOv2 ya ten�
 | 2 | B1 | propuesto | config ganadora de la oleada 1 + `--tone-consistency-weight 0.1` |
 | 2 | B2 | propuesto | config ganadora de la oleada 1 + `--tone-consistency-weight 0.5` |
 
+**Oleada 1b (registrada antes de ver la oleada 1).** El checkpoint del smoke (3 pasos, config A2) ya bajó el macro-F1 del holdout de 0,6108 (DINOv2 público) a 0,5861. Eso es lo que describen Kumar et al. (2022) para LP-FT: el gradiente de cabezas inicializadas al azar distorsiona el backbone antes de que las cabezas aprendan algo. Por eso se agrega A3 = ganadora de la oleada 1 + `--head-warmup-steps 150`: los primeros 150 pasos entrenan solo el proyector y el predictor, con el backbone entero congelado (LayerNorm incluidas), y después se habilita la configuración normal (bloques 8-11 + LayerNorm). A3 se compara con A1 y A2 con la misma regla de selección. Si A3 gana, el propuesto (B1, B2) hereda el head-warmup.
+
 El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops independientes que existía cuando se lanzó la oleada 1; la oleada 1 no lo usa, así que no la afecta.
 
 **Regla de selección, por oleada:** gana la variante con mayor macro-F1 en el holdout interno. Si `|Δ macro-F1| < 0,005`, gana la de menor ECE. La oleada 2 hereda las anclas de la ganadora de la oleada 1, así que los dos brazos difieren solo en el tono.
@@ -78,6 +80,7 @@ Criterio: se reporta el resultado sea cual sea. Si P3 no se cumple, la conclusi�
 - Siméoni et al. *DINOv3*. 2025. arXiv:2508.10104.
 - Chaves et al. *An Evaluation of Self-Supervised Pre-Training for Skin-Lesion Analysis*. ISIC Workshop 2022.
 - Zini et al. *Planckian Jitter*. 2022. arXiv:2202.07993.
+- Kumar, Raghunathan, Jones, Ma, Liang. *Fine-Tuning can Distort Pretrained Features and Underperform Out-of-Distribution* (LP-FT). ICLR 2022.
 - Pakzad, Abhishek, Hamarneh. *CIRCLe: Color Invariant Representation Learning for Unbiased Classification of Skin Lesions*. ISIC Workshop 2022.
 - Tian, Chen, Ganguli. *Understanding Self-Supervised Learning Dynamics without Contrastive Pairs*. ICML 2021. arXiv:2102.06810.
 - Chen, He. *Exploring Simple Siamese Representation Learning* (SimSiam). CVPR 2021.
