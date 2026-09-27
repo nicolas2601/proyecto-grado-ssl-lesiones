@@ -42,6 +42,23 @@ Inferencia: la adaptación completa reescribe capas tempranas que DINOv2 ya ten�
 2. **Corrida final**: la mejor variante de cada brazo, con el presupuesto completo, en paralelo en las dos GPU.
 3. **Evaluación única** en la validación fold-0, con el mismo banco, probe `logreg` y bootstrap pareado que la v6 y C1. Se reportan todas las variantes del piloto, no solo la ganadora.
 
+### 4.1 Variantes y regla de selección (fijadas antes de lanzar la oleada 1)
+
+**Base común a las cuatro:** ViT-B/14 desde DINOv2 público, `--freeze-blocks 8`, `--layer-decay 0.75`, `--hue-jitter 0.02`, `--exclude-ids-file pretrain_exclude_ids.txt` (las 2004 de validación + el holdout interno), `--max-steps 950` (≈2 GPU-h), semilla 42. La única diferencia entre brazos es la vista de tono.
+
+**Holdout interno:** 20 % de los IDs de train de C1, fold 0 de `StratifiedGroupKFold(5, shuffle=True, random_state=42)` agrupado por `lesion_id` y estratificado por `dx` (`scripts/c1_selection_holdout.py`), excluido del pool de pretraining igual que la validación. El probe de selección (`logreg`, el mismo de C1) se entrena en el 80 % restante de train y se evalúa en ese 20 %. DINOv2 público se evalúa en el mismo holdout como referencia.
+
+| Oleada | Variante | Brazo | Palancas propias |
+|---|---|---|---|
+| 1 | A1 | plain | `--anchor-l2sp 1e-4 --anchor-distill 0` |
+| 1 | A2 | plain | `--anchor-l2sp 1e-3 --anchor-distill 0.1` |
+| 2 | B1 | propuesto | config ganadora de la oleada 1 + `--tone-consistency-weight 0.1` |
+| 2 | B2 | propuesto | config ganadora de la oleada 1 + `--tone-consistency-weight 0.5` |
+
+**Regla de selección, por oleada:** gana la variante con mayor macro-F1 en el holdout interno. Si `|Δ macro-F1| < 0,005`, gana la de menor ECE. La oleada 2 hereda las anclas de la ganadora de la oleada 1, así que los dos brazos difieren solo en el tono.
+
+**Finales:** A* y B* con `--max-steps 5700` (≈12 GPU-h, el presupuesto de la v6), una GPU cada una, en paralelo, y la evaluación única del punto 3.
+
 ## 5. Predicciones registradas
 
 - **P1 (anclaje):** el plain anclado v7 no pierde contra DINOv2 público en macro-F1: Δ ≥ −0,01. Si el intervalo excluye el cero a favor, la adaptación anclada mejora a DINOv2.
