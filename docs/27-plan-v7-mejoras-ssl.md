@@ -210,6 +210,7 @@ Salen de las seis rondas de revisión independiente del código de C1, antes de 
 | Conteo de fallbacks que siempre daba 0 | Un número que parece medido y no lo es | Una métrica que no aplica se reporta como "no aplica", con un assert que falla si deja de ser cierto |
 | `if args.limit` leía el 0 como "sin límite"; `str.replace` sin ancla no hacía nada | Operaciones que "no hacen nada" sin avisar | Validación en el borde (argparse) y `assert` del ancla antes de reemplazar |
 | El paso 0 usaba `dermssl.torch_unet.infer_mask`, un linaje de inferencia sin normalización ImageNet, cuando el Dice publicado sale de `eval_student.predict_masks`, que sí la aplica | Máscaras plausibles de un modelo alimentado con entradas que nunca vio. Las seis rondas de revisión no lo atraparon, porque el código era correcto en sí mismo; lo atrapó correrlo contra el artefacto real | Reusar el camino de inferencia que produjo la métrica publicada, nunca uno paralelo, y reproducir esa métrica antes de generar artefactos (regla 5) |
+| El recorte central usaba `margen // 2` donde torchvision usa `int(round(margen / 2.0))`. En HAM10000 el margen vertical es impar (31 px), así que C1 leía **cada imagen una fila más arriba que el banco** | Features con la misma media, el mismo mínimo y la misma norma que las del banco, pero de otra imagen. El gate del banco falló con `max_abs_diff` 9,764e-01 en 64/64 filas. Ningún test lo vio: todos usaban imágenes **cuadradas** y solo verificaban invariantes internas (que la máscara viaje con la imagen, que salga 224×224), así que el margen impar nunca aparecía y nada se comparaba contra la implementación de referencia | Todo reimplementación de una transformación de terceros se prueba **contra la implementación original**, no contra sus propias invariantes, y con entradas de la forma real del dataset (rectangular), no con el caso cómodo. Las estadísticas globales no sirven de control: son ciegas a un corrimiento de un píxel |
 
 Reglas que se aplican a cada experimento de la v7:
 
@@ -286,6 +287,27 @@ Las dos formas de quedarse sin lesión se cuentan por separado a propósito: una
 Frenar no significa cambiar la geometría: significa volver a decidir con el dato en la mano. Todas las métricas van a W&B.
 
 **Predicción registrada antes del dato:** pasa con holgura — menos del 1 % vaciadas por el recorte y menos del 1 % vacías de origen — porque en HAM10000 la lesión suele estar centrada.
+
+**Dato medido (2026-09-26), sobre las 10.015 máscaras del artefacto:**
+
+| Métrica | Valor | Umbral | Veredicto |
+|---|---|---|---|
+| `n_emptied_by_crop` | 0 / 10.015 (0,00 %) | > 2 % | pasa |
+| `n_below_half` | 0 / 10.007 | > 5 % | pasa |
+| `n_empty_from_segmenter` | 8 / 10.015 (0,08 %) | informativo | — |
+| `n_lost_in_resize` — tenía lesión y la perdió en el `Resize` NEAREST, antes del recorte | 0 / 10.007 | informativo | — |
+
+La predicción se cumplió. `n_lost_in_resize` se cuenta aparte porque una lesión que muere en el resize no la mató el recorte, y saltarla en silencio sería el mismo no-op que estos gates existen para atrapar.
+
+**Re-evaluación tras corregir el redondeo del recorte.** El gate se volvió a calcular sobre el mismo artefacto (sin re-inferir nada: el sha de las máscaras no cambia) midiendo **los dos offsets en la misma pasada sobre la misma máscara redimensionada**, de modo que las dos columnas difieran solo por el recorte:
+
+| | `margen // 2` (el que produjo los números de arriba) | `int(round(margen / 2.0))` (torchvision) |
+|---|---|---|
+| `n_emptied_by_crop` | 0 | 0 |
+| `n_below_half` | 0 | 0 |
+| gate | pasa | pasa |
+
+En **1210 de 10.015 imágenes (12,1 %) la retención sí cambia** con el offset corregido, así que la corrección no es un no-op sobre datos reales; lo que no cambia es ninguna decisión, porque ninguna cruza un umbral. Por eso los números reportados siguen siendo válidos y no hubo que rehacer el paso 0.
 
 **El control que falta y dónde se cierra:** el control (ii) se midió sobre ISIC 2018, no sobre HAM10000, que es donde corre C1. Se cierra en el paso (e): HAM10000 tiene sus 10.015 máscaras de referencia, así que cuando existan las máscaras de C1 se calcula el Dice per-imagen contra esa referencia — **solo para verificar el artefacto, nunca como entrada de C1** — y se compara contra el 0,785 publicado (per-imagen si existe el `per_image.csv` de esa evaluación; si no, la media con su IC).
 
