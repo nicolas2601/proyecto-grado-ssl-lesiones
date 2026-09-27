@@ -209,13 +209,70 @@ class TestAnAbsentSideIsNotADisagreement:
 
         assert result["val_order_sha256"] == "coincide"
 
-    def test_a_recorded_digest_built_another_way_is_reported_not_failed(self):
-        """It may well be the same ids hashed with a different construction
-        (no separator, sorted, whatever). That is worth SAYING, but it is not
-        evidence of different images when the ids themselves match."""
+    def test_a_known_alternative_construction_is_named(self):
+        """The real case: the bank hashes "\\n".join(ids), we append after each.
+
+        Same ids, same order, one trailing byte apart -- and since both
+        constructions are order-sensitive, recognising it CONFIRMS the order
+        rather than merely excusing the difference.
+        """
+        import hashlib
+
+        ids = ["c", "d"]
+        stored = {
+            "val_ids": ids,
+            "val_order_sha256": hashlib.sha256("\n".join(ids).encode()).hexdigest(),
+        }
+
+        result = si.compare_to_index_detailed(stored, train_ids=["a"], val_ids=ids)
+
+        assert result["agrees"] is True
+        assert "join_newline" in result["val_order_sha256"]
+
+    def test_an_unexplained_digest_is_reported_without_a_guess(self):
+        """Not a mismatch (the ids agree), but not explained away either."""
         stored = {"val_ids": ["c", "d"], "val_order_sha256": "f" * 64}
 
         result = si.compare_to_index_detailed(stored, train_ids=["a"], val_ids=["c", "d"])
 
         assert result["agrees"] is True
-        assert "otra construccion" in result["val_order_sha256"]
+        assert "sin explicar" in result["val_order_sha256"]
+
+
+class TestTheIndexDigestIsIdentified:
+    """Measured on the pod, not guessed.
+
+    The stored val_order_sha256 is sha256 of ``"\\n".join(ids)`` -- separator
+    BETWEEN ids. fingerprint_ids appends "\\n" after EACH id. Same list, same
+    order, two constructions that differ only in the trailing separator.
+
+    Knowing that turns "a digest we cannot explain" into a second, independent
+    confirmation that the stored index and the rebuilt split describe the same
+    sequence. Leaving it as "another construction" would have been shrugging
+    at evidence.
+    """
+
+    def test_the_join_construction_is_recognised(self):
+        ids = ["ISIC_0024306", "ISIC_0024307"]
+        import hashlib
+
+        stored = hashlib.sha256("\n".join(ids).encode()).hexdigest()
+
+        assert si.identify_digest(stored, ids) == "join_newline"
+
+    def test_our_own_construction_is_recognised(self):
+        ids = ["ISIC_0024306", "ISIC_0024307"]
+
+        assert si.identify_digest(si.ids_sha256(ids), ids) == "trailing_newline"
+
+    def test_a_digest_of_a_different_order_is_not_recognised(self):
+        """Both constructions are order-sensitive, so a reordered list matches
+        neither -- which is the whole point."""
+        import hashlib
+
+        stored = hashlib.sha256("\n".join(["b", "a"]).encode()).hexdigest()
+
+        assert si.identify_digest(stored, ["a", "b"]) is None
+
+    def test_an_unrecognised_digest_returns_none_rather_than_a_guess(self):
+        assert si.identify_digest("f" * 64, ["a", "b"]) is None

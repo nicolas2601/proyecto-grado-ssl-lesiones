@@ -53,6 +53,32 @@ def ids_sha256(ids: Sequence[str]) -> str:
     return digest.hexdigest()
 
 
+def identify_digest(recorded: str, ids: Sequence[str]) -> str | None:
+    """Which known construction produced ``recorded`` for ``ids``, if any.
+
+    Measured on the pod: the bank's ``val_order_sha256`` is sha256 of
+    ``"\\n".join(ids)`` -- separator BETWEEN ids -- while
+    :func:`ids_sha256` appends ``"\\n"`` after EACH id. Same list, same order,
+    one trailing byte apart.
+
+    Identifying it matters: it turns a digest nobody could explain into a
+    second, independent confirmation that the stored index and the rebuilt
+    split hold the same sequence. Both constructions are order-sensitive, so
+    a match is evidence about the ORDER and not just the membership.
+
+    Returns ``None`` rather than guessing. An unrecognised digest is a fact to
+    report, not one to explain away.
+    """
+    known = {
+        "join_newline": hashlib.sha256("\n".join(map(str, ids)).encode("utf-8")).hexdigest(),
+        "trailing_newline": ids_sha256(ids),
+    }
+    for name, value in known.items():
+        if recorded == value:
+            return name
+    return None
+
+
 def split_identity(*, train_ids: Sequence[str], val_ids: Sequence[str]) -> dict:
     """The three provenance values, under their real names."""
     overlap = set(train_ids) & set(val_ids)
@@ -155,16 +181,22 @@ def compare_to_index_detailed(
     recorded_digest = stored_index.get("val_order_sha256")
     if recorded_digest is None:
         digest_verdict = "el indice no trae val_order_sha256"
-    elif recorded_digest == ids_sha256(val_ids):
-        digest_verdict = "coincide"
     else:
-        # NOT a mismatch on its own: the ids may match while the digest was
-        # built another way (different separator, sorted, encoded otherwise).
-        # Worth saying, not worth calling a different split over.
-        digest_verdict = (
-            "el indice trae val_order_sha256 pero no coincide con el nuestro; si los "
-            "val_ids SI coinciden, es otra construccion del hash, no otro split"
-        )
+        construction = identify_digest(str(recorded_digest), val_ids)
+        if construction == "trailing_newline":
+            digest_verdict = "coincide"
+        elif construction is not None:
+            # Same ids, same ORDER, a different way of hashing them. Both
+            # constructions are order-sensitive, so this confirms the sequence.
+            digest_verdict = (
+                f"coincide con la construccion {construction!r} sobre los mismos val_ids "
+                "en el mismo orden (el hash difiere solo en el separador)"
+            )
+        else:
+            digest_verdict = (
+                "el indice trae val_order_sha256 y no coincide con ninguna construccion "
+                "conocida sobre estos val_ids; queda reportado sin explicar"
+            )
 
     advice = ""
     if not_comparable:
