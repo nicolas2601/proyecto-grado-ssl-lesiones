@@ -19,6 +19,8 @@ import json
 import sys
 from pathlib import Path
 
+import numpy as np
+
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "scripts"))
@@ -35,7 +37,7 @@ from dermssl import selection_holdout as sh  # noqa: E402
 RESOLUTION = 224
 PROBE = "logreg"
 REPORTED = ("macro_f1", "balanced_accuracy", "auc", "ece")
-CI_METRICS = ("macro_f1", "ece")  # Reported beside the rule, never used by it.
+CI_METRICS = REPORTED  # Reported beside the rule, never used by it.
 
 
 def parse_args() -> argparse.Namespace:
@@ -120,6 +122,8 @@ def main() -> int:
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1), encoding="utf-8")
+    # Probabilities kept so later contrasts need no second feature extraction.
+    np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y_hold, **probas)
     print(f"ganadora: {winner} -> {out}")
     return 0
 
