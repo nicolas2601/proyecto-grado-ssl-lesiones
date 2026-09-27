@@ -59,6 +59,8 @@ Inferencia: la adaptación completa reescribe capas tempranas que DINOv2 ya ten�
 
 **Oleada 1b (registrada antes de ver la oleada 1).** El checkpoint del smoke (3 pasos, config A2) ya bajó el macro-F1 del holdout de 0,6108 (DINOv2 público) a 0,5861. Eso es lo que describen Kumar et al. (2022) para LP-FT: el gradiente de cabezas inicializadas al azar distorsiona el backbone antes de que las cabezas aprendan algo. Por eso se agrega A3 = ganadora de la oleada 1 + `--head-warmup-steps 150`: los primeros 150 pasos entrenan solo el proyector y el predictor, con el backbone entero congelado (LayerNorm incluidas), y después se habilita la configuración normal (bloques 8-11 + LayerNorm). A3 se compara con A1 y A2 con la misma regla de selección. Si A3 gana, el propuesto (B1, B2) hereda el head-warmup.
 
+**B1 especulativo (registrado el 2026-09-27, con A1 ganadora de la oleada 1 y A3 corriendo).** B1-spec = A1 + `--tone-consistency-weight 0.1`, sin head-warmup, en la GPU que libera la selección. B1-spec se lanza antes de conocer A3. Si A3 gana por la regla, B1-spec se reporta pero no compite; B1 y B2 se relanzan con head-warmup. Si A3 pierde, B1-spec ES B1.
+
 El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops independientes que existía cuando se lanzó la oleada 1; la oleada 1 no lo usa, así que no la afecta.
 
 **Regla de selección, por oleada:** gana la variante con mayor macro-F1 en el holdout interno. Si `|Δ macro-F1| < 0,005`, gana la de menor ECE. La oleada 2 hereda las anclas de la ganadora de la oleada 1, así que los dos brazos difieren solo en el tono.
