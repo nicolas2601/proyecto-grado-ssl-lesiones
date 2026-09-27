@@ -169,3 +169,39 @@ class TestPlanningTheGrid:
 
         with pytest.raises(ValueError, match="procedencia"):
             store.save("b", "none", _features(), provenance={"code_revision": "abc"})
+
+
+class TestTheManifestMustAgreeWithItsOwnFilename:
+    """Defence in depth, pinned separately.
+
+    The key already encodes backbone and condition, so asking for another
+    condition simply misses. That makes the manifest's own backbone/condition
+    fields redundant -- until a file is renamed, copied between directories,
+    or restored from a backup of a different cell. Then the name says one
+    thing and the contents another, and without this check the mismatched
+    features load as if they belonged.
+
+    Each layer gets its own test, or the day the outer one is relaxed the
+    inner one turns out never to have been exercised.
+    """
+
+    def _saved_with_manifest(self, tmp_path, **manifest_overrides):
+        import json
+
+        store = cs.CellStore(tmp_path)
+        store.save("b", "none", _features(), provenance=PROVENANCE)
+        path = store.manifest_path("b", "none")
+        manifest = json.loads(path.read_text())
+        manifest.update(manifest_overrides)
+        path.write_text(json.dumps(manifest))
+        return store
+
+    def test_a_manifest_claiming_another_condition_is_refused(self, tmp_path):
+        store = self._saved_with_manifest(tmp_path, condition="mask_pool")
+
+        assert store.load("b", "none", provenance=PROVENANCE) is None
+
+    def test_a_manifest_claiming_another_backbone_is_refused(self, tmp_path):
+        store = self._saved_with_manifest(tmp_path, backbone="otro_backbone")
+
+        assert store.load("b", "none", provenance=PROVENANCE) is None
