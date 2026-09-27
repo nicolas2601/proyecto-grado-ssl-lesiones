@@ -8,3 +8,7 @@ torchvision>=0.17
 mlflow>=2.14
 numpy>=1.26
 Pillow>=10.0
+# S2 hair removal (black-hat + TELEA). Pinned to what runs on the cluster.
+# Install with --no-deps so pip leaves numpy alone (the pod runs numpy 2.5.3):
+#   pip install --no-deps opencv-python-headless==4.10.0.84
+opencv-python-headless==4.10.0.84
