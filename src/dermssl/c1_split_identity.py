@@ -25,6 +25,7 @@ every row of one would be scored against the other's labels.
 from __future__ import annotations
 
 import hashlib
+import re
 from collections.abc import Mapping, Sequence
 
 from dermssl.feature_cache import fingerprint_ids
@@ -213,6 +214,65 @@ def compare_to_index_detailed(
         "val_order_sha256": digest_verdict,
         "advice": advice,
     }
+
+
+#: ``v1__<backbone>__<split>__r<res>__<tag>__<fingerprint>``; the fingerprint is
+#: the last field, which is what makes the filenames usable as evidence.
+_CACHE_NAME = re.compile(
+    r"^v\d+__(?P<backbone>.+?)__(?P<split>train|val)__r\d+__[^_]+__(?P<fingerprint>[0-9a-f]+)\."
+)
+
+
+def verify_against_cache_names(
+    filenames: Sequence[str],
+    *,
+    train_ids: Sequence[str],
+    val_ids: Sequence[str],
+) -> dict:
+    """Check the rebuilt split against the fingerprints in the v6 cache names.
+
+    The stored ``val_index.json`` never described train, so there was nothing
+    to compare that side against. But the cache names each file after
+    ``fingerprint_ids`` of the ids it holds, and it has a train file per
+    backbone -- evidence already on disk, for the side that had none.
+
+    Two things are checked per split, and they are different claims:
+
+    * every backbone's file carries the SAME fingerprint (if not, the bank
+      itself was built on two different splits and no contrast across
+      backbones means anything), and
+    * that shared fingerprint is the one the rebuilt split produces.
+
+    ``verified`` is ``None`` when there are no files for a split: missing
+    evidence is not contrary evidence, and reporting it as a failure would
+    put a real problem and an absent file in the same bucket.
+    """
+    found: dict[str, set[str]] = {"train": set(), "val": set()}
+    counts = {"train": 0, "val": 0}
+
+    for name in filenames:
+        match = _CACHE_NAME.match(name)
+        if match is None:
+            continue
+        split = match.group("split")
+        found[split].add(match.group("fingerprint"))
+        counts[split] += 1
+
+    report = {}
+    for split, ids in (("train", train_ids), ("val", val_ids)):
+        fingerprints = sorted(found[split])
+        expected = fingerprint_ids(ids)
+        if not fingerprints:
+            verified = None
+        else:
+            verified = len(fingerprints) == 1 and fingerprints[0] == expected
+        report[split] = {
+            "verified": verified,
+            "expected_fingerprint": expected,
+            "fingerprints_found": fingerprints,
+            "n_files": counts[split],
+        }
+    return report
 
 
 def shared_lesions(

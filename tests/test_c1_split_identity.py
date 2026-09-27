@@ -276,3 +276,80 @@ class TestTheIndexDigestIsIdentified:
 
     def test_an_unrecognised_digest_returns_none_rather_than_a_guess(self):
         assert si.identify_digest("f" * 64, ["a", "b"]) is None
+
+
+class TestTrainIsVerifiedAgainstTheCacheFilenames:
+    """Closing the train side without waiting for another run.
+
+    The stored val_index.json never described train, so there was nothing to
+    compare against. But the v6 cache names its files after
+    ``fingerprint_ids`` of the ids they hold -- and it has a train file per
+    backbone. Measured on the pod, all twelve:
+
+        v1__dinov2_public_vitb14__train__r224__eval__d347edd52d0d7648
+        v1__dinov2_public_vitb14__val__r224__eval__6ff4c17f04a9eae2
+        ... (6 backbones x train/val)
+
+    Every train file carries the same fingerprint, every val file the same
+    one, and both match the rebuilt split. That is the same proof val got,
+    applied to train, using evidence that was already on disk.
+    """
+
+    def _names(self, train_fp: str, val_fp: str) -> list[str]:
+        backbones = ["dinov2_public_vitb14", "ssl_plain_vitb14", "ssl_proposed_vitb14"]
+        names = []
+        for backbone in backbones:
+            names.append(f"v1__{backbone}__train__r224__eval__{train_fp}.features.npy")
+            names.append(f"v1__{backbone}__val__r224__eval__{val_fp}.features.npy")
+        return names
+
+    def test_matching_fingerprints_verify_both_sides(self):
+        from dermssl.feature_cache import fingerprint_ids
+
+        train_ids, val_ids = ["a", "b", "c"], ["d", "e"]
+        names = self._names(fingerprint_ids(train_ids), fingerprint_ids(val_ids))
+
+        report = si.verify_against_cache_names(names, train_ids=train_ids, val_ids=val_ids)
+
+        assert report["train"]["verified"] is True
+        assert report["val"]["verified"] is True
+        assert report["train"]["n_files"] == 3
+
+    def test_a_train_fingerprint_that_disagrees_is_reported(self):
+        from dermssl.feature_cache import fingerprint_ids
+
+        train_ids, val_ids = ["a", "b", "c"], ["d", "e"]
+        names = self._names("0000000000000000", fingerprint_ids(val_ids))
+
+        report = si.verify_against_cache_names(names, train_ids=train_ids, val_ids=val_ids)
+
+        assert report["train"]["verified"] is False
+        assert report["val"]["verified"] is True
+
+    def test_backbones_disagreeing_among_themselves_is_caught(self):
+        """All six should hold the SAME ids. If two differ, the bank itself
+        was built on two different splits and no contrast across backbones
+        means anything."""
+        from dermssl.feature_cache import fingerprint_ids
+
+        train_ids, val_ids = ["a", "b", "c"], ["d", "e"]
+        train_fp = fingerprint_ids(train_ids)
+        names = self._names(train_fp, fingerprint_ids(val_ids))
+        names.append(f"v1__odd_backbone__train__r224__eval__ffffffffffffffff.features.npy")
+
+        report = si.verify_against_cache_names(names, train_ids=train_ids, val_ids=val_ids)
+
+        assert report["train"]["verified"] is False
+        assert len(report["train"]["fingerprints_found"]) == 2
+
+    def test_an_absent_train_cache_is_not_verifiable_rather_than_failed(self):
+        """No train file is missing evidence, not contrary evidence."""
+        from dermssl.feature_cache import fingerprint_ids
+
+        train_ids, val_ids = ["a", "b", "c"], ["d", "e"]
+        names = [f"v1__b__val__r224__eval__{fingerprint_ids(val_ids)}.features.npy"]
+
+        report = si.verify_against_cache_names(names, train_ids=train_ids, val_ids=val_ids)
+
+        assert report["train"]["verified"] is None
+        assert report["train"]["n_files"] == 0

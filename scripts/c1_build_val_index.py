@@ -49,6 +49,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--val-index", type=Path, required=True)
     parser.add_argument("--identity-out", type=Path, default=None)
     parser.add_argument(
+        "--cache-dir",
+        type=Path,
+        default=None,
+        help="cache del banco v6; sus nombres llevan el fingerprint de los ids",
+    )
+    parser.add_argument(
         "--write",
         action="store_true",
         help="crear el indice si NO existe; nunca sobrescribe uno existente",
@@ -91,6 +97,31 @@ def main() -> int:
     identity = si.split_identity(train_ids=train_ids, val_ids=val_ids)
     for key in ("c1_train_ids_sha256", "c1_val_ids_sha256", "feature_cache_ids_fingerprint"):
         print(f"{key}: {identity[key]}")
+
+    # The cache filenames carry fingerprint_ids of what they hold, and there is
+    # a train file per backbone. That is the only evidence available for the
+    # train side, since the stored index never described it.
+    if args.cache_dir is not None:
+        names = [p.name for p in sorted(args.cache_dir.expanduser().glob("*.features.npy"))]
+        cache_report = si.verify_against_cache_names(
+            names, train_ids=train_ids, val_ids=val_ids
+        )
+        print("\n--- contra los nombres del cache del banco v6 ---")
+        for split, info in cache_report.items():
+            if info["verified"] is None:
+                print(f"{split}: NO VERIFICABLE, no hay archivos de cache de ese lado")
+                continue
+            state = "VERIFICADO" if info["verified"] else "NO COINCIDE"
+            print(
+                f"{split}: {state} en {info['n_files']} archivos; esperado "
+                f"{info['expected_fingerprint']}, encontrado {info['fingerprints_found']}"
+            )
+        if any(info["verified"] is False for info in cache_report.values()):
+            print(
+                "\nABORT: el fingerprint del split reconstruido no es el que nombra el "
+                "cache del banco. No son las mismas imagenes."
+            )
+            return 1
 
     index_path = args.val_index.expanduser()
     if not index_path.exists():
