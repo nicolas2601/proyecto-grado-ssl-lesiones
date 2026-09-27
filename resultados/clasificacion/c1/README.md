@@ -12,10 +12,26 @@ Tabla principal en macro-F1 (como la v6). La prediccion registrada se evalua en 
 | `dinov2_public_vitb14` | (a) recorte a la caja | 0,604 | 0,570 | 0,932 | 0,147 | pasa |
 | `dinov2_public_vitb14` | (b) fondo gris | 0,522 | 0,500 | 0,921 | 0,159 | pasa |
 | `dinov2_public_vitb14` | (c) pooling en mascara | 0,625 | 0,599 | 0,925 | 0,134 | pasa |
+| `dinov2_public_vits14` | (0) sin mascara | 0,581 | 0,560 | 0,932 | 0,082 | pasa |
+| `dinov2_public_vits14` | (a) recorte a la caja | 0,583 | 0,554 | 0,928 | 0,080 | pasa |
+| `dinov2_public_vits14` | (b) fondo gris | 0,558 | 0,533 | 0,927 | 0,096 | pasa |
+| `dinov2_public_vits14` | (c) pooling en mascara | 0,594 | 0,568 | 0,932 | 0,094 | pasa |
+| `ssl_plain_vitb14` | (0) sin mascara | 0,578 | 0,534 | 0,945 | 0,016 | pasa |
+| `ssl_plain_vitb14` | (a) recorte a la caja | 0,589 | 0,548 | 0,949 | 0,023 | pasa |
+| `ssl_plain_vitb14` | (b) fondo gris | 0,533 | 0,491 | 0,939 | 0,024 | pasa |
+| `ssl_plain_vitb14` | (c) pooling en mascara | 0,574 | 0,526 | 0,940 | 0,019 | pasa |
+| `ssl_plain_vits14` | (0) sin mascara | 0,533 | 0,479 | 0,931 | 0,021 | pasa |
+| `ssl_plain_vits14` | (a) recorte a la caja | 0,582 | 0,542 | 0,953 | 0,019 | pasa |
+| `ssl_plain_vits14` | (b) fondo gris | 0,452 | 0,413 | 0,932 | 0,024 | pasa |
+| `ssl_plain_vits14` | (c) pooling en mascara | 0,522 | 0,468 | 0,930 | 0,021 | pasa |
 | `ssl_proposed_vitb14` | (0) sin mascara | 0,526 | 0,480 | 0,944 | 0,027 | pasa |
 | `ssl_proposed_vitb14` | (a) recorte a la caja | 0,555 | 0,507 | 0,948 | 0,026 | pasa |
 | `ssl_proposed_vitb14` | (b) fondo gris | 0,497 | 0,454 | 0,931 | 0,029 | pasa |
 | `ssl_proposed_vitb14` | (c) pooling en mascara | 0,504 | 0,458 | 0,942 | 0,030 | pasa |
+| `ssl_proposed_vits14` | (0) sin mascara | 0,482 | 0,434 | 0,921 | 0,038 | pasa |
+| `ssl_proposed_vits14` | (a) recorte a la caja | 0,474 | 0,432 | 0,921 | 0,018 | pasa |
+| `ssl_proposed_vits14` | (b) fondo gris | 0,367 | 0,336 | 0,909 | 0,031 | pasa |
+| `ssl_proposed_vits14` | (c) pooling en mascara | 0,471 | 0,424 | 0,915 | 0,027 | pasa |
 
 ## Contrastes pareados contra la condicion (0) del mismo backbone
 
@@ -35,6 +51,42 @@ Bootstrap pareado, 1000 remuestras, n_val = 2004. Una celda que no paso su gate 
 | `dinov2_public_vitb14__neutral_bg` | `dinov2_public_vitb14__none` | balanced_accuracy | -0,0898 | [-0,1392, -0,0368] | gana `dinov2_public_vitb14__none` |
 | `dinov2_public_vitb14__neutral_bg` | `dinov2_public_vitb14__none` | auc | -0,0052 | [-0,0190, 0,0078] | no se distingue del ruido |
 | `dinov2_public_vitb14__neutral_bg` | `dinov2_public_vitb14__none` | ece | 0,0289 | [0,0077, 0,0472] | gana `dinov2_public_vitb14__none` |
+| `dinov2_public_vits14__bbox_crop` | `dinov2_public_vits14__none` | macro_f1 | 0,0021 | [-0,0405, 0,0410] | no se distingue del ruido |
+| `dinov2_public_vits14__bbox_crop` | `dinov2_public_vits14__none` | balanced_accuracy | -0,0064 | [-0,0484, 0,0329] | no se distingue del ruido |
+| `dinov2_public_vits14__bbox_crop` | `dinov2_public_vits14__none` | auc | -0,0045 | [-0,0177, 0,0066] | no se distingue del ruido |
+| `dinov2_public_vits14__bbox_crop` | `dinov2_public_vits14__none` | ece | -0,0023 | [-0,0205, 0,0123] | no se distingue del ruido |
+| `dinov2_public_vits14__mask_pool` | `dinov2_public_vits14__none` | macro_f1 | 0,0131 | [-0,0185, 0,0493] | no se distingue del ruido |
+| `dinov2_public_vits14__mask_pool` | `dinov2_public_vits14__none` | balanced_accuracy | 0,0075 | [-0,0234, 0,0430] | no se distingue del ruido |
+| `dinov2_public_vits14__mask_pool` | `dinov2_public_vits14__none` | auc | -0,0004 | [-0,0099, 0,0092] | no se distingue del ruido |
+| `dinov2_public_vits14__mask_pool` | `dinov2_public_vits14__none` | ece | 0,0116 | [-0,0059, 0,0263] | no se distingue del ruido |
+| `dinov2_public_vits14__neutral_bg` | `dinov2_public_vits14__none` | macro_f1 | -0,0232 | [-0,0688, 0,0211] | no se distingue del ruido |
+| `dinov2_public_vits14__neutral_bg` | `dinov2_public_vits14__none` | balanced_accuracy | -0,0274 | [-0,0732, 0,0146] | no se distingue del ruido |
+| `dinov2_public_vits14__neutral_bg` | `dinov2_public_vits14__none` | auc | -0,0052 | [-0,0189, 0,0092] | no se distingue del ruido |
+| `dinov2_public_vits14__neutral_bg` | `dinov2_public_vits14__none` | ece | 0,0135 | [-0,0072, 0,0287] | no se distingue del ruido |
+| `ssl_plain_vitb14__bbox_crop` | `ssl_plain_vitb14__none` | macro_f1 | 0,0106 | [-0,0203, 0,0489] | no se distingue del ruido |
+| `ssl_plain_vitb14__bbox_crop` | `ssl_plain_vitb14__none` | balanced_accuracy | 0,0138 | [-0,0145, 0,0509] | no se distingue del ruido |
+| `ssl_plain_vitb14__bbox_crop` | `ssl_plain_vitb14__none` | auc | 0,0037 | [0,0000, 0,0081] | gana `ssl_plain_vitb14__bbox_crop` |
+| `ssl_plain_vitb14__bbox_crop` | `ssl_plain_vitb14__none` | ece | 0,0071 | [-0,0115, 0,0193] | no se distingue del ruido |
+| `ssl_plain_vitb14__mask_pool` | `ssl_plain_vitb14__none` | macro_f1 | -0,0049 | [-0,0413, 0,0338] | no se distingue del ruido |
+| `ssl_plain_vitb14__mask_pool` | `ssl_plain_vitb14__none` | balanced_accuracy | -0,0088 | [-0,0431, 0,0286] | no se distingue del ruido |
+| `ssl_plain_vitb14__mask_pool` | `ssl_plain_vitb14__none` | auc | -0,0056 | [-0,0106, -0,0004] | gana `ssl_plain_vitb14__none` |
+| `ssl_plain_vitb14__mask_pool` | `ssl_plain_vitb14__none` | ece | 0,0029 | [-0,0135, 0,0161] | no se distingue del ruido |
+| `ssl_plain_vitb14__neutral_bg` | `ssl_plain_vitb14__none` | macro_f1 | -0,0455 | [-0,0928, 0,0014] | no se distingue del ruido |
+| `ssl_plain_vitb14__neutral_bg` | `ssl_plain_vitb14__none` | balanced_accuracy | -0,0438 | [-0,0878, -0,0003] | gana `ssl_plain_vitb14__none` |
+| `ssl_plain_vitb14__neutral_bg` | `ssl_plain_vitb14__none` | auc | -0,0068 | [-0,0146, 0,0014] | no se distingue del ruido |
+| `ssl_plain_vitb14__neutral_bg` | `ssl_plain_vitb14__none` | ece | 0,0080 | [-0,0105, 0,0213] | no se distingue del ruido |
+| `ssl_plain_vits14__bbox_crop` | `ssl_plain_vits14__none` | macro_f1 | 0,0492 | [0,0035, 0,0965] | gana `ssl_plain_vits14__bbox_crop` |
+| `ssl_plain_vits14__bbox_crop` | `ssl_plain_vits14__none` | balanced_accuracy | 0,0624 | [0,0228, 0,1029] | gana `ssl_plain_vits14__bbox_crop` |
+| `ssl_plain_vits14__bbox_crop` | `ssl_plain_vits14__none` | auc | 0,0222 | [0,0125, 0,0349] | gana `ssl_plain_vits14__bbox_crop` |
+| `ssl_plain_vits14__bbox_crop` | `ssl_plain_vits14__none` | ece | -0,0019 | [-0,0188, 0,0149] | no se distingue del ruido |
+| `ssl_plain_vits14__mask_pool` | `ssl_plain_vits14__none` | macro_f1 | -0,0118 | [-0,0585, 0,0301] | no se distingue del ruido |
+| `ssl_plain_vits14__mask_pool` | `ssl_plain_vits14__none` | balanced_accuracy | -0,0114 | [-0,0496, 0,0241] | no se distingue del ruido |
+| `ssl_plain_vits14__mask_pool` | `ssl_plain_vits14__none` | auc | -0,0011 | [-0,0063, 0,0049] | no se distingue del ruido |
+| `ssl_plain_vits14__mask_pool` | `ssl_plain_vits14__none` | ece | -0,0002 | [-0,0153, 0,0151] | no se distingue del ruido |
+| `ssl_plain_vits14__neutral_bg` | `ssl_plain_vits14__none` | macro_f1 | -0,0812 | [-0,1279, -0,0325] | gana `ssl_plain_vits14__none` |
+| `ssl_plain_vits14__neutral_bg` | `ssl_plain_vits14__none` | balanced_accuracy | -0,0663 | [-0,1063, -0,0281] | gana `ssl_plain_vits14__none` |
+| `ssl_plain_vits14__neutral_bg` | `ssl_plain_vits14__none` | auc | 0,0009 | [-0,0101, 0,0144] | no se distingue del ruido |
+| `ssl_plain_vits14__neutral_bg` | `ssl_plain_vits14__none` | ece | 0,0031 | [-0,0136, 0,0204] | no se distingue del ruido |
 | `ssl_proposed_vitb14__bbox_crop` | `ssl_proposed_vitb14__none` | macro_f1 | 0,0286 | [-0,0140, 0,0714] | no se distingue del ruido |
 | `ssl_proposed_vitb14__bbox_crop` | `ssl_proposed_vitb14__none` | balanced_accuracy | 0,0268 | [-0,0084, 0,0651] | no se distingue del ruido |
 | `ssl_proposed_vitb14__bbox_crop` | `ssl_proposed_vitb14__none` | auc | 0,0041 | [-0,0003, 0,0085] | no se distingue del ruido |
@@ -47,6 +99,18 @@ Bootstrap pareado, 1000 remuestras, n_val = 2004. Una celda que no paso su gate 
 | `ssl_proposed_vitb14__neutral_bg` | `ssl_proposed_vitb14__none` | balanced_accuracy | -0,0262 | [-0,0718, 0,0188] | no se distingue del ruido |
 | `ssl_proposed_vitb14__neutral_bg` | `ssl_proposed_vitb14__none` | auc | -0,0127 | [-0,0219, -0,0049] | gana `ssl_proposed_vitb14__none` |
 | `ssl_proposed_vitb14__neutral_bg` | `ssl_proposed_vitb14__none` | ece | 0,0020 | [-0,0161, 0,0188] | no se distingue del ruido |
+| `ssl_proposed_vits14__bbox_crop` | `ssl_proposed_vits14__none` | macro_f1 | -0,0087 | [-0,0480, 0,0320] | no se distingue del ruido |
+| `ssl_proposed_vits14__bbox_crop` | `ssl_proposed_vits14__none` | balanced_accuracy | -0,0023 | [-0,0338, 0,0305] | no se distingue del ruido |
+| `ssl_proposed_vits14__bbox_crop` | `ssl_proposed_vits14__none` | auc | 0,0002 | [-0,0089, 0,0105] | no se distingue del ruido |
+| `ssl_proposed_vits14__bbox_crop` | `ssl_proposed_vits14__none` | ece | -0,0199 | [-0,0303, 0,0023] | no se distingue del ruido |
+| `ssl_proposed_vits14__mask_pool` | `ssl_proposed_vits14__none` | macro_f1 | -0,0111 | [-0,0481, 0,0250] | no se distingue del ruido |
+| `ssl_proposed_vits14__mask_pool` | `ssl_proposed_vits14__none` | balanced_accuracy | -0,0098 | [-0,0412, 0,0202] | no se distingue del ruido |
+| `ssl_proposed_vits14__mask_pool` | `ssl_proposed_vits14__none` | auc | -0,0061 | [-0,0134, 0,0006] | no se distingue del ruido |
+| `ssl_proposed_vits14__mask_pool` | `ssl_proposed_vits14__none` | ece | -0,0116 | [-0,0258, 0,0080] | no se distingue del ruido |
+| `ssl_proposed_vits14__neutral_bg` | `ssl_proposed_vits14__none` | macro_f1 | -0,1157 | [-0,1622, -0,0691] | gana `ssl_proposed_vits14__none` |
+| `ssl_proposed_vits14__neutral_bg` | `ssl_proposed_vits14__none` | balanced_accuracy | -0,0980 | [-0,1377, -0,0600] | gana `ssl_proposed_vits14__none` |
+| `ssl_proposed_vits14__neutral_bg` | `ssl_proposed_vits14__none` | auc | -0,0121 | [-0,0219, -0,0016] | gana `ssl_proposed_vits14__none` |
+| `ssl_proposed_vits14__neutral_bg` | `ssl_proposed_vits14__none` | ece | -0,0071 | [-0,0214, 0,0150] | no se distingue del ruido |
 
 ## Prediccion registrada
 
