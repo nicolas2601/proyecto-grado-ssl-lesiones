@@ -65,6 +65,8 @@ B1-spec se detuvo con SIGTERM a las 17:58:10 UTC, en el paso ~270 (el último lo
 
 **Memoria y revisión de código (registrado el 2026-09-27).** B1-spec se quedó sin memoria al arrancar (CUDA OOM, 23,35 GiB en una GPU de 24): el tercer forward, el de la vista de tono con gradiente, no cabe con batch 128. Por eso B corre con `--grad-checkpoint`, que recalcula los 12 bloques en el backward. La matemática es la misma, porque no hay dropout ni drop-path y un test fija gradientes iguales con y sin checkpoint. Cambia el tiempo por paso, así que el flag es parte de la config de B. Batch 64 o acumular 2×64 quedan descartados: cambian el batch que ve el BatchNorm del proyector y rompen la comparación con A1. **Regla para las finales:** A\*, B\* y, si se reevalúa, el público corren sobre un mismo `code_revision`. En los pilotos las revisiones difieren (A1/A2 en 9021931; A3 y B después) y eso se documenta en el reporte.
 
+**Réplica de semilla (opcional, registrada antes de las finales).** Las finales usan semilla 42. El IC del bootstrap cubre la variabilidad del conjunto de evaluación, NO la del entrenamiento. Si hay GPU libre al terminar las finales, se repiten A\* y B\* con semilla 43, en la misma revisión y con el mismo exclude, y se reportan AMBAS semillas. No se elige semilla: la conclusión se reporta con las dos. Si no hay tiempo, esto va como limitación explícita.
+
 **Regla de pausa del trabajo de CPU (S2, casi-duplicados; 2026-09-27):** se pausa si cualquier entrenamiento cae más de 15 % bajo su ritmo propio medido solo (A ≈ 22-24 pasos/min, umbral ~19; B ≈ 14,4, umbral ~12,2).
 
 El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops independientes que existía cuando se lanzó la oleada 1; la oleada 1 no lo usa, así que no la afecta.
