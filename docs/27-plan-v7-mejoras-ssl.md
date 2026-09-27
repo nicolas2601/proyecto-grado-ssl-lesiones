@@ -112,6 +112,9 @@ Cada ficha tiene: qué es, por qué, chequeo SSL, costo, **predicción registrad
   1. La **tabla principal** usa **macro-F1** como headline, por consistencia con la v6. Cambiar el headline haría incomparables las dos tablas.
   2. La **predicción registrada se evalúa en balanced accuracy**, tal como se registró. No se reescribe para que coincida con el headline: una predicción corregida después del hecho no predice nada.
   3. **Las dos métricas se reportan siempre**, en la misma tabla y para cada celda, junto con AUC y ECE. Si apuntan a lados distintos, eso es el resultado y se dice; no se elige una.
+- **Consistencia de la condición (0) con la v6, fijada el 2026-09-27 ANTES de que terminaran las celdas.** C1 extrae en fp32 y el cache publicado de la v6 se extrajo con `autocast` (residuo medido en el gate del banco: 2,1e-2 en features, coseno 0,999995), así que la condición (0) no puede reproducir la v6 al decimal. Dos pruebas separadas:
+  1. **Exacta, de código:** el probe y las métricas del runner (el mismo código) sobre los features del CACHE de la v6 tienen que dar macro-F1, bal-acc, AUC y ECE idénticos a los publicados. Eso prueba que el probe y las métricas son los de la v6.
+  2. **Con tolerancia, de precisión:** la condición (0) de C1 contra la v6: |Δ| ≤ 0,010 en macro-F1, bal-acc y ECE; ≤ 0,005 en AUC; y se conserva el orden `dinov2_public_vitb14` > `ssl_proposed_vitb14` en macro-F1. Por encima de eso, la tabla no se publica hasta explicarlo.
 
 **S-diag — DINO segmenta sin entrenar nada (pedido 3.2.2, variante INSID3).**
 - **Qué:** features densas de DINOv2 congelado (tokens de parche) → similitud y clustering para segmentar la lesión, sin entrenar ninguna capa. Se compara contra el U-Net actual en el mismo protocolo de evaluación (Dice, HD95, cobertura, en ISIC 2018 externo y HAM10000).
