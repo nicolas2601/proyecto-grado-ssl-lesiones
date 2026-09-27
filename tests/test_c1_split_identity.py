@@ -159,3 +159,63 @@ class TestLesionLeakage:
         less."""
         with pytest.raises(KeyError):
             si.shared_lesions(train_ids=["a"], val_ids=["zzz"], lesion_by_id={"a": "L1"})
+
+
+class TestAnAbsentSideIsNotADisagreement:
+    """Measured on the pod: the real val_index.json has only val_ids.
+
+    Its keys are ['n_classes', 'val_ids', 'val_order_sha256', 'y_true'] -- it
+    describes the evaluation set and never claimed to describe train. Lumping
+    that in with "the ids differ" would report a missing field as evidence
+    that the bank and C1 ran on different images, which is a much bigger claim
+    than the facts support, and it is the kind of overstated alarm that gets
+    a real one ignored later.
+
+    So the two are separated: `agrees` is about the sides that COULD be
+    compared, and what could not be compared is reported on its own.
+    """
+
+    def test_an_absent_side_does_not_make_the_comparable_one_fail(self):
+        stored = {"val_ids": ["c", "d"]}
+
+        result = si.compare_to_index_detailed(stored, train_ids=["a"], val_ids=["c", "d"])
+
+        assert result["agrees"] is True
+        assert result["mismatches"] == []
+        assert result["not_comparable"] == ["train_ids"]
+
+    def test_a_real_difference_still_fails(self):
+        stored = {"val_ids": ["c", "d"]}
+
+        result = si.compare_to_index_detailed(stored, train_ids=["a"], val_ids=["d", "c"])
+
+        assert result["agrees"] is False
+        assert any("orden" in m for m in result["mismatches"])
+
+    def test_it_says_what_to_do_about_the_side_it_could_not_check(self):
+        stored = {"val_ids": ["c"]}
+
+        result = si.compare_to_index_detailed(stored, train_ids=["a"], val_ids=["c"])
+
+        assert "train_ids" in result["advice"]
+
+    def test_a_recorded_order_digest_is_checked_when_present(self):
+        """The real file carries val_order_sha256. Ignoring a digest that is
+        right there would be leaving evidence on the table."""
+        val_ids = ["c", "d"]
+        stored = {"val_ids": val_ids, "val_order_sha256": si.ids_sha256(val_ids)}
+
+        result = si.compare_to_index_detailed(stored, train_ids=["a"], val_ids=val_ids)
+
+        assert result["val_order_sha256"] == "coincide"
+
+    def test_a_recorded_digest_built_another_way_is_reported_not_failed(self):
+        """It may well be the same ids hashed with a different construction
+        (no separator, sorted, whatever). That is worth SAYING, but it is not
+        evidence of different images when the ids themselves match."""
+        stored = {"val_ids": ["c", "d"], "val_order_sha256": "f" * 64}
+
+        result = si.compare_to_index_detailed(stored, train_ids=["a"], val_ids=["c", "d"])
+
+        assert result["agrees"] is True
+        assert "otra construccion" in result["val_order_sha256"]

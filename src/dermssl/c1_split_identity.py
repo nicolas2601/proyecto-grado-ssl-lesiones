@@ -121,6 +121,68 @@ def compare_to_index(
     return not reasons, reasons
 
 
+def compare_to_index_detailed(
+    stored_index: Mapping[str, object],
+    *,
+    train_ids: Sequence[str],
+    val_ids: Sequence[str],
+) -> dict:
+    """Separate "these disagree" from "this could not be compared".
+
+    Measured on the pod: the real ``val_index.json`` holds
+    ``['n_classes', 'val_ids', 'val_order_sha256', 'y_true']``. It describes
+    the evaluation set and never claimed to describe train, so reporting the
+    absent ``train_ids`` as a MISMATCH would turn a missing field into the
+    claim "the bank and C1 ran on different images" -- far more than the facts
+    support, and exactly the kind of overstated alarm that gets a real one
+    ignored later.
+
+    ``agrees`` therefore covers only the sides that could actually be
+    compared; what could not be is listed separately, with what to do about it.
+    """
+    mismatches: list[str] = []
+    not_comparable: list[str] = []
+
+    for name, rebuilt in (("train_ids", train_ids), ("val_ids", val_ids)):
+        stored = stored_index.get(name)
+        if stored is None:
+            not_comparable.append(name)
+            continue
+        mismatches += _compare_side(name, stored, rebuilt)
+
+    # The file already carries a digest of the val order. Ignoring evidence
+    # that is sitting right there would be a choice to know less.
+    recorded_digest = stored_index.get("val_order_sha256")
+    if recorded_digest is None:
+        digest_verdict = "el indice no trae val_order_sha256"
+    elif recorded_digest == ids_sha256(val_ids):
+        digest_verdict = "coincide"
+    else:
+        # NOT a mismatch on its own: the ids may match while the digest was
+        # built another way (different separator, sorted, encoded otherwise).
+        # Worth saying, not worth calling a different split over.
+        digest_verdict = (
+            "el indice trae val_order_sha256 pero no coincide con el nuestro; si los "
+            "val_ids SI coinciden, es otra construccion del hash, no otro split"
+        )
+
+    advice = ""
+    if not_comparable:
+        advice = (
+            f"el indice no describe {', '.join(not_comparable)}; C1 escribe su propio "
+            "indice completo y registra los sha256 de ambos lados, para que la proxima "
+            "verificacion pueda comparar todo"
+        )
+
+    return {
+        "agrees": not mismatches,
+        "mismatches": mismatches,
+        "not_comparable": not_comparable,
+        "val_order_sha256": digest_verdict,
+        "advice": advice,
+    }
+
+
 def shared_lesions(
     *,
     train_ids: Sequence[str],

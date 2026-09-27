@@ -105,23 +105,45 @@ def main() -> int:
         print(f"indice CREADO en {index_path}")
     else:
         stored = json.loads(index_path.read_text(encoding="utf-8"))
-        agrees, reasons = si.compare_to_index(stored, train_ids=train_ids, val_ids=val_ids)
-        if not agrees:
+        result = si.compare_to_index_detailed(stored, train_ids=train_ids, val_ids=val_ids)
+
+        if result["mismatches"]:
             print("\n=== EL INDICE NO COINCIDE CON EL SPLIT RECONSTRUIDO ===")
-            for reason in reasons:
+            for reason in result["mismatches"]:
                 print(f"  - {reason}")
             print(
                 "\nEsto NO es un archivo desactualizado: significa que el banco v6 y C1 no "
                 "estan mirando las mismas imagenes. No se sobrescribe nada."
             )
             return 1
-        print(f"indice verificado contra {index_path}: identico en train y val")
+
+        compared = [s for s in ("train_ids", "val_ids") if s not in result["not_comparable"]]
+        print(f"indice verificado contra {index_path}: identico en {', '.join(compared)}")
+        print(f"val_order_sha256 del indice: {result['val_order_sha256']}")
+        if result["not_comparable"]:
+            # Reported, not fatal: an absent side is a file that describes less,
+            # not evidence of a different split.
+            print(f"NO COMPARABLE: {result['advice']}")
 
     if args.identity_out is not None:
         out = args.identity_out.expanduser()
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(identity, indent=1, ensure_ascii=False), encoding="utf-8")
         print(f"identidad del split escrita en {out}")
+
+        # C1's own index, describing BOTH sides. The bank's file only ever
+        # described val, so the next run has nothing to compare train against
+        # unless someone writes it down now.
+        own_index = out.with_name("c1_split_index.json")
+        own_index.write_text(
+            json.dumps(
+                {"train_ids": train_ids, "val_ids": val_ids, **identity},
+                indent=1,
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        print(f"indice completo de C1 escrito en {own_index}")
 
     return 0
 
