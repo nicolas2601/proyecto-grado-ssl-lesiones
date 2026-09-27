@@ -234,3 +234,78 @@ class TestEmptyAfterGeometryComesFromTheMaskItself:
 
         assert not survived.any(), "el escenario no recorta la lesion"
         assert self._prepared(survived).empty_after_geometry is True
+
+
+class TestFallbackCauseBreakdown:
+    """Which of the two owners caused each CLS fallback.
+
+    Reported, never gated: the gate is still the total, because the cell
+    degrades the same either way. But if condition (c) performs badly we need
+    to know whether to look at the segmenter or at the lesion size against the
+    14x14 grid -- those are different people and different fixes.
+    """
+
+    def test_an_empty_mask_attributes_the_fallback_to_the_segmenter(self):
+        tally = cg.CellTally(backbone="b", condition="mask_pool")
+
+        tally.record(used_cls_fallback=True, empty_after_geometry=True)
+
+        assert tally.n_fallback_from_empty_mask == 1
+        assert tally.n_fallback_from_small_mask == 0
+
+    def test_a_non_empty_mask_attributes_it_to_the_lesion_size(self):
+        """The mask survived the geometry but no 14x14 patch is covered
+        enough to be selected."""
+        tally = cg.CellTally(backbone="b", condition="mask_pool")
+
+        tally.record(used_cls_fallback=True, empty_after_geometry=False)
+
+        assert tally.n_fallback_from_small_mask == 1
+        assert tally.n_fallback_from_empty_mask == 0
+
+    def test_the_two_causes_add_up_to_the_total(self):
+        """They are exhaustive and mutually exclusive by construction; if they
+        ever stop adding up, one of them is being counted somewhere else."""
+        tally = cg.CellTally(backbone="b", condition="mask_pool")
+        for index in range(100):
+            tally.record(
+                used_cls_fallback=index < 30,
+                empty_after_geometry=index < 12,
+            )
+
+        assert tally.n_fallback_from_empty_mask == 12
+        assert tally.n_fallback_from_small_mask == 18
+        assert (
+            tally.n_fallback_from_empty_mask + tally.n_fallback_from_small_mask
+            == tally.n_cls_fallback
+        )
+
+    def test_an_empty_mask_without_a_fallback_is_a_contradiction(self):
+        """In mask_pool an empty mask cannot select a patch, so it MUST fall
+        back. Recording otherwise means the caller is not reporting what the
+        extraction actually did."""
+        tally = cg.CellTally(backbone="b", condition="mask_pool")
+
+        with pytest.raises(ValueError, match="vacia"):
+            tally.record(used_cls_fallback=False, empty_after_geometry=True)
+
+    def test_the_breakdown_reaches_the_summary(self):
+        tally = cg.CellTally(backbone="b", condition="mask_pool")
+        for index in range(200):
+            tally.record(used_cls_fallback=index < 6, empty_after_geometry=index < 2)
+
+        summary = cg.summarise_cell(tally)
+
+        assert summary["n_fallback_from_empty_mask"] == 2
+        assert summary["n_fallback_from_small_mask"] == 4
+
+    def test_conditions_that_cannot_pool_do_not_report_a_breakdown(self):
+        """A zero breakdown on neutral_bg would read as a measurement that came
+        out clean, for something that cannot happen there."""
+        tally = cg.CellTally(backbone="b", condition="neutral_bg")
+        tally.record(used_cls_fallback=False, empty_after_geometry=True)
+
+        summary = cg.summarise_cell(tally)
+
+        assert "n_fallback_from_empty_mask" not in summary
+        assert summary["cls_fallback"].startswith("not_applicable")

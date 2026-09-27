@@ -52,6 +52,12 @@ class CellTally:
     n_images: int = field(default=0)
     n_cls_fallback: int = field(default=0)
     n_empty_after_geometry: int = field(default=0)
+    # Split of n_cls_fallback by owner: the segmenter produced nothing, or the
+    # lesion is too small for any 14x14 patch to be selected. Reported, never
+    # gated -- the cell degrades the same either way, but which one dominates
+    # decides who fixes it.
+    n_fallback_from_empty_mask: int = field(default=0)
+    n_fallback_from_small_mask: int = field(default=0)
 
     def __post_init__(self) -> None:
         if self.condition not in CONDITIONS:
@@ -66,10 +72,37 @@ class CellTally:
         They are different failures with different owners -- an empty mask is
         the segmenter, a CLS fallback is the pooling -- and two positional
         bools of the same type would swap without a single test noticing.
+
+        In ``mask_pool`` an empty mask MUST fall back: it cannot select a
+        patch. Recording otherwise is refused rather than counted, because it
+        means the caller is not reporting what the extraction did, and a tally
+        that accepts an impossible combination will happily report it later as
+        if it had been measured.
         """
+        if (
+            self.condition == POOLING_CONDITION
+            and empty_after_geometry
+            and not used_cls_fallback
+        ):
+            raise ValueError(
+                "mascara vacia sin fallback a CLS en mask_pool: una mascara vacia no "
+                "puede seleccionar ningun parche, asi que esta combinacion no la produce "
+                "la extraccion"
+            )
+
         self.n_images += 1
         self.n_cls_fallback += int(used_cls_fallback)
         self.n_empty_after_geometry += int(empty_after_geometry)
+
+        # The two causes of a fallback, split by owner. Derived from the same
+        # two facts rather than passed in: a third flag could disagree with
+        # the other two, and then the breakdown would stop adding up to the
+        # total without anything failing.
+        if used_cls_fallback:
+            if empty_after_geometry:
+                self.n_fallback_from_empty_mask += 1
+            else:
+                self.n_fallback_from_small_mask += 1
 
     @property
     def fraction_cls_fallback(self) -> float | None:
@@ -157,6 +190,8 @@ def summarise_cell(tally: CellTally) -> dict:
     if pools:
         summary["n_cls_fallback"] = tally.n_cls_fallback
         summary["fraction_cls_fallback"] = tally.fraction_cls_fallback
+        summary["n_fallback_from_empty_mask"] = tally.n_fallback_from_empty_mask
+        summary["n_fallback_from_small_mask"] = tally.n_fallback_from_small_mask
     else:
         summary["cls_fallback"] = (
             f"not_applicable: {tally.condition} no agrupa parches"
