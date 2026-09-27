@@ -94,9 +94,18 @@ def _resize_square(array: np.ndarray, size: int) -> np.ndarray:
 
 
 def _center_crop(array: np.ndarray, size: int) -> np.ndarray:
+    """torchvision ``CenterCrop`` semantics, including how it rounds.
+
+    The offset is ``int(round(margin / 2.0))``, not ``margin // 2``. They agree
+    on an even margin and differ by one row on an odd one, which is exactly the
+    HAM10000 case: ``Resize(255)`` on a 600x450 image gives 255 rows, so the
+    vertical margin is 31 and floor lands one row above the bank. The features
+    still looked plausible -- same mean, same norm -- and the bank gate failed
+    with max_abs_diff 9.764e-01 on 64/64 rows.
+    """
     height, width = array.shape[:2]
-    top = max(0, (height - size) // 2)
-    left = max(0, (width - size) // 2)
+    top = max(0, int(round((height - size) / 2.0)))
+    left = max(0, int(round((width - size) / 2.0)))
     return array[top : top + size, left : left + size]
 
 

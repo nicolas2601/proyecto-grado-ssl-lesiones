@@ -69,6 +69,54 @@ class TestBaselineGeometry:
         assert prepared.mask.shape == (224, 224)
 
 
+class TestCentreCropMatchesTorchvision:
+    """The crop offset must be torchvision's, or C1 reads a different image.
+
+    The bank was extracted with ``transforms.CenterCrop``, which computes its
+    offset as ``int(round((side - size) / 2.0))``. Using ``//`` instead lands
+    one row higher whenever ``side - size`` is odd -- the HAM10000 case, where
+    ``Resize(255)`` on a 600x450 image gives 255 rows and 255-224 = 31. Every
+    earlier test here used SQUARE inputs and only asserted internal invariants,
+    so nothing compared the result against the reference and the bank gate
+    failed with max_abs_diff 9.764e-01 on all 64 rows.
+    """
+
+    def test_odd_margin_rounds_up_like_torchvision(self):
+        rows = np.arange(255, dtype=np.uint8).reshape(255, 1, 1)
+        strip = np.repeat(np.repeat(rows, 340, axis=1), 3, axis=2)
+
+        cropped = ex._center_crop(strip, 224)
+
+        assert cropped[0, 0, 0] == 16, "crop starts one row above torchvision's"
+        assert cropped[-1, 0, 0] == 16 + 223
+
+    def test_even_margin_is_unaffected(self):
+        cols = np.arange(340, dtype=np.uint16).reshape(1, 340, 1)
+        strip = np.repeat(np.repeat(cols, 255, axis=0), 3, axis=2)
+
+        cropped = ex._center_crop(strip, 224)
+
+        assert cropped[0, 0, 0] == 58
+
+    def test_matches_torchvision_end_to_end(self):
+        """The real check, when torchvision is importable (cluster, CI)."""
+        transforms = pytest.importorskip("torchvision.transforms")
+        from PIL import Image
+
+        rng = np.random.default_rng(0)
+        image = rng.integers(0, 255, (450, 600, 3), dtype=np.uint8)
+        reference = transforms.Compose(
+            [
+                transforms.Resize(255, interpolation=transforms.InterpolationMode.BILINEAR),
+                transforms.CenterCrop(224),
+            ]
+        )
+
+        expected = np.asarray(reference(Image.fromarray(image)), dtype=np.uint8)
+
+        assert np.array_equal(ex._baseline_geometry_image(image), expected)
+
+
 class TestImageAndMaskTravelTogether:
     """The load-bearing invariant of condition (c)."""
 
