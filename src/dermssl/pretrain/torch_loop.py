@@ -82,9 +82,8 @@ def _build(
                 source_revision=cfg.data_revision,
                 transformed_revision=cfg.transformed_data_revision,
             )
-        kept = config_mod.exclude_ids(paths, excluded)
-        extras = {"levers": levers, "n_excluded": len(paths) - len(kept)}
-        paths = kept
+        paths, exclusion = _exclude(paths, excluded)
+        extras = {"levers": levers, "exclusion": exclusion}
         pretrained = cfg.method in ("simsiam_dinov2", "simsiam_imagenet")
         model = torch_simsiam.SimSiam(cfg.backbone, pretrained=pretrained).to(device)
         extras["anchors"] = adaptation.build_anchors(model.backbone, levers)
@@ -104,9 +103,8 @@ def _build(
             )
         return model, None, optimizer, dataset, None, extras
 
-    kept = config_mod.exclude_ids(paths, excluded)
-    extras = {"levers": levers, "n_excluded": len(paths) - len(kept), "anchors": adaptation.Anchors()}
-    paths = kept
+    paths, exclusion = _exclude(paths, excluded)
+    extras = {"levers": levers, "exclusion": exclusion, "anchors": adaptation.Anchors()}
     model = torch_dino.DinoContinual(
         cfg.backbone, pretrained=cfg.method == "dino_continual"
     ).to(device)
@@ -126,6 +124,12 @@ def _build(
         weight_decay=cfg.weight_decay,
     )
     return model, loss_fn, optimizer, dataset, torch_data.dino_collate, extras
+
+
+def _exclude(paths: list, excluded: frozenset[str]) -> tuple[list, dict | None]:
+    if not excluded:
+        return paths, None
+    return config_mod.apply_exclusion(paths, excluded)
 
 
 def _lever_objective(base_loss, levers, anchors, model, outputs, original_view):
@@ -264,7 +268,10 @@ def train(
         cfg, device, transformed_evidence
     )
     levers, anchors = extras["levers"], extras["anchors"]
-    manifest["n_excluded_images"] = extras["n_excluded"]
+    # Written BEFORE training: a run that dies must still show what it excluded.
+    manifest["exclusion"] = extras["exclusion"]
+    if rank == 0:
+        run_contract.write_run_manifest(manifest, out_dir / "run.json")
     if world_size > 1:
         model = _wrap_ddp(model, local_rank, device)
     sampler = (
@@ -371,6 +378,11 @@ def train(
                         base_loss, levers, anchors, model, outputs, v1
                     )
                     health = torch_simsiam.collapse_indicator(z1)
+                    if need_features:
+                        # The tone term has no predictor: watch the backbone itself.
+                        lever_parts["backbone_std"] = torch.tensor(
+                            torch_simsiam.collapse_indicator(outputs[5])
+                        )
                     batch_size, guided_rate = v1.shape[0], -1.0
                 else:
                     crops, guided = batch

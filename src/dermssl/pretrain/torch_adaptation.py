@@ -142,7 +142,9 @@ def l2sp_penalty(backbone: nn.Module, anchors: Anchors) -> torch.Tensor:
         for name, param in backbone.named_parameters()
         if param.requires_grad
     ]
-    return torch.stack(terms).sum() if terms else torch.zeros(())
+    if not terms:
+        return torch.zeros((), device=next(backbone.parameters()).device)
+    return torch.stack(terms).sum()
 
 
 def distill_loss(student_cls: torch.Tensor, anchors: Anchors, original_view: torch.Tensor) -> torch.Tensor:

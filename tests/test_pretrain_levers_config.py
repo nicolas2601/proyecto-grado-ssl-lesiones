@@ -95,13 +95,6 @@ class TestExcludedIds:
         with pytest.raises(ValueError):
             cfg_mod.load_excluded_ids(empty)
 
-    def test_images_and_pairs_are_dropped_by_stem(self):
-        ids = frozenset({"ISIC_2"})
-        images = [Path("/p/ISIC_1.jpg"), Path("/p/ISIC_2.jpg")]
-        pairs = [(Path("/p/ISIC_1.jpg"), Path("/t/ISIC_1.png")), (Path("/p/ISIC_2.jpg"), Path("/t/ISIC_2.png"))]
-        assert cfg_mod.exclude_ids(images, ids) == [Path("/p/ISIC_1.jpg")]
-        assert cfg_mod.exclude_ids(pairs, ids) == [pairs[0]]
-
     def test_the_manifest_hashes_the_exclusion_file(self, tmp_path):
         ids = tmp_path / "val_ids.txt"
         ids.write_text("ISIC_1\n")
@@ -110,3 +103,42 @@ class TestExcludedIds:
         )
         assert manifest["exclude_ids_file"] == str(ids)
         assert len(manifest["exclude_ids_sha256"]) == 64
+
+
+class TestExclusionCannotBeSilent:
+    """Review P1-1: an exclusion that matches nothing used to train as if it worked."""
+
+    def _pool(self, tmp_path, names_and_bytes):
+        paths = []
+        for name, payload in names_and_bytes:
+            path = tmp_path / name
+            path.write_bytes(payload)
+            paths.append(path)
+        return paths
+
+    def test_every_requested_id_must_be_found(self, tmp_path):
+        pool = self._pool(tmp_path, [("ISIC_1.jpg", b"a"), ("ISIC_2.jpg", b"b")])
+        with pytest.raises(ValueError, match="no aparecen"):
+            cfg_mod.apply_exclusion(pool, frozenset({"ISIC_1", "ISIC_9"}))
+
+    def test_a_byte_identical_copy_under_another_id_is_also_dropped(self, tmp_path):
+        pool = self._pool(tmp_path, [
+            ("ISIC_1.jpg", b"same-image"),
+            ("ISIC_77_downsampled.jpg", b"same-image"),
+            ("ISIC_2.jpg", b"other"),
+        ])
+        kept, report = cfg_mod.apply_exclusion(pool, frozenset({"ISIC_1"}))
+        assert [p.name for p in kept] == ["ISIC_2.jpg"]
+        assert report == {"n_ids": 1, "n_removed_by_id": 1, "n_removed_by_content": 1}
+
+    def test_pairs_are_matched_on_the_original_image(self, tmp_path):
+        originals = self._pool(tmp_path, [("ISIC_1.jpg", b"x"), ("ISIC_2.jpg", b"y")])
+        pairs = [(o, tmp_path / f"t_{o.name}") for o in originals]
+        kept, _ = cfg_mod.apply_exclusion(pairs, frozenset({"ISIC_2"}))
+        assert kept == [pairs[0]]
+
+
+def test_hue_jitter_on_the_dino_arm_is_refused():
+    """Review P2: it was validated and recorded but never reached the DINO dataset."""
+    with pytest.raises(ValueError, match="hue_jitter"):
+        cfg_mod.validate(make_config(method="dino_continual", hue_jitter=0.02))
