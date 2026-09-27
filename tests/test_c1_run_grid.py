@@ -186,3 +186,14 @@ class TestTheRunOrder:
             "dinov2_public_vitb14",
             "ssl_proposed_vitb14",
         }
+
+
+class TestLimitSubsamplesInsteadOfTruncating:
+    def test_it_spans_the_whole_list(self):
+        picks = grid._stride(8011, 40)
+
+        assert len(picks) == 40
+        assert picks[0] == 0 and picks[-1] == 8010
+
+    def test_no_limit_keeps_everything(self):
+        assert len(grid._stride(100, None)) == 100

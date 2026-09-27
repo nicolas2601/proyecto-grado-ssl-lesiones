@@ -108,6 +108,13 @@ def code_revision() -> str:
         return "unknown"
 
 
+def _stride(n: int, limit: int | None) -> np.ndarray:
+    """Indices of an evenly spaced subsample of ``limit`` out of ``n``."""
+    if limit is None or limit >= n:
+        return np.arange(n)
+    return np.linspace(0, n - 1, limit).round().astype(int)
+
+
 def load_bank_labels(cache_dir: Path, backbone: str, expected: dict | None = None):
     """Train and val labels straight from the v6 bank cache.
 
@@ -223,10 +230,16 @@ def main() -> int:
         expected={"train": full_train_ids, "val": full_val_ids},
     )
 
-    train_ids = full_train_ids[: args.limit]
-    val_ids = full_val_ids[: args.limit]
-    train_labels = train_labels[: args.limit]
-    val_labels = val_labels[: args.limit]
+    # --limit takes an evenly spaced subsample, not a prefix: the split lists
+    # are grouped, and the first 40 train ids were measured on the pod to hold
+    # a single class -- a probe cannot even be fitted on that. Labels are
+    # sliced with the SAME stride so they stay aligned to their ids.
+    train_pick = _stride(len(full_train_ids), args.limit)
+    val_pick = _stride(len(full_val_ids), args.limit)
+    train_ids = [full_train_ids[i] for i in train_pick]
+    val_ids = [full_val_ids[i] for i in val_pick]
+    train_labels = np.asarray(train_labels)[train_pick]
+    val_labels = np.asarray(val_labels)[val_pick]
     n_classes = int(max(train_labels.max(), val_labels.max())) + 1
     print(f"etiquetas del banco: {len(train_labels)} train / {len(val_labels)} val, "
           f"{n_classes} clases (orden verificado por fingerprint)")
