@@ -343,7 +343,11 @@ def train(
         if sampler is not None:
             sampler.set_epoch(epoch)
         for batch in loader:
-            fraction = compute.fraction_done(elapsed())
+            fraction = schedules.progress(
+                step=step,
+                max_steps=cfg.max_steps,
+                compute_fraction=compute.fraction_done(elapsed()),
+            )
             lr = schedules.lr_at(fraction, base_lr, cfg.warmup_fraction)
             adaptation.apply_lr(optimizer, lr)
 

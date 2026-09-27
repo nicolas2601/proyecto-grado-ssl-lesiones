@@ -34,3 +34,18 @@ def test_ema_momentum_rises_from_base_to_one():
 def test_ema_momentum_is_monotonic():
     values = [sc.ema_momentum_at(f / 20, base=0.996) for f in range(21)]
     assert values == sorted(values)
+
+
+def test_a_step_capped_run_follows_its_steps_not_the_clock():
+    """docs/28 compares arms at EQUAL steps; a clock-driven fraction would
+    stop both mid-cosine at a point set by hardware speed, not by the plan."""
+    from dermssl.pretrain import schedules
+
+    assert schedules.progress(step=250, max_steps=1000, compute_fraction=0.9) == 0.25
+    assert schedules.progress(step=1000, max_steps=1000, compute_fraction=0.1) == 1.0
+
+
+def test_a_budget_run_keeps_the_v6_compute_fraction():
+    from dermssl.pretrain import schedules
+
+    assert schedules.progress(step=250, max_steps=0, compute_fraction=0.9) == 0.9

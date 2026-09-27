@@ -32,6 +32,18 @@ def lr_at(
     return floor + (base_lr - floor) * 0.5 * (1.0 + math.cos(math.pi * progress))
 
 
+def progress(*, step: int, max_steps: int, compute_fraction: float) -> float:
+    """Schedule position: steps when the run is step-capped, else the budget.
+
+    A run capped by ``max_steps`` (docs/28: both arms at equal steps) would
+    otherwise follow the clock and stop mid-cosine; an uncapped run keeps the
+    v6 compute fraction.
+    """
+    if max_steps > 0:
+        return min(max(step / max_steps, 0.0), 1.0)
+    return compute_fraction
+
+
 def ema_momentum_at(fraction_done: float, base: float) -> float:
     """Cosine ramp of the teacher EMA momentum from ``base`` to 1.0 (DINO).
 
