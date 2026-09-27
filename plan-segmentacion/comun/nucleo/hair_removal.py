@@ -14,6 +14,16 @@ import numpy as np
 KERNEL = 9  # px at 224: wider than a hair, far narrower than a lesion
 THRESHOLD = 10  # black-hat response (grey levels) that counts as hair
 INPAINT_RADIUS = 3
+# S2-prime shape filter, registered in docs/27 before running: a component
+# stays only if its minimum-area rectangle is >= 15 px long and its mean
+# width (area / length) is <= 5 px. Pigment network and globules are short
+# blobs; hairs are thin lines, and crossing hairs stay thin even though
+# their joint rectangle is not elongated.
+MIN_HAIR_LENGTH = 15
+MAX_MEAN_WIDTH = 5.0
+# Above this inpainted fraction the "clean" image is mostly paint: counted and
+# reported apart, never excluded (registered in docs/27 before running).
+HEAVY_INPAINT_FRACTION = 0.30
 
 
 def hair_mask(rgb: np.ndarray, kernel: int = KERNEL, threshold: int = THRESHOLD) -> np.ndarray:
@@ -25,16 +35,43 @@ def hair_mask(rgb: np.ndarray, kernel: int = KERNEL, threshold: int = THRESHOLD)
     return (response > threshold).astype(np.uint8)
 
 
+def _elongated(stats_mask: np.ndarray) -> bool:
+    import cv2  # noqa: PLC0415
+
+    points = cv2.findNonZero(stats_mask)
+    (_, _), (w, h), _ = cv2.minAreaRect(points)
+    long_side = max(w, h, 1.0)
+    return long_side >= MIN_HAIR_LENGTH and len(points) / long_side <= MAX_MEAN_WIDTH
+
+
+def elongated_hair_mask(rgb: np.ndarray, kernel: int = KERNEL, threshold: int = THRESHOLD) -> np.ndarray:
+    """The black-hat mask keeping only hair-shaped (long, thin) components."""
+    import cv2  # noqa: PLC0415
+
+    raw = hair_mask(rgb, kernel, threshold)
+    count, labels = cv2.connectedComponents(raw, connectivity=8)
+    keep = np.zeros_like(raw)
+    for label in range(1, count):
+        component = (labels == label).astype(np.uint8)
+        if _elongated(component):
+            keep |= component
+    return keep
+
+
 def remove_hair(
     rgb: np.ndarray,
     kernel: int = KERNEL,
     threshold: int = THRESHOLD,
     radius: int = INPAINT_RADIUS,
+    shaped: bool = False,
 ) -> tuple[np.ndarray, float]:
-    """``(clean_rgb, hair_fraction)``; a hairless image comes back untouched."""
+    """``(clean_rgb, hair_fraction)``; a hairless image comes back untouched.
+
+    ``shaped=True`` is S2-prime: only elongated components are inpainted.
+    """
     import cv2  # noqa: PLC0415
 
-    mask = hair_mask(rgb, kernel, threshold)
+    mask = (elongated_hair_mask if shaped else hair_mask)(rgb, kernel, threshold)
     fraction = float(mask.mean())
     if not mask.any():
         return rgb.copy(), 0.0

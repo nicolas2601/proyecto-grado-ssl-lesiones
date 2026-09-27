@@ -55,6 +55,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--field-black-threshold", type=float, default=field_roi.DEFAULT_BLACK_THRESHOLD, help="Umbral de luminancia (fraccion de 255) del campo del dermatoscopio")
     parser.add_argument("--field-margin-fraction", type=float, default=field_roi.DEFAULT_MARGIN_FRACTION, help="Margen hacia adentro, como fraccion del radio ajustado")
     parser.add_argument("--hair-removal", action="store_true", help="Quita el pelo (black-hat + TELEA) antes de guardar cada imagen (S2)")
+    parser.add_argument("--hair-shape-filter", action="store_true", help="Con --hair-removal: solo quita componentes alargados (S2-prime)")
     parser.add_argument("--no-field", action="store_true", help="No calcula field.npy (solo para depuracion)")
     return parser.parse_args(argv)
 
@@ -69,13 +70,13 @@ def _resolve_roots(args: argparse.Namespace, output_dir: Path) -> dict[str, Path
     return dict(cache_io.parse_root_spec(spec) for spec in args.root)
 
 
-def _fill_cache(records, cache, resolution: int, threads: int, hair: bool = False) -> list[float]:
+def _fill_cache(records, cache, resolution: int, threads: int, hair: bool = False, shaped: bool = False) -> list[float]:
     fractions = [0.0] * len(records)
 
     def load(index: int) -> None:
         image = cache_io.load_resized_rgb(records[index].path, resolution)
         if hair:
-            image, fractions[index] = hair_removal.remove_hair(image)
+            image, fractions[index] = hair_removal.remove_hair(image, shaped=shaped)
         cache[index] = image
 
     with ThreadPoolExecutor(max_workers=max(1, threads)) as pool:
@@ -106,14 +107,21 @@ def _write_field(args: argparse.Namespace, output_dir: Path, count: int) -> dict
     return stats
 
 
-def _hair_info(fractions: list[float]) -> dict:
+def _hair_info(fractions: list[float], shaped: bool = False) -> dict:
     return {
+        "shape_filter": (
+            {"min_length": hair_removal.MIN_HAIR_LENGTH, "max_mean_width": hair_removal.MAX_MEAN_WIDTH}
+            if shaped else None
+        ),
         "method": "black-hat + TELEA (docs/26 3.4)",
         "kernel": hair_removal.KERNEL,
         "threshold": hair_removal.THRESHOLD,
         "inpaint_radius": hair_removal.INPAINT_RADIUS,
         "mean_fraction": sum(fractions) / max(len(fractions), 1),
         "images_with_hair": sum(f > 0 for f in fractions),
+        "heavy_inpaint_threshold": hair_removal.HEAVY_INPAINT_FRACTION,
+        "heavy_inpaint_count": sum(f > hair_removal.HEAVY_INPAINT_FRACTION for f in fractions),
+        "heavy_inpaint_indices": [i for i, f in enumerate(fractions) if f > hair_removal.HEAVY_INPAINT_FRACTION],
     }
 
 
@@ -133,7 +141,9 @@ def run(args: argparse.Namespace) -> dict:
     cache = cache_io.create_cache(
         output_dir / "images.npy", (len(records), args.resolution, args.resolution, 3), "uint8"
     )
-    fractions = _fill_cache(records, cache, args.resolution, args.threads, args.hair_removal)
+    fractions = _fill_cache(
+        records, cache, args.resolution, args.threads, args.hair_removal, args.hair_shape_filter
+    )
     cache_io.write_manifest(output_dir / "manifest.csv", records, splits)
 
     info = {
@@ -146,7 +156,7 @@ def run(args: argparse.Namespace) -> dict:
         "seed": args.seed,
         "field": _write_field(args, output_dir, len(records)),
         "reads_masks_or_labels": False,
-        "hair_removal": _hair_info(fractions) if args.hair_removal else None,
+        "hair_removal": _hair_info(fractions, args.hair_shape_filter) if args.hair_removal else None,
     }
     (output_dir / "cache_info.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(info, indent=2))
