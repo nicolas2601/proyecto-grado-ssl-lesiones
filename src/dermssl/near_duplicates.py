@@ -25,12 +25,20 @@ def bits_to_uint64(bits: np.ndarray) -> np.uint64:
 
 
 def phash(path) -> np.uint64:
-    """64-bit pHash, the imagehash recipe (32x32 grey, DCT, 8x8 low band, median)."""
-    import imagehash  # noqa: PLC0415
-    from PIL import Image  # noqa: PLC0415
+    """64-bit pHash, the imagehash recipe without the dependency.
 
+    Grey 32x32 (Lanczos), 2-D DCT-II, the 8x8 low-frequency block, one bit
+    per coefficient above its median; identical to ``imagehash.phash``.
+    """
+    from PIL import Image  # noqa: PLC0415
+    from scipy.fftpack import dct  # noqa: PLC0415
+
+    side = HASH_SIZE * 4
     with Image.open(path) as image:
-        return bits_to_uint64(imagehash.phash(image, hash_size=HASH_SIZE).hash)
+        grey = image.convert("L").resize((side, side), Image.Resampling.LANCZOS)
+    pixels = np.asarray(grey, dtype=np.float64)
+    low = dct(dct(pixels, axis=0), axis=1)[:HASH_SIZE, :HASH_SIZE]
+    return bits_to_uint64(low > np.median(low))
 
 
 def _popcount(values: np.ndarray) -> np.ndarray:

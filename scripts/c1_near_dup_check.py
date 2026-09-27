@@ -77,7 +77,7 @@ def main() -> int:
     document = {
         "code_revision": revision,
         "exclude_ids_sha256": rp.file_sha256(exclude_file),
-        "hash": "imagehash.phash 64 bits",
+        "hash": "pHash 64 bits (imagehash recipe, native)",
         "max_distance": args.max_distance,
         "n_queries": len(query_paths),
         "n_pool_kept": len(kept),

@@ -37,3 +37,16 @@ def test_phash_resized_copy_is_near(tmp_path):
     base.resize((200, 200)).save(tmp_path / "b.png")
     a, b = nd.phash(tmp_path / "a.png"), nd.phash(tmp_path / "b.png")
     assert nd.near_pairs(np.array([a]), np.array([b]), max_distance=6)
+
+
+def test_phash_matches_imagehash(tmp_path):
+    import pytest
+
+    imagehash = pytest.importorskip("imagehash")
+    from PIL import Image
+
+    rng = np.random.default_rng(1)
+    Image.fromarray((rng.random((90, 120, 3)) * 255).astype("uint8")).save(tmp_path / "c.png")
+    with Image.open(tmp_path / "c.png") as image:
+        expected = nd.bits_to_uint64(imagehash.phash(image).hash)
+    assert nd.phash(tmp_path / "c.png") == expected
