@@ -81,6 +81,13 @@ El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops indepe
 - **P2 (tono):** el propuesto v7 contra el plain anclado v7: ECE mejor (IC excluye el cero) y macro-F1 no peor (Δ ≥ −0,01).
 - **P3 (objetivo de la tesis):** el propuesto v7 contra DINOv2 público: macro-F1 Δ ≥ 0 manteniendo la ventaja en ECE. Probabilidad estimada antes del dato: ≈35 %.
 
+**Lecturas (registradas el 2026-09-27, antes de que termine A\*).** P1, P2 y P3 como están arriba son las lecturas PRIMARIAS y deciden el veredicto. Se reportan además dos lecturas SECUNDARIAS, rotuladas así en el JSON y en la tabla, que no cambian los veredictos primarios:
+
+- **P1-NI** (no inferioridad estricta): el límite inferior del IC de Δ macro-F1 A\* − público es ≥ −0,01.
+- **P3-IC**: el límite inferior del IC de Δ macro-F1 B\* − público es > 0. Solo si P3-IC se cumple, la tesis dice que el propuesto le gana al público. Si se cumple solo P3 primaria, dice que no pierde.
+
+**Protocolo de la evaluación única:** el mismo de C1/v6. El probe `logreg` se entrena sobre el train COMPLETO de C1 (8.011 ids, fingerprint `d347edd52d0d7648`) y se evalúa sobre val (2.004 ids, `6ff4c17f04a9eae2`). `scripts/c1_final_eval.py` verifica los dos fingerprints y que los `run.json` de A\* y B\* compartan `code_revision` y exclude antes de extraer nada.
+
 Criterio: se reporta el resultado sea cual sea. Si P3 no se cumple, la conclusión honesta es que la adaptación SSL mejora calibración y ranking pero no la separación por clase frente a DINOv2 público.
 
 ## 6. Referencias
