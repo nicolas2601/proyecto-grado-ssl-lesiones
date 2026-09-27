@@ -88,6 +88,8 @@ def _build(
         model = torch_simsiam.SimSiam(cfg.backbone, pretrained=pretrained).to(device)
         extras["anchors"] = adaptation.build_anchors(model.backbone, levers)
         adaptation.freeze_blocks(model.backbone, levers.freeze_blocks)
+        if cfg.grad_checkpoint:
+            adaptation.enable_grad_checkpoint(model.backbone)
         dataset = torch_data.SimSiamPairDataset(
             paths,
             cfg.resolution,
@@ -501,6 +503,10 @@ def train(
         else:
             tracker.log_metric("total_wall_seconds", elapsed())
         tracker.log_metric("total_images_seen", float(images_seen))
+        if device.type == "cuda":
+            peak = torch.cuda.max_memory_allocated(device) / 2**30
+            tracker.log_metric("max_memory_allocated_gib", peak)
+            print(f"max_memory_allocated_gib {peak:.2f}", flush=True)
         run_contract.write_run_manifest(
             run_contract.record_execution_evidence(
                 manifest,

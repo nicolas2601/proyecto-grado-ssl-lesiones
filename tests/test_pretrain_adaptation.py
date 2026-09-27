@@ -395,3 +395,37 @@ class TestHeadWarmup:
     def test_a_negative_warmup_refuses(self):
         with pytest.raises(ValueError):
             Levers(head_warmup_steps=-1).validate(paired=False)
+
+
+class TestGradCheckpoint:
+    """B arms OOM at batch 128 with the third (tone) forward: recompute, same math."""
+
+    def _grads(self, checkpoint: bool):
+        model = _model()
+        ad.freeze_blocks(model.backbone, 2)
+        if checkpoint:
+            ad.enable_grad_checkpoint(model.backbone)
+        v1, v2 = _views()
+        p1, p2, z1, z2 = model(v1, v2)
+        torch_simsiam.simsiam_loss(p1, p2, z1, z2).backward()
+        return {n: p.grad.clone() for n, p in model.named_parameters() if p.grad is not None}
+
+    def test_gradients_match_including_frozen_block_layernorms(self):
+        plain, ckpt = self._grads(False), self._grads(True)
+        assert plain.keys() == ckpt.keys()
+        assert "backbone.blocks.0.norm1.weight" in ckpt
+        for name in plain:
+            torch.testing.assert_close(ckpt[name], plain[name], atol=1e-6, rtol=0)
+
+    def test_every_block_is_wrapped_and_state_dict_keys_unchanged(self):
+        model = _model()
+        keys = list(model.state_dict())
+        wrapped = ad.enable_grad_checkpoint(model.backbone)
+        assert wrapped == len(model.backbone.blocks)
+        assert list(model.state_dict()) == keys
+
+    def test_stochastic_blocks_refuse(self):
+        model = _model()
+        model.backbone.blocks[1].drop = nn.Dropout(0.1)
+        with pytest.raises(ValueError, match="Dropout"):
+            ad.enable_grad_checkpoint(model.backbone)

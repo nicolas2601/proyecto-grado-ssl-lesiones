@@ -131,6 +131,8 @@ class PretrainConfig:
     tone_consistency_weight: float = 0.0
     head_warmup_steps: int = 0
     hue_jitter: float = 0.1
+    # Memory only: recompute ViT blocks in backward. Same math, slower steps.
+    grad_checkpoint: bool = False
     exclude_ids_file: str = ""  # Ids (one per line or JSON list) kept out of the pool.
     mlflow_experiment: str = "obj2-ssl-pretraining"
     tracking_uri: str = ""  # Vacío: valor predeterminado de MLflow (archivo o entorno).
@@ -231,6 +233,10 @@ def _validate_levers(cfg: PretrainConfig) -> None:
         raise ValueError(
             f"head_warmup_steps={cfg.head_warmup_steps} >= max_steps={cfg.max_steps}: "
             "el backbone no entrenaria nunca"
+        )
+    if cfg.grad_checkpoint and cfg.method != "simsiam_dinov2":
+        raise ValueError(
+            f"grad_checkpoint envuelve bloques ViT; solo aplica a simsiam_dinov2, no a {cfg.method!r}"
         )
     if not 0.0 <= cfg.hue_jitter <= 0.5:
         raise ValueError(f"hue_jitter={cfg.hue_jitter}: ColorJitter exige [0, 0.5]")

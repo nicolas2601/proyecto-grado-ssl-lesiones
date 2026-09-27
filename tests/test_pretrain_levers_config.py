@@ -161,3 +161,23 @@ def test_head_warmup_is_wired_and_bounded_by_max_steps():
     assert cfg_mod.levers_of(cfg).head_warmup_steps == 150
     with pytest.raises(ValueError, match="head_warmup"):
         cfg_mod.validate(make_config(head_warmup_steps=950, max_steps=950))
+
+
+class TestGradCheckpointFlag:
+    """Same math, different time per step: recorded, off by default, ViT only."""
+
+    def test_off_by_default_and_recorded(self):
+        cfg = launcher.build_config(launcher.parse_args(BASE))
+        assert cfg.grad_checkpoint is False
+        hp = run_contract.build_run_manifest(make_config(max_steps=1), gpu_count=1)["hyperparameters"]
+        assert hp["grad_checkpoint"] is False
+
+    def test_flag_reaches_config_and_manifest(self):
+        cfg = launcher.build_config(launcher.parse_args(BASE + ["--grad-checkpoint"]))
+        assert cfg.grad_checkpoint is True
+        hp = run_contract.build_run_manifest(make_config(grad_checkpoint=True), gpu_count=1)["hyperparameters"]
+        assert hp["grad_checkpoint"] is True
+
+    def test_refused_outside_simsiam_dinov2(self):
+        with pytest.raises(ValueError, match="grad_checkpoint"):
+            cfg_mod.validate(make_config(method="simsiam", grad_checkpoint=True))

@@ -27,11 +27,13 @@ lever exist, testable in isolation.
 from __future__ import annotations
 
 import copy
+import functools
 from dataclasses import dataclass, field
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.utils.checkpoint
 
 from dermssl.pretrain.levers import Levers
 
@@ -88,6 +90,44 @@ def freeze_blocks(backbone: nn.Module, n_blocks: int) -> None:
     for param in frozen:
         if id(param) not in keep:
             param.requires_grad = False
+
+
+def _stochastic_parts(block: nn.Module) -> list[str]:
+    found = []
+    if getattr(block, "sample_drop_ratio", 0.0) > 0:
+        found.append(f"sample_drop_ratio={block.sample_drop_ratio}")
+    for name, module in block.named_modules():
+        rate = getattr(module, "drop_prob", None)
+        if rate is None and isinstance(module, nn.Dropout):
+            rate = module.p
+        if rate:
+            found.append(f"{name or type(module).__name__} ({type(module).__name__} {rate})")
+    return found
+
+
+def enable_grad_checkpoint(backbone: nn.Module) -> int:
+    """Recompute every ViT block in backward instead of storing its activations.
+
+    Every block, not only the trainable ones: the LayerNorms of the frozen
+    blocks still train, so autograd keeps their activations too. The
+    parameters and the state_dict keys stay untouched (the forward is patched
+    on the instance). Refuses blocks with dropout or drop-path, where the
+    recompute would draw different random numbers and change the math.
+    """
+    blocks = _vit_blocks(backbone)
+    for index, block in enumerate(blocks):
+        stochastic = _stochastic_parts(block)
+        if stochastic:
+            raise ValueError(
+                f"bloque {index} tiene partes estocasticas ({stochastic}): con Dropout o "
+                "drop-path el recompute cambia el resultado"
+            )
+        block.forward = functools.partial(_checkpointed, block.forward)
+    return len(blocks)
+
+
+def _checkpointed(forward, *args, **kwargs):
+    return torch.utils.checkpoint.checkpoint(forward, *args, use_reentrant=False, **kwargs)
 
 
 def _depths(model: nn.Module) -> tuple[dict[int, int], int]:

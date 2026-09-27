@@ -102,6 +102,7 @@ def build_run_manifest(
             "schedule": "linear_warmup_cosine_to_zero",
             "resolution": cfg.resolution,
             "hue_jitter": cfg.hue_jitter,
+            "grad_checkpoint": cfg.grad_checkpoint,
             "grad_clip_norm": config_mod.GRAD_CLIP_NORM,
         },
         "adaptation_levers": {
