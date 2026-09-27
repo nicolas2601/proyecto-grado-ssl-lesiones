@@ -9,7 +9,11 @@ reference (public DINOv2) is scored the same way but is never a candidate.
         --holdout $S/selection/selection_holdout.json \
         --variant A1=dinov2_vitb14:$T/pilot_A1/simsiam_dinov2_backbone_final.pt \
         --variant A2=dinov2_vitb14:$T/pilot_A2/simsiam_dinov2_backbone_final.pt \
-        --reference public=dinov2_vitb14:public --out $S/selection/wave1.json
+        --reference public=dinov2_vitb14:public --out $S/selection/wave1.json \
+        --exclude-ids-file $S/selection/pretrain_exclude_ids.txt
+
+Refuses to run from a dirty tree (untracked files included), so the recorded
+``code_revision`` is the code that ran.
 """
 
 from __future__ import annotations
@@ -32,6 +36,7 @@ from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import metrics as _metrics  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
 from dermssl import probes  # noqa: E402
+from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import selection_holdout as sh  # noqa: E402
 
 RESOLUTION = 224
@@ -47,6 +52,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--variant", action="append", required=True, help="NAME=ARCH:SOURCE")
     parser.add_argument("--reference", action="append", default=[], help="NAME=ARCH:SOURCE, never a candidate")
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--exclude-ids-file", type=Path, required=True,
+        help="the pretraining exclusion list the variants ran with; its sha256 is recorded",
+    )
     parser.add_argument("--device", default=None)
     parser.add_argument("--batch-size", type=int, default=64)
     # 0: the pod caps /dev/shm, and worker processes die on it (RUNBOOK_CLUSTER 12.3).
@@ -78,6 +87,11 @@ def main() -> int:
     out = args.out.expanduser()
     if out.exists():
         raise SystemExit(f"ABORT: {out} ya existe; una seleccion no se reescribe")
+    try:
+        revision = rp.clean_revision(REPO)
+    except rp.DirtyTreeError as exc:
+        raise SystemExit(f"ABORT: {exc}") from exc
+    exclude_sha = rp.file_sha256(args.exclude_ids_file.expanduser())
     holdout = json.loads(args.holdout.expanduser().read_text(encoding="utf-8"))
     for key in ("fit_ids", "holdout_ids"):
         if si.ids_sha256(holdout[key]) != holdout[f"{key}_sha256"]:
@@ -114,6 +128,9 @@ def main() -> int:
     document = {
         "rule": f"max macro_f1; within {sh.TIE_MACRO_F1} of the best, lowest ece (docs/28 4.1)",
         "probe": PROBE,
+        "code_revision": revision,
+        "exclude_ids_file": str(args.exclude_ids_file),
+        "exclude_ids_sha256": exclude_sha,
         "holdout_ids_sha256": holdout["holdout_ids_sha256"],
         "candidates": names,
         "results": results,
