@@ -139,6 +139,8 @@ Cada ficha tiene: qué es, por qué, chequeo SSL, costo, **predicción registrad
   | central (publicado, reproducido exacto) | 4.922 | 670 | 4.252 | 0,13045 | 0 |
   | union (S1) | 4.928 | 670 | 4.258 | 0,13376 | 4.037 (6,9 %) |
 
+- **Predicción y criterio de corte de S2 (registrados el 2026-09-27, antes de correr):** con la remoción de pelo en la etapa `cache`, la cobertura media de las pseudo-máscaras sube al menos 0,02 sin empeorar el Dice contra la referencia en ISIC 2018. Si sube menos de 0,02, la línea de segmentación se cierra con ese hallazgo y no hay v7.1 con máscaras nuevas. S2 corre con prioridad baja (`nice -n 19`, 8 hilos) y se pausa si frena más de un 15 % a algún entrenamiento de la v7.
+
 - **Cierre de fase:** con las máscaras mejoradas se **vuelve a correr C1**. Así se mide si mejor segmentación trae mejor clasificación.
 
 ### FASE 3 — diagnóstico del clasificador y confusores (requiere reentrenar: caro)
