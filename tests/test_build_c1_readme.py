@@ -37,6 +37,29 @@ def test_what_was_not_contrasted_is_listed():
     assert "x/y: motivo" in br.render(CELLS, BOOT)
 
 
+CROSS = {
+    "retained_threshold": 0.9,
+    "results": [{**ECE_ROW, "arm": "pub__mask_pool", "control": "prop__none"}],
+    "stratified": [
+        {"stratum": "retained_lt_0.9", "n": 300,
+         "cells": {"pub__none": {"macro_f1": 0.5, "balanced_accuracy": None, "auc": 0.9, "ece": 0.1}},
+         "results": [], "not_contrasted": []},
+        {"stratum": "empty_mask", "n": 2, "cells": {}, "results": [],
+         "not_contrasted": ["empty_mask: n=2 < 30"]},
+    ],
+}
+
+
+def test_cross_backbone_sections_render_only_when_computed():
+    assert "entre backbones" not in br.render(CELLS, BOOT)
+
+    text = br.render(CELLS, BOOT, CROSS)
+
+    assert "gana `pub__mask_pool`" in text
+    assert "`retained_lt_0.9` (n = 300)" in text
+    assert "empty_mask: n=2 < 30" in text
+
+
 def test_check_fails_on_a_stale_file_and_passes_on_a_fresh_one(tmp_path):
     (tmp_path / "c1_cells.json").write_text(json.dumps(CELLS))
     (tmp_path / "c1_bootstrap.json").write_text(json.dumps(BOOT))

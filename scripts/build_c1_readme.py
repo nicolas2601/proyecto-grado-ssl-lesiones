@@ -92,7 +92,47 @@ def prediction_verdict(bootstrap: dict) -> str:
     return "Contraste de la prediccion registrada: todavia no disponible."
 
 
-def render(cells: dict, bootstrap: dict) -> str:
+def cross_sections(cross: dict | None) -> list[str]:
+    """Between-backbone contrasts and the crop-retention strata, when computed."""
+    if not cross:
+        return []
+    parts = [
+        "## Contrastes entre backbones (pregunta del profe)",
+        "",
+        "Pareado sobre las mismas imagenes de validacion. Primero el DINOv2 publico en "
+        "cada condicion contra el propuesto en (0), con (0) contra (0) como referencia "
+        "que reproduce el signo de la v6; despues los dos backbones en la MISMA "
+        "condicion, con segmentacion en ambos lados.",
+        "",
+        *contrasts_table(cross),
+        "",
+        f"## Estratificado por lesion conservada tras el recorte (umbral {cross['retained_threshold']})",
+        "",
+        "Confusor declarado en docs/27: (a) no pasa por el recorte central, asi que en "
+        "lesiones cerca del borde ve mas lesion que (0), (b) y (c).",
+        "",
+    ]
+    for stratum in cross["stratified"]:
+        parts += [f"### `{stratum['stratum']}` (n = {stratum['n']})", ""]
+        if stratum["cells"]:
+            parts += [
+                "| Celda | macro-F1 | bal-acc | AUC | ECE |",
+                "|---|---|---|---|---|",
+                *[
+                    f"| `{name}` | {_fmt(m['macro_f1'])} | {_fmt(m['balanced_accuracy'])} "
+                    f"| {_fmt(m['auc'])} | {_fmt(m['ece'])} |"
+                    for name, m in stratum["cells"].items()
+                ],
+                "",
+                *contrasts_table(stratum),
+                "",
+            ]
+        parts += [f"- {reason}" for reason in stratum["not_contrasted"]]
+        parts.append("")
+    return parts
+
+
+def render(cells: dict, bootstrap: dict, cross: dict | None = None) -> str:
     not_contrasted = bootstrap.get("not_contrasted", [])
     parts = [
         "# C1: la segmentacion como entrada del clasificador",
@@ -119,6 +159,7 @@ def render(cells: dict, bootstrap: dict) -> str:
         "",
         prediction_verdict(bootstrap),
         "",
+        *cross_sections(cross),
     ]
     if not_contrasted:
         parts += ["## No contrastadas", "", *[f"- {reason}" for reason in not_contrasted], ""]
@@ -129,7 +170,9 @@ def main(argv=None) -> int:
     args = parse_args(argv)
     cells = json.loads((args.dir / "c1_cells.json").read_text(encoding="utf-8"))
     bootstrap = json.loads((args.dir / "c1_bootstrap.json").read_text(encoding="utf-8"))
-    content = render(cells, bootstrap)
+    cross_path = args.dir / "c1_cross_backbone.json"
+    cross = json.loads(cross_path.read_text(encoding="utf-8")) if cross_path.exists() else None
+    content = render(cells, bootstrap, cross)
     target = args.dir / "README.md"
     if args.check:
         current = target.read_text(encoding="utf-8") if target.exists() else ""
