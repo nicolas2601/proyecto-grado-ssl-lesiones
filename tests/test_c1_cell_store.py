@@ -1,0 +1,171 @@
+"""Per-cell storage for the 24-cell grid: atomic, resumable, sha-verified.
+
+The pod died four times during v6. A grid that loses everything on the fourth
+crash is a grid that never finishes, so each cell lands on disk the moment it
+is done and a relaunch skips it.
+
+The dangerous half is the skip. Skipping because a FILE EXISTS trusts the
+name; a cell extracted before the centre-crop fix has the same name and
+features that are one row off. So a cell is skipped only when its manifest
+says it came from the same code revision, the same masks, the same split and
+the same condition -- and when its features still hash to what the manifest
+recorded.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from dermssl import c1_cell_store as cs
+
+PROVENANCE = {
+    "code_revision": "abc123",
+    "masks_sha256": "f" * 64,
+    "c1_train_ids_sha256": "a" * 64,
+    "c1_val_ids_sha256": "b" * 64,
+}
+
+
+def _features(n_rows: int = 6, n_dims: int = 4) -> np.ndarray:
+    return np.arange(n_rows * n_dims, dtype=np.float32).reshape(n_rows, n_dims)
+
+
+class TestSavingACell:
+    def test_a_saved_cell_can_be_read_back(self, tmp_path):
+        store = cs.CellStore(tmp_path)
+        features = _features()
+
+        store.save("dinov2_public_vitb14", "mask_pool", features, provenance=PROVENANCE)
+        loaded = store.load("dinov2_public_vitb14", "mask_pool", provenance=PROVENANCE)
+
+        assert loaded is not None
+        assert np.array_equal(loaded.features, features)
+        assert loaded.manifest["condition"] == "mask_pool"
+
+    def test_nothing_partial_is_ever_visible(self, tmp_path):
+        """A relaunch must not find a half-written cell and trust it."""
+        from pathlib import Path
+
+        store = cs.CellStore(tmp_path)
+        seen: list[str] = []
+        original = Path.replace
+
+        def spy(self, target):
+            seen.append(Path(target).name)
+            return original(self, target)
+
+        with pytest.MonkeyPatch.context() as patch:
+            patch.setattr(Path, "replace", spy)
+            store.save("b", "none", _features(), provenance=PROVENANCE)
+
+        assert seen, "no se escribio por rename"
+        assert seen[-1].endswith(".manifest.json"), (
+            "el manifiesto no se escribio ultimo: una corrida podria verlo antes que "
+            "los features que describe"
+        )
+        assert not list(tmp_path.glob("*.tmp*"))
+
+    def test_the_manifest_records_what_it_was_built_from(self, tmp_path):
+        store = cs.CellStore(tmp_path)
+
+        store.save("b", "none", _features(), provenance=PROVENANCE)
+        loaded = store.load("b", "none", provenance=PROVENANCE)
+
+        for key, value in PROVENANCE.items():
+            assert loaded.manifest[key] == value
+        assert len(loaded.manifest["features_sha256"]) == 64
+
+
+class TestTheSkipIsEarned:
+    def _saved(self, tmp_path, **overrides):
+        store = cs.CellStore(tmp_path)
+        store.save("b", "none", _features(), provenance={**PROVENANCE, **overrides})
+        return store
+
+    def test_a_cell_from_another_code_revision_is_not_reused(self, tmp_path):
+        """The centre-crop fix changed what extraction produces. A cell from
+        before it has the same filename and features one row off."""
+        store = self._saved(tmp_path, code_revision="old_commit")
+
+        assert store.load("b", "none", provenance=PROVENANCE) is None
+
+    def test_a_cell_built_on_other_masks_is_not_reused(self, tmp_path):
+        store = self._saved(tmp_path, masks_sha256="0" * 64)
+
+        assert store.load("b", "none", provenance=PROVENANCE) is None
+
+    def test_a_cell_built_on_another_split_is_not_reused(self, tmp_path):
+        store = self._saved(tmp_path, c1_val_ids_sha256="0" * 64)
+
+        assert store.load("b", "none", provenance=PROVENANCE) is None
+
+    def test_tampered_features_are_refused(self, tmp_path):
+        """Existence is not integrity: the file may have been truncated, or
+        replaced by a different run that crashed mid-write."""
+        store = self._saved(tmp_path)
+        path = store.features_path("b", "none")
+        np.save(path, _features() + 1)
+
+        assert store.load("b", "none", provenance=PROVENANCE) is None
+
+    def test_an_absent_cell_is_a_plain_miss(self, tmp_path):
+        store = cs.CellStore(tmp_path)
+
+        assert store.load("nope", "none", provenance=PROVENANCE) is None
+
+    def test_a_cell_of_another_condition_is_not_returned(self, tmp_path):
+        """Each condition is a different experiment; the key must separate
+        them or (c) would be served the features of (0)."""
+        store = cs.CellStore(tmp_path)
+        store.save("b", "none", _features(), provenance=PROVENANCE)
+
+        assert store.load("b", "mask_pool", provenance=PROVENANCE) is None
+
+
+class TestPlanningTheGrid:
+    def test_it_reports_which_cells_are_done_and_which_remain(self, tmp_path):
+        store = cs.CellStore(tmp_path)
+        store.save("b1", "none", _features(), provenance=PROVENANCE)
+
+        plan = store.plan(
+            backbones=["b1", "b2"],
+            conditions=["none", "mask_pool"],
+            provenance=PROVENANCE,
+        )
+
+        assert plan["done"] == [("b1", "none")]
+        assert ("b2", "mask_pool") in plan["pending"]
+        assert len(plan["pending"]) == 3
+
+    def test_the_order_puts_the_professors_question_first(self, tmp_path):
+        """The 8 cells of dinov2_public vs ssl_proposed ViT-B answer the
+        question that was actually asked; they run before the other 16."""
+        store = cs.CellStore(tmp_path)
+
+        plan = store.plan(
+            backbones=["ssl_plain_vits14", "ssl_proposed_vitb14", "dinov2_public_vitb14"],
+            conditions=["none", "mask_pool"],
+            provenance=PROVENANCE,
+            priority_backbones=["dinov2_public_vitb14", "ssl_proposed_vitb14"],
+        )
+
+        first_four = plan["pending"][:4]
+        assert {backbone for backbone, _ in first_four} == {
+            "dinov2_public_vitb14",
+            "ssl_proposed_vitb14",
+        }
+
+    def test_an_unknown_condition_is_refused_before_any_gpu_time(self, tmp_path):
+        store = cs.CellStore(tmp_path)
+
+        with pytest.raises(ValueError, match="condicion"):
+            store.plan(backbones=["b"], conditions=["inventada"], provenance=PROVENANCE)
+
+    def test_missing_provenance_is_refused(self, tmp_path):
+        """A cell saved without its provenance can never be safely reused, and
+        the run would look resumable while not being."""
+        store = cs.CellStore(tmp_path)
+
+        with pytest.raises(ValueError, match="procedencia"):
+            store.save("b", "none", _features(), provenance={"code_revision": "abc"})

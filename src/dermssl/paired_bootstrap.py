@@ -236,9 +236,13 @@ def bootstrap_document(
         "n_val": int(n_val),
         "val_order_sha256": val_order_sha256,
         "note_ece": "ECE is lower-is-better: a negative delta favours the arm.",
+        # Taken verbatim from the published v6 document rather than reworded:
+        # this note explains why a single seed is reported, and paraphrasing it
+        # would quietly change what the file claims about its own uncertainty.
         "note_seed": (
-            "rng_seed is the bootstrap resampling seed; seed_used is the probe seed of "
-            "the arms being contrasted."
+            "At fraction=1.0 the seed only controls label subsampling, so the three bank "
+            "seeds are one run repeated; seed 0 is used and the uncertainty reported here "
+            "is resampling of the test set, not of seeds."
         ),
         "results": list(records),
     }
