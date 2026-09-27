@@ -132,6 +132,13 @@ Cada ficha tiene: qué es, por qué, chequeo SSL, costo, **predicción registrad
 - **SSL:** preprocesamiento clásico (morfología e inpainting sin entrenar) y lógica de selección. Cumple.
 - **Predicción registrada (reformulada el 2026-09-27, antes de correr S1):** S1 sube `mean_foreground_fraction` hacia 0,21-0,27 sin empeorar el Dice contra la referencia en ISIC 2018. S2 mejora sobre todo los casos con pelo visible.
 - **Por qué se reformuló:** la versión anterior predecía que S1 bajaba `excluded_no_region`, y eso es imposible por construcción. Una imagen queda sin región cuando ninguna región pasa el filtro de área y el de centralidad, y la región que hoy se elige ya es la de menor distancia al centro, así que con la unión queda sin región exactamente en los mismos casos (`tests/test_seg_uncertainty_module.py::test_union_and_central_agree_on_what_is_empty`). S1 solo puede cambiar qué píxeles se pintan cuando ya hay al menos una región válida.
+- **Resultado S1 (2026-09-27): predicción no cumplida.** La cobertura sube +0,0033 (0,13045 → 0,13376). Las imágenes sin región siguen en 670 en los dos modos. El cuello está en la saliencia de CCAM, no en la selección de región (docs/26 §2.5). Por eso no se calcula el Dice ni se reentrena el estudiante. Pseudo-máscaras r0 (CCAM, 58.457 imágenes, mismos parámetros que la corrida publicada, `--region-mode`):
+
+  | Modo | Excluidas | Sin región | Por área | Cobertura media | Imágenes con 2+ regiones |
+  |---|---:|---:|---:|---:|---:|
+  | central (publicado, reproducido exacto) | 4.922 | 670 | 4.252 | 0,13045 | 0 |
+  | union (S1) | 4.928 | 670 | 4.258 | 0,13376 | 4.037 (6,9 %) |
+
 - **Cierre de fase:** con las máscaras mejoradas se **vuelve a correr C1**. Así se mide si mejor segmentación trae mejor clasificación.
 
 ### FASE 3 — diagnóstico del clasificador y confusores (requiere reentrenar: caro)
