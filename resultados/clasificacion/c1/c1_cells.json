@@ -1,0 +1,204 @@
+{
+ "dinov2_public_vitb14__bbox_crop": {
+  "backbone": "dinov2_public_vitb14",
+  "condition": "bbox_crop",
+  "gate_passes": true,
+  "metrics": {
+   "macro_f1": 0.604079260006611,
+   "accuracy": 0.780439121756487,
+   "balanced_accuracy": 0.5698646465121538,
+   "macro_precision": 0.652564145606445,
+   "macro_recall": 0.5698646465121538,
+   "auc": 0.9317791786761047,
+   "ece": 0.14716179136506574
+  },
+  "gate": {
+   "backbone": "dinov2_public_vitb14",
+   "condition": "bbox_crop",
+   "n_images": 2004,
+   "n_empty_after_geometry": 2,
+   "fraction_empty_after_geometry": 0.000998003992015968,
+   "gate_passes": true,
+   "gate_reasons": [],
+   "n_bbox_fallback": 2,
+   "fraction_bbox_fallback": 0.000998003992015968,
+   "cls_fallback": "not_applicable: bbox_crop no agrupa parches"
+  }
+ },
+ "dinov2_public_vitb14__mask_pool": {
+  "backbone": "dinov2_public_vitb14",
+  "condition": "mask_pool",
+  "gate_passes": true,
+  "metrics": {
+   "macro_f1": 0.6251166838664928,
+   "accuracy": 0.7869261477045908,
+   "balanced_accuracy": 0.5994940263445876,
+   "macro_precision": 0.6614877947568275,
+   "macro_recall": 0.5994940263445876,
+   "auc": 0.9251058731504281,
+   "ece": 0.1337750140064491
+  },
+  "gate": {
+   "backbone": "dinov2_public_vitb14",
+   "condition": "mask_pool",
+   "n_images": 2004,
+   "n_empty_after_geometry": 2,
+   "fraction_empty_after_geometry": 0.000998003992015968,
+   "gate_passes": true,
+   "gate_reasons": [],
+   "n_cls_fallback": 2,
+   "fraction_cls_fallback": 0.000998003992015968,
+   "n_fallback_from_empty_mask": 2,
+   "n_fallback_from_small_mask": 0
+  }
+ },
+ "dinov2_public_vitb14__neutral_bg": {
+  "backbone": "dinov2_public_vitb14",
+  "condition": "neutral_bg",
+  "gate_passes": true,
+  "metrics": {
+   "macro_f1": 0.5221063974818507,
+   "accuracy": 0.751996007984032,
+   "balanced_accuracy": 0.5004057382459843,
+   "macro_precision": 0.5620816047432513,
+   "macro_recall": 0.5004057382459843,
+   "auc": 0.9207802408335162,
+   "ece": 0.15943405345944828
+  },
+  "gate": {
+   "backbone": "dinov2_public_vitb14",
+   "condition": "neutral_bg",
+   "n_images": 2004,
+   "n_empty_after_geometry": 2,
+   "fraction_empty_after_geometry": 0.000998003992015968,
+   "gate_passes": true,
+   "gate_reasons": [],
+   "cls_fallback": "not_applicable: neutral_bg no agrupa parches"
+  }
+ },
+ "dinov2_public_vitb14__none": {
+  "backbone": "dinov2_public_vitb14",
+  "condition": "none",
+  "gate_passes": true,
+  "metrics": {
+   "macro_f1": 0.6137154517245625,
+   "accuracy": 0.7819361277445109,
+   "balanced_accuracy": 0.590169319770029,
+   "macro_precision": 0.6509048505818429,
+   "macro_recall": 0.590169319770029,
+   "auc": 0.9259452380036814,
+   "ece": 0.13056955438947482
+  },
+  "gate": {
+   "backbone": "dinov2_public_vitb14",
+   "condition": "none",
+   "n_images": 2004,
+   "n_empty_after_geometry": 2,
+   "fraction_empty_after_geometry": 0.000998003992015968,
+   "gate_passes": true,
+   "gate_reasons": [],
+   "cls_fallback": "not_applicable: none no agrupa parches"
+  }
+ },
+ "ssl_proposed_vitb14__bbox_crop": {
+  "backbone": "ssl_proposed_vitb14",
+  "condition": "bbox_crop",
+  "gate_passes": true,
+  "metrics": {
+   "macro_f1": 0.5546277543849165,
+   "accuracy": 0.7934131736526946,
+   "balanced_accuracy": 0.5071336425240353,
+   "macro_precision": 0.6407923678234816,
+   "macro_recall": 0.5071336425240353,
+   "auc": 0.9476220908345677,
+   "ece": 0.02627314618991285
+  },
+  "gate": {
+   "backbone": "ssl_proposed_vitb14",
+   "condition": "bbox_crop",
+   "n_images": 2004,
+   "n_empty_after_geometry": 2,
+   "fraction_empty_after_geometry": 0.000998003992015968,
+   "gate_passes": true,
+   "gate_reasons": [],
+   "n_bbox_fallback": 2,
+   "fraction_bbox_fallback": 0.000998003992015968,
+   "cls_fallback": "not_applicable: bbox_crop no agrupa parches"
+  }
+ },
+ "ssl_proposed_vitb14__mask_pool": {
+  "backbone": "ssl_proposed_vitb14",
+  "condition": "mask_pool",
+  "gate_passes": true,
+  "metrics": {
+   "macro_f1": 0.5040257330142836,
+   "accuracy": 0.7819361277445109,
+   "balanced_accuracy": 0.45834440075669625,
+   "macro_precision": 0.5897954828392266,
+   "macro_recall": 0.45834440075669625,
+   "auc": 0.9423708663624469,
+   "ece": 0.030341642546261167
+  },
+  "gate": {
+   "backbone": "ssl_proposed_vitb14",
+   "condition": "mask_pool",
+   "n_images": 2004,
+   "n_empty_after_geometry": 2,
+   "fraction_empty_after_geometry": 0.000998003992015968,
+   "gate_passes": true,
+   "gate_reasons": [],
+   "n_cls_fallback": 2,
+   "fraction_cls_fallback": 0.000998003992015968,
+   "n_fallback_from_empty_mask": 2,
+   "n_fallback_from_small_mask": 0
+  }
+ },
+ "ssl_proposed_vitb14__neutral_bg": {
+  "backbone": "ssl_proposed_vitb14",
+  "condition": "neutral_bg",
+  "gate_passes": true,
+  "metrics": {
+   "macro_f1": 0.4969351432593618,
+   "accuracy": 0.7674650698602794,
+   "balanced_accuracy": 0.4541770652657933,
+   "macro_precision": 0.5841054452687751,
+   "macro_recall": 0.4541770652657933,
+   "auc": 0.9308611308522392,
+   "ece": 0.028786768954611568
+  },
+  "gate": {
+   "backbone": "ssl_proposed_vitb14",
+   "condition": "neutral_bg",
+   "n_images": 2004,
+   "n_empty_after_geometry": 2,
+   "fraction_empty_after_geometry": 0.000998003992015968,
+   "gate_passes": true,
+   "gate_reasons": [],
+   "cls_fallback": "not_applicable: neutral_bg no agrupa parches"
+  }
+ },
+ "ssl_proposed_vitb14__none": {
+  "backbone": "ssl_proposed_vitb14",
+  "condition": "none",
+  "gate_passes": true,
+  "metrics": {
+   "macro_f1": 0.5260621920567236,
+   "accuracy": 0.7934131736526946,
+   "balanced_accuracy": 0.4803417779297696,
+   "macro_precision": 0.6351713271097873,
+   "macro_recall": 0.4803417779297696,
+   "auc": 0.9435524783862406,
+   "ece": 0.02681847950239145
+  },
+  "gate": {
+   "backbone": "ssl_proposed_vitb14",
+   "condition": "none",
+   "n_images": 2004,
+   "n_empty_after_geometry": 2,
+   "fraction_empty_after_geometry": 0.000998003992015968,
+   "gate_passes": true,
+   "gate_reasons": [],
+   "cls_fallback": "not_applicable: none no agrupa parches"
+  }
+ }
+}
