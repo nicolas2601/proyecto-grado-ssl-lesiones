@@ -50,3 +50,19 @@ def test_phash_matches_imagehash(tmp_path):
     with Image.open(tmp_path / "c.png") as image:
         expected = nd.bits_to_uint64(imagehash.phash(image).hash)
     assert nd.phash(tmp_path / "c.png") == expected
+
+
+def test_cosine_topk_finds_the_rescaled_copy_first():
+    rng = np.random.default_rng(2)
+    pool = rng.normal(size=(50, 16)).astype(np.float32)
+    queries = np.stack([pool[7] * 3.0, pool[21] + 1e-3])
+    scores, index = nd.cosine_topk(queries, pool, k=3, chunk=1)
+    assert index[:, 0].tolist() == [7, 21]
+    assert scores[0, 0] == np.float32(1.0) or abs(scores[0, 0] - 1.0) < 1e-5
+    assert (np.diff(scores, axis=1) <= 1e-7).all()
+
+
+def test_top1_summary_counts_the_threshold_inclusively():
+    summary = nd.summarize_top1(np.array([0.5, 0.95, 0.99, 0.2]), threshold=0.95)
+    assert summary["n_at_or_above"] == 2
+    assert set(summary["percentiles"]) == {"50", "90", "99", "99.9"}

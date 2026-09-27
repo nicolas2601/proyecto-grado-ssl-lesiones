@@ -57,3 +57,34 @@ def near_pairs(
         for pi in np.flatnonzero(distances <= max_distance):
             pairs.append((qi, int(pi), int(distances[pi])))
     return pairs
+
+
+def unit_rows(x: np.ndarray) -> np.ndarray:
+    x = np.asarray(x, dtype=np.float32)
+    return x / np.maximum(np.linalg.norm(x, axis=1, keepdims=True), 1e-12)
+
+
+def cosine_topk(
+    queries: np.ndarray, pool: np.ndarray, *, k: int, chunk: int = 256
+) -> tuple[np.ndarray, np.ndarray]:
+    """``(scores, index)`` of the ``k`` most similar pool rows per query, best first."""
+    q, p = unit_rows(queries), unit_rows(pool)
+    scores, index = [], []
+    for start in range(0, len(q), chunk):
+        sim = q[start:start + chunk] @ p.T
+        top = np.argpartition(-sim, kth=min(k, sim.shape[1] - 1), axis=1)[:, :k]
+        top_scores = np.take_along_axis(sim, top, axis=1)
+        order = np.argsort(-top_scores, axis=1)
+        index.append(np.take_along_axis(top, order, axis=1))
+        scores.append(np.take_along_axis(top_scores, order, axis=1))
+    return np.concatenate(scores), np.concatenate(index)
+
+
+def summarize_top1(top1: np.ndarray, *, threshold: float) -> dict:
+    top1 = np.asarray(top1, dtype=np.float64)
+    return {
+        "percentiles": {str(q): float(np.percentile(top1, q)) for q in (50, 90, 99, 99.9)},
+        "threshold": threshold,
+        "n_at_or_above": int((top1 >= threshold).sum()),
+        "n_queries": int(len(top1)),
+    }
