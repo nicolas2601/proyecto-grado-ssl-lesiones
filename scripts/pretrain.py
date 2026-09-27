@@ -64,6 +64,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--transformed-manifest-path", default="", help="Ruta al manifiesto auditable de las imágenes transformadas")
     parser.add_argument("--transformed-data-revision", default="", help="Revisión de las imágenes transformadas")
     parser.add_argument("--consistency-weight", type=float, default=1.0, help="Peso de la consistencia entre imágenes original y transformada")
+    # docs/28 levers: every default reproduces the v6 run.
+    parser.add_argument("--freeze-blocks", type=int, default=0, help="Congela patch embed y los primeros N bloques (las LayerNorm siguen entrenando)")
+    parser.add_argument("--layer-decay", type=float, default=1.0, help="Decaimiento del LR por capa, en (0, 1]; 1.0 lo desactiva")
+    parser.add_argument("--anchor-l2sp", type=float, default=0.0, help="Peso de L2-SP hacia los pesos iniciales de DINOv2")
+    parser.add_argument("--anchor-distill", type=float, default=0.0, help="Peso del ancla coseno del CLS contra DINOv2 público congelado")
+    parser.add_argument("--tone-consistency-weight", type=float, default=0.0, help="Peso del término de consistencia de tono sumado a SimSiam (distinto de --consistency-weight, que reescala)")
+    parser.add_argument("--hue-jitter", type=float, default=0.1, help="Componente de tono del ColorJitter")
+    parser.add_argument("--exclude-ids-file", default="", help="Ids (JSON o uno por línea) que se sacan del pool, p. ej. la validación de C1")
     parser.add_argument("--max-steps", type=int, default=0, help="Máximo de pasos; cero mantiene el presupuesto por GPU")
     parser.add_argument("--resolution", type=int, default=224, help="Resolución global de entrada")
     parser.add_argument("--batch-size-per-gpu", type=int, default=64, help="Tamaño de lote por GPU")
@@ -117,6 +125,13 @@ def build_config(args: argparse.Namespace) -> config_mod.PretrainConfig:
             else "two_view_ssl"
         ),
         consistency_weight=args.consistency_weight,
+        freeze_blocks=args.freeze_blocks,
+        layer_decay=args.layer_decay,
+        anchor_l2sp=args.anchor_l2sp,
+        anchor_distill=args.anchor_distill,
+        tone_consistency_weight=args.tone_consistency_weight,
+        hue_jitter=args.hue_jitter,
+        exclude_ids_file=args.exclude_ids_file,
         max_steps=SMOKE_MAX_STEPS if args.smoke else args.max_steps,
         resolution=args.resolution,
         batch_size_per_gpu=args.batch_size_per_gpu,

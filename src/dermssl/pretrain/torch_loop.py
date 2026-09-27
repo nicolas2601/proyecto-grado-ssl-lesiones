@@ -31,6 +31,7 @@ from dermssl.pretrain import (
     schedules,
     torch_data,
     torch_dino,
+    torch_adaptation as adaptation,
     torch_simsiam,
     tracking,
 )
@@ -59,7 +60,16 @@ def _build(
     device: torch.device,
     transformed_evidence: config_mod.TransformedManifestEvidence | None = None,
 ):
-    """(model, loss_fn, optimizer, dataset, collate) for the configured method."""
+    """(model, loss_fn, optimizer, dataset, collate, extras) for the configured method.
+
+    ``extras`` carries what the loop needs beyond the v6 tuple: the levers,
+    the anchors built from the STARTING weights (before any resume is loaded)
+    and how many images the id exclusion removed.
+    """
+    excluded = (
+        config_mod.load_excluded_ids(cfg.exclude_ids_file) if cfg.exclude_ids_file else frozenset()
+    )
+    levers = config_mod.levers_of(cfg)
     paths = config_mod.collect_images(cfg.image_root)
     if cfg.method in config_mod.SIMSIAM_METHODS:
         if cfg.adaptation_mode == "original_transformed_consistency":
@@ -72,23 +82,31 @@ def _build(
                 source_revision=cfg.data_revision,
                 transformed_revision=cfg.transformed_data_revision,
             )
+        kept = config_mod.exclude_ids(paths, excluded)
+        extras = {"levers": levers, "n_excluded": len(paths) - len(kept)}
+        paths = kept
         pretrained = cfg.method in ("simsiam_dinov2", "simsiam_imagenet")
         model = torch_simsiam.SimSiam(cfg.backbone, pretrained=pretrained).to(device)
+        extras["anchors"] = adaptation.build_anchors(model.backbone, levers)
+        adaptation.freeze_blocks(model.backbone, levers.freeze_blocks)
         dataset = torch_data.SimSiamPairDataset(
-            paths, cfg.resolution, cfg.color_constancy_probs, cfg.seed
+            paths, cfg.resolution, cfg.color_constancy_probs, cfg.seed, cfg.hue_jitter
         )
         if pretrained:
             # Converged ViT weights: AdamW, like the continual DINO arm.
             optimizer = torch.optim.AdamW(
-                model.parameters(), lr=0.0, weight_decay=cfg.weight_decay
+                adaptation.param_groups(model, levers), lr=0.0, weight_decay=cfg.weight_decay
             )
         else:
             # Chen & He 2021 from-scratch recipe: SGD with momentum.
             optimizer = torch.optim.SGD(
                 model.parameters(), lr=0.0, momentum=0.9, weight_decay=cfg.weight_decay
             )
-        return model, None, optimizer, dataset, None
+        return model, None, optimizer, dataset, None, extras
 
+    kept = config_mod.exclude_ids(paths, excluded)
+    extras = {"levers": levers, "n_excluded": len(paths) - len(kept), "anchors": adaptation.Anchors()}
+    paths = kept
     model = torch_dino.DinoContinual(
         cfg.backbone, pretrained=cfg.method == "dino_continual"
     ).to(device)
@@ -107,7 +125,28 @@ def _build(
         lr=0.0,
         weight_decay=cfg.weight_decay,
     )
-    return model, loss_fn, optimizer, dataset, torch_data.dino_collate
+    return model, loss_fn, optimizer, dataset, torch_data.dino_collate, extras
+
+
+def _lever_objective(base_loss, levers, anchors, model, outputs, original_view):
+    """``base_loss`` plus the docs/28 levers; with every lever off, ``base_loss`` itself."""
+    if levers.is_default():
+        return base_loss, {}
+    raw = model.module if isinstance(model, DDP) else model
+    h_original = outputs[4] if len(outputs) > 4 else None
+    return adaptation.compose_objective(
+        base_loss,
+        levers,
+        tone=(
+            adaptation.tone_consistency(h_original, outputs[5])
+            if levers.tone_consistency_weight > 0 else None
+        ),
+        l2sp=adaptation.l2sp_penalty(raw.backbone, anchors) if levers.anchor_l2sp > 0 else None,
+        distill=(
+            adaptation.distill_loss(h_original, anchors, original_view)
+            if levers.anchor_distill > 0 else None
+        ),
+    )
 
 
 def _save_checkpoint(
@@ -118,6 +157,7 @@ def _save_checkpoint(
     saved_fractions: set[float],
     step: int = 0,
     images_seen: int = 0,
+    loss_totals: dict | None = None,
 ) -> None:
     raw = model.module if isinstance(model, DDP) else model
     torch.save(
@@ -128,6 +168,7 @@ def _save_checkpoint(
             "saved_fractions": sorted(saved_fractions),
             "step": int(step),
             "images_seen": int(images_seen),
+            "loss_totals": loss_totals,
         },
         path,
     )
@@ -219,9 +260,11 @@ def train(
     if rank == 0:
         run_contract.write_run_manifest(manifest, out_dir / "run.json")
 
-    model, loss_fn, optimizer, dataset, collate = _build(
+    model, loss_fn, optimizer, dataset, collate, extras = _build(
         cfg, device, transformed_evidence
     )
+    levers, anchors = extras["levers"], extras["anchors"]
+    manifest["n_excluded_images"] = extras["n_excluded"]
     if world_size > 1:
         model = _wrap_ddp(model, local_rank, device)
     sampler = (
@@ -267,6 +310,7 @@ def train(
 
     elapsed_offset, saved_fractions = 0.0, set()
     resumed_counters = (0, 0)
+    totals = adaptation.LossTotals()
     resume_path = Path(cfg.resume_checkpoint) if cfg.resume_checkpoint else out_dir / "resume.pt"
     if cfg.resume_checkpoint and not resume_path.is_file():
         raise FileNotFoundError(f"el checkpoint de reanudación no existe: {resume_path}")
@@ -278,6 +322,7 @@ def train(
         elapsed_offset = state["elapsed_wall_seconds"]
         saved_fractions = set(state["saved_fractions"])
         resumed_counters = _counters_from(state)
+        totals = adaptation.LossTotals.from_state(state.get("loss_totals"))
         if rank == 0:
             if gpu_count:
                 print(
@@ -290,8 +335,7 @@ def train(
     elapsed = lambda: elapsed_offset + (time.monotonic() - start)  # noqa: E731
     step, images_seen = resumed_counters
     epoch = 0
-    total_ssl_loss, total_consistency_loss, total_loss = 0.0, 0.0, 0.0
-    consistency_steps = 0
+    need_features = levers.tone_consistency_weight > 0 or levers.anchor_distill > 0
 
     while not compute.should_stop(elapsed()) and (
         cfg.max_steps == 0 or step < cfg.max_steps
@@ -301,8 +345,7 @@ def train(
         for batch in loader:
             fraction = compute.fraction_done(elapsed())
             lr = schedules.lr_at(fraction, base_lr, cfg.warmup_fraction)
-            for group in optimizer.param_groups:
-                group["lr"] = lr
+            adaptation.apply_lr(optimizer, lr)
 
             optimizer.zero_grad(set_to_none=True)
             with _autocast(cfg.precision, device):
@@ -310,15 +353,19 @@ def train(
                     v1, v2 = batch[0].to(device, non_blocking=True), batch[1].to(
                         device, non_blocking=True
                     )
-                    p1, p2, z1, z2 = model(v1, v2)
+                    outputs = model(v1, v2, return_features=True) if need_features else model(v1, v2)
+                    p1, p2, z1, z2 = outputs[:4]
                     ssl_loss = torch_simsiam.simsiam_loss(p1, p2, z1, z2)
                     if cfg.adaptation_mode == "original_transformed_consistency":
-                        loss, consistency_loss = torch_simsiam.paired_objective(
+                        base_loss, consistency_loss = torch_simsiam.paired_objective(
                             ssl_loss, cfg.consistency_weight
                         )
                     else:
                         consistency_loss = None
-                        loss = ssl_loss
+                        base_loss = ssl_loss
+                    loss, lever_parts = _lever_objective(
+                        base_loss, levers, anchors, model, outputs, v1
+                    )
                     health = torch_simsiam.collapse_indicator(z1)
                     batch_size, guided_rate = v1.shape[0], -1.0
                 else:
@@ -330,13 +377,15 @@ def train(
                     loss = loss_fn(student_out, teacher_out)
                     ssl_loss = loss
                     consistency_loss = None  # DINO arm has no transformed-pair term (SimSiam only).
+                    lever_parts = {}
                     health = float(teacher_out[0].std(dim=0).mean().item())
                     batch_size, guided_rate = crops[0].shape[0], float(guided.mean())
 
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             grad_norm = _clip_gradients(
-                [p for g in optimizer.param_groups for p in g["params"]], 3.0
+                [p for g in optimizer.param_groups for p in g["params"]],
+                config_mod.GRAD_CLIP_NORM,
             )
             scaler.step(optimizer)
             scaler.update()
@@ -347,11 +396,13 @@ def train(
 
             step += 1
             images_seen += batch_size * world_size
-            total_ssl_loss += float(ssl_loss.detach().item())
-            total_loss += float(loss.detach().item())
-            if consistency_loss is not None:
-                total_consistency_loss += float(consistency_loss.detach().item())
-                consistency_steps += 1
+            totals.add(
+                ssl=float(ssl_loss.detach().item()),
+                total=float(loss.detach().item()),
+                consistency=(
+                    None if consistency_loss is None else float(consistency_loss.detach().item())
+                ),
+            )
             if rank == 0 and step % LOG_EVERY_STEPS == 0:
                 elapsed_seconds = elapsed()
                 tracker.log_metric("ssl_loss", float(ssl_loss.item()), step=step)
@@ -360,6 +411,8 @@ def train(
                     tracker.log_metric(
                         "consistency_loss", float(consistency_loss.item()), step=step
                     )
+                for name, value in lever_parts.items():
+                    tracker.log_metric(f"lever_{name}", float(value.item()), step=step)
                 tracker.log_metric("lr", lr, step=step)
                 tracker.log_metric("embedding_std", health, step=step)
                 tracker.log_metric("grad_norm", grad_norm, step=step)
@@ -386,6 +439,7 @@ def train(
                     _save_checkpoint(
                         resume_path, model, optimizer, elapsed(), saved_fractions,
                         step=step, images_seen=images_seen,
+                        loss_totals=totals.state(),
                     )
                     print(f"[{tag}] guardado en {compute.gpu_hours_elapsed(elapsed()):.2f} horas-GPU")
 
@@ -415,12 +469,8 @@ def train(
                     if cfg.adaptation_mode == "original_transformed_consistency"
                     else 0
                 ),
-                ssl_loss=total_ssl_loss / step if step else None,
-                consistency_loss=(
-                    total_consistency_loss / consistency_steps
-                    if consistency_steps
-                    else None
-                ),
+                ssl_loss=totals.mean("ssl"),
+                consistency_loss=totals.mean("consistency"),
                 dataset_image_count=len(dataset),
                 dataset_pair_count=(
                     len(dataset)
@@ -428,7 +478,7 @@ def train(
                     else 0
                 ),
                 samples_processed=images_seen,
-                total_loss=total_loss / step if step else None,
+                total_loss=totals.mean("total"),
             ),
             out_dir / "run.json",
         )

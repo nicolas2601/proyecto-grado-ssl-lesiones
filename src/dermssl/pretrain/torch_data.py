@@ -41,10 +41,10 @@ def _geometric(resolution: int, scale: tuple[float, float]) -> T.Compose:
     )
 
 
-def _photometric() -> T.Compose:
+def _photometric(hue: float = 0.1) -> T.Compose:
     return T.Compose(
         [
-            T.RandomApply([T.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
+            T.RandomApply([T.ColorJitter(0.4, 0.4, 0.2, hue)], p=0.8),
             T.RandomGrayscale(p=0.2),
             T.RandomApply([T.GaussianBlur(kernel_size=23, sigma=(0.1, 2.0))], p=0.5),
         ]
@@ -58,9 +58,10 @@ def _finish_view(
     view: Image.Image,
     rng: np.random.Generator,
     cc_probs: tuple[tuple[str, float], ...],
+    hue: float = 0.1,
 ) -> torch.Tensor:
     """Aumento fotométrico, muestreo independiente de constancia de color y tensor."""
-    view = _photometric()(view)
+    view = _photometric(hue)(view)
     arr = np.asarray(view, dtype=np.float64) / 255.0
     arr = color_constancy.apply_stochastic(arr, rng, cc_probs)
     view = Image.fromarray((arr * 255.0).astype(np.uint8))
@@ -76,11 +77,13 @@ class SimSiamPairDataset(Dataset):
         resolution: int,
         cc_probs: tuple[tuple[str, float], ...],
         seed: int,
+        hue_jitter: float = 0.1,
     ):
         self.paths = paths
         self.geometric = _geometric(resolution, scale=(0.2, 1.0))
         self.cc_probs = cc_probs
         self.seed = seed
+        self.hue_jitter = hue_jitter
 
     def __len__(self) -> int:
         return len(self.paths)
@@ -91,16 +94,23 @@ class SimSiamPairDataset(Dataset):
         if isinstance(entry, tuple):
             original, transformed = entry
             return (
-                _finish_view(self.geometric(Image.open(original).convert("RGB")), rng, self.cc_probs),
+                _finish_view(
+                    self.geometric(Image.open(original).convert("RGB")),
+                    rng,
+                    self.cc_probs,
+                    self.hue_jitter,
+                ),
                 _finish_view(
                     self.geometric(Image.open(transformed).convert("RGB")),
                     rng,
                     self.cc_probs,
+                    self.hue_jitter,
                 ),
             )
         img = Image.open(entry).convert("RGB")
         return tuple(
-            _finish_view(self.geometric(img), rng, self.cc_probs) for _ in range(2)
+            _finish_view(self.geometric(img), rng, self.cc_probs, self.hue_jitter)
+            for _ in range(2)
         )
 
 

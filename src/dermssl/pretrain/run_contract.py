@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -90,7 +91,35 @@ def build_run_manifest(
         "budget_gpu_hours": cfg.budget_gpu_hours,
         "checkpoint_fractions": list(cfg.checkpoint_fractions),
         "label_free": True,
+        # docs/28: v6 left these out and they had to be rebuilt from the code
+        # of the revision that ran. A run that cannot be re-read is not a result.
+        "hyperparameters": {
+            "optimizer": "AdamW" if cfg.method != "simsiam" else "SGD",
+            "effective_lr": config_mod.effective_lr(cfg, max(gpu_count, 1)),
+            "batch_size_per_gpu": cfg.batch_size_per_gpu,
+            "weight_decay": cfg.weight_decay,
+            "warmup_fraction": cfg.warmup_fraction,
+            "schedule": "linear_warmup_cosine_to_zero",
+            "resolution": cfg.resolution,
+            "hue_jitter": cfg.hue_jitter,
+            "grad_clip_norm": config_mod.GRAD_CLIP_NORM,
+        },
+        "adaptation_levers": {
+            "freeze_blocks": cfg.freeze_blocks,
+            "layer_decay": cfg.layer_decay,
+            "anchor_l2sp": cfg.anchor_l2sp,
+            "anchor_distill": cfg.anchor_distill,
+            "tone_consistency_weight": cfg.tone_consistency_weight,
+        },
+        "exclude_ids_file": cfg.exclude_ids_file or None,
+        "exclude_ids_sha256": _file_sha256(cfg.exclude_ids_file),
     }
+
+
+def _file_sha256(path: str) -> str | None:
+    if not path:
+        return None
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def write_run_manifest(manifest: dict, path: str | Path) -> None:

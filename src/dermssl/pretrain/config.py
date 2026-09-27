@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from dermssl import patch_guard
+from dermssl.pretrain.levers import Levers
 
 METHODS = (
     "simsiam",
@@ -54,6 +55,7 @@ DEFAULT_INITIAL_WEIGHTS = {
 }
 PRECISIONS = ("bf16", "fp16", "fp32")
 ADAPTATION_MODES = ("two_view_ssl", "original_transformed_consistency")
+GRAD_CLIP_NORM = 3.0  # Max grad norm, recorded in run.json with the rest.
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
 
 # Las tasas base siguen la regla de escalado lineal de cada artículo: SimSiam
@@ -121,6 +123,14 @@ class PretrainConfig:
         ("shades_of_gray", 0.3),
     )
     lesion_guided_crops: bool = True
+    # docs/28 levers; every default reproduces the v6 run exactly.
+    freeze_blocks: int = 0
+    layer_decay: float = 1.0
+    anchor_l2sp: float = 0.0
+    anchor_distill: float = 0.0
+    tone_consistency_weight: float = 0.0
+    hue_jitter: float = 0.1
+    exclude_ids_file: str = ""  # Ids (one per line or JSON list) kept out of the pool.
     mlflow_experiment: str = "obj2-ssl-pretraining"
     tracking_uri: str = ""  # Vacío: valor predeterminado de MLflow (archivo o entorno).
 
@@ -173,6 +183,7 @@ def validate(cfg: PretrainConfig) -> PretrainConfig:
         )
     if cfg.consistency_weight <= 0:
         raise ValueError("consistency_weight debe ser positivo")
+    _validate_levers(cfg)
     if cfg.max_steps < 0:
         raise ValueError("max_steps debe ser cero o positivo")
     if cfg.budget_gpu_hours <= 0:
@@ -194,6 +205,46 @@ def validate(cfg: PretrainConfig) -> PretrainConfig:
     )
     assert_label_free(normalized)
     return normalized
+
+
+def levers_of(cfg: PretrainConfig):
+    return Levers(
+        freeze_blocks=cfg.freeze_blocks,
+        layer_decay=cfg.layer_decay,
+        anchor_l2sp=cfg.anchor_l2sp,
+        anchor_distill=cfg.anchor_distill,
+        tone_consistency_weight=cfg.tone_consistency_weight,
+    )
+
+
+def _validate_levers(cfg: PretrainConfig) -> None:
+    levers = levers_of(cfg).validate(
+        paired=cfg.adaptation_mode == "original_transformed_consistency"
+    )
+    if not levers.is_default() and cfg.method != "simsiam_dinov2":
+        raise ValueError(
+            f"las palancas de docs/28 solo aplican a simsiam_dinov2 (ViT); método {cfg.method!r}"
+        )
+    if not 0.0 <= cfg.hue_jitter <= 0.5:
+        raise ValueError(f"hue_jitter={cfg.hue_jitter}: ColorJitter exige [0, 0.5]")
+
+
+def load_excluded_ids(path: str | Path) -> frozenset[str]:
+    """Ids to keep out of the pool: a JSON list or one id per line."""
+    text = Path(path).read_text(encoding="utf-8").strip()
+    ids = json.loads(text) if text.startswith("[") else text.splitlines()
+    ids = frozenset(i.strip() for i in ids if i.strip())
+    if not ids:
+        raise ValueError(f"{path}: no contiene ids; excluir nada en silencio no es una exclusión")
+    return ids
+
+
+def exclude_ids(paths: list, ids: frozenset[str]) -> list:
+    """Drop every image (or original/transformed pair) whose stem is in ``ids``."""
+    def stem(entry) -> str:
+        return Path(entry[0] if isinstance(entry, tuple) else entry).stem
+
+    return [entry for entry in paths if stem(entry) not in ids]
 
 
 def _validate_fractions(fractions: tuple[float, ...]) -> None:

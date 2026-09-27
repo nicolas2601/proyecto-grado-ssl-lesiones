@@ -45,10 +45,16 @@ def _build_backbone(backbone_name: str, pretrained: bool) -> tuple[nn.Module, in
 
 class SimSiam(nn.Module):
     def __init__(
-        self, backbone_name: str = "resnet50", pretrained: bool = False
+        self,
+        backbone_name: str = "resnet50",
+        pretrained: bool = False,
+        backbone: nn.Module | None = None,
     ) -> None:
         super().__init__()
-        backbone, feat_dim = _build_backbone(backbone_name, pretrained)
+        if backbone is None:
+            backbone, feat_dim = _build_backbone(backbone_name, pretrained)
+        else:
+            feat_dim = backbone.embed_dim
         self.backbone = backbone
 
         self.projector = nn.Sequential(
@@ -69,11 +75,18 @@ class SimSiam(nn.Module):
         )
 
     def forward(
-        self, view1: torch.Tensor, view2: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        z1 = self.projector(self.backbone(view1))
-        z2 = self.projector(self.backbone(view2))
+        self, view1: torch.Tensor, view2: torch.Tensor, return_features: bool = False
+    ) -> tuple[torch.Tensor, ...]:
+        """``(p1, p2, z1, z2)``, plus the backbone features when asked.
+
+        The features come out of the SAME forward so DDP syncs their
+        gradients; a separate method call on the wrapped module would not.
+        """
+        h1, h2 = self.backbone(view1), self.backbone(view2)
+        z1, z2 = self.projector(h1), self.projector(h2)
         p1, p2 = self.predictor(z1), self.predictor(z2)
+        if return_features:
+            return p1, p2, z1.detach(), z2.detach(), h1, h2
         return p1, p2, z1.detach(), z2.detach()
 
 

@@ -47,6 +47,7 @@ def _imports_without_torch(*modules: str) -> subprocess.CompletedProcess:
 def test_the_torch_modules_exist():
     names = [p.name for p in TORCH_MODULES]
     assert names == [
+        "torch_adaptation.py",
         "torch_data.py",
         "torch_dino.py",
         "torch_loop.py",
