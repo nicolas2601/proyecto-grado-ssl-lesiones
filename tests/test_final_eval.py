@@ -114,3 +114,68 @@ def test_table_is_generated_and_check_detects_drift(tmp_path):
 def test_paired_rows_roundtrip():
     doc = _document()
     assert fe.paired_from_rows(doc["paired"]) == _paired()
+
+
+class TestSecondaryReadings:
+    """Reported beside the primary verdicts, never replacing them."""
+
+    def test_p1_ni_needs_the_lower_bound_at_or_above_minus_001(self):
+        ok = fe.predictions(_paired({("plain", "public"): {"macro_f1": _rec(0.02, -0.01, 0.05)}}))
+        bad = fe.predictions(_paired({("plain", "public"): {"macro_f1": _rec(0.02, -0.011, 0.05)}}))
+        assert ok["P1-NI"]["verdict"] == "cumplida" and ok["P1-NI"]["reading"] == "secundaria"
+        assert bad["P1-NI"]["verdict"] == "no cumplida"
+        assert bad["P1"]["verdict"] == "cumplida"  # the primary does not move
+
+    def test_p3_ic_needs_the_lower_bound_strictly_above_zero(self):
+        wins = fe.predictions(_paired({("proposed", "public"): {"macro_f1": _rec(0.05, 0.001, 0.1)}}))
+        touches = fe.predictions(_paired({("proposed", "public"): {"macro_f1": _rec(0.05, 0.0, 0.1)}}))
+        assert wins["P3-IC"]["verdict"] == "cumplida"
+        assert touches["P3-IC"]["verdict"] == "no cumplida"
+
+    def test_primary_ones_are_labelled_primary(self):
+        p = fe.predictions(_paired())
+        assert {p[k]["reading"] for k in ("P1", "P2", "P3")} == {"primaria"}
+
+
+class TestValProtocol:
+    def test_matching_fingerprints_pass(self, monkeypatch):
+        from dermssl.feature_cache import fingerprint_ids
+        monkeypatch.setattr(fe, "C1_TRAIN_FINGERPRINT", fingerprint_ids(["a", "b"]))
+        monkeypatch.setattr(fe, "C1_VAL_FINGERPRINT", fingerprint_ids(["c"]))
+        fe.check_val_protocol(["a", "b"], ["c"])
+
+    def test_a_different_fit_set_refuses(self):
+        with pytest.raises(ValueError, match="train"):
+            fe.check_val_protocol(["a", "b"], ["c"])
+
+    def test_the_published_fingerprints_are_pinned(self):
+        assert fe.C1_TRAIN_FINGERPRINT == "d347edd52d0d7648"
+        assert fe.C1_VAL_FINGERPRINT == "6ff4c17f04a9eae2"
+
+
+class TestRunConsistency:
+    def _run(self, rev="f1c2053", sha="95d2"):
+        return {"code_revision": rev, "exclude_ids_sha256": sha}
+
+    def test_same_revision_and_exclude_pass(self):
+        fe.check_runs_consistent({"plain": self._run(), "proposed": self._run()})
+
+    def test_different_revision_refuses(self):
+        with pytest.raises(ValueError, match="code_revision"):
+            fe.check_runs_consistent({"plain": self._run(), "proposed": self._run(rev="x")})
+
+    def test_different_exclude_refuses(self):
+        with pytest.raises(ValueError, match="exclude"):
+            fe.check_runs_consistent({"plain": self._run(), "proposed": self._run(sha="y")})
+
+
+def test_val_guard_refuses_a_final_trained_with_another_exclusion(monkeypatch):
+    import c1_final_eval as ev
+    from dermssl.feature_cache import fingerprint_ids
+
+    monkeypatch.setattr(fe, "C1_TRAIN_FINGERPRINT", fingerprint_ids(["a"]))
+    monkeypatch.setattr(fe, "C1_VAL_FINGERPRINT", fingerprint_ids(["b"]))
+    runs = {r: {"code_revision": "f1", "exclude_ids_sha256": "old"} for r in ("plain", "proposed")}
+    with pytest.raises(ValueError, match="exclude"):
+        ev.guard_val({"train_ids": ["a"], "val_ids": ["b"]}, runs, "new")
+    ev.guard_val({"train_ids": ["a"], "val_ids": ["b"]}, runs, "old")

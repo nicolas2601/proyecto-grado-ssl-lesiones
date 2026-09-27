@@ -2,8 +2,9 @@
 
 ``--split holdout`` fits the C1 logreg probe on 80 % of train and scores the
 internal holdout; it exists to prove the pipeline reproduces the pilot
-numbers. ``--split val`` fits on the whole fold-0 train and scores the 2004
-validation images. Validation is touched once: that mode needs
+numbers. ``--split val`` fits on the whole C1 fold-0 train (8011) and scores the 2004
+validation images, the C1/v6 protocol, pinned by id fingerprints; it also
+refuses finals whose run.json disagree on code revision or exclusion list. Validation is touched once: that mode needs
 ``--single-evaluation`` and refuses to run if its output already exists.
 
     python scripts/c1_final_eval.py --split val --single-evaluation \
@@ -73,6 +74,25 @@ def paired_rows(probas: dict, y_true: np.ndarray) -> list[dict]:
     ]
 
 
+def run_manifests(specs: dict) -> dict:
+    """``run.json`` beside each adapted backbone (public has none)."""
+    out = {}
+    for role, spec in specs.items():
+        source = spec.split(":", 1)[1]
+        if source != "public":
+            out[role] = json.loads((Path(source).expanduser().parent / "run.json").read_text(encoding="utf-8"))
+    return out
+
+
+def guard_val(split: dict, runs: dict, exclude_sha: str) -> None:
+    """Val is read once, so every precondition is checked before any extraction."""
+    fe.check_val_protocol(split["train_ids"], split["val_ids"])
+    fe.check_runs_consistent(runs)
+    for role, run in runs.items():
+        if run.get("exclude_ids_sha256") != exclude_sha:
+            raise ValueError(f"{role}: el run.json no uso el exclude {exclude_sha[:12]}")
+
+
 def main() -> int:
     args = parse_args()
     out = args.out.expanduser()
@@ -87,8 +107,15 @@ def main() -> int:
     split, _ = rebuild_split(args.ham_root.expanduser())
     holdout = json.loads(args.holdout.expanduser().read_text(encoding="utf-8"))
     ids = evaluation_ids(args.split, split, holdout)
-    image_index = bank.index_images([args.ham_root.expanduser()])
     specs = {"plain": args.plain, "proposed": args.proposed, "public": args.public}
+    runs = run_manifests(specs)
+    exclude_sha = rp.file_sha256(args.exclude_ids_file.expanduser())
+    if args.split == "val":
+        try:
+            guard_val(split, runs, exclude_sha)
+        except ValueError as exc:
+            raise SystemExit(f"ABORT: {exc}") from exc
+    image_index = bank.index_images([args.ham_root.expanduser()])
     results, probas = {}, {}
     for role, spec in specs.items():
         results[role], probas[role], y_eval = sel.score(
@@ -101,7 +128,9 @@ def main() -> int:
         "probe": sel.PROBE,
         "n_eval": int(len(y_eval)),
         "eval_ids_sha256": si.ids_sha256(ids["holdout_ids"]),
-        "exclude_ids_sha256": rp.file_sha256(args.exclude_ids_file.expanduser()),
+        "exclude_ids_sha256": exclude_sha,
+        "runs": {role: {k: run.get(k) for k in ("code_revision", "exclude_ids_sha256", "seed")}
+                 for role, run in runs.items()},
         "arms": ARM_LABELS,
         "specs": specs,
         "results": results,
