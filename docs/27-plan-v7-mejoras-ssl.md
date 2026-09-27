@@ -141,6 +141,8 @@ Cada ficha tiene: qué es, por qué, chequeo SSL, costo, **predicción registrad
 
 - **Predicción y criterio de corte de S2 (registrados el 2026-09-27, antes de correr):** con la remoción de pelo en la etapa `cache`, la cobertura media de las pseudo-máscaras sube al menos 0,02 sin empeorar el Dice contra la referencia en ISIC 2018. Si sube menos de 0,02, la línea de segmentación se cierra con ese hallazgo y no hay v7.1 con máscaras nuevas. S2 corre con prioridad baja (`nice -n 19`, 8 hilos) y se pausa si frena más de un 15 % a algún entrenamiento de la v7.
 
+- **Cómo se corre y se lee S2 (registrado el 2026-09-27, antes de correr).** (a) Se regenera la caché con `--hair-removal` y se recalcula la saliencia con el CCAM YA entrenado (solo inferencia, CPU con `nice -n 19` y la regla de pausa relativa de docs/28). Después se regeneran las pseudo-máscaras con los mismos parámetros de r0. Si (a) sube la cobertura media ≥ 0,02, corre (b), que reentrena MoCo + CCAM sobre la caché limpia en GPU cuando haya GPU libre, para confirmar. Si (a) no la sube, S2 se cierra como "no mejora sin reentrenar CCAM". En ese caso (b) queda como no probado y va a limitaciones, porque un (a) negativo no descarta (b). Deuda de proceso declarada: los tests de `hair_removal.py` se escribieron junto con el código y no antes. Dos mutaciones los rompen.
+
 - **Cierre de fase:** con las máscaras mejoradas se **vuelve a correr C1**. Así se mide si mejor segmentación trae mejor clasificación.
 
 ### FASE 3 — diagnóstico del clasificador y confusores (requiere reentrenar: caro)
