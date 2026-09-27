@@ -169,9 +169,22 @@ def compare_to_bank(
     a baseline that is not the published one. The nearest-vs-bilinear defect
     found in review would have been caught here on the first run.
 
-    ``tolerance`` is an absolute bound on the feature values. 1e-4 is the
-    working default: re-extracting on a different device moved the demo's
-    probabilities by 7.85e-05, so anything above that is drift, not hardware.
+    **What it must be compared against.** The bank pipeline RECOMPUTED in the
+    same process, at the same precision -- not the stored cache. The cache was
+    written under ``torch.amp.autocast("cuda")``, so the bank does not
+    reproduce its own cache below ~1.6e-02, and a tight bound against it fails
+    for a reason that has nothing to do with C1's preprocessing. Comparing a
+    recomputation isolates exactly the thing under test.
+
+    ``tolerance`` is an absolute bound on the feature values;
+    :data:`DEFAULT_PRIMARY_TOLERANCE` (1e-5) is the default, because two
+    identical computations in one process should land on each other. The
+    earlier 1e-4 was calibrated on the demo's PROBABILITIES re-extracted on
+    another device (7.85e-05) -- a different quantity, measured a different
+    way, then applied to features under mixed precision.
+
+    For the recomputation-vs-cache comparison, use
+    :func:`compare_to_published_cache`, which reports rather than decides.
     """
     if not math.isfinite(tolerance):
         raise ValueError(
@@ -207,4 +220,141 @@ def compare_to_bank(
         "max_abs_diff": float(per_row.max()),
         "mean_abs_diff": float(per_row.mean()),
         "worst_row": worst_row,
+    }
+
+
+#: Bound for the SECONDARY check (recomputed bank vs the stored cache). Loose
+#: on purpose: the cache was written under ``torch.amp.autocast("cuda")`` and
+#: the verification need not run at the same precision. Measured on the pod
+#: 2026-09-26, recomputing the bank's own pipeline against its own cache gave
+#: max_abs_diff 1.64e-02 with the cosine still at 1.000.
+PUBLISHED_CACHE_MAX_ABS_DIFF = 5e-2
+
+#: ...and the companion bound that a loose magnitude cannot provide. Precision
+#: changes a vector's length, not its direction; a different image changes the
+#: direction. Below this, the rows are not the same picture.
+PUBLISHED_CACHE_MIN_COSINE = 0.999
+
+#: Bound for the PRIMARY gate, which compares C1's condition (0) against the
+#: bank pipeline recomputed IN THE SAME PROCESS at the SAME precision. Nothing
+#: about mixed precision applies there, so the bound is what an identical
+#: computation actually produces.
+#:
+#: The old 1e-4 default was calibrated on the demo's PROBABILITIES re-extracted
+#: on another device (7.85e-05), not on features under autocast, and it was
+#: applied against the stored cache. That made the gate unfailable for a reason
+#: unrelated to C1: the bank does not reproduce its own cache below 1.6e-02.
+DEFAULT_PRIMARY_TOLERANCE = 1e-5
+
+
+def _validate_bound(name: str, value: float, *, upper: float | None = None) -> float:
+    if not math.isfinite(value):
+        raise ValueError(
+            f"{name} debe ser finito, recibi {value!r}. Un umbral NaN convierte el "
+            "chequeo en un no-op: toda comparacion contra NaN es False."
+        )
+    if value <= 0:
+        raise ValueError(f"{name} debe ser positivo, recibi {value!r}")
+    if upper is not None and value > upper:
+        raise ValueError(
+            f"{name}={value!r} pasa de {upper!r}; un chequeo que acepta cualquier cosa "
+            "no es un chequeo"
+        )
+    return float(value)
+
+
+def compare_to_published_cache(
+    recomputed: np.ndarray,
+    cached: np.ndarray,
+    *,
+    max_abs_diff: float = PUBLISHED_CACHE_MAX_ABS_DIFF,
+    min_cosine: float = PUBLISHED_CACHE_MIN_COSINE,
+) -> dict:
+    """Secondary check: does the recomputed bank still match the stored cache?
+
+    This REPORTS; it does not decide on its own. Its failure means the cache
+    was produced at a precision or on a device the verification is not
+    reproducing, which has to be written down -- but it says nothing about
+    whether C1's preprocessing is correct, and that is what the primary gate
+    (:func:`compare_to_bank` against a recomputation in the same process) is
+    for.
+
+    Two bounds, because neither is sufficient alone:
+
+    * ``max_abs_diff`` is loose enough to survive float16, and would therefore
+      let a genuinely different image through whenever the features are small.
+    * ``min_cosine`` is per row and catches exactly that: precision changes a
+      vector's length, not the direction it points.
+
+    A zero row is refused rather than scored: its cosine is ``0/0``, and NaN
+    compares False against the floor, so the row would pass without anyone
+    having compared anything.
+    """
+    max_abs_diff = _validate_bound("max_abs_diff", max_abs_diff)
+    min_cosine = _validate_bound("min_cosine", min_cosine, upper=1.0)
+
+    if recomputed.shape != cached.shape:
+        raise ValueError(
+            f"shape mismatch: recalculado {recomputed.shape} vs cache {cached.shape}; "
+            "no son las mismas imagenes ni el mismo backbone"
+        )
+
+    left = recomputed.astype(np.float64)
+    right = cached.astype(np.float64)
+
+    reasons: list[str] = []
+
+    n_non_finite = int((~np.isfinite(left)).sum() + (~np.isfinite(right)).sum())
+    if n_non_finite:
+        reasons.append(
+            f"{n_non_finite} valores no finitos (nan/inf): toda comparacion contra ellos "
+            "es False, asi que pasarian sin haberse comparado"
+        )
+
+    per_row_diff = np.abs(left - right).max(axis=1)
+    # ~(x <= tol) rather than (x > tol): NaN has to fail, not vanish.
+    rows_over = ~(per_row_diff <= max_abs_diff)
+    worst_row = int(np.nanargmax(per_row_diff)) if np.isfinite(per_row_diff).any() else 0
+
+    left_norms = np.linalg.norm(left, axis=1)
+    right_norms = np.linalg.norm(right, axis=1)
+    zero_rows = (left_norms == 0) | (right_norms == 0)
+    if zero_rows.any():
+        reasons.append(
+            f"{int(zero_rows.sum())} filas de norma cero: un vector nulo no tiene "
+            "direccion, su coseno seria 0/0 y pasaria el piso sin compararse"
+        )
+
+    with np.errstate(invalid="ignore", divide="ignore"):
+        cosines = np.einsum("ij,ij->i", left, right) / (left_norms * right_norms)
+    rows_below_cosine = ~(cosines >= min_cosine)
+    # Zero rows are already reported above; do not double-count them here.
+    rows_below_cosine &= ~zero_rows
+
+    if rows_over.any():
+        reasons.append(
+            f"max_abs_diff {np.nanmax(per_row_diff):.3e} por encima de {max_abs_diff:g} "
+            f"en {int(rows_over.sum())}/{len(per_row_diff)} filas"
+        )
+    if rows_below_cosine.any():
+        reasons.append(
+            f"coseno por fila por debajo de {min_cosine:g} en "
+            f"{int(rows_below_cosine.sum())}/{len(cosines)} filas: no son la misma imagen"
+        )
+
+    finite_cosines = cosines[np.isfinite(cosines)]
+    return {
+        "agrees": not reasons,
+        "max_abs_diff": float(np.nanmax(per_row_diff)) if per_row_diff.size else 0.0,
+        "mean_abs_diff": float(np.nanmean(per_row_diff)) if per_row_diff.size else 0.0,
+        "min_cosine": float(finite_cosines.min()) if finite_cosines.size else float("nan"),
+        "n_rows": int(len(per_row_diff)),
+        "n_rows_over_max_abs_diff": int(rows_over.sum()),
+        "n_rows_below_cosine": int(rows_below_cosine.sum()),
+        "n_zero_rows": int(zero_rows.sum()),
+        "n_non_finite": n_non_finite,
+        "worst_row": worst_row,
+        "max_abs_diff_bound": float(max_abs_diff),
+        "min_cosine_bound": float(min_cosine),
+        "reasons": reasons,
     }

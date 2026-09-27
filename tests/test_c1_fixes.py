@@ -365,3 +365,150 @@ class TestGeometryMatchesTorchvisionExactly:
         image = rng.integers(0, 255, (*shape, 3), dtype=np.uint8)
         mine = ex._baseline_geometry_image(image)
         assert np.array_equal(mine, self._reference(image))
+
+
+class TestComparingAgainstThePublishedCache:
+    """The SECONDARY check: does the recomputed bank match the stored cache?
+
+    Kept apart from the primary gate on purpose. The cache was written with
+    ``torch.amp.autocast("cuda")`` and the verification may not run under the
+    same precision, so a residue of ~1e-2 is expected and is NOT evidence that
+    C1's preprocessing is wrong. Measured on the pod 2026-09-26: recomputing
+    the bank's own pipeline and comparing against its cache gave
+    max_abs_diff 1.64e-02 while the cosine stayed at 1.000 -- the same vector
+    at a different precision. Gating C1 on 1e-4 against that cache made the
+    gate unfailable for reasons that had nothing to do with C1.
+
+    So this reports, and does not decide alone: a magnitude bound loose enough
+    for mixed precision, plus a per-row cosine tight enough that a genuinely
+    different image cannot hide under it.
+    """
+
+    def _features(self, n_rows: int = 8, n_dims: int = 768) -> np.ndarray:
+        rng = np.random.default_rng(0)
+        return rng.normal(size=(n_rows, n_dims)).astype(np.float32) * 5.0
+
+    def test_identical_features_agree(self):
+        features = self._features()
+
+        report = pv.compare_to_published_cache(features, features.copy())
+
+        assert report["agrees"] is True
+        assert report["max_abs_diff"] == 0.0
+        assert report["min_cosine"] == pytest.approx(1.0)
+        assert report["reasons"] == []
+
+    def test_mixed_precision_residue_agrees(self):
+        """float16 round-trip: what autocast actually does to the cache."""
+        features = self._features()
+        half = features.astype(np.float16).astype(np.float32)
+
+        report = pv.compare_to_published_cache(features, half)
+
+        assert report["agrees"] is True, report["reasons"]
+        assert report["max_abs_diff"] > 0.0, "el escenario no produjo diferencia"
+        assert report["min_cosine"] > 0.999
+
+    def test_a_magnitude_drift_beyond_the_bound_disagrees(self):
+        features = self._features()
+        drifted = features.copy()
+        drifted[3, 7] += 0.5
+
+        report = pv.compare_to_published_cache(features, drifted)
+
+        assert report["agrees"] is False
+        assert report["worst_row"] == 3
+        assert any("max_abs_diff" in reason for reason in report["reasons"])
+
+    def test_a_rotated_row_disagrees_even_when_every_value_is_close(self):
+        """The case a magnitude bound alone cannot see.
+
+        Two vectors can differ by less than the absolute bound at every
+        coordinate and still point somewhere else, which is exactly what a
+        wrong image looks like when the features are small.
+        """
+        features = np.full((4, 768), 0.001, dtype=np.float32)
+        rotated = features.copy()
+        rotated[2] = -rotated[2]
+
+        report = pv.compare_to_published_cache(features, rotated)
+
+        assert report["max_abs_diff"] < pv.PUBLISHED_CACHE_MAX_ABS_DIFF
+        assert report["agrees"] is False, "una fila dada vuelta paso el chequeo"
+        assert report["n_rows_below_cosine"] == 1
+        assert any("coseno" in reason for reason in report["reasons"])
+
+    def test_nan_disagrees_rather_than_slipping_through(self):
+        features = self._features()
+        corrupted = features.copy()
+        corrupted[1, 2] = np.nan
+
+        report = pv.compare_to_published_cache(features, corrupted)
+
+        assert report["agrees"] is False, "NaN paso el chequeo (`nan <= tol` es False)"
+        assert any("nan" in reason.lower() for reason in report["reasons"])
+
+    def test_a_nan_row_also_counts_against_the_magnitude_bound(self):
+        """Both defences are pinned separately, on purpose.
+
+        The non-finite check already catches NaN, so writing the bound as
+        ``diff > tol`` instead of ``~(diff <= tol)`` passes every other test
+        here. Then the day someone relaxes the non-finite check, the NaN walks
+        straight through a bound that never rejected it. Each layer gets its
+        own test.
+        """
+        features = self._features()
+        corrupted = features.copy()
+        corrupted[1, 2] = np.nan
+
+        report = pv.compare_to_published_cache(features, corrupted)
+
+        assert report["n_rows_over_max_abs_diff"] >= 1, (
+            "una fila NaN no se conto contra el margen: `nan > tol` es False"
+        )
+
+    def test_a_zero_row_is_refused_instead_of_reporting_a_nan_cosine(self):
+        """A zero vector has no direction; ``0/0`` would give NaN and NaN
+        compares False against the bound, so the row would pass unnoticed."""
+        features = self._features()
+        zeroed = features.copy()
+        zeroed[5] = 0.0
+
+        report = pv.compare_to_published_cache(features, zeroed)
+
+        assert report["agrees"] is False
+        assert any("norma cero" in reason for reason in report["reasons"])
+
+    def test_shape_mismatch_is_an_error_not_a_disagreement(self):
+        with pytest.raises(ValueError, match="shape"):
+            pv.compare_to_published_cache(np.zeros((4, 768)), np.zeros((4, 384)))
+
+    @pytest.mark.parametrize("bad", [float("nan"), 0.0, -1.0])
+    def test_an_unusable_bound_is_refused(self, bad):
+        features = self._features()
+
+        with pytest.raises(ValueError):
+            pv.compare_to_published_cache(features, features, max_abs_diff=bad)
+
+    @pytest.mark.parametrize("bad", [float("nan"), -0.5, 1.5])
+    def test_an_unusable_cosine_floor_is_refused(self, bad):
+        features = self._features()
+
+        with pytest.raises(ValueError):
+            pv.compare_to_published_cache(features, features, min_cosine=bad)
+
+    def test_the_report_is_json_serialisable_for_wandb(self):
+        import json as _json
+
+        features = self._features()
+
+        _json.dumps(pv.compare_to_published_cache(features, features))
+
+
+class TestThePrimaryGateTolerance:
+    def test_the_default_is_tight_because_it_compares_within_one_process(self):
+        """The primary gate no longer compares against a stored cache, so the
+        mixed-precision residue does not apply to it and the bound can be
+        what an identical computation actually produces."""
+        assert pv.DEFAULT_PRIMARY_TOLERANCE == 1e-5
+        assert pv.DEFAULT_PRIMARY_TOLERANCE < pv.PUBLISHED_CACHE_MAX_ABS_DIFF

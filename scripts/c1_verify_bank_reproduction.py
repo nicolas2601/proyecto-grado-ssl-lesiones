@@ -1,14 +1,29 @@
-"""Gate: condition (0) of C1 must reproduce the published bank features.
+"""Gate: condition (0) of C1 must reproduce the bank's own extraction pipeline.
 
-Condition (0) is, by definition, the bank's own pipeline with no mask applied.
-So the cached features from the bank are the ground truth for it: if the C1
-extraction path drifts in any way -- interpolation mode, resize edge, crop
-offset, extraction point -- (0) stops landing on the cache, and every one of
-the 24 cells is then being compared against a baseline that is not the
-published one.
+Condition (0) is, by definition, the bank's pipeline with no mask applied. If
+the C1 extraction path drifts in any way -- interpolation mode, resize edge,
+crop offset, extraction point -- (0) stops landing on it, and all 24 cells are
+then compared against a baseline that is not the published one.
 
-This attacks that at the root instead of by symptom. The nearest-vs-bilinear
-defect found in review would have failed here on the first run; no downstream
+Two comparisons, and they are NOT interchangeable:
+
+* **Primary gate (decides).** C1's (0) against the bank pipeline RECOMPUTED in
+  this process, at this precision, with these weights. Everything except C1's
+  preprocessing is held fixed, so the bound can be tight (1e-5).
+* **Secondary check (reports).** That recomputation against the stored cache.
+  The cache was written under ``torch.amp.autocast("cuda")``, so a residue is
+  expected: measured on the pod, the bank does not reproduce its own cache
+  below 1.64e-02 even though the cosine stays at 1.000. Bounded loosely by
+  magnitude and tightly by per-row cosine, and its failure is documented
+  rather than decisive.
+
+This split exists because the first version gated C1 at 1e-4 against the
+stored cache. That bound came from the demo's PROBABILITIES re-extracted on
+another device (7.85e-05) -- a different quantity measured a different way --
+so the gate could not pass even with C1 perfect.
+
+The nearest-vs-bilinear defect found in review, and the one-row centre-crop
+offset found by running it, both fail here on the first run; no downstream
 metric would have looked wrong.
 
 Run this BEFORE the 24 cells. A non-zero exit means C1 must not run.
@@ -53,7 +68,7 @@ from dermssl.pretrain import tracking  # noqa: E402
 # before anything heavy loads, and the pure parts of this file (the tracking
 # config, the report logging) stay testable on a machine with no GPU stack.
 
-DEFAULT_TOLERANCE = 1e-4
+DEFAULT_TOLERANCE = pv.DEFAULT_PRIMARY_TOLERANCE
 BASELINE_CONDITION = "none"
 
 
@@ -96,6 +111,17 @@ def log_report(tracker, report: dict) -> None:
     tracker.log_metric("n_rows_over_tolerance", float(report["n_rows_over_tolerance"]))
     tracker.log_metric("n_rows", float(report["n_rows"]))
     tracker.log_metric("reproduces", 1.0 if report["reproduces"] else 0.0)
+
+    # The secondary check goes in under its own prefix. Same dashboard, clearly
+    # separate numbers: reading "max_abs_diff 1.6e-02" without knowing which of
+    # the two comparisons produced it is how the tolerance got miscalibrated in
+    # the first place.
+    cache = report.get("published_cache_check")
+    if cache is not None:
+        tracker.log_metric("cache_max_abs_diff", float(cache["max_abs_diff"]))
+        tracker.log_metric("cache_min_cosine", float(cache["min_cosine"]))
+        tracker.log_metric("cache_n_rows_below_cosine", float(cache["n_rows_below_cosine"]))
+        tracker.log_metric("cache_agrees", 1.0 if cache["agrees"] else 0.0)
 
 
 def build_gate_tracker(
@@ -196,6 +222,39 @@ def build_backbone(arch: str, source: str, device):
     return model.to(device)
 
 
+def extract_through_bank_pipeline(model, image_dir, image_ids, device) -> np.ndarray:
+    """The BANK's own path -- its transform, its forward -- in THIS process.
+
+    This is what the primary gate compares C1 against, and the reason the gate
+    can be tight. The stored cache was written under
+    ``torch.amp.autocast("cuda")`` on another day, so comparing against it
+    measures the precision of two different runs on top of whatever C1 does;
+    measured on the pod, the bank does not reproduce its own cache below
+    1.64e-02. Recomputing here holds precision, device and library versions
+    fixed, so any difference left is C1's preprocessing -- the thing under
+    test.
+
+    Uses ``bank.eval_transform``, not a reimplementation of it. Rebuilding the
+    reference is how the one-row centre-crop offset got in.
+    """
+    from PIL import Image  # noqa: PLC0415
+
+    import torch  # noqa: PLC0415
+
+    import cluster_frozen_bank as bank  # noqa: PLC0415
+
+    transform = bank.eval_transform(ex.RESOLUTION)
+    rows = []
+    for image_id in image_ids:
+        path = image_dir / f"{image_id}.jpg"
+        if not path.exists():
+            raise SystemExit(f"ABORT: no image for {image_id} at {path}")
+        tensor = transform(Image.open(path).convert("RGB")).unsqueeze(0).to(device)
+        with torch.no_grad():
+            rows.append(model(tensor).float().cpu().numpy()[0])
+    return np.stack(rows)
+
+
 def extract_baseline(
     model, image_dir, image_ids, masks, mask_source, device
 ) -> tuple[np.ndarray, pv.FallbackTally]:
@@ -292,8 +351,13 @@ def main() -> int:
     c1_features, tally = extract_baseline(
         model, args.image_dir.expanduser(), val_ids, masks, mask_source, device
     )
+    recomputed = extract_through_bank_pipeline(
+        model, args.image_dir.expanduser(), val_ids, device
+    )
 
-    report = pv.compare_to_bank(bank_features, c1_features, tolerance=args.tolerance)
+    # PRIMARY GATE: C1 against the bank pipeline recomputed right here. Same
+    # process, same precision, same weights -- so what is left is C1.
+    report = pv.compare_to_bank(recomputed, c1_features, tolerance=args.tolerance)
     report["backbone"] = args.backbone
     report["condition"] = BASELINE_CONDITION
     report["image_ids"] = val_ids
@@ -304,6 +368,14 @@ def main() -> int:
     # over mask_pool.
     assert tally.n_cls_fallback == 0, "condition 'none' cannot fall back to CLS"
     report["fallbacks"] = "not_applicable: gate runs condition 'none', which never pools"
+
+    # SECONDARY CHECK: does the recomputation still match the stored cache?
+    # Reported, never decisive. Its failure says the cache came from another
+    # precision or device -- worth writing down, but it is not evidence about
+    # C1, and letting it veto is how a gate ends up unfailable for a reason
+    # nobody involved can act on.
+    cache_check = pv.compare_to_published_cache(recomputed, bank_features)
+    report["published_cache_check"] = cache_check
 
     if args.report:
         args.report.expanduser().write_text(json.dumps(report, indent=1), encoding="utf-8")
@@ -317,18 +389,35 @@ def main() -> int:
         if tracker.run_url:
             print(f"\nW&B run: {tracker.run_url}")
 
-    print(f"\nmax_abs_diff  : {report['max_abs_diff']:.3e}")
+    print("\n--- GATE PRINCIPAL: C1 (0) contra el banco recalculado aqui mismo ---")
+    print(f"max_abs_diff  : {report['max_abs_diff']:.3e}  (tolerancia {args.tolerance:g})")
     print(f"mean_abs_diff : {report['mean_abs_diff']:.3e}")
     print(f"rows over tol : {report['n_rows_over_tolerance']}/{report['n_rows']}")
     print("cls fallbacks : n/a (this gate runs condition 'none')")
 
+    print("\n--- CHEQUEO SECUNDARIO: recalculado contra el cache publicado ---")
+    print(
+        f"max_abs_diff  : {cache_check['max_abs_diff']:.3e}  "
+        f"(margen {cache_check['max_abs_diff_bound']:g})"
+    )
+    print(
+        f"min_cosine    : {cache_check['min_cosine']:.6f}  "
+        f"(piso {cache_check['min_cosine_bound']:g})"
+    )
+    print(f"veredicto     : {'coincide' if cache_check['agrees'] else 'NO coincide'}")
+    if not cache_check["agrees"]:
+        # Printed, not returned as failure: this does not gate C1.
+        print("  El cache viene de otra precision o dispositivo. Queda documentado:")
+        for reason in cache_check["reasons"]:
+            print(f"  - {reason}")
+
     if not report["reproduces"]:
         print("\n=== BANK REPRODUCTION FAILED — DO NOT RUN C1 ===")
-        print("Condition (0) does not reproduce the published bank. Check, in order:")
+        print("Condition (0) does not reproduce the bank pipeline. Check, in order:")
         print("  1. image resize is BILINEAR (masks nearest) and the edge is 255, not 256")
-        print("  2. CenterCrop(224) applied after the resize, same offsets as the bank")
+        print("  2. CenterCrop(224) offset is int(round(margin/2)), as torchvision does")
         print("  3. extraction reads the pooled output, not patch tokens, for (0)")
-        print("  4. the cached file belongs to this backbone and to the val split")
+        print("  4. both paths ran at the same precision (autocast on one side only)")
         return 1
 
     print("\n=== BANK REPRODUCTION OK — C1 may run ===")
