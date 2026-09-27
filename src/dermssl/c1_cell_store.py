@@ -39,12 +39,18 @@ REQUIRED_PROVENANCE = (
     "masks_sha256",
     "c1_train_ids_sha256",
     "c1_val_ids_sha256",
+    # Review P1-4: without these, a kNN proba is reused as "logreg", and a
+    # backbone name pointing at other weights reuses the old cell.
+    "probe",
+    "backbone_spec",
+    "labels_sha256",
 )
 
 
 @dataclass(frozen=True)
 class LoadedCell:
     features: np.ndarray
+    proba: np.ndarray
     manifest: dict
 
 
@@ -65,12 +71,16 @@ class CellStore:
     def manifest_path(self, backbone: str, condition: str) -> Path:
         return self.root / f"{self.key(backbone, condition)}.manifest.json"
 
+    def proba_path(self, backbone: str, condition: str) -> Path:
+        return self.root / f"{self.key(backbone, condition)}.proba.npy"
+
     def save(
         self,
         backbone: str,
         condition: str,
         features: np.ndarray,
         *,
+        proba: np.ndarray,
         provenance: Mapping[str, str],
         extra: Mapping[str, object] | None = None,
     ) -> dict:
@@ -85,12 +95,21 @@ class CellStore:
             raise ValueError(f"condicion {condition!r} desconocida")
 
         features = np.asarray(features, dtype=np.float32)
+        proba = np.asarray(proba, dtype=np.float64)
+        if len(proba) != len(features):
+            raise ValueError(
+                f"proba tiene {len(proba)} filas y features {len(features)}: no son la "
+                "misma celda"
+            )
         manifest = {
             "backbone": backbone,
             "condition": condition,
             "n_rows": int(len(features)),
             "dim": int(features.shape[1]) if features.ndim == 2 else None,
             "features_sha256": _digest(features),
+            # Review P1-3: the proba is what enters the table, so it is the
+            # artifact that must be verified -- not only the features.
+            "proba_sha256": _digest(proba),
             **{k: provenance[k] for k in REQUIRED_PROVENANCE},
             **(dict(extra) if extra else {}),
         }
@@ -100,6 +119,7 @@ class CellStore:
         _atomic_write(
             self.features_path(backbone, condition), lambda p: np.save(p, features)
         )
+        _atomic_write(self.proba_path(backbone, condition), lambda p: np.save(p, proba))
         _atomic_write(
             self.manifest_path(backbone, condition),
             lambda p: p.write_text(json.dumps(manifest, indent=1), encoding="utf-8"),
@@ -117,13 +137,15 @@ class CellStore:
         split") has the same correct response, which is to compute the cell.
         """
         features_path = self.features_path(backbone, condition)
+        proba_path = self.proba_path(backbone, condition)
         manifest_path = self.manifest_path(backbone, condition)
-        if not (features_path.is_file() and manifest_path.is_file()):
+        if not all(p.is_file() for p in (features_path, proba_path, manifest_path)):
             return None
 
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             features = np.load(features_path)
+            proba = np.load(proba_path)
         except (OSError, ValueError, json.JSONDecodeError):
             return None
 
@@ -134,8 +156,10 @@ class CellStore:
                 return None
         if manifest.get("features_sha256") != _digest(features):
             return None
+        if manifest.get("proba_sha256") != _digest(proba):
+            return None
 
-        return LoadedCell(features=features, manifest=manifest)
+        return LoadedCell(features=features, proba=proba, manifest=manifest)
 
     def plan(
         self,
@@ -162,9 +186,12 @@ class CellStore:
         done: list[tuple[str, str]] = []
         pending: list[tuple[str, str]] = []
         for backbone in backbones:
+            # Provenance may differ per backbone (its weights), so a callable
+            # is accepted; a plain mapping means "the same for all".
+            expected = provenance(backbone) if callable(provenance) else provenance
             for condition in conditions:
                 cell = (backbone, condition)
-                if self.load(backbone, condition, provenance=provenance) is not None:
+                if self.load(backbone, condition, provenance=expected) is not None:
                     done.append(cell)
                 else:
                     pending.append(cell)

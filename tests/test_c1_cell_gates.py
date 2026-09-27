@@ -309,3 +309,45 @@ class TestFallbackCauseBreakdown:
 
         assert "n_fallback_from_empty_mask" not in summary
         assert summary["cls_fallback"].startswith("not_applicable")
+
+
+class TestBboxCropCannotQuietlyBecomeTheBaseline:
+    """Review finding P1-2. An empty mask makes bbox_crop fall back to the
+    baseline geometry, so that image IS condition (0). Nothing gated it."""
+
+    def test_bbox_crop_stops_above_one_percent_of_fallbacks(self):
+        tally = cg.CellTally(backbone="b", condition="bbox_crop")
+        for index in range(1000):
+            tally.record(
+                used_cls_fallback=False,
+                empty_after_geometry=index < 11,
+                used_bbox_fallback=index < 11,
+            )
+
+        passes, reasons = cg.evaluate_cell_gates(tally)
+
+        assert passes is False
+        assert any("geometria base" in reason for reason in reasons)
+
+    def test_one_percent_exactly_still_passes(self):
+        tally = cg.CellTally(backbone="b", condition="bbox_crop")
+        for index in range(1000):
+            tally.record(
+                used_cls_fallback=False,
+                empty_after_geometry=index < 10,
+                used_bbox_fallback=index < 10,
+            )
+
+        assert cg.evaluate_cell_gates(tally)[0] is True
+
+    def test_a_bbox_fallback_outside_bbox_crop_is_a_contradiction(self):
+        tally = cg.CellTally(backbone="b", condition="none")
+
+        with pytest.raises(ValueError, match="bbox"):
+            tally.record(used_cls_fallback=False, empty_after_geometry=True, used_bbox_fallback=True)
+
+    def test_the_summary_reports_it(self):
+        tally = cg.CellTally(backbone="b", condition="bbox_crop")
+        tally.record(used_cls_fallback=False, empty_after_geometry=True, used_bbox_fallback=True)
+
+        assert cg.summarise_cell(tally)["n_bbox_fallback"] == 1

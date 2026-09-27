@@ -32,10 +32,14 @@ MAX_FRACTION_DEGENERATE = 0.01
 #: not the condition being labelled.
 POOLING_CONDITION = "mask_pool"
 
-#: The only condition whose output is destroyed by an empty mask. The others
-#: keep the image: (0) never touches it, bbox_crop has its own declared
-#: fallback, and mask_pool falls back to CLS.
+#: The only condition whose output is destroyed by an empty mask.
 GREYING_CONDITION = "neutral_bg"
+
+#: bbox_crop on an empty mask falls back to the BASELINE geometry, so that
+#: image is identical to condition (0). Enough of them and the cell is (0)
+#: under another name -- the same failure as mask_pool falling back to CLS,
+#: and it needs its own gate: nothing else was counting it.
+CROPPING_CONDITION = "bbox_crop"
 
 
 @dataclass
@@ -58,6 +62,7 @@ class CellTally:
     # decides who fixes it.
     n_fallback_from_empty_mask: int = field(default=0)
     n_fallback_from_small_mask: int = field(default=0)
+    n_bbox_fallback: int = field(default=0)
 
     def __post_init__(self) -> None:
         if self.condition not in CONDITIONS:
@@ -66,7 +71,13 @@ class CellTally:
                 f"{sorted(CONDITIONS)}"
             )
 
-    def record(self, *, used_cls_fallback: bool, empty_after_geometry: bool) -> None:
+    def record(
+        self,
+        *,
+        used_cls_fallback: bool,
+        empty_after_geometry: bool,
+        used_bbox_fallback: bool = False,
+    ) -> None:
         """Count one image. Both flags are keyword-only to stop them swapping.
 
         They are different failures with different owners -- an empty mask is
@@ -90,7 +101,14 @@ class CellTally:
                 "la extraccion"
             )
 
+        if used_bbox_fallback and self.condition != CROPPING_CONDITION:
+            raise ValueError(
+                f"fallback de bbox registrado en {self.condition!r}: solo bbox_crop recorta, "
+                "asi que la condicion que corrio no es la que dice la etiqueta"
+            )
+
         self.n_images += 1
+        self.n_bbox_fallback += int(used_bbox_fallback)
         self.n_cls_fallback += int(used_cls_fallback)
         self.n_empty_after_geometry += int(empty_after_geometry)
 
@@ -110,6 +128,12 @@ class CellTally:
         if not self.n_images:
             return None
         return self.n_cls_fallback / self.n_images
+
+    @property
+    def fraction_bbox_fallback(self) -> float | None:
+        if not self.n_images:
+            return None
+        return self.n_bbox_fallback / self.n_images
 
     @property
     def fraction_empty_after_geometry(self) -> float | None:
@@ -163,6 +187,15 @@ def evaluate_cell_gates(tally: CellTally) -> tuple[bool, list[str]]:
             f"{MAX_FRACTION_DEGENERATE:.0%}"
         )
 
+    fraction_bbox = tally.fraction_bbox_fallback
+    if tally.condition == CROPPING_CONDITION and fraction_bbox > MAX_FRACTION_DEGENERATE:
+        reasons.append(
+            f"bbox_crop cayo a la geometria base en {fraction_bbox:.1%} de las imagenes "
+            f"({tally.n_bbox_fallback}/{tally.n_images}): esas son identicas a la condicion "
+            f"(0) y el contraste se aplasta hacia un empate, por encima del "
+            f"{MAX_FRACTION_DEGENERATE:.0%}"
+        )
+
     return not reasons, reasons
 
 
@@ -186,6 +219,9 @@ def summarise_cell(tally: CellTally) -> dict:
         "gate_passes": passes,
         "gate_reasons": reasons,
     }
+    if tally.condition == CROPPING_CONDITION:
+        summary["n_bbox_fallback"] = tally.n_bbox_fallback
+        summary["fraction_bbox_fallback"] = tally.fraction_bbox_fallback
 
     if pools:
         summary["n_cls_fallback"] = tally.n_cls_fallback

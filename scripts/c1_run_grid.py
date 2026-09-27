@@ -50,10 +50,12 @@ from dermssl import c1_cell_store as cs  # noqa: E402
 from dermssl import c1_extraction as ex  # noqa: E402
 from dermssl import c1_mask_export as mx  # noqa: E402
 from dermssl import c1_mask_provenance as mp  # noqa: E402
+from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import cli_args  # noqa: E402
 from dermssl import metrics as _metrics  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
 from dermssl import probes  # noqa: E402
+from dermssl.feature_cache import FeatureCache, _digest, fingerprint_ids  # noqa: E402
 from dermssl.pretrain import tracking  # noqa: E402
 
 #: The question the professor actually asked, run before the other sixteen.
@@ -93,16 +95,20 @@ def code_revision() -> str:
     import subprocess  # noqa: PLC0415
 
     try:
-        out = subprocess.run(
+        head = subprocess.run(
             ["git", "-C", str(REPO), "rev-parse", "HEAD"],
             capture_output=True, text=True, check=True,
-        )
-        return out.stdout.strip()
+        ).stdout.strip()
+        dirty = subprocess.run(
+            ["git", "-C", str(REPO), "status", "--porcelain", "--untracked-files=no"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+        return f"{head}-dirty" if dirty else head
     except (subprocess.CalledProcessError, FileNotFoundError):
         return "unknown"
 
 
-def load_bank_labels(cache_dir: Path, backbone: str):
+def load_bank_labels(cache_dir: Path, backbone: str, expected: dict | None = None):
     """Train and val labels straight from the v6 bank cache.
 
     Taken rather than re-derived: the cache stores them aligned to the ordered
@@ -111,8 +117,6 @@ def load_bank_labels(cache_dir: Path, backbone: str):
     implementation of "which class is this row", and the two only have to
     disagree once.
     """
-    from dermssl.feature_cache import FeatureCache  # noqa: PLC0415
-
     cache = FeatureCache(cache_dir)
     out = []
     for split in ("train", "val"):
@@ -122,6 +126,14 @@ def load_bank_labels(cache_dir: Path, backbone: str):
                 f"ABORT: esperaba 1 cache de {backbone}/{split}, encontre {len(hits)}"
             )
         key = hits[0].name[: -len(".features.npy")]
+        if expected is not None:
+            want = fingerprint_ids(expected[split])
+            have = key.rsplit("__", 1)[-1]
+            if have != want:
+                raise SystemExit(
+                    f"ABORT: el cache de {split} tiene fingerprint {have} y los ids del split "
+                    f"dan {want}. Las etiquetas quedarian contra otras imagenes"
+                )
         entry = cache.load(key)
         if entry is None:
             raise SystemExit(f"ABORT: no se pudo cargar el cache {key}")
@@ -159,6 +171,7 @@ def extract_cell(model, image_dir, image_ids, masks, mask_source, condition, dev
         tally.record(
             used_cls_fallback=bool(used_fallback),
             empty_after_geometry=prepared.empty_after_geometry,
+            used_bbox_fallback=bool(prepared.used_bbox_fallback),
         )
         rows.append(feature)
     return np.stack(rows)
@@ -177,6 +190,16 @@ def main() -> int:
     if args.wandb_project and tracker_probe is None:
         raise SystemExit("ABORT: se pidio W&B y no esta disponible")
 
+    revision = code_revision()
+    if revision == "unknown" or revision.endswith("-dirty"):
+        # Review P1-4: "unknown" matches every other "unknown", and HEAD of a
+        # dirty tree is not the code that ran. Either way the skip would reuse
+        # cells from different code.
+        raise SystemExit(
+            f"ABORT: code_revision={revision!r}. Commitea antes de correr (regla 4): sin "
+            "una revision limpia, el skip reanudable reusaria celdas de otro codigo"
+        )
+
     import torch  # noqa: PLC0415
 
     import cluster_frozen_bank as bank  # noqa: PLC0415
@@ -188,15 +211,41 @@ def main() -> int:
     mx.verify_artifact(args.masks.expanduser(), mask_source.masks_sha256)
 
     index = json.loads(args.split_index.expanduser().read_text(encoding="utf-8"))
-    train_ids = list(index["train_ids"])[: args.limit]
-    val_ids = list(index["val_ids"])[: args.limit]
+    full_train_ids = list(index["train_ids"])
+    full_val_ids = list(index["val_ids"])
+    specs = [bank.parse_backbone_spec(raw) for raw in args.backbones]
 
-    provenance = {
-        "code_revision": code_revision(),
-        "masks_sha256": mask_source.masks_sha256,
-        "c1_train_ids_sha256": index["c1_train_ids_sha256"],
-        "c1_val_ids_sha256": index["c1_val_ids_sha256"],
-    }
+    # Review P1-1: labels come from the bank cache, features are extracted in
+    # the order of the split index. Nothing guaranteed the two orders agree,
+    # so it is checked HERE, on the full lists, before anything is fitted.
+    train_labels, val_labels = load_bank_labels(
+        args.cache_dir.expanduser(), specs[0][0],
+        expected={"train": full_train_ids, "val": full_val_ids},
+    )
+
+    train_ids = full_train_ids[: args.limit]
+    val_ids = full_val_ids[: args.limit]
+    train_labels = train_labels[: args.limit]
+    val_labels = val_labels[: args.limit]
+    n_classes = int(max(train_labels.max(), val_labels.max())) + 1
+    print(f"etiquetas del banco: {len(train_labels)} train / {len(val_labels)} val, "
+          f"{n_classes} clases (orden verificado por fingerprint)")
+
+    labels_sha = _digest(np.concatenate([np.asarray(train_labels), np.asarray(val_labels)]))
+    spec_by_name = {name: f"{arch}:{source}" for name, arch, source in specs}
+
+    def provenance_for(backbone: str) -> dict:
+        # Recomputed from the id lists actually used, not copied from fields
+        # of the JSON that could disagree with those lists (review P1-1).
+        return {
+            "code_revision": revision,
+            "masks_sha256": mask_source.masks_sha256,
+            "c1_train_ids_sha256": si.ids_sha256(train_ids),
+            "c1_val_ids_sha256": si.ids_sha256(val_ids),
+            "probe": args.probe,
+            "backbone_spec": spec_by_name[backbone],
+            "labels_sha256": labels_sha,
+        }
 
     position = {image_id: i for i, image_id in enumerate(mask_source.image_ids)}
     missing = [i for i in train_ids + val_ids if i not in position]
@@ -207,39 +256,30 @@ def main() -> int:
     train_masks = np.stack([np.asarray(all_masks[position[i]]) == mx.LESION_LABEL for i in train_ids])
     val_masks = np.stack([np.asarray(all_masks[position[i]]) == mx.LESION_LABEL for i in val_ids])
 
-    # Labels come from the v6 bank cache, not from a fresh derivation. They are
-    # already stored aligned to the same ordered id list the cache is keyed by,
-    # and that key is the fingerprint this split was verified against. Deriving
-    # them again from the metadata would be a second implementation of the one
-    # thing that must not disagree: which class each row belongs to.
-    train_labels, val_labels = load_bank_labels(args.cache_dir.expanduser(), specs[0][0])
-    if len(train_labels) != len(train_ids) or len(val_labels) != len(val_ids):
-        raise SystemExit(
-            f"ABORT: el cache del banco trae {len(train_labels)}/{len(val_labels)} etiquetas "
-            f"y el split tiene {len(train_ids)}/{len(val_ids)} imagenes. No estan alineados "
-            "y cada fila quedaria contra la etiqueta de otra imagen"
-        )
-    n_classes = int(max(train_labels.max(), val_labels.max())) + 1
-    print(f"etiquetas del banco: {len(train_labels)} train / {len(val_labels)} val, "
-          f"{n_classes} clases")
-
-    specs = [bank.parse_backbone_spec(raw) for raw in args.backbones]
     store = cs.CellStore(args.out_dir.expanduser())
     plan = store.plan(
         backbones=[name for name, _, _ in specs],
         conditions=args.conditions,
-        provenance=provenance,
+        provenance=provenance_for,
         priority_backbones=PRIORITY_BACKBONES,
     )
     print(f"celdas ya hechas: {len(plan['done'])} | pendientes: {len(plan['pending'])}")
-    for cell in plan["done"]:
-        print(f"  REUSADA {cell[0]} / {cell[1]}")
 
     results: dict[tuple[str, str], dict] = {}
-    for backbone, condition in plan["pending"]:
-        arch, source = next((a, s) for n, a, s in specs if n == backbone)
-        print(f"\n=== {backbone} / {condition} ===", flush=True)
+    for backbone, condition in plan["done"]:
+        cell = store.load(backbone, condition, provenance=provenance_for(backbone))
+        gate = cell.manifest.get("gate", {})
+        results[(backbone, condition)] = {
+            "proba": cell.proba,
+            "gate": gate,
+            "metrics": cell.manifest.get("metrics", {}),
+            "passes": bool(gate.get("gate_passes", False)),
+        }
+        print(f"  REUSADA {backbone} / {condition}")
 
+    for backbone, condition in plan["pending"]:
+        arch, source = next((a, src) for n, a, src in specs if n == backbone)
+        print(f"\n=== {backbone} / {condition} ===", flush=True)
         built = bank.build_frozen_backbone(arch, source, ex.RESOLUTION, device)
         model = built["model"] if isinstance(built, dict) else built
 
@@ -264,78 +304,55 @@ def main() -> int:
         )
         print(f"  macro_f1 {cell_metrics['macro_f1']:.4f} | "
               f"bal_acc {cell_metrics['balanced_accuracy']:.4f} | "
-              f"auc {cell_metrics['auc_ovr_macro']:.4f} | ece {cell_metrics['ece']:.4f}")
+              f"auc {cell_metrics['auc']:.4f} | ece {cell_metrics['ece']:.4f}")
 
         store.save(
             backbone, condition, val_features,
-            provenance=provenance,
+            proba=proba,
+            provenance=provenance_for(backbone),
             extra={
                 "gate": cell_summary,
                 "train_gate": cg.summarise_cell(train_tally),
                 "metrics": {k: float(v) for k, v in cell_metrics.items()},
-                "probe": args.probe,
                 "n_classes": n_classes,
             },
         )
-        np.save(store.root / f"{store.key(backbone, condition)}.proba.npy", proba)
-
         if tracker_probe is not None:
             log_cell_to_wandb(
-                tracker_probe, args, backbone, condition, provenance,
+                tracker_probe, args, backbone, condition, provenance_for(backbone),
                 cell_metrics, cell_summary, passes,
             )
-
         results[(backbone, condition)] = {
-            "proba": proba,
-            "gate": cell_summary,
-            "metrics": cell_metrics,
-            "passes": passes,
+            "proba": proba, "gate": cell_summary, "metrics": cell_metrics, "passes": passes,
         }
 
-    # Reload the cells that were skipped, so the contrast table covers the
-    # whole grid and not only what this particular launch recomputed.
-    for backbone, condition in plan["done"]:
-        cell = store.load(backbone, condition, provenance=provenance)
-        proba_path = store.root / f"{store.key(backbone, condition)}.proba.npy"
-        if cell is None or not proba_path.exists():
-            continue
-        results[(backbone, condition)] = {
-            "proba": np.load(proba_path),
-            "gate": cell.manifest.get("gate", {}),
-            "metrics": cell.manifest.get("metrics", {}),
-            "passes": bool(cell.manifest.get("gate", {}).get("gate_passes", False)),
-        }
-
-    print("\n=== celdas terminadas ===")
+    print("\n=== celdas ===")
     for (backbone, condition), payload in sorted(results.items()):
-        state = "PASA" if payload["passes"] else "FRENA"
-        print(f"  {backbone} / {condition}: {state}")
+        print(f"  {backbone} / {condition}: {'PASA' if payload['passes'] else 'FRENA'}")
 
-    contrasts = build_contrasts(results, val_labels, index)
-    out_dir = args.out_dir.expanduser()
+    write_outputs(args.out_dir.expanduser(), results, val_labels, si.ids_sha256(val_ids))
+    return 0
+
+
+def write_outputs(out_dir: Path, results: dict, val_labels, val_ids_sha256: str) -> None:
+    contrasts = build_contrasts(results, val_labels, {"c1_val_ids_sha256": val_ids_sha256})
     (out_dir / "c1_bootstrap.json").write_text(
         json.dumps(contrasts, indent=1, ensure_ascii=False), encoding="utf-8"
     )
-    print(f"\ncontrastes: {len(contrasts['results'])} filas -> {out_dir / 'c1_bootstrap.json'}")
-
+    cells = {
+        f"{backbone}__{condition}": {
+            "backbone": backbone,
+            "condition": condition,
+            "gate_passes": payload["passes"],
+            "metrics": {k: float(v) for k, v in payload["metrics"].items()},
+            "gate": payload["gate"],
+        }
+        for (backbone, condition), payload in sorted(results.items())
+    }
     (out_dir / "c1_cells.json").write_text(
-        json.dumps(
-            {
-                f"{backbone}__{condition}": {
-                    "backbone": backbone,
-                    "condition": condition,
-                    "metrics": {k: float(v) for k, v in payload["metrics"].items()},
-                    "gate": payload["gate"],
-                }
-                for (backbone, condition), payload in sorted(results.items())
-            },
-            indent=1,
-            ensure_ascii=False,
-        ),
-        encoding="utf-8",
+        json.dumps(cells, indent=1, ensure_ascii=False), encoding="utf-8"
     )
-    print(f"celdas: {out_dir / 'c1_cells.json'}")
-    return 0
+    print(f"\ncontrastes: {len(contrasts['results'])} filas, celdas: {len(cells)} -> {out_dir}")
 
 
 def log_cell_to_wandb(module, args, backbone, condition, provenance, metrics, gate, passes):
