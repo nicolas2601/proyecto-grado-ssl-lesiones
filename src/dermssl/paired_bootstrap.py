@@ -39,7 +39,10 @@ LOWER_IS_BETTER = frozenset({"ece"})
 #: assumed higher-is-better, because the next lower-is-better metric to arrive
 #: (HD95, error rate, latency) would otherwise have its verdict printed
 #: backwards, and a backwards verdict still looks like a result.
-KNOWN_METRICS = frozenset({"ece", "macro_f1", "balanced_accuracy", "auc"}) | LOWER_IS_BETTER
+KNOWN_METRICS = frozenset({
+    "ece", "macro_f1", "balanced_accuracy", "auc",
+    "accuracy", "mel_recall", "mel_auc",  # docs/29 2.3b secondaries, higher is better
+}) | LOWER_IS_BETTER
 
 
 def metric_macro_f1(y_true: np.ndarray, proba: np.ndarray) -> float:

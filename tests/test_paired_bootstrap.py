@@ -161,6 +161,12 @@ class TestTheDirectionOfECE:
     def test_the_registry_says_which_metrics_are_lower_is_better(self):
         assert pb.LOWER_IS_BETTER == frozenset({"ece"})
 
+    @pytest.mark.parametrize("metric", ["accuracy", "mel_recall", "mel_auc"])
+    def test_the_v71_secondaries_are_higher_is_better(self, metric):
+        """docs/29 2.3b contrasts melanoma recall and AUC on val; they are
+        registered, and on the higher-is-better side."""
+        assert pb.direction_for(metric=metric, point_delta=0.02, excludes_zero=True) == "arm_better"
+
 
 class TestTheContrastRecord:
     def test_it_carries_every_field_the_published_schema_has(self):
