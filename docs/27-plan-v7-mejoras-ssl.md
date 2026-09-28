@@ -123,6 +123,38 @@ Cada ficha tiene: qué es, por qué, chequeo SSL, costo, **predicción registrad
 - **Costo:** solo inferencia.
 - **Predicción registrada:** DINO sin entrenar alcanza o supera la cobertura de CCAM (~0,15), porque no tiene el filtro de región única que corta las lesiones fragmentadas. El Dice puede quedar por debajo del U-Net, que sí pasó por 3 rondas de refinamiento.
 - **Criterio:** si la cobertura se acerca a la referencia (~0,21-0,27), se justifica S4 (entrenar la cabeza). Si no, DINO no rescata la saliencia de origen.
+- **Método de S-diag (registrado el 2026-09-28, antes de escribir el código y de correr).**
+  - **Primario:** ViT-B/14 a 224, tokens de parche de la última capa (16×16) normalizados L2. Por imagen se hace PCA sobre sus 256 tokens y se toma la primera componente. El signo se fija de modo que los 4×4 parches centrales tengan la proyección media mayor. Se umbraliza con Otsu y el mapa binario se reescala a la resolución de la referencia por vecino más cercano, igual que en la evaluación del estudiante. La lesión es la componente conexa que contiene el centro de la imagen, o la más cercana al centro si ninguna lo contiene. Esta regla es fija y no se ajusta después.
+  - **Secundaria 1:** k-means con k = 2 sobre los mismos tokens y la misma regla de la componente central.
+  - **Secundaria 2:** la misma PCA a 448 (32×32 parches). A 224, los parches de 16 px castigan el Dice por resolución y no por el método.
+  - **Pesos:** DINOv2 público, A\* semilla 42 y B\* semilla 42. Todos están ya fijados; no se entrena nada.
+  - **Evaluación:** las mismas referencias y el mismo código que student_r3: ISIC 2018 Task 1 (n = 2.594) y máscaras de HAM10000 (n = 10.015), con Dice, IoU y HD95 (HD95: menor es mejor).
+  - **Predicción (registrada el 2026-09-28, además de la de cobertura de arriba):** el Dice de S-diag primario queda por debajo del de student_r3. Si queda a menos de 0,05, se reporta como alternativa sin entrenamiento.
+
+**Plan B activado según docs/26 §5.3 (registrado el 2026-09-28).** El criterio de Pau era escalar a DINO si, después de los fixes baratos, la cobertura de las pseudo-máscaras no se acercaba a la de referencia (~0,21-0,27). Quedó así (JSON en `plan-segmentacion/camino-b-cnn/resultados/2026-09-27-v7/`):
+
+| Pseudo-máscaras | Cobertura media |
+|---|---|
+| r0 (publicada) | 0,13045 |
+| S1 unión | 0,13376 |
+| S2(a) | 0,13328 |
+| S2' | 0,13119 |
+
+Ninguna se acerca, así que se activa la Opción A de docs/26 §5.1. La Opción B (destilar a un estudiante liviano) queda anotada como no activada: docs/26 §5.3 la condiciona a que el despliegue liviano sea un requisito, y eso no está confirmado.
+
+**S4-UNet — DINOv2 en la segmentación (Opción A de docs/26 §5.1 y pedido explícito del profesor; registrado el 2026-09-28, antes de correr).** Dos variantes, que separan el efecto de la saliencia del efecto del encoder.
+- **A1, la de docs/26:** DINOv2 reemplaza a MoCo→CCAM como generador de saliencia. La saliencia training-free de S-diag, sin binarizar, entra al MISMO `uncertainty_module.py` (umbrales 0,35/0,65 y selección de región central) y produce pseudo-máscaras DINO. Con ellas se entrena el decoder descrito abajo. Se reportan además las stats de estas pseudo-máscaras (cobertura, sin región, por área) contra las de r0, que es la métrica que definió Pau.
+- **A2:** el mismo decoder, entrenado con las pseudo-máscaras r0 de CCAM que usó student_r3.
+- **Arquitectura, común a A1 y A2:** ViT-B/14 de DINOv2 público congelado. Las features de 4 bloques intermedios (3, 6, 9 y 12) se reproyectan a mapas multi-escala con un decoder liviano tipo U-Net (estilo DPT/UNETR). Solo se entrena el decoder, con el mismo protocolo y un presupuesto de épocas comparable al de student_r3. No usa máscaras reales, así que la cadena sigue siendo auto-supervisada.
+- **Variante adicional de A2:** el encoder A\* semilla 42, al mismo costo.
+- **Evaluación:** Dice, IoU y HD95 (menor es mejor) en ISIC 2018 y HAM10000, contra student_r3, con el mismo código.
+- **Predicción registrada:** Dice(S4-UNet) ≥ Dice(student_r3) − 0,01. Si lo supera, pasa a ser el segmentador candidato, y el FST (abajo) se vuelve a correr con sus máscaras.
+- **Autorización:** se lanza sin esperar si el costo medido es ≤ 4 GPU-h por variante; si es mayor, se consulta antes. Orden de GPU: S-diag, A1/A2, C1-v7, v7.1, semilla 44, PAD.
+
+**FST con la caché sin pelo (Paso 1 de docs/26 §6.4; en CPU, registrado el 2026-09-28).** Es la otra razón por la que Pau quería quitar el pelo: que el pelo no sesgue la estimación de tono.
+- `fst_pseudo_manifest.py` pasa a reportar por separado los registros con `artifact_detected = True` o `confidence < 1` (con TDD).
+- Se regenera el manifest FST con la caché de S2(a) y con la original, y se comparan `tone_distribution` y `FST_distribution`.
+- Se reporta aunque S2 no haya subido la cobertura.
 
 ### FASE 2 — fixes baratos de segmentación (línea de Pau, en paralelo a la Fase 1)
 

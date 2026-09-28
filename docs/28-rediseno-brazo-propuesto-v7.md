@@ -114,6 +114,16 @@ Las cifras están en la [tabla combinada de las dos semillas](../resultados/clas
 - **A\* frente al público:** no pierde con ninguna semilla. Con la 43 además le gana (el intervalo excluye el cero); con la 42 no llegaba. Por eso P1-NI cambia de semilla a semilla.
 - **Variación entre semillas:** A\* se movió unos 0,04 de macro-F1 de una semilla a la otra, lo mismo que el efecto de B\* contra el público. El intervalo del bootstrap cubre la variación del conjunto de evaluación, no la del entrenamiento. Con una sola semilla no se habría podido sostener la conclusión. Con dos ya no depende de la semilla, pero la magnitud del efecto sigue siendo incierta.
 
+### 5.2 Evaluación secundaria C1-v7: ¿la máscara ayuda al clasificador final? (registrada el 2026-09-28, antes de correr)
+
+Es otra lectura de val, sobre modelos ya fijados, y se declara como tal: no reemplaza el resultado primario de §5.1.
+
+- **Qué:** la misma grilla de C1 (docs/27): sin máscara, recorte a la caja, fondo gris y pooling en la máscara. Usa las mismas máscaras de student_r3 (el mismo archivo fijado por sha en `c1_mask_provenance`). Los backbones son A\* y B\* con las semillas 42 y 43, más el DINOv2 público. Solo hay extracción y probe `logreg`, sin entrenar backbones.
+- **Contraste:** bootstrap pareado (1.000 remuestras) de cada condición contra "sin máscara" del mismo backbone, en las cuatro métricas.
+- **Lectura:** la máscara ayuda si alguna condición le gana a "sin máscara" en macro-F1, con el IC por encima de cero, en las dos semillas del mismo brazo. Si pasa en una sola semilla, se reporta como "no robusto a la semilla", con la misma regla de §4.1.
+
+**La ablación Plain vs Proposed-oracle-mask de docs/26 §7.3 queda reemplazada por este rediseño (anotado el 2026-09-28).** Esa ablación existía para aislar la causa de la caída del propuesto en la v6, y pedía steps emparejados, IDs de val excluidos del pool y revisión controlada. La v7 ya arregló esos confusores: pasos iguales (5.700), un solo `code_revision` por final, los IDs de val y del holdout excluidos del pretraining, y dos semillas. La variante con la máscara oráculo queda como fase 2 si sobra GPU.
+
 ## 6. Referencias
 
 - Khanna et al. *ExPLoRA: Parameter-Efficient Extended Pre-Training to Adapt Vision Transformers under Domain Shifts*. ICML 2025. arXiv:2406.10973.
