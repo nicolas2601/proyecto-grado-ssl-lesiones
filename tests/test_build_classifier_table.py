@@ -96,3 +96,11 @@ def test_unexpected_class_order_fails():
     src["bank"]["split"]["classes"] = CLASSES[::-1]
     with pytest.raises(ValueError, match="orden de clases"):
         bct.render(src)
+
+
+def test_melanoma_rows_carry_a_bootstrap_ci_and_the_header_states_the_method():
+    text = bct.render(_sources())
+    assert f"{pcm.BOOTSTRAP_RESAMPLES} remuestras" in text
+    assert f"semilla {pcm.BOOTSTRAP_SEED}" in text
+    mel_rows = [ln for ln in text.splitlines() if ln.startswith("| A* s42 |")]
+    assert mel_rows[0].count("[") == 2  # sensitivity and AUC, both with a CI

@@ -34,13 +34,15 @@ Los protocolos no son idénticos y las filas no se comparan entre versiones sin 
 
 Predicción = argmax de `final_eval.probas.npz`. Orden de clases de `bank.json` (`split.classes`). El macro-F1 recalculado desde las probabilidades coincide con `final_eval.json` (tolerancia 1e-09); si no, este script falla.
 
-| Brazo | Sensibilidad melanoma | AUC melanoma (uno contra el resto) | Macro-F1 |
+IC 95 % de la sensibilidad y del AUC de melanoma: bootstrap percentil sobre imágenes, 1000 remuestras con reemplazo, semilla 20260923 (mismo esquema de remuestreo que `src/dermssl/paired_bootstrap.py`), por brazo y semilla, desde las probabilidades commiteadas.
+
+| Brazo | Sensibilidad melanoma [IC 95 %] | AUC melanoma, uno contra el resto [IC 95 %] | Macro-F1 |
 |---|---|---|---|
-| A* s42 | 0,4865 | 0,8985 | 0,6464 |
-| A* s43 | 0,4775 | 0,9111 | 0,6850 |
-| B* s42 | 0,5045 | 0,9100 | 0,6606 |
-| B* s43 | 0,4505 | 0,8985 | 0,6638 |
-| DINOv2 público s42 = s43 | 0,4279 | 0,8331 | 0,6158 |
+| A* s42 | 0,4865 [0,4235; 0,5490] | 0,8985 [0,8784; 0,9168] | 0,6464 |
+| A* s43 | 0,4775 [0,4087; 0,5354] | 0,9111 [0,8925; 0,9279] | 0,6850 |
+| B* s42 | 0,5045 [0,4422; 0,5683] | 0,9100 [0,8917; 0,9261] | 0,6606 |
+| B* s43 | 0,4505 [0,3871; 0,5089] | 0,8985 [0,8779; 0,9162] | 0,6638 |
+| DINOv2 público s42 = s43 | 0,4279 [0,3632; 0,4978] | 0,8331 [0,8054; 0,8603] | 0,6158 |
 
 ### F1 por clase
 

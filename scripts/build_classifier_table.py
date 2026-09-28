@@ -128,6 +128,7 @@ def per_class_reports(src: dict) -> dict[str, dict]:
         if abs(report["macro_f1"] - published) > TOLERANCE:
             raise ValueError(f"macro-F1 de {role} s{seed} desde probas ({report['macro_f1']}) "
                              f"no coincide con final_eval.json ({published})")
+        report["ci"] = pcm.positive_intervals(probas[seed]["y_true"], probas[seed][role], classes)
         label = f"{arms[role]} s42 = s43" if role == "public" else f"{arms[role]} s{seed}"
         out[label] = report
     return out
@@ -156,11 +157,15 @@ def per_class_section(src: dict) -> list[str]:
              "Predicción = argmax de `final_eval.probas.npz`. Orden de clases de `bank.json` "
              "(`split.classes`). El macro-F1 recalculado desde las probabilidades coincide con "
              f"`final_eval.json` (tolerancia {TOLERANCE:g}); si no, este script falla.", "",
-             "| Brazo | Sensibilidad melanoma | AUC melanoma (uno contra el resto) | Macro-F1 |",
+             "IC 95 % de la sensibilidad y del AUC de melanoma: bootstrap percentil sobre imágenes, "
+             f"{pcm.BOOTSTRAP_RESAMPLES} remuestras con reemplazo, semilla {pcm.BOOTSTRAP_SEED} "
+             "(mismo esquema de remuestreo que `src/dermssl/paired_bootstrap.py`), por brazo y "
+             "semilla, desde las probabilidades commiteadas.", "",
+             "| Brazo | Sensibilidad melanoma [IC 95 %] | AUC melanoma, uno contra el resto [IC 95 %] | Macro-F1 |",
              "|---|---|---|---|"]
     for label, rep in reports.items():
-        lines.append(f"| {label} | {_num(rep['positive_sensitivity'])} | "
-                     f"{_num(rep['positive_auc'])} | {_num(rep['macro_f1'])} |")
+        lines.append(f"| {label} | {_cell(rep['positive_sensitivity'], rep['ci']['sensitivity'])} | "
+                     f"{_cell(rep['positive_auc'], rep['ci']['auc'])} | {_num(rep['macro_f1'])} |")
     lines += ["", *_class_table("F1 por clase", "f1", reports, classes),
               *_class_table("Recall por clase", "recall", reports, classes),
               "### Matrices de confusión (filas: clase real; columnas: predicha)", ""]
