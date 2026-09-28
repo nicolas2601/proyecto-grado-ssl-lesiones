@@ -108,3 +108,18 @@ def test_point_estimates_lie_inside_their_intervals():
 def test_default_bootstrap_matches_the_paired_bootstrap_scheme():
     assert pcm.BOOTSTRAP_RESAMPLES == 1000
     assert pcm.BOOTSTRAP_SEED == 20260923
+
+
+def test_accuracy_with_ci_is_deterministic_and_brackets_the_point():
+    y_true, proba = _noisy_case()
+    point, low, high = pcm.accuracy_with_ci(y_true, proba, n_resamples=300)
+    assert point == pytest.approx(float((proba.argmax(1) == y_true).mean()))
+    assert low < point < high
+    assert pcm.accuracy_with_ci(y_true, proba, n_resamples=300) == (point, low, high)
+
+
+def test_majority_accuracy_is_the_share_of_that_class():
+    y_true = np.array([2, 2, 2, 0, 1])
+    assert pcm.majority_accuracy(y_true, CLASSES, "c") == pytest.approx(3 / 5)
+    with pytest.raises(ValueError, match="nv"):
+        pcm.majority_accuracy(y_true, CLASSES, "nv")

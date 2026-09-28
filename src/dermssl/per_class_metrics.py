@@ -76,3 +76,20 @@ def positive_intervals(y_true: np.ndarray, proba: np.ndarray, classes: Sequence[
         _, low, high = metrics.bootstrap_ci(y_true, proba, fn, n_resamples=n_resamples, seed=seed)
         out[name] = (low, high)
     return out
+
+
+def accuracy_with_ci(y_true: np.ndarray, proba: np.ndarray, n_resamples: int = BOOTSTRAP_RESAMPLES,
+                     seed: int = BOOTSTRAP_SEED) -> tuple[float, float, float]:
+    """``(accuracy, low, high)``: argmax accuracy with the same bootstrap as above."""
+
+    def acc(y: np.ndarray, p: np.ndarray) -> float:
+        return metrics.accuracy(y, p.argmax(axis=1))
+
+    return metrics.bootstrap_ci(y_true, proba, acc, n_resamples=n_resamples, seed=seed)
+
+
+def majority_accuracy(y_true: np.ndarray, classes: Sequence[str], label: str) -> float:
+    """Accuracy of always predicting ``label``: its share of ``y_true``."""
+    if label not in classes:
+        raise ValueError(f"clase {label!r} no esta en {list(classes)}")
+    return float((np.asarray(y_true) == list(classes).index(label)).mean())
