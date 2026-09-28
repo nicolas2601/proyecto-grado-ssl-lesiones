@@ -124,6 +124,16 @@ Es otra lectura de val, sobre modelos ya fijados, y se declara como tal: no reem
 
 **La ablación Plain vs Proposed-oracle-mask de docs/26 §7.3 queda reemplazada por este rediseño (anotado el 2026-09-28).** Esa ablación existía para aislar la causa de la caída del propuesto en la v6, y pedía steps emparejados, IDs de val excluidos del pool y revisión controlada. La v7 ya arregló esos confusores: pasos iguales (5.700), un solo `code_revision` por final, los IDs de val y del holdout excluidos del pretraining, y dos semillas. La variante con la máscara oráculo queda como fase 2 si sobra GPU.
 
+### 5.3 Observación, no resultado registrado: las finales degradan las features densas (2026-09-28)
+
+S-diag (docs/27) segmenta sin entrenar usando los tokens de parche del último bloque. En su método primario, las finales v7 quedaron por debajo del DINOv2 público, con intervalos que no se solapan:
+- **ISIC 2018 (Dice [IC 95 %]):** público 0,452 [0,441; 0,464], A\* s42 0,338 [0,328; 0,348], B\* s42 0,364 [0,354; 0,374].
+- **HAM10000:** público 0,563 [0,558; 0,569], A\* 0,398 [0,393; 0,402], B\* 0,437 [0,433; 0,442].
+
+La predicción de S-diag no comparaba pesos entre sí, así que esto se reporta como observación. Es coherente con cómo se entrenó la v7: SimSiam y el ancla actúan sobre el CLS, y nada restringe los tokens de parche. Es la misma degradación de las features densas que motiva el Gram anchoring de DINOv3 (Siméoni et al., 2025, arXiv:2508.10104); acá se usó solo la versión liviana sobre el CLS (§2).
+
+Implicancia para v7.1 (docs/29 §2.2 y §2.7): las features locales (media o GeM de los parches, attention pooling) podrían rendir menos en A\*/B\* que en el público. Se reporta lo que salga, sin ajustar nada por esta observación.
+
 ## 6. Referencias
 
 - Khanna et al. *ExPLoRA: Parameter-Efficient Extended Pre-Training to Adapt Vision Transformers under Domain Shifts*. ICML 2025. arXiv:2406.10973.
