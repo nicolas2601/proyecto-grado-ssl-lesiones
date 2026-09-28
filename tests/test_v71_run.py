@@ -192,3 +192,14 @@ def test_val_guards_run_before_any_val_image_is_decoded(pod, ran):
                            "--exclude-ids-file", str(exclude)))
     assert not list((ran / "inputs").glob("val_*"))
     assert not (ran / "v71_final_eval.json").exists()
+
+
+def test_selection_carries_the_resolution_diagnostic(ran):
+    selection = json.loads((ran / "selection.json").read_text())
+    assert selection["resolution_diagnostic"] == {}  # this smoke ran 224 only
+
+
+def test_cached_results_from_another_holdout_are_refused(pod, ran):
+    """Same --out-dir, different ids (here --limit): nothing cached may be reused."""
+    with pytest.raises(SystemExit, match="otro holdout"):
+        v71_run.main(_argv(pod, ran, "--stage", "grid", "--limit", "40"))

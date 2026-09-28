@@ -6,9 +6,11 @@ Three stages, each resumable and each writing the file the next one reads:
    final, in the weights and in every holdout metric, tol 1e-6; abort
    otherwise), then every unit (21 weight sets x resolutions) on the docs/28
    internal holdout: 60 probe cells per unit with every metric and its CI.
+   Selection ranges over 224 only; 448 is the §2.3 diagnostic at fixed weights.
    A unit is finished when ``units/<weights>@<res>/result.json`` exists; its
    features are kept on disk until then, so a crash never re-extracts a unit
-   whose probes were running. -> ``holdout_grid.json``
+   whose probes were running. Cached files from another holdout, ``--limit``
+   or code revision are refused, never mixed in. -> ``holdout_grid.json``
 2. ``select``: docs/28 §4.1 per arm (A*, B*) and for public, plus the §2.7
    item 7 phase-2 condition and holdout contrasts. -> ``selection.json``
 3. ``val``: the ONLY read of validation, ``--split val --single-evaluation``:
@@ -165,12 +167,24 @@ def _bank_cache_check(args, ctx, public_cls: np.ndarray) -> dict:
             "bound": pv.PUBLISHED_CACHE_MIN_COSINE}
 
 
+def _check_cached(cached: dict, ctx: dict, revision: str, path: Path) -> None:
+    """A cached file is reused only for this holdout, these ids and this code revision."""
+    if (cached.get("holdout_ids_sha256"), cached.get("run_fingerprint")) != (ctx["holdout_sha"], ctx["run_fingerprint"]):
+        raise SystemExit(f"ABORT: {path} es de otro holdout o de otro --limit; usar un --out-dir nuevo")
+    if cached.get("code_revision") != revision:
+        raise SystemExit(f"ABORT: {path} es de la revision {cached.get('code_revision')}, no {revision}; "
+                         "usar un --out-dir nuevo")
+
+
 def run_pretest(args, ctx, store, weights, device, revision) -> None:
     from dermssl import torch_v71 as tv  # noqa: PLC0415
 
     path = args.out_dir / "pretest.json"
-    if path.exists() and io.read_json(path)["passed"]:
-        return
+    if path.exists():
+        cached = io.read_json(path)
+        _check_cached(cached, ctx, revision, path)
+        if cached["passed"]:
+            return
     arrays = _holdout_arrays(ctx, store, 224)
     public_metrics, public_cls = _cls_metrics(io.direct_public_model(), arrays, ctx, args, device)
     checks = []
@@ -187,7 +201,8 @@ def run_pretest(args, ctx, store, weights, device, revision) -> None:
     bank_check = _bank_cache_check(args, ctx, public_cls)
     passed = all(c["passed"] for c in checks) and bank_check["status"] != "failed"
     io.write_json(path, {"passed": passed, "checks": checks, "bank_cache_check": bank_check,
-                         "holdout_ids_sha256": ctx["holdout_sha"], "code_revision": revision})
+                         "holdout_ids_sha256": ctx["holdout_sha"], "run_fingerprint": ctx["run_fingerprint"],
+                         "code_revision": revision})
     if not passed:
         raise SystemExit(f"ABORT: el pre-test de docs/29 §2.1 fallo; ver {path}")
     print("pre-test OK: alpha 0 = publico y alpha 1 = final en pesos y metricas (tol 1e-6)")
@@ -198,7 +213,9 @@ def run_unit(args, ctx, store, weights, device, revision, name: str, resolution:
 
     udir = args.out_dir / "units" / f"{name}@{resolution}"
     if (udir / "result.json").exists():
-        return io.read_json(udir / "result.json")
+        cached = io.read_json(udir / "result.json")
+        _check_cached(cached, ctx, revision, udir / "result.json")
+        return cached
     feats_path, start = udir / "features.npz", time.time()
     if feats_path.exists():
         saved = np.load(feats_path)
@@ -224,7 +241,7 @@ def run_unit(args, ctx, store, weights, device, revision, name: str, resolution:
                         **{f"p{k}": probas[key].astype(np.float32) for k, key in enumerate(probas)})
     n_fwd = len(ctx["ids"]["fit"]) + tv.N_D4 * len(ctx["ids"]["holdout"])
     result = {"weights": name, "resolution": resolution, "holdout_ids_sha256": ctx["holdout_sha"],
-              "code_revision": revision, "cells": cells, "rows": rows,
+              "run_fingerprint": ctx["run_fingerprint"], "code_revision": revision, "cells": cells, "rows": rows,
               "timing": {"extract_s": extract_s, "img_per_s": n_fwd / max(extract_s, 1e-9),
                          "probe_and_ci_s": time.time() - start - extract_s}}
     io.write_json(udir / "result.json", result)
@@ -246,9 +263,6 @@ def stage_grid(args, ctx, revision) -> None:
     weights = io.WeightBank(args.weights_dir.expanduser())
     run_pretest(args, ctx, store, weights, device, revision)
     results = [run_unit(args, ctx, store, weights, device, revision, w, r) for w, r in unit_order(args)]
-    stale = {r["code_revision"] for r in results} - {revision}
-    if stale:
-        raise SystemExit(f"ABORT: unidades de otra revision {stale}; usar un --out-dir nuevo")
     rows = {cid: row for r in results for cid, row in r["rows"].items()}
     io.write_json(args.out_dir / "holdout_grid.json", {
         "code_revision": revision, "holdout_ids_sha256": ctx["holdout_sha"], "n_configs": len(rows),

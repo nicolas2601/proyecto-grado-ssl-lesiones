@@ -59,7 +59,9 @@ def load_context(args) -> dict:
     if args.limit:
         for key in ids:
             ids[key] = plan.limited_ids(ids[key], [id2label[i] for i in ids[key]], args.limit)
+    run_fingerprint = fc.fingerprint_ids([*ids["fit"], "|", *ids["holdout"]])  # changes with --limit
     return {"split": split, "ids": ids, "id2label": id2label, "holdout_sha": holdout_sha,
+            "run_fingerprint": run_fingerprint,
             "classes": split["classes"], "mel": split["classes"].index("mel"),
             "image_index": bank.index_images([args.image_dir.expanduser()])}
 
