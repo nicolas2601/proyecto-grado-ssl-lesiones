@@ -120,3 +120,16 @@ class TestPreprocessing:
         assert out["cls"].shape[:2] == (8, 3)
         single = tv.extract_split(model, _batch(3), device=torch.device("cpu"), batch_size=3, n_views=1)
         assert np.allclose(single["cls"][0], out["cls"][0], atol=1e-5)
+
+
+def test_attention_weights_stay_float32_under_autocast():
+    """On the pod extraction runs under autocast; the recomputed CLS->patch
+    softmax must not silently drop to half precision with it."""
+    model = _model(seed=4)
+    x = torch.randn(2, 17, 32)
+    with torch.autocast("cpu", dtype=torch.bfloat16):
+        weights = tv._cls_attention(tv.last_block(model).attn, x, 1)
+    assert weights.dtype == torch.float32
+    with torch.no_grad():
+        exact = tv._cls_attention(tv.last_block(model).attn, x, 1)
+    assert torch.allclose(weights, exact, atol=1e-6)

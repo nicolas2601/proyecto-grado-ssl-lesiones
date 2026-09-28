@@ -108,11 +108,12 @@ def _cls_attention(attn, x: torch.Tensor, first_patch: int) -> torch.Tensor:
     """Head-averaged softmax row of the CLS query over the patch tokens, renormalised."""
     batch, n_tokens, dim = x.shape
     heads = attn.num_heads
-    qkv = attn.qkv(x.float()).reshape(batch, n_tokens, 3, heads, dim // heads)
-    q_cls, keys = qkv[:, 0, 0] * attn.scale, qkv[:, :, 1]
-    weights = torch.einsum("bhd,bnhd->bhn", q_cls, keys).softmax(dim=-1).mean(dim=1)
-    patches = weights[:, first_patch:]
-    return patches / patches.sum(dim=1, keepdim=True)
+    with torch.autocast(device_type=x.device.type, enabled=False):  # fp32 even inside the bank's autocast
+        qkv = attn.qkv(x.float()).reshape(batch, n_tokens, 3, heads, dim // heads)
+        q_cls, keys = qkv[:, 0, 0] * attn.scale, qkv[:, :, 1]
+        weights = torch.einsum("bhd,bnhd->bhn", q_cls, keys).softmax(dim=-1).mean(dim=1)
+        patches = weights[:, first_patch:]
+        return patches / patches.sum(dim=1, keepdim=True)
 
 
 @contextlib.contextmanager
