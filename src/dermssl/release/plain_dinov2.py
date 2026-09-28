@@ -24,18 +24,21 @@ from torch.nn import functional as F
 class _SelfAttention(nn.Module):
     def __init__(self, dim: int, heads: int):
         super().__init__()
-        self.heads = heads
+        # Python numbers, not traced shape arithmetic: a traced ``dim // heads``
+        # exports Div + Cast(int64) chains that break the fp16 ONNX copy.
+        self.heads, self.head_dim = heads, dim // heads
+        self.scale = self.head_dim ** -0.5
         self.query, self.key, self.value = (nn.Linear(dim, dim) for _ in range(3))
 
+    def _split(self, t: torch.Tensor) -> torch.Tensor:
+        return t.unflatten(-1, (self.heads, self.head_dim)).transpose(1, 2)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        batch, tokens, dim = x.shape
-
-        def split(t: torch.Tensor) -> torch.Tensor:
-            return t.view(batch, tokens, self.heads, dim // self.heads).transpose(1, 2)
-
-        out = F.scaled_dot_product_attention(split(self.query(x)), split(self.key(x)),
-                                             split(self.value(x)))
-        return out.transpose(1, 2).reshape(batch, tokens, dim)
+        # Explicit softmax(q k^T / sqrt(d)) v, as the hub computes it without xFormers.
+        query = self._split(self.query(x)) * self.scale
+        weights = (query @ self._split(self.key(x)).transpose(-2, -1)).softmax(dim=-1)
+        out = weights @ self._split(self.value(x))
+        return out.transpose(1, 2).flatten(2)
 
 
 class _Attention(nn.Module):
@@ -136,7 +139,8 @@ class Classifier(nn.Module):
         self.register_buffer("bias", bias.float())
 
     def forward(self, pixels: torch.Tensor) -> torch.Tensor:
-        logits = self.backbone(pixels).float() @ self.weight.T + self.bias
+        # No .float() here: an explicit Cast breaks the fp16 ONNX copy; the backbone is fp32.
+        logits = self.backbone(pixels) @ self.weight.T + self.bias
         return torch.softmax(logits, dim=-1)
 
 
