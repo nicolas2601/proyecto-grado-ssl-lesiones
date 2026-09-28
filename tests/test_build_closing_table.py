@@ -141,3 +141,27 @@ def test_a_mixed_family_of_contrasts_fails_instead_of_picking_a_side():
     assert clf.family_verdict([ct.SAME, ct.BETTER]) == ct.BETTER
     with pytest.raises(ValueError):
         clf.family_verdict([ct.BETTER, ct.WORSE])
+
+
+def _scope(diff: int) -> dict:
+    bins = {"x": {"a_count": 5, "b_count": 5 + diff, "diff_count": diff, "diff_prop": 0.0}}
+    dist = {"total": {"a": 5, "b": 5 + diff}, "bins": bins}
+    return {"n": {"a": 5, "b": 5}, "tone_distribution": dist, "FST_distribution": dist}
+
+
+def test_the_hair_sanity_requires_every_difference_to_be_zero():
+    import closing_rows_segmentation as segrows
+
+    assert segrows.fst_sanity_clean({"scopes": {"pool": _scope(0)}}) is True
+    assert segrows.fst_sanity_clean({"scopes": {"pool": _scope(1)}}) is False
+
+
+def test_the_hair_free_fst_row_is_filled_from_its_files():
+    import closing_rows_segmentation as segrows
+
+    row = _by_pedido("FST con la caché sin pelo")
+    doc = json.loads((REPO / segrows.FST_HAIR_CMP).read_text(encoding="utf-8"))
+    pool = doc["scopes"]["pool"]
+    assert row.veredicto == ct.DONE
+    assert f"{pool['FST_distribution']['total']['b']:,}".replace(",", ".") in row.resultado
+    assert "aísla la remoción de pelo" in row.resultado

@@ -22,6 +22,8 @@ A1_STATS = S4["A1"] / "pseudo_masks_stats.json"
 R0 = seg.PSEUDO["r0 publicada"]
 FST = RES / "2026-09-28-fst-a2"
 FST_CMP, FST_ASSUMPTION = FST / "comparison_vs_published.json", FST / "assumptions.json"
+FST_HAIR = RES / "2026-09-28-fst-hair"
+FST_HAIR_CMP, FST_HAIR_SANITY = FST_HAIR / "comparison.json", FST_HAIR / "sanity_published_vs_original.json"
 # docs/27 S-diag: "alcanza o supera la cobertura de CCAM (~0,15)"; within
 # 0,05 of student_r3 it is reported as a training-free alternative.
 SDIAG_MIN_COVERAGE = 0.15
@@ -178,6 +180,41 @@ def fst_a2(d: dict) -> tuple[str, str]:
     return text, r.DONE
 
 
+def fst_sanity_clean(doc: dict) -> bool:
+    """True when every count, total and bin of the sanity comparison is identical."""
+    for scope in doc["scopes"].values():
+        if scope["n"]["a"] != scope["n"]["b"]:
+            return False
+        for dist in (scope["tone_distribution"], scope["FST_distribution"]):
+            if dist["total"]["a"] != dist["total"]["b"] or any(b["diff_count"] for b in dist["bins"].values()):
+                return False
+    return True
+
+
+def _props(dist: dict) -> str:
+    return ", ".join(f"{k} {_num(b['a_prop'])} → {_num(b['b_prop'])}" for k, b in dist["bins"].items())
+
+
+def fst_hair(d: dict) -> tuple[str, str]:
+    cmp, clean = d[FST_HAIR_CMP], fst_sanity_clean(d[FST_HAIR_SANITY])
+    pool = cmp["scopes"]["pool"]
+    tone, fst, flagged = pool["tone_distribution"], pool["FST_distribution"], pool["flagged"]
+    bins = [(f"{name} {k}", b["diff_prop"]) for name, dist in (("tono", tone), ("FST", fst))
+            for k, b in dist["bins"].items()]
+    top_bin, top = max(bins, key=lambda x: abs(x[1]))
+    sanity = ("Sanity publicado contra original recalculado: todas las diferencias son 0, así que la "
+              "comparación aísla la remoción de pelo." if clean else
+              "Sanity publicado contra original recalculado: hay diferencias, así que la comparación NO "
+              "aísla la remoción de pelo.")
+    text = (f"{sanity} Pool (n = {_count(pool['n']['b'])}), {cmp['labels']['a']} → {cmp['labels']['b']}: "
+            f"con tono asignado {_count(tone['total']['a'])} → {_count(tone['total']['b'])}; con FST asignado "
+            f"{_count(fst['total']['a'])} → {_count(fst['total']['b'])}. Proporciones de tono: {_props(tone)}. "
+            f"Proporciones de FST: {_props(fst)}. Con `artifact_detected`: "
+            f"{_count(flagged['a']['n_artifact_detected'])} → {_count(flagged['b']['n_artifact_detected'])}. "
+            f"Mayor |Δ proporción|: {top_bin} {_signed(top)} (descriptivo). Sin IC.")
+    return text, r.DONE if clean else r.NOT_MET
+
+
 def fst_flagged(d: dict) -> tuple[str, str]:
     scopes = d[FST_CMP]["scopes"]
     parts = "; ".join(f"{name} {_count(s['flagged']['b']['n'])} de {_count(s['n']['b'])} "
@@ -226,7 +263,9 @@ def rows() -> list[r.RowSpec]:
         r.RowSpec(f"{pau} §6.4, paso 1)", "S3: reportar aparte los registros con `artifact_detected` o `confidence < 1`",
                   "`fst_pseudo_manifest.py` los reporta por separado (docs/27 FASE 2, S3)", (FST_CMP,), fst_flagged),
         r.RowSpec(f"{pau} §6.4, paso 1) · docs/27", "FST con la caché sin pelo, comparado con el original",
-                  "Registrado en docs/27 (FST con la caché sin pelo); sin manifiesto en el repo", (), None),
+                  "Manifiesto FST regenerado con la caché de S2(a) y con la original, más un sanity del "
+                  "original recalculado contra el publicado (docs/27, FST con la caché sin pelo)",
+                  (FST_HAIR_CMP, FST_HAIR_SANITY), fst_hair),
         r.RowSpec(f"{pau} §6.2) · docs/27 S4-UNet", "FST con las máscaras de A2 (segmentador candidato)",
                   "Probabilidades de A2 sobre el pool → `make_pseudo_masks.py` con las banderas de `pseudo_r2` "
                   "→ manifiesto FST (docs/27)", (FST_CMP, FST_ASSUMPTION), fst_a2),
