@@ -1,0 +1,32 @@
+{
+  "experiment": "S-diag (docs/27, method registered 2026-09-28)",
+  "methods": [
+    "pca448"
+  ],
+  "input_resolution": 448,
+  "grid": 32,
+  "mask_resolution": 224,
+  "backbone": {
+    "name": "astar",
+    "spec": "dinov2_vitb14:/home/jovyan/work/proyectonp/salidas/v7/final_A/simsiam_dinov2_backbone_final.pt",
+    "weights_sha256": "6a71a75434bedb6f10a4b8343e7ed2e7221422e1df2bc169a13dc19b8fb8c4c2"
+  },
+  "tokens": "forward_features()['x_norm_patchtokens'], last layer, fp32",
+  "preprocessing": "bilinear resize to input_resolution (no crop), ImageNet mean/std",
+  "kmeans": {
+    "k": 2,
+    "n_init": 10,
+    "random_state": 0
+  },
+  "code_revision": "842eddf17b57b6c62d12d17496043596a3e1d3e2",
+  "reference_set": "ham10000",
+  "image_dir": "/home/jovyan/work/proyectonp/eval_ham10000_images",
+  "n_images": 10015,
+  "image_ids_sha256": "91c47ecbe509fb3386c25d27d5685ad62fe08711b8fc90b50d3435f3d605f097",
+  "limit": 0,
+  "workers": 36,
+  "cpu_threads_per_image": 1,
+  "torch_home": "/home/jovyan/work/.torch",
+  "training_images": "no training: no parameter is trained or fitted on any image set; PCA and k-means are fitted per image on that image's own patch tokens, and no reference mask is read by this script",
+  "complete": true
+}
