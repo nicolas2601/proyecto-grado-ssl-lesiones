@@ -8,27 +8,30 @@ ECE: menor es mejor; en Macro-F1, Bal-acc y AUC, mayor es mejor. Entre corchetes
 
 Los protocolos no son idénticos y las filas no se comparan entre versiones sin leerlos: v6 = banco con probe `logreg`, fracción 1,0, semilla 0, val n = 2004; C1 = condición `none`, n = 2004; v7 = probe `logreg`, val n = 2004 (s42) y 2004 (s43).
 
-| Versión | Backbone/brazo | Macro-F1 | Bal-acc | AUC | ECE | Fuente |
-|---|---|---|---|---|---|---|
-| v6 | dinov2_public_vits14 | 0,5829 — | 0,5603 — | 0,9322 — | 0,0811 — | `resultados/clasificacion/bank.json` |
-| v6 | dinov2_public_vitb14 | 0,6158 — | 0,5924 — | 0,9257 — | 0,1307 — | `resultados/clasificacion/bank.json` |
-| v6 | ssl_plain_vits14 | 0,5307 — | 0,4766 — | 0,9306 — | 0,0207 — | `resultados/clasificacion/bank.json` |
-| v6 | ssl_plain_vitb14 | 0,5856 — | 0,5429 — | 0,9447 — | 0,0161 — | `resultados/clasificacion/bank.json` |
-| v6 | ssl_proposed_vits14 | 0,4840 — | 0,4362 — | 0,9212 — | 0,0382 — | `resultados/clasificacion/bank.json` |
-| v6 | ssl_proposed_vitb14 | 0,5237 — | 0,4774 — | 0,9434 — | 0,0298 — | `resultados/clasificacion/bank.json` |
-| C1 | dinov2_public_vits14 | 0,5813 — | 0,5601 — | 0,9324 — | 0,0822 — | `resultados/clasificacion/c1/c1_cells.json` |
-| C1 | dinov2_public_vitb14 | 0,6137 — | 0,5902 — | 0,9259 — | 0,1306 — | `resultados/clasificacion/c1/c1_cells.json` |
-| C1 | ssl_plain_vits14 | 0,5333 — | 0,4794 — | 0,9307 — | 0,0213 — | `resultados/clasificacion/c1/c1_cells.json` |
-| C1 | ssl_plain_vitb14 | 0,5784 — | 0,5345 — | 0,9454 — | 0,0159 — | `resultados/clasificacion/c1/c1_cells.json` |
-| C1 | ssl_proposed_vits14 | 0,4823 — | 0,4342 — | 0,9209 — | 0,0382 — | `resultados/clasificacion/c1/c1_cells.json` |
-| C1 | ssl_proposed_vitb14 | 0,5261 — | 0,4803 — | 0,9436 — | 0,0268 — | `resultados/clasificacion/c1/c1_cells.json` |
-| v7 s42 | A* | 0,6464 [0,5980; 0,6894] | 0,6021 [0,5565; 0,6488] | 0,9619 [0,9563; 0,9671] | 0,0135 [0,0138; 0,0336] | `resultados/clasificacion/v7/final_eval.json` |
-| v7 s43 | A* | 0,6850 [0,6353; 0,7258] | 0,6457 [0,5968; 0,6942] | 0,9662 [0,9603; 0,9711] | 0,0202 [0,0169; 0,0377] | `resultados/clasificacion/v7/s43/final_eval.json` |
-| media s42/s43 | A* | 0,6657 — | 0,6239 — | 0,9641 — | 0,0169 — | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json` |
-| v7 s42 | B* | 0,6606 [0,6157; 0,7040] | 0,6327 [0,5871; 0,6838] | 0,9629 [0,9563; 0,9690] | 0,0325 [0,0253; 0,0497] | `resultados/clasificacion/v7/final_eval.json` |
-| v7 s43 | B* | 0,6638 [0,6152; 0,7052] | 0,6119 [0,5657; 0,6607] | 0,9623 [0,9563; 0,9677] | 0,0178 [0,0166; 0,0377] | `resultados/clasificacion/v7/s43/final_eval.json` |
-| media s42/s43 | B* | 0,6622 — | 0,6223 — | 0,9626 — | 0,0252 — | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json` |
-| v7 s42 = s43 | DINOv2 público | 0,6158 [0,5690; 0,6550] | 0,5924 [0,5459; 0,6376] | 0,9257 [0,9123; 0,9370] | 0,1307 [0,1159; 0,1476] | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json` |
+La accuracy sola engaña con este desbalance: `nv` es 1341 de 2004 imágenes de val, así que predecir siempre `nv` ya da 0,6692. La métrica primaria sigue siendo macro-F1. Accuracy de v7: argmax de las probabilidades, con el mismo bootstrap que la sensibilidad de melanoma (abajo).
+
+| Versión | Backbone/brazo | Macro-F1 | Bal-acc | AUC | ECE | Accuracy | Fuente |
+|---|---|---|---|---|---|---|---|
+| v6 | dinov2_public_vits14 | 0,5829 — | 0,5603 — | 0,9322 — | 0,0811 — | 0,7909 — | `resultados/clasificacion/bank.json` |
+| v6 | dinov2_public_vitb14 | 0,6158 — | 0,5924 — | 0,9257 — | 0,1307 — | 0,7819 — | `resultados/clasificacion/bank.json` |
+| v6 | ssl_plain_vits14 | 0,5307 — | 0,4766 — | 0,9306 — | 0,0207 — | 0,7834 — | `resultados/clasificacion/bank.json` |
+| v6 | ssl_plain_vitb14 | 0,5856 — | 0,5429 — | 0,9447 — | 0,0161 — | 0,7989 — | `resultados/clasificacion/bank.json` |
+| v6 | ssl_proposed_vits14 | 0,4840 — | 0,4362 — | 0,9212 — | 0,0382 — | 0,7754 — | `resultados/clasificacion/bank.json` |
+| v6 | ssl_proposed_vitb14 | 0,5237 — | 0,4774 — | 0,9434 — | 0,0298 — | 0,7914 — | `resultados/clasificacion/bank.json` |
+| C1 | dinov2_public_vits14 | 0,5813 — | 0,5601 — | 0,9324 — | 0,0822 — | 0,7899 — | `resultados/clasificacion/c1/c1_cells.json` |
+| C1 | dinov2_public_vitb14 | 0,6137 — | 0,5902 — | 0,9259 — | 0,1306 — | 0,7819 — | `resultados/clasificacion/c1/c1_cells.json` |
+| C1 | ssl_plain_vits14 | 0,5333 — | 0,4794 — | 0,9307 — | 0,0213 — | 0,7844 — | `resultados/clasificacion/c1/c1_cells.json` |
+| C1 | ssl_plain_vitb14 | 0,5784 — | 0,5345 — | 0,9454 — | 0,0159 — | 0,7974 — | `resultados/clasificacion/c1/c1_cells.json` |
+| C1 | ssl_proposed_vits14 | 0,4823 — | 0,4342 — | 0,9209 — | 0,0382 — | 0,7750 — | `resultados/clasificacion/c1/c1_cells.json` |
+| C1 | ssl_proposed_vitb14 | 0,5261 — | 0,4803 — | 0,9436 — | 0,0268 — | 0,7934 — | `resultados/clasificacion/c1/c1_cells.json` |
+| v7 s42 | A* | 0,6464 [0,5980; 0,6894] | 0,6021 [0,5565; 0,6488] | 0,9619 [0,9563; 0,9671] | 0,0135 [0,0138; 0,0336] | 0,8318 [0,8154; 0,8468] | `resultados/clasificacion/v7/final_eval.json` |
+| v7 s43 | A* | 0,6850 [0,6353; 0,7258] | 0,6457 [0,5968; 0,6942] | 0,9662 [0,9603; 0,9711] | 0,0202 [0,0169; 0,0377] | 0,8443 [0,8293; 0,8603] | `resultados/clasificacion/v7/s43/final_eval.json` |
+| media s42/s43 | A* | 0,6657 — | 0,6239 — | 0,9641 — | 0,0169 — | 0,8381 — | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json` |
+| v7 s42 | B* | 0,6606 [0,6157; 0,7040] | 0,6327 [0,5871; 0,6838] | 0,9629 [0,9563; 0,9690] | 0,0325 [0,0253; 0,0497] | 0,8313 [0,8149; 0,8478] | `resultados/clasificacion/v7/final_eval.json` |
+| v7 s43 | B* | 0,6638 [0,6152; 0,7052] | 0,6119 [0,5657; 0,6607] | 0,9623 [0,9563; 0,9677] | 0,0178 [0,0166; 0,0377] | 0,8308 [0,8149; 0,8468] | `resultados/clasificacion/v7/s43/final_eval.json` |
+| media s42/s43 | B* | 0,6622 — | 0,6223 — | 0,9626 — | 0,0252 — | 0,8311 — | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json` |
+| v7 s42 = s43 | DINOv2 público | 0,6158 [0,5690; 0,6550] | 0,5924 [0,5459; 0,6376] | 0,9257 [0,9123; 0,9370] | 0,1307 [0,1159; 0,1476] | 0,7819 [0,7655; 0,7994] | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json` |
+| referencia | siempre nv | — | — | — | — | 0,6692 — | `y_true` de `resultados/clasificacion/v7/final_eval.probas.npz` |
 
 ## Por clase (v7, desde las probabilidades guardadas)
 

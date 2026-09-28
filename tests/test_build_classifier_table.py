@@ -40,9 +40,10 @@ def _sources() -> dict:
     probas = {seed: {"y_true": y_true, "plain": _proba(seed), "proposed": _proba(seed + 100),
                      "public": public} for seed in (42, 43)}
     bank = {"split": {"classes": CLASSES, "val": 21},
-            "rows": [{"backbone": b, "probe": "logreg", "fraction": 1.0, "seed": 0, **METRICS}
+            "rows": [{"backbone": b, "probe": "logreg", "fraction": 1.0, "seed": 0, **METRICS,
+                      "accuracy": 0.6}
                      for b in bct.BACKBONES]}
-    c1 = {f"{b}__none": {"backbone": b, "condition": "none", "metrics": METRICS,
+    c1 = {f"{b}__none": {"backbone": b, "condition": "none", "metrics": {**METRICS, "accuracy": 0.6},
                          "gate": {"n_images": 21}} for b in bct.BACKBONES}
     docs = {seed: _doc(p, y_true) for seed, p in probas.items()}
     return {"bank": bank, "c1": c1, "docs": docs, "probas": probas}
@@ -104,3 +105,25 @@ def test_melanoma_rows_carry_a_bootstrap_ci_and_the_header_states_the_method():
     assert f"semilla {pcm.BOOTSTRAP_SEED}" in text
     mel_rows = [ln for ln in text.splitlines() if ln.startswith("| A* s42 |")]
     assert mel_rows[0].count("[") == 2  # sensitivity and AUC, both with a CI
+
+
+def test_summary_has_accuracy_and_the_always_nv_reference_row():
+    src = _sources()
+    text = bct.render(src)
+    header = [ln for ln in text.splitlines() if ln.startswith("| Versión |")][0]
+    assert "Accuracy" in header
+    nv_share = float((src["probas"][42]["y_true"] == CLASSES.index("nv")).mean())
+    nv_row = [ln for ln in text.splitlines() if "| siempre nv |" in ln]
+    assert len(nv_row) == 1 and bct._num(nv_share) in nv_row[0]
+    v7_row = [ln for ln in text.splitlines() if ln.startswith("| v7 s42 | A* |")][0]
+    assert v7_row.count("[") == 5  # four JSON metrics plus accuracy, each with a CI
+    assert "macro-F1" in text and "engaña" in text
+
+
+def test_v6_and_c1_accuracy_come_from_their_json_without_ci():
+    src = _sources()
+    for row in src["bank"]["rows"]:
+        row["accuracy"] = 0.7777
+    text = bct.render(src)
+    v6_row = [ln for ln in text.splitlines() if ln.startswith("| v6 |")][0]
+    assert "0,7777 —" in v6_row

@@ -37,7 +37,10 @@ V6_ARM = {"probe": "logreg", "fraction": 1.0, "seed": 0}
 C1_CONDITION = "none"
 NO_CI = "—"
 TOLERANCE = 1e-9
-LABELS = {"macro_f1": "Macro-F1", "balanced_accuracy": "Bal-acc", "auc": "AUC", "ece": "ECE"}
+LABELS = {"macro_f1": "Macro-F1", "balanced_accuracy": "Bal-acc", "auc": "AUC", "ece": "ECE",
+          "accuracy": "Accuracy"}
+COLUMNS = (*fe.METRICS, "accuracy")
+MAJORITY = "nv"
 
 
 def _num(x: float) -> str:
@@ -49,7 +52,7 @@ def _cell(value: float, ci: list[float] | None) -> str:
 
 
 def _row(version: str, arm: str, values: dict, cis: dict | None, source: str) -> str:
-    cells = [_cell(values[m], cis[m] if cis else None) for m in fe.METRICS]
+    cells = [_cell(values[m], cis[m] if cis else None) if m in values else NO_CI for m in COLUMNS]
     return f"| {version} | {arm} | " + " | ".join(cells) + f" | {source} |"
 
 
@@ -84,25 +87,39 @@ def c1_rows(c1: dict) -> list[str]:
             for b in BACKBONES]
 
 
-def v7_rows(docs: dict) -> list[str]:
+def _v7_record(doc: dict, probas: dict, role: str) -> tuple[dict, dict]:
+    """JSON metrics plus argmax accuracy (with bootstrap CI) from the probabilities."""
+    rec = doc["results"][role]
+    acc, low, high = pcm.accuracy_with_ci(probas["y_true"], probas[role])
+    return {**rec, "accuracy": acc}, {**rec["ci95"], "accuracy": [low, high]}
+
+
+def v7_rows(docs: dict, probas: dict) -> list[str]:
     arms, both = docs[42]["arms"], f"`{FINAL[42].as_posix()}`, `{FINAL[43].as_posix()}`"
     lines = []
     for role in ("plain", "proposed"):
-        for seed, doc in docs.items():
-            rec = doc["results"][role]
-            lines.append(_row(f"v7 s{seed}", arms[role], rec, rec["ci95"], f"`{FINAL[seed].as_posix()}`"))
-        mean = {m: sum(d["results"][role][m] for d in docs.values()) / len(docs) for m in fe.METRICS}
+        recs = {seed: _v7_record(doc, probas[seed], role) for seed, doc in docs.items()}
+        for seed, (values, cis) in recs.items():
+            lines.append(_row(f"v7 s{seed}", arms[role], values, cis, f"`{FINAL[seed].as_posix()}`"))
+        mean = {m: sum(v[m] for v, _ in recs.values()) / len(recs) for m in COLUMNS}
         lines.append(_row("media s42/s43", arms[role], mean, None, both))
-    pub = docs[42]["results"]["public"]
-    lines.append(_row("v7 s42 = s43", arms["public"], pub, pub["ci95"], both))
+    values, cis = _v7_record(docs[42], probas[42], "public")
+    lines.append(_row("v7 s42 = s43", arms["public"], values, cis, both))
     return lines
 
 
+def majority_row(y_true, classes: list[str]) -> str:
+    share = pcm.majority_accuracy(y_true, classes, MAJORITY)
+    return _row("referencia", f"siempre {MAJORITY}", {"accuracy": share}, None,
+                f"`y_true` de `{PROBAS[42].as_posix()}`")
+
+
 def summary_section(src: dict) -> list[str]:
-    bank, c1, docs = src["bank"], src["c1"], src["docs"]
+    bank, c1, docs, probas = src["bank"], src["c1"], src["docs"], src["probas"]
+    y_true, classes = probas[42]["y_true"], list(bank["split"]["classes"])
     n_c1 = sorted({cell["gate"]["n_images"] for cell in c1.values()})
     fraction = str(V6_ARM["fraction"]).replace(".", ",")
-    header = "| Versión | Backbone/brazo | " + " | ".join(LABELS[m] for m in fe.METRICS) + " | Fuente |"
+    header = "| Versión | Backbone/brazo | " + " | ".join(LABELS[m] for m in COLUMNS) + " | Fuente |"
     return [
         "## Resumen por versión", "",
         "ECE: menor es mejor; en Macro-F1, Bal-acc y AUC, mayor es mejor. Entre corchetes, "
@@ -112,8 +129,13 @@ def summary_section(src: dict) -> list[str]:
         f"semilla {V6_ARM['seed']}, val n = {bank['split']['val']}; C1 = condición `{C1_CONDITION}`, "
         f"n = {', '.join(map(str, n_c1))}; v7 = probe `{docs[42]['probe']}`, val n = "
         f"{docs[42]['n_eval']} (s42) y {docs[43]['n_eval']} (s43).", "",
-        header, "|---|---|" + "---|" * len(fe.METRICS) + "---|",
-        *v6_rows(bank), *c1_rows(c1), *v7_rows(docs),
+        f"La accuracy sola engaña con este desbalance: `{MAJORITY}` es "
+        f"{int((y_true == classes.index(MAJORITY)).sum())} de {len(y_true)} imágenes de val, así que "
+        f"predecir siempre `{MAJORITY}` ya da {_num(pcm.majority_accuracy(y_true, classes, MAJORITY))}. "
+        "La métrica primaria sigue siendo macro-F1. Accuracy de v7: argmax de las probabilidades, "
+        "con el mismo bootstrap que la sensibilidad de melanoma (abajo).", "",
+        header, "|---|---|" + "---|" * len(COLUMNS) + "---|",
+        *v6_rows(bank), *c1_rows(c1), *v7_rows(docs, probas), majority_row(y_true, classes),
     ]
 
 
