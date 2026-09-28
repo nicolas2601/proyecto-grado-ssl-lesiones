@@ -48,6 +48,39 @@ Usage
         --checkpoint ~/work/proyectonp/salidas/final/student_r3/best.pt \
         --image-dir ~/work/proyectonp/eval_ham10000_images \
         --output-dir ~/work/proyectonp/salidas/c1/masks
+
+C1-v7 SECONDARY: the same artifact from S4-UNet A2 (docs/27)
+------------------------------------------------------------
+Same images (the 10.015 HAM10000 files, sorted), same inference
+(``eval_student.predict_masks``, no TTA, 224, bilinear probabilities then
+``> 0.5``), same format (uint8 0/1 at 450x600 + manifest); only the checkpoint
+changes. ``load_student`` already dispatches on the S4 ``arch``. The producer
+``s4_unet_a2`` is derived from the sha, which fails closed until measured::
+
+    P=$HOME/work/proyectonp; source $P/.venv/bin/activate
+    export TORCH_HOME=$HOME/work/.torch; cd $P/repo_rel
+    S4=$P/salidas/s4_unet; C1=$P/salidas/c1
+    # 0. measure A2's identity, then commit both values into
+    #    src/dermssl/c1_mask_provenance.py (S4_UNET_A2_SHA256 / S4_UNET_A2_COMMIT)
+    #    and `git pull` the clean clone before step 1
+    sha256sum $S4/a2/best.pt; jq -r .code_revision $S4/a2/run.json
+    # 1. masks on GPU1; the gate reproduces A2's OWN published per-image Dice
+    CUDA_VISIBLE_DEVICES=1 setsid nohup python scripts/c1_predict_masks.py \
+      --checkpoint $S4/a2/best.pt --expected-checkpoint-sha256 <A2_SHA> \
+      --image-dir $P/eval_ham10000_images --output-dir $C1/masks_a2 \
+      --reference-mask-dir $P/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl \
+      --published-per-image $S4/a2/evaluacion_ham10000/per_image.csv \
+      --wandb-project dermssl-segmentacion --wandb-group v7-c1-a2 \
+      < /dev/null > $C1/masks_a2.log 2>&1 &
+    # 2. pin it: the artifact's own sha, recorded by the manifest
+    sha256sum $C1/masks_a2/c1_pseudo_masks.npy
+    jq -r .masks_sha256 $C1/masks_a2/c1_pseudo_masks_manifest.json
+    # 3. the secondary grid: scripts/c1_run_grid.py with --masks and
+    #    --masks-manifest pointing at $C1/masks_a2 and --out-dir $C1/grid_a2,
+    #    every other flag identical to the primary run
+
+Step 1 is ~10.015 forward passes of ViT-B/14 + DPT at 224 plus a PIL resize
+per image to 450x600; the resize and JPEG decode dominate, as for student_r3.
 """
 
 from __future__ import annotations
@@ -248,9 +281,10 @@ def parse_args() -> argparse.Namespace:
         type=cli_args.sha256_arg,
         required=True,
         help=(
-            "sha256 of the student_r3 checkpoint. Required, with no default: the "
-            "script labels its output as produced by student_r3, and that claim has "
-            "to be checked rather than assumed. Any compatible U-Net would otherwise "
+            "sha256 of the segmenter checkpoint (student_r3, or A2 for the C1-v7 "
+            "secondary). Required, with no default: the script labels its output "
+            "with the producer registered for that sha, and that claim has to be "
+            "checked rather than assumed. Any compatible checkpoint would otherwise "
             "load and be recorded under the wrong producer."
         ),
     )
@@ -462,6 +496,26 @@ def predict_all(
     return masks, image_ids, resolution
 
 
+def step0_identity(checkpoint_sha: str, expected_sha: str) -> tuple[str, str, str]:
+    """``(producer, run, commit)`` derived from the checkpoint's CONTENT.
+
+    Before touching the memmap: the v2 ablation loads exactly as well as the
+    published checkpoint, and A2 loads through the same ``load_student``, so
+    the only thing that tells the segmenters apart is the hash.
+    """
+    segmentation_run, segmentation_commit = mp.resolve_run(checkpoint_sha)
+    producer = mp.producer_for_run(segmentation_run)
+    if checkpoint_sha != expected_sha:
+        raise SystemExit(
+            f"ABORT: checkpoint sha256 mismatch.\n"
+            f"  expected {expected_sha}\n"
+            f"  found    {checkpoint_sha}\n"
+            f"This artifact would be labelled {producer!r} without being the "
+            "checkpoint the caller asked for."
+        )
+    return producer, segmentation_run, segmentation_commit
+
+
 def build_step0_tracker(wandb_project: str, group: str, environ=None, importer=None):
     """Strict W&B tracker for step 0, or ``None`` when tracking was not asked for.
 
@@ -493,17 +547,9 @@ def main() -> int:
         raise SystemExit(f"ABORT: no checkpoint at {checkpoint}")
 
     checkpoint_sha = mx.sha256_file(checkpoint)
-    # Derive the run from the file's content BEFORE touching the memmap: the v2
-    # ablation loads exactly as well as the published checkpoint, so the only
-    # thing that distinguishes them is the hash.
-    segmentation_run, segmentation_commit = mp.resolve_run(checkpoint_sha)
-    if checkpoint_sha != args.expected_checkpoint_sha256:
-        raise SystemExit(
-            f"ABORT: checkpoint sha256 mismatch.\n"
-            f"  expected {args.expected_checkpoint_sha256}\n"
-            f"  found    {checkpoint_sha}\n"
-            "This artifact would be labelled 'student_r3' without being it."
-        )
+    producer, segmentation_run, segmentation_commit = step0_identity(
+        checkpoint_sha, args.expected_checkpoint_sha256
+    )
 
     paths = discover_images(image_dir)
     partial = False
@@ -526,6 +572,7 @@ def main() -> int:
     device = resolve_device(args.device)
     print(f"device     : {device}")
     print(f"checkpoint : {checkpoint.name}")
+    print(f"producer   : {producer} (run {segmentation_run})")
     print(f"images     : {len(paths)}")
     print(f"inference  : {INFERENCE_PATH} (tta={USE_TTA}, upsample={UPSAMPLE})")
 
@@ -597,6 +644,7 @@ def main() -> int:
         tracker.start(
             {
                 "artifact": "c1_pseudo_masks",
+                "producer": producer,
                 "checkpoint_sha256": checkpoint_sha,
                 "masks_sha256": manifest["masks_sha256"],
                 "segmentation_run": segmentation_run,

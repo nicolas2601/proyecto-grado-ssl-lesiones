@@ -19,6 +19,7 @@ from __future__ import annotations
 import hashlib
 import re
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 import numpy as np
@@ -34,6 +35,40 @@ BACKGROUND_LABEL = 0
 UNCERTAIN_LABEL: int | None = None
 
 _SHA256 = re.compile(r"[0-9a-f]{64}")
+
+
+# Segmentation run -> the producer its masks are recorded under. The producer
+# is DERIVED from the run rather than passed in, so a caller cannot write A2's
+# masks under student_r3's name; the consumer re-derives the run from the
+# checkpoint sha (c1_mask_provenance) and checks both agree.
+#   final       the published student_r3 (docs/24), the primary C1 arm
+#   s4_unet_a2  S4-UNet A2 (docs/27), which met its prediction: C1-v7 SECONDARY
+RUN_PRODUCERS = MappingProxyType({"final": "student_r3", "s4_unet_a2": "s4_unet_a2"})
+
+_PRODUCER_NOTES = MappingProxyType({
+    "student_r3": (
+        "USL-Net path B: MoCo v2 -> CCAM -> uncertainty -> student U-Net. Trained "
+        "without reference masks or dx labels (docs/23), so feeding its predictions "
+        "into the classifier keeps C1 self-supervised."
+    ),
+    "s4_unet_a2": (
+        "S4-UNet A2 (docs/27): frozen public DINOv2 ViT-B/14 (self-supervised) + DPT "
+        "decoder trained on the r0 CCAM pseudo-masks of the student_r3 pool. No "
+        "reference mask or dx label enters training, so C1 stays self-supervised."
+    ),
+})
+
+_RUN_NOTES = MappingProxyType({
+    "final": (
+        "The published run: Dice 0,718 ISIC / 0,785 HAM10000 (docs/24). NOT the "
+        "'v2' max_area_fraction ablation, which scored 0,716 / 0,783 and was "
+        "closed as a default."
+    ),
+    "s4_unet_a2": (
+        "SECONDARY C1-v7 arm: A2 met its docs/27 prediction and replaces student_r3 "
+        "only in this run. The primary C1 table stays conditioned on student_r3."
+    ),
+})
 
 
 def is_sha256(value: str) -> bool:
@@ -160,23 +195,21 @@ def build_masks_manifest(
     for name, value in (("masks_sha256", masks_sha256), ("checkpoint_sha256", checkpoint_sha256)):
         if not is_sha256(value):
             raise ValueError(f"{name} is not a sha256 hex digest: {value!r}")
+    if segmentation_run not in RUN_PRODUCERS:
+        raise ValueError(
+            f"segmentation_run {segmentation_run!r} is not a registered segmenter; "
+            f"expected one of {sorted(RUN_PRODUCERS)}"
+        )
+    producer = RUN_PRODUCERS[segmentation_run]
 
     return {
         "artifact": "c1_pseudo_masks",
-        "producer": "student_r3",
+        "producer": producer,
         "producer_is_label_free": True,
-        "producer_note": (
-            "USL-Net path B: MoCo v2 -> CCAM -> uncertainty -> student U-Net. Trained "
-            "without reference masks or dx labels (docs/23), so feeding its predictions "
-            "into the classifier keeps C1 self-supervised."
-        ),
+        "producer_note": _PRODUCER_NOTES[producer],
         "segmentation_run": segmentation_run,
         "segmentation_commit": segmentation_commit,
-        "segmentation_run_note": (
-            "The published run: Dice 0,718 ISIC / 0,785 HAM10000 (docs/24). NOT the "
-            "'v2' max_area_fraction ablation, which scored 0,716 / 0,783 and was "
-            "closed as a default."
-        ),
+        "segmentation_run_note": _RUN_NOTES[segmentation_run],
         "checkpoint_path": checkpoint_path,
         "checkpoint_sha256": checkpoint_sha256,
         "inference": _validate_inference(inference),
@@ -198,7 +231,7 @@ def build_masks_manifest(
             "background": BACKGROUND_LABEL,
             "uncertain": UNCERTAIN_LABEL,
             "note": (
-                "student_r3 thresholds the sigmoid and returns a binary mask, so no "
+                "The segmenter's sigmoid is thresholded into a binary mask, so no "
                 "uncertain band exists in this artifact. Downstream code still treats "
                 "255 as non-lesion, matching the exporter convention."
             ),

@@ -21,10 +21,10 @@ from typing import Any
 
 import numpy as np
 
-from dermssl.c1_mask_export import is_sha256
+from dermssl.c1_mask_export import RUN_PRODUCERS, is_sha256
 
 
-ALLOWED_MASK_PRODUCERS = ("student_r3",)
+ALLOWED_MASK_PRODUCERS = ("student_r3", "s4_unet_a2")
 
 # WHICH student_r3. Two checkpoints share the name on the pod:
 #   final  d81a492  Dice 0,718 ISIC / 0,785 HAM10000 -- "Configuracion principal"
@@ -96,11 +96,29 @@ FINAL_STUDENT_R3_SHA256: str | None = (
 )
 
 
+# C1-v7 SECONDARY (docs/27): S4-UNet A2 met its prediction, so the C1 grid is
+# re-run once with its masks. Same fail-closed rule as student_r3: while the
+# sha256 of salidas/s4_unet/a2/best.pt and the code revision that trained it
+# (run.json "code_revision") are unmeasured, an A2 artifact is REFUSED. Both
+# are measured on the pod and committed here; see scripts/c1_predict_masks.py.
+S4_UNET_A2_RUN = "s4_unet_a2"
+S4_UNET_A2_SHA256: str | None = None
+S4_UNET_A2_COMMIT: str | None = None
+
+
 def checkpoint_registry() -> dict[str, tuple[str, str]]:
-    """sha256 -> (run, commit). Empty while the checkpoint is unmeasured."""
-    if FINAL_STUDENT_R3_SHA256 is None:
-        return {}
-    return {FINAL_STUDENT_R3_SHA256: PUBLISHED_SEGMENTATION}
+    """sha256 -> (run, commit), only for the checkpoints already measured."""
+    registry: dict[str, tuple[str, str]] = {}
+    if FINAL_STUDENT_R3_SHA256 is not None:
+        registry[FINAL_STUDENT_R3_SHA256] = PUBLISHED_SEGMENTATION
+    if S4_UNET_A2_SHA256 is not None and S4_UNET_A2_COMMIT is not None:
+        registry[S4_UNET_A2_SHA256] = (S4_UNET_A2_RUN, S4_UNET_A2_COMMIT)
+    return registry
+
+
+def producer_for_run(run: str) -> str:
+    """The producer a run's masks are recorded under (``c1_mask_export``)."""
+    return RUN_PRODUCERS[run]
 
 
 def resolve_run(checkpoint_sha256: str) -> tuple[str, str]:
@@ -215,6 +233,12 @@ class MaskSource:
                 "valor en vez de rechazarlo."
             )
         expected_run, expected_commit = resolve_run(checkpoint_sha)
+        if producer != producer_for_run(expected_run):
+            raise ValueError(
+                f"producer dice {producer!r} pero el sha del checkpoint corresponde a "
+                f"{producer_for_run(expected_run)!r}: las mascaras de un segmentador no "
+                "pueden entrar a C1 con el nombre del otro."
+            )
 
         run = manifest.get("segmentation_run")
         commit = manifest.get("segmentation_commit")
