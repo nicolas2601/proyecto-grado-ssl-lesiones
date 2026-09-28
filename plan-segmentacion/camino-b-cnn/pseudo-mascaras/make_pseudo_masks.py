@@ -7,6 +7,9 @@ uint8 con 0 = fondo, 1 = lesion, 255 = ignorar, y `pseudo_masks_stats.json`.
   el signo (borde frente a centro) antes de aplicar los umbrales.
 * `--source student`: probabilidades de un estudiante (rondas de re-etiquetado).
   Se usan tal cual, sin normalizar ni orientar.
+* `--source dino`: saliencia de S-diag (PCA de DINOv2, S4-UNet A1 de docs/27).
+  Se normaliza por imagen pero NO se re-orienta: el signo ya lo fijo la regla
+  del bloque central de S-diag, y una segunda regla podria invertirlo.
 
 Umbrales de USL-Net: menor a 0,35 es fondo, mayor a 0,65 es candidato a lesion,
 lo intermedio se ignora. Con `--field` los candidatos se limitan al campo del
@@ -40,13 +43,14 @@ from dermssl.cli import build_spanish_parser  # noqa: E402
 
 MASKS_FILE = "pseudo_masks.npy"
 STATS_FILE = "pseudo_masks_stats.json"
+SOURCES = ("ccam", "student", "dino")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = build_spanish_parser(description=__doc__)
     parser.add_argument("--saliency", required=True, help="Archivo .npy (N, H, W) con la saliencia")
     parser.add_argument("--output-dir", required=True, help="Carpeta de salida")
-    parser.add_argument("--source", default="ccam", choices=("ccam", "student"), help="Origen de la saliencia")
+    parser.add_argument("--source", default="ccam", choices=SOURCES, help="Origen de la saliencia")
     parser.add_argument("--low", type=float, default=um.DEFAULT_LOW, help="Umbral inferior (fondo)")
     parser.add_argument("--high", type=float, default=um.DEFAULT_HIGH, help="Umbral superior (lesion)")
     parser.add_argument("--min-area-fraction", type=float, default=um.DEFAULT_MIN_AREA_FRACTION, help="Area minima de una region, como fraccion de la imagen")
@@ -72,12 +76,11 @@ def run(args: argparse.Namespace) -> dict:
     if args.artifact_suppression:
         images = _matching_cache(args.images, saliency, "--images")
     masks = cache_io.create_cache(output_dir / MASKS_FILE, saliency.shape, "uint8")
-    from_ccam = args.source == "ccam"
     stats = um.saliency_array_to_pseudo_masks(
         saliency,
         masks,
-        orient=from_ccam,
-        normalize=from_ccam,
+        orient=args.source == "ccam",
+        normalize=args.source in ("ccam", "dino"),
         fields=fields,
         images=images,
         low=args.low,

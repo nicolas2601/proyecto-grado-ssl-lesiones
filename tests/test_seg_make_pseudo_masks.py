@@ -165,3 +165,17 @@ def test_an_image_cache_that_does_not_match_the_saliency_is_rejected(tmp_path):
     images = _write_images(tmp_path, count=1)
     with pytest.raises(SystemExit):
         _run(tmp_path, saliency, "--source", "student", "--images", str(images))
+
+
+def test_dino_source_normalizes_but_keeps_the_s_diag_sign(tmp_path):
+    """S4-UNet A1 (docs/27): the S-diag map is already oriented by its own
+    central-block rule, so only the per-image min-max applies. A map whose
+    border is brighter must NOT be flipped, unlike ``--source ccam``."""
+    raw = (1.0 - _blob()).astype(np.float32) * 7.0 - 3.0  # bright border, off [0, 1]
+    saliency = _write_saliency(tmp_path, [raw])
+    stats = _run(tmp_path, saliency, "--source", "dino", "--max-center-distance", "1.0",
+                 "--max-area-fraction", "1.0")
+    masks = cache_io.open_cache(tmp_path / "out" / "pseudo_masks.npy")
+    assert masks[0, 16, 16] == cache_io.BACKGROUND
+    assert masks[0, 0, 0] == cache_io.FOREGROUND
+    assert stats["source"] == "dino"
