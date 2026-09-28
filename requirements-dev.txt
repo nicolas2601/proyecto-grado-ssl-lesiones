@@ -42,3 +42,14 @@ imagehash>=4.3
 fastapi>=0.115
 httpx>=0.27
 python-multipart>=0.0.9
+
+# Release package of the v7 classifier (tests/test_release_*.py): safetensors
+# for the weight files, transformers for the Dinov2Model form, onnx +
+# onnxruntime + onnxconverter-common for the ONNX export and its fp16 copy.
+# Ranges with wheels for Python 3.11-3.13. Without them those modules skip on
+# a missing import, which CI_REQUIRE_FULL_DEPS turns into a failure.
+safetensors>=0.4.5,<1
+transformers>=4.45,<6
+onnx>=1.17,<2
+onnxruntime>=1.20,<2
+onnxconverter-common>=1.16,<2
