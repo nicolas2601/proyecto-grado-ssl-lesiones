@@ -87,3 +87,34 @@ def test_fp16_rule_uses_the_registered_thresholds():
 def test_json_writer_is_stable(tmp_path):
     path = pk.write_json(tmp_path / "r.json", {"b": np.float64(0.5), "a": np.int64(2)})
     assert json.loads(path.read_text()) == {"a": 2, "b": 0.5}
+
+
+def _json_result(y, proba):
+    s = metrics.summarize(y, proba, 7)
+    return {k: s[k] for k in ("macro_f1", "balanced_accuracy", "ece")}
+
+
+def test_deployment_metrics_report_every_metric_with_its_delta_to_the_evaluation():
+    y = np.arange(700) % 7
+    evaluated = _probas(700, 4)
+    deployed = evaluated.copy()
+    deployed[:5] = np.roll(deployed[:5], 1, axis=1)
+    block = pk.deployment_metrics(y, deployed, _json_result(y, evaluated), evaluated)
+    assert set(block["metrics"]) == {"macro_f1", "balanced_accuracy", "accuracy",
+                                     "mel_sensitivity", "mel_auc", "ece"}
+    for name, row in block["metrics"].items():
+        assert row["delta"] == pytest.approx(row["value"] - row["evaluated"]), name
+    assert block["n_predictions_changed"] == 5 and block["n_images"] == 700
+    same = pk.deployment_metrics(y, evaluated, _json_result(y, evaluated), evaluated)
+    assert same["n_predictions_changed"] == 0
+    assert all(row["delta"] == 0 for row in same["metrics"].values())
+
+
+def test_deployment_metrics_take_json_values_where_the_json_has_them():
+    y = np.arange(70) % 7
+    proba = _probas(70, 5)
+    json_result = {**_json_result(y, proba), "macro_f1": 0.123}
+    block = pk.deployment_metrics(y, proba, json_result, proba)
+    assert block["metrics"]["macro_f1"]["evaluated"] == 0.123
+    assert block["metrics"]["macro_f1"]["evaluated_source"] == "final_eval.json"
+    assert block["metrics"]["mel_auc"]["evaluated_source"] == "final_eval.probas.npz"

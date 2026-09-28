@@ -32,12 +32,12 @@ class AssetTooLarge(ValueError):
 
 def write_head(path, weight, bias, classes, preprocessing: dict) -> Path:
     """Fused head as safetensors: ``weight`` (C, D) and ``bias`` (C,) float32 + metadata."""
-    from safetensors.numpy import save_file  # noqa: PLC0415
-
     weight = np.ascontiguousarray(weight, dtype=np.float32)
     bias = np.ascontiguousarray(bias, dtype=np.float32)
     if weight.shape[0] != len(classes) or bias.shape != (len(classes),):
         raise ValueError(f"head has {weight.shape[0]} rows for {len(classes)} classes")
+    from safetensors.numpy import save_file  # noqa: PLC0415
+
     metadata = {"format": "pt", "classes": json.dumps(list(classes)),
                 "preprocessing": json.dumps(preprocessing)}
     save_file({"weight": weight, "bias": bias}, str(path), metadata=metadata)
@@ -122,6 +122,39 @@ def fp16_rule(y_true, fp32_proba, fp16_proba, n_classes: int = 7) -> dict:
         "delta_macro_f1": delta,
         "publish": agreement >= FP16_MIN_AGREEMENT and abs(delta) <= FP16_MAX_DELTA_F1,
     }
+
+
+JSON_METRICS = ("macro_f1", "balanced_accuracy", "ece")
+
+
+def _headline(y_true, proba, n_classes: int = 7) -> dict:
+    """The six deployment metrics of one probability matrix."""
+    from dermssl import per_class_metrics as pcm  # noqa: PLC0415
+
+    summary = metrics.summarize(y_true, proba, n_classes)
+    report = pcm.class_report(y_true, proba, pcm.HAM10000_CLASSES)
+    return {"macro_f1": summary["macro_f1"], "balanced_accuracy": summary["balanced_accuracy"],
+            "accuracy": summary["accuracy"], "mel_sensitivity": report["positive_sensitivity"],
+            "mel_auc": report["positive_auc"], "ece": summary["ece"]}
+
+
+def deployment_metrics(y_true, proba, json_result: dict, evaluated_proba) -> dict:
+    """What a user gets from a released form, next to what was evaluated.
+
+    ``evaluated`` is the final_eval.json value where the JSON has it (macro-F1,
+    balanced accuracy, ECE) and otherwise is computed from the committed
+    evaluation probabilities (accuracy, melanoma sensitivity and AUC).
+    """
+    deployed = _headline(y_true, proba)
+    from_npz = _headline(y_true, evaluated_proba)
+    rows = {}
+    for name, value in deployed.items():
+        in_json = name in JSON_METRICS
+        evaluated = float(json_result[name]) if in_json else float(from_npz[name])
+        rows[name] = {"value": float(value), "evaluated": evaluated, "delta": float(value) - evaluated,
+                      "evaluated_source": "final_eval.json" if in_json else "final_eval.probas.npz"}
+    changed = int((np.asarray(proba).argmax(1) != np.asarray(evaluated_proba).argmax(1)).sum())
+    return {"n_images": int(len(y_true)), "n_predictions_changed": changed, "metrics": rows}
 
 
 def _plain(value):
