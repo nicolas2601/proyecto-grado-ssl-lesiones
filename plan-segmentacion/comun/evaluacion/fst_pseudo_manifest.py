@@ -24,14 +24,19 @@ for _extra in (_PLAN_ROOT.parent / "src", _PLAN_ROOT / "comun" / "nucleo"):
         sys.path.insert(0, str(_extra))
 
 from dermssl import fitzpatrick, mask_manifest
+from fst_flags import (
+    TONE_LABELS,
+    TONE_UNAVAILABLE,
+    flagged_summary,
+    fst_distribution,
+    tone_distribution,
+)
 
 SCHEMA_VERSION = "1.1"
 DEFAULT_STATS_NAME = "pseudo_masks_stats.json"
 CSV_COLUMNS = (
     "image_id", "fst_bucket", "tone_tercile", "status", "L_median", "b_median", "ita", "n_skin_px"
 )
-TONE_LABELS = ("dark", "medium", "light")
-TONE_UNAVAILABLE = "unavailable"
 MIN_IMAGES_FOR_TERCILES = 3
 # Statuses whose skin medians describe real skin: the ITA bucket may be
 # missing (b* floor) but the L* median is still a valid tone reading.
@@ -156,14 +161,6 @@ def _finite_values(rows: list[dict[str, Any]]) -> list[float]:
 def _dataset_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     values = np.asarray(_finite_values(rows), dtype=np.float64)
     states = dict(sorted(Counter(row["status"] for row in rows).items()))
-    buckets = Counter(
-        str(row["FST_bucket"])
-        for row in rows
-        if row["FST_bucket"] != "unavailable"
-    )
-    tones = Counter(
-        str(row["tone_tercile"]) for row in rows if row["tone_tercile"] != TONE_UNAVAILABLE
-    )
     return {
         "n": len(rows),
         "states": states,
@@ -173,8 +170,9 @@ def _dataset_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "std": float(values.std()) if len(values) else None,
             "n": int(len(values)),
         },
-        "FST_distribution": dict(sorted(buckets.items())),
-        "tone_distribution": {label: tones[label] for label in TONE_LABELS if tones[label]},
+        "FST_distribution": fst_distribution(rows),
+        "tone_distribution": tone_distribution(rows),
+        "flagged": flagged_summary(rows),
     }
 
 
@@ -250,6 +248,7 @@ def _base_record(
         "n_skin_px": 0,
         "tone_tercile": TONE_UNAVAILABLE,
         "confidence": 0.0,
+        "artifact_detected": False,
         "quality": (
             "insufficient_mask_coverage" if not mask_record["eligible"] else mask_record["quality"]
         ),
@@ -282,6 +281,7 @@ def _apply_estimate(
             "b_median": _finite_or_none(estimate.b_median),
             "n_skin_px": int(estimate.n_skin_px),
             "confidence": float(estimate.confidence),
+            "artifact_detected": bool(estimate.artifact_detected),
             "status": estimate.status if estimate.status in SKIN_STATUSES else "quarantine",
             "quality": mask_record["quality"] if valid else f"invalid_estimate:{estimate.status}",
         }
