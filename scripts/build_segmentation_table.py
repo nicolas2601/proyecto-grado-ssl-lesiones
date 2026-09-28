@@ -37,7 +37,7 @@ CACHE = {"S2(a) sin pelo": V7 / "s2a_cache_info.json", "S2' filtro por forma": V
 PRECISION = {"bf16": V7 / "precision_bf16_pseudo_masks_stats.json",
              "fp32": V7 / "precision_fp32_pseudo_masks_stats.json"}
 DIRECTION = {"dice": "↑ mayor es mejor", "iou": "↑ mayor es mejor", "hd95": "↓ menor es mejor"}
-METRIC_NAMES = {"dice": "Dice", "iou": "IoU", "hd95": "HD95 (px)"}
+METRIC_NAMES = {"dice": "Dice", "iou": "IoU", "hd95": "HD95"}
 
 # Thresholds registered in docs/27-plan-v7-mejoras-ssl.md (FASE 2) before
 # each run, and never tuned afterwards:
@@ -110,23 +110,33 @@ def load_sources() -> dict:
             "precision": {name: _read(p) for name, p in PRECISION.items()}}
 
 
+def _student_cells(metrics: dict) -> list[str]:
+    cells = []
+    for key in METRIC_NAMES:
+        m, d = metrics[key], 2 if key == "hd95" else 4
+        cells += [f"{_num(m['mean'], d)} [{_num(m['ci95_low'], d)}; {_num(m['ci95_high'], d)}]",
+                  _num(m["median"], d)]
+    n = [_count(metrics[k]["n"]) for k in METRIC_NAMES]
+    return cells + [" / ".join(n)]
+
+
 def student_section(student: dict) -> list[str]:
     metas = [s["meta"] for refs in student.values() for s in refs.values()]
     checkpoints = sorted({"/".join(Path(m["checkpoint"]).parts[-2:]) for m in metas})
+    names = [f"{METRIC_NAMES[k]} {stat}" for k in METRIC_NAMES
+             for stat in ("media [IC 95 %]", "mediana")]
     lines = ["## Estudiante final contra las máscaras de referencia", "",
              f"Checkpoint `{'`, `'.join(checkpoints)}`, umbral "
              f"{', '.join(sorted({_num(m['threshold'], 1) for m in metas}))}, resolución "
              f"{', '.join(sorted({str(m['resolution']) for m in metas}))}. HD95 en píxeles a esa "
-             "resolución. Las máscaras de referencia solo se leen para evaluar.", "",
-             "| Variante | Referencia | Métrica | Dirección | Media [IC 95 %] | Mediana | n |",
-             "|---|---|---|---|---|---|---:|"]
+             "resolución. Las máscaras de referencia solo se leen para evaluar. Dirección: "
+             + "; ".join(f"{METRIC_NAMES[k]} {DIRECTION[k]}" for k in METRIC_NAMES) + ".", "",
+             "| Variante | Referencia | " + " | ".join(names) + f" | n ({' / '.join(METRIC_NAMES.values())}) |",
+             "|---|---|" + "---|" * len(names) + "---:|"]
     for variant, refs in student.items():
         for ref, summary in refs.items():
-            for key, name in METRIC_NAMES.items():
-                m, d = summary["metrics"][key], 2 if key == "hd95" else 4
-                lines.append(f"| {variant} | {REFERENCES[ref]} | {name} | {DIRECTION[key]} | "
-                             f"{_num(m['mean'], d)} [{_num(m['ci95_low'], d)}; {_num(m['ci95_high'], d)}] | "
-                             f"{_num(m['median'], d)} | {_count(m['n'])} |")
+            cells = _student_cells(summary["metrics"])
+            lines.append(f"| {variant} | {REFERENCES[ref]} | " + " | ".join(cells) + " |")
     return lines
 
 

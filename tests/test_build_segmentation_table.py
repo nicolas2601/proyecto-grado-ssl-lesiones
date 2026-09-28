@@ -74,3 +74,19 @@ def test_committed_data_reproduces_the_numbers_in_docs27():
         assert number in text, number
     assert bst.NOT_INTERPRETED in text
     assert "↓ menor es mejor" in text
+
+
+def test_every_student_row_shows_hd95_mean_and_median_labelled():
+    src = bst.load_sources()
+    text = bst.render(src)
+    header = [ln for ln in text.splitlines() if ln.startswith("| Variante | Referencia |")][0]
+    assert "HD95 media [IC 95 %]" in header
+    assert "HD95 mediana" in header
+    for variant, refs in src["student"].items():
+        for ref, summary in refs.items():
+            row = [ln for ln in text.splitlines()
+                   if ln.startswith(f"| {variant} | {bst.REFERENCES[ref]} |")]
+            assert len(row) == 1
+            hd95 = summary["metrics"]["hd95"]
+            assert bst._num(hd95["median"], 2) in row[0]
+            assert bst._num(hd95["mean"], 2) in row[0]
