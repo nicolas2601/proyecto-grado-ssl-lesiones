@@ -87,3 +87,27 @@ class TestMetricBundle:
         assert got["mel_sens_at_thr_spec90"] == pytest.approx(sens)
         assert got["mel_spec_at_thr_spec90"] == pytest.approx(spec)
         assert set(got) == {f"mel_{m}_at_thr_{k}" for m in ("sens", "spec") for k in thresholds}
+
+
+class TestFastPaths:
+    """The bundle runs ~2500 cells x 1000 resamples: it uses vectorised twins of
+    the published metrics, which must agree with them, ties included."""
+
+    def test_auc_matches_the_published_one_with_ties(self):
+        from dermssl import metrics as _metrics
+
+        y, proba = _toy(500, seed=3)
+        proba = np.round(proba, 2)  # many ties, like a bootstrap resample's duplicates
+        assert vm.auc_ovr_macro(y, proba) == pytest.approx(_metrics.auc_ovr_macro(y, proba), abs=1e-12)
+        assert vm.binary_auc(y == MEL, proba[:, MEL]) == pytest.approx(
+            _metrics.binary_auc((y == MEL).astype(int), proba[:, MEL]), abs=1e-12)
+
+    def test_confusion_based_metrics_match(self):
+        y, proba = _toy(500, seed=4)
+        pred = proba.argmax(axis=1)
+        pred[:40] = 3  # a class rarely predicted, to exercise the zero-denominator branch
+        onehot = np.eye(7)[pred]
+        assert vm.metric_bundle(y, onehot, mel=MEL)["macro_f1"] == pytest.approx(
+            pb.metric_macro_f1(y, onehot), abs=1e-12)
+        assert vm.metric_bundle(y, onehot, mel=MEL)["balanced_accuracy"] == pytest.approx(
+            pb.metric_balanced_accuracy(y, onehot), abs=1e-12)

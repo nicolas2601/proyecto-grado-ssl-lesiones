@@ -73,6 +73,38 @@ def operating_thresholds(y_true, proba, *, mel: int) -> dict:
     return out
 
 
+def binary_auc(y_binary, scores) -> float:
+    """``metrics.binary_auc`` with scipy's tie-averaged ranks instead of a Python loop."""
+    from scipy.stats import rankdata  # noqa: PLC0415 - ships with scikit-learn
+
+    y_binary = np.asarray(y_binary).astype(bool)
+    n_pos = int(y_binary.sum())
+    n_neg = len(y_binary) - n_pos
+    if n_pos == 0 or n_neg == 0:
+        return float("nan")
+    rank_sum = rankdata(np.asarray(scores, dtype=float))[y_binary].sum()
+    return float((rank_sum - n_pos * (n_pos + 1) / 2.0) / (n_pos * n_neg))
+
+
+def auc_ovr_macro(y_true, proba) -> float:
+    y_true = np.asarray(y_true)
+    aucs = [binary_auc(y_true == c, proba[:, c]) for c in range(proba.shape[1])]
+    valid = [a for a in aucs if a == a]
+    return float(np.mean(valid)) if valid else float("nan")
+
+
+def _confusion_metrics(y_true: np.ndarray, pred: np.ndarray, n_classes: int) -> dict:
+    """Macro-F1 and balanced accuracy from one bincount, same zero conventions as ``metrics``."""
+    cm = np.bincount(y_true * n_classes + pred, minlength=n_classes ** 2).reshape(n_classes, n_classes)
+    tp = np.diag(cm).astype(float)
+    support, predicted = cm.sum(axis=1), cm.sum(axis=0)
+    denom = 2 * tp + (predicted - tp) + (support - tp)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        f1 = np.where(denom > 0, 2 * tp / denom, 0.0)
+        recall = np.where(support > 0, tp / support, 0.0)
+    return {"macro_f1": float(f1.mean()), "balanced_accuracy": float(recall.mean())}
+
+
 def _mel_block(y_true, proba, mel: int) -> dict:
     y_mel, score = np.asarray(y_true) == mel, np.asarray(proba)[:, mel]
     if y_mel.all() or not y_mel.any():
@@ -82,7 +114,7 @@ def _mel_block(y_true, proba, mel: int) -> dict:
     thr = operating_thresholds(y_true, proba, mel=mel)
     return {
         "mel_recall": float(np.mean(np.asarray(proba)[y_mel].argmax(axis=1) == mel)),
-        "mel_auc": _metrics.binary_auc(y_mel.astype(int), score),
+        "mel_auc": binary_auc(y_mel, score),
         "mel_sens_at_spec80": sens_spec(y_mel, score, thr["spec80"])[0],
         "mel_sens_at_spec90": sens_spec(y_mel, score, thr["spec90"])[0],
         "mel_spec_at_sens95": sens_spec(y_mel, score, thr["sens95"])[1],
@@ -93,10 +125,9 @@ def metric_bundle(y_true, proba, *, mel: int) -> dict:
     y_true, proba = np.asarray(y_true), np.asarray(proba, dtype=float)
     pred = proba.argmax(axis=1)
     return {
-        "macro_f1": pb.metric_macro_f1(y_true, proba),
-        "balanced_accuracy": pb.metric_balanced_accuracy(y_true, proba),
+        **_confusion_metrics(y_true.astype(np.int64), pred, proba.shape[1]),
         "accuracy": _metrics.accuracy(y_true, pred),
-        "auc": pb.metric_auc(y_true, proba),
+        "auc": auc_ovr_macro(y_true, proba),
         "ece": pb.metric_ece(y_true, proba),
         **_mel_block(y_true, proba, mel),
     }
