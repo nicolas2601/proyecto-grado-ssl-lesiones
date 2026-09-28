@@ -108,9 +108,7 @@ def _confusion_metrics(y_true: np.ndarray, pred: np.ndarray, n_classes: int) -> 
 def _mel_block(y_true, proba, mel: int) -> dict:
     y_mel, score = np.asarray(y_true) == mel, np.asarray(proba)[:, mel]
     if y_mel.all() or not y_mel.any():
-        nan = float("nan")
-        return {"mel_recall": nan, "mel_auc": nan, "mel_sens_at_spec80": nan,
-                "mel_sens_at_spec90": nan, "mel_spec_at_sens95": nan}
+        return {name: float("nan") for name in GRID_METRICS if name.startswith("mel_")}
     thr = operating_thresholds(y_true, proba, mel=mel)
     return {
         "mel_recall": float(np.mean(np.asarray(proba)[y_mel].argmax(axis=1) == mel)),
