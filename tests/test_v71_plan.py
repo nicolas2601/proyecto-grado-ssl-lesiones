@@ -142,3 +142,11 @@ class TestCost:
         cost = plan.cost_projection(n_fit=100, n_hold=10, n_train=110, n_val=20,
                                     resolutions=(224,), n_weights=1)
         assert cost["forwards"]["grid"][224] == 100 + 8 * 10
+
+
+def test_pretest_counts_two_undefined_metrics_as_equal():
+    """A smoke holdout without melanoma leaves mel AUC undefined on both sides;
+    nan - nan must not fail the pre-test, and nan against a number must."""
+    nan = float("nan")
+    assert plan.pretest_check("A", 0.0, {"mel_auc": nan}, {"mel_auc": nan}, weights_diff=0.0)["passed"]
+    assert not plan.pretest_check("A", 0.0, {"mel_auc": 0.7}, {"mel_auc": nan}, weights_diff=0.0)["passed"]

@@ -70,9 +70,17 @@ def limited_ids(ids, labels, n: int | None) -> list:
     return sorted(picked, key=order.__getitem__)
 
 
+def _abs_delta(a, b) -> float:
+    """|a - b|, with two undefined metrics (NaN on both sides) counted as equal."""
+    a, b = float(a), float(b)
+    if a != a and b != b:
+        return 0.0
+    return abs(a - b)
+
+
 def pretest_check(arm: str, alpha: float, direct: dict, wise: dict, *, weights_diff: float,
                   tol: float = PRETEST_TOLERANCE) -> dict:
-    deltas = {k: abs(float(direct[k]) - float(wise[k])) for k in direct}
+    deltas = {k: _abs_delta(direct[k], wise[k]) for k in direct}
     passed = weights_diff == 0.0 and all(d <= tol for d in deltas.values())
     return {"arm": arm, "alpha": alpha, "weights_max_abs_diff": weights_diff,
             "metric_abs_deltas": deltas, "tolerance": tol, "passed": bool(passed)}
