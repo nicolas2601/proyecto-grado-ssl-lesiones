@@ -12,28 +12,9 @@ import pytest
 
 torch = pytest.importorskip("torch")
 from dermssl import s4_unet as s4  # noqa: E402
+from s4_fakes import FakeVit  # noqa: E402
 
 pytestmark = pytest.mark.torch
-
-EMBED = 12
-
-
-class FakeVit(torch.nn.Module):
-    """``get_intermediate_layers`` like DINOv2, with 12 cheap blocks."""
-
-    patch_size = 14
-    embed_dim = EMBED
-
-    def __init__(self):
-        super().__init__()
-        self.patch = torch.nn.Conv2d(3, EMBED, 14, stride=14)
-        self.blocks = torch.nn.ModuleList(torch.nn.Identity() for _ in range(12))
-        self.requested = []
-
-    def get_intermediate_layers(self, x, n, reshape=False, norm=True):
-        self.requested.append((tuple(n), reshape, norm))
-        base = self.patch(x)
-        return tuple(base * (index + 1) for index in n)
 
 
 def _model(**kwargs):

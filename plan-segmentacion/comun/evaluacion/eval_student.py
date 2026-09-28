@@ -16,13 +16,31 @@ import numpy as np
 from eval_inputs import load_image
 
 
+def _load_s4(checkpoint: dict):
+    """S4-UNet (docs/27): rebuild the frozen DINOv2, refusing changed weights."""
+    from dermssl import run_provenance, s4_unet
+
+    config = checkpoint["config"]
+    source, expected = config["backbone_source"], config["backbone_sha256"]
+    if source != "public" and run_provenance.file_sha256(Path(source)) != expected:
+        raise ValueError(f"backbone {source} sha256 differs from the one trained with")
+    return s4_unet.model_from_checkpoint(checkpoint, s4_unet.hub_backbone)
+
+
 def load_student(checkpoint_path: Path, device):
-    """Return ``(model in eval mode, training resolution)``."""
+    """Return ``(model in eval mode, training resolution)``.
+
+    The student U-Net by default; an S4-UNet when the checkpoint says so. Only
+    the model differs: thresholds, metrics and reports stay the caller's.
+    """
     from ckpt_io import load_checkpoint
+    from dermssl.s4_unet import ARCH as S4_ARCH
     from dermssl.torch_unet import UNet
 
     checkpoint = load_checkpoint(checkpoint_path)
     config = checkpoint.get("config", {})
+    if config.get("arch") == S4_ARCH:
+        return _load_s4(checkpoint).to(device).eval(), int(config["resolution"])
     model = UNet(base_channels=int(config.get("base_channels", 32)))
     model.load_state_dict(checkpoint["model"])
     return model.to(device).eval(), int(config.get("resolution", 224))
