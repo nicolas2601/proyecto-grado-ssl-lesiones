@@ -219,6 +219,33 @@ def test_workers_must_be_positive(capsys):
     assert "--workers must be >= 1" in capsys.readouterr().err
 
 
+def test_pool_tasks_live_in_an_importable_module(monkeypatch):
+    """On the pod the script runs as ``__main__``; loky workers cannot resolve
+    ``__main__`` globals, so what goes to the pool must come from dermssl."""
+    submitted = []
+
+    class RecordingExecutor:
+        def submit(self, fn, *args):
+            submitted.append(fn)
+
+            class Done:
+                def result(self):
+                    return None
+
+            return Done()
+
+        def shutdown(self, wait=True):
+            return None
+
+    import joblib.externals.loky as loky
+
+    monkeypatch.setattr(loky, "get_reusable_executor", lambda **kwargs: RecordingExecutor())
+    monkeypatch.setattr(sp, "wait", lambda pending, **kwargs: type("W", (), {"done": set()})())
+    with sp.mask_writer(2) as submit:
+        submit(Path("m"), "ISIC_0000000", np.zeros((256, 4)), ["primary"], 16)
+    assert [fn.__module__ for fn in submitted] == ["dermssl.s_diag"]
+
+
 def test_serial_masks_use_one_cpu_thread_like_the_workers(tmp_path, fake_backbone, monkeypatch):
     """Multi-threaded BLAS moves the PCA by ~1e-16, so serial pins one thread too."""
     from threadpoolctl import threadpool_info

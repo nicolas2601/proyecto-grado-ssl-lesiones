@@ -52,7 +52,6 @@ evaluator refuses a partial set, so the smoke only checks the predictions.
 from __future__ import annotations
 
 import argparse
-import functools
 import hashlib
 import json
 import os
@@ -129,26 +128,14 @@ def extract_tokens(model, paths: list[Path], resolution: int, device) -> np.ndar
     return tokens.float().cpu().numpy()
 
 
-@functools.cache
-def _thread_controller():
-    """Built once the PCA / k-means libraries are loaded, so it sees their pools."""
-    import sklearn.cluster  # noqa: F401
-    import skimage.measure  # noqa: F401
-    from threadpoolctl import ThreadpoolController
-
-    return ThreadpoolController()
+def _mask_args(masks_dir: Path, image_id: str, tokens: np.ndarray, methods, grid: int):
+    kinds = {method: METHODS[method][0] for method in methods}
+    shape = (MASK_RESOLUTION, MASK_RESOLUTION)
+    return masks_dir, image_id, tokens, kinds, grid, shape, KMEANS_SEED, CPU_THREADS_PER_IMAGE
 
 
 def write_masks(masks_dir: Path, image_id: str, tokens: np.ndarray, methods, grid: int) -> None:
-    from PIL import Image
-
-    shape = (MASK_RESOLUTION, MASK_RESOLUTION)
-    for method in methods:
-        with _thread_controller().limit(limits=CPU_THREADS_PER_IMAGE):
-            mask = sd.segment(METHODS[method][0], tokens, grid, shape, seed=KMEANS_SEED)
-        Image.fromarray(mask.astype(np.uint8) * 255, mode="L").save(
-            masks_dir / f"{image_id}_{method}.png"
-        )
+    sd.write_mask_pngs(*_mask_args(masks_dir, image_id, tokens, methods, grid))
 
 
 def _raise_failures(futures) -> None:
@@ -174,7 +161,7 @@ def mask_writer(workers: int):
     pending = set()
 
     def submit(*write_args) -> None:
-        pending.add(executor.submit(write_masks, *write_args))
+        pending.add(executor.submit(sd.write_mask_pngs, *_mask_args(*write_args)))
         if len(pending) > workers * BACKLOG_PER_WORKER:
             done, _ = wait(pending, return_when=FIRST_COMPLETED)
             pending.difference_update(done)

@@ -20,6 +20,9 @@ Pure numpy / scikit-learn / scikit-image: importable with no torch.
 
 from __future__ import annotations
 
+import functools
+from pathlib import Path
+
 import numpy as np
 
 METHODS = ("pca", "kmeans")
@@ -123,3 +126,30 @@ def _candidate(method: str, tokens: np.ndarray, grid: int, shape, seed: int) -> 
 def segment(method: str, tokens: np.ndarray, grid: int, shape, seed: int) -> np.ndarray:
     """Boolean lesion mask of ``shape`` for one image's patch tokens."""
     return central_component(_candidate(method, tokens, grid, tuple(shape), seed))
+
+
+@functools.cache
+def _thread_controller():
+    """Built once the PCA / k-means libraries are loaded, so it sees their pools."""
+    import sklearn.cluster  # noqa: F401
+    import skimage.measure  # noqa: F401
+    from threadpoolctl import ThreadpoolController
+
+    return ThreadpoolController()
+
+
+def write_mask_pngs(masks_dir, image_id: str, tokens: np.ndarray, kinds: dict[str, str],
+                    grid: int, shape, seed: int, cpu_threads: int) -> None:
+    """One 0/255 PNG per method, ``<image_id>_<method>.png``, each on ``cpu_threads``.
+
+    Lives here, not in the pod script, so a process pool can import it: loky
+    workers cannot resolve globals of a script that runs as ``__main__``.
+    """
+    from PIL import Image
+
+    for method, kind in kinds.items():
+        with _thread_controller().limit(limits=cpu_threads):
+            mask = segment(kind, tokens, grid, shape, seed)
+        Image.fromarray(mask.astype(np.uint8) * 255, mode="L").save(
+            Path(masks_dir) / f"{image_id}_{method}.png"
+        )
