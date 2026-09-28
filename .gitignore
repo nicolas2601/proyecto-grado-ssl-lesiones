@@ -74,3 +74,6 @@ salidas/
 *.netrc
 .levers.diff
 .levers_prompt.txt
+
+# --- Release packages built on the pod (binaries never versioned) ---
+/release/
