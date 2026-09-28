@@ -343,6 +343,7 @@ class TestRunIdentityIsTiedToCheckpointContent:
         the value changes, and it is the REFUSAL that has to keep working.
         """
         monkeypatch.setattr(mp, "FINAL_STUDENT_R3_SHA256", None)
+        monkeypatch.setattr(mp, "S4_UNET_A2_SHA256", None)  # A2 is pinned too since 3f15487
         assert mp.checkpoint_registry() == {}
         with pytest.raises(ValueError, match="todav|not registered|unregistered"):
             mp.MaskSource.from_manifest(self._manifest())
