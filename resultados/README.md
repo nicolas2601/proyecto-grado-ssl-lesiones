@@ -6,6 +6,18 @@ clasificador. Que gano, que perdio, y como mejorarlo.
 
 > Navegación: [README principal](../README.md) · [análisis final](../docs/24-analisis-final-resultados-y-escenarios-ada.md) · [fuentes y ramas](../docs/00-fuentes-y-ramas.md) · [demo](../demo/README.md).
 
+## Dónde está cada resultado
+
+| Resultado | Tabla (generada) | Datos | Estado |
+|---|---|---|---|
+| v7: evaluación única A\*, B\* y DINOv2 público sobre val | [clasificacion/v7/README.md](clasificacion/v7/README.md) | `clasificacion/v7/final_eval.json` | Vigente (semilla 42; réplica 43 pendiente) |
+| C1: grilla de condiciones de máscara por backbone | [clasificacion/c1/README.md](clasificacion/c1/README.md) | `clasificacion/c1/*.json` | Vigente |
+| v6: bancos congelados y bootstrap pareado | Secciones 4 a 7 de este documento | `clasificacion/bank.json`, `clasificacion/bootstrap.json` | Superado por v7 |
+| Segmentación y tono | Secciones 2 y 3 de este documento | `segmentacion/`, `tono/` | Vigente |
+| Baselines | [baselines/README.md](baselines/README.md) | `baselines/` | Histórico |
+
+Las tablas generadas tienen un test que falla si no coinciden con su JSON (`tests/test_generated_readmes_fresh.py`, `tests/test_resultados_readme_fresh.py`).
+
 ## Regla de lectura
 
 Esta carpeta es la fuente canónica de los resultados del pipeline propuesto.

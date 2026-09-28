@@ -1,21 +1,57 @@
 # Proyecto de Grado UNAB — Clasificación de Lesiones Cutáneas con Aprendizaje Autosupervisado (SSL)
 
-Repositorio privado de trabajo para investigar la clasificación experimental de lesiones cutáneas mediante aprendizaje autosupervisado. No es un dispositivo de diagnóstico.
+Repositorio de trabajo para investigar la clasificación experimental de lesiones cutáneas (HAM10000) con aprendizaje autosupervisado sobre DINOv2. No es un dispositivo de diagnóstico.
+
+## Resultado principal (v7)
+
+La tabla vigente es [`resultados/clasificacion/v7/README.md`](resultados/clasificacion/v7/README.md). Se genera desde `final_eval.json` y un test falla si alguien edita un número a mano, así que acá no se copia ninguna cifra.
+
+Compara tres brazos sobre la validación del fold 0 de C1: DINOv2 público, SSL anclado sin tono (A\*) y SSL propuesto con tono (B\*). Usa un probe lineal, una sola evaluación e intervalos bootstrap del 95 %. Las predicciones se registraron antes de correrla ([docs/28 §5](docs/28-rediseno-brazo-propuesto-v7.md)).
+
+Lectura al 2026-09-28, con la semilla 42:
+- B\* le gana al DINOv2 público en macro-F1, con un intervalo que excluye el cero.
+- A\* no pierde contra el público.
+- B\* no calibra mejor que A\*.
+
+La réplica con la semilla 43 está pendiente y se reportará junto a esta, sin elegir semilla.
 
 ## Objetivos específicos
 
-1. Caracterizar conjuntos de datos de imágenes dermatológicas representativos de lesiones cutáneas relevantes para el contexto clínico del departamento de Santander. — Estado: Completado.
-   Ver [datasets](docs/02-datasets.md) y [contexto](docs/01-contexto-y-objetivos.md).
-2. Diseñar un algoritmo de clasificación de lesiones cutáneas basado en aprendizaje autosupervisado utilizando imágenes dermatológicas. — Estado: Completado.
-   Ver [pipeline propuesto](docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md) y [plan v6](docs/16-plan-v6-pretraining-gpu.md).
-3. Evaluar el desempeño del algoritmo propuesto mediante métricas reportadas en la literatura científica para tareas de análisis de imágenes médicas. — Estado: En curso (versión v7, ver docs/27).
-   Ver [resultados finales](resultados/README.md) y [análisis final](docs/24-analisis-final-resultados-y-escenarios-ada.md).
+1. Caracterizar conjuntos de datos de imágenes dermatológicas representativos de lesiones cutáneas relevantes para el contexto clínico del departamento de Santander. Estado: completado. Ver [datasets](docs/02-datasets.md) y [contexto](docs/01-contexto-y-objetivos.md).
+2. Diseñar un algoritmo de clasificación de lesiones cutáneas basado en aprendizaje autosupervisado. Estado: completado; diseño vigente en [docs/28](docs/28-rediseno-brazo-propuesto-v7.md).
+3. Evaluar el desempeño del algoritmo con métricas de la literatura de análisis de imágenes médicas. Estado: evaluación única v7 hecha; réplica de semilla en curso ([plan v7](docs/27-plan-v7-mejoras-ssl.md)).
 
-## Arquitectura
+## Mapa del repositorio
 
-![Arquitectura completa del sistema](assets/figuras/fig11_infografia_arquitectura.png)
+| Carpeta | Qué contiene |
+|---|---|
+| [`src/dermssl/`](src/dermssl/) | Librería del proyecto: preentrenamiento SSL (`pretrain/`), probes, métricas, bootstrap pareado, evaluación final, procedencia de corridas. |
+| [`scripts/`](scripts/) | Puntos de entrada: preentrenamiento, selección de variantes, evaluación final y generadores de tablas (`build_*`). |
+| [`resultados/`](resultados/README.md) | Resultados versionados: C1, v7 y bancos congelados. Las tablas se generan desde JSON. |
+| [`docs/`](docs/README.md) | Documentación numerada 00-28, con índice y estado de cada documento. |
+| [`plan-segmentacion/`](plan-segmentacion/README.md) | Segmentación sin etiquetas (CCAM, pseudo-máscaras, remoción de pelo). |
+| [`tests/`](tests/) | Suite de pytest; corre sin GPU. |
+| [`openspec/`](openspec/) | Especificaciones de cambios (OpenSpec). |
+| [`cluster/`](cluster/README.md) | Operación del cluster UNABIA. |
+| [`demo/`](demo/README.md) | Demo del modelo. |
+| `results/` | Bancos de versiones anteriores (histórico). |
 
-Flujo de datos, segmentación, estimación de tono, adaptación SSL, clasificación y evaluación. Ver la [arquitectura detallada](docs/GUIA.md#arquitectura-del-sistema).
+## Cómo reproducir la evaluación v7
+
+Requiere HAM10000 en `~/work/datos/ham10000`, los backbones finales A\* y B\* con su `run.json`, y el holdout y la lista de exclusión de C1. El script se niega a correr sobre validación si el árbol de git está sucio, si los ids de train o de val no coinciden con C1 o si la salida ya existe.
+
+```bash
+PYTHONPATH=src python scripts/c1_final_eval.py --split val --single-evaluation \
+    --ham-root ~/work/datos/ham10000 --holdout "$S/selection/selection_holdout.json" \
+    --plain dinov2_vitb14:"$V/final_A/simsiam_dinov2_backbone_final.pt" \
+    --proposed dinov2_vitb14:"$V/final_B/simsiam_dinov2_backbone_final.pt" \
+    --exclude-ids-file "$S/selection/pretrain_exclude_ids_finals.txt" \
+    --out resultados/clasificacion/v7/final_eval.json
+python scripts/build_final_eval_table.py resultados/clasificacion/v7/final_eval.json \
+    --out resultados/clasificacion/v7/README.md
+```
+
+Tests y lint: `pytest -q` y `ruff check .`
 
 ## Equipo
 
@@ -26,16 +62,3 @@ Flujo de datos, segmentación, estimación de tono, adaptación SSL, clasificaci
 | Andrés Jerez | Director |
 | Karen Sánchez — KAUST | Asesora |
 | UNAB — Ingeniería de Sistemas | Institución |
-
-## Dónde está todo
-
-| Recurso | Enlace |
-|---|---|
-| Documentación | [docs/README.md](docs/README.md) |
-| Guía del repositorio | [docs/GUIA.md](docs/GUIA.md) |
-| Resultados | [resultados/README.md](resultados/README.md) |
-| Baselines | [resultados/baselines/README.md](resultados/baselines/README.md) |
-| Demo | [demo/README.md](demo/README.md) |
-| Cluster | [cluster/README.md](cluster/README.md) |
-| Assets | [assets/README.md](assets/README.md) |
-| Plan v7 | [docs/27](docs/27-plan-v7-mejoras-ssl.md) |

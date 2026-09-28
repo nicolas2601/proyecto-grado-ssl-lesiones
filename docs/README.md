@@ -1,91 +1,54 @@
-# Mapa de documentación
+# Índice de documentación
 
-Este índice separa evidencia final, decisiones, operación y documentos
-históricos. La entrada principal del repositorio es el
+Una línea por documento, en orden numérico. La columna Estado indica si el documento es la referencia vigente o si otro lo reemplazó. Los superados se conservan sin editar, porque cuentan cómo se llegó al diseño actual.
 
-## Ruta recomendada
+Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Rediseño v7](28-rediseno-brazo-propuesto-v7.md) y el [resultado v7](../resultados/clasificacion/v7/README.md).
 
-1. [Fuentes y ramas](00-fuentes-y-ramas.md): por qué existe la rama consolidada
-   y de dónde viene cada línea.
-2. [Análisis final](24-analisis-final-resultados-y-escenarios-ada.md): lectura
-   científica más reciente y límites de interpretación.
-3. [Resultados versionados](../resultados/README.md): JSON, bootstrap,
-   manifiestos, resúmenes y artefactos visuales.
-4. [Pipeline propuesto](22-pipeline-propuesto-segmentacion-tono-clasificador.md):
-   descripción de la cadena completa.
-5. [Decisiones técnicas](04-decisiones-tecnicas.md) y
-   [por qué se eligieron](13-por-que-estas-decisiones.md).
-6. [Operación del cluster](../cluster/README.md) y
-   [runbook de segmentación](../plan-segmentacion/RUNBOOK_CLUSTER.md).
+| Doc | Tema | Estado |
+|---|---|---|
+| [00](00-fuentes-y-ramas.md) | Fuentes y ramas: de dónde viene cada línea de trabajo de la rama consolidada. | Vigente |
+| [01](01-contexto-y-objetivos.md) | Contexto, problema, objetivos y alcance. | Vigente |
+| [02](02-datasets.md) | Datasets y sus restricciones. | Vigente |
+| [03](03-metodologia-crisp-mlq.md) | Metodología CRISP-ML(Q). | Vigente |
+| [04](04-decisiones-tecnicas.md) | Registro de decisiones técnicas (ADR). | Vigente como registro |
+| [05](05-pipeline-objetivo2.md) | Pipeline del objetivo 2 sobre el notebook v4. | Superado (v4) |
+| [06](06-problematicas.md) | Problemáticas abiertas y resueltas. | Vigente como registro |
+| [07](07-fiabilidad-y-sesgo.md) | Fiabilidad y sesgo. | Vigente |
+| [08](08-estado-actual-y-next-steps.md) | Estado y próximos pasos a agosto de 2026. | Superado (histórico) |
+| [09](09-referencias.md) | Referencias bibliográficas. | Vigente |
+| [10](10-glosario-eli5.md) | Glosario explicado sencillo. | Vigente |
+| [11](11-resultados-finales.md) | Resultados de la corrida definitiva v4. | Superado (v4) |
+| [12](12-model-card.md) | Model card del modelo v4. | Superado (v4) |
+| [13](13-por-que-estas-decisiones.md) | Por qué se eligieron la arquitectura y el método. | Vigente |
+| [14](14-mejoras-pipeline.md) | Mejoras de pipeline propuestas tras v4. | Superado (v4) |
+| [15](15-auditoria-ssl-puro-y-plan-v5.md) | Auditoría de SSL puro y plan v5. | Superado (v5) |
+| [16](16-plan-v6-pretraining-gpu.md) | Plan v6 de preentrenamiento en GPU con MLflow. | Superado (v6) |
+| 17 | Modelos baseline ([docx](17-modelos-baseline.docx)). | Histórico |
+| [18](18-estructura-visual-y-tests-baseline.md) | Estructura visual del pipeline y tests de baseline. | Vigente |
+| [19](19-resultados-bancos-congelados.md) | Resultados de los bancos congelados v5 y cómo leerlos. | Superado (v5) |
+| [20a](20-esquema-fst-manifest.md) | Esquema de `fst_manifest.csv` (costura GPU/CPU). | Vigente |
+| [20b](20-falsear-los-guards.md) | Falsear los guards: tests que pasan sin existir. | Vigente |
+| [20c](20-validacion-externa-fst-fitzpatrick17k.md) | Validación externa del estimador FST con Fitzpatrick17k. | Vigente |
+| [21](21-checkpoint-manual-circle-stage2.md) | Checkpoint manual de la línea CIRCLe (stage 2). | Histórico |
+| [22](22-pipeline-propuesto-segmentacion-tono-clasificador.md) | Pipeline propuesto: segmentación, tono y clasificador. | v6; la parte SSL la reemplaza 28 |
+| [23](23-modelo-descargable-y-uso.md) | Modelo descargable: qué se publica y cómo se prueba. | Vigente para el artefacto publicado |
+| [24](24-analisis-final-resultados-y-escenarios-ada.md) | Análisis de resultados v6 y escenarios ADA. | Superado por el resultado v7 |
+| 25 | No existe: el número quedó sin usar. | — |
+| [26](26-plan-correccion-segmentacion-y-clasificador.md) | Plan de corrección de segmentación y clasificador. | Superado por 27 |
+| [27](27-plan-v7-mejoras-ssl.md) | Plan v7: segmentación (S1, S2, S2'), C1 y comparativa justa. | Vigente |
+| [28](28-rediseno-brazo-propuesto-v7.md) | Rediseño v7 del brazo propuesto, predicciones registradas y réplica de semilla. | Vigente |
 
-## Documentos por función
+Otros documentos:
 
-### Contexto y método
-
-| Documento | Uso |
+| Documento | Tema |
 |---|---|
-| [01 · Contexto y objetivos](01-contexto-y-objetivos.md) | Problema, objetivos y alcance. |
-| [02 · Datasets](02-datasets.md) | Fuentes de datos y restricciones. |
-| [03 · CRISP-ML(Q)](03-metodologia-crisp-mlq.md) | Metodología del proyecto. |
-| [09 · Referencias](09-referencias.md) | Bibliografía y referencias técnicas. |
-| [10 · Glosario](10-glosario-eli5.md) | Términos explicados. |
-
-### Decisiones y arquitectura
-
-| Documento | Estado |
-|---|---|
-| [04 · Decisiones técnicas](04-decisiones-tecnicas.md) | Registro ADR histórico y vigente por decisión. |
-| [13 · Por qué estas decisiones](13-por-que-estas-decisiones.md) | Razonamiento técnico y de recursos. |
-| [05 · Pipeline objetivo 2](05-pipeline-objetivo2.md) | Diseño de la primera línea SSL. |
-| [16 · Plan v6](16-plan-v6-pretraining-gpu.md) | Diseño de preentrenamiento propio; no implica corrida ejecutada. |
-| [18 · Estructura visual y tests](18-estructura-visual-y-tests-baseline.md) | Arquitecturas, protocolos y figuras. |
-| [22 · Pipeline propuesto](22-pipeline-propuesto-segmentacion-tono-clasificador.md) | Cadena segmentación → tono → SSL → clasificación. |
-| [23 · Modelo descargable](23-modelo-descargable-y-uso.md) | Contrato de uso del artefacto de modelo. |
-
-### Resultados y fiabilidad
-
-| Documento | Lectura correcta |
-|---|---|
-| [06 · Problemáticas](06-problematicas.md) | Errores, límites y contradicciones detectadas. |
-| [07 · Fiabilidad y sesgo](07-fiabilidad-y-sesgo.md) | Riesgos de fiabilidad y fairness. |
-| [08 · Estado anterior](08-estado-actual-y-next-steps.md) | Histórico de agosto; no reemplaza el banco de septiembre. |
-| [11 · Resultados finales v4](11-resultados-finales.md) | Histórico de la corrida v4. |
-| [12 · Model card](12-model-card.md) | Ficha del modelo v4 y condiciones de uso. |
-| [14 · Mejoras de pipeline](14-mejoras-pipeline.md) | Mejoras propuestas y su motivación. |
-| [15 · Auditoría SSL puro](15-auditoria-ssl-puro-y-plan-v5.md) | Transición v4 → v5. |
-| [19 · Bancos congelados](19-resultados-bancos-congelados.md) | Baselines v5 y lecciones de medición. |
-| [21 · Checkpoint CIRCLe](21-checkpoint-manual-circle-stage2.md) | Estado manual de la línea CIRCLe. |
-| [24 · Análisis final](24-analisis-final-resultados-y-escenarios-ada.md) | Fuente narrativa más reciente. |
-
-### Documentos numerados 20
-
-Los tres archivos con prefijo `20` no son duplicados: se conservan con su
-nombre completo para no romper enlaces históricos.
-
-| Archivo | Tema |
-|---|---|
-| [20 · Esquema FST manifest](20-esquema-fst-manifest.md) | Contrato de datos entre GPU y CPU. |
-| [20 · Falsear los guards](20-falsear-los-guards.md) | Lecciones de tests estáticos falsables. |
-| [20 · Validación externa FST](20-validacion-externa-fst-fitzpatrick17k.md) | Validación contra Fitzpatrick17k-C y límites de ITA. |
-
-### Planes y especificaciones
-
-| Área | Enlace |
-|---|---|
-| OpenSpec activo | [`../openspec/`](../openspec/) |
-| Planes de ejecución | [`superpowers/plans/`](superpowers/plans/) |
-| Plan de segmentación | [`../plan-segmentacion/README.md`](../plan-segmentacion/README.md) |
-| Resultados de segmentación | [`../plan-segmentacion/camino-b-cnn/resultados/README.md`](../plan-segmentacion/camino-b-cnn/resultados/README.md) |
-| Cluster y SLURM | [`../cluster/README.md`](../cluster/README.md) |
-| Figuras de análisis | [`figuras_analisis/`](figuras_analisis/) |
+| [GUIA.md](GUIA.md) | Guía del repositorio y arquitectura del sistema. |
+| [plan-segmentacion-sin-etiquetas.md](plan-segmentacion-sin-etiquetas.md) | Plan ejecutivo de pruebas de segmentación no supervisada por tono. |
+| [superpowers/plans/](superpowers/plans/) | Planes de ejecución. |
+| [figuras_analisis/](figuras_analisis/) | Figuras de análisis. |
 
 ## Regla de actualización
 
-Cuando aparezca una nueva corrida:
-
-1. guardar el artefacto con fecha, commit y preset;
-2. actualizar [`resultados/README.md`](../resultados/README.md);
-3. actualizar [`docs/24`](24-analisis-final-resultados-y-escenarios-ada.md)
-   solo si cambia la interpretación;
-4. añadir el enlace aquí y al README raíz;
-5. no borrar el documento anterior: marcarlo como histórico.
+1. Un resultado nuevo se guarda como JSON con su commit y su tabla generada en `resultados/`.
+2. Un documento superado no se borra: se marca en esta tabla.
+3. Las cifras viven en los JSON y en las tablas generadas; los documentos las enlazan.
