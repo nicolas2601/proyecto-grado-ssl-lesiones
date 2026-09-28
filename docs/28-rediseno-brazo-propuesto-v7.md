@@ -67,6 +67,13 @@ B1-spec se detuvo con SIGTERM a las 17:58:10 UTC, en el paso ~270 (el último lo
 
 **Réplica de semilla (opcional, registrada antes de las finales).** Las finales usan semilla 42. El IC del bootstrap cubre la variabilidad del conjunto de evaluación, NO la del entrenamiento. Si hay GPU libre al terminar las finales, se repiten A\* y B\* con semilla 43, en la misma revisión y con el mismo exclude, y se reportan AMBAS semillas. No se elige semilla: la conclusión se reporta con las dos. Si no hay tiempo, esto va como limitación explícita. Programación (2026-09-27): A\* con semilla 43 en cuda:0 apenas termine A\* (~23:10 UTC) y B\* con semilla 43 en cuda:1 apenas termine B\* (~01:50 UTC), las dos desde la revisión f1c2053 y con el exclude 95d21013….
 
+**Evaluación de la réplica s43 (registrada el 2026-09-28, antes de correrla).** La evaluación de semilla 42 ya está hecha (`resultados/clasificacion/v7/`, commit f562ea9). La réplica es otra lectura de val, pero sobre modelos distintos, y se fija así antes de ver un solo número:
+
+- Mismo comando que la evaluación única, con `--plain` y `--proposed` apuntando a `final_A_s43` y `final_B_s43`. La salida va a `salidas/v7/eval_final_s43/`. El código es el de f562ea9, no el de 7fd6245. Lo único que cambia es el bloque secundario del IC basic de ECE; las métricas, el probe, el bootstrap y sus semillas son los mismos. El sha256 del código de evaluación se vuelve a fijar en f562ea9 y se verifica justo antes de correr.
+- Misma regla de veredicto: P1, P2 y P3 como primarias, y P1-NI, P3-IC y el IC basic de ECE como secundarias (§5).
+- La conclusión se reporta con AMBAS semillas: cada una por separado, y además la media de las dos junto con la diferencia entre ellas (s43 − s42). No se elige semilla.
+- Si s43 contradice a s42 en P3-IC, la frase "le gana al público" no se sostiene y se reporta como "no robusto a la semilla".
+
 **Regla de pausa del trabajo de CPU (S2, casi-duplicados; 2026-09-27):** se pausa si cualquier entrenamiento cae más de 15 % bajo su ritmo propio medido solo (A ≈ 22-24 pasos/min, umbral ~19; B ≈ 14,4, umbral ~12,2).
 
 El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops independientes que existía cuando se lanzó la oleada 1; la oleada 1 no lo usa, así que no la afecta.
