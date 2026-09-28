@@ -24,6 +24,7 @@ for _extra in (_PLAN_ROOT.parent / "src", _PLAN_ROOT / "comun" / "nucleo"):
         sys.path.insert(0, str(_extra))
 
 from dermssl import fitzpatrick, mask_manifest
+from fst_arrays import cache_pixels, load_cache_images, load_field
 from fst_flags import (
     TONE_LABELS,
     TONE_UNAVAILABLE,
@@ -65,6 +66,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=None,
         help="Optional field.npy (N, H, W); pixels outside the dermoscope field are not skin",
+    )
+    parser.add_argument(
+        "--images",
+        type=Path,
+        default=None,
+        help="Optional cache images.npy (N, H, W, 3) uint8; read instead of the source files",
     )
     parser.add_argument(
         "--source-revision",
@@ -207,15 +214,6 @@ def assign_tone_terciles(records: list[dict[str, Any]]) -> dict[str, Any]:
     return {"low": low, "high": high, "n": len(eligible)}
 
 
-def _load_field(path: Path | None, masks: np.ndarray) -> np.ndarray | None:
-    if path is None:
-        return None
-    field = np.load(path, mmap_mode="r")
-    if field.shape != masks.shape:
-        raise ValueError(f"field {field.shape} does not match pseudo_masks {masks.shape}")
-    return field
-
-
 def _border_mask(pseudo: np.ndarray, field: np.ndarray | None, index: int) -> np.ndarray:
     """Pixels that are not skin: the ignore band plus everything outside the field."""
     border = pseudo == 255
@@ -260,13 +258,13 @@ def _base_record(
 
 def _apply_estimate(
     record: dict[str, Any],
-    image_path: Path,
+    image: np.ndarray,
     lesion: np.ndarray,
     mask_record: dict[str, Any],
     border: np.ndarray,
 ) -> None:
     estimate = fitzpatrick.estimate_fst_from_mask_record(
-        _load_image(image_path, lesion.shape),
+        image,
         mask=lesion,
         mask_record=mask_record,
         border_mask=border,
@@ -292,7 +290,13 @@ def _finite_or_none(value: float) -> float | None:
     return float(value) if math.isfinite(value) else None
 
 
-def _records(args: argparse.Namespace, rows, masks, field, metadata) -> list[dict[str, Any]]:
+def _pixels(images: np.ndarray | None, index: int, path: Path, shape) -> np.ndarray:
+    """The cache frame when ``--images`` is given, else the resized source file."""
+    return _load_image(path, shape) if images is None else cache_pixels(images, index)
+
+
+def _records(args: argparse.Namespace, rows, masks, arrays, metadata) -> list[dict[str, Any]]:
+    field, images = arrays
     records: list[dict[str, Any]] = []
     for row in rows:
         index = row["index"]
@@ -312,7 +316,8 @@ def _records(args: argparse.Namespace, rows, masks, field, metadata) -> list[dic
         record = _base_record(row, metadata, image_path, pseudo, mask_record)
         if mask_record["eligible"]:
             _apply_estimate(
-                record, image_path, lesion, mask_record, _border_mask(pseudo, field, index)
+                record, _pixels(images, index, image_path, lesion.shape), lesion, mask_record,
+                _border_mask(pseudo, field, index),
             )
         records.append(record)
     return records
@@ -326,9 +331,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     if rows and max(row["index"] for row in rows) >= len(pseudo_masks):
         raise ValueError("manifest index exceeds pseudo_masks length")
 
-    field = _load_field(args.field, pseudo_masks)
+    field = load_field(args.field, pseudo_masks)
+    images = load_cache_images(args.images, pseudo_masks)
     metadata = _metadata(_load_stats(args.pseudo_masks, args.stats_json))
-    records = _records(args, rows, pseudo_masks, field, metadata)
+    records = _records(args, rows, pseudo_masks, (field, images), metadata)
     tone_cuts = assign_tone_terciles(records)
 
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -337,6 +343,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     manifest = {
         "schema_version": SCHEMA_VERSION,
         "field_used": field is not None,
+        "images_used": None if args.images is None else str(args.images),
         "records": records,
         "summary": {
             "total": len(records),
