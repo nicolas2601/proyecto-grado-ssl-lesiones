@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import closing_rows_classifier as clf  # noqa: E402
 import closing_rows_segmentation as segrows  # noqa: E402
 from closing_table_rules import (  # noqa: E402, F401
-    BETTER, MET, NOT_MET, PENDING, REPO, SAME, WORSE, Row, RowSpec, below_without_overlap, build_row,
+    BETTER, DONE, MEETS_THRESHOLD, MET, NOT_MET, PENDING, REPO, SAME, WORSE, Row, RowSpec, below_without_overlap, build_row,
     mask_helps, paired_verdict, s4_threshold_met, seeds_verdict)
 
 TARGET = REPO / "resultados" / "TABLA_CIERRE.md"
@@ -53,8 +53,12 @@ def rules() -> list[str]:
     return [
         "## Cómo se decide el veredicto", "",
         f"- **{MET} / {NOT_MET}**: el ítem tiene una predicción o un criterio registrado antes del dato "
-        "(docs/26, docs/27, docs/28), y el script lo evalúa con esa regla. Si el pedido es una acción sin "
-        f"predicción numérica, **{MET}** significa que el artefacto que la prueba está commiteado.",
+        "(docs/26, docs/27, docs/28), y el script lo evalúa con esa regla.",
+        f"- **{DONE}**: el pedido es una acción sin predicción numérica; el artefacto que la prueba está "
+        "commiteado, pero no hay una mejora medida contra un umbral.",
+        f"- **{MEETS_THRESHOLD} (…)**: se cumple el umbral registrado, pero no es una mejora; el paréntesis, "
+        "calculado desde los datos, dice por qué (por ejemplo, la cobertura supera el umbral porque el método "
+        "sobre-segmenta).",
         f"- **{BETTER} / {SAME} / {WORSE}**: comparación sin umbral registrado; decide el IC 95 % pareado. "
         f"**{BETTER}** o **{WORSE}** solo si el intervalo excluye el cero; si lo incluye, **{SAME}**.",
         f"- **{PENDING}**: el ítem está registrado pero su archivo de datos no está en el repositorio. "

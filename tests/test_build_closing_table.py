@@ -93,10 +93,36 @@ def test_an_item_without_any_data_source_is_pending():
 
 
 def test_render_has_one_verdict_per_row_from_the_allowed_set():
-    allowed = {ct.BETTER, ct.SAME, ct.WORSE, ct.MET, ct.NOT_MET, ct.PENDING}
+    allowed = {ct.BETTER, ct.SAME, ct.WORSE, ct.MET, ct.NOT_MET, ct.PENDING, ct.DONE}
     rows = ct.build_rows()
     assert rows, "the table must not be empty"
-    assert {r.veredicto for r in rows} <= allowed
+    assert {r.veredicto for r in rows if not r.veredicto.startswith(ct.MEETS_THRESHOLD)} <= allowed
+
+
+def _by_pedido(fragment: str):
+    return next(r for r in ct.build_rows() if fragment in r.pedido)
+
+
+def test_an_action_row_says_done_not_met():
+    assert ct.DONE == "hecho (no es mejora medida)"
+    assert _by_pedido("S3: reportar aparte").veredicto == ct.DONE
+    assert _by_pedido("FST con las máscaras de A2").veredicto == ct.DONE
+
+
+def test_the_oversegmenting_coverage_row_carries_the_computed_dice_count():
+    import closing_rows_segmentation as segrows
+
+    data = {p: json.loads((REPO / p).read_text(encoding="utf-8"))
+            for p in segrows.SDIAG_ALL + tuple(segrows.STUDENT.values())}
+    below = sum(segrows._below_student(data, p) for p in segrows.SDIAG_ALL)
+    expected = f"cumple umbral (sobre-segmenta; Dice < student_r3 {below}/{len(segrows.SDIAG_ALL)})"
+    assert _by_pedido("S-diag: cobertura").veredicto == expected
+
+
+def test_the_legend_explains_every_special_verdict():
+    legend = "\n".join(ct.rules())
+    assert ct.DONE in legend
+    assert ct.MEETS_THRESHOLD in legend
 
 
 def test_the_a2_favourable_count_is_computed_not_transcribed():

@@ -18,6 +18,11 @@ REPO = Path(__file__).resolve().parents[1]
 BETTER, SAME, WORSE = "mejora", "no cambia", "empeora"
 MET, NOT_MET = "cumplida", "no cumplida"
 PENDING = "pendiente / sin datos en el repo"
+# An action with no numeric prediction: the artifact exists, nothing was measured as better.
+DONE = "hecho (no es mejora medida)"
+# A threshold met in a way that is not an improvement (e.g. coverage above the
+# registered floor because the method over-segments); the detail follows.
+MEETS_THRESHOLD = "cumple umbral"
 
 # docs/27 FASE 1, S4-UNet: Dice(S4) >= Dice(student_r3) - 0,01, registered
 # before the run; read on the paired interval of the difference.

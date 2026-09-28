@@ -78,9 +78,13 @@ def sdiag_coverage(d: dict) -> tuple[str, str]:
                       f"{_num(m['ref_coverage']['mean'])})" for (w, ref), m in cov.items())
     ok = all(m["pred_coverage"]["ci95_low"] >= SDIAG_MIN_COVERAGE for m in cov.values())
     above = sum(m["pred_coverage"]["ci95_low"] > m["ref_coverage"]["ci95_high"] for m in cov.values())
-    return (f"Cobertura predicha media [IC 95 %], método primario: {parts}. Umbral registrado: "
+    text = (f"Cobertura predicha media [IC 95 %], método primario: {parts}. Umbral registrado: "
             f"≥ {_num(SDIAG_MIN_COVERAGE, 2)} (límite inferior del IC). Por encima de la cobertura de "
-            f"referencia, sin solape de IC: {above} de {len(cov)}."), r.met(ok)
+            f"referencia, sin solape de IC: {above} de {len(cov)}.")
+    if not ok or above < len(cov):
+        return text, r.met(ok)
+    below = sum(_below_student(d, p) for p in SDIAG_ALL)
+    return text, f"{r.MEETS_THRESHOLD} (sobre-segmenta; Dice < student_r3 {below}/{len(SDIAG_ALL)})"
 
 
 def _paired(d: dict, folder: Path, name: str, ref: str) -> dict:
@@ -171,7 +175,7 @@ def fst_a2(d: dict) -> tuple[str, str]:
             f"{_count(fst['total']['b'])}. Mayor |Δ proporción| por bin: tono {top(tone)}, FST {top(fst)}. "
             "Sin IC: no hay contraste registrado sobre la distribución. Supuesto: "
             f"`{d[FST_ASSUMPTION]['assumption']}`.")
-    return text, r.MET
+    return text, r.DONE
 
 
 def fst_flagged(d: dict) -> tuple[str, str]:
@@ -183,7 +187,7 @@ def fst_flagged(d: dict) -> tuple[str, str]:
     published = sum(s["flagged"]["a"] is not None for s in scopes.values())
     text = (f"Registros marcados, manifiesto con máscaras de A2: {parts}. El manifiesto publicado "
             f"({d[FST_CMP]['labels']['a']}) los reporta en {published} de {len(scopes)} ámbitos.")
-    return text, r.met(all(s["flagged"]["b"] is not None for s in scopes.values()))
+    return text, r.DONE if all(s["flagged"]["b"] is not None for s in scopes.values()) else r.NOT_MET
 
 
 def rows() -> list[r.RowSpec]:
@@ -195,8 +199,7 @@ def rows() -> list[r.RowSpec]:
                   "3 métodos × 2 referencias (docs/27 FASE 1, S-diag)", SDIAG_ALL + student, sdiag_dice,
                   (SDIAG,) + student),
         r.RowSpec(prof, "S-diag: cobertura ≥ la de CCAM (~0,15)", "Mismas corridas, método primario",
-                  tuple(sdiag_path(ref, w, "primary") for w in WEIGHTS for ref in REFS), sdiag_coverage,
-                  (SDIAG,)),
+                  SDIAG_ALL + student, sdiag_coverage, (SDIAG,)),
         r.RowSpec(f"{prof} · {pau} §5.1)", "S4-UNet A2: decoder sobre DINOv2 público congelado, pseudo-máscaras r0",
                   "Decoder DPT entrenado con las pseudo-máscaras de student_r3 (docs/27, S4-UNet)",
                   s4_sources("A2", ("student",)), s4_row("A2", {"student": "student_r3"})),
