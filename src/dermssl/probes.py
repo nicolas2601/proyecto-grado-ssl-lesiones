@@ -176,6 +176,33 @@ def prototype_predict_proba(
     return exp / exp.sum(axis=1, keepdims=True)
 
 
+def fit_logreg(
+    x_train: np.ndarray,
+    y_train: np.ndarray,
+    max_iter: int = 2000,
+    c: float = 1.0,
+    seed: int = 42,
+    class_weight: str | None = None,
+):
+    """The fitted ``(StandardScaler, LogisticRegression)`` pair behind the logreg probe.
+
+    Exposed so the release package can fold exactly the evaluated probe into a
+    linear layer instead of refitting a look-alike.
+    """
+    try:
+        from sklearn.linear_model import LogisticRegression  # noqa: PLC0415
+        from sklearn.preprocessing import StandardScaler  # noqa: PLC0415
+    except ImportError as exc:  # pragma: no cover - environment dependent
+        raise RuntimeError("logreg probe needs scikit-learn: pip install scikit-learn") from exc
+
+    scaler = StandardScaler().fit(x_train)
+    model = LogisticRegression(
+        max_iter=max_iter, C=c, random_state=seed, class_weight=class_weight
+    )
+    model.fit(scaler.transform(x_train), y_train)
+    return scaler, model
+
+
 def logreg_predict_proba(
     x_train: np.ndarray,
     y_train: np.ndarray,
@@ -198,17 +225,8 @@ def logreg_predict_proba(
     the estimator itself can be told not to follow the class prior - unlike an
     unweighted neighbour vote (see :func:`effective_k`).
     """
-    try:
-        from sklearn.linear_model import LogisticRegression  # noqa: PLC0415
-        from sklearn.preprocessing import StandardScaler  # noqa: PLC0415
-    except ImportError as exc:  # pragma: no cover - environment dependent
-        raise RuntimeError("logreg probe needs scikit-learn: pip install scikit-learn") from exc
-
-    scaler = StandardScaler().fit(x_train)
-    model = LogisticRegression(
-        max_iter=max_iter, C=c, random_state=seed, class_weight=class_weight
-    )
-    model.fit(scaler.transform(x_train), y_train)
+    scaler, model = fit_logreg(x_train, y_train, max_iter=max_iter, c=c, seed=seed,
+                               class_weight=class_weight)
     partial = model.predict_proba(scaler.transform(x_val))
 
     full = np.zeros((len(x_val), n_classes), dtype=np.float64)
