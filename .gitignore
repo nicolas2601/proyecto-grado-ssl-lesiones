@@ -66,3 +66,11 @@ results/**/mlruns/
 .round7_prompt.txt
 .round7_out.txt
 .review/
+
+# --- Pod and tracking outputs (never versioned) ---
+wandb/
+salidas/
+.secrets/
+*.netrc
+.levers.diff
+.levers_prompt.txt
