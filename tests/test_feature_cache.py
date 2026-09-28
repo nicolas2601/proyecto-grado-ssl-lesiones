@@ -311,7 +311,6 @@ class TestC1RefusesEntriesWithoutADigest:
 
     def test_get_or_extract_propagates_the_requirement(self, tmp_path):
         """Otherwise C1 would reach the legacy entry through the other door."""
-        import numpy as np
 
         from dermssl.feature_cache import LegacyEntryRefused
 
