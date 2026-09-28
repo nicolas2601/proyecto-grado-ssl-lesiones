@@ -53,7 +53,25 @@ def render(doc: dict) -> str:
     lines += ["", "| Predicción (docs/28 §5) | Criterio | Veredicto |", "|---|---|---|"]
     for name, pred in doc["predictions"].items():
         lines.append(f"| {name} | {pred['criterion']} | {pred['verdict']} |")
+    if "secondary_ece_basic_ci" in doc:
+        lines += _ece_basic_lines(doc["secondary_ece_basic_ci"], arms)
     return "\n".join(lines) + "\n"
+
+
+def _ece_basic_lines(extra: dict, arms: dict) -> list[str]:
+    lines = ["", f"## ECE con IC basic (lectura {extra['reading']})", "", extra["note"], "",
+             "| Brazo o contraste | ECE / Δ ECE | IC basic | ¿Punto fuera del IC percentil? |",
+             "|---|---|---|---|"]
+    for role, rec in extra["arms"].items():
+        lines.append(f"| {arms[role]} | {_num(rec['point'])} | {_ci(rec['ci95_low'], rec['ci95_high'])} | "
+                     f"{'sí' if rec['point_outside_percentile'] else 'no'} |")
+    for key, rec in extra["contrasts"].items():
+        arm, control = key.split("-")
+        lines.append(f"| {arms[arm]} − {arms[control]} | {_num(rec['point_delta'])} | "
+                     f"{_ci(rec['ci95_low'], rec['ci95_high'])} | "
+                     f"{'sí' if rec['point_outside_percentile'] else 'no'} |")
+    lines += ["", f"P2 leída con el IC basic: {extra['P2_with_basic']} (el veredicto primario no cambia)."]
+    return lines
 
 
 def main(argv: list[str] | None = None) -> int:

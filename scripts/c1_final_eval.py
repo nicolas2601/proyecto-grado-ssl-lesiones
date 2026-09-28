@@ -137,6 +137,7 @@ def main() -> int:
         "paired": rows,
         "predictions": fe.predictions(fe.paired_from_rows(rows)),
     }
+    document["secondary_ece_basic_ci"] = fe.ece_basic_ci(document)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y_eval, **probas)

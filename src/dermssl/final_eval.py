@@ -89,6 +89,46 @@ def _primary(p1: dict, p2: dict, p3: dict) -> dict:
     }
 
 
+ECE_BASIC_NOTE = (
+    "IC basic (reverse-percentile) de ECE, lectura secundaria. El ECE remuestreado tiene "
+    "sesgo hacia arriba, así que el IC percentil puede dejar el punto afuera (A* en val v7). "
+    "El basic refleja los cuantiles alrededor del punto y puede salir de [0, 1]. Los "
+    "veredictos primarios usan el IC percentil registrado y no cambian."
+)
+
+
+def basic_interval(point: float, low: float, high: float) -> tuple[float, float]:
+    """Reverse-percentile interval from the stored percentile bounds: no resampling needed."""
+    return 2 * point - high, 2 * point - low
+
+
+def _basic_record(point: float, low: float, high: float, key: str) -> dict:
+    lo, hi = basic_interval(point, low, high)
+    return {key: point, "ci95_low": lo, "ci95_high": hi, "excludes_zero": bool(lo > 0 or hi < 0),
+            "point_outside_percentile": not (low <= point <= high)}
+
+
+def ece_basic_ci(doc: dict) -> dict:
+    """Secondary ECE intervals for every arm and contrast of a single-evaluation document."""
+    arms = {role: _basic_record(r["ece"], *r["ci95"]["ece"], key="point")
+            for role, r in doc["results"].items()}
+    paired = paired_from_rows(doc["paired"])
+    contrasts = {f"{a}-{c}": _basic_record(paired[(a, c)]["ece"]["point_delta"],
+                                           paired[(a, c)]["ece"]["ci95_low"],
+                                           paired[(a, c)]["ece"]["ci95_high"], key="point_delta")
+                 for a, c in CONTRASTS}
+    p2 = contrasts["proposed-plain"]
+    f1_ok = paired[("proposed", "plain")]["macro_f1"]["point_delta"] >= NOT_WORSE_F1
+    return {
+        "reading": SECONDARY,
+        "method": "basic (reverse-percentile)",
+        "note": ECE_BASIC_NOTE,
+        "arms": arms,
+        "contrasts": contrasts,
+        "P2_with_basic": _verdict(_ece_better(p2) and f1_ok),
+    }
+
+
 def paired_from_rows(rows: list[dict]) -> dict:
     """Flat bootstrap rows back into ``paired[(arm, control)][metric]``."""
     out: dict = {}

@@ -179,3 +179,56 @@ def test_val_guard_refuses_a_final_trained_with_another_exclusion(monkeypatch):
     with pytest.raises(ValueError, match="exclude"):
         ev.guard_val({"train_ids": ["a"], "val_ids": ["b"]}, runs, "new")
     ev.guard_val({"train_ids": ["a"], "val_ids": ["b"]}, runs, "old")
+
+
+class TestEceBasicInterval:
+    """Secondary ECE interval: the percentile one is biased for ECE (docs/28 5)."""
+
+    def test_basic_interval_reflects_the_percentile_bounds_around_the_point(self):
+        assert fe.basic_interval(0.0135, 0.0138, 0.0336) == pytest.approx((-0.0066, 0.0132))
+
+    def test_document_gets_arms_and_contrasts_labelled_secondary(self):
+        doc = _document()
+        doc["results"]["plain"]["ece"] = 0.0135
+        doc["results"]["plain"]["ci95"]["ece"] = [0.0138, 0.0336]
+        extra = fe.ece_basic_ci(doc)
+        assert extra["reading"] == "secundaria" and "sesgo" in extra["note"]
+        plain = extra["arms"]["plain"]
+        assert plain["ci95_low"] == pytest.approx(-0.0066) and plain["ci95_high"] == pytest.approx(0.0132)
+        assert plain["point_outside_percentile"] is True
+        assert extra["arms"]["public"]["point_outside_percentile"] is False
+        c = extra["contrasts"]["proposed-plain"]
+        # _paired(): proposed-plain ECE delta -0.02 in [-0.03, -0.01] -> basic [-0.03, -0.01]
+        assert (c["ci95_low"], c["ci95_high"]) == pytest.approx((-0.03, -0.01))
+        assert c["excludes_zero"] is True
+
+    def test_p2_under_basic_is_reported_but_the_primary_verdict_does_not_move(self):
+        doc = _document()
+        doc["paired"] = [r if not (r["arm"] == "proposed" and r["control"] == "plain" and r["metric"] == "ece")
+                         else {**r, **_rec(0.019, 0.0003, 0.027)} for r in doc["paired"]]
+        doc["predictions"] = fe.predictions(fe.paired_from_rows(doc["paired"]))
+        extra = fe.ece_basic_ci(doc)
+        assert extra["P2_with_basic"] == "no cumplida"
+        assert doc["predictions"]["P2"]["verdict"] == "no cumplida"
+
+    def test_table_shows_the_secondary_section_only_when_present(self):
+        doc = _document()
+        assert "IC basic" not in bt.render(doc)
+        doc["secondary_ece_basic_ci"] = fe.ece_basic_ci(doc)
+        text = bt.render(doc)
+        assert "IC basic" in text and "secundaria" in text
+
+
+def test_augment_adds_the_secondary_block_once_and_keeps_everything_else(tmp_path):
+    import json
+
+    import add_ece_basic_ci as aug
+
+    path = tmp_path / "final_eval.json"
+    doc = _document()
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    assert aug.main([str(path)]) == 0
+    new = json.loads(path.read_text(encoding="utf-8"))
+    assert new["secondary_ece_basic_ci"]["reading"] == "secundaria"
+    assert {k: v for k, v in new.items() if k != "secondary_ece_basic_ci"} == json.loads(json.dumps(doc))
+    assert aug.main([str(path)]) == 1  # never overwrites
