@@ -19,6 +19,7 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -341,16 +342,19 @@ def collect_images(root: str | Path) -> list[Path]:
     structural half of the label-free guarantee: the data pipeline cannot read
     labels because it never sees the files that contain them.
 
-    ``recurse_symlinks=True`` because a pool staged from several read-only
-    dataset mounts is, by construction, a directory of symlinks - without it
-    ``rglob`` silently returns zero images from every linked dataset instead
-    of raising, since only the root itself being a symlink is followed by
-    default.
+    Symlinked directories are followed because a pool staged from several
+    read-only dataset mounts is, by construction, a directory of symlinks -
+    a walk that does not follow them silently returns zero images from every
+    linked dataset instead of raising. ``os.walk(followlinks=True)`` does
+    this on every supported Python; ``rglob(recurse_symlinks=True)`` exists
+    only from 3.13.
     """
     root = Path(root)
     found = sorted(
-        p for p in root.rglob("*", recurse_symlinks=True)
-        if p.is_file() and p.suffix.lower() in IMAGE_SUFFIXES
+        path
+        for dirpath, _dirs, files in os.walk(root, followlinks=True)
+        for path in (Path(dirpath) / name for name in files)
+        if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES
     )
     if not found:
         raise FileNotFoundError(f"no se encontraron imágenes ({sorted(IMAGE_SUFFIXES)}) bajo {root}")
