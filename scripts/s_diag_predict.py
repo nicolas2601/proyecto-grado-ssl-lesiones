@@ -52,6 +52,7 @@ evaluator refuses a partial set, so the smoke only checks the predictions.
 from __future__ import annotations
 
 import argparse
+import functools
 import hashlib
 import json
 import os
@@ -76,8 +77,10 @@ PATCH_SIZE = 14
 # Same grid as evaluate_segmentation.EXTERNAL_RESOLUTION: masks land on it unchanged.
 MASK_RESOLUTION = 224
 KMEANS_SEED = 0
-# Each worker runs PCA / k-means single-threaded, so N workers use N cores
-# instead of N x (all cores) BLAS / OpenMP threads.
+# Every image's PCA / k-means runs on one BLAS / OpenMP thread, serial or not:
+# multi-threaded BLAS moves the PCA projection by ~1e-16, which could flip an
+# Otsu tie, and N workers must use N cores, not N x (all cores) threads.
+CPU_THREADS_PER_IMAGE = 1
 WORKER_THREAD_ENV = {name: "1" for name in (
     "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")}
 # Images whose masks may be pending in the pool while the GPU extracts more.
@@ -126,23 +129,26 @@ def extract_tokens(model, paths: list[Path], resolution: int, device) -> np.ndar
     return tokens.float().cpu().numpy()
 
 
+@functools.cache
+def _thread_controller():
+    """Built once the PCA / k-means libraries are loaded, so it sees their pools."""
+    import sklearn.cluster  # noqa: F401
+    import skimage.measure  # noqa: F401
+    from threadpoolctl import ThreadpoolController
+
+    return ThreadpoolController()
+
+
 def write_masks(masks_dir: Path, image_id: str, tokens: np.ndarray, methods, grid: int) -> None:
     from PIL import Image
 
     shape = (MASK_RESOLUTION, MASK_RESOLUTION)
     for method in methods:
-        mask = sd.segment(METHODS[method][0], tokens, grid, shape, seed=KMEANS_SEED)
+        with _thread_controller().limit(limits=CPU_THREADS_PER_IMAGE):
+            mask = sd.segment(METHODS[method][0], tokens, grid, shape, seed=KMEANS_SEED)
         Image.fromarray(mask.astype(np.uint8) * 255, mode="L").save(
             masks_dir / f"{image_id}_{method}.png"
         )
-
-
-def _single_threaded_worker() -> None:
-    """Pool initializer: BLAS and OpenMP pinned to one thread in this worker."""
-    from threadpoolctl import threadpool_limits
-
-    os.environ.update(WORKER_THREAD_ENV)
-    threadpool_limits(limits=1)
 
 
 def _raise_failures(futures) -> None:
@@ -155,8 +161,8 @@ def mask_writer(workers: int):
     """``submit(*write_masks_args)``: inline when serial, else a loky process pool.
 
     Each image's masks depend only on its own tokens (k-means keeps
-    ``random_state`` per image), so the pool writes the same bytes as the
-    serial loop. The backlog is bounded so the GPU extraction of the next
+    ``random_state`` per image, both paths use one CPU thread per image), so
+    the pool writes the same bytes as the serial loop. The backlog is bounded so the GPU extraction of the next
     batches overlaps the workers without holding every token array in memory.
     """
     if workers == 1:
@@ -164,8 +170,7 @@ def mask_writer(workers: int):
         return
     from joblib.externals.loky import get_reusable_executor
 
-    executor = get_reusable_executor(max_workers=workers, env=WORKER_THREAD_ENV,
-                                     initializer=_single_threaded_worker)
+    executor = get_reusable_executor(max_workers=workers, env=WORKER_THREAD_ENV)
     pending = set()
 
     def submit(*write_args) -> None:
@@ -220,6 +225,7 @@ def run_record(args, resolution: int, ids: list[str], revision: str) -> dict:
         "image_ids_sha256": hashlib.sha256("\n".join(ids).encode("utf-8")).hexdigest(),
         "limit": args.limit,
         "workers": args.workers,
+        "cpu_threads_per_image": CPU_THREADS_PER_IMAGE,
         "torch_home": os.environ.get("TORCH_HOME", ""),
         "training_images": TRAINING_NOTE,
         "complete": True,

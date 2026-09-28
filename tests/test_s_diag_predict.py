@@ -217,3 +217,19 @@ def test_workers_must_be_positive(capsys):
                        "--output-dir", "o", "--reference-set", "isic2018",
                        "--method", "primary", "--workers", "0"])
     assert "--workers must be >= 1" in capsys.readouterr().err
+
+
+def test_serial_masks_use_one_cpu_thread_like_the_workers(tmp_path, fake_backbone, monkeypatch):
+    """Multi-threaded BLAS moves the PCA by ~1e-16, so serial pins one thread too."""
+    from threadpoolctl import threadpool_info
+
+    threads, segment = [], sp.sd.segment
+
+    def recording(*args, **kwargs):
+        threads.append({info["num_threads"] for info in threadpool_info()})
+        return segment(*args, **kwargs)
+
+    monkeypatch.setattr(sp.sd, "segment", recording)
+    out = _run(tmp_path, _write_noisy_set(tmp_path, count=2), "primary", "kmeans")
+    assert threads == [{1}] * 4
+    assert json.loads((out / "run.json").read_text())["cpu_threads_per_image"] == 1
