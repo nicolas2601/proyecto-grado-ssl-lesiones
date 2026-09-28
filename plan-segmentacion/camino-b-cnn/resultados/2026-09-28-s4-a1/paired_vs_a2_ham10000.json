@@ -1,0 +1,36 @@
+{
+  "label_a": "A1",
+  "label_b": "A2",
+  "per_image_a": "/home/jovyan/work/proyectonp/salidas/s4_unet/a1/evaluacion_ham10000/per_image.csv",
+  "per_image_b": "/home/jovyan/work/proyectonp/salidas/s4_unet/a2/evaluacion_ham10000/per_image.csv",
+  "rng_seed": 20260923,
+  "n_resamples": 1000,
+  "n_paired": 10015,
+  "metrics": {
+    "dice": {
+      "delta": -0.17768442264613815,
+      "ci95_low": -0.18330608913237212,
+      "ci95_high": -0.17167168766286264,
+      "mean_a": 0.6172653272124335,
+      "mean_b": 0.7949497498585716,
+      "excludes_zero": true,
+      "direction": "worse",
+      "higher_is_better": true,
+      "n": 10015,
+      "n_dropped_non_finite": 0
+    },
+    "hd95": {
+      "delta": 25.899078710497633,
+      "ci95_low": 25.076534450054186,
+      "ci95_high": 26.75527030043097,
+      "mean_a": 47.89861355889517,
+      "mean_b": 21.999534848397538,
+      "excludes_zero": true,
+      "direction": "worse",
+      "higher_is_better": false,
+      "n": 10013,
+      "n_dropped_non_finite": 2
+    }
+  },
+  "note": "secondary; delta = a - b, paired percentile 95 % interval"
+}

@@ -1,0 +1,36 @@
+{
+  "label_a": "A2_astar",
+  "label_b": "A2_public",
+  "per_image_a": "salidas/s4_unet/a2_astar/evaluacion_ham10000/per_image.csv",
+  "per_image_b": "salidas/s4_unet/a2/evaluacion_ham10000/per_image.csv",
+  "rng_seed": 20260923,
+  "n_resamples": 1000,
+  "n_paired": 10015,
+  "metrics": {
+    "dice": {
+      "delta": 0.0030368315986770388,
+      "ci95_low": 0.0026380507371856704,
+      "ci95_high": 0.0034673992293188607,
+      "mean_a": 0.7979865814572488,
+      "mean_b": 0.7949497498585716,
+      "excludes_zero": true,
+      "direction": "better",
+      "higher_is_better": true,
+      "n": 10015,
+      "n_dropped_non_finite": 0
+    },
+    "hd95": {
+      "delta": -0.16364778356087253,
+      "ci95_low": -0.26224811100745876,
+      "ci95_high": -0.059446343741142035,
+      "mean_a": 21.835887064836665,
+      "mean_b": 21.999534848397538,
+      "excludes_zero": true,
+      "direction": "better",
+      "higher_is_better": false,
+      "n": 10013,
+      "n_dropped_non_finite": 2
+    }
+  },
+  "note": "secondary; delta = a - b, paired percentile 95 % interval"
+}

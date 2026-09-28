@@ -1,0 +1,31 @@
+{
+  "experiment": "S4-UNet A1 saliency (docs/27, registered 2026-09-28)",
+  "rule": "S-diag primary (docs/27): last-layer x_norm_patchtokens, L2 per token, per-image PCA first component, sign so the central grid//4 block is positive; not binarised; nearest-neighbour repeat to the cache resolution",
+  "patch_size": 14,
+  "dtype": "float16",
+  "backbone": {
+    "arch": "dinov2_vitb14",
+    "source": "public",
+    "weights_sha256": "public"
+  },
+  "pool": {
+    "cache_dir": "/home/jovyan/work/proyectonp/salidas/final/cache",
+    "manifest_sha256": "a83f927ab798b6f7a0614c3923fda77d082f887d10fdbe73416e34e9574ba71a",
+    "n_images": 58457,
+    "image_shape": [
+      224,
+      224,
+      3
+    ],
+    "splits": {
+      "train": 57288,
+      "val": 1169
+    }
+  },
+  "code_revision": "3f154871dcc62f4e1c83316e8fb60f622e412bc7",
+  "workers": 24,
+  "compute_seconds": 46508.265224315226,
+  "next_step": "make_pseudo_masks.py --source dino with the r0 flags",
+  "reads_masks_or_labels": false,
+  "complete": true
+}

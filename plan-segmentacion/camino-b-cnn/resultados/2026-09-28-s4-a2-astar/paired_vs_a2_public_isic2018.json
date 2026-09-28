@@ -1,0 +1,36 @@
+{
+  "label_a": "A2_astar",
+  "label_b": "A2_public",
+  "per_image_a": "salidas/s4_unet/a2_astar/evaluacion_isic2018/per_image.csv",
+  "per_image_b": "salidas/s4_unet/a2/evaluacion_isic2018/per_image.csv",
+  "rng_seed": 20260923,
+  "n_resamples": 1000,
+  "n_paired": 2594,
+  "metrics": {
+    "dice": {
+      "delta": -0.0003046150314451776,
+      "ci95_low": -0.0016182697872998838,
+      "ci95_high": 0.00095944090265144,
+      "mean_a": 0.7217780713299151,
+      "mean_b": 0.7220826863613602,
+      "excludes_zero": false,
+      "direction": "indistinguishable",
+      "higher_is_better": true,
+      "n": 2594,
+      "n_dropped_non_finite": 0
+    },
+    "hd95": {
+      "delta": 1.8546440134944187,
+      "ci95_low": 1.3609841035945418,
+      "ci95_high": 2.430179778481561,
+      "mean_a": 27.377578040828308,
+      "mean_b": 25.52293402733389,
+      "excludes_zero": true,
+      "direction": "worse",
+      "higher_is_better": false,
+      "n": 2589,
+      "n_dropped_non_finite": 5
+    }
+  },
+  "note": "secondary; delta = a - b, paired percentile 95 % interval"
+}
