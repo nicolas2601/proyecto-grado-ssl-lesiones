@@ -39,25 +39,61 @@ def test_collect_limits_the_reference_to_the_first_images(run):
                                                        ("torch", "transformers", "onnx", "onnx_fp16")}
 
 
-def test_report_passes_when_forms_agree_and_reproduce_the_json(run):
+def _json(y, proba):
+    summary = metrics.summarize(y, proba, 7)
+    return {k: summary[k] for k in ("macro_f1", "balanced_accuracy", "ece")}
+
+
+def _report(forms, reference, y, evaluated, head=None, json_result=None, on_cuda=True):
+    head = evaluated if head is None else head
+    return rpar.parity_report(forms, reference, y, json_result or _json(y, evaluated), evaluated,
+                              evaluated, head, packaged_on_cuda=on_cuda)
+
+
+def test_report_passes_when_forms_agree_and_the_packaged_head_is_the_evaluated_one(run):
     forms, reference, y = run
-    f1 = metrics.summarize(y, forms["torch"], 7)["macro_f1"]
-    report = rpar.parity_report(forms, reference, y, f1, forms["torch"], forms["torch"])
-    assert report["pass_hard"] and report["json_reproduced"], report["gates"]
+    report = _report(forms, reference, y, forms["torch"])
+    assert report["pass"], report["gates"]
     assert report["evaluation_path"]["max_abs_diff_vs_committed_probas"] == 0.0
-    assert set(report["fp16"]["rule"]) == {"min_argmax_agreement", "max_abs_delta_macro_f1"}
 
 
-def test_report_flags_a_drifted_json_without_failing_the_hard_gates(run):
+def test_deployment_metrics_cover_onnx_fp32_and_fp16_with_the_fp16_gate(run):
     forms, reference, y = run
-    f1 = metrics.summarize(y, forms["torch"], 7)["macro_f1"]
-    report = rpar.parity_report(forms, reference, y, f1 + 0.01, forms["torch"], forms["torch"])
-    assert report["pass_hard"] and not report["json_reproduced"]
-    assert report["val_macro_f1"]["onnx"]["delta"] == pytest.approx(-0.01)
+    evaluated = forms["torch"].copy()
+    evaluated[:2] = np.roll(evaluated[:2], 1, axis=1)  # the JSON predictions differ on 2 images
+    block = _report(forms, reference, y, evaluated)["deployment_metrics"]
+    assert set(block) == {"onnx_fp32", "onnx_fp16"}
+    assert block["onnx_fp32"]["n_predictions_changed"] == 2
+    assert set(block["onnx_fp32"]["metrics"]) == {"macro_f1", "balanced_accuracy", "accuracy",
+                                                  "mel_sensitivity", "mel_auc", "ece"}
+    assert set(block["onnx_fp16"]["gate"]["rule"]) == {"min_argmax_agreement",
+                                                       "max_abs_delta_macro_f1"}
 
 
-def test_report_fails_hard_when_a_form_disagrees(run):
+def test_deployment_drift_does_not_fail_but_a_head_that_misses_the_json_does(run):
+    forms, reference, y = run
+    evaluated = np.roll(forms["torch"], 1, axis=1)  # deployment differs from the evaluation
+    assert _report(forms, reference, y, evaluated)["pass"]
+    off = _report(forms, reference, y, evaluated, json_result={**_json(y, evaluated), "macro_f1": 0.9})
+    assert not off["pass"] and not off["gates"]["evaluation_path_equals_json"]
+    moved = _report(forms, reference, y, evaluated, head=forms["torch"])
+    assert not moved["pass"] and not moved["gates"]["packaged_head_equals_json"]
+
+
+def test_a_head_packaged_without_cuda_autocast_fails(run):
+    forms, reference, y = run
+    report = _report(forms, reference, y, forms["torch"], on_cuda=False)
+    assert not report["pass"] and not report["gates"]["packaged_on_cuda"]
+
+
+def test_report_fails_when_a_form_disagrees(run):
     forms, reference, y = run
     broken = {**forms, "onnx": np.roll(forms["onnx"], 1, axis=1)}
-    report = rpar.parity_report(broken, reference, y, 0.5, forms["torch"], forms["torch"])
-    assert not report["pass_hard"] and not report["gates"]["forms_agree_first_images"]
+    report = _report(broken, reference, y, forms["torch"])
+    assert not report["pass"] and not report["gates"]["forms_agree_first_images"]
+
+
+def test_there_is_no_way_to_accept_json_drift():
+    with pytest.raises(SystemExit):
+        rpar.parse_args(["--ham-root", "x", "--model-dir", "y", "--final-eval", "z",
+                         "--allow-json-drift"])

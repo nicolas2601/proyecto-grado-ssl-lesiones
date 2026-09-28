@@ -69,3 +69,11 @@ def test_package_model_writes_forms_release_json_and_work(tmp_path):
     assert (tmp_path / "B_s42" / "onnx" / "model.onnx").is_file()
     with np.load(tmp_path / "w" / "eval.npz") as work:
         assert work["eval_proba"].shape == (35, 7) and work["weight"].shape == (7, 32)
+        assert work["head_proba"].shape == (35, 7)
+
+
+def test_packaging_only_runs_on_cuda():
+    base = ["--ham-root", "h", "--model", "B_s42", "--weights", "w.pt", "--final-eval", "f.json"]
+    assert brp.parse_args(base).device == "cuda"
+    with pytest.raises(SystemExit):
+        brp.parse_args([*base, "--device", "cpu"])

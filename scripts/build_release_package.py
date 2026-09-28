@@ -13,9 +13,10 @@ settings (``probes.fit_logreg``). The fused head and the backbone become
         --model B_s42 --weights $V/final_B/simsiam_dinov2_backbone_final.pt \\
         --final-eval resultados/clasificacion/v7/final_eval.json --device cuda
 
-``--device cuda`` reproduces the evaluation's fp16-autocast features, so the
-refit probe is the evaluated one; on cpu the features are fp32 and the probe
-differs slightly (release_parity.py reports by how much).
+Only ``--device cuda`` is accepted: it reproduces the evaluation's
+fp16-autocast features, so the refit probe is the evaluated one, and
+release_parity.py requires the packaged head to give exactly the committed
+predictions.
 """
 
 from __future__ import annotations
@@ -53,7 +54,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--final-eval", type=Path, required=True)
     parser.add_argument("--out", type=Path, default=REPO / "release" / "v7")
     parser.add_argument("--work", type=Path, default=REPO / "release" / "v7_work")
-    parser.add_argument("--device", default="cpu")
+    # cuda only: its fp16-autocast features are the ones final_eval.json was scored on.
+    parser.add_argument("--device", default="cuda", choices=("cuda",))
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--no-fp16", action="store_true")
@@ -92,7 +94,7 @@ def refit_and_fuse(x_tr, y_tr, x_va, n_classes: int) -> dict:
     weight, bias = fuse.fuse_probe(scaler, logreg, n_classes=n_classes)
     eval_proba = logreg.predict_proba(scaler.transform(x_va))
     fused = fuse.fused_predict_proba(x_va, weight, bias)
-    return {"weight": weight, "bias": bias, "eval_proba": eval_proba,
+    return {"weight": weight, "bias": bias, "eval_proba": eval_proba, "head_proba": fused,
             "fused_max_abs_diff": float(np.abs(fused - eval_proba).max())}
 
 
@@ -110,7 +112,7 @@ def package_model(hub_model, features: dict, classes: list, out_dir: Path, work_
     package.write_json(out_dir / "release.json", release)
     work_dir.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(work_dir / "eval.npz", y_val=features["y_va"], eval_proba=probe["eval_proba"],
-                        weight=probe["weight"], bias=probe["bias"])
+                        head_proba=probe["head_proba"], weight=probe["weight"], bias=probe["bias"])
     return release
 
 
