@@ -4,16 +4,15 @@ Repositorio de trabajo para investigar la clasificación experimental de lesione
 
 ## Resultado principal (v7)
 
-La tabla vigente es [`resultados/clasificacion/v7/README.md`](resultados/clasificacion/v7/README.md). Se genera desde `final_eval.json` y un test falla si alguien edita un número a mano, así que acá no se copia ninguna cifra.
+La tabla principal es la [combinada de las dos semillas](resultados/clasificacion/v7/SEMILLAS.md): cada semilla por separado, la media y la diferencia s43 − s42. Detrás están las tablas de la [semilla 42](resultados/clasificacion/v7/README.md) y de la [réplica con semilla 43](resultados/clasificacion/v7/s43/README.md). Las tres se generan desde los `final_eval.json`, y un test falla si alguien edita un número a mano, así que acá no se copia ninguna cifra.
 
 Compara tres brazos sobre la validación del fold 0 de C1: DINOv2 público, SSL anclado sin tono (A\*) y SSL propuesto con tono (B\*). Usa un probe lineal, una sola evaluación e intervalos bootstrap del 95 %. Las predicciones se registraron antes de correrla ([docs/28 §5](docs/28-rediseno-brazo-propuesto-v7.md)).
 
-Lectura al 2026-09-28, con la semilla 42:
-- B\* le gana al DINOv2 público en macro-F1, con un intervalo que excluye el cero.
-- A\* no pierde contra el público.
-- B\* no calibra mejor que A\*.
-
-La réplica con la semilla 43 está pendiente y se reportará junto a esta, sin elegir semilla.
+Lectura al 2026-09-28, con las dos semillas y sin elegir ninguna (regla en [docs/28 §4.1](docs/28-rediseno-brazo-propuesto-v7.md)):
+- B\* le gana al DINOv2 público en macro-F1 en las dos semillas, con intervalos que excluyen el cero.
+- A\* no pierde contra el público en ninguna.
+- B\* y A\* no se distinguen entre sí, y B\* no calibra mejor que A\*.
+- La variación entre semillas es del orden del efecto medido.
 
 ## Objetivos específicos
 

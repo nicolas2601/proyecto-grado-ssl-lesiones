@@ -10,7 +10,9 @@ clasificador. Que gano, que perdio, y como mejorarlo.
 
 | Resultado | Tabla (generada) | Datos | Estado |
 |---|---|---|---|
-| v7: evaluación única A\*, B\* y DINOv2 público sobre val | [clasificacion/v7/README.md](clasificacion/v7/README.md) | `clasificacion/v7/final_eval.json` | Vigente (semilla 42; réplica 43 pendiente) |
+| v7: las dos semillas combinadas (lectura principal) | [clasificacion/v7/SEMILLAS.md](clasificacion/v7/SEMILLAS.md) | los dos `final_eval.json` | Vigente |
+| v7: evaluación única A\*, B\* y DINOv2 público sobre val, semilla 42 | [clasificacion/v7/README.md](clasificacion/v7/README.md) | `clasificacion/v7/final_eval.json` | Vigente |
+| v7: réplica con semilla 43 (registrada en docs/28 §4.1) | [clasificacion/v7/s43/README.md](clasificacion/v7/s43/README.md) | `clasificacion/v7/s43/final_eval.json` | Vigente |
 | C1: grilla de condiciones de máscara por backbone | [clasificacion/c1/README.md](clasificacion/c1/README.md) | `clasificacion/c1/*.json` | Vigente |
 | v6: bancos congelados y bootstrap pareado | Secciones 4 a 7 de este documento | `clasificacion/bank.json`, `clasificacion/bootstrap.json` | Superado por v7 |
 | Segmentación y tono | Secciones 2 y 3 de este documento | `segmentacion/`, `tono/` | Vigente |

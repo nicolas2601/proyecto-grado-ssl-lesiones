@@ -97,6 +97,23 @@ El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops indepe
 
 Criterio: se reporta el resultado sea cual sea. Si P3 no se cumple, la conclusión honesta es que la adaptación SSL mejora calibración y ranking pero no la separación por clase frente a DINOv2 público.
 
+### 5.1 Resultado final (2026-09-28)
+
+Las cifras están en la [tabla combinada de las dos semillas](../resultados/clasificacion/v7/SEMILLAS.md), generada desde los dos `final_eval.json`. Acá solo va la lectura. Las dos evaluaciones usan val del fold 0 (n = 2.004), el probe `logreg` y el bootstrap pareado de 1.000 remuestras. La de semilla 42 corrió con el código de 7fd6245 y la réplica de semilla 43 con el de f562ea9, como se registró en §4.1.
+
+| Predicción | Semilla 42 | Semilla 43 |
+|---|---|---|
+| P1 (primaria) | cumplida | cumplida |
+| P2 (primaria) | no cumplida | no cumplida |
+| P3 (primaria) | cumplida | cumplida |
+| P1-NI (secundaria) | no cumplida | cumplida |
+| P3-IC (secundaria) | cumplida | cumplida |
+
+- **Resultado principal:** P3-IC se cumple con las dos semillas, así que por la regla de §4.1 la conclusión es robusta a la semilla. El propuesto B\* le gana al DINOv2 público en macro-F1, con los dos intervalos por encima de cero. También lo mejora en AUC y en calibración con las dos semillas.
+- **El término de tono no aporta nada medible.** B\* y A\* no se distinguen en macro-F1 con ninguna semilla, y el signo de la diferencia cambia de una a otra. La peor calibración de B\* que apareció con la semilla 42 no se repite con la 43. La mejora sobre el público viene de la adaptación SSL anclada a DINOv2, no del término de tono.
+- **A\* frente al público:** no pierde con ninguna semilla. Con la 43 además le gana (el intervalo excluye el cero); con la 42 no llegaba. Por eso P1-NI cambia de semilla a semilla.
+- **Variación entre semillas:** A\* se movió unos 0,04 de macro-F1 de una semilla a la otra, lo mismo que el efecto de B\* contra el público. El intervalo del bootstrap cubre la variación del conjunto de evaluación, no la del entrenamiento. Con una sola semilla no se habría podido sostener la conclusión. Con dos ya no depende de la semilla, pero la magnitud del efecto sigue siendo incierta.
+
 ## 6. Referencias
 
 - Khanna et al. *ExPLoRA: Parameter-Efficient Extended Pre-Training to Adapt Vision Transformers under Domain Shifts*. ICML 2025. arXiv:2406.10973.
