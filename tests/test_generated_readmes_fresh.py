@@ -18,6 +18,7 @@ import build_c1_readme  # noqa: E402
 import build_classifier_table  # noqa: E402
 import build_final_eval_table  # noqa: E402
 import build_seed_summary  # noqa: E402
+import build_segmentation_table  # noqa: E402
 
 V7_DIR = REPO / "resultados" / "clasificacion" / "v7"
 
@@ -38,3 +39,7 @@ def test_seed_summary_matches_both_jsons():
 
 def test_classifier_table_matches_its_sources():
     assert build_classifier_table.main(["--check"]) == 0
+
+
+def test_segmentation_table_matches_its_sources():
+    assert build_segmentation_table.main(["--check"]) == 0
