@@ -31,6 +31,10 @@ Todo se hace sobre las finales existentes, sin entrenar.
 
 Extracción a 224 contra 448 con los mismos pesos, en el holdout. Es un diagnóstico secundario.
 
+### 2.3b Métricas clínicas secundarias (registradas el 2026-09-28, antes de correr)
+
+Para cada configuración evaluada en el holdout (α, soup, protocolo, pesos de clase, resolución) se reportan también la sensibilidad de melanoma (recall de `mel`) y el AUC de melanoma contra el resto, ambas con IC bootstrap. Con `class_weight = balanced` se miran en particular: es la palanca más directa para bajar la confusión de melanoma con nevus, que en la v7 es el error dominante (sensibilidad de melanoma entre ~0,43 y 0,50 en val). Son secundarias y no cambian la regla de selección, que sigue siendo el macro-F1 de §2.4.
+
 ### 2.4 Regla de combinación
 
 En el holdout se elige la mejor configuración de cada brazo por macro-F1; si |Δ| < 0,005, gana la de menor ECE (igual que docs/28 §4.1). Después se corre una sola evaluación en val de esa configuración contra el público, con bootstrap pareado. Se reportan siempre las dos cosas: el primario v7 intacto y la lectura v7.1.
