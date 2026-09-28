@@ -7,7 +7,8 @@ Pure decisions, kept apart from the GPU script so each one is tested:
   validation id in it;
 * the §2.1 pre-test: alpha = 0 must be public and alpha = 1 the final, in the
   weights and in every holdout metric, within 1e-6;
-* per arm, the docs/28 §4.1 rule over that arm's configurations; public gets
+* per arm, the docs/28 §4.1 rule over that arm's configurations at 224;
+  448 is the §2.3 diagnostic at fixed weights, never a candidate; public gets
   its own winner too, reported as a secondary;
 * the single val read: each arm's winner, public under the SAME protocol as
   that winner, the v7 primary of every arm, and public's own winner.
@@ -102,6 +103,18 @@ def build_selection(grid: dict) -> dict:
     }
 
 
+def resolution_pairs(selection: dict, grid: dict) -> dict:
+    """§2.3 diagnostic: each winner against the same configuration at the other resolution."""
+    pairs = {}
+    for arm, cid in selection["winners"].items():
+        for resolution in vp.RESOLUTIONS:
+            parts = {**vp.parse_config_id(cid), "resolution": resolution}
+            other = vp.config_id(**parts)
+            if other != cid and other in grid:
+                pairs[arm] = (cid, other)
+    return pairs
+
+
 def val_entries(selection: dict) -> dict:
     winners = selection["winners"]
     return {
@@ -131,17 +144,17 @@ def cost_projection(*, n_fit: int, n_hold: int, n_train: int, n_val: int, resolu
     forwards = {
         "pretest": {224: PRETEST_MODELS * (n_fit + n_hold)},
         "grid": {r: n_weights * (n_fit + views * n_hold) for r in resolutions},
-        "val": {r: val_units * (n_train + views * n_val) for r in resolutions},
+        "val": {vp.SELECTION_RESOLUTION: val_units * (n_train + views * n_val)},
     }
     gpu_s = sum(n / FORWARD_IMG_PER_S[r] for stage in forwards.values() for r, n in stage.items())
     n_units = n_weights * len(resolutions)
     n_configs = n_units * len(vp.FEATURES) * len(vp.WEIGHTINGS) * len(vp.TTA_OPTIONS)
     dims_k = sum(FEATURE_DIMS.values()) / 1000 * len(vp.FITTED_WEIGHTINGS)
-    fitted_rows = n_units * n_fit + val_units * len(resolutions) * n_train
+    fitted_rows = n_units * n_fit + val_units * n_train
     probe_s = dims_k * LOGREG_SECONDS_PER_1K_DIMS * fitted_rows / LOGREG_REFERENCE_ROWS
     boot_s = (n_configs * n_hold + len(VAL_LABELS) * n_val) / BOOTSTRAP_REFERENCE_ROWS \
         * BOOTSTRAP_SECONDS_PER_CELL
-    decode_s = (n_train + n_val) * len(resolutions) / DECODE_IMG_PER_S_PER_CORE
+    decode_s = (n_train * len(resolutions) + n_train + n_val) / DECODE_IMG_PER_S_PER_CORE
     return {
         "forwards": forwards, "n_units": n_units, "n_configs": n_configs,
         "gpu_hours": gpu_s / 3600,

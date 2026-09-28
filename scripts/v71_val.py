@@ -47,6 +47,18 @@ def _contrast(arm, control, y, probas, mel, n_resamples, metrics=CONTRAST_METRIC
             for m in metrics]
 
 
+def _resolution_diagnostic(args, ctx, selection, grid) -> dict:
+    """§2.3: each winner against itself at the other resolution, paired on the holdout."""
+    out = {}
+    for arm, (chosen, other) in plan.resolution_pairs(selection, grid["rows"]).items():
+        y, chosen_p = _unit_probas(args, chosen)
+        probas = {"chosen": chosen_p, "other_resolution": _unit_probas(args, other)[1]}
+        out[arm] = {"chosen": chosen, "other_resolution": other,
+                    "paired": _contrast("other_resolution", "chosen", y, probas, ctx["mel"],
+                                        args.ci_resamples, metrics=("macro_f1", "ece", "mel_recall", "mel_auc"))}
+    return out
+
+
 def stage_select(args, ctx) -> None:
     out = args.out_dir / "selection.json"
     if out.exists():
@@ -71,7 +83,7 @@ def stage_select(args, ctx) -> None:
                               metrics=("macro_f1", "ece", "mel_recall", "mel_auc"))
         contrasts[arm] = {"controls": controls, "paired": rows}
     selection.update(code_revision=grid["code_revision"], holdout_ids_sha256=grid["holdout_ids_sha256"],
-                     holdout_contrasts=contrasts,
+                     holdout_contrasts=contrasts, resolution_diagnostic=_resolution_diagnostic(args, ctx, selection, grid),
                      note_optimism=("El holdout ya eligio A3/B1 en los pilotos y aca elige entre "
                                     f"{grid['n_configs']} configuraciones: sus numeros tienen optimismo "
                                     "de seleccion; la lectura que vale es la de val (docs/29 §1, §2.7.6)."))

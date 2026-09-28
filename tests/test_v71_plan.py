@@ -95,9 +95,11 @@ def _row(f1, ece, mel80=0.6):
 def _grid():
     return {
         vp.config_id("public", 224, "cls", "none", False): _row(0.61, 0.02),
+        vp.config_id("public", 224, "cls_gem", "balanced", True): _row(0.64, 0.03),
         vp.config_id("public", 448, "cls_gem", "balanced", True): _row(0.66, 0.03),
         vp.config_id("A_s42_a1.0", 224, "cls", "none", False): _row(0.62, 0.02),
-        vp.config_id("A_soup_a0.6", 448, "cls4", "la1.0", True): _row(0.68, 0.05, 0.72),
+        vp.config_id("A_soup_a0.6", 224, "cls4", "la1.0", True): _row(0.67, 0.05, 0.72),
+        vp.config_id("A_soup_a0.6", 448, "cls4", "la1.0", True): _row(0.70, 0.05, 0.75),
         vp.config_id("B_s42_a1.0", 224, "cls", "none", False): _row(0.63, 0.02),
         vp.config_id("B_s42_a0.4", 224, "cls_attn", "balanced", False): _row(0.66, 0.01, 0.65),
     }
@@ -106,23 +108,36 @@ def _grid():
 class TestSelection:
     def test_winners_per_arm_and_public_matched_protocol(self):
         doc = plan.build_selection(_grid())
-        assert doc["winners"]["A"] == vp.config_id("A_soup_a0.6", 448, "cls4", "la1.0", True)
+        assert doc["winners"]["A"] == vp.config_id("A_soup_a0.6", 224, "cls4", "la1.0", True)
         assert doc["winners"]["B"] == vp.config_id("B_s42_a0.4", 224, "cls_attn", "balanced", False)
-        assert doc["winners"]["public"] == vp.config_id("public", 448, "cls_gem", "balanced", True)
+        assert doc["winners"]["public"] == vp.config_id("public", 224, "cls_gem", "balanced", True)
         assert doc["phase2"]["enabled"] is False  # A passes 0.70 at spec 80 on the holdout
+
+    def test_resolution_is_a_diagnostic_never_a_selection_axis(self):
+        """docs/29 §2.3: 448 is compared at fixed weights on the holdout; a 448
+        cell with a higher macro-F1 must not become the winner."""
+        doc = plan.build_selection(_grid())
+        assert all(vp.parse_config_id(c)["resolution"] == vp.SELECTION_RESOLUTION
+                   for c in doc["winners"].values())
+        assert plan.resolution_pairs(doc, _grid()) == {
+            "A": (vp.config_id("A_soup_a0.6", 224, "cls4", "la1.0", True),
+                  vp.config_id("A_soup_a0.6", 448, "cls4", "la1.0", True)),
+            "public": (vp.config_id("public", 224, "cls_gem", "balanced", True),
+                       vp.config_id("public", 448, "cls_gem", "balanced", True))}
 
     def test_val_entries_are_the_named_configurations(self):
         entries = plan.val_entries(plan.build_selection(_grid()))
-        assert entries["A71"] == vp.config_id("A_soup_a0.6", 448, "cls4", "la1.0", True)
-        assert entries["public_A71"] == vp.config_id("public", 448, "cls4", "la1.0", True)
+        assert entries["A71"] == vp.config_id("A_soup_a0.6", 224, "cls4", "la1.0", True)
+        assert entries["public_A71"] == vp.config_id("public", 224, "cls4", "la1.0", True)
         assert entries["A_v7"] == vp.primary_config("A")
         assert entries["public_v7"] == vp.primary_config("public")
         assert set(entries) == set(plan.VAL_LABELS)
 
     def test_units_needed_for_val(self):
         units = plan.val_units(plan.val_entries(plan.build_selection(_grid())))
-        assert units[("A_soup_a0.6", 448)] == {"features": {"cls4"}, "tta": True}
-        assert units[("public", 224)]["tta"] is False
+        assert units[("A_soup_a0.6", 224)] == {"features": {"cls4"}, "tta": True}
+        assert units[("A_s42_a1.0", 224)] == {"features": {"cls"}, "tta": False}
+        assert all(res == vp.SELECTION_RESOLUTION for _, res in units)
 
     def test_contrasts_only_name_known_entries(self):
         assert all(a in plan.VAL_LABELS and c in plan.VAL_LABELS for a, c in plan.VAL_CONTRASTS)
@@ -150,3 +165,9 @@ def test_pretest_counts_two_undefined_metrics_as_equal():
     nan = float("nan")
     assert plan.pretest_check("A", 0.0, {"mel_auc": nan}, {"mel_auc": nan}, weights_diff=0.0)["passed"]
     assert not plan.pretest_check("A", 0.0, {"mel_auc": 0.7}, {"mel_auc": nan}, weights_diff=0.0)["passed"]
+
+
+def test_val_is_read_at_the_selection_resolution_only():
+    cost = plan.cost_projection(n_fit=100, n_hold=10, n_train=110, n_val=20,
+                                resolutions=(224, 448), n_weights=21)
+    assert set(cost["forwards"]["val"]) == {vp.SELECTION_RESOLUTION}

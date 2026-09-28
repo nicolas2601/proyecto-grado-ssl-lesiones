@@ -33,6 +33,8 @@ FITTED_WEIGHTINGS = ("none", "balanced")  # each one logistic regression fit
 WEIGHTINGS = FITTED_WEIGHTINGS + tuple(f"la{t}" for t in TAUS)
 TTA_OPTIONS = (False, True)
 PRIMARY = {"resolution": 224, "feature": "cls", "weighting": "none", "tta": False}
+# §2.3: 448 is a secondary diagnostic at fixed weights, never a selection axis.
+SELECTION_RESOLUTION = PRIMARY["resolution"]
 PHASE2_MEL_SENS_AT_SPEC80 = 0.70  # §2.7 item 7: phase 2 only if no arm passes this
 
 
@@ -108,9 +110,10 @@ def logit_adjust(proba: np.ndarray, prior: np.ndarray, tau: float) -> np.ndarray
 
 
 def select_for_arm(grid: dict, arm: str, candidates=None) -> str:
-    """docs/28 §4.1 on this arm's configurations: max macro-F1, ties (< 0.005) by ECE."""
+    """docs/28 §4.1 on this arm's configurations at the selection resolution."""
     if candidates is None:
-        candidates = [c for c in grid if arm_of(parse_config_id(c)["weights"]) == arm]
+        candidates = [c for c in grid if arm_of(parse_config_id(c)["weights"]) == arm
+                      and parse_config_id(c)["resolution"] == SELECTION_RESOLUTION]
     return sh.select_winner(grid, candidates=candidates)
 
 
