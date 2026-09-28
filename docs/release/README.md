@@ -2,11 +2,12 @@
 
 Four classifiers from the thesis "self-supervised adaptation of DINOv2 to dermoscopy": `A_s42`, `A_s43` (A\*, anchored SSL adaptation) and `B_s42`, `B_s43` (B\*, plus a tone-consistency term), each a DINOv2 ViT-B/14 backbone adapted without labels and a linear head for the 7 HAM10000 classes.
 
-**Research use only. Not a medical device; do not use for diagnosis.** Non-commercial: HAM10000 is CC BY-NC 4.0 (see `LICENSE.md`).
+**Research use only. Not a medical device; do not use for diagnosis.** Weights: CC BY-NC 4.0, non-commercial (`LICENSE-WEIGHTS`); code: Apache-2.0 (`LICENSE`).
 
 | File | What it is |
 |---|---|
-| `MODEL_CARD.md` | What the models are, what changed from v6, metrics with 95 % intervals, limitations, licenses |
+| `MODEL_CARD.md` | What the models are, what changed from v6, evaluated metrics with 95 % intervals, deployment metrics, limitations, licenses |
+| `LICENSE`, `LICENSE-WEIGHTS` | Apache-2.0 for the code; CC BY-NC 4.0 for the weights, with the dataset and DINOv2 attributions |
 | `USO_MODELOS.md` | Step-by-step usage guide (Spanish): torch, transformers, ONNX in Python and in the browser |
 | `<model>/hf/` | `config.json` + `model.safetensors` (Hugging Face `Dinov2Model`) and `head.safetensors` (fused linear head, class order, preprocessing) |
 | `<model>/onnx/model.onnx` | End-to-end classifier: preprocessed image in, 7 probabilities out (fp32; an fp16 copy only if it passed the registered rule) |

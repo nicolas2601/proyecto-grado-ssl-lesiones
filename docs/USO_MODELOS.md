@@ -2,7 +2,7 @@
 
 Guía paso a paso para usar los clasificadores v7 publicados, en tres formas: **(a)** PyTorch sin `transformers`, **(b)** Hugging Face `transformers` y **(c)** ONNX, en Python o en el navegador. Las tres leen los mismos pesos y dan las mismas probabilidades (ver `parity.json` de cada modelo).
 
-**Uso de investigación, no diagnóstico.** No es un dispositivo médico. Ver `MODEL_CARD.md` (métricas, limitaciones y licencias: derivado no comercial, HAM10000 es CC BY-NC 4.0).
+**Uso de investigación, no diagnóstico.** No es un dispositivo médico. Ver `MODEL_CARD.md` (métricas evaluadas y de despliegue, limitaciones y licencias). Los pesos son CC BY-NC 4.0, uso no comercial (`LICENSE-WEIGHTS`); el código es Apache-2.0 (`LICENSE`).
 
 Los bloques de código de esta guía se ejecutan tal cual en un entorno virtual limpio, sin el repositorio instalado, contra un modelo aleatorio pequeño con el mismo formato (`scripts/check_release_guides.py`). Si cambias un bloque, vuelve a correr ese chequeo.
 
@@ -10,7 +10,7 @@ Los bloques de código de esta guía se ejecutan tal cual en un entorno virtual 
 
 ```text
 v7/
-  README.md  MODEL_CARD.md  USO_MODELOS.md  LICENSE.md  SHA256SUMS  sizes.json
+  README.md  MODEL_CARD.md  USO_MODELOS.md  LICENSE  LICENSE-WEIGHTS  SHA256SUMS  sizes.json
   preprocess.py        preprocesamiento de la evaluación (numpy + PIL)
   dinov2_plain.py      DINOv2 en PyTorch puro que lee los pesos de hf/
   web/                 página onnxruntime-web

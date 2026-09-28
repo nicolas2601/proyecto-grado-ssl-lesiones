@@ -29,6 +29,10 @@ TARGET = REPO / "docs" / "release" / "MODEL_CARD.md"
 MODELS = (("A", "plain"), ("B", "proposed"))
 TEMPLATE = REPO / "docs" / "release" / "model_card_template.md"
 COLUMNS = ("Macro-F1", "Bal-acc", "Accuracy", "AUC (macro OvR)", "Mel sensitivity", "Mel AUC", "ECE")
+DEPLOYED = (("macro_f1", "Macro-F1"), ("balanced_accuracy", "Bal-acc"), ("accuracy", "Accuracy"),
+            ("mel_sensitivity", "Mel sensitivity"), ("mel_auc", "Mel AUC"), ("ece", "ECE"))
+NO_PARITY = ("Not in this copy: the métricas de despliegue are written into the release folder's "
+             "`MODEL_CARD.md` by `scripts/finalize_release.py`, from each model's `parity.json`.")
 
 
 def _cell(value: float, ci) -> str:
@@ -62,6 +66,28 @@ def metrics_table(docs: dict, probas: dict) -> str:
     return "\n".join(lines)
 
 
+def _deployed_row(model: str, label: str, block: dict) -> str:
+    cells = [f"{block['metrics'][k]['value']:.4f} ({block['metrics'][k]['delta']:+.4f})"
+             for k, _ in DEPLOYED]
+    return f"| `{model}` | {label} | " + " | ".join(cells) + f" | {block['n_predictions_changed']} |"
+
+
+def deployment_table(parity_root: Path | None) -> str:
+    """Rows per model and ONNX precision from ``<root>/<model>/parity.json``; a note without them."""
+    paths = sorted(parity_root.glob("*/parity.json")) if parity_root else []
+    if not paths:
+        return NO_PARITY
+    lines = ["| Model | Form | " + " | ".join(label for _, label in DEPLOYED)
+             + " | Predictions changed |", "|---|---|" + "---|" * (len(DEPLOYED) + 1)]
+    for path in paths:
+        blocks = json.loads(path.read_text(encoding="utf-8"))["deployment_metrics"]
+        lines.append(_deployed_row(path.parent.name, "ONNX fp32", blocks["onnx_fp32"]))
+        if "onnx_fp16" in blocks:
+            state = "published" if blocks["onnx_fp16"]["gate"]["publish"] else "not published"
+            lines.append(_deployed_row(path.parent.name, f"ONNX fp16 ({state})", blocks["onnx_fp16"]))
+    return "\n".join(lines)
+
+
 def load() -> tuple[dict, dict]:
     docs, probas = {}, {}
     for seed, path in FINAL.items():
@@ -71,10 +97,11 @@ def load() -> tuple[dict, dict]:
     return docs, probas
 
 
-def render() -> str:
+def render(parity_root: Path | None = None) -> str:
     docs, probas = load()
     values = {
         "metrics_table": metrics_table(docs, probas),
+        "deployment_table": deployment_table(parity_root),
         "n_val": str(docs[42]["n_eval"]),
         "sources": ", ".join(f"`{p.as_posix()}`" for p in FINAL.values()),
         "preprocessing": json.dumps(preprocess.PREPROCESSING, indent=1),

@@ -4,20 +4,18 @@ Status: code, tests and docs ready; **nothing built or uploaded yet.** Packaging
 
 ## What gets published
 
-Per model (`A_s42`, `A_s43`, `B_s42`, `B_s43`): `hf/` (config.json, model.safetensors ~330 MiB, head.safetensors), `onnx/model.onnx` (~330 MiB), `onnx/model_fp16.onnx` (~165 MiB, only if it passes the fp16 rule), `release.json`, `parity.json`. Shared: README, MODEL_CARD, USO_MODELOS, LICENSE, preprocess.py, dinov2_plain.py, web/, results/, sizes.json, SHA256SUMS. Sizes are estimates for ViT-B/14 in fp32 (86 M parameters x 4 bytes); `sizes.json` records the real ones.
+Per model (`A_s42`, `A_s43`, `B_s42`, `B_s43`): `hf/` (config.json, model.safetensors ~330 MiB, head.safetensors), `onnx/model.onnx` (~330 MiB), `onnx/model_fp16.onnx` (~165 MiB, only if it passes the fp16 rule), `release.json`, `parity.json`. Shared: README, MODEL_CARD (with the deployment metrics), USO_MODELOS, LICENSE (Apache-2.0, code), LICENSE-WEIGHTS (CC BY-NC 4.0, weights), preprocess.py, dinov2_plain.py, web/, results/, sizes.json, SHA256SUMS. Sizes are estimates for ViT-B/14 in fp32 (86 M parameters x 4 bytes); `sizes.json` records the real ones.
 
 - **GitHub Release:** every file is one asset, flattened (`B_s42/onnx/model.onnx` -> `B_s42__onnx__model.onnx`). Per-asset limit 2 GiB; `finalize_release.py` and `upload_release.py` both refuse larger files. Total ~3 GB for four models.
 - **Hugging Face Hub (option):** one model repository with the folder layout as is (`upload_folder`), so `AutoModel.from_pretrained("<repo>", subfolder="B_s42/hf")` works directly.
 
 ## Before publishing (blocking)
 
-1. Licenses of ISIC 2019 and ISIC 2020 (pretraining pool) are not recorded in the repository: verify them and update `docs/release/model_card_template.md` and `docs/release/LICENSE.md`.
-2. The repository has no license file: decide the code license stated in `LICENSE.md`.
-3. Parity must pass for the four models (below). If `final_eval.json` is not reproduced exactly, read `parity.json` before using `--allow-json-drift`.
+Parity must pass for the four models (below). There is no override: a model whose packaged head does not give exactly the committed predictions and macro-F1, or whose forms disagree, is not released. Licenses are settled: code Apache-2.0 (`LICENSE`), weights CC BY-NC 4.0 (`LICENSE-WEIGHTS`; HAM10000, ISIC 2019 and ISIC 2020 are CC BY-NC 4.0, DINOv2 Apache-2.0).
 
 ## Pod commands
 
-Paths as in `c1_final_eval.py`. The tree must be clean (the scripts record the code revision). `--device cuda` for the packaging step reproduces the evaluation's fp16-autocast features, so the refit probe is the evaluated one; on CPU the probe is refit on fp32 features and `parity.json` shows the resulting difference.
+Paths as in `c1_final_eval.py`. The tree must be clean (the scripts record the code revision). Packaging needs a GPU: it only accepts `--device cuda`, which reproduces the evaluation's fp16-autocast features, so the refit head is the evaluated one. Parity runs on CPU; its `deployment_metrics` block is ONNX fp32 (and fp16) on CPU end to end, reported with deltas to the evaluated values.
 
 ```bash
 cd ~/work/proyectonp/proyecto-grado-consolidado      # repo checkout on the pod
@@ -34,11 +32,11 @@ python scripts/build_release_package.py --ham-root $HAM --model B_s42 --weights 
 python scripts/build_release_package.py --ham-root $HAM --model A_s43 --weights $V/final_A_s43/simsiam_dinov2_backbone_final.pt --final-eval $F43 --device cuda
 python scripts/build_release_package.py --ham-root $HAM --model B_s43 --weights $V/final_B_s43/simsiam_dinov2_backbone_final.pt --final-eval $F43 --device cuda
 
-# 2. parity (CPU is fine; writes <model>/parity.json, exit 1 on a failed gate)
+# 2. parity on CPU (writes <model>/parity.json with deployment_metrics; exit 1 on any failed gate)
 for M in A_s42 B_s42; do python scripts/release_parity.py --ham-root $HAM --model-dir release/v7/$M --final-eval $F42; done
 for M in A_s43 B_s43; do python scripts/release_parity.py --ham-root $HAM --model-dir release/v7/$M --final-eval $F43; done
 
-# 3. assemble: docs, code, results, fp16 rule applied, sizes.json, SHA256SUMS, 2 GiB check
+# 3. assemble: model card with deployment metrics, licenses, code, results, fp16 rule, sizes.json, SHA256SUMS, 2 GiB check
 python scripts/finalize_release.py --release release/v7
 
 # 4. upload: dry run first; --execute only when Nico says so

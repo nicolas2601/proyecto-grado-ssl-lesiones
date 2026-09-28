@@ -37,7 +37,7 @@ Four research models, one per arm and pretraining seed: `A_s42`, `A_s43` (A\*, a
 
 The v7 redesign is registered in `docs/28-rediseno-brazo-propuesto-v7.md` §2-§3 (values and sources there, not repeated here): patch embedding and blocks 0-7 frozen, layer-wise learning-rate decay on the trainable blocks, an L2-SP weight anchor and a feature anchor towards public DINOv2, milder hue jitter, and, for B\* only, a real tone-consistency term on the same crop. The confounders of v6 were fixed: validation and selection-holdout ids excluded from the pretraining pool, the same number of steps in both arms, and one code revision per final. The variants were selected on an internal holdout of the train split, never on validation (docs/28 §4).
 
-## Results
+## Evaluated results (final_eval.json)
 
 Validation: C1 fold-0 val of HAM10000, n = 2004, scored once per seed (docs/28 §5.1). Values with 95 % bootstrap intervals over images; macro-F1, balanced accuracy, AUC and ECE come from `final_eval.json`, accuracy and melanoma metrics from the committed probabilities (1000 resamples, seed 20260923, as in `resultados/clasificacion/TABLA_CLASIFICADOR.md`). ECE: lower is better. The ECE percentile interval can leave the point outside; see the basic interval note in `final_eval.json` (`secondary_ece_basic_ci`).
 
@@ -57,9 +57,17 @@ These numbers are the evaluated models. The released files are re-exported from 
 
 Each model ships as `hf/` (Hugging Face `Dinov2Model` `config.json` + `model.safetensors`, and `head.safetensors` with the fused head, class order and preprocessing) and `onnx/` (end to end, fp32, and fp16 when it passes the rule). Usage: `USO_MODELOS.md`.
 
+Every gate is hard; a model that fails one is not released (`parity.json` in each model folder):
+
+- **Evaluation reproduced exactly:** the head is refit on the features of the evaluation (CUDA, fp16 autocast, the same extraction code), and the refit path and the released fused head give exactly the committed predictions and the `final_eval.json` macro-F1 (tolerance 1e-09).
 - **Forms agree:** hub fp32 path, torch, transformers and ONNX within atol 0.0001 with identical argmax on the first 100 val images, and the same val macro-F1.
-- **Evaluation reproduced:** val macro-F1 equal to `final_eval.json` within 1e-09. The evaluation extracted features under CUDA fp16 autocast; the released forms run in fp32, so `parity.json` records any difference and the number of changed predictions.
 - **fp16 copy:** published only if its argmax matches torch fp32 on at least 99.5% of val images and |delta macro-F1| <= 0.002; otherwise the release is fp32 only.
+
+## Deployment metrics (métricas de despliegue)
+
+The table above is what was evaluated. A user of the release runs the forms in fp32 (or fp16) on their own machine: images through `preprocess.py`, fp32 features, the released head. These métricas de despliegue are that path, ONNX on CPU end to end over the same val images, with the difference to the evaluated value in parentheses and the number of predictions that changed. They are reported, not gated; the small differences come from fp32 versus the evaluation's fp16 autocast.
+
+Not in this copy: the métricas de despliegue are written into the release folder's `MODEL_CARD.md` by `scripts/finalize_release.py`, from each model's `parity.json`.
 
 ## Intended use
 
@@ -74,15 +82,16 @@ Research on self-supervised adaptation for dermoscopy: reproducing the thesis re
 - **Calibration.** ECE is reported on validation only; probabilities are not calibrated for other populations.
 - **Resolution.** The released weights embed the position grid for 224 x 224 input; other sizes are not supported.
 
-## Licenses and data
+## Licencias
 
-The models are a **non-commercial research derivative**: HAM10000 is licensed CC BY-NC 4.0, so the weights and head may not be used commercially.
+- **Code** (`preprocess.py`, `dinov2_plain.py`, `web/` and the repository): Apache-2.0, file `LICENSE`.
+- **Model weights and head** (`hf/*.safetensors`, `onnx/*.onnx`): CC BY-NC 4.0, file `LICENSE-WEIGHTS`. They are a **non-commercial research derivative**: the data they were trained on is CC BY-NC 4.0, so commercial use is not permitted.
 
-| Component | Role | License | Source of the license statement |
+| Component | Role | License | Source |
 |---|---|---|---|
-| HAM10000 | probe training (C1 train, 8011 images) and pretraining pool | CC BY-NC 4.0 | Harvard Dataverse, doi:10.7910/DVN/DBW86T (verified for this release; not previously recorded in the repository docs) |
-| ISIC 2019 | pretraining pool (unlabelled) | **not found in the repository docs; verify before publishing** | none in the repository |
-| ISIC 2020 | pretraining pool (unlabelled) | **not found in the repository docs; verify before publishing** | none in the repository |
-| DINOv2 ViT-B/14 initial weights | starting point of the adaptation | Apache License 2.0 | facebookresearch/dinov2 README ("code and model weights are released under the Apache License 2.0") |
+| HAM10000 | probe training (C1 train, 8011 images) and pretraining pool | CC BY-NC 4.0 | Harvard Dataverse, doi:10.7910/DVN/DBW86T |
+| ISIC 2019 challenge data | pretraining pool (unlabelled) | CC BY-NC 4.0 | challenge.isic-archive.com/data |
+| ISIC 2020 challenge data | pretraining pool (unlabelled) | CC BY-NC 4.0 | challenge.isic-archive.com/data |
+| DINOv2 ViT-B/14 (Meta) | initial weights | Apache-2.0 | facebookresearch/dinov2 |
 
-Pool composition: `docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md` and `docs/27-plan-v7-mejoras-ssl.md` (exclusions of validation, holdout and near duplicates). See `LICENSE.md` in the release.
+Pool composition: `docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md` and `docs/27-plan-v7-mejoras-ssl.md` (exclusions of validation, holdout and near duplicates).

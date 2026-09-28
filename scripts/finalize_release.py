@@ -1,9 +1,10 @@
 """Assemble release/v7 after packaging and parity: docs, code, results, sizes, checksums.
 
-Refuses a model without parity.json, with a failed hard gate, or (unless
-``--allow-json-drift``) whose forms do not reproduce final_eval.json. Removes
-the fp16 ONNX copy of a model that failed the registered fp16 rule. Fails if
-any file exceeds the 2 GiB GitHub asset limit. Nothing is uploaded.
+Refuses a model without parity.json or with any failed gate (exact
+reproduction of final_eval.json included; there is no override). Removes the
+fp16 ONNX copy of a model that failed the registered fp16 rule, writes the
+model card with the models' deployment metrics, and fails if any file exceeds
+the 2 GiB GitHub asset limit. Nothing is uploaded.
 
     python scripts/finalize_release.py --release release/v7
 """
@@ -27,8 +28,8 @@ RELEASE_SRC = REPO / "src" / "dermssl" / "release"
 V7 = REPO / "resultados" / "clasificacion" / "v7"
 COPIES = {
     "README.md": REPO / "docs" / "release" / "README.md",
-    "MODEL_CARD.md": REPO / "docs" / "release" / "MODEL_CARD.md",
-    "LICENSE.md": REPO / "docs" / "release" / "LICENSE.md",
+    "LICENSE": REPO / "LICENSE",
+    "LICENSE-WEIGHTS": REPO / "LICENSE-WEIGHTS",
     "USO_MODELOS.md": REPO / "docs" / "USO_MODELOS.md",
     "preprocess.py": RELEASE_SRC / "preprocess.py",
     "dinov2_plain.py": RELEASE_SRC / "plain_dinov2.py",
@@ -58,27 +59,27 @@ def copy_files(root: Path, names=None) -> list[str]:
     return written
 
 
-def check_model(model_dir: Path, allow_json_drift: bool) -> dict:
+def check_model(model_dir: Path) -> dict:
     """Parity verdicts of one model; drops the fp16 copy that failed its rule."""
     parity_path = model_dir / "parity.json"
     if not parity_path.is_file():
         raise ReleaseRefused(f"{model_dir.name}: no parity.json; run scripts/release_parity.py")
     parity = json.loads(parity_path.read_text(encoding="utf-8"))
-    if not parity["pass_hard"]:
-        raise ReleaseRefused(f"{model_dir.name}: forms disagree ({parity['gates']})")
-    if not parity["json_reproduced"] and not allow_json_drift:
-        raise ReleaseRefused(f"{model_dir.name}: final_eval.json not reproduced ({parity['gates']})")
+    if not parity["pass"]:
+        raise ReleaseRefused(f"{model_dir.name}: a parity gate failed ({parity['gates']})")
     fp16 = model_dir / "onnx" / "model_fp16.onnx"
-    if fp16.exists() and not parity["fp16"]["publish"]:
+    fp16_block = parity["deployment_metrics"].get("onnx_fp16", {})
+    if fp16.exists() and not fp16_block.get("gate", {}).get("publish", False):
         fp16.unlink()
-    return {"model": model_dir.name, "json_reproduced": parity["json_reproduced"],
-            "fp16_published": fp16.exists()}
+    return {"model": model_dir.name, "fp16_published": fp16.exists()}
 
 
-def finalize(root: Path, models, allow_json_drift: bool = False,
-             limit_bytes: int = package.GITHUB_ASSET_LIMIT) -> dict:
-    summary = [check_model(root / m, allow_json_drift) for m in models]
+def finalize(root: Path, models, limit_bytes: int = package.GITHUB_ASSET_LIMIT) -> dict:
+    import build_model_card  # noqa: PLC0415
+
+    summary = [check_model(root / m) for m in models]
     copy_files(root)
+    (root / "MODEL_CARD.md").write_text(build_model_card.render(root), encoding="utf-8")
     (root / "sizes.json").unlink(missing_ok=True)
     report = package.size_report(root, limit_bytes)
     package.write_json(root / "sizes.json", {"limit_bytes": limit_bytes, "files": report})
@@ -92,12 +93,11 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--release", type=Path, default=REPO / "release" / "v7")
     parser.add_argument("--models", nargs="+", default=list(MODELS))
-    parser.add_argument("--allow-json-drift", action="store_true")
     args = parser.parse_args(argv)
     if build_model_card.main(["--check"]) != 0:
         return 1
     try:
-        result = finalize(args.release, args.models, args.allow_json_drift)
+        result = finalize(args.release, args.models)
     except (ReleaseRefused, package.AssetTooLarge) as exc:
         print(f"ABORT: {exc}")
         return 1
