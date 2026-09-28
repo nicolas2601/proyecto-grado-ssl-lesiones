@@ -9,11 +9,14 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
 import build_c1_readme  # noqa: E402
 import build_final_eval_table  # noqa: E402
+import build_seed_summary  # noqa: E402
 
 V7_DIR = REPO / "resultados" / "clasificacion" / "v7"
 
@@ -22,6 +25,11 @@ def test_c1_readme_matches_its_json():
     assert build_c1_readme.main(["--check"]) == 0
 
 
-def test_v7_readme_matches_its_json():
-    doc = V7_DIR / "final_eval.json"
-    assert build_final_eval_table.main([str(doc), "--out", str(V7_DIR / "README.md"), "--check"]) == 0
+@pytest.mark.parametrize("folder", [V7_DIR, V7_DIR / "s43"], ids=["seed42", "seed43"])
+def test_v7_readme_matches_its_json(folder):
+    doc = folder / "final_eval.json"
+    assert build_final_eval_table.main([str(doc), "--out", str(folder / "README.md"), "--check"]) == 0
+
+
+def test_seed_summary_matches_both_jsons():
+    assert build_seed_summary.main(["--check"]) == 0
