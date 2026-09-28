@@ -2,7 +2,7 @@
 
 Una línea por documento, en orden numérico. La columna Estado indica si el documento es la referencia vigente o si otro lo reemplazó. Los superados se conservan sin editar, porque cuentan cómo se llegó al diseño actual.
 
-Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Rediseño v7](28-rediseno-brazo-propuesto-v7.md) y el [resultado v7](../resultados/clasificacion/v7/README.md).
+Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Rediseño v7](28-rediseno-brazo-propuesto-v7.md) y el [resultado v7](../resultados/clasificacion/v7/README.md). Para el cierre de lo que pidieron el profesor y Pau, con veredicto por regla: [tabla de cierre](../resultados/TABLA_CIERRE.md) (generada).
 
 | Doc | Tema | Estado |
 |---|---|---|

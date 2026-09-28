@@ -15,6 +15,7 @@ clasificador. Que gano, que perdio, y como mejorarlo.
 | v7: réplica con semilla 43 (registrada en docs/28 §4.1) | [clasificacion/v7/s43/README.md](clasificacion/v7/s43/README.md) | `clasificacion/v7/s43/final_eval.json` | Vigente |
 | Clasificador: v6, C1 y v7 lado a lado, con matriz de confusión, F1 y recall por clase y melanoma | [clasificacion/TABLA_CLASIFICADOR.md](clasificacion/TABLA_CLASIFICADOR.md) | `clasificacion/bank.json`, `clasificacion/c1/c1_cells.json`, los dos `final_eval.json` y `final_eval.probas.npz` | Vigente |
 | Segmentación: estudiante final (Dice, IoU, HD95) y pseudo-máscaras v7 contra los umbrales de docs/27 | [segmentacion/TABLA_SEGMENTACION.md](segmentacion/TABLA_SEGMENTACION.md) | `summary.json` y `*_stats.json` de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
+| Cierre: pedidos del profesor y plan de Pau → qué se hizo → resultado, con veredicto por regla | [TABLA_CIERRE.md](TABLA_CIERRE.md) | los JSON de `clasificacion/` y de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
 | C1: grilla de condiciones de máscara por backbone | [clasificacion/c1/README.md](clasificacion/c1/README.md) | `clasificacion/c1/*.json` | Vigente |
 | v6: bancos congelados y bootstrap pareado | Secciones 4 a 7 de este documento | `clasificacion/bank.json`, `clasificacion/bootstrap.json` | Superado por v7 |
 | Segmentación y tono | Secciones 2 y 3 de este documento | `segmentacion/`, `tono/` | Vigente |
