@@ -20,6 +20,7 @@ from PIL import Image
 
 import seg_paths  # noqa: F401
 import evaluate_segmentation as ev
+from scripts import s_diag_parallel_check as pc
 from scripts import s_diag_predict as sp
 
 torch = pytest.importorskip("torch")
@@ -70,14 +71,27 @@ def fake_backbone(monkeypatch):
     return calls
 
 
-def _run(tmp_path, images, *methods, extra=()):
-    out = tmp_path / "pred"
+def _run(tmp_path, images, *methods, extra=(), name="pred"):
+    out = tmp_path / name
     argv = ["--backbone", "public=dinov2_vitb14:public", "--image-dir", str(images),
             "--output-dir", str(out), "--reference-set", "isic2018", "--device", "cpu"]
     for method in methods:
         argv += ["--method", method]
     sp.main([*argv, *extra])
     return out
+
+
+def _write_noisy_set(tmp_path, count):
+    """Textured images whose PCA and k-means masks are not trivial."""
+    images = tmp_path / "noisy"
+    images.mkdir()
+    rng = np.random.default_rng(7)
+    for index in range(count):
+        image = rng.integers(0, 256, (SIZE, SIZE, 3), dtype=np.uint8)
+        top, left = rng.integers(20, 120, 2)
+        image[top : top + 80, left : left + 80] //= 3
+        Image.fromarray(image).save(images / f"ISIC_{index:07d}.png")
+    return images
 
 
 def _evaluate(tmp_path, out, images, references, method):
@@ -166,3 +180,40 @@ def test_importing_the_script_does_not_import_torch():
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
                             check=True, env=env, cwd=ROOT)
     assert result.stdout.strip() == "False"
+
+
+@pytest.mark.parametrize("methods", [("primary", "kmeans"), ("pca448",)])
+def test_parallel_workers_write_bit_identical_masks(tmp_path, fake_backbone, methods):
+    images = _write_noisy_set(tmp_path, count=7)
+    extra = ["--batch-size", "3"]
+    serial = _run(tmp_path, images, *methods, extra=extra, name="serial")
+    parallel = _run(tmp_path, images, *methods, extra=[*extra, "--workers", "4"],
+                    name="parallel")
+    assert pc.compare_runs(serial, parallel) == []
+    assert len(list((parallel / "masks").iterdir())) == 7 * len(methods)
+    workers = [json.loads((out / "run.json").read_text())["workers"] for out in (serial, parallel)]
+    assert workers == [1, 4]
+
+
+def test_the_check_reports_any_mask_or_record_difference(tmp_path, fake_backbone):
+    images = _write_noisy_set(tmp_path, count=2)
+    first = _run(tmp_path, images, "primary", name="first")
+    second = _run(tmp_path, images, "primary", extra=["--workers", "2"], name="second")
+    assert pc.compare_runs(first, second) == []
+    (second / "masks" / "ISIC_0000001_primary.png").write_bytes(b"not a mask")
+    (second / "masks" / "ISIC_0000009_primary.png").write_bytes(b"extra")
+    record = json.loads((second / "run.json").read_text())
+    (second / "run.json").write_text(json.dumps({**record, "n_images": 3}))
+    assert pc.compare_runs(first, second) == [
+        "mask differs: ISIC_0000001_primary.png",
+        "mask only in one run: ISIC_0000009_primary.png",
+        "run.json differs: n_images",
+    ]
+
+
+def test_workers_must_be_positive(capsys):
+    with pytest.raises(SystemExit):
+        sp.parse_args(["--backbone", "public=dinov2_vitb14:public", "--image-dir", "i",
+                       "--output-dir", "o", "--reference-set", "isic2018",
+                       "--method", "primary", "--workers", "0"])
+    assert "--workers must be >= 1" in capsys.readouterr().err

@@ -12,7 +12,12 @@ SegXNorm floors, so Dice, IoU and HD95 come from the same code as student_r3.
 
 Pod run (3 weights x 3 methods x 2 reference sets). The clone must be clean
 (``git status --porcelain`` empty) or the script aborts; TORCH_HOME must hold
-the cached facebookresearch/dinov2 hub repo and weights, as for C1::
+the cached facebookresearch/dinov2 hub repo and weights, as for C1. The GPU
+forward stays batched; ``--workers 36`` spreads the per-image PCA / k-means /
+PNG work over 36 single-threaded processes (bit-identical to ``--workers 1``;
+check it first with ``scripts/s_diag_parallel_check.py``). Order: every
+``primary`` run first, then ``pca448``, then ``kmeans``, each (set, weight,
+method) evaluated as soon as its masks exist::
 
     cd ~/work/proyectonp/repo_v7 && source ~/work/proyectonp/.venv/bin/activate
     python -c "import sklearn, skimage, scipy"  # else pip install scikit-learn scikit-image
@@ -20,28 +25,22 @@ the cached facebookresearch/dinov2 hub repo and weights, as for C1::
     declare -A W=([public]=public
                   [astar]=$V/final_A/simsiam_dinov2_backbone_final.pt
                   [bstar]=$V/final_B/simsiam_dinov2_backbone_final.pt)
-    for SET in isic2018 ham10000; do
-      case $SET in
-        isic2018) IMG=$P/datos_isic2018/ISIC2018_Task1-2_Training_Input
-                  GT=$P/masks_eval/isic2018/ground_truth ;;
-        ham10000) IMG=$P/eval_ham10000_images
-                  GT=$P/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl ;;
-      esac
-      for NAME in public astar bstar; do
-        SPEC=$NAME=dinov2_vitb14:${W[$NAME]}
-        python scripts/s_diag_predict.py --backbone $SPEC --image-dir $IMG \
-          --reference-set $SET --method primary --method kmeans \
-          --output-dir $S/$SET/${NAME}_224
-        python scripts/s_diag_predict.py --backbone $SPEC --image-dir $IMG \
-          --reference-set $SET --method pca448 --output-dir $S/$SET/${NAME}_448
-        for METHOD in primary kmeans pca448; do
-          RUN=${NAME}_224; [ $METHOD = pca448 ] && RUN=${NAME}_448
-          E=$S/evaluacion_${SET}_${NAME}_${METHOD}
+    declare -A IMG=([isic2018]=$P/datos_isic2018/ISIC2018_Task1-2_Training_Input
+                    [ham10000]=$P/eval_ham10000_images)
+    declare -A GT=([isic2018]=$P/masks_eval/isic2018/ground_truth
+                   [ham10000]=$P/masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl)
+    for METHOD in primary pca448 kmeans; do
+      for SET in isic2018 ham10000; do
+        for NAME in public astar bstar; do
+          RUN=$S/$SET/${NAME}_$METHOD; E=$S/evaluacion_${SET}_${NAME}_${METHOD}
+          python scripts/s_diag_predict.py --backbone $NAME=dinov2_vitb14:${W[$NAME]} \
+            --image-dir ${IMG[$SET]} --reference-set $SET --method $METHOD \
+            --workers 36 --output-dir $RUN || break 3
           python plan-segmentacion/comun/evaluacion/evaluate_segmentation.py \
-            --pred-mask-dir $S/$SET/$RUN/masks --pred-mask-suffix _$METHOD \
-            --image-dir $IMG --mask-dir $GT --eval-resolution 224 --hausdorff \
-            --eval-name ${SET}_sdiag_${NAME}_${METHOD} --output-dir $E \
-            --overlay-dir $E/overlays
+            --pred-mask-dir $RUN/masks --pred-mask-suffix _$METHOD \
+            --image-dir ${IMG[$SET]} --mask-dir ${GT[$SET]} --eval-resolution 224 \
+            --hausdorff --eval-name ${SET}_sdiag_${NAME}_${METHOD} --output-dir $E \
+            --overlay-dir $E/overlays || break 3
         done
       done
     done
@@ -57,6 +56,8 @@ import hashlib
 import json
 import os
 import sys
+from concurrent.futures import FIRST_COMPLETED, wait
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
@@ -75,6 +76,12 @@ PATCH_SIZE = 14
 # Same grid as evaluate_segmentation.EXTERNAL_RESOLUTION: masks land on it unchanged.
 MASK_RESOLUTION = 224
 KMEANS_SEED = 0
+# Each worker runs PCA / k-means single-threaded, so N workers use N cores
+# instead of N x (all cores) BLAS / OpenMP threads.
+WORKER_THREAD_ENV = {name: "1" for name in (
+    "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")}
+# Images whose masks may be pending in the pool while the GPU extracts more.
+BACKLOG_PER_WORKER = 4
 METHODS = {"primary": ("pca", 224), "kmeans": ("kmeans", 224), "pca448": ("pca", 448)}
 TRAINING_NOTE = (
     "no training: no parameter is trained or fitted on any image set; PCA and "
@@ -130,6 +137,51 @@ def write_masks(masks_dir: Path, image_id: str, tokens: np.ndarray, methods, gri
         )
 
 
+def _single_threaded_worker() -> None:
+    """Pool initializer: BLAS and OpenMP pinned to one thread in this worker."""
+    from threadpoolctl import threadpool_limits
+
+    os.environ.update(WORKER_THREAD_ENV)
+    threadpool_limits(limits=1)
+
+
+def _raise_failures(futures) -> None:
+    for future in futures:
+        future.result()
+
+
+@contextmanager
+def mask_writer(workers: int):
+    """``submit(*write_masks_args)``: inline when serial, else a loky process pool.
+
+    Each image's masks depend only on its own tokens (k-means keeps
+    ``random_state`` per image), so the pool writes the same bytes as the
+    serial loop. The backlog is bounded so the GPU extraction of the next
+    batches overlaps the workers without holding every token array in memory.
+    """
+    if workers == 1:
+        yield write_masks
+        return
+    from joblib.externals.loky import get_reusable_executor
+
+    executor = get_reusable_executor(max_workers=workers, env=WORKER_THREAD_ENV,
+                                     initializer=_single_threaded_worker)
+    pending = set()
+
+    def submit(*write_args) -> None:
+        pending.add(executor.submit(write_masks, *write_args))
+        if len(pending) > workers * BACKLOG_PER_WORKER:
+            done, _ = wait(pending, return_when=FIRST_COMPLETED)
+            pending.difference_update(done)
+            _raise_failures(done)
+
+    try:
+        yield submit
+        _raise_failures(wait(pending).done)
+    finally:
+        executor.shutdown(wait=True)
+
+
 def predict(args, masks_dir: Path, resolution: int) -> list[str]:
     """Load the frozen backbone once and write every image's masks."""
     import torch
@@ -139,12 +191,13 @@ def predict(args, masks_dir: Path, resolution: int) -> list[str]:
     model = bank.build_frozen_backbone(arch, source, resolution, device)["model"]
     grid = resolution // PATCH_SIZE
     paths = list_images(args.image_dir, args.limit)
-    for start in range(0, len(paths), args.batch_size):
-        chunk = paths[start : start + args.batch_size]
-        for path, tokens in zip(chunk, extract_tokens(model, chunk, resolution, device)):
-            if tokens.shape[0] != grid * grid:
-                raise ValueError(f"{path.name}: {tokens.shape[0]} tokens, expected {grid * grid}")
-            write_masks(masks_dir, path.stem, tokens, args.method, grid)
+    with mask_writer(args.workers) as submit:
+        for start in range(0, len(paths), args.batch_size):
+            chunk = paths[start : start + args.batch_size]
+            for path, tokens in zip(chunk, extract_tokens(model, chunk, resolution, device)):
+                if tokens.shape[0] != grid * grid:
+                    raise ValueError(f"{path.name}: {tokens.shape[0]} tokens, expected {grid * grid}")
+                submit(masks_dir, path.stem, tokens, list(args.method), grid)
     return [path.stem for path in paths]
 
 
@@ -166,6 +219,7 @@ def run_record(args, resolution: int, ids: list[str], revision: str) -> dict:
         "n_images": len(ids),
         "image_ids_sha256": hashlib.sha256("\n".join(ids).encode("utf-8")).hexdigest(),
         "limit": args.limit,
+        "workers": args.workers,
         "torch_home": os.environ.get("TORCH_HOME", ""),
         "training_images": TRAINING_NOTE,
         "complete": True,
@@ -183,9 +237,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=0, help="first N sorted images (smoke)")
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--device", default=None)
+    parser.add_argument("--workers", type=int, default=1,
+                        help="processes for the per-image masks; 1 = serial, same bytes")
     args = parser.parse_args(argv)
     if len(set(args.method)) != len(args.method):
         parser.error("--method repeated")
+    if args.workers < 1:
+        parser.error("--workers must be >= 1")
     return args
 
 
