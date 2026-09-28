@@ -11,7 +11,7 @@ from __future__ import annotations
 import pytest
 
 torch = pytest.importorskip("torch")
-from dermssl import s4_unet as s4  # noqa: E402
+from dermssl import torch_s4_unet as s4  # noqa: E402
 from s4_fakes import FakeVit  # noqa: E402
 
 pytestmark = pytest.mark.torch

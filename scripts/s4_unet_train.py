@@ -66,7 +66,7 @@ for _extra in (REPO / "src", REPO / "scripts", REPO / "plan-segmentacion" / "com
 import dist_utils as du  # noqa: E402
 import s4_unet_loop as loop  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
-from dermssl import s4_unet as s4  # noqa: E402
+from dermssl import torch_s4_unet as s4  # noqa: E402
 from s4_provenance import (  # noqa: E402
     TRANSDUCTIVE_NOTE, parse_backbone, pool_fingerprint, sha256_file, weights_digest,
 )

@@ -85,7 +85,7 @@ def shards(total: int, workers: int) -> list[tuple[int, int]]:
 
 
 def _load_backbone(arch: str, source: str):
-    from dermssl.s4_unet import hub_backbone
+    from dermssl.torch_s4_unet import hub_backbone
 
     model = hub_backbone(arch, source)
     for parameter in model.parameters():

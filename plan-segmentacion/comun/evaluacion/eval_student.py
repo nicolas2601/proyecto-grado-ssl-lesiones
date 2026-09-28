@@ -18,7 +18,7 @@ from eval_inputs import load_image
 
 def _load_s4(checkpoint: dict):
     """S4-UNet (docs/27): rebuild the frozen DINOv2, refusing changed weights."""
-    from dermssl import run_provenance, s4_unet
+    from dermssl import run_provenance, torch_s4_unet as s4_unet
 
     config = checkpoint["config"]
     source, expected = config["backbone_source"], config["backbone_sha256"]
@@ -34,7 +34,7 @@ def load_student(checkpoint_path: Path, device):
     the model differs: thresholds, metrics and reports stay the caller's.
     """
     from ckpt_io import load_checkpoint
-    from dermssl.s4_unet import ARCH as S4_ARCH
+    from dermssl.torch_s4_unet import ARCH as S4_ARCH
     from dermssl.torch_unet import UNet
 
     checkpoint = load_checkpoint(checkpoint_path)

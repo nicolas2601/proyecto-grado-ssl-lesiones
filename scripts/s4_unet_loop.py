@@ -31,7 +31,7 @@ import dist_utils as du  # noqa: E402
 import gpu_augment as ga  # noqa: E402
 from cache_io import open_cache, read_manifest, split_indices  # noqa: E402
 from ckpt_io import load_checkpoint, save_checkpoint  # noqa: E402
-from dermssl import s4_unet as s4  # noqa: E402
+from dermssl import torch_s4_unet as s4  # noqa: E402
 from run_logging import JsonlLogger, ThroughputMeter, timing_summary  # noqa: E402
 from sampling import shard_batches  # noqa: E402
 from schedules import cosine_lr  # noqa: E402

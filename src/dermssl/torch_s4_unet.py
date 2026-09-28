@@ -24,7 +24,7 @@ ARCH = "s4_dinov2_dpt"
 REGISTERED_BLOCKS = (3, 6, 9, 12)
 DEFAULT_BLOCK_COUNT = 12
 # Resampling factors are DPT's, relative to the patch grid. The widths are half
-# of DPT-base, so the decoder (5.3 M parameters at ViT-B) stays lighter than
+# of DPT-base, so the decoder (5.0 M parameters at ViT-B) stays lighter than
 # the student U-Net it is compared with (7.77 M).
 REASSEMBLE_CHANNELS = (48, 96, 192, 384)
 REASSEMBLE_FACTORS = (4, 2, 1, 0.5)

@@ -19,7 +19,7 @@ torch = pytest.importorskip("torch")
 import eval_student  # noqa: E402
 import evaluate_segmentation as ev  # noqa: E402
 from ckpt_io import save_checkpoint  # noqa: E402
-from dermssl import s4_unet as s4  # noqa: E402
+from dermssl import torch_s4_unet as s4  # noqa: E402
 from dermssl.torch_unet import UNet  # noqa: E402
 from s4_fakes import FakeVit  # noqa: E402
 

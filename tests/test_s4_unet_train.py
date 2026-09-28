@@ -19,7 +19,7 @@ import seg_paths  # noqa: F401
 torch = pytest.importorskip("torch")
 import cache_io  # noqa: E402
 from ckpt_io import load_checkpoint  # noqa: E402
-from dermssl import s4_unet as s4  # noqa: E402
+from dermssl import torch_s4_unet as s4  # noqa: E402
 from s4_fakes import FakeVit  # noqa: E402
 from scripts import s4_unet_train as st  # noqa: E402
 
