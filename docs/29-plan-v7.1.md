@@ -52,7 +52,26 @@ A\* y B\* con la semilla 44, una GPU cada una, con la misma receta, la revisión
 - Público contra A\* contra B\*, con bootstrap agrupado por paciente.
 - Es robustez fuera de dominio (PAD son fotos clínicas de smartphone, no dermatoscopia) y va a la tesis tal cual, sin ajustar nada.
 
+### 2.7 Bloque v7.1-mel (registrado el 2026-09-28, antes de correr)
+
+Viene de una segunda revisión de literatura. Corre dentro de v7.1, sobre las mismas finales y el mismo holdout, y con la misma regla: todo se elige en el holdout y val se lee una sola vez, junto con la lectura v7.1 de §2.4. Casi todo es CPU; la única extracción nueva (TTA y features locales) es un forward sin backprop.
+
+1. **Punto de operación de melanoma.** Umbral sobre la probabilidad de `mel` (mel contra el resto) fijado en el holdout para especificidad del 80 % y del 90 %; se reporta la sensibilidad resultante en val, y la especificidad real en val para mostrar cuánto se corre el umbral. Se agrega un tercer punto, fijado en el holdout para sensibilidad del 95 %, con la especificidad resultante en val: es la convención que usa de verdad PROVE-AI (Marchetti et al., *npj Digit Med* 2023, doi 10.1038/s41746-023-00872-1; umbral predefinido de sensibilidad 95 %, verificado en el resumen). Los puntos de especificidad fija son la lectura principal de este bloque; el de sensibilidad 95 % es para comparar con ese estudio. Ninguno cambia la predicción multiclase ni el macro-F1.
+2. **Logit adjustment post-hoc** (Menon et al., ICLR 2021, arXiv:2007.07314, verificado): logit_y − τ·log π_y sobre la salida de la regresión logística, con π_y las frecuencias de clase del train del probe y τ ∈ {0; 0,5; 1; 1,5; 2} elegido en el holdout. τ = 0 es el probe plano. Se compara contra `class_weight = balanced` y contra el probe plano.
+3. **Features locales.** Se suman a la grilla de features de §2.2:
+   - CLS + GeM de los tokens de parche (p = 3 fijo, no se ajusta);
+   - CLS + attention pooling: media de los tokens de parche ponderada por la atención CLS→parche del último bloque, promediada sobre las cabezas.
+   (CLS + media de los parches ya está en §2.2.)
+4. **TTA D4.** Las 8 transformaciones del grupo diedral (identidad, rotaciones de 90°, 180° y 270°, y sus volteos), que preservan la etiqueta en dermatoscopía. Se promedia el softmax del probe sobre las 8. El probe se entrena sin TTA. Nada de crops agresivos.
+5. **Métricas.** Para cada configuración, con IC bootstrap: balanced accuracy (la métrica de ISIC 2018), accuracy, macro-F1, sensibilidad de mel a especificidad 80 % y 90 %, y AUC mel-vs-rest.
+6. **Grilla y selección.** Pesos de clase ∈ {ninguno; balanced; logit adjustment τ}, cruzados con las features de §2.2 + ítem 3 y con TTA sí/no. Los puntos de operación del ítem 1 son post-hoc y no son un factor de selección. La regla no cambia: macro-F1 en el holdout, desempate por ECE si |Δ| < 0,005 (§2.4). La sensibilidad de mel es secundaria y se reporta siempre. La grilla es más grande que la de §2.2, así que el optimismo de selección en el holdout crece; se declara, y la lectura que vale es la de val.
+7. **Condición para la fase 2 de este bloque** (ver §3): se evalúa en el **holdout**, no en val, con la configuración elegida. Si la sensibilidad de mel a especificidad 80 % no pasa de 0,70 en el holdout para ningún brazo, queda habilitado proponer la fase 2. No se lanza sin el OK de Paula.
+
+Citas que llegaron en el informe y **no** se usan acá: arXiv:2609.30613 (MedTokenBudget) y arXiv:2607.22687 (DINOv3-MIL) no se pudieron verificar. Si alguna vez se mencionan, van como analogía no verificada.
+
 ## 3. Fase 2 (fuera por ahora, anotada)
+
+- **v7.1-mel, fase 2 (solo con la condición de §2.7 ítem 7 y con OK de Paula):** continued pretraining corto con muestreo guiado por pérdida, adaptado de MAK (Jiang et al., NeurIPS 2021, arXiv:2111.01004, verificado). MAK original elige muestras de un pool externo con la esperanza de la pérdida contrastiva sobre aumentaciones más un criterio de diversidad (K-center). La adaptación de acá sobremuestrea, dentro del mismo pool sin etiquetas, las imágenes con pérdida SimSiam alta promediada sobre aumentaciones. Es una adaptación, no el método tal cual, y se reporta así.
 
 - ExPLoRA / LoRA de pretraining extendido (arXiv:2406.10973).
 - Sumar PAD al pool SSL.
