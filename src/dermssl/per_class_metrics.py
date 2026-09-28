@@ -17,6 +17,11 @@ from dermssl import metrics
 
 HAM10000_CLASSES = ("akiec", "bcc", "bkl", "df", "mel", "nv", "vasc")
 MELANOMA = "mel"
+# Same scheme and seed as dermssl.paired_bootstrap (contrast_record's
+# rng_seed): np.random.RandomState(seed), n image indices drawn with
+# replacement per resample, percentile interval. Reused via metrics.bootstrap_ci.
+BOOTSTRAP_RESAMPLES = 1000
+BOOTSTRAP_SEED = 20260923
 
 
 def check_class_order(classes: Sequence[str], expected: Sequence[str] = HAM10000_CLASSES) -> None:
@@ -50,3 +55,24 @@ def class_report(y_true: np.ndarray, proba: np.ndarray, classes: Sequence[str],
         "positive_sensitivity": float(recall[k]),
         "positive_auc": metrics.binary_auc((y_true == k).astype(int), proba[:, k]),
     }
+
+
+def positive_intervals(y_true: np.ndarray, proba: np.ndarray, classes: Sequence[str],
+                       positive: str = MELANOMA, n_resamples: int = BOOTSTRAP_RESAMPLES,
+                       seed: int = BOOTSTRAP_SEED) -> dict[str, tuple[float, float]]:
+    """Percentile bootstrap 95 % CI over images for the positive-class metrics."""
+    if positive not in classes:
+        raise ValueError(f"clase positiva {positive!r} no esta en {list(classes)}")
+    k, n = list(classes).index(positive), len(classes)
+
+    def sensitivity(y: np.ndarray, p: np.ndarray) -> float:
+        return float(metrics.recall_per_class(y, p.argmax(axis=1), n)[k])
+
+    def auc(y: np.ndarray, p: np.ndarray) -> float:
+        return metrics.binary_auc((y == k).astype(int), p[:, k])
+
+    out = {}
+    for name, fn in (("sensitivity", sensitivity), ("auc", auc)):
+        _, low, high = metrics.bootstrap_ci(y_true, proba, fn, n_resamples=n_resamples, seed=seed)
+        out[name] = (low, high)
+    return out

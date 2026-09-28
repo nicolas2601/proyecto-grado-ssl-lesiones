@@ -76,3 +76,35 @@ def test_class_order_guard():
     pcm.check_class_order(list(pcm.HAM10000_CLASSES))
     with pytest.raises(ValueError, match="orden de clases"):
         pcm.check_class_order(["bcc", "akiec", "bkl", "df", "mel", "nv", "vasc"])
+
+
+def _noisy_case(n: int = 300, seed: int = 11) -> tuple[np.ndarray, np.ndarray]:
+    rng = np.random.default_rng(seed)
+    y_true = rng.integers(0, 3, size=n)
+    proba = rng.random((n, 3))
+    proba[np.arange(n), y_true] += 0.4  # informative but far from perfect
+    return y_true, proba
+
+
+def test_positive_intervals_are_deterministic_for_a_fixed_seed():
+    y_true, proba = _noisy_case()
+    first = pcm.positive_intervals(y_true, proba, CLASSES, positive="b", n_resamples=200, seed=5)
+    again = pcm.positive_intervals(y_true, proba, CLASSES, positive="b", n_resamples=200, seed=5)
+    other = pcm.positive_intervals(y_true, proba, CLASSES, positive="b", n_resamples=200, seed=6)
+    assert first == again
+    assert first != other
+
+
+def test_point_estimates_lie_inside_their_intervals():
+    y_true, proba = _noisy_case()
+    report = pcm.class_report(y_true, proba, CLASSES, positive="b")
+    ci = pcm.positive_intervals(y_true, proba, CLASSES, positive="b", n_resamples=300)
+    low, high = ci["sensitivity"]
+    assert low < report["positive_sensitivity"] < high
+    low, high = ci["auc"]
+    assert low < report["positive_auc"] < high
+
+
+def test_default_bootstrap_matches_the_paired_bootstrap_scheme():
+    assert pcm.BOOTSTRAP_RESAMPLES == 1000
+    assert pcm.BOOTSTRAP_SEED == 20260923
