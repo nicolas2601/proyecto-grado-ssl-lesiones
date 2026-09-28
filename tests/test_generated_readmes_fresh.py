@@ -15,6 +15,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
 import build_c1_readme  # noqa: E402
+import build_classifier_table  # noqa: E402
 import build_final_eval_table  # noqa: E402
 import build_seed_summary  # noqa: E402
 
@@ -33,3 +34,7 @@ def test_v7_readme_matches_its_json(folder):
 
 def test_seed_summary_matches_both_jsons():
     assert build_seed_summary.main(["--check"]) == 0
+
+
+def test_classifier_table_matches_its_sources():
+    assert build_classifier_table.main(["--check"]) == 0
