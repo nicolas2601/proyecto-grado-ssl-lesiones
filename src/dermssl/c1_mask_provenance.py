@@ -102,8 +102,8 @@ FINAL_STUDENT_R3_SHA256: str | None = (
 # (run.json "code_revision") are unmeasured, an A2 artifact is REFUSED. Both
 # are measured on the pod and committed here; see scripts/c1_predict_masks.py.
 S4_UNET_A2_RUN = "s4_unet_a2"
-S4_UNET_A2_SHA256: str | None = None
-S4_UNET_A2_COMMIT: str | None = None
+S4_UNET_A2_SHA256: str | None = "95bec0dc02814bdb68f37b617558eb4ca3a2920680e2dde69d3e0a81eae0260f"
+S4_UNET_A2_COMMIT: str | None = "842eddf17b57b6c62d12d17496043596a3e1d3e2"
 
 
 def checkpoint_registry() -> dict[str, tuple[str, str]]:
