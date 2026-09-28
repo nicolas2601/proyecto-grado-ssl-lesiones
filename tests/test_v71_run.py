@@ -203,3 +203,50 @@ def test_cached_results_from_another_holdout_are_refused(pod, ran):
     """Same --out-dir, different ids (here --limit): nothing cached may be reused."""
     with pytest.raises(SystemExit, match="otro holdout"):
         v71_run.main(_argv(pod, ran, "--stage", "grid", "--limit", "40"))
+
+
+def test_val_thresholds_read_the_fit80_probe(pod, ran, monkeypatch):
+    """The real val branch, guards stubbed (dirty tree, fake ids): thresholded mel
+    metrics come from the probe fitted on the 80 % fit split, argmax metrics
+    from the probe refitted on the full train."""
+    import v71_val
+
+    from dermssl import final_eval as fe
+    from dermssl import v71_metrics as vm
+
+    monkeypatch.setattr(v71_run, "_revision", lambda args: "test")
+    monkeypatch.setattr(fe, "check_val_protocol", lambda train, val: None)
+    monkeypatch.setattr(v71_val.rp, "file_sha256", lambda path: "e" * 64)
+    exclude = pod / "exclude.txt"
+    exclude.write_text("x\n", encoding="utf-8")
+    assert v71_run.main(_argv(pod, ran, "--stage", "val", "--split", "val", "--single-evaluation",
+                              "--exclude-ids-file", str(exclude))) == 0
+    doc = json.loads((ran / "v71_final_eval.json").read_text())
+    saved = np.load(ran / "v71_final_eval.probas.npz")
+    y, mel = saved["y_true"], 4
+    r = doc["results"]["A71"]
+    fixed = vm.fixed_threshold_metrics(y, saved["A71__fit80"], mel=mel, thresholds=r["holdout_thresholds"])
+    assert {k: r[k] for k in fixed} == pytest.approx(fixed)
+    assert r["macro_f1"] == pytest.approx(vm.metric_bundle(y, saved["A71"], mel=mel)["macro_f1"])
+    assert not np.allclose(saved["A71"], saved["A71__fit80"])  # two different probes
+    assert "80 %" in doc["note_operating_points"] and "note_thresholds" not in doc
+
+
+def test_a_missing_holdout_file_aborts_before_anything(pod, tmp_path):
+    argv = _argv(pod, tmp_path / "out", "--stage", "grid", "--limit", "70")
+    argv[argv.index("--holdout") + 1] = str(tmp_path / "missing.json")
+    with pytest.raises(SystemExit, match="holdout"):
+        v71_run.main(argv)
+    assert not (tmp_path / "out").exists()
+
+
+def test_a_bad_holdout_digest_aborts_the_smoke_before_extraction(pod, tmp_path):
+    doc = json.loads((pod / "selection_holdout.json").read_text())
+    doc["holdout_ids_sha256"] = "0" * 64
+    bad = tmp_path / "bad_holdout.json"
+    bad.write_text(json.dumps(doc), encoding="utf-8")
+    argv = _argv(pod, tmp_path / "out", "--stage", "grid", "--limit", "70")
+    argv[argv.index("--holdout") + 1] = str(bad)
+    with pytest.raises(SystemExit, match="digest"):
+        v71_run.main(argv)
+    assert not (tmp_path / "out").exists()

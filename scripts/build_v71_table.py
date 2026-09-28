@@ -52,6 +52,7 @@ def _main_table(doc: dict) -> list[str]:
 def _operating_table(doc: dict) -> list[str]:
     head = " | ".join(f"Sens. / esp. ({v})" for v in OPERATING.values())
     lines = ["", "## Puntos de operación de melanoma (umbral fijado en el holdout)", "",
+             doc["note_operating_points"], "",
              f"| Lectura | {head} |", "|---|" + "---|" * len(OPERATING)]
     for label in plan.VAL_LABELS:
         r = doc["results"][label]

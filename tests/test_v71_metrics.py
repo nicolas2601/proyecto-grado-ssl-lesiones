@@ -111,3 +111,32 @@ class TestFastPaths:
             pb.metric_macro_f1(y, onehot), abs=1e-12)
         assert vm.metric_bundle(y, onehot, mel=MEL)["balanced_accuracy"] == pytest.approx(
             pb.metric_balanced_accuracy(y, onehot), abs=1e-12)
+
+
+class TestValEntryProtocol:
+    """Paula, 2026-09-28: the thresholds were fixed on the probe fitted on the 80 %
+    fit split; a probe refitted on the full train has another score scale. On val
+    the thresholded metrics therefore read the 80 % probe, the rest the full one."""
+
+    def test_thresholded_metrics_read_the_fit80_probe_and_the_rest_the_full_one(self):
+        y, full = _toy(400, seed=5)
+        _, fit80 = _toy(400, seed=6)
+        thresholds = vm.operating_thresholds(y, fit80, mel=MEL)
+        got = vm.val_entry_metrics(y, proba_full=full, proba_threshold=fit80, mel=MEL,
+                                   thresholds=thresholds, n_resamples=20)
+        assert got["macro_f1"] == pytest.approx(pb.metric_macro_f1(y, full))
+        assert got["mel_auc"] == pytest.approx(vm.metric_bundle(y, full, mel=MEL)["mel_auc"])
+        expected = vm.fixed_threshold_metrics(y, fit80, mel=MEL, thresholds=thresholds)
+        assert {k: got[k] for k in expected} == pytest.approx(expected)
+        assert got["ci95"]["mel_sens_at_thr_spec80"] == pytest.approx(vm.bootstrap_bundle(
+            y, fit80, mel=MEL, n_resamples=20,
+            bundle=lambda yy, pp: vm.fixed_threshold_metrics(yy, pp, mel=MEL, thresholds=thresholds),
+        )["mel_sens_at_thr_spec80"])
+
+    def test_the_in_sample_operating_points_are_not_reported_on_val(self):
+        """mel_sens_at_spec80 refits a threshold on the evaluated sample itself;
+        on val that would be the very threshold transfer that was ruled out."""
+        y, full = _toy(300, seed=7)
+        got = vm.val_entry_metrics(y, proba_full=full, proba_threshold=full, mel=MEL,
+                                   thresholds=vm.operating_thresholds(y, full, mel=MEL), n_resamples=5)
+        assert not {"mel_sens_at_spec80", "mel_sens_at_spec90", "mel_spec_at_sens95"} & set(got)

@@ -171,3 +171,11 @@ def test_val_is_read_at_the_selection_resolution_only():
     cost = plan.cost_projection(n_fit=100, n_hold=10, n_train=110, n_val=20,
                                 resolutions=(224, 448), n_weights=21)
     assert set(cost["forwards"]["val"]) == {vp.SELECTION_RESOLUTION}
+
+
+def test_val_probe_cost_includes_the_fit80_refit():
+    """The val read fits each entry twice: full train (argmax metrics) and the
+    80 % fit split (the probe the mel thresholds were fixed on)."""
+    cost = plan.cost_projection(n_fit=100, n_hold=10, n_train=110, n_val=20,
+                                resolutions=(224,), n_weights=3, val_units=5)
+    assert cost["fitted_rows"] == 3 * 100 + 5 * (110 + 100)

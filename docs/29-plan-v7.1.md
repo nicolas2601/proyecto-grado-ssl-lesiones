@@ -57,6 +57,13 @@ A\* y B\* con la semilla 44, una GPU cada una, con la misma receta, la revisión
 Viene de una segunda revisión de literatura. Corre dentro de v7.1, sobre las mismas finales y el mismo holdout, y con la misma regla: todo se elige en el holdout y val se lee una sola vez, junto con la lectura v7.1 de §2.4. Casi todo es CPU; la única extracción nueva (TTA y features locales) es un forward sin backprop.
 
 1. **Punto de operación de melanoma.** Umbral sobre la probabilidad de `mel` (mel contra el resto) fijado en el holdout para especificidad del 80 % y del 90 %; se reporta la sensibilidad resultante en val, y la especificidad real en val para mostrar cuánto se corre el umbral. Se agrega un tercer punto, fijado en el holdout para sensibilidad del 95 %, con la especificidad resultante en val: es la convención que usa de verdad PROVE-AI (Marchetti et al., *npj Digit Med* 2023, doi 10.1038/s41746-023-00872-1; umbral predefinido de sensibilidad 95 %, verificado en el resumen). Los puntos de especificidad fija son la lectura principal de este bloque; el de sensibilidad 95 % es para comparar con ese estudio. Ninguno cambia la predicción multiclase ni el macro-F1.
+
+   **Protocolo en val (decisión de Paula, 2026-09-28, registrada antes de leer val).** Los umbrales se fijan en el holdout con el probe entrenado en el 80 % del fit. Reentrenar el probe cambia la escala de los scores, así que un umbral no se transfiere a otro probe:
+   - Las métricas con umbral (sensibilidad y especificidad en los umbrales de especificidad 80 % y 90 %, y en el de sensibilidad 95 %) se evalúan en val con el MISMO probe entrenado en el 80 % del fit.
+   - Las métricas sin umbral (macro-F1 por argmax, AUC, balanced accuracy, ECE y sensibilidad de mel por argmax) se evalúan en val con el probe reentrenado en el train completo, como en la v7.
+   - Los puntos de operación re-ajustados sobre val no se reportan.
+
+   El costo sube en un ajuste del probe por configuración leída en val (sobre el 80 % del fit). Las features son las mismas, porque el fit es un subconjunto del train. `v71_final_eval.json` lo describe en `note_operating_points`.
 2. **Logit adjustment post-hoc** (Menon et al., ICLR 2021, arXiv:2007.07314, verificado): logit_y − τ·log π_y sobre la salida de la regresión logística, con π_y las frecuencias de clase del train del probe y τ ∈ {0; 0,5; 1; 1,5; 2} elegido en el holdout. τ = 0 es el probe plano. Se compara contra `class_weight = balanced` y contra el probe plano.
 3. **Features locales.** Se suman a la grilla de features de §2.2:
    - CLS + GeM de los tokens de parche (p = 3 fijo, no se ajusta);

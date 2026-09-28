@@ -42,7 +42,8 @@ def _doc() -> dict:
             "results": results, "paired": paired,
             "selection": {"winners": winners, "phase2": {"enabled": False,
                                                          "mel_sens_at_spec80_holdout": {"A": 0.72, "B": 0.66}}},
-            "v7_reproduction_delta": {"A_v7": {"macro_f1": 0.0}}}
+            "v7_reproduction_delta": {"A_v7": {"macro_f1": 0.0}},
+            "note_operating_points": plan.OPERATING_POINT_PROTOCOL}
 
 
 def test_render_names_every_entry_and_the_winners():
@@ -51,6 +52,7 @@ def test_render_names_every_entry_and_the_winners():
         assert f"| {bt.LABELS[label]} |" in text
     assert "A_soup_a0.6@448|cls4|la1.0|tta" in text
     assert "fase 2" in text.lower()
+    assert plan.OPERATING_POINT_PROTOCOL in text  # the reader sees which probe each column used
 
 
 def test_render_is_deterministic():

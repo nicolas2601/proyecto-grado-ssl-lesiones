@@ -112,37 +112,48 @@ def _guard_val(args, ctx, weights) -> dict:
                      for k, r in runs.items()}}
 
 
-def _score_entries(args, ctx, entries, fit_ids, eval_ids, device) -> dict:
+def _fit_subset(parts: dict, ids, subset) -> dict:
+    """The rows of ``subset`` inside features extracted for ``ids`` (no second forward)."""
+    row = {image_id: k for k, image_id in enumerate(ids)}
+    picks = [row[i] for i in subset]
+    return {name: value[:, picks] for name, value in parts.items()}
+
+
+def _score_entries(args, ctx, entries, fit_ids, eval_ids, device) -> tuple[dict, dict]:
+    """``(full, fit80)``: each entry's val probas from the full-train probe and from the 80 % probe."""
     from dermssl import torch_v71 as tv  # noqa: PLC0415
 
     store = io.ImageStore(args.out_dir / "inputs", ctx["image_index"], args.decode_workers)
     weights = io.WeightBank(args.weights_dir.expanduser())
     tags = ("fit", "holdout") if args.split == "holdout" else ("train", "val")
-    y_fit = io.labels_of(ctx, fit_ids)
-    probas = {}
+    fit80_ids = ctx["ids"]["fit"]
+    y_fit, y_fit80 = io.labels_of(ctx, fit_ids), io.labels_of(ctx, fit80_ids)
+    probas, probas80 = {}, {}
     for (name, res), need in plan.val_units(entries).items():
         model = weights.model(weights.state(name))
         fit_parts = tv.extract_split(model, store.array(fit_ids, res, tags[0]), device=device,
                                      batch_size=args.batch_size)
         eval_parts = tv.extract_split(model, store.array(eval_ids, res, tags[1]), device=device,
                                       batch_size=args.batch_size, n_views=tv.N_D4 if need["tta"] else 1)
+        features = sorted(need["features"])
         cells = vg.unit_probas(fit_parts, y_fit, eval_parts, len(ctx["classes"]),
-                               features=sorted(need["features"]), n_jobs=args.probe_jobs)
+                               features=features, n_jobs=args.probe_jobs)
+        cells80 = vg.unit_probas(_fit_subset(fit_parts, fit_ids, fit80_ids), y_fit80, eval_parts,
+                                 len(ctx["classes"]), features=features, n_jobs=args.probe_jobs)
         for label, cid in entries.items():
             cfg = vp.parse_config_id(cid)
             if (cfg["weights"], cfg["resolution"]) == (name, res):
-                probas[label] = cells[(cfg["feature"], cfg["weighting"], cfg["tta"])]
+                key = (cfg["feature"], cfg["weighting"], cfg["tta"])
+                probas[label], probas80[label] = cells[key], cells80[key]
         print(f"[val] {name}@{res} listo")
-    return probas
+    return probas, probas80
 
 
-def _entry_result(y, proba, cid, grid_rows, mel, n_resamples) -> dict:
+def _entry_result(y, proba, proba80, cid, grid_rows, mel, n_resamples) -> dict:
     thresholds = grid_rows[cid]["thresholds"]
-    fixed = lambda yy, pp: vm.fixed_threshold_metrics(yy, pp, mel=mel, thresholds=thresholds)  # noqa: E731
-    return {"config": cid, **vm.metric_bundle(y, proba, mel=mel), **fixed(y, proba),
-            "holdout_thresholds": thresholds,
-            "ci95": {**vm.bootstrap_bundle(y, proba, mel=mel, n_resamples=n_resamples),
-                     **vm.bootstrap_bundle(y, proba, mel=mel, n_resamples=n_resamples, bundle=fixed)}}
+    return {"config": cid, "holdout_thresholds": thresholds,
+            **vm.val_entry_metrics(y, proba_full=proba, proba_threshold=proba80, mel=mel,
+                                   thresholds=thresholds, n_resamples=n_resamples)}
 
 
 def _v7_reproduction(args, results) -> dict:
@@ -166,9 +177,10 @@ def stage_val(args, ctx, revision, device) -> None:
     fit_ids, eval_ids = ((ctx["ids"]["train"], ctx["ids"]["val"]) if args.split == "val"
                          else (ctx["ids"]["fit"], ctx["ids"]["holdout"]))
     entries = plan.val_entries(selection)
-    probas = _score_entries(args, ctx, entries, fit_ids, eval_ids, device)
+    probas, probas80 = _score_entries(args, ctx, entries, fit_ids, eval_ids, device)
     y = io.labels_of(ctx, eval_ids)
-    results = {label: _entry_result(y, probas[label], cid, grid_rows, ctx["mel"], args.ci_resamples)
+    results = {label: _entry_result(y, probas[label], probas80[label], cid, grid_rows, ctx["mel"],
+                                    args.ci_resamples)
                for label, cid in entries.items()}
     paired = [row for a, c in plan.VAL_CONTRASTS
               for row in _contrast(a, c, y, probas, ctx["mel"], args.ci_resamples)]
@@ -180,10 +192,11 @@ def stage_val(args, ctx, revision, device) -> None:
         "selection": {"winners": selection["winners"], "phase2": selection["phase2"]},
         "v7_reproduction_delta": _v7_reproduction(args, results),
         "bootstrap": {"n_resamples": args.ci_resamples, "rng_seed": vm.BOOTSTRAP_SEED, "paired": True},
-        "note_thresholds": ("Umbrales de mel fijados en el holdout con el probe del 80 %; en val el "
-                            "probe se reentrena en el train completo y los umbrales se aplican tal cual."),
+        "n_fit_threshold_probe": len(ctx["ids"]["fit"]),
+        "note_operating_points": plan.OPERATING_POINT_PROTOCOL,
     })
-    np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y, **probas)
+    np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y, **probas,
+                        **{f"{label}__fit80": p for label, p in probas80.items()})
     for label in ("A71", "B71"):
         r = results[label]
         print(f"{label} {entries[label]}: macro-F1 {r['macro_f1']:.4f}, mel sens@spec80 "

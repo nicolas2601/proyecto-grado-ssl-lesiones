@@ -31,6 +31,7 @@ GRID_METRICS = (
     "macro_f1", "balanced_accuracy", "accuracy", "auc", "ece",
     "mel_recall", "mel_auc", "mel_sens_at_spec80", "mel_sens_at_spec90", "mel_spec_at_sens95",
 )
+IN_SAMPLE_OPERATING_POINTS = ("mel_sens_at_spec80", "mel_sens_at_spec90", "mel_spec_at_sens95")
 _ROUNDING_SLACK = 1e-9
 
 
@@ -154,6 +155,26 @@ def bootstrap_bundle(y_true, proba, *, mel: int, n_resamples: int = BOOTSTRAP_RE
     y_true, proba = np.asarray(y_true), np.asarray(proba, dtype=float)
     draws = [bundle(y_true[i], proba[i]) for i in resample_indices(len(y_true), n_resamples, seed)]
     return {name: percentile_interval([d[name] for d in draws]) for name in draws[0]}
+
+
+def val_entry_metrics(y_true, *, proba_full, proba_threshold, mel: int, thresholds: dict,
+                      n_resamples: int = BOOTSTRAP_RESAMPLES, seed: int = BOOTSTRAP_SEED) -> dict:
+    """One val entry under the 2026-09-28 protocol (docs/29 §2.7 item 1).
+
+    Argmax and rank metrics read ``proba_full`` (probe refitted on the full
+    train). The thresholded mel metrics read ``proba_threshold``, the probe
+    fitted on the 80 % fit split where the thresholds were fixed: a refit
+    changes the score scale, so a threshold does not transfer. The in-sample
+    operating points (a threshold refitted on val itself) are not reported.
+    """
+    fixed = lambda y, p: fixed_threshold_metrics(y, p, mel=mel, thresholds=thresholds)  # noqa: E731
+    argmax = lambda y, p: {k: v for k, v in metric_bundle(y, p, mel=mel).items()  # noqa: E731
+                           if k not in IN_SAMPLE_OPERATING_POINTS}
+    return {**argmax(y_true, proba_full), **fixed(y_true, proba_threshold),
+            "ci95": {**bootstrap_bundle(y_true, proba_full, mel=mel, n_resamples=n_resamples, seed=seed,
+                                        bundle=argmax),
+                     **bootstrap_bundle(y_true, proba_threshold, mel=mel, n_resamples=n_resamples,
+                                        seed=seed, bundle=fixed)}}
 
 
 def fixed_threshold_metrics(y_true, proba, *, mel: int, thresholds: dict) -> dict:

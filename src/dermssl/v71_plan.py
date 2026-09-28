@@ -21,6 +21,13 @@ from dermssl import selection_holdout as sh
 from dermssl import v71_protocol as vp
 
 PRETEST_TOLERANCE = 1e-6
+OPERATING_POINT_PROTOCOL = (
+    "Metricas con umbral de mel (sensibilidad y especificidad a los umbrales de especificidad 80/90 % "
+    "y de sensibilidad 95 %): en val se evaluan con el MISMO probe entrenado en el 80 % del fit, donde "
+    "se fijaron los umbrales, porque reentrenar cambia la escala de los scores. Metricas sin umbral "
+    "(macro-F1 por argmax, AUC, bal-acc, ECE, sensibilidad de mel por argmax): probe reentrenado en el "
+    "train completo, como en v7. Los puntos de operacion re-ajustados sobre val no se reportan "
+    "(decision de Paula, 2026-09-28; docs/29 §2.7 item 1).")
 VAL_LABELS = ("A71", "B71", "public_A71", "public_B71", "A_v7", "B_v7", "public_v7", "public71")
 VAL_CONTRASTS = (
     ("A71", "public_A71"), ("B71", "public_B71"),  # the weights, protocol held fixed
@@ -150,13 +157,13 @@ def cost_projection(*, n_fit: int, n_hold: int, n_train: int, n_val: int, resolu
     n_units = n_weights * len(resolutions)
     n_configs = n_units * len(vp.FEATURES) * len(vp.WEIGHTINGS) * len(vp.TTA_OPTIONS)
     dims_k = sum(FEATURE_DIMS.values()) / 1000 * len(vp.FITTED_WEIGHTINGS)
-    fitted_rows = n_units * n_fit + val_units * n_train
+    fitted_rows = n_units * n_fit + val_units * (n_train + n_fit)  # val: full-train and 80 % probes
     probe_s = dims_k * LOGREG_SECONDS_PER_1K_DIMS * fitted_rows / LOGREG_REFERENCE_ROWS
     boot_s = (n_configs * n_hold + len(VAL_LABELS) * n_val) / BOOTSTRAP_REFERENCE_ROWS \
         * BOOTSTRAP_SECONDS_PER_CELL
     decode_s = (n_train * len(resolutions) + n_train + n_val) / DECODE_IMG_PER_S_PER_CORE
     return {
-        "forwards": forwards, "n_units": n_units, "n_configs": n_configs,
+        "forwards": forwards, "n_units": n_units, "n_configs": n_configs, "fitted_rows": fitted_rows,
         "gpu_hours": gpu_s / 3600,
         "cpu_hours": (probe_s + boot_s + decode_s) / 3600,
         "cpu_hours_breakdown": {"probes": probe_s / 3600, "bootstrap": boot_s / 3600,

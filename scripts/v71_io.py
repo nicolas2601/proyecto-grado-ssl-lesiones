@@ -47,7 +47,10 @@ def load_context(args) -> dict:
     rows = meta.set_index("image_id")
     train_ids = list(split["train_ids"])
     labels = [split["cls2idx"][d] for d in rows.loc[train_ids, "dx"]]
-    holdout = read_json(args.holdout.expanduser())
+    holdout_path = args.holdout.expanduser()
+    if not holdout_path.is_file():
+        raise SystemExit(f"ABORT: no existe el holdout de docs/28 en {holdout_path}")
+    holdout = read_json(holdout_path)
     try:
         holdout_sha = plan.check_holdout(holdout, train_ids, labels, list(rows.loc[train_ids, "lesion_id"]),
                                          val_ids=split["val_ids"])
