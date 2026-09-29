@@ -64,6 +64,7 @@ MANIFEST_SHA256 = "57df1e65e88d3b54ba530d6e026010bfc8ce25d1437e50b4ffe37cfd7d4f8
 PSEUDO_R0_SHA256 = "8c9e47978070baa7bfa9f0174a80eb4e4236d45737801abf690804ae1eb0fc87"
 CACHE_MANIFEST_SHA256 = "a83f927ab798b6f7a0614c3923fda77d082f887d10fdbe73416e34e9574ba71a"
 A2_RUN = "2026-09-28-s4-a2"
+REGISTERED_BOOTSTRAP = {"n_resamples": 1000, "seed": 20260923}
 JSON_FILE, TABLE_FILE, ROWS_FILE = "t7_r0_tercile_check.json", "README.md", "r0_per_image.csv"
 ROW_COLUMNS = ("image_id", "tone_tercile", "excluded", "dice_binary", "dice_confident")
 TERCILE_NAMES = {"dark": "oscuro", "medium": "medio", "light": "claro"}
@@ -177,9 +178,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.add_argument(f"--{name}", required=True, type=Path)
     parser.add_argument("--mask-suffix", default="_segmentation")
     parser.add_argument("--mask-extension", default=".png")
-    parser.add_argument("--n-resamples", type=int, default=1000)
-    parser.add_argument("--seed", type=int, default=20260923)
-    return parser.parse_args(argv)
+    parser.add_argument("--n-resamples", type=int, default=REGISTERED_BOOTSTRAP["n_resamples"])
+    parser.add_argument("--seed", type=int, default=REGISTERED_BOOTSTRAP["seed"])
+    args = parser.parse_args(argv)
+    asked = {"n_resamples": args.n_resamples, "seed": args.seed}
+    if asked != REGISTERED_BOOTSTRAP:
+        raise SystemExit(f"ABORT: bootstrap {asked} no es el registrado {REGISTERED_BOOTSTRAP}")
+    return args
 
 
 def preflight() -> tuple[str, str]:

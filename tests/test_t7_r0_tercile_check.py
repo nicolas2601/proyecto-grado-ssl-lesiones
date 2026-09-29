@@ -141,6 +141,7 @@ def test_the_runner_writes_the_json_and_a_table_generated_from_it(tmp_path, monk
     monkeypatch.setattr(t7r, "PSEUDO_R0_SHA256", _sha(fx["pseudo"]))
     monkeypatch.setattr(t7r, "CACHE_MANIFEST_SHA256", _sha(fx["cache"] / "manifest.csv"))
     monkeypatch.setattr(t7r, "read_a2_reference", lambda path: {i: 0.8 for i in fx["ids"]})
+    monkeypatch.setattr(t7r, "REGISTERED_BOOTSTRAP", {"n_resamples": 20, "seed": 20260923})
     out = tmp_path / "out"
     assert t7r.main(["--cache-dir", str(fx["cache"]), "--pseudo-masks", str(fx["pseudo"]),
                      "--manifest", str(fx["fst"]), "--ham-mask-dir", str(fx["gt"]), "--out", str(out),
@@ -154,3 +155,11 @@ def test_the_runner_writes_the_json_and_a_table_generated_from_it(tmp_path, monk
     assert (out / t7r.TABLE_FILE).read_text(encoding="utf-8") == t7r.render_markdown(doc)
     with open(out / t7r.ROWS_FILE, newline="") as handle:
         assert len(list(csv.DictReader(handle))) == 5
+
+
+@pytest.mark.parametrize("extra", [("--n-resamples", "999"), ("--seed", "1")])
+def test_an_unregistered_bootstrap_is_refused_before_anything_runs(tmp_path, extra):
+    missing = str(tmp_path / "missing")
+    with pytest.raises(SystemExit, match="bootstrap"):
+        t7r.main(["--cache-dir", missing, "--pseudo-masks", missing, "--manifest", missing,
+                  "--ham-mask-dir", missing, "--out", str(tmp_path / "out"), *extra])
