@@ -95,6 +95,28 @@ def direction_for(*, metric: str, point_delta: float, excludes_zero: bool) -> st
     return "arm_better" if favours_arm else "control_better"
 
 
+def index_sampler(n: int, groups: Sequence | None = None) -> Callable[[np.random.RandomState], np.ndarray]:
+    """One bootstrap draw of row indices: rows, or whole groups when ``groups`` is given.
+
+    Without groups the draw is ``rng.randint(0, n, n)``, the call every
+    published interval used, so those numbers do not move. With groups
+    (PAD-UFES patients, docs/30 2.4) whole groups are drawn with replacement
+    and every row of a drawn group enters: rows of one patient are not
+    independent, and resampling them one by one narrows the interval with
+    dependence that is not new information.
+    """
+    if groups is None:
+        return lambda rng: rng.randint(0, n, n)
+    groups = np.asarray(groups)
+    if len(groups) != n:
+        raise ValueError(f"groups tiene {len(groups)} filas y los datos {n}: cada fila necesita su grupo")
+    _, inverse = np.unique(groups, return_inverse=True)
+    order = np.argsort(inverse, kind="stable")
+    members = np.split(order, np.flatnonzero(np.diff(inverse[order])) + 1)
+    k = len(members)
+    return lambda rng: np.concatenate([members[g] for g in rng.randint(0, k, k)])
+
+
 def paired_contrast(
     *,
     y_true: np.ndarray,
@@ -104,8 +126,13 @@ def paired_contrast(
     n_resamples: int = 1000,
     seed: int = 0,
     alpha: float = 0.05,
+    groups: Sequence | None = None,
 ) -> dict:
-    """Point estimates plus a percentile interval on the paired delta."""
+    """Point estimates plus a percentile interval on the paired delta.
+
+    ``groups`` switches the resampling unit from the row to the group; the
+    pairing does not change: both arms still see the same draw.
+    """
     y_true = np.asarray(y_true)
     arm_proba = np.asarray(arm_proba)
     control_proba = np.asarray(control_proba)
@@ -127,11 +154,11 @@ def paired_contrast(
     point_delta = point_arm - point_control
 
     rng = np.random.RandomState(seed)
-    n = len(y_true)
+    draw = index_sampler(len(y_true), groups)
     deltas = np.empty(n_resamples, dtype=np.float64)
     for index in range(n_resamples):
         # ONE index draw, used for both arms. This is the whole point.
-        picks = rng.randint(0, n, n)
+        picks = draw(rng)
         deltas[index] = metric_fn(y_true[picks], arm_proba[picks]) - metric_fn(
             y_true[picks], control_proba[picks]
         )
@@ -172,6 +199,7 @@ def contrast_record(
     n_resamples: int = 1000,
     rng_seed: int = 20260923,
     metric_fn: Callable[[np.ndarray, np.ndarray], float] | None = None,
+    groups: Sequence | None = None,
 ) -> dict:
     """One row of ``bootstrap.json``, in the published schema.
 
@@ -193,6 +221,7 @@ def contrast_record(
         metric_fn=metric_fn,
         n_resamples=n_resamples,
         seed=rng_seed,
+        groups=groups,
     )
 
     return {
