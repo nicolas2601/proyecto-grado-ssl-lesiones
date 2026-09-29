@@ -1,4 +1,4 @@
-"""Closing-table rows for segmentation and tone: S-diag, S4-UNet, Pau's fixes and FST."""
+"""Closing-table rows for segmentation: S-diag, S4-UNet, Pau's fixes and the unvalidated ITA estimate."""
 
 from __future__ import annotations
 
@@ -20,6 +20,8 @@ METHODS = {"primary": "PCA 224 (primario)", "kmeans": "k-means (sec. 1)", "pca44
 S4 = {"A2": RES / "2026-09-28-s4-a2", "A2*": RES / "2026-09-28-s4-a2-astar", "A1": RES / "2026-09-28-s4-a1"}
 A1_STATS = S4["A1"] / "pseudo_masks_stats.json"
 R0 = seg.PSEUDO["r0 publicada"]
+ITA, TERCILES = r.ITA_LABEL, r.LUMINANCE_TERCILES
+ITA_CAP = ITA[0].upper() + ITA[1:]
 FST = RES / "2026-09-28-fst-a2"
 FST_CMP, FST_ASSUMPTION = FST / "comparison_vs_published.json", FST / "assumptions.json"
 FST_HAIR = RES / "2026-09-28-fst-hair"
@@ -172,9 +174,10 @@ def fst_a2(d: dict) -> tuple[str, str]:
 
     def top(dist: dict) -> str:
         return _num(max(abs(b["diff_prop"]) for b in dist["bins"].values()), 5)
-    text = (f"Pool (n = {_count(pool['n']['b'])}): con tono asignado {_count(tone['total']['a'])} → "
-            f"{_count(tone['total']['b'])}; con FST asignado {_count(fst['total']['a'])} → "
-            f"{_count(fst['total']['b'])}. Mayor |Δ proporción| por bin: tono {top(tone)}, FST {top(fst)}. "
+    text = (f"Pool (n = {_count(pool['n']['b'])}): con tercil de luminancia asignado {_count(tone['total']['a'])} → "
+            f"{_count(tone['total']['b'])}; con {ITA} asignada {_count(fst['total']['a'])} → "
+            f"{_count(fst['total']['b'])}. Mayor |Δ proporción| por bin: {TERCILES} {top(tone)}, "
+            f"{ITA} {top(fst)}. "
             "Sin IC: no hay contraste registrado sobre la distribución. Supuesto: "
             f"`{d[FST_ASSUMPTION]['assumption']}`.")
     return text, r.DONE
@@ -199,7 +202,7 @@ def fst_hair(d: dict) -> tuple[str, str]:
     cmp, clean = d[FST_HAIR_CMP], fst_sanity_clean(d[FST_HAIR_SANITY])
     pool = cmp["scopes"]["pool"]
     tone, fst, flagged = pool["tone_distribution"], pool["FST_distribution"], pool["flagged"]
-    bins = [(f"{name} {k}", b["diff_prop"]) for name, dist in (("tono", tone), ("FST", fst))
+    bins = [(f"{name} {k}", b["diff_prop"]) for name, dist in (("tercil de luminancia", tone), (ITA, fst))
             for k, b in dist["bins"].items()]
     top_bin, top = max(bins, key=lambda x: abs(x[1]))
     sanity = ("Sanity publicado contra original recalculado: todas las diferencias son 0, así que la "
@@ -207,9 +210,10 @@ def fst_hair(d: dict) -> tuple[str, str]:
               "Sanity publicado contra original recalculado: hay diferencias, así que la comparación NO "
               "aísla la remoción de pelo.")
     text = (f"{sanity} Pool (n = {_count(pool['n']['b'])}), {cmp['labels']['a']} → {cmp['labels']['b']}: "
-            f"con tono asignado {_count(tone['total']['a'])} → {_count(tone['total']['b'])}; con FST asignado "
-            f"{_count(fst['total']['a'])} → {_count(fst['total']['b'])}. Proporciones de tono: {_props(tone)}. "
-            f"Proporciones de FST: {_props(fst)}. Con `artifact_detected`: "
+            f"con tercil de luminancia asignado {_count(tone['total']['a'])} → {_count(tone['total']['b'])}; "
+            f"con {ITA} asignada {_count(fst['total']['a'])} → {_count(fst['total']['b'])}. "
+            f"Proporciones de los {TERCILES}: {_props(tone)}. Proporciones de la {ITA}: {_props(fst)}. "
+            "Con `artifact_detected`: "
             f"{_count(flagged['a']['n_artifact_detected'])} → {_count(flagged['b']['n_artifact_detected'])}. "
             f"Mayor |Δ proporción|: {top_bin} {_signed(top)} (descriptivo). Sin IC.")
     return text, r.DONE if clean else r.NOT_MET
@@ -222,7 +226,7 @@ def fst_flagged(d: dict) -> tuple[str, str]:
                       f"{_count(s['flagged']['b']['n_confidence_below_1'])})"
                       for name, s in scopes.items() if s["flagged"]["b"] is not None)
     published = sum(s["flagged"]["a"] is not None for s in scopes.values())
-    text = (f"Registros marcados, manifiesto con máscaras de A2: {parts}. El manifiesto publicado "
+    text = (f"Registros marcados de la {ITA}, manifiesto con máscaras de A2: {parts}. El manifiesto publicado "
             f"({d[FST_CMP]['labels']['a']}) los reporta en {published} de {len(scopes)} ámbitos.")
     return text, r.DONE if all(s["flagged"]["b"] is not None for s in scopes.values()) else r.NOT_MET
 
@@ -260,15 +264,16 @@ def rows() -> list[r.RowSpec]:
         r.RowSpec(f"{pau} §5.3)", "Pseudo-máscaras de A1: cobertura en la banda de referencia",
                   "Stats de `make_pseudo_masks.py --source dino` contra r0 (docs/27, S4-UNet)",
                   (A1_STATS, R0), a1_coverage),
-        r.RowSpec(f"{pau} §6.4, paso 1)", "S3: reportar aparte los registros con `artifact_detected` o `confidence < 1`",
+        r.RowSpec(f"{pau} §6.4, paso 1)", f"S3: reportar aparte los registros de la {ITA} con `artifact_detected` "
+                  "o `confidence < 1`",
                   "`fst_pseudo_manifest.py` los reporta por separado (docs/27 FASE 2, S3)", (FST_CMP,), fst_flagged),
-        r.RowSpec(f"{pau} §6.4, paso 1) · docs/27", "FST con la caché sin pelo, comparado con el original",
-                  "Manifiesto FST regenerado con la caché de S2(a) y con la original, más un sanity del "
-                  "original recalculado contra el publicado (docs/27, FST con la caché sin pelo)",
+        r.RowSpec(f"{pau} §6.4, paso 1) · docs/27", f"{ITA_CAP} con la caché sin pelo, comparada con la original",
+                  f"Manifiesto de la {ITA} regenerado con la caché de S2(a) y con la original, más un sanity "
+                  "del original recalculado contra el publicado (docs/27, caché sin pelo)",
                   (FST_HAIR_CMP, FST_HAIR_SANITY), fst_hair),
-        r.RowSpec(f"{pau} §6.2) · docs/27 S4-UNet", "FST con las máscaras de A2 (segmentador candidato)",
+        r.RowSpec(f"{pau} §6.2) · docs/27 S4-UNet", f"{ITA_CAP} con las máscaras de A2 (segmentador candidato)",
                   "Probabilidades de A2 sobre el pool → `make_pseudo_masks.py` con las banderas de `pseudo_r2` "
-                  "→ manifiesto FST (docs/27)", (FST_CMP, FST_ASSUMPTION), fst_a2),
+                  f"→ manifiesto de la {ITA} (docs/27)", (FST_CMP, FST_ASSUMPTION), fst_a2),
         r.RowSpec(f"{pau} §7.3)", "C3: ablación Plain vs Proposed-oráculo",
                   "Reemplazada por el rediseño v7 (docs/28 §5.2); el oráculo queda como fase 2", (), None),
     ]

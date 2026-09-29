@@ -8,6 +8,7 @@ file is missing renders as pending instead of inventing a number.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -106,7 +107,7 @@ def _by_pedido(fragment: str):
 def test_an_action_row_says_done_not_met():
     assert ct.DONE == "hecho (no es mejora medida)"
     assert _by_pedido("S3: reportar aparte").veredicto == ct.DONE
-    assert _by_pedido("FST con las máscaras de A2").veredicto == ct.DONE
+    assert _by_pedido("con las máscaras de A2 (segmentador").veredicto == ct.DONE
 
 
 def test_the_oversegmenting_coverage_row_carries_the_computed_dice_count():
@@ -159,9 +160,56 @@ def test_the_hair_sanity_requires_every_difference_to_be_zero():
 def test_the_hair_free_fst_row_is_filled_from_its_files():
     import closing_rows_segmentation as segrows
 
-    row = _by_pedido("FST con la caché sin pelo")
+    row = _by_pedido("con la caché sin pelo")
     doc = json.loads((REPO / segrows.FST_HAIR_CMP).read_text(encoding="utf-8"))
     pool = doc["scopes"]["pool"]
     assert row.veredicto == ct.DONE
     assert f"{pool['FST_distribution']['total']['b']:,}".replace(",", ".") in row.resultado
     assert "aísla la remoción de pelo" in row.resultado
+
+
+# docs/20 and PMC13459198: the per-image ITA with fixed Groh cuts does not beat
+# a trivial baseline against expert FST, so no row may present it as FST.
+_ESTIMATOR = re.compile(r"\bFST\b|fst_|\bITA\b|[Tt]ercil|Fitzpatrick")
+_CODE = re.compile(r"`[^`]*`|\([^)]*\.(?:json|md|py|csv)\)")
+
+
+def _estimator_rows():
+    rows = [r for r in ct.build_rows()
+            if _ESTIMATOR.search(" ".join((r.pedido, r.hecho, r.resultado.replace(ct.ITA_NOTE, ""))))]
+    assert len(rows) >= 3, "the S3, hair-free and A2 rows use the ITA estimate"
+    return rows
+
+
+def test_every_row_that_uses_the_ita_estimate_carries_the_unvalidated_note():
+    missing = [r.pedido for r in _estimator_rows() if ct.ITA_NOTE not in r.resultado]
+    assert not missing, f"rows without the unvalidated-ITA note: {missing}"
+
+
+def test_the_note_is_added_by_rule_to_any_row_that_names_the_estimate(tmp_path):
+    path = Path("d.json")
+    (tmp_path / path).write_text("{}", encoding="utf-8")
+    named = ct.build_row(ct.RowSpec("Pau", "ITA por imagen", "h", (path,), lambda d: ("x", ct.DONE)), tmp_path)
+    other = ct.build_row(ct.RowSpec("Pau", "Dice", "h", (path,), lambda d: ("x", ct.DONE)), tmp_path)
+    assert named.resultado.endswith(ct.ITA_NOTE)
+    assert other.resultado == "x"
+
+
+def test_the_note_cites_both_external_checks_against_expert_fst():
+    for fragment in ("docs/20", "28,5", "30,8", "32,9", "PMC13459198", "22,9", "51,3"):
+        assert fragment in ct.ITA_NOTE
+    assert ct.ITA_LABEL == "estimación ITA no validada (no es FST)"
+
+
+def test_the_rendered_table_never_calls_the_estimate_fst():
+    text = ct.render(ct.build_rows()).replace(ct.ITA_NOTE, "")
+    text = re.sub(re.escape(ct.ITA_LABEL), "", text, flags=re.IGNORECASE)
+    bare = [line for line in _CODE.sub("", text).splitlines() if re.search(r"\bFST\b", line)]
+    assert not bare, f"bare FST label in: {bare}"
+
+
+def test_lightness_terciles_are_never_called_tone():
+    for row in _estimator_rows():
+        text = " ".join((row.pedido, row.hecho, row.resultado.replace(ct.ITA_NOTE, "")))
+        assert not re.search(r"\bton[oe]\b", _CODE.sub("", text), flags=re.IGNORECASE), row.pedido
+    assert "terciles de luminancia" in _by_pedido("con la caché sin pelo").resultado

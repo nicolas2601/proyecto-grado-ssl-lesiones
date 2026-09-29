@@ -29,6 +29,17 @@ MEETS_THRESHOLD = "cumple umbral"
 S4_MAX_DICE_LOSS = 0.01
 _SEED_SUFFIX = re.compile(r"_s\d+$")
 
+# The per-image "FST" of this project is ITA with fixed Groh cuts
+# (src/dermssl/fitzpatrick.py) and does not beat a trivial baseline against
+# expert FST, so every row that uses it is labelled and annotated by rule.
+ITA_LABEL = "estimación ITA no validada (no es FST)"
+ITA_NOTE = ("Nota: estimación ITA no validada (no es FST). Contra FST experto acierta 28,5–30,8 % "
+            "frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (docs/20), y en PAD-UFES-20 el "
+            "ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría "
+            "(Alipour et al. 2026, PMC13459198).")
+LUMINANCE_TERCILES = "terciles de luminancia"
+_ITA_ESTIMATE = re.compile(r"\bFST\b|fst_|\bITA\b|[Tt]ercil|Fitzpatrick")
+
 Builder = Callable[[dict[Path, Any]], tuple[str, str]]
 
 
@@ -93,6 +104,17 @@ def mask_helps(results: list[dict], metric: str = "macro_f1") -> bool:
     return any(all(wins) for wins in families.values())
 
 
+def uses_ita_estimate(*texts: str) -> bool:
+    return any(_ITA_ESTIMATE.search(t) for t in texts)
+
+
+def with_ita_note(resultado: str, *texts: str) -> str:
+    """Append ``ITA_NOTE`` when the row names the per-image estimate."""
+    if ITA_NOTE in resultado or not uses_ita_estimate(resultado, *texts):
+        return resultado
+    return f"{resultado} {ITA_NOTE}"
+
+
 def _fuente(paths: tuple[Path, ...]) -> str:
     if not paths:
         return "—"
@@ -106,5 +128,6 @@ def build_row(spec: RowSpec, root: Path = REPO) -> Row:
     else:
         data = {p: json.loads((root / p).read_text(encoding="utf-8")) for p in spec.sources}
         resultado, veredicto = spec.build(data)
+    resultado = with_ita_note(resultado, spec.pedido, spec.hecho)
     return Row(spec.origen, spec.pedido, spec.hecho, resultado, veredicto,
                _fuente(spec.links or spec.sources))
