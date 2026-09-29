@@ -17,7 +17,7 @@ def test_the_json_is_rebuilt_exactly_from_the_committed_inputs():
     committed = _committed()
     params = committed["params"]
     rebuilt = t2.build_document(t2.RESULTS, OUT / t2.TERCILES_FILE, params["n_resamples"], params["seed"])
-    assert {k: v for k, v in committed.items() if k != "provenance"} == rebuilt
+    assert {k: v for k, v in committed.items() if k not in ("provenance", "environment")} == rebuilt
 
 
 def test_the_run_used_the_registered_parameters_and_commit():

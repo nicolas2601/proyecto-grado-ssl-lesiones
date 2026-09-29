@@ -241,6 +241,7 @@ def test_run_also_writes_a_summary_json_next_to_the_csv(tmp_path):
     summary = json.loads(out_json.read_text(encoding="utf-8"))
     assert summary["dataset"] == "d"
     assert summary["n"] == 1
+    assert summary["environment"]["schema"] == 1
 
 
 def test_run_defaults_to_json_primary_without_creating_a_csv(tmp_path, monkeypatch):

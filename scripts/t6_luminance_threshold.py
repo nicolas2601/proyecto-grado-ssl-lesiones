@@ -59,6 +59,7 @@ for _extra in (REPO / "src", REPO / "scripts", REPO / "plan-segmentacion" / "com
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import luminance_threshold as lt  # noqa: E402
 from dermssl import pad_ufes_guard as pg  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 
 RESULTS = REPO / "plan-segmentacion" / "camino-b-cnn" / "resultados"
@@ -306,6 +307,7 @@ def main(argv: list[str] | None = None) -> int:
     doc["provenance"] = {"registration_commit": registration, "code_revision": revision,
                          "manifest": str(args.manifest),
                          "probabilities": {d: str(p) for d, p in zip(DATASETS, (args.probs_ham, args.probs_isic))}}
+    doc["environment"] = run_environment.snapshot(args)
     (out / JSON_FILE).write_text(json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False) + "\n",
                                  encoding="utf-8")
     (out / TABLE_FILE).write_text(render_markdown(doc), encoding="utf-8")

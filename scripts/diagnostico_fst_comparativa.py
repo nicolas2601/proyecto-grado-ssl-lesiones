@@ -155,7 +155,7 @@ def run(args: argparse.Namespace) -> list[dict]:
     import numpy as np
     from PIL import Image
 
-    from dermssl import fitzpatrick
+    from dermssl import fitzpatrick, run_environment
 
     image_root = Path(args.image_root)
     paths = find_images(image_root)
@@ -187,9 +187,8 @@ def run(args: argparse.Namespace) -> list[dict]:
         if args.output_csv
         else Path("diagnostico_fst.json")
     )
-    write_diagnostic_manifest(
-        build_diagnostic_manifest(args.dataset_id, rows, smoke=args.smoke), output_json
-    )
+    manifest = build_diagnostic_manifest(args.dataset_id, rows, smoke=args.smoke)
+    write_diagnostic_manifest({**manifest, "environment": run_environment.snapshot(args)}, output_json)
     print(f"Se escribieron {len(rows)} registros JSON de comparación FST en {output_json}")
     return rows
 

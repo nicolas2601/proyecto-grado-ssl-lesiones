@@ -22,9 +22,14 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from dermssl import run_environment  # noqa: E402
 
 DEFAULT_SEED = 20260923
 DEFAULT_RESAMPLES = 1000
@@ -100,6 +105,7 @@ def main(argv: list[str] | None = None) -> int:
         "rng_seed": args.seed, "n_resamples": args.n_resamples,
         "n_paired": result.pop("n_paired"), "metrics": result,
         "note": "secondary; delta = a - b, paired percentile 95 % interval",
+        "environment": run_environment.snapshot(args),
     }
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_json.write_text(json.dumps(doc, indent=2, allow_nan=False) + "\n")

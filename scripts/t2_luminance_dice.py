@@ -22,6 +22,7 @@ from pathlib import Path
 
 from dermssl import luminance_dice as ld
 from dermssl import pad_ufes_guard as pg
+from dermssl import run_environment
 from dermssl import run_provenance as rp
 
 REPO = Path(__file__).resolve().parents[1]
@@ -201,6 +202,7 @@ def main(argv: list[str] | None = None) -> int:
     doc = build_document(RESULTS, terciles_csv, args.n_resamples, args.seed)
     doc["provenance"] = {"registration_commit": registration, "code_revision": revision,
                          "manifest": str(args.manifest)}
+    doc["environment"] = run_environment.snapshot(args)
     (args.out / JSON_FILE).write_text(json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False) + "\n",
                                       encoding="utf-8")
     (args.out / TABLE_FILE).write_text(render_markdown(doc), encoding="utf-8")

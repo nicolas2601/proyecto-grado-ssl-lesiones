@@ -44,6 +44,7 @@ from dermssl import pad_ufes_files as pf  # noqa: E402
 from dermssl import pad_ufes_guard as pg  # noqa: E402
 from dermssl import pad_ufes_readings as pr  # noqa: E402
 from dermssl import probes  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 
 
@@ -163,7 +164,7 @@ def main(argv: list[str] | None = None) -> int:
                            for r, run in runs.items()},
                   "manifest_sha256": pad["manifest_sha256"], "dataset_doi": pf.DATASET_DOI,
                   "license": pf.LICENSE}
-    document = build_document(probas7, pad, provenance)
+    document = {**build_document(probas7, pad, provenance), "environment": run_environment.snapshot(args)}
     out = args.out.expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")

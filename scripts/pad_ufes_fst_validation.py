@@ -34,6 +34,7 @@ from dermssl import pad_ufes as pu  # noqa: E402
 from dermssl import pad_ufes_guard as pg  # noqa: E402
 from dermssl import pad_ufes_readings as pr  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 
 #: The commit that registered docs/30 5, pushed on its own before this script.
@@ -155,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
     pad = load_pad(args.manifest.expanduser(), args.pad_root.expanduser())
     rows, skipped = evaluate_rows(pad)
     provenance = {"code_revision": revision, "registration_commit": registration}
-    document = build_document(rows, pad, skipped, provenance)
+    document = {**build_document(rows, pad, skipped, provenance), "environment": run_environment.snapshot(args)}
     out = args.out.expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")

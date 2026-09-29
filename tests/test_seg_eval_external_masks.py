@@ -64,6 +64,7 @@ def test_external_masks_produce_the_same_report_as_a_checkpoint_run(tmp_path):
     assert payload["meta"]["n_images"] == 2
     assert payload["meta"]["resolution"] == SIZE
     assert payload["meta"]["threshold"] == 0.5
+    assert payload["environment"]["schema"] == 1 and "environment" not in payload["meta"]
 
 
 def test_a_shifted_external_mask_scores_the_hand_computed_dice(tmp_path):

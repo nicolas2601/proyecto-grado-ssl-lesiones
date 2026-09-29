@@ -219,9 +219,12 @@ def json_safe(value):
     return value
 
 
-def write_summary_json(path: Path, metrics: dict, meta: dict, strata: dict | None = None) -> None:
+def write_summary_json(path: Path, metrics: dict, meta: dict, strata: dict | None = None,
+                       environment: dict | None = None) -> None:
     """``allow_nan=False``: a bare NaN is not JSON and breaks strict readers."""
     payload = {"meta": meta, "metrics": metrics}
+    if environment is not None:
+        payload["environment"] = environment
     if strata is not None:
         payload["strata"] = strata
     Path(path).write_text(

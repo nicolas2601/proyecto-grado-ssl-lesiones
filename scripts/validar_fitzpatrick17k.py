@@ -149,6 +149,7 @@ def run(args: argparse.Namespace) -> list[dict]:
     import numpy as np
     from PIL import Image
 
+    from dermssl import run_environment
     from dermssl.pretrain import color_constancy
 
     correct_illumination = color_constancy.OPS[args.color_constancy]
@@ -183,6 +184,7 @@ def run(args: argparse.Namespace) -> list[dict]:
     report = build_report(
         rows, ground_truth_total=len(ground_truth), color_constancy=args.color_constancy
     )
+    report["environment"] = run_environment.snapshot(args)
     Path(args.output_json).write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )

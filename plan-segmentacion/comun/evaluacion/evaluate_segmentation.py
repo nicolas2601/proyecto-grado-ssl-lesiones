@@ -36,6 +36,7 @@ for _extra in (_PLAN_ROOT.parent / "src", _PLAN_ROOT / "comun" / "nucleo"):
 import eval_inputs  # noqa: E402
 import eval_report  # noqa: E402
 import eval_student  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl.cli import build_spanish_parser  # noqa: E402
 from eval_inputs import load_binary_mask as load_mask  # noqa: E402
 from eval_inputs import load_image, pair_images_and_masks  # noqa: E402
@@ -179,7 +180,8 @@ def _write_report(args, pairs, rows, resolution: int, meta_extra: dict, predict_
         "note": "reference masks were read only to compute these metrics",
         **meta_extra,
     }
-    write_summary_json(output_dir / "summary.json", summary, meta, strata)
+    write_summary_json(output_dir / "summary.json", summary, meta, strata,
+                       environment=run_environment.snapshot(args))
     overlays = _write_overlays(args, pairs, rows, resolution, predict_for)
     track_evaluation(args, summary, strata, rows, overlays)
     return summary

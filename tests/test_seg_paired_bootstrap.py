@@ -67,3 +67,4 @@ def test_cli_writes_json(tmp_path):
     doc = json.loads(out_path.read_text())
     assert doc["label_a"] == "A2" and doc["label_b"] == "student_r3"
     assert doc["rng_seed"] == spb.DEFAULT_SEED and set(doc["metrics"]) == {"dice", "hd95"}
+    assert doc["environment"]["schema"] == 1
