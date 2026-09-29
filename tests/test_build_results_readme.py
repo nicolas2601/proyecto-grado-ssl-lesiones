@@ -86,6 +86,16 @@ def test_the_strata_table_translates_the_verdict():
     assert "no es lo mismo que ausencia de brecha" in joined
 
 
+def test_the_tone_tercile_strata_are_called_luminance_terciles():
+    """`tone_tercile` cuts the skin median L*; it is not a validated skin tone."""
+    strata = {"a": {"gap_macro_f1": 0.10, "worst_label": "dark", "gap_established": False}}
+    block = gen.render({"mode": "full", "rows": []}, strata)
+    assert "### Equidad por terciles de luminancia" in block
+    assert "terciles de luminancia" in "\n".join(gen.strata_table({}))
+    assert "efecto de tono" not in block
+    assert "Equidad por tono" not in block
+
+
 def test_writing_replaces_only_the_block_between_the_markers(tmp_path):
     readme = _readme(tmp_path)
     updated = gen.replace_block(readme.read_text(encoding="utf-8"),

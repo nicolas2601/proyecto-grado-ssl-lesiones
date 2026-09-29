@@ -210,9 +210,13 @@ def metrics_table(bank: dict, probe: str = HEADLINE_PROBE, fraction: float = FUL
 
 
 def strata_table(strata: dict) -> list[str]:
-    """Per backbone: the tone gap and whether the intervals actually separate."""
+    """Per backbone: the gap across luminance terciles and whether the intervals separate.
+
+    The strata are ``tone_tercile``: terciles of the skin median L*, not a
+    validated skin tone or phototype.
+    """
     if not strata:
-        return ["_Sin estratos por tono en `strata.json`._"]
+        return ["_Sin estratos por terciles de luminancia en `strata.json`._"]
     lines = [
         "| Backbone | Brecha macro-F1 | Estrato peor | Intervalos separados |",
         "|---|---|---|---|",
@@ -236,7 +240,9 @@ def strata_table(strata: dict) -> list[str]:
         "",
         f"Estratos medidos con {described}.",
         "Un `no` significa que los intervalos de los estratos extremos se solapan:",
-        "esa brecha NO se cita como efecto de tono por grande que sea el numero.",
+        "esa brecha NO se cita como efecto de luminancia por grande que sea el numero.",
+        "Los estratos son terciles de luminancia (mediana de L\\* de la piel), no tono",
+        "de piel ni fototipo validado.",
         "`sin datos` no es lo mismo que ausencia de brecha.",
     ]
     return lines
@@ -402,7 +408,7 @@ def render(bank: dict, strata: dict) -> str:
         "",
         *metrics_table(bank),
         "",
-        "### Equidad por tono de piel",
+        "### Equidad por terciles de luminancia",
         "",
         *strata_table(strata),
         "",

@@ -213,7 +213,7 @@ Probe `logreg` al 100% de etiquetas, el mismo para todos.
 Las 3 semillas dan valores IDENTICOS a todos los decimales: al 100% de etiquetas no queda nada que submuestrear, asi que son la misma corrida repetida. **El n efectivo es 1 y la columna no lleva dispersion**; la banda tiene que venir de un bootstrap sobre el test, no de las semillas.
 **En ECE menor es mejor** (marcado con ↓ en la cabecera); en el resto, mayor es mejor.
 
-### Equidad por tono de piel
+### Equidad por terciles de luminancia
 
 | Backbone | Brecha macro-F1 | Estrato peor | Intervalos separados |
 |---|---|---|---|
@@ -226,7 +226,9 @@ Las 3 semillas dan valores IDENTICOS a todos los decimales: al 100% de etiquetas
 
 Estratos medidos con probe `logreg_balanced` al 100%.
 Un `no` significa que los intervalos de los estratos extremos se solapan:
-esa brecha NO se cita como efecto de tono por grande que sea el numero.
+esa brecha NO se cita como efecto de luminancia por grande que sea el numero.
+Los estratos son terciles de luminancia (mediana de L\* de la piel), no tono
+de piel ni fototipo validado.
 `sin datos` no es lo mismo que ausencia de brecha.
 
 _Generado desde `bank.json` por `scripts/build_results_readme.py`; modo de la corrida: full._
