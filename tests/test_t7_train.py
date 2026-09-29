@@ -185,3 +185,11 @@ def test_resuming_under_another_code_revision_is_refused(t7_pool, tmp_path, monk
     monkeypatch.setattr(st.rp, "clean_revision", lambda repo: "beef")
     with pytest.raises(SystemExit, match="code_revision"):
         st.main(_t7_argv(pool, manifest, out))
+
+
+@pytest.mark.parametrize("extra", [("--no-oversample",), ("--tercile-manifest", "m.csv")])
+def test_t7_flags_are_refused_on_other_variants(t7_pool, tmp_path, extra):
+    pool, _ = t7_pool
+    with pytest.raises(SystemExit, match="A2-T7"):
+        st.main(_argv(pool, tmp_path / "x", "--seed", "43", *extra))
+    assert not (tmp_path / "x" / "run.json").exists()

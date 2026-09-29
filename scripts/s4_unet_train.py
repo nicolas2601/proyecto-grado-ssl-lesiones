@@ -191,6 +191,8 @@ def _t7_guard(args, record: dict) -> tuple[str, dict]:
 def t7_setup(args, record: dict) -> tuple[loop.T7Plan | None, dict | None]:
     """T7's plan and its record block, or (None, None) for every other variant."""
     if args.variant != T7_VARIANT:
+        if args.tercile_manifest or args.no_oversample:
+            _abort("--tercile-manifest y --no-oversample solo valen con --variant A2-T7")
         return None, None
     if not args.tercile_manifest:
         raise SystemExit("error: A2-T7 needs --tercile-manifest")
