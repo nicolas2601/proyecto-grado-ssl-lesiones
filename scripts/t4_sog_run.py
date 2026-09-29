@@ -53,6 +53,7 @@ from t4_sog_val import input_args, input_ctx, store_for, unit_probas  # noqa: E4
 
 from dermssl import pad_ufes_guard as guard  # noqa: E402
 from dermssl import run_environment  # noqa: E402
+from dermssl.probe_threads import PROBE_BLAS_THREADS  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import t4_sog as t4  # noqa: E402
 
@@ -114,10 +115,8 @@ def _grid_input(args, ctx, weights, device, revision, name: str) -> dict:
 
 
 def _write_environment(path, args) -> None:
-    """The shared sidecar plus loky's inner threads: what can make two extractions or probe fits differ."""
-    import joblib  # noqa: PLC0415
-
-    run_environment.write_sidecar(path, args, loky_inner_threads=max(joblib.cpu_count() // max(args.probe_jobs, 1), 1))
+    """The shared sidecar plus the BLAS threads every probe fit ran with (pinned, not cpu_count // probe_jobs)."""
+    run_environment.write_sidecar(path, args, loky_inner_threads=PROBE_BLAS_THREADS)
 
 
 def _reproduction(args, identity_rows: dict) -> dict:

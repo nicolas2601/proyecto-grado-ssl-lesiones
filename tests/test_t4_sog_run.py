@@ -227,3 +227,18 @@ def test_two_identity_runs_on_cpu_compare_as_identical(identity_runs, tmp_path):
 def test_every_t4_result_json_records_its_environment(ran, name):
     env = sidecar_env(ran / name)
     assert env["schema"] == 1 and env["torch"]["loaded"] is True and env["knobs"]["boot_jobs"] == 1
+
+
+@pytest.mark.parametrize("probe_jobs", [1, 6, 10])
+def test_environment_records_the_pinned_probe_threads_not_cpu_count_over_jobs(tmp_path, monkeypatch, probe_jobs):
+    import argparse  # noqa: PLC0415
+
+    import joblib  # noqa: PLC0415
+
+    from dermssl.probe_threads import PROBE_BLAS_THREADS  # noqa: PLC0415
+
+    monkeypatch.setattr(joblib, "cpu_count", lambda *a, **k: 48)  # the pod: 48 // 6 = 8, not 4
+    result = tmp_path / "t4_holdout_grid.json"
+    result.write_text("{}\n")
+    t4_sog_run._write_environment(result, argparse.Namespace(probe_jobs=probe_jobs))
+    assert sidecar_env(result)["knobs"]["loky_inner_threads"] == PROBE_BLAS_THREADS
