@@ -144,6 +144,10 @@ def _yes(flag) -> str:
     return "yes" if flag else "no"
 
 
+def _control(flag) -> str:
+    return "n/a" if flag is None else _yes(flag)
+
+
 def render_readme(doc: dict) -> str:
     s = doc["summary"]
     rec = doc["recorded_threads"]
@@ -178,6 +182,11 @@ def render_readme(doc: dict) -> str:
         for r in cell["fits"]:
             lines.append(f"| {cell['name']} | {r['setting']} | {_fmt_threads(r)} | {_yes(r['bit_equal'])} "
                          f"| {r['max_abs_delta']:.3e} | {r['argmax_flips']} | {r['abs_delta_macro_f1']:.3e} |")
+    lines += ["", "Per cell (the same-count repeat is the control: if it is not bit-equal, no row above means "
+              "anything):", ""]
+    lines += [f"- {c['name']}: features from {c.get('features_from')}; cell code revision "
+              f"`{c.get('cell_code_revision')}`; same-count repeat bit-equal: **{_control(c.get('repeat_bit_equal'))}**"
+              for c in doc["cells"]]
     failed = [c for c in doc["cells"] if not c["gate"]["passed"]]
     if failed:
         lines += ["", "Cells that failed their gate (not refitted):", ""]

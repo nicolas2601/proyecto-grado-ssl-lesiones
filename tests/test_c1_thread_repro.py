@@ -153,6 +153,12 @@ class TestReadme:
         assert "**pin C1 to 4 BLAS threads**" in text
         assert "| c0 | 8 | 8 | no | 5.000e-03 | 40 | 1.000e-02 |" in text
 
+    def test_each_cell_states_its_feature_source_revision_and_same_count_control(self):
+        cells = _cells()
+        cells[0].update(features_from="gpu_extraction", cell_code_revision="r1", repeat_bit_equal=False)
+        text = ctr.render_readme(_doc(cells))
+        assert "- c0: features from gpu_extraction; cell code revision `r1`; same-count repeat bit-equal: **no**" in text
+
     def test_the_declare_verdict_is_written_out(self):
         text = ctr.render_readme(_doc(_cells(four_equal=(True, False))))
         assert "no thread count reproduces" in text
