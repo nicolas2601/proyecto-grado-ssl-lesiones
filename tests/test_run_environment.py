@@ -93,3 +93,50 @@ def test_real_threadpools_are_listed_with_their_thread_counts():
 
 def test_the_default_snapshot_is_strict_json():
     json.dumps(re_.snapshot(), allow_nan=False)
+
+
+# --- sidecar: the block lives next to the result, outside the hashed bytes ---
+
+def _write_result(path, payload, env):
+    path.write_text(json.dumps(payload, indent=1), encoding="utf-8")
+    return re_.write_sidecar(path, environment=env)
+
+
+def test_the_same_payload_with_a_different_environment_has_the_same_sha(tmp_path):
+    import hashlib
+
+    payload = {"records": [{"image_id": "a", "bucket": "II"}], "schema_version": "1.0"}
+    shas, sidecars = [], []
+    for name, env in (("t4", {"torch": {"gpus": ["Tesla T4"]}}), ("rtx", {"torch": {"gpus": ["RTX PRO 4000"]}})):
+        path = tmp_path / name / "fst_manifest.json"
+        path.parent.mkdir()
+        sidecars.append(json.loads(_write_result(path, payload, env).read_text(encoding="utf-8")))
+        shas.append(hashlib.sha256(path.read_bytes()).hexdigest())
+    assert shas[0] == shas[1]
+    assert sidecars[0]["environment"] != sidecars[1]["environment"]
+    assert "environment" not in json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_the_sidecar_names_and_hashes_the_file_it_describes(tmp_path):
+    import hashlib
+
+    path = tmp_path / "bank.json"
+    sidecar = _write_result(path, {"rows": []}, {"schema": 1})
+    assert sidecar == tmp_path / "bank.environment.json" == re_.sidecar_path(path)
+    record = json.loads(sidecar.read_text(encoding="utf-8"))
+    assert record == {"describes": "bank.json", "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                      "environment": {"schema": 1}}
+
+
+def test_the_default_sidecar_snapshots_this_process_with_the_script_knobs(tmp_path):
+    path = tmp_path / "run.json"
+    path.write_text("{}", encoding="utf-8")
+    record = json.loads(re_.write_sidecar(path, SimpleNamespace(workers=3)).read_text(encoding="utf-8"))
+    assert record["environment"]["schema"] == 1 and record["environment"]["knobs"] == {"workers": 3}
+
+
+def test_a_sidecar_for_a_missing_result_is_refused(tmp_path):
+    import pytest
+
+    with pytest.raises(FileNotFoundError):
+        re_.write_sidecar(tmp_path / "nothing.json", environment={})
