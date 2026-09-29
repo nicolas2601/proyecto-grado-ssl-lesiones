@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 
@@ -31,6 +32,11 @@ MANIFEST_SHA256 = "57df1e65e88d3b54ba530d6e026010bfc8ce25d1437e50b4ffe37cfd7d4f8
 PSEUDO_R0_SHA256 = "8c9e47978070baa7bfa9f0174a80eb4e4236d45737801abf690804ae1eb0fc87"
 CACHE_MANIFEST_SHA256 = "a83f927ab798b6f7a0614c3923fda77d082f887d10fdbe73416e34e9574ba71a"
 REGISTERED_K = 2
+#: The committed r0 teacher check that must precede any T7 GPU job (docs/27, T7).
+TEACHER_CHECK_DIR = "plan-segmentacion/camino-b-cnn/resultados/2026-09-29-t7-r0-check"
+TEACHER_CHECK_JSON, TEACHER_CHECK_ROWS = "t7_r0_tercile_check.json", "r0_per_image.csv"
+#: Written outside the block by the dated addendum "T7 no cumple por techo del maestro".
+ADDENDUM_MARKER = "<!-- adenda-t7-techo-maestro -->"
 DARK = "dark"
 DARKENED = ("medium", "light")
 UNAVAILABLE = "unavailable"
@@ -39,6 +45,10 @@ UNAVAILABLE = "unavailable"
 def check_registration(repo: Path) -> str:
     return pg.check_registration(repo, commit=REGISTRATION_COMMIT, doc=REGISTRATION_DOC, script=ANCHOR,
                                  start=BLOCK_START, end=BLOCK_END)
+
+
+class TeacherGateError(ValueError):
+    """The r0 teacher check is missing, ran on other inputs, or triggered an addendum not yet committed."""
 
 
 def _sha256(path: Path) -> str:
@@ -81,3 +91,22 @@ def oversampled_epoch(train: np.ndarray, is_dark: np.ndarray, k: int, n_samples:
         raise ValueError(f"se piden {n_samples} muestras y el multiconjunto tiene {pool.size}")
     order = np.random.default_rng([seed, epoch]).permutation(pool.size)
     return pool[order][:n_samples]
+
+
+def check_teacher_gate(repo: Path) -> dict:
+    """The registered teacher check ran on the registered inputs, and its addendum is committed if triggered."""
+    result = Path(repo) / TEACHER_CHECK_DIR
+    if not (result / TEACHER_CHECK_JSON).is_file():
+        raise TeacherGateError(f"no está el chequeo del maestro en {TEACHER_CHECK_DIR}: se corre antes de la GPU")
+    doc = json.loads((result / TEACHER_CHECK_JSON).read_text(encoding="utf-8"))
+    provenance = doc["provenance"]
+    expected = {"registration_commit": REGISTRATION_COMMIT, "manifest_sha256": MANIFEST_SHA256,
+                "pseudo_r0_sha256": PSEUDO_R0_SHA256, "cache_manifest_sha256": CACHE_MANIFEST_SHA256,
+                "rows_sha256": _sha256(result / TEACHER_CHECK_ROWS)}
+    for key, value in expected.items():
+        if provenance.get(key) != value:
+            raise TeacherGateError(f"el chequeo del maestro no coincide en {key}")
+    addendum = bool(doc["analysis"]["addendum_required"])
+    if addendum and ADDENDUM_MARKER not in (Path(repo) / REGISTRATION_DOC).read_text(encoding="utf-8"):
+        raise TeacherGateError("el chequeo del maestro exige la adenda fechada y no está en el registro")
+    return {"addendum_required": addendum, "rows_sha256": expected["rows_sha256"]}

@@ -29,6 +29,7 @@ loop = st.loop
 pytestmark = pytest.mark.torch
 FST_COLUMNS = ["image_id", "fst_bucket", "tone_tercile", "status", "L_median", "b_median", "ita", "n_skin_px"]
 LABELS = ("dark", "medium", "light", "unavailable")
+GATE = {"addendum_required": False, "rows_sha256": "f" * 64}
 
 
 def _sha(path) -> str:
@@ -46,6 +47,7 @@ def t7_pool(tmp_path, monkeypatch):
         writer.writerow(FST_COLUMNS)
         writer.writerows([f"ISIC_{i}", "", LABELS[i % 4], "ok", "70", "10", "40", "100"] for i in range(COUNT))
     monkeypatch.setattr(ls, "check_registration", lambda repo: "r" * 40)
+    monkeypatch.setattr(ls, "check_teacher_gate", lambda repo: dict(GATE))
     monkeypatch.setattr(ls, "MANIFEST_SHA256", _sha(manifest))
     monkeypatch.setattr(ls, "PSEUDO_R0_SHA256", _sha(masks))
     monkeypatch.setattr(ls, "CACHE_MANIFEST_SHA256", _sha(cache / "manifest.csv"))
@@ -89,6 +91,7 @@ def test_the_registered_arm_moves_the_weights_and_records_only_its_changes(t7_po
                         "oversample_k": 2, "darken": {"probability": 0.5, "gamma_range": [1.0, 2.2],
                                                       "brightness_range": [0.85, 1.0],
                                                       "contrast_range": [0.85, 1.0], "terciles": ["medium", "light"]},
+                        "teacher_check": GATE,
                         "n_dark_train_confident": sum(1 for i in train if LABELS[i % 4] == "dark"),
                         "n_darken_eligible_train_confident": sum(1 for i in train
                                                                  if LABELS[i % 4] in ("medium", "light"))}
@@ -151,4 +154,15 @@ def test_unregistered_factors_or_probabilities_cannot_be_launched(t7_pool, tmp_p
     pool, manifest = t7_pool
     with pytest.raises(SystemExit):
         st.main(_t7_argv(pool, manifest, tmp_path / "x", *extra))
+    assert not (tmp_path / "x" / "run.json").exists()
+
+
+def test_t7_refuses_when_the_teacher_gate_is_closed(t7_pool, tmp_path, monkeypatch):
+    pool, manifest = t7_pool
+
+    def closed(repo):
+        raise ls.TeacherGateError("falta la adenda del techo del maestro")
+    monkeypatch.setattr(ls, "check_teacher_gate", closed)
+    with pytest.raises(SystemExit, match="ABORT: falta la adenda"):
+        st.main(_t7_argv(pool, manifest, tmp_path / "x"))
     assert not (tmp_path / "x" / "run.json").exists()

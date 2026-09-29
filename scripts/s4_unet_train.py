@@ -168,11 +168,15 @@ def _abort(message: str):
     raise SystemExit(f"ABORT: {message}")
 
 
-def _t7_guard(args, record: dict) -> str:
-    """The registration and the registered inputs, checked before any training step."""
+def _t7_guard(args, record: dict) -> tuple[str, dict]:
+    """The registration, the r0 teacher gate and the registered inputs, checked before any training step."""
     try:
         registration = ls.check_registration(REPO)
     except pg.RegistrationError as exc:
+        _abort(str(exc))
+    try:
+        teacher = ls.check_teacher_gate(REPO)
+    except ls.TeacherGateError as exc:
         _abort(str(exc))
     registered = {"el manifiesto de terciles": (sha256_file(Path(args.tercile_manifest)), ls.MANIFEST_SHA256),
                   "las pseudo-máscaras": (record["pseudo_masks"]["sha256"], ls.PSEUDO_R0_SHA256),
@@ -180,7 +184,7 @@ def _t7_guard(args, record: dict) -> str:
     for what, (digest, expected) in registered.items():
         if digest != expected:
             _abort(f"{what} tiene sha256 {digest[:12]}, no el registrado {expected[:12]}")
-    return registration
+    return registration, teacher
 
 
 def t7_setup(args, record: dict) -> tuple[loop.T7Plan | None, dict | None]:
@@ -189,13 +193,13 @@ def t7_setup(args, record: dict) -> tuple[loop.T7Plan | None, dict | None]:
         return None, None
     if not args.tercile_manifest:
         raise SystemExit("error: A2-T7 needs --tercile-manifest")
-    registration = _t7_guard(args, record)
+    registration, teacher = _t7_guard(args, record)
     rows = read_manifest(Path(args.cache_dir) / "manifest.csv")
     labels = ls.terciles_by_row(rows, Path(args.tercile_manifest), ls.MANIFEST_SHA256)
     darken = dict(ga.DARKEN_DEFAULTS)  # the registered darkening; no CLI override
     k = 1 if args.no_oversample else args.dark_oversample
     block = {"registration_commit": registration, "tercile_manifest_sha256": ls.MANIFEST_SHA256,
-             "oversample_k": k, "darken": {key: list(v) if isinstance(v, tuple) else v for key, v in darken.items()}
+             "oversample_k": k, "teacher_check": teacher, "darken": {key: list(v) if isinstance(v, tuple) else v for key, v in darken.items()}
              | {"terciles": list(ls.DARKENED)}}
     return loop.T7Plan(labels=labels, k=k, darken=darken), block
 

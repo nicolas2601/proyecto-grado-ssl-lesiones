@@ -80,3 +80,44 @@ def test_invalid_factors_and_budgets_are_refused():
         ls.oversampled_epoch(train, is_dark, k=1, n_samples=11, seed=0, epoch=0)
     with pytest.raises(ValueError, match="longitud"):
         ls.oversampled_epoch(train, is_dark[:9], k=1, n_samples=10, seed=0, epoch=0)
+
+
+def _teacher_repo(tmp_path: Path, addendum: bool, marker: bool = False, **provenance) -> Path:
+    import json
+
+    result = tmp_path / ls.TEACHER_CHECK_DIR
+    result.mkdir(parents=True)
+    (result / "r0_per_image.csv").write_text("image_id\n", encoding="utf-8")
+    rows_sha = hashlib.sha256((result / "r0_per_image.csv").read_bytes()).hexdigest()
+    prov = {"registration_commit": ls.REGISTRATION_COMMIT, "manifest_sha256": ls.MANIFEST_SHA256,
+            "pseudo_r0_sha256": ls.PSEUDO_R0_SHA256, "cache_manifest_sha256": ls.CACHE_MANIFEST_SHA256,
+            "rows_sha256": rows_sha, **provenance}
+    doc = {"analysis": {"addendum_required": addendum}, "provenance": prov}
+    (result / "t7_r0_tercile_check.json").write_text(json.dumps(doc), encoding="utf-8")
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / Path(ls.REGISTRATION_DOC).name).write_text(ls.ADDENDUM_MARKER if marker else "doc", encoding="utf-8")
+    return tmp_path
+
+
+def test_the_committed_teacher_check_opens_the_gate():
+    gate = ls.check_teacher_gate(REPO)
+    assert gate["addendum_required"] is False and len(gate["rows_sha256"]) == 64
+
+
+def test_no_teacher_check_means_no_training(tmp_path):
+    with pytest.raises(ls.TeacherGateError, match="chequeo del maestro"):
+        ls.check_teacher_gate(tmp_path)
+
+
+@pytest.mark.parametrize("key", ["registration_commit", "manifest_sha256", "pseudo_r0_sha256",
+                                 "cache_manifest_sha256", "rows_sha256"])
+def test_a_teacher_check_on_other_inputs_is_refused(tmp_path, key):
+    with pytest.raises(ls.TeacherGateError, match=key):
+        ls.check_teacher_gate(_teacher_repo(tmp_path, False, **{key: "0" * 64}))
+
+
+def test_a_triggered_addendum_must_be_committed_before_training(tmp_path):
+    with pytest.raises(ls.TeacherGateError, match="adenda"):
+        ls.check_teacher_gate(_teacher_repo(tmp_path / "a", True))
+    assert ls.check_teacher_gate(_teacher_repo(tmp_path / "b", True, marker=True))["addendum_required"] is True
