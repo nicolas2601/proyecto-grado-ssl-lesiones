@@ -65,8 +65,11 @@ SEEDS = {"T7": 42, "A2-s43": 43, "T7-aug": 42}
 OVERSAMPLE = {"T7": ls.REGISTERED_K, "T7-aug": 1}
 REGISTERED_DARKEN = {"probability": 0.5, "gamma_range": [1.0, 2.2], "brightness_range": [0.85, 1.0],
                      "contrast_range": [0.85, 1.0], "terciles": ["medium", "light"]}
-SAME_AS_A2 = ("backbone", "schedule")
-SAME_TRAINING = ("n_train_confident", "n_val_confident", "train_indices_sha256")
+#: Top-level run.json keys an arm may change: its registered changes and bookkeeping. Everything else is A2's.
+ARM_KEYS = ("variant", "seed", "t7", "code_revision", "result", "complete", "environment")
+#: Paths that depend on where the pod keeps the files; their content is pinned by the sha256 next to them.
+FREE_PATHS = {"pool": ("cache_dir",), "pseudo_masks": ("path",)}
+REGISTERED_BOOTSTRAP = {"n_resamples": 1000, "seed": 20260923}
 JSON_FILE, TABLE_FILE = "t7_compare.json", "README.md"
 DATASET_NAMES = {"ham10000": "HAM10000 (veredicto)", "ham10000_fold0_val": "HAM10000 fold-0 val (descriptivo)",
                  "isic2018": "ISIC 2018, réplica (descriptivo)"}
@@ -82,19 +85,24 @@ def _require(condition: bool, message: str) -> None:
         raise ValueError(message)
 
 
-def _pool(record: dict) -> dict:
-    return {k: v for k, v in record["pool"].items() if k != "cache_dir"}
+def _comparable(record: dict) -> dict:
+    out = {k: v for k, v in record.items() if k not in ARM_KEYS}
+    for key, free in FREE_PATHS.items():
+        if isinstance(out.get(key), dict):
+            out[key] = {k: v for k, v in out[key].items() if k not in free}
+    return out
+
+
+def _differences(record: dict, a2: dict) -> list[str]:
+    ours, theirs = _comparable(record), _comparable(a2)
+    return sorted(k for k in ours.keys() | theirs.keys() if ours.get(k) != theirs.get(k))
 
 
 def check_arm(arm: str, record: dict, a2: dict) -> None:
     """The arm is A2's recipe plus only its registered changes; anything else moved is refused."""
     _require(record.get("complete") is True, f"{arm}: la corrida no está completa")
-    _require(_pool(record) == _pool(a2), f"{arm}: pool distinto del de A2")
-    _require(record["pseudo_masks"]["sha256"] == a2["pseudo_masks"]["sha256"], f"{arm}: pseudo_masks distintas")
-    for key in SAME_AS_A2:
-        _require(record[key] == a2[key], f"{arm}: {key} distinto del de A2")
-    for key in SAME_TRAINING:
-        _require(record["training"][key] == a2["training"][key], f"{arm}: training.{key} distinto")
+    moved = _differences(record, a2)
+    _require(not moved, f"{arm}: difiere de A2 fuera de sus cambios registrados en {moved}")
     _require(record["seed"] == SEEDS[arm], f"{arm}: semilla {record['seed']}, no {SEEDS[arm]}")
     if arm == "A2-s43":
         _require(record["variant"] == "A2" and "t7" not in record, f"{arm}: no es la receta de A2 (t7)")
@@ -216,9 +224,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     for name in ("t7", "s43", "aug", "manifest", "ham-root", "out"):
         parser.add_argument(f"--{name}", required=True, type=Path)
-    parser.add_argument("--n-resamples", type=int, default=1000)
-    parser.add_argument("--seed", type=int, default=20260923)
-    return parser.parse_args(argv)
+    parser.add_argument("--n-resamples", type=int, default=REGISTERED_BOOTSTRAP["n_resamples"])
+    parser.add_argument("--seed", type=int, default=REGISTERED_BOOTSTRAP["seed"])
+    args = parser.parse_args(argv)
+    asked = {"n_resamples": args.n_resamples, "seed": args.seed}
+    if asked != REGISTERED_BOOTSTRAP:
+        raise SystemExit(f"ABORT: bootstrap {asked} no es el registrado {REGISTERED_BOOTSTRAP}")
+    return args
 
 
 def preflight() -> tuple[str, str]:

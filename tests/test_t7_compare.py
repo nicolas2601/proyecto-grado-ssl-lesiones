@@ -62,6 +62,11 @@ def test_a_registered_arm_record_passes(arm):
     ("T7", lambda r: r["pseudo_masks"].update(sha256="0" * 64), "pseudo_masks"),
     ("T7", lambda r: r["training"].update(n_train_confident=1), "training"),
     ("T7", lambda r: r.update(complete=False), "completa"),
+    ("T7", lambda r: r.update(evaluation_regime="inductive"), "evaluation_regime"),
+    ("T7-aug", lambda r: r["prediction"].update(threshold=0.5), "prediction"),
+    ("A2-s43", lambda r: r.update(reads_masks_or_labels=True), "reads_masks_or_labels"),
+    ("T7", lambda r: r.update(extra_flag=1), "extra_flag"),
+    ("T7", lambda r: r["pool"].update(n_images=1), "pool"),
 ])
 def test_an_arm_that_moved_anything_else_is_refused(arm, change, match):
     record = _arm_record(arm)
@@ -136,6 +141,7 @@ def test_the_runner_writes_the_json_and_a_table_generated_from_it(tmp_path, monk
     monkeypatch.setattr(tc, "MANIFEST_SHA256", hashlib.sha256(manifest.read_bytes()).hexdigest())
     monkeypatch.setattr(tc, "read_a2", lambda dataset: reference[dataset])
     monkeypatch.setattr(tc, "fold0_val_ids", lambda ham_root: ham_dark[:150] + ham_rest[:150])
+    monkeypatch.setattr(tc, "REGISTERED_BOOTSTRAP", {"n_resamples": 100, "seed": 20260923})
     out = tmp_path / "out"
     assert tc.main(["--t7", str(dirs["T7"]), "--s43", str(dirs["A2-s43"]), "--aug", str(dirs["T7-aug"]),
                     "--manifest", str(manifest), "--ham-root", str(tmp_path), "--out", str(out),
@@ -157,3 +163,19 @@ def test_it_refuses_before_reading_data_when_the_registration_fails(tmp_path, mo
     with pytest.raises(SystemExit, match="ABORT: el bloque registrado cambio"):
         tc.main(["--t7", missing, "--s43", missing, "--aug", missing, "--manifest", missing,
                  "--ham-root", missing, "--out", str(tmp_path / "out")])
+
+
+def test_arm_paths_and_bookkeeping_may_differ_from_a2():
+    record = _arm_record("T7")
+    record["pool"]["cache_dir"] = "/elsewhere/cache"
+    record["pseudo_masks"]["path"] = "/elsewhere/pseudo_masks.npy"
+    record.update(code_revision="f" * 40, result={"epochs": 20}, environment={"python": "3.12"})
+    tc.check_arm("T7", record, A2_RECORD)
+
+
+@pytest.mark.parametrize("extra", [("--n-resamples", "999"), ("--seed", "1")])
+def test_an_unregistered_bootstrap_is_refused_before_anything_runs(tmp_path, extra):
+    missing = str(tmp_path / "missing")
+    with pytest.raises(SystemExit, match="bootstrap"):
+        tc.main(["--t7", missing, "--s43", missing, "--aug", missing, "--manifest", missing,
+                 "--ham-root", missing, "--out", str(tmp_path / "out"), *extra])
