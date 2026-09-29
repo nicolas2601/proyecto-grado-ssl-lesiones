@@ -21,6 +21,8 @@ from env_sidecar import sidecar_env  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 A2_RECORD = json.loads((tc.RESULTS / tc.A2_RUN / "run.json").read_text(encoding="utf-8"))
+A2_META = {d: json.loads((tc.RESULTS / tc.A2_RUN / f"evaluacion_{d}" / "summary.json").read_text())["meta"]
+           for d in ("ham10000", "isic2018")}
 FST_COLUMNS = ["image_id", "fst_bucket", "tone_tercile", "status", "L_median", "b_median", "ita", "n_skin_px"]
 
 
@@ -135,11 +137,16 @@ def test_the_runner_writes_the_json_and_a_table_generated_from_it(tmp_path, monk
         (dirs[arm] / "run.json").write_text(json.dumps(_arm_record(arm)), encoding="utf-8")
         _write_per_image(dirs[arm] / "evaluacion_ham10000" / "per_image.csv", ham_dice[arm], ham_hd[arm])
         _write_per_image(dirs[arm] / "evaluacion_isic2018" / "per_image.csv", isic_dice[arm], isic_hd[arm])
+        for dataset, n in (("ham10000", 500), ("isic2018", 300)):
+            meta = {**A2_META[dataset], "checkpoint": f"/pod/t7/{dirs[arm].name}/best.pt", "n_images": n}
+            (dirs[arm] / f"evaluacion_{dataset}" / "summary.json").write_text(json.dumps({"meta": meta}))
     reference = {"ham10000": (ham_dice["A2"], ham_hd["A2"]), "isic2018": (isic_dice["A2"], isic_hd["A2"])}
     monkeypatch.setattr(tc, "check_registration", lambda repo: "r" * 40)
     monkeypatch.setattr(tc.rp, "clean_revision", lambda repo: "c" * 40)
     monkeypatch.setattr(tc, "MANIFEST_SHA256", hashlib.sha256(manifest.read_bytes()).hexdigest())
     monkeypatch.setattr(tc, "read_a2", lambda dataset: reference[dataset])
+    monkeypatch.setattr(tc, "read_a2_meta", lambda dataset: {**A2_META[dataset],
+                                                             "n_images": {"ham10000": 500, "isic2018": 300}[dataset]})
     monkeypatch.setattr(tc, "fold0_val_ids", lambda ham_root: ham_dark[:150] + ham_rest[:150])
     monkeypatch.setattr(tc, "REGISTERED_BOOTSTRAP", {"n_resamples": 100, "seed": 20260923})
     out = tmp_path / "out"
@@ -200,3 +207,31 @@ def test_per_image_rows_must_be_unique_with_a_finite_dice(tmp_path):
         tc._read_per_image(_csv(tmp_path, [("a", "0.8", "1"), ("a", "0.7", "1")]))
     with pytest.raises(ValueError, match="Dice no finito"):
         tc._read_per_image(_csv(tmp_path, [("a", "nan", "1")]))
+
+
+def test_the_published_a2_evaluation_meta_is_readable():
+    assert tc.read_a2_meta("ham10000")["threshold"] == 0.5
+
+
+def _meta(arm_dir: str = "t7", **change) -> dict:
+    return {**A2_META["ham10000"], "checkpoint": f"/somewhere/{arm_dir}/best.pt", **change}
+
+
+def test_an_arm_evaluated_like_a2_passes(tmp_path):
+    tc.check_evaluation("T7", "ham10000", tmp_path / "t7", _meta(), A2_META["ham10000"])
+
+
+@pytest.mark.parametrize(("meta", "match"), [
+    (_meta(threshold=0.4), "threshold"), (_meta(tta=True), "tta"), (_meta(n_images=10), "n_images"),
+    (_meta(resolution=448), "resolution"), (_meta(predictions="external"), "predictions"),
+    (_meta(arm_dir="a2"), "checkpoint"), (_meta(checkpoint="/x/t7/last.pt"), "checkpoint"),
+])
+def test_an_arm_evaluated_otherwise_is_refused(tmp_path, meta, match):
+    with pytest.raises(ValueError, match=match):
+        tc.check_evaluation("T7", "ham10000", tmp_path / "t7", meta, A2_META["ham10000"])
+
+
+@pytest.mark.parametrize("value", ["1.2", "-0.1"])
+def test_a_dice_outside_zero_one_is_refused(tmp_path, value):
+    with pytest.raises(ValueError, match="fuera de"):
+        tc._read_per_image(_csv(tmp_path, [("a", value, "1")]))

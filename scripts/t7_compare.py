@@ -70,6 +70,8 @@ ARM_KEYS = ("variant", "seed", "t7", "code_revision", "result", "complete", "env
 #: Paths that depend on where the pod keeps the files; their content is pinned by the sha256 next to them.
 FREE_PATHS = {"pool": ("cache_dir",), "pseudo_masks": ("path",)}
 REGISTERED_BOOTSTRAP = {"n_resamples": 1000, "seed": 20260923}
+#: evaluate_segmentation meta that must equal A2's: same evaluator path, binarisation, resolution and image set.
+EVAL_KEYS = ("predictions", "resolution", "threshold", "tta", "n_images")
 JSON_FILE, TABLE_FILE = "t7_compare.json", "README.md"
 DATASET_NAMES = {"ham10000": "HAM10000 (veredicto)", "ham10000_fold0_val": "HAM10000 fold-0 val (descriptivo)",
                  "isic2018": "ISIC 2018, réplica (descriptivo)"}
@@ -124,6 +126,8 @@ def _read_per_image(path: Path) -> tuple[dict, dict]:
     dice = {r["image_id"]: float(r["dice"]) for r in rows}
     bad = [i for i, v in dice.items() if not math.isfinite(v)]
     _require(not bad, f"{path}: Dice no finito en {bad[:3]}")
+    outside = [i for i, v in dice.items() if not 0.0 <= v <= 1.0]
+    _require(not outside, f"{path}: Dice fuera de [0, 1] en {outside[:3]}")
     return dice, {r["image_id"]: float(r["hd95"]) for r in rows}
 
 
@@ -137,6 +141,22 @@ def read_a2(dataset: str) -> tuple[dict, dict]:
     expected = sums[f"./evaluacion_{dataset}/per_image.csv"]
     _require(rp.file_sha256(path) == expected, f"el per_image.csv de A2 ({dataset}) no es el publicado")
     return _read_per_image(path)
+
+
+def read_a2_meta(dataset: str) -> dict:
+    """The meta of A2's published evaluation (its per_image.csv is pinned by ``read_a2``)."""
+    path = RESULTS / A2_RUN / f"evaluacion_{dataset}" / "summary.json"
+    return json.loads(path.read_text(encoding="utf-8"))["meta"]
+
+
+def check_evaluation(arm: str, dataset: str, arm_dir: Path, meta: dict, a2_meta: dict) -> None:
+    """The arm was scored like A2 (same evaluator settings and image count) from its own best checkpoint."""
+    for key in EVAL_KEYS:
+        _require(meta.get(key) == a2_meta.get(key), f"{arm} ({dataset}): {key} = {meta.get(key)!r}, A2 usó "
+                                                    f"{a2_meta.get(key)!r}")
+    checkpoint = Path(str(meta.get("checkpoint", "")))
+    _require(checkpoint.name == "best.pt" and checkpoint.parent.name == Path(arm_dir).name,
+             f"{arm} ({dataset}): checkpoint {checkpoint} no es el best.pt de {arm_dir}")
 
 
 def fold0_val_ids(ham_root: Path) -> list[str]:
@@ -263,7 +283,10 @@ def _load(args, dirs: dict) -> tuple[dict, dict]:
         dice[dataset], hd95[dataset] = {}, {}
         dice[dataset][REFERENCE], hd95[dataset][REFERENCE] = read_a2(dataset)
         for arm, path in dirs.items():
-            dice[dataset][arm], hd95[dataset][arm] = _read_per_image(path / f"evaluacion_{dataset}" / "per_image.csv")
+            evaluation = path / f"evaluacion_{dataset}"
+            meta = json.loads((evaluation / "summary.json").read_text(encoding="utf-8"))["meta"]
+            check_evaluation(arm, dataset, path, meta, read_a2_meta(dataset))
+            dice[dataset][arm], hd95[dataset][arm] = _read_per_image(evaluation / "per_image.csv")
             _require(dice[dataset][arm].keys() == dice[dataset][REFERENCE].keys(),
                      f"{arm} no se evaluó en las mismas imágenes que A2 ({dataset})")
     return dice, hd95
