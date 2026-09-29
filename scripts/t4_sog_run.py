@@ -139,6 +139,8 @@ def _early_guards(args) -> None:
     if args.stage == "val" and args.split == "val":
         if not args.single_evaluation:
             raise SystemExit("ABORT: --split val exige --single-evaluation (la validacion se toca una vez)")
+        if args.limit:
+            raise SystemExit("ABORT: --limit no va con --split val: salta el guard de reproduccion v7.1")
         sha = rp.file_sha256(args.tone_manifest.expanduser())
         if sha != t4.MANIFEST_SHA256:
             raise SystemExit(f"ABORT: el manifiesto de luminancia {sha[:12]} no es el registrado en docs/31 "

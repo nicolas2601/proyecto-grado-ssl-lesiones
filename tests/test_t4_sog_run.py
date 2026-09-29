@@ -166,3 +166,9 @@ def test_val_split_refuses_a_manifest_other_than_the_registered_one(pod, ran):
 def test_dry_run_prints_the_cost_and_touches_nothing(pod, tmp_path, capsys):
     assert t4_sog_run.main(_t4(pod, tmp_path / "dry", "--stage", "grid", "--dry-run")) == 0
     assert "GPU-h" in capsys.readouterr().out and not (tmp_path / "dry").exists()
+
+
+def test_val_split_refuses_limit_because_it_skips_the_reproduction_guard(pod, tmp_path):
+    with pytest.raises(SystemExit, match="--limit"):
+        t4_sog_run.main(_t4(pod, tmp_path, "--stage", "val", "--split", "val", "--single-evaluation",
+                            "--limit", "10"))
