@@ -153,6 +153,9 @@ def test_the_runner_writes_the_json_and_a_table_generated_from_it(tmp_path, monk
     assert doc["provenance"]["registration_commit"] == "r" * 40
     assert sidecar_env(out / tc.JSON_FILE)["schema"] == 1
     assert (out / tc.TABLE_FILE).read_text(encoding="utf-8") == tc.render_markdown(doc)
+    table = (out / tc.TABLE_FILE).read_text(encoding="utf-8")
+    assert "Bootstrap estratificado y pareado" not in table
+    assert "brecha y sus contrastes: estratificado" in table and "ΔD global: pareado por imagen, sin estratificar" in table
 
 
 def test_it_refuses_before_reading_data_when_the_registration_fails(tmp_path, monkeypatch):

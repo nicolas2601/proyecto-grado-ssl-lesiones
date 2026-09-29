@@ -219,8 +219,10 @@ def render_markdown(doc: dict) -> str:
              "docs/27, bloque T7. Los bins son `tone_tercile` del manifiesto publicado: luminancia, no es tono de "
              "piel. La luminancia está confundida con el diagnóstico, el dermatoscopio y la iluminación, y HAM10000 "
              "es transductivo (limitación del diseño).", "",
-             f"Bootstrap estratificado y pareado: {doc['bootstrap']['n_resamples']} remuestreos, semilla "
-             f"{doc['bootstrap']['seed']}, IC percentil 95 %, los mismos índices para todos los segmentadores.", ""]
+             f"Bootstrap: {doc['bootstrap']['n_resamples']} remuestreos, semilla {doc['bootstrap']['seed']}, "
+             "IC percentil 95 %. G, R y S (la brecha y sus contrastes: estratificado por oscuro y resto, con los "
+             "mismos índices para todos los segmentadores). ΔD global: pareado por imagen, sin estratificar, como "
+             "en T6 y en el registro.", ""]
     for key in DATASET_NAMES:
         lines += _dataset_lines(key, doc["datasets"][key])
     return "\n".join(lines)
