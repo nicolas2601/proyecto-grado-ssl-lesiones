@@ -18,9 +18,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import closing_rows_classifier as clf  # noqa: E402
+import closing_rows_exploratory as exrows  # noqa: E402
 import closing_rows_segmentation as segrows  # noqa: E402
 from closing_table_rules import (  # noqa: E402, F401
-    BETTER, DONE, ITA_LABEL, ITA_NOTE, LUMINANCE_TERCILES, MEETS_THRESHOLD, MET, NOT_MET, PENDING, REPO, SAME,
+    BETTER, DISTINGUISHABLE, DONE, ITA_LABEL, ITA_NOTE, LUMINANCE_TERCILES, MEETS_THRESHOLD, MET, NOT_MET, PENDING, REPO, SAME,
     WORSE, Row, RowSpec, below_without_overlap, build_row,
     mask_helps, paired_verdict, s4_threshold_met, seeds_verdict)
 
@@ -31,7 +32,7 @@ HEADER = ["| # | Origen | Pedido | Qué se hizo | Resultado | Veredicto | Datos 
 
 
 def specs() -> list[RowSpec]:
-    return clf.rows() + segrows.rows()
+    return clf.rows() + segrows.rows() + exrows.rows()
 
 
 def build_rows(root: Path = REPO) -> list[Row]:
@@ -62,6 +63,10 @@ def rules() -> list[str]:
         "sobre-segmenta).",
         f"- **{BETTER} / {SAME} / {WORSE}**: comparación sin umbral registrado; decide el IC 95 % pareado. "
         f"**{BETTER}** o **{WORSE}** solo si el intervalo excluye el cero; si lo incluye, **{SAME}**.",
+        "- **T1–T7**: bloques exploratorios registrados antes del dato (docs/27, docs/28, docs/30, docs/31). "
+        "El veredicto es el que escribe el JSON de cada experimento; aquí se copia, no se recalcula, y una "
+        f"fila cuyos veredictos no coinciden falla. **{DISTINGUISHABLE}** es el veredicto intermedio de T2: "
+        "el IC excluye el cero, pero no queda entero bajo el margen registrado (ver la fila).",
         f"- **{PENDING}**: el ítem está registrado pero su archivo de datos no está en el repositorio. "
         "No se completa a mano.",
         "- Los IC son percentiles de bootstrap. Los de C1 y S4 son pareados sobre las mismas imágenes; "

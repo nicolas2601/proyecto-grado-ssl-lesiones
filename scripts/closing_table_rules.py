@@ -23,6 +23,11 @@ DONE = "hecho (no es mejora medida)"
 # A threshold met in a way that is not an improvement (e.g. coverage above the
 # registered floor because the method over-segments); the detail follows.
 MEETS_THRESHOLD = "cumple umbral"
+# T2's registered middle verdict (docs/27): the interval excludes zero but not
+# the -0,02 margin. Only the exploratory rows use it, copied from their JSON.
+DISTINGUISHABLE = "distinguible pero no clara"
+# Verdict words an exploratory row may copy from its own JSON.
+REGISTERED = (MET, NOT_MET, DISTINGUISHABLE)
 
 # docs/27 FASE 1, S4-UNet: Dice(S4) >= Dice(student_r3) - 0,01, registered
 # before the run; read on the paired interval of the difference.

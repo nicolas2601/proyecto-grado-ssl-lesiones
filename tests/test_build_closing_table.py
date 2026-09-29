@@ -94,7 +94,7 @@ def test_an_item_without_any_data_source_is_pending():
 
 
 def test_render_has_one_verdict_per_row_from_the_allowed_set():
-    allowed = {ct.BETTER, ct.SAME, ct.WORSE, ct.MET, ct.NOT_MET, ct.PENDING, ct.DONE}
+    allowed = {ct.BETTER, ct.SAME, ct.WORSE, ct.MET, ct.NOT_MET, ct.PENDING, ct.DONE, ct.DISTINGUISHABLE}
     rows = ct.build_rows()
     assert rows, "the table must not be empty"
     assert {r.veredicto for r in rows if not r.veredicto.startswith(ct.MEETS_THRESHOLD)} <= allowed
