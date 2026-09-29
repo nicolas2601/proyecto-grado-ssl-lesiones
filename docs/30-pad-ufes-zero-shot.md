@@ -93,3 +93,10 @@ Pendiente. Se completa después de la única evaluación, desde el JSON que gene
 - **Es exploratorio.** No cambia las lecturas de §3 ni la estratificación de §2.5, que usa el `fitspatrick` de PAD tal cual y no el estimador.
 
 <!-- registro-pad-fst:fin -->
+
+## 6. Erratas y notas (fuera de los bloques registrados)
+
+Los bloques de §2-3 y §5 no se editan: el guard los compara byte a byte contra su commit de registro. Lo que cambió después va acá.
+
+- **Errata de §2.1, clave de lesión (2026-09-28).** Donde §2.1 dice "1.641 lesiones" y "ninguna lesión repartida entre dos pacientes", se asumió que `lesion_id` era global. No lo es: es un contador por paciente. Por ejemplo, la lesión 17 es una ACK de PAT_9 y una SEK de PAT_998. El manifiesto abortó en el pod por eso, con "250 lesiones con mas de un paciente". Se verificó sobre el `metadata.csv` oficial (sha256 `14d14523…`, igual al fijado): 2.298 imágenes, 1.373 pacientes, 1.641 valores distintos de `lesion_id` (que es lo que cuenta el artículo) y 1.891 lesiones reales si la clave es `(patient_id, lesion_id)`. Dentro de cada par, el diagnóstico es siempre el mismo (0 inconsistencias). Ahora el manifiesto usa esa clave compuesta: sigue exigiendo los 1.641 ids del artículo, aborta si un mismo par tiene dos diagnósticos y registra los dos conteos. El remuestreo sigue siendo por paciente, como está registrado, así que el análisis no cambia.
+- **Nota sobre los grupos de fototipo (Paula, 2026-09-28).** El metadata tiene, por imagen: I 153, II 876, III 392, IV 62, V 10, VI 1 y 804 vacíos. Se reportan I, II y III-VI agrupado. El grupo III-VI es casi todo tipo III, así que no representa piel oscura. IV, V y VI van solo como conteo descriptivo, sin veredicto. La frase para la tesis es literal: "PAD-UFES-20 no permite concluir sobre FST V-VI". La nota con el porcentaje no se transcribe a mano: `dermssl.pad_ufes.fst_note` la calcula desde el metadata, y la escriben el manifiesto, el JSON de la evaluación y el de la validación FST, junto con la tabla `<salida>.fst_table.md`. Con los conteos de arriba sale "84 % tipo III (392/465)".
