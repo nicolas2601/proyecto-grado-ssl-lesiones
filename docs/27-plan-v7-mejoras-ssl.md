@@ -193,6 +193,8 @@ Errata (2026-09-29): el rótulo 'FST' en este bloque se refiere a la estimación
 - **Código y salida.** `scripts/t2_luminance_dice.py` se agrega en un commit posterior a este. Se niega a correr si este bloque cambió desde su commit de registro (el mismo guard de docs/30). Escribe un JSON y una tabla markdown generada desde ese JSON en `plan-segmentacion/camino-b-cnn/resultados/<fecha>-t2-luminance-dice/`.
 <!-- registro-t2-luminancia:fin -->
 
+**Resultado T2 (2026-09-28, exploratorio).** La tabla generada está en [`2026-09-28-t2-luminance-dice/README.md`](../plan-segmentacion/camino-b-cnn/resultados/2026-09-28-t2-luminance-dice/README.md), junto con el JSON y el extracto de terciles de los ids evaluados. Los números no se copian aquí. En HAM10000 la predicción de Pau queda **cumplida** para los dos segmentadores. En ISIC 2018 queda **distinguible pero no clara** para los dos: el Dice del tercil oscuro es menor que el del resto, con IC sin cero, pero el IC no queda entero bajo −0,02. En ISIC 2018 solo entran los 722 ids transductivos. A2 repite el patrón de student_r3 y no lo corrige. Rige la salvedad del registro: la luminancia está confundida con el diagnóstico, el tamaño, el dermatoscopio y la iluminación, así que esto no es un sesgo por tono de piel.
+
 **FST con la caché sin pelo (Paso 1 de docs/26 §6.4; en CPU, registrado el 2026-09-28).** Es la otra razón por la que Pau quería quitar el pelo: que el pelo no sesgue la estimación de tono.
 - `fst_pseudo_manifest.py` pasa a reportar por separado los registros con `artifact_detected = True` o `confidence < 1` (con TDD).
 - Se regenera el manifest FST con la caché de S2(a) y con la original, y se comparan `tone_distribution` y `FST_distribution`.
