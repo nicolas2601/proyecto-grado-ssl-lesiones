@@ -33,7 +33,10 @@ from dermssl import metrics as _metrics
 #: Metrics where a SMALLER value is better. The verdict must read this rather
 #: than infer a side from the sign of the delta: inferring is exactly the
 #: inverted-label bug that hit HD95, and it would flip every ECE row.
-LOWER_IS_BETTER = frozenset({"ece", "mel_to_nv_rate"})  # melanomas sent to nevus: fewer is better
+LOWER_IS_BETTER = frozenset({
+    "ece", "mel_to_nv_rate",  # melanomas sent to nevus: fewer is better
+    "luminance_gap_dark_light", "luminance_gap_range",  # docs/31: a smaller tercile gap is better
+})
 
 #: Metrics whose direction is known. An unlisted one is refused rather than
 #: assumed higher-is-better, because the next lower-is-better metric to arrive

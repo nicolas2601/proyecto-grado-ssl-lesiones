@@ -159,7 +159,8 @@ class TestTheDirectionOfECE:
             pb.direction_for(metric="hd95_inventada", point_delta=0.1, excludes_zero=True)
 
     def test_the_registry_says_which_metrics_are_lower_is_better(self):
-        assert pb.LOWER_IS_BETTER == frozenset({"ece", "mel_to_nv_rate"})
+        assert pb.LOWER_IS_BETTER == frozenset({"ece", "mel_to_nv_rate",
+                                              "luminance_gap_dark_light", "luminance_gap_range"})
 
     def test_a_higher_mel_to_nv_rate_favours_the_control(self):
         """More melanomas sent to nevus is worse: a positive delta is the control's."""
