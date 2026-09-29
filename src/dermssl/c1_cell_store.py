@@ -81,10 +81,17 @@ class CellStore:
         features: np.ndarray,
         *,
         proba: np.ndarray,
+        train_features: np.ndarray,
         provenance: Mapping[str, str],
         extra: Mapping[str, object] | None = None,
     ) -> dict:
-        """Write one finished cell. The manifest lands LAST."""
+        """Write one finished cell. The manifest lands LAST.
+
+        ``train_features`` is what the probe was fitted on. It is not stored
+        (it is the large half), only hashed with the val convention, so a
+        published cell can later be re-audited against it without trusting a
+        fresh GPU extraction to be the same array.
+        """
         missing = [k for k in REQUIRED_PROVENANCE if not provenance.get(k)]
         if missing:
             raise ValueError(
@@ -107,6 +114,7 @@ class CellStore:
             "n_rows": int(len(features)),
             "dim": int(features.shape[1]) if features.ndim == 2 else None,
             "features_sha256": _digest(features),
+            "train_features_sha256": _digest(np.asarray(train_features, dtype=np.float32)),
             # Review P1-3: the proba is what enters the table, so it is the
             # artifact that must be verified -- not only the features.
             "proba_sha256": _digest(proba),

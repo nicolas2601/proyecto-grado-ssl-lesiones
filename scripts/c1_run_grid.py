@@ -204,6 +204,47 @@ def evaluate_cell(train_features, train_labels, val_features, val_labels, probe,
     return np.asarray(proba), summary
 
 
+def fit_and_save_cell(store, backbone, condition, *, train_features, train_labels, val_features,
+                      val_labels, train_tally, val_tally, probe, n_classes, provenance) -> dict:
+    """Fit the probe, gate the cell and save it; the train array hashed is the one fitted on."""
+    # Review (both reviewers): the TRAIN side is gated too. The probe is fitted on
+    # train, so a degraded train set contaminates every val number.
+    val_passes, val_reasons = cg.evaluate_cell_gates(val_tally)
+    train_passes, train_reasons = cg.evaluate_cell_gates(train_tally)
+    reasons = [f"val: {r}" for r in val_reasons] + [f"train: {r}" for r in train_reasons]
+    cell_summary = cg.summarise_cell(val_tally)
+
+    proba, cell_metrics = evaluate_cell(
+        train_features, train_labels, val_features, val_labels, probe, n_classes
+    )
+    # Review (opencode): a NaN in features, proba or a metric compares
+    # False against every threshold and serialises into the JSON as if it
+    # were a number. Non-finite anything fails the cell.
+    finite_reasons = non_finite_reasons(train_features, val_features, proba, cell_metrics)
+    reasons += finite_reasons
+    passes = val_passes and train_passes and not finite_reasons
+    cell_summary = {**cell_summary, "gate_passes": passes, "gate_reasons": reasons}
+    for reason in reasons:
+        print(f"  GATE: {reason}")
+    print(f"  macro_f1 {cell_metrics['macro_f1']:.4f} | "
+          f"bal_acc {cell_metrics['balanced_accuracy']:.4f} | "
+          f"auc {cell_metrics['auc']:.4f} | ece {cell_metrics['ece']:.4f}")
+
+    store.save(
+        backbone, condition, val_features,
+        proba=proba,
+        train_features=train_features,
+        provenance=provenance,
+        extra={
+            "gate": cell_summary,
+            "train_gate": cg.summarise_cell(train_tally),
+            "metrics": {k: float(v) for k, v in cell_metrics.items()},
+            "n_classes": n_classes,
+        },
+    )
+    return {"proba": proba, "metrics": cell_metrics, "gate": cell_summary, "passes": passes}
+
+
 def main() -> int:
     args = parse_args()
 
@@ -321,49 +362,18 @@ def main() -> int:
             mask_source, condition, device, val_tally,
         )
 
-        # Review (both reviewers): the TRAIN side is gated too. The probe is
-        # fitted on train, so a degraded train set contaminates every val
-        # number even when val itself looks clean.
-        val_passes, val_reasons = cg.evaluate_cell_gates(val_tally)
-        train_passes, train_reasons = cg.evaluate_cell_gates(train_tally)
-        reasons = [f"val: {r}" for r in val_reasons] + [f"train: {r}" for r in train_reasons]
-        cell_summary = cg.summarise_cell(val_tally)
-
-        proba, cell_metrics = evaluate_cell(
-            train_features, train_labels, val_features, val_labels, args.probe, n_classes
-        )
-        # Review (opencode): a NaN in features, proba or a metric compares
-        # False against every threshold and serialises into the JSON as if it
-        # were a number. Non-finite anything fails the cell.
-        finite_reasons = non_finite_reasons(train_features, val_features, proba, cell_metrics)
-        reasons += finite_reasons
-        passes = val_passes and train_passes and not finite_reasons
-        cell_summary = {**cell_summary, "gate_passes": passes, "gate_reasons": reasons}
-        for reason in reasons:
-            print(f"  GATE: {reason}")
-        print(f"  macro_f1 {cell_metrics['macro_f1']:.4f} | "
-              f"bal_acc {cell_metrics['balanced_accuracy']:.4f} | "
-              f"auc {cell_metrics['auc']:.4f} | ece {cell_metrics['ece']:.4f}")
-
-        store.save(
-            backbone, condition, val_features,
-            proba=proba,
+        done = fit_and_save_cell(
+            store, backbone, condition, train_features=train_features, train_labels=train_labels,
+            val_features=val_features, val_labels=val_labels, train_tally=train_tally,
+            val_tally=val_tally, probe=args.probe, n_classes=n_classes,
             provenance=provenance_for(backbone),
-            extra={
-                "gate": cell_summary,
-                "train_gate": cg.summarise_cell(train_tally),
-                "metrics": {k: float(v) for k, v in cell_metrics.items()},
-                "n_classes": n_classes,
-            },
         )
         if tracker_probe is not None:
             log_cell_to_wandb(
                 tracker_probe, args, backbone, condition, provenance_for(backbone),
-                cell_metrics, cell_summary, passes,
+                done["metrics"], done["gate"], done["passes"],
             )
-        results[(backbone, condition)] = {
-            "proba": proba, "gate": cell_summary, "metrics": cell_metrics, "passes": passes,
-        }
+        results[(backbone, condition)] = done
 
     print("\n=== celdas ===")
     for (backbone, condition), payload in sorted(results.items()):

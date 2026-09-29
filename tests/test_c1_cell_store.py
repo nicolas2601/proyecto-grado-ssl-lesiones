@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 from dermssl import c1_cell_store as cs
+from dermssl.feature_cache import _digest
 
 PROVENANCE = {
     "code_revision": "abc123",
@@ -38,12 +39,16 @@ def _features(n_rows: int = 6, n_dims: int = 4) -> np.ndarray:
     return np.arange(n_rows * n_dims, dtype=np.float32).reshape(n_rows, n_dims)
 
 
+def _train(n_rows: int = 9, n_dims: int = 4) -> np.ndarray:
+    return np.linspace(0, 1, n_rows * n_dims, dtype=np.float32).reshape(n_rows, n_dims)
+
+
 class TestSavingACell:
     def test_a_saved_cell_can_be_read_back(self, tmp_path):
         store = cs.CellStore(tmp_path)
         features = _features()
 
-        store.save("dinov2_public_vitb14", "mask_pool", features, proba=_proba(), provenance=PROVENANCE)
+        store.save("dinov2_public_vitb14", "mask_pool", features, proba=_proba(), train_features=_train(), provenance=PROVENANCE)
         loaded = store.load("dinov2_public_vitb14", "mask_pool", provenance=PROVENANCE)
 
         assert loaded is not None
@@ -64,7 +69,7 @@ class TestSavingACell:
 
         with pytest.MonkeyPatch.context() as patch:
             patch.setattr(Path, "replace", spy)
-            store.save("b", "none", _features(), proba=_proba(), provenance=PROVENANCE)
+            store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance=PROVENANCE)
 
         assert seen, "no se escribio por rename"
         assert seen[-1].endswith(".manifest.json"), (
@@ -76,7 +81,7 @@ class TestSavingACell:
     def test_the_manifest_records_what_it_was_built_from(self, tmp_path):
         store = cs.CellStore(tmp_path)
 
-        store.save("b", "none", _features(), proba=_proba(), provenance=PROVENANCE)
+        store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance=PROVENANCE)
         loaded = store.load("b", "none", provenance=PROVENANCE)
 
         for key, value in PROVENANCE.items():
@@ -87,7 +92,7 @@ class TestSavingACell:
 class TestTheSkipIsEarned:
     def _saved(self, tmp_path, **overrides):
         store = cs.CellStore(tmp_path)
-        store.save("b", "none", _features(), proba=_proba(), provenance={**PROVENANCE, **overrides})
+        store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance={**PROVENANCE, **overrides})
         return store
 
     def test_a_cell_from_another_code_revision_is_not_reused(self, tmp_path):
@@ -125,7 +130,7 @@ class TestTheSkipIsEarned:
         """Each condition is a different experiment; the key must separate
         them or (c) would be served the features of (0)."""
         store = cs.CellStore(tmp_path)
-        store.save("b", "none", _features(), proba=_proba(), provenance=PROVENANCE)
+        store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance=PROVENANCE)
 
         assert store.load("b", "mask_pool", provenance=PROVENANCE) is None
 
@@ -133,7 +138,7 @@ class TestTheSkipIsEarned:
 class TestPlanningTheGrid:
     def test_it_reports_which_cells_are_done_and_which_remain(self, tmp_path):
         store = cs.CellStore(tmp_path)
-        store.save("b1", "none", _features(), proba=_proba(), provenance=PROVENANCE)
+        store.save("b1", "none", _features(), proba=_proba(), train_features=_train(), provenance=PROVENANCE)
 
         plan = store.plan(
             backbones=["b1", "b2"],
@@ -175,7 +180,7 @@ class TestPlanningTheGrid:
         store = cs.CellStore(tmp_path)
 
         with pytest.raises(ValueError, match="procedencia"):
-            store.save("b", "none", _features(), proba=_proba(), provenance={"code_revision": "abc"})
+            store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance={"code_revision": "abc"})
 
 
 class TestTheManifestMustAgreeWithItsOwnFilename:
@@ -196,7 +201,7 @@ class TestTheManifestMustAgreeWithItsOwnFilename:
         import json
 
         store = cs.CellStore(tmp_path)
-        store.save("b", "none", _features(), proba=_proba(), provenance=PROVENANCE)
+        store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance=PROVENANCE)
         path = store.manifest_path("b", "none")
         manifest = json.loads(path.read_text())
         manifest.update(manifest_overrides)
@@ -220,21 +225,21 @@ class TestTheProbaIsVerifiedToo:
 
     def test_a_proba_from_another_run_is_refused(self, tmp_path):
         store = cs.CellStore(tmp_path)
-        store.save("b", "none", _features(), proba=_proba(), provenance=PROVENANCE)
+        store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance=PROVENANCE)
         np.save(store.proba_path("b", "none"), _proba() * 0 + 0.5)
 
         assert store.load("b", "none", provenance=PROVENANCE) is None
 
     def test_a_missing_proba_is_a_miss_not_a_half_cell(self, tmp_path):
         store = cs.CellStore(tmp_path)
-        store.save("b", "none", _features(), proba=_proba(), provenance=PROVENANCE)
+        store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance=PROVENANCE)
         store.proba_path("b", "none").unlink()
 
         assert store.load("b", "none", provenance=PROVENANCE) is None
 
     def test_another_probe_is_not_reused(self, tmp_path):
         store = cs.CellStore(tmp_path)
-        store.save("b", "none", _features(), proba=_proba(), provenance={**PROVENANCE, "probe": "knn"})
+        store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance={**PROVENANCE, "probe": "knn"})
 
         assert store.load("b", "none", provenance=PROVENANCE) is None
 
@@ -251,8 +256,40 @@ class TestTheProbaIsVerifiedToo:
 
         with pytest.MonkeyPatch.context() as patch:
             patch.setattr(Path, "replace", spy)
-            store.save("b", "none", _features(), proba=_proba(), provenance=PROVENANCE)
+            store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance=PROVENANCE)
 
         assert seen.index(store.proba_path("b", "none").name) < seen.index(
             store.manifest_path("b", "none").name
         )
+
+
+class TestTrainFeaturesAreHashed:
+    """Only val features are stored; the train ones the probe was fitted on are
+    hashed, so a published cell can be re-audited (e.g. the BLAS-thread check)
+    against a CPU-side or scratch copy instead of trusting a GPU re-extraction."""
+
+    def test_the_manifest_records_the_sha256_of_the_train_features(self, tmp_path):
+        store = cs.CellStore(tmp_path)
+        train = _train()
+
+        manifest = store.save("b", "none", _features(), proba=_proba(), train_features=train,
+                              provenance=PROVENANCE)
+
+        assert manifest["train_features_sha256"] == _digest(train)
+        assert store.load("b", "none", provenance=PROVENANCE).manifest["train_features_sha256"] == _digest(train)
+
+    def test_the_train_hash_uses_the_val_convention(self, tmp_path):
+        """Same function and dtype cast as ``features_sha256``: float64 input hashes as its float32 copy."""
+        store = cs.CellStore(tmp_path)
+        train = _train().astype(np.float64)
+
+        manifest = store.save("b", "none", _features(), proba=_proba(), train_features=train,
+                              provenance=PROVENANCE)
+
+        assert manifest["train_features_sha256"] == _digest(train.astype(np.float32))
+
+    def test_a_cell_cannot_be_saved_without_its_train_features(self, tmp_path):
+        store = cs.CellStore(tmp_path)
+
+        with pytest.raises(TypeError, match="train_features"):
+            store.save("b", "none", _features(), proba=_proba(), provenance=PROVENANCE)

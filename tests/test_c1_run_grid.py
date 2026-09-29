@@ -223,3 +223,42 @@ def test_both_c1_jsons_get_an_environment_sidecar(tmp_path):
     grid.write_outputs(tmp_path, results, labels, "a" * 64)
     assert sidecar_env(tmp_path / "c1_bootstrap.json")["schema"] == 1
     assert sidecar_env(tmp_path / "c1_cells.json")["schema"] == 1
+
+
+def _clean_tally(n_images: int):
+    from dermssl import c1_cell_gates as cg
+
+    tally = cg.CellTally(backbone="public", condition="none")
+    for _ in range(n_images):
+        tally.record(used_cls_fallback=False, empty_after_geometry=False, used_bbox_fallback=False)
+    return tally
+
+
+def test_a_finished_cell_records_the_hash_of_the_train_features_the_probe_was_fitted_on(tmp_path, monkeypatch):
+    from dermssl import c1_cell_store as cs
+    from dermssl.feature_cache import _digest
+
+    rng = np.random.default_rng(0)
+    train, val = rng.normal(size=(12, 4)).astype(np.float32), rng.normal(size=(6, 4)).astype(np.float32)
+    fitted_on = []
+
+    def spy(train_features, train_labels, val_features, val_labels, probe, n_classes):
+        fitted_on.append(train_features)
+        return _proba(len(val_features), 3, 0), {"macro_f1": 0.5, "balanced_accuracy": 0.5, "auc": 0.5, "ece": 0.1}
+
+    monkeypatch.setattr(grid, "evaluate_cell", spy)
+    provenance = {"code_revision": "abc", "masks_sha256": "f" * 64, "c1_train_ids_sha256": "a" * 64,
+                  "c1_val_ids_sha256": "b" * 64, "probe": "logreg", "backbone_spec": "dinov2_vitb14:public",
+                  "labels_sha256": "c" * 64}
+    store = cs.CellStore(tmp_path)
+
+    done = grid.fit_and_save_cell(
+        store, "public", "none", train_features=train, train_labels=np.arange(12) % 3, val_features=val,
+        val_labels=np.arange(6) % 3, train_tally=_clean_tally(12), val_tally=_clean_tally(6), probe="logreg",
+        n_classes=3, provenance=provenance)
+
+    manifest = store.load("public", "none", provenance=provenance).manifest
+    assert fitted_on and fitted_on[0] is train
+    assert manifest["train_features_sha256"] == _digest(fitted_on[0])
+    assert manifest["features_sha256"] == _digest(val)
+    assert done["passes"] is True and done["metrics"]["macro_f1"] == 0.5
