@@ -106,7 +106,11 @@ jobs:
           CI_REQUIRE_FULL_DEPS: "1"
           WANDB_MODE: disabled
           WANDB_SILENT: "true"
+        # Without pipefail the step took tee's exit code: a test failing in this
+        # second run (xdist hands the files to the workers in another order)
+        # never failed the job.
         run: |
+          set -o pipefail
           pytest -q -rs --strict-markers -n 2 --dist loadfile --max-worker-restart 0 2>&1 | tee /tmp/pytest.log
           if grep -qi "could not import" /tmp/pytest.log; then
             echo "::error::a test module was skipped for a missing import"

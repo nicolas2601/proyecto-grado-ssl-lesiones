@@ -98,3 +98,15 @@ def test_ci_runs_on_every_branch():
     assert 'branches: ["**"]' in ci, (
         "el disparador vuelve a ser una lista de nombres; una rama fuera de "
         "la lista corre sin verificar y parece verificada")
+
+
+def test_a_pytest_piped_into_tee_still_fails_the_step(ci):
+    """GitHub's default shell is `bash -e`, without pipefail: `pytest ... | tee` takes
+    tee's exit code. Run 36531248587 went green while this step printed '1 failed'
+    on py3.11 and py3.12. Every step that pipes pytest must set pipefail first."""
+    steps = re.split(r"\n\s*- name: ", ci)
+    piped = [s for s in steps if re.search(r"pytest[^\n]*\|\s*tee", s)]
+    assert piped, "the random-order step pipes pytest into tee; finding none means this check is stale"
+    for step in piped:
+        run = step.split("run: |", 1)[-1]
+        assert "set -o pipefail" in run.split("pytest", 1)[0], step.splitlines()[0]
