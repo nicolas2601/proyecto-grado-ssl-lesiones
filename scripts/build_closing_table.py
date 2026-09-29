@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import closing_rows_classifier as clf  # noqa: E402
 import closing_rows_exploratory as exrows  # noqa: E402
+import closing_rows_limitations as limits  # noqa: E402
 import closing_rows_segmentation as segrows  # noqa: E402
 from closing_table_rules import (  # noqa: E402, F401
     BETTER, DISTINGUISHABLE, DONE, ITA_LABEL, ITA_NOTE, LUMINANCE_TERCILES, MEETS_THRESHOLD, MET, NOT_MET, PENDING, REPO, SAME,
@@ -89,7 +90,7 @@ def render(rows: list[Row], root: Path = REPO) -> str:
              "`--check` lo compara en CI. Los documentos de origen son "
              "[docs/26](../docs/26-plan-correccion-segmentacion-y-clasificador.md), "
              "[docs/27](../docs/27-plan-v7-mejoras-ssl.md) y [docs/28](../docs/28-rediseno-brazo-propuesto-v7.md).",
-             "", *rules(), "", "## Tabla de cierre", "", *table(rows), "",
+             "", *rules(), "", "## Tabla de cierre", "", *table(rows), "", *limits.section(root, _cell), "",
              "## Detalle de S-diag (los 18 resúmenes)", "",
              "Contra student_r3 en la misma referencia; «por debajo, sin solape» = el límite superior del IC "
              "de S-diag queda bajo el límite inferior del de student_r3.", "", *detail]
