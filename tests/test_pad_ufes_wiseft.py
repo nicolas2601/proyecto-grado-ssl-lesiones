@@ -58,3 +58,57 @@ class TestAlphaZeroIsShared:
         for arm, control in pw.contrast_pairs():
             model = next(m for m in pw.MODELS if control == pw.weights_of(m, 1.0))
             assert arm in pw.curve(model).values() and arm != control
+
+
+def _curve(*f1s) -> dict:
+    return dict(zip(pw.ALPHAS, f1s))
+
+
+class TestPadW2:
+    """No step from alpha to alpha - 0.2 lowers macro-F1 by more than 0.01; public is the max or within 0.01."""
+
+    def test_the_tolerance_is_one_registered_constant(self):
+        assert pw.W2_TOLERANCE == 0.01
+
+    @pytest.mark.parametrize("f1s", [
+        (0.5, 0.5, 0.5, 0.5, 0.5, 0.5),                # flat
+        (0.60, 0.58, 0.55, 0.52, 0.50, 0.45),          # public best, monotone
+        (0.60, 0.59, 0.58, 0.57, 0.56, 0.55),          # every step drops exactly 0.01 going up in alpha
+        (0.50, 0.505, 0.51, 0.505, 0.50, 0.49),        # public 0.01 below the max, small steps
+    ])
+    def test_a_curve_inside_the_tolerance_holds(self, f1s):
+        assert pw.w2_model(_curve(*f1s))["holds"] is True
+
+    def test_a_step_down_of_exactly_the_tolerance_is_allowed(self):
+        result = pw.w2_model(_curve(0.59, 0.60, 0.60, 0.60, 0.60, 0.60))
+        assert result["violations"] == [] and result["holds"] is True
+
+    def test_a_step_down_just_over_the_tolerance_is_a_violation(self):
+        result = pw.w2_model(_curve(0.60, 0.6101, 0.60, 0.60, 0.60, 0.60))
+        assert result["holds"] is False
+        assert [(v["from_alpha"], v["to_alpha"]) for v in result["violations"]] == [(0.2, 0.0)]
+        assert result["violations"][0]["drop"] == pytest.approx(0.0101)
+
+    def test_public_more_than_the_tolerance_below_the_max_fails_even_with_small_steps(self):
+        result = pw.w2_model(_curve(0.50, 0.506, 0.512, 0.512, 0.512, 0.512))
+        assert result["violations"] == []
+        assert result["public_gap_to_max"] == pytest.approx(0.012)
+        assert result["holds"] is False
+
+    def test_a_missing_alpha_or_a_non_finite_point_is_refused(self):
+        with pytest.raises(ValueError, match="alpha"):
+            pw.w2_model({a: 0.5 for a in pw.ALPHAS[:-1]})
+        with pytest.raises(ValueError, match="finito"):
+            pw.w2_model(_curve(0.5, 0.5, float("nan"), 0.5, 0.5, 0.5))
+
+    def test_the_verdict_needs_all_three_models(self):
+        good = _curve(0.60, 0.58, 0.55, 0.52, 0.50, 0.45)
+        bad = _curve(0.40, 0.45, 0.50, 0.52, 0.55, 0.58)
+        assert pw.w2_verdict({m: good for m in pw.MODELS})["PAD-W2"] == pw.MET
+        mixed = pw.w2_verdict({"A_s42": good, "A_s43": bad, "A_soup": good})
+        assert mixed["PAD-W2"] == pw.NOT_MET
+        assert [m for m, r in mixed["by_model"].items() if not r["holds"]] == ["A_s43"]
+
+    def test_the_verdict_refuses_a_missing_model(self):
+        with pytest.raises(ValueError, match="modelo"):
+            pw.w2_verdict({"A_s42": _curve(*[0.5] * 6)})
