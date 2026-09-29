@@ -23,6 +23,7 @@ ARMS = ("plain", "proposed")
 BOOTSTRAP = {"n_resamples": 1000, "rng_seed": 20260923}
 MIN_BIN_N = 100
 NO_POWER = "sin potencia"
+NOT_CALCULABLE = pb.NOT_CALCULABLE
 
 
 def role(arm: str, seed: int) -> str:
@@ -68,8 +69,8 @@ def outside_rate(proba7: np.ndarray, reading: str) -> float:
     return float((~np.isin(np.asarray(proba7).argmax(axis=1), _columns(reading))).mean())
 
 
-def arm_summary(y: np.ndarray, proba: np.ndarray, groups: np.ndarray) -> dict:
-    """Point metrics plus a patient-grouped percentile interval for each."""
+def _resample_metrics(y: np.ndarray, proba: np.ndarray, groups: np.ndarray) -> dict:
+    """Every metric on every patient-grouped resample (the draws ``paired_bootstrap`` makes)."""
     draw = pb.index_sampler(len(y), groups)
     rng = np.random.RandomState(BOOTSTRAP["rng_seed"])
     samples = {m: [] for m in fe.METRICS}
@@ -77,29 +78,53 @@ def arm_summary(y: np.ndarray, proba: np.ndarray, groups: np.ndarray) -> dict:
         picks = draw(rng)
         for metric in fe.METRICS:
             samples[metric].append(pb.METRIC_FUNCTIONS[metric](y[picks], proba[picks]))
+    return {m: np.asarray(v, dtype=float) for m, v in samples.items()}
+
+
+def _percentile_ci(values: np.ndarray) -> list[float]:
+    return [float(np.percentile(values, 2.5)), float(np.percentile(values, 97.5))]
+
+
+def arm_summary(y: np.ndarray, proba: np.ndarray, groups: np.ndarray) -> dict:
+    """Point metrics plus a patient-grouped percentile interval for each; a non-finite resample aborts."""
+    samples = _resample_metrics(y, proba, groups)
+    bad = {m: int((~np.isfinite(v)).sum()) for m, v in samples.items() if not np.isfinite(v).all()}
+    if bad:
+        raise ValueError(f"remuestras con valor no finito por metrica, de {BOOTSTRAP['n_resamples']}: {bad}")
     out = {m: pb.METRIC_FUNCTIONS[m](y, proba) for m in fe.METRICS}
-    out["ci95"] = {m: [float(np.percentile(v, 2.5)), float(np.percentile(v, 97.5))]
-                   for m, v in samples.items()}
+    out["ci95"] = {m: _percentile_ci(v) for m, v in samples.items()}
     return out
 
 
-def contrast_rows(y, probas: dict, groups, pairs) -> list[dict]:
+def stratum_arm_summary(y: np.ndarray, proba: np.ndarray, groups: np.ndarray) -> dict:
+    """docs/30 6, rule (b): the point always; an interval only if every resample is finite, else k."""
+    samples = _resample_metrics(y, proba, groups)
+    out = {m: pb.METRIC_FUNCTIONS[m](y, proba) for m in fe.METRICS}
+    out["n_nonfinite"] = {m: int((~np.isfinite(v)).sum()) for m, v in samples.items()}
+    out["ci95"] = {m: NOT_CALCULABLE if out["n_nonfinite"][m] else _percentile_ci(v) for m, v in samples.items()}
+    return out
+
+
+def contrast_rows(y, probas: dict, groups, pairs, record=pb.contrast_record) -> list[dict]:
     return [
-        pb.contrast_record(arm=arm, control=control, metric=metric, probe="logreg", fraction=1.0,
-                           seed=0, y_true=y, arm_proba=probas[arm], control_proba=probas[control],
-                           groups=groups, **BOOTSTRAP)
+        record(arm=arm, control=control, metric=metric, probe="logreg", fraction=1.0,
+               seed=0, y_true=y, arm_proba=probas[arm], control_proba=probas[control],
+               groups=groups, **BOOTSTRAP)
         for arm, control in pairs
         for metric in fe.METRICS
     ]
 
 
-def evaluate_subset(y, probas: dict, groups, pairs) -> dict:
+def evaluate_subset(y, probas: dict, groups, pairs, stratum: bool = False) -> dict:
+    """``stratum`` applies rule (b) of docs/30 6 (exploratory strata only); otherwise non-finite aborts."""
     groups = np.asarray(groups)
+    summary = stratum_arm_summary if stratum else arm_summary
+    record = pb.contrast_record_reporting_nonfinite if stratum else pb.contrast_record
     return {
         "n_images": int(len(y)),
         "n_patients": int(len(set(groups.tolist()))),
-        "arms": {name: arm_summary(y, proba, groups) for name, proba in probas.items()},
-        "paired": contrast_rows(y, probas, groups, pairs),
+        "arms": {name: summary(y, proba, groups) for name, proba in probas.items()},
+        "paired": contrast_rows(y, probas, groups, pairs, record),
     }
 
 
@@ -116,7 +141,12 @@ def evaluate_reading(reading: str, ham_labels, groups, probas7: dict, pairs) -> 
 
 
 def fst_strata(ham_labels, groups, fst_bins, probas7: dict, pairs) -> dict:
-    """docs/30 2.5: the primary reading per phototype bin. Exploratory, no verdict."""
+    """docs/30 2.5: the primary reading per phototype bin. Exploratory, no verdict.
+
+    A resample with a non-finite metric does not abort here (docs/30 6, rule (b)):
+    the point is kept, that interval is :data:`NOT_CALCULABLE` and ``n_nonfinite``
+    carries the exact k of ``BOOTSTRAP["n_resamples"]``.
+    """
     bins = np.asarray(fst_bins)
     out = {}
     for name in pu.FST_BINS:
@@ -126,7 +156,7 @@ def fst_strata(ham_labels, groups, fst_bins, probas7: dict, pairs) -> dict:
             out[name] = {"n_images": 0, "power": NO_POWER}
             continue
         probas = {r: restrict(np.asarray(p)[keep][mask], "primary") for r, p in probas7.items()}
-        entry = evaluate_subset(y, probas, np.asarray(groups)[keep][mask], pairs)
+        entry = evaluate_subset(y, probas, np.asarray(groups)[keep][mask], pairs, stratum=True)
         entry["power"] = NO_POWER if entry["n_images"] < MIN_BIN_N else "ok"
         out[name] = entry
     return out

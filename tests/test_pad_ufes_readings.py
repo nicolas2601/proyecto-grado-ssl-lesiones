@@ -137,3 +137,60 @@ class TestFstStrata:
 
     def test_the_registered_floor_is_one_hundred(self):
         assert pr.MIN_BIN_N == 100
+
+
+class TestNonFiniteResamplesInStrata:
+    """docs/30 6, rule (b): a stratum reports its point always, and an interval with any
+    non-finite resample as "no calculable" with the exact k; nothing is dropped.
+    Full-PAD readings keep aborting."""
+
+    @staticmethod
+    def _one_class_per_patient(n_per: int = 6):
+        # Two patients, one class each: a draw of the same patient twice has one class only,
+        # and the one-vs-rest AUC of a single-class resample is undefined.
+        labels = np.array(["bcc"] * n_per + ["nv"] * n_per)
+        groups = np.array(["PA"] * n_per + ["PB"] * n_per)
+        probas = {r: _proba7(len(labels), i, labels, skill=0.5) for i, r in enumerate(pr.roles())}
+        return labels, groups, probas
+
+    @staticmethod
+    def _expected_k(groups) -> int:
+        from dermssl import paired_bootstrap as pb
+
+        labels = np.array(["bcc"] * 6 + ["nv"] * 6)
+        draw = pb.index_sampler(len(groups), groups)
+        rng = np.random.RandomState(pr.BOOTSTRAP["rng_seed"])
+        return sum(len(set(labels[draw(rng)])) == 1 for _ in range(pr.BOOTSTRAP["n_resamples"]))
+
+    def test_the_stratum_keeps_the_point_and_reports_k_without_an_interval(self):
+        labels, groups, probas = self._one_class_per_patient()
+        k = self._expected_k(groups)
+        assert 0 < k < pr.BOOTSTRAP["n_resamples"]
+        stratum = pr.fst_strata(labels, groups, np.array(["I"] * len(labels)), probas, pr.contrast_pairs())["I"]
+        auc_rows = [r for r in stratum["paired"] if r["metric"] == "auc"]
+        assert auc_rows and all(r["n_nonfinite"] == k for r in auc_rows)
+        assert all(np.isfinite(r["point_delta"]) for r in auc_rows)
+        assert all(r["ci95_low"] is None and r["ci95_high"] is None and r["excludes_zero"] is None
+                   and r["direction"] == pr.NOT_CALCULABLE for r in auc_rows)
+        for arm in stratum["arms"].values():
+            assert np.isfinite(arm["auc"])
+            assert arm["ci95"]["auc"] == pr.NOT_CALCULABLE and arm["n_nonfinite"]["auc"] == k
+            assert arm["n_nonfinite"]["macro_f1"] == 0 and len(arm["ci95"]["macro_f1"]) == 2
+
+    def test_a_finite_stratum_row_is_the_published_record_plus_k_zero(self):
+        from dermssl import paired_bootstrap as pb
+
+        labels, groups, probas = self._one_class_per_patient()
+        stratum = pr.fst_strata(labels, groups, np.array(["I"] * len(labels)), probas, pr.contrast_pairs())["I"]
+        row = next(r for r in stratum["paired"] if r["metric"] == "macro_f1")
+        mask, y = pr.targets(labels, "primary")
+        restricted = {name: pr.restrict(p[mask], "primary") for name, p in probas.items()}
+        published = pb.contrast_record(arm=row["arm"], control=row["control"], metric="macro_f1", probe="logreg",
+                                       fraction=1.0, seed=0, y_true=y, arm_proba=restricted[row["arm"]],
+                                       control_proba=restricted[row["control"]], groups=groups, **pr.BOOTSTRAP)
+        assert row == {**published, "n_nonfinite": 0}
+
+    def test_a_full_pad_reading_still_aborts_on_a_non_finite_resample(self):
+        labels, groups, probas = self._one_class_per_patient()
+        with pytest.raises(ValueError, match="no finit"):
+            pr.evaluate_reading("primary", labels, groups, probas, pr.contrast_pairs())

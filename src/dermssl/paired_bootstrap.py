@@ -50,6 +50,10 @@ KNOWN_METRICS = frozenset({
 }) | LOWER_IS_BETTER
 
 
+#: A paired interval with a non-finite resample, where a caller registered reporting it.
+NOT_CALCULABLE = "no calculable"
+
+
 def metric_macro_f1(y_true: np.ndarray, proba: np.ndarray) -> float:
     n_classes = proba.shape[1]
     return float(_metrics.macro_f1(y_true, proba.argmax(axis=1), n_classes))
@@ -122,25 +126,9 @@ def index_sampler(n: int, groups: Sequence | None = None) -> Callable[[np.random
     return lambda rng: np.concatenate([members[g] for g in rng.randint(0, k, k)])
 
 
-def paired_contrast(
-    *,
-    y_true: np.ndarray,
-    arm_proba: np.ndarray,
-    control_proba: np.ndarray,
-    metric_fn: Callable[[np.ndarray, np.ndarray], float],
-    n_resamples: int = 1000,
-    seed: int = 0,
-    alpha: float = 0.05,
-    groups: Sequence | None = None,
-    control_metric_fn: Callable[[np.ndarray, np.ndarray], float] | None = None,
-) -> dict:
-    """Point estimates plus a percentile interval on the paired delta.
-
-    ``groups`` switches the resampling unit from the row to the group; the
-    pairing does not change: both arms still see the same draw.
-    ``control_metric_fn`` scores the control when it needs its own function
-    (an operating point at the control's own threshold); default: ``metric_fn``.
-    """
+def _paired_deltas(*, y_true, arm_proba, control_proba, metric_fn, n_resamples, seed, groups,
+                   control_metric_fn) -> tuple[float, float, np.ndarray]:
+    """``(point_arm, point_control, deltas)``: the points on the full set and every resample's delta."""
     control_fn = metric_fn if control_metric_fn is None else control_metric_fn
     y_true = np.asarray(y_true)
     arm_proba = np.asarray(arm_proba)
@@ -160,7 +148,6 @@ def paired_contrast(
 
     point_arm = float(metric_fn(y_true, arm_proba))
     point_control = float(control_fn(y_true, control_proba))
-    point_delta = point_arm - point_control
 
     rng = np.random.RandomState(seed)
     draw = index_sampler(len(y_true), groups)
@@ -171,6 +158,45 @@ def paired_contrast(
         deltas[index] = metric_fn(y_true[picks], arm_proba[picks]) - control_fn(
             y_true[picks], control_proba[picks]
         )
+    return point_arm, point_control, deltas
+
+
+def _interval(point_arm: float, point_control: float, deltas: np.ndarray, alpha: float) -> dict:
+    low = float(np.percentile(deltas, 100 * alpha / 2))
+    high = float(np.percentile(deltas, 100 * (1 - alpha / 2)))
+    return {
+        "point_arm": point_arm,
+        "point_control": point_control,
+        "point_delta": point_arm - point_control,
+        "ci95_low": low,
+        "ci95_high": high,
+        # Strictly on one side: an interval touching zero is not a win.
+        "excludes_zero": bool(low > 0 or high < 0),
+    }
+
+
+def paired_contrast(
+    *,
+    y_true: np.ndarray,
+    arm_proba: np.ndarray,
+    control_proba: np.ndarray,
+    metric_fn: Callable[[np.ndarray, np.ndarray], float],
+    n_resamples: int = 1000,
+    seed: int = 0,
+    alpha: float = 0.05,
+    groups: Sequence | None = None,
+    control_metric_fn: Callable[[np.ndarray, np.ndarray], float] | None = None,
+) -> dict:
+    """Point estimates plus a percentile interval on the paired delta.
+
+    ``groups`` switches the resampling unit from the row to the group; the
+    pairing does not change: both arms still see the same draw.
+    ``control_metric_fn`` scores the control when it needs its own function
+    (an operating point at the control's own threshold); default: ``metric_fn``.
+    """
+    point_arm, point_control, deltas = _paired_deltas(
+        y_true=y_true, arm_proba=arm_proba, control_proba=control_proba, metric_fn=metric_fn,
+        n_resamples=n_resamples, seed=seed, groups=groups, control_metric_fn=control_metric_fn)
 
     if not np.isfinite(deltas).all():
         raise ValueError(
@@ -179,19 +205,36 @@ def paired_contrast(
             "contra NaN es False, asi que el contraste diria 'indistinguible' para una "
             "metrica que en realidad no se pudo calcular"
         )
+    return _interval(point_arm, point_control, deltas, alpha)
 
-    low = float(np.percentile(deltas, 100 * alpha / 2))
-    high = float(np.percentile(deltas, 100 * (1 - alpha / 2)))
 
-    return {
-        "point_arm": point_arm,
-        "point_control": point_control,
-        "point_delta": point_delta,
-        "ci95_low": low,
-        "ci95_high": high,
-        # Strictly on one side: an interval touching zero is not a win.
-        "excludes_zero": bool(low > 0 or high < 0),
-    }
+def paired_contrast_reporting_nonfinite(
+    *,
+    y_true: np.ndarray,
+    arm_proba: np.ndarray,
+    control_proba: np.ndarray,
+    metric_fn: Callable[[np.ndarray, np.ndarray], float],
+    n_resamples: int = 1000,
+    seed: int = 0,
+    alpha: float = 0.05,
+    groups: Sequence | None = None,
+    control_metric_fn: Callable[[np.ndarray, np.ndarray], float] | None = None,
+) -> dict:
+    """:func:`paired_contrast` that reports non-finite resamples instead of refusing.
+
+    For callers that registered it (docs/30 6, rule (b), exploratory strata only):
+    the same draws; ``n_nonfinite`` is the exact count; with any of them the
+    interval is not computed (``None``), and no resample is dropped to rescue it.
+    Everything else keeps :func:`paired_contrast`, which refuses.
+    """
+    point_arm, point_control, deltas = _paired_deltas(
+        y_true=y_true, arm_proba=arm_proba, control_proba=control_proba, metric_fn=metric_fn,
+        n_resamples=n_resamples, seed=seed, groups=groups, control_metric_fn=control_metric_fn)
+    n_nonfinite = int((~np.isfinite(deltas)).sum())
+    if n_nonfinite == 0:
+        return {**_interval(point_arm, point_control, deltas, alpha), "n_nonfinite": 0}
+    return {"point_arm": point_arm, "point_control": point_control, "point_delta": point_arm - point_control,
+            "ci95_low": None, "ci95_high": None, "excludes_zero": None, "n_nonfinite": n_nonfinite}
 
 
 def contrast_record(
@@ -216,6 +259,24 @@ def contrast_record(
     The field set is fixed by the consumers already parsing that file, so it
     is asserted by a test rather than left to drift.
     """
+    return _record(paired_contrast, arm=arm, control=control, metric=metric, probe=probe, fraction=fraction,
+                   seed=seed, y_true=y_true, arm_proba=arm_proba, control_proba=control_proba,
+                   n_resamples=n_resamples, rng_seed=rng_seed, metric_fn=metric_fn, groups=groups,
+                   control_metric_fn=control_metric_fn)
+
+
+def contrast_record_reporting_nonfinite(**kwargs) -> dict:
+    """:func:`contrast_record` on :func:`paired_contrast_reporting_nonfinite` (docs/30 6, rule (b)).
+
+    With no non-finite resample it is the published row plus ``n_nonfinite: 0``;
+    with any, the interval fields are ``None`` and the direction is
+    :data:`NOT_CALCULABLE`, never "indistinguishable".
+    """
+    return _record(paired_contrast_reporting_nonfinite, **kwargs)
+
+
+def _record(contrast_fn, *, arm, control, metric, probe, fraction, seed, y_true, arm_proba, control_proba,
+            n_resamples=1000, rng_seed=20260923, metric_fn=None, groups=None, control_metric_fn=None) -> dict:
     if metric_fn is None:
         if metric not in METRIC_FUNCTIONS:
             raise ValueError(
@@ -224,7 +285,7 @@ def contrast_record(
             )
         metric_fn = METRIC_FUNCTIONS[metric]
 
-    stats = paired_contrast(
+    stats = contrast_fn(
         y_true=y_true,
         arm_proba=arm_proba,
         control_proba=control_proba,
@@ -234,7 +295,11 @@ def contrast_record(
         groups=groups,
         control_metric_fn=control_metric_fn,
     )
-
+    if stats["excludes_zero"] is None:
+        direction = NOT_CALCULABLE
+    else:
+        direction = direction_for(metric=metric, point_delta=stats["point_delta"],
+                                  excludes_zero=stats["excludes_zero"])
     return {
         "arm": arm,
         "control": control,
@@ -243,11 +308,7 @@ def contrast_record(
         "fraction": float(fraction),
         "seed": int(seed),
         **stats,
-        "direction": direction_for(
-            metric=metric,
-            point_delta=stats["point_delta"],
-            excludes_zero=stats["excludes_zero"],
-        ),
+        "direction": direction,
     }
 
 
