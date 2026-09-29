@@ -117,3 +117,50 @@ def test_main_reads_the_sibling_extra_json(tmp_path):
 @pytest.mark.skipif(not (V71_DIR / "extra_contrasts.json").exists(), reason="extra contrasts not written")
 def test_committed_readme_carries_the_extra_tables():
     assert "Melanomas clasificados como nevus" in (V71_DIR / "README.md").read_text(encoding="utf-8")
+
+
+def _facts() -> dict:
+    return {"sensitivity": 0.02, "threads": (4, 8), "probe_jobs": (10, 6), "reference_vs_published": 0.0,
+            "changed_cells": (48, 48), "cells_per_unit": 60, "n_units": 3, "max_argmax_flips": 18,
+            "effect": (0.08, 0.04, 0.12), "n_fits": 30, "n_hit_max_iter": 0, "max_iter": 2000,
+            "n_iter": (165, 862), "p1": 0.01}
+
+
+def test_the_blas_limitation_section_renders_the_shared_note():
+    from dermssl import probe_blas_limitation as pbl
+
+    text = bt.render(_doc(), _extra(), limitation=_facts())
+    assert f"## {pbl.TITLE}" in text
+    assert "\n".join(pbl.body(_facts())) in text
+    assert text.index("v7 s43") < text.index(pbl.TITLE)  # appended after everything else
+    assert bt.render(_doc(), _extra()) == text[:text.index(f"\n\n## {pbl.TITLE}")] + "\n"
+
+
+def test_main_reads_the_t4_diagnostics_next_to_the_v71_directory(tmp_path):
+    import json
+    import shutil
+
+    from dermssl import probe_blas_limitation as pbl
+
+    v71, t4 = tmp_path / "v71", tmp_path / "t4"
+    v71.mkdir()
+    doc = _doc()
+    doc["paired"].append({"arm": "A71", "control": "public_A71", "metric": "macro_f1", "point_delta": 0.09,
+                          "ci95_low": 0.05, "ci95_high": 0.13})
+    (v71 / "v71_final_eval.json").write_text(json.dumps(doc), encoding="utf-8")
+    real_t4 = REPO / "resultados" / "clasificacion" / "t4"
+    for rel in (pbl.REPRO_DIR, pbl.CONVERGENCE_DIR):
+        shutil.copytree(real_t4 / rel, t4 / rel)
+    out = v71 / "README.md"
+    assert bt.main([str(v71 / "v71_final_eval.json"), "--out", str(out)]) == 0
+    assert pbl.paragraph(pbl.load_facts(t4, doc)) in out.read_text(encoding="utf-8")
+
+
+@pytest.mark.skipif(not (V71_DIR / "v71_final_eval.json").exists(), reason="v7.1 not run on the pod yet")
+def test_committed_readme_carries_the_blas_limitation():
+    import json
+
+    from dermssl import probe_blas_limitation as pbl
+
+    facts = pbl.load_facts(V71_DIR.parent / "t4", json.loads((V71_DIR / "v71_final_eval.json").read_text("utf-8")))
+    assert pbl.paragraph(facts) in (V71_DIR / "README.md").read_text(encoding="utf-8")

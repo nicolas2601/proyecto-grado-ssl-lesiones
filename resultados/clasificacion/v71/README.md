@@ -108,3 +108,9 @@ A* v7.1 es la sopa de los pesos s42 y s43, asi que su contraste contra A* v7 s43
 | B* v7.1 − B* v7 s43 | Bal-acc | 0,6964 | 0,6119 | 0,0845 | [0,0379; 0,1281] | sí |
 | B* v7.1 − A* v7 s43 | Macro-F1 | 0,7141 | 0,6850 | 0,0291 | [-0,0104; 0,0673] | no |
 | B* v7.1 − A* v7 s43 | Bal-acc | 0,6964 | 0,6457 | 0,0507 | [0,0130; 0,0901] | sí |
+
+## Limitación: sensibilidad del probe a los hilos BLAS
+
+Limitación (no errata): el probe lineal tiene una sensibilidad de implementación de hasta 0,014 de macro-F1 según el número de hilos BLAS por proceso (4 vs 8 hilos; probe_jobs 10 vs 6; cambian 48 de 60 celdas en cada una de las 3 unidades, con hasta 18 imágenes que cambian de clase predicha por celda); con la configuración registrada (4 hilos) reproduce la grilla publicada bit a bit (máx. |Δ| 0). El efecto SSL (A* v7.1 − público con el mismo protocolo, macro-F1 +0,091 [+0,050; +0,132]) es ~6,5× esa sensibilidad. No es falta de convergencia: los 30 ajustes publicados convergen por tolerancia (0/30 alcanzan max_iter=2000; n_iter 165–862); la sensibilidad es de redondeo en punto flotante dentro de la tolerancia del optimizador. En T4 el umbral de P1 (≤ 0,01) está por debajo de esa sensibilidad, así que P1 solo se lee pareado dentro de la misma corrida con hilos fijos. Evidencia: commits 0a691eb (reproducción) y 278efd2 (convergencia).
+
+Generado desde `resultados/clasificacion/t4/diagnostico_reproduccion/identity_j10_vs_j10.json`, `identity_j10_vs_j6.json`, `t4/diagnostico_convergencia/probe_convergence.json`, el contraste pareado `A71 − public_A71` de `v71_final_eval.json` y `t4_sog.P1_MAX_ABS_DELTA`; no editar a mano.
