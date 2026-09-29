@@ -179,3 +179,21 @@ def test_an_unregistered_bootstrap_is_refused_before_anything_runs(tmp_path, ext
     with pytest.raises(SystemExit, match="bootstrap"):
         tc.main(["--t7", missing, "--s43", missing, "--aug", missing, "--manifest", missing,
                  "--ham-root", missing, "--out", str(tmp_path / "out"), *extra])
+
+
+def _csv(tmp_path: Path, rows: list[tuple[str, str, str]]) -> Path:
+    path = tmp_path / "per_image.csv"
+    with open(path, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["image_id", "dice", "hd95"])
+        writer.writerows(rows)
+    return path
+
+
+def test_per_image_rows_must_be_unique_with_a_finite_dice(tmp_path):
+    dice, hd95 = tc._read_per_image(_csv(tmp_path, [("a", "0.8", "nan"), ("b", "0.7", "12")]))
+    assert dice == {"a": 0.8, "b": 0.7} and np.isnan(hd95["a"])  # an empty mask has no HD95; Dice must exist
+    with pytest.raises(ValueError, match="duplicad"):
+        tc._read_per_image(_csv(tmp_path, [("a", "0.8", "1"), ("a", "0.7", "1")]))
+    with pytest.raises(ValueError, match="Dice no finito"):
+        tc._read_per_image(_csv(tmp_path, [("a", "nan", "1")]))

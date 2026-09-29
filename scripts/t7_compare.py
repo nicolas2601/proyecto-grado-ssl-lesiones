@@ -116,9 +116,15 @@ def check_arm(arm: str, record: dict, a2: dict) -> None:
 
 
 def _read_per_image(path: Path) -> tuple[dict, dict]:
+    """One row per image with a finite Dice; HD95 may be non-finite (empty mask) and is dropped later."""
     with open(path, newline="") as handle:
         rows = list(csv.DictReader(handle))
-    return {r["image_id"]: float(r["dice"]) for r in rows}, {r["image_id"]: float(r["hd95"]) for r in rows}
+    ids = [r["image_id"] for r in rows]
+    _require(len(ids) == len(set(ids)), f"{path}: image_id duplicados")
+    dice = {r["image_id"]: float(r["dice"]) for r in rows}
+    bad = [i for i, v in dice.items() if not math.isfinite(v)]
+    _require(not bad, f"{path}: Dice no finito en {bad[:3]}")
+    return dice, {r["image_id"]: float(r["hd95"]) for r in rows}
 
 
 def read_a2(dataset: str) -> tuple[dict, dict]:
