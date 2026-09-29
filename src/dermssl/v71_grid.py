@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from dermssl import probes
+from dermssl import probe_threads, probes
 from dermssl import v71_metrics as vm
 from dermssl import v71_protocol as vp
 
@@ -64,11 +64,13 @@ def _cells(feature: str, fits: dict, prior: np.ndarray, n_views: int) -> dict:
 
 def unit_probas(fit_parts: dict, y_fit: np.ndarray, eval_parts: dict, n_classes: int, *,
                 features=vp.FEATURES, n_jobs: int = 1) -> dict:
-    """``(feature, weighting, tta) -> proba`` for every registered cell of the unit."""
-    from joblib import Parallel, delayed  # noqa: PLC0415 - ships with scikit-learn
+    """``(feature, weighting, tta) -> proba`` for every registered cell of the unit.
 
+    ``n_jobs`` only sets how many fits run at once; each fit gets
+    ``probe_threads.PROBE_BLAS_THREADS`` BLAS threads, so the cells do not depend on it.
+    """
     jobs = list(_fit_jobs(fit_parts, y_fit, eval_parts, n_classes, features))
-    results = Parallel(n_jobs=n_jobs)(delayed(fit_predict_views)(*args) for _, args in jobs)
+    results = probe_threads.map_pinned(fit_predict_views, [args for _, args in jobs], n_jobs=n_jobs)
     fits = {key: result for (key, _), result in zip(jobs, results)}
     prior = vp.class_prior(y_fit, n_classes)
     n_views = next(iter(eval_parts.values())).shape[0]
