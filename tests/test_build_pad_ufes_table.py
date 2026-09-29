@@ -165,3 +165,9 @@ def test_main_reads_the_thread_pin_from_the_sidecar_next_to_the_json(document, t
     assert bt.main([str(source), "--out", str(out)]) == 0
     assert "OMP_NUM_THREADS=4" in out.read_text(encoding="utf-8")
 
+
+def test_the_thesis_fst_sentence_is_written_once_whether_or_not_the_note_carries_it(document):
+    assert bt.render(document).count(pu.THESIS_FST_SENTENCE) == 1
+    doc = copy.deepcopy(document)
+    doc["fst_strata"]["note"] = "El grupo III-VI es 84 % tipo III (392/465)."
+    assert bt.render(doc).count(pu.THESIS_FST_SENTENCE) == 1

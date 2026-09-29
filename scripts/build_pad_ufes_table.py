@@ -155,6 +155,11 @@ def _threads(environment: dict | None) -> str:
     return "Hilos: " + ", ".join(f"{var}={env.get(var)}" for var in THREAD_VARS) + " (sidecar de entorno)."
 
 
+def _fst_caveat(note: str) -> str:
+    """The JSON's note, plus the literal thesis sentence unless the note already ends with it."""
+    return note if pu.THESIS_FST_SENTENCE in note else f"{note} {pu.THESIS_FST_SENTENCE}."
+
+
 def _header(doc: dict, environment: dict | None, n_resamples: int) -> list[str]:
     full = doc["readings"]["exploratory"]
     models = [f"- `{role}`: `{_cell(spec)}`" for role, spec in doc["specs"].items()]
@@ -166,7 +171,7 @@ def _header(doc: dict, environment: dict | None, n_resamples: int) -> list[str]:
         f"PAD completo: {full['n_images']} imágenes, {full['n_patients']} pacientes. Probe `{doc['probe']}`. "
         f"Bootstrap pareado agrupado por paciente, semilla {doc['bootstrap']['rng_seed']}, {n_resamples} remuestras. "
         f"{_threads(environment)}", "",
-        f"Fototipo: {doc['fst_strata']['note']} {pu.THESIS_FST_SENTENCE}.", "",
+        f"Fototipo: {_fst_caveat(doc['fst_strata']['note'])}", "",
         "## Modelos", "", *models,
     ]
 
