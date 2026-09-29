@@ -17,7 +17,7 @@ sys.path.insert(0, str(REPO / "src"))
 from dermssl import t4_sog  # noqa: E402
 
 WEIGHTS = (("public", "Público"), ("A", "A*"), ("B", "B*"))
-METRICS = {"macro_f1": "Macro-F1", t4_sog.GAP_METRIC: "Δ |brecha oscuro − claro| (menor es mejor)"}
+METRICS = {"macro_f1": "Macro-F1", t4_sog.GAP_METRIC: "Δ brecha absoluta oscuro − claro (menor es mejor)"}
 TERCILES = (("dark", "oscuro"), ("medium", "medio"), ("light", "claro"))
 
 

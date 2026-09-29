@@ -12,7 +12,7 @@ Val: n = 2004 (oscuro 820, medio 957, claro 183, sin tercil 44). Bootstrap parea
 
 ## Contrastes primarios: SoG contra sin SoG en el protocolo fijo
 
-| Peso | Configuración SoG | Macro-F1 | Δ |brecha oscuro − claro| (menor es mejor) |
+| Peso | Configuración SoG | Macro-F1 | Δ brecha absoluta oscuro − claro (menor es mejor) |
 |---|---|---|---|
 | Público | `public@224|cls4|la0.5|tta` | -0,0077 [-0,0406; +0,0270] indistinguible | +0,0770 [-0,1044; +0,1679] indistinguible |
 | A* | `A_soup_a1.0@224|cls_attn|la0.5|tta` | -0,0083 [-0,0314; +0,0155] indistinguible | +0,0453 [-0,1015; +0,1386] indistinguible |
@@ -20,7 +20,7 @@ Val: n = 2004 (oscuro 820, medio 957, claro 183, sin tercil 44). Bootstrap parea
 
 ## Contrastes secundarios: ganador SoG del holdout contra sin SoG
 
-| Peso | Configuración SoG | Macro-F1 | Δ |brecha oscuro − claro| (menor es mejor) |
+| Peso | Configuración SoG | Macro-F1 | Δ brecha absoluta oscuro − claro (menor es mejor) |
 |---|---|---|---|
 | Público | `public@224|cls4|balanced|tta` | -0,0055 [-0,0372; +0,0271] indistinguible | +0,1143 [-0,1007; +0,2003] indistinguible |
 | A* | `A_soup_a1.0@224|cls_mean|la0.5|tta` | -0,0003 [-0,0282; +0,0263] indistinguible | +0,0164 [-0,1053; +0,1159] indistinguible |
