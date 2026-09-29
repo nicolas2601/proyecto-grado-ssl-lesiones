@@ -31,20 +31,53 @@ def gray_world(img: np.ndarray) -> np.ndarray:
     return np.clip(img * gains, 0.0, 1.0)
 
 
-def shades_of_gray(img: np.ndarray, p: int = 6) -> np.ndarray:
+def _minkowski_norms(img: np.ndarray, p: float) -> np.ndarray:
+    """Per-channel illuminant estimate; ``p = inf`` is the channel maximum (max-RGB)."""
+    if p < 1:
+        raise ValueError(f"p = {p}: la norma de Minkowski de shades of gray exige p >= 1")
+    flat = img.reshape(-1, 3)
+    if np.isinf(p):
+        return flat.max(axis=0)
+    return (flat**p).mean(axis=0) ** (1.0 / p)
+
+
+def illuminant_gains(img: np.ndarray, p: float = 6) -> np.ndarray:
+    """``g_c = mean_k(n_k) / n_c``: the corrected channel norms all equal their old mean.
+
+    A black image has no illuminant to remove and gets unit gains.
+    """
+    norms = _minkowski_norms(img, p)
+    target = norms.mean()
+    if target < _EPS:
+        return np.ones(3)
+    return target / np.maximum(norms, _EPS)
+
+
+def shades_of_gray(img: np.ndarray, p: float = 6) -> np.ndarray:
     """Minkowski-norm illuminant estimate; p=1 is gray-world, p->inf is max-RGB.
 
-    p=6 is the standard choice in the dermoscopy color-constancy literature.
+    p=6 is the standard choice in the dermoscopy color-constancy literature
+    (Finlayson & Trezzi 2004; Barata et al. 2015; docs/31).
     """
     if p == 1:
         return gray_world(img)
-    flat = img.reshape(-1, 3)
-    norms = (flat**p).mean(axis=0) ** (1.0 / p)
-    target = norms.mean()
-    if target < _EPS:
+    if _minkowski_norms(img, p).mean() < _EPS:
         return img.copy()
-    gains = target / np.maximum(norms, _EPS)
-    return np.clip(img * gains, 0.0, 1.0)
+    return np.clip(img * illuminant_gains(img, p), 0.0, 1.0)
+
+
+def max_rgb(img: np.ndarray) -> np.ndarray:
+    """Shades of gray at p = inf: each channel scaled by its maximum."""
+    return shades_of_gray(img, p=np.inf)
+
+
+def shades_of_gray_uint8(img: np.ndarray, p: float = 6) -> np.ndarray:
+    """HWC uint8 in and out, the pretraining composition (``torch_data._finish_view``):
+    float in [0, 1], the correction, then truncation back to uint8."""
+    if img.dtype != np.uint8:
+        raise ValueError(f"se esperaba uint8 HWC, llego {img.dtype}")
+    arr = shades_of_gray(img.astype(np.float64) / 255.0, p=p)
+    return (arr * 255.0).astype(np.uint8)
 
 
 OPS = {

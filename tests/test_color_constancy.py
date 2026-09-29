@@ -83,3 +83,71 @@ def test_apply_stochastic_draws_independently_per_call():
     outs = [cc.apply_stochastic(img, rng, probs) for _ in range(30)]
     changed = [not np.allclose(o, img) for o in outs]
     assert any(changed) and not all(changed)  # both ops appeared
+
+
+# --- docs/31 (T4): Shades of Gray as a deterministic preprocess before DINOv2 ---
+
+
+def minkowski_norms(img, p):
+    flat = img.reshape(-1, 3)
+    return flat.max(axis=0) if np.isinf(p) else (flat**p).mean(axis=0) ** (1.0 / p)
+
+
+def test_a_gray_image_is_left_unchanged():
+    """Up to one ulp: the gain is mean(n)/n with three equal n, and the mean of
+    three equal floats is not always bit-equal to them. Kept that way on purpose:
+    the pretraining of A* and B* ran this exact arithmetic (docs/31 §2)."""
+    rng = np.random.default_rng(3)
+    gray = np.repeat(rng.uniform(0.1, 0.9, size=(16, 16, 1)), 3, axis=2)
+    for p in (1, 6, np.inf):
+        assert np.allclose(cc.illuminant_gains(gray, p), 1.0, rtol=0, atol=1e-15)
+        assert np.allclose(cc.shades_of_gray(gray, p=p), gray, rtol=0, atol=1e-15)
+
+
+def test_a_gray_uint8_image_moves_at_most_one_level():
+    """The one-ulp gain times truncation can drop a level, exactly as in pretraining."""
+    rng = np.random.default_rng(4)
+    gray = np.repeat(rng.integers(0, 256, size=(16, 16, 1), dtype=np.uint8), 3, axis=2)
+    diff = gray.astype(int) - cc.shades_of_gray_uint8(gray, p=6).astype(int)
+    assert diff.min() >= 0 and diff.max() <= 1
+
+
+def test_gains_equalise_the_channel_norms_and_keep_their_mean():
+    """g_c = mean_k(n_k) / n_c: every corrected norm equals the old mean (docs/31 §2)."""
+    img = tinted_image() * 0.5  # no clipping, so the identity is exact
+    for p in (2, 6):
+        norms = minkowski_norms(img, p)
+        gains = cc.illuminant_gains(img, p)
+        assert np.allclose(gains * norms, norms.mean())
+        assert np.allclose(minkowski_norms(cc.shades_of_gray(img, p=p), p), norms.mean())
+
+
+def test_p_infinity_is_max_rgb():
+    img = tinted_image()
+    expected = np.clip(img * (img.reshape(-1, 3).max(axis=0).mean() / img.reshape(-1, 3).max(axis=0)), 0, 1)
+    assert np.allclose(cc.shades_of_gray(img, p=np.inf), expected)
+    assert np.allclose(cc.max_rgb(img), expected)
+
+
+def test_large_p_approaches_max_rgb():
+    img = tinted_image()
+    assert np.allclose(cc.illuminant_gains(img, 400), cc.illuminant_gains(img, np.inf), atol=2e-2)
+
+
+def test_p_below_one_is_refused():
+    with pytest.raises(ValueError, match="p"):
+        cc.illuminant_gains(tinted_image(), 0.5)
+
+
+def test_uint8_path_is_the_pretraining_composition():
+    """float in [0, 1], the op, then truncation back to uint8: torch_data._finish_view."""
+    rng = np.random.default_rng(1)
+    img = rng.integers(0, 256, size=(20, 24, 3), dtype=np.uint8)
+    expected = (cc.shades_of_gray(img.astype(np.float64) / 255.0, p=6) * 255.0).astype(np.uint8)
+    out = cc.shades_of_gray_uint8(img, p=6)
+    assert out.dtype == np.uint8 and np.array_equal(out, expected)
+
+
+def test_uint8_path_refuses_other_dtypes():
+    with pytest.raises(ValueError, match="uint8"):
+        cc.shades_of_gray_uint8(np.zeros((4, 4, 3)), p=6)
