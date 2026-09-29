@@ -39,7 +39,8 @@ def _contrast_table(doc: dict, suffix: str) -> list[str]:
     for key, label in WEIGHTS:
         arm, control = f"{key}_{suffix}", f"{key}_id"
         cells = " | ".join(_contrast(_row(doc, arm, control, m)) for m in METRICS)
-        lines.append(f"| {label} | `{doc['entries'][arm]['config']}` | {cells} |")
+        config = doc["entries"][arm]["config"].replace("|", "\\|")  # GFM splits cells on | even in code
+        lines.append(f"| {label} | `{config}` | {cells} |")
     return lines
 
 
