@@ -128,6 +128,38 @@ Es otra lectura de val, sobre modelos ya fijados, y se declara como tal: no reem
 - **Secundario, máscaras de A2: mismo patrón.** 0/15 mejoran; el fondo gris empeora en el público (−0,085 [−0,133; −0,034]) y en A\* s43 (−0,044 [−0,089; −0,002]); el resto no cambia.
 - **A2 contra student_r3 en la misma celda** (bootstrap pareado del macro-F1 sobre las mismas predicciones de val): indistinguibles en 15/15. Como dato descriptivo, no como tendencia: 13 de los 15 Δ puntuales favorecen a A2. No estaba pre-registrado y las celdas no son independientes, porque comparten val y backbone.
 
+#### 5.2.1 EXPLORATORIO: C1-v7 estratificado por tono (registrado el 2026-09-28, antes de calcular nada)
+
+La pregunta es de Nicolás: ¿la máscara ayuda a clasificar mejor la piel más oscura? Hasta ahora C1-v7 solo se midió en global, y ahí la máscara no ayuda (§5.2). Este análisis es post-hoc y exploratorio: no reemplaza a §5.2 ni a §5.1, y ningún resultado suyo se cita como confirmatorio.
+
+**Condición previa (bloqueante).** El estimador FST no se usa hasta validarlo. Primero va la validación T1: el estimador del proyecto se compara contra el FST autorreportado de PAD-UFES-20. Hay evidencia publicada en contra: en PAD-UFES-20, el ITA con umbrales fijos acierta el 22,9 %, por debajo de la baseline de mayoría (PMC13459198).
+- Si T1 muestra que el estimador sirve, se calculan los bins FST de abajo sobre val de HAM10000.
+- Si T1 no lo muestra, los bins FST de HAM10000 no se calculan. El análisis por tono se hace solo en PAD-UFES-20, con su FST autorreportado.
+- En los dos casos los terciles de color se reportan, pero como descripción del color de la imagen, no como tono de piel validado.
+
+**Qué se calcula (si se cumple la condición).**
+- **Entradas:** las probabilidades por imagen de val (n = 2.004) que C1-v7 ya guardó por celda (`<celda>.proba.npy` más su `manifest.json`). Son 5 backbones × 4 condiciones (`none`, `bbox_crop`, `neutral_bg`, `mask_pool`) para cada uno de los dos segmentadores, student_r3 (primario) y A2 (secundario). Las etiquetas salen del mismo cache del banco que usó la grilla. No se reentrena ni se re-extrae nada. Antes de calcular se verifica que el sha de las probabilidades coincida con el manifiesto de la celda y que el orden de val coincida con `val_order_sha256`.
+- **Tono por imagen:** el manifiesto publicado `fst_pseudo_manifest.csv`, que usa el estimador corregido (`c272bdb`) y el estrato `tone_tercile` (`bbd9bab`) sobre las pseudo-máscaras `pseudo_r2`. Supuesto heredado: `pseudo_r2` no registra `region_mode` y se toma `central` (docs/27, «FST con las máscaras de A2»). Se reporta la cobertura: cuántas imágenes de val tienen bucket FST y cuántas tienen tercil. Las que no tienen bucket (`ita_indeterminate`, es decir mediana de b\* < 5, y las que están en cuarentena) quedan fuera del bin, con su n a la vista.
+- **Bins:** FST I, FST II y FST III-VI agrupado; terciles `tone_tercile` claro, medio y oscuro. Aclaración: `tone_tercile` es el tercil de la mediana de L\* de la piel sobre el pool, no un tercil de ITA. Se usa ese porque el ITA solo está definido cuando b\* ≥ 5 (README de camino-b-cnn, «Estimador corregido»). Los terciles son relativos al pool: «oscuro» significa lo más oscuro de un dataset de piel mayormente clara, no un fototipo oscuro.
+- **Métricas por bin:** macro-F1, balanced accuracy y sensibilidad de melanoma (recall de `mel` con argmax). Cada bin informa su n y su número de melanomas.
+- **IC por bin:** bootstrap percentil de 1.000 remuestras con semilla 20260923. Se remuestrea estratificando por clase dentro del bin, es decir, cada clase conserva su n en cada remuestra.
+- **Contraste:** cada condición contra `none` del mismo backbone y segmentador, dentro del mismo bin. Es un bootstrap pareado sobre imágenes: los mismos índices para los dos lados, estratificados por clase como el IC. El código del contraste y la dirección del veredicto se reusan de `dermssl.paired_bootstrap`, no se duplican.
+- **Regla de potencia:** un bin con n < 100 se reporta como «sin potencia», con su n y el valor puntual, sin IC de veredicto y sin veredicto. Si un bin no tiene melanomas, la sensibilidad de melanoma queda como «no definida».
+
+**Reglas de lectura.**
+- «Mejora» solo si el IC pareado excluye el cero a favor de la condición con máscara. «Empeora» solo si lo excluye en contra.
+- Si el IC toca el cero, el resultado es «indistinguible». En ese caso nunca se dice «gana» ni «tendencia», aunque el Δ puntual sea positivo.
+- **Multiplicidad:** son 5 backbones × 3 condiciones × 6 bins × 3 métricas × 2 segmentadores = 540 contrastes, sin corrección. Con el 5 % habría unos 27 IC que excluyen el cero por azar. Una celda aislada que excluye el cero es una hipótesis, no un hallazgo. Para leerla como señal tiene que repetirse con las dos semillas del mismo brazo (regla de §4.1) y con los dos segmentadores.
+- **Límite de lo que responde:** comparar el Δ de un bin con el de otro («la máscara ayuda más en oscuro que en claro») es una interacción. Este análisis no la contrasta, así que no se concluye.
+
+**Salida.** `resultados/clasificacion/c1_v7/tone_stratified/` con un JSON y una tabla markdown generada por script, con su test de frescura, igual que `build_closing_table`. Ninguna cifra se transcribe a mano en docs.
+
+**Caveats que viajan con el resultado.**
+- El tono sale de una estimación automática desde la imagen. No lo etiquetó un dermatólogo.
+- El bucket FST existe solo para la submuestra con b\* ≥ 5, que no es aleatoria y tiene menos melanoma (README de camino-b-cnn).
+- HAM10000 casi no tiene FST III-VI, así que ese bin probablemente quede «sin potencia».
+- El tercil está confundido con el diagnóstico: la tasa de melanoma y de queratosis benigna cambia entre terciles. Por eso un Δ por bin mezcla tono y composición de clases.
+
 **La ablación Plain vs Proposed-oracle-mask de docs/26 §7.3 queda reemplazada por este rediseño (anotado el 2026-09-28).** Esa ablación existía para aislar la causa de la caída del propuesto en la v6, y pedía steps emparejados, IDs de val excluidos del pool y revisión controlada. La v7 ya arregló esos confusores: pasos iguales (5.700), un solo `code_revision` por final, los IDs de val y del holdout excluidos del pretraining, y dos semillas. La variante con la máscara oráculo queda como fase 2 si sobra GPU.
 
 ### 5.3 Observación, no resultado registrado: las finales degradan las features densas (2026-09-28)
