@@ -35,6 +35,9 @@ REGISTERED_K = 2
 #: The committed r0 teacher check that must precede any T7 GPU job (docs/27, T7).
 TEACHER_CHECK_DIR = "plan-segmentacion/camino-b-cnn/resultados/2026-09-29-t7-r0-check"
 TEACHER_CHECK_JSON, TEACHER_CHECK_ROWS = "t7_r0_tercile_check.json", "r0_per_image.csv"
+#: The committed result (bbbcd4a, block moved to its sidecar in 01b414f): a later commit cannot swap it silently.
+TEACHER_CHECK_SHA256 = {TEACHER_CHECK_JSON: "6c5cbf433a036068a05d978c22b89c2d854d33ff909df7d33e67b221169ff623",
+                        TEACHER_CHECK_ROWS: "4dc4875f1f2288f191bdfe3ffe79676e362154dee22461fdb641f41ddc528f4e"}
 #: A2's published HAM10000 per-image Dice (its SHA256SUMS entry), the other side of the addendum rule.
 A2_HAM_PER_IMAGE = "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/evaluacion_ham10000/per_image.csv"
 A2_HAM_PER_IMAGE_SHA256 = "f464932812aa9e9f67a065f165f12cc3945e86b10228e9a045a89ff284eeef78"
@@ -121,6 +124,9 @@ def check_teacher_gate(repo: Path) -> dict:
     result = repo / TEACHER_CHECK_DIR
     if not (result / TEACHER_CHECK_JSON).is_file():
         raise TeacherGateError(f"no está el chequeo del maestro en {TEACHER_CHECK_DIR}: se corre antes de la GPU")
+    for name, pinned in TEACHER_CHECK_SHA256.items():
+        if _sha256(result / name) != pinned:
+            raise TeacherGateError(f"{name} no es el resultado comprometido del chequeo del maestro")
     doc = json.loads((result / TEACHER_CHECK_JSON).read_text(encoding="utf-8"))
     provenance = doc["provenance"]
     expected = {"registration_commit": REGISTRATION_COMMIT, "manifest_sha256": MANIFEST_SHA256,
@@ -132,7 +138,11 @@ def check_teacher_gate(repo: Path) -> dict:
     if _sha256(repo / A2_HAM_PER_IMAGE) != A2_HAM_PER_IMAGE_SHA256:
         raise TeacherGateError("el per_image.csv de A2 en HAM10000 no es el publicado")
     a2_dice = {r["image_id"]: float(r["dice"]) for r in _read_csv(repo / A2_HAM_PER_IMAGE)}
-    addendum = recomputed_addendum(_read_csv(result / TEACHER_CHECK_ROWS), a2_dice)
+    rows = _read_csv(result / TEACHER_CHECK_ROWS)
+    ids = [r["image_id"] for r in rows]
+    if len(ids) != len(set(ids)) or not set(ids) <= a2_dice.keys():
+        raise TeacherGateError("filas del chequeo del maestro duplicadas o fuera de la evaluación de A2")
+    addendum = recomputed_addendum(rows, a2_dice)
     if addendum != bool(doc["analysis"]["addendum_required"]):
         raise TeacherGateError("addendum_required del JSON no coincide con lo recalculado desde las filas")
     if addendum and ADDENDUM_MARKER not in (repo / REGISTRATION_DOC).read_text(encoding="utf-8"):

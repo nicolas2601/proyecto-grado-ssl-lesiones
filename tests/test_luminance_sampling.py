@@ -119,9 +119,13 @@ def _teacher_repo(tmp_path: Path, addendum: bool, marker: bool = False, teacher_
 
 @pytest.fixture
 def fake_a2_sha(monkeypatch):
+    """Pin the fake repo's A2 reference and teacher artifacts, as the real ones are pinned in the module."""
     def pin(repo: Path) -> Path:
-        monkeypatch.setattr(ls, "A2_HAM_PER_IMAGE_SHA256",
-                            hashlib.sha256((repo / ls.A2_HAM_PER_IMAGE).read_bytes()).hexdigest())
+        digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()  # noqa: E731
+        result = repo / ls.TEACHER_CHECK_DIR
+        monkeypatch.setattr(ls, "A2_HAM_PER_IMAGE_SHA256", digest(repo / ls.A2_HAM_PER_IMAGE))
+        monkeypatch.setattr(ls, "TEACHER_CHECK_SHA256", {ls.TEACHER_CHECK_JSON: digest(result / ls.TEACHER_CHECK_JSON),
+                                                         ls.TEACHER_CHECK_ROWS: digest(result / ls.TEACHER_CHECK_ROWS)})
         return repo
     return pin
 
@@ -158,6 +162,38 @@ def test_the_addendum_flag_must_match_the_one_recomputed_from_the_hashed_rows(tm
         ls.check_teacher_gate(repo)
 
 
-def test_a2s_reference_must_be_the_published_one(tmp_path):
+def test_a2s_reference_must_be_the_published_one(tmp_path, fake_a2_sha, monkeypatch):
+    repo = fake_a2_sha(_teacher_repo(tmp_path, False))
+    monkeypatch.setattr(ls, "A2_HAM_PER_IMAGE_SHA256", "0" * 64)
     with pytest.raises(ls.TeacherGateError, match="A2"):
-        ls.check_teacher_gate(_teacher_repo(tmp_path, False))
+        ls.check_teacher_gate(repo)
+
+
+def test_the_committed_teacher_artifacts_are_pinned():
+    assert ls.TEACHER_CHECK_SHA256 == {
+        "t7_r0_tercile_check.json": "6c5cbf433a036068a05d978c22b89c2d854d33ff909df7d33e67b221169ff623",
+        "r0_per_image.csv": "4dc4875f1f2288f191bdfe3ffe79676e362154dee22461fdb641f41ddc528f4e"}
+
+
+@pytest.mark.parametrize("name", ["t7_r0_tercile_check.json", "r0_per_image.csv"])
+def test_a_replaced_teacher_artifact_is_refused(tmp_path, fake_a2_sha, name):
+    repo = fake_a2_sha(_teacher_repo(tmp_path, False))
+    with open(repo / ls.TEACHER_CHECK_DIR / name, "a", encoding="utf-8") as handle:
+        handle.write("\n")
+    with pytest.raises(ls.TeacherGateError, match=name):
+        ls.check_teacher_gate(repo)
+
+
+def test_duplicated_teacher_rows_are_refused(tmp_path, fake_a2_sha):
+    repo = _teacher_repo(tmp_path, False)
+    rows = repo / ls.TEACHER_CHECK_DIR / ls.TEACHER_CHECK_ROWS
+    lines = rows.read_text(encoding="utf-8").splitlines()
+    rows.write_text("\n".join([*lines, lines[1]]) + "\n", encoding="utf-8")
+    import json
+
+    doc_path = repo / ls.TEACHER_CHECK_DIR / ls.TEACHER_CHECK_JSON
+    doc = json.loads(doc_path.read_text(encoding="utf-8"))
+    doc["provenance"]["rows_sha256"] = hashlib.sha256(rows.read_bytes()).hexdigest()
+    doc_path.write_text(json.dumps(doc), encoding="utf-8")
+    with pytest.raises(ls.TeacherGateError, match="duplicad"):
+        ls.check_teacher_gate(fake_a2_sha(repo))
