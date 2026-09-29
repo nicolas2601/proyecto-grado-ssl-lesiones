@@ -42,6 +42,13 @@ gating, probe, cell store, contrasts -- is the real code.
 
 When a behaviour change is INTENDED, this test is expected to fail: update
 ``REFERENCE_COMMIT`` to the commit that introduced it.
+
+One intended change is applied to the reference instead (``_with_the_blas_pin``):
+C1 probe fits run under ``probe_threads.PROBE_BLAS_THREADS`` and the sidecars
+record it as ``loky_inner_threads``. Moving the reference past the refactor
+would have compared the split runner against itself; keeping the monolith and
+adding exactly that delta still pins the refactor, and names the only
+difference allowed.
 """
 
 from __future__ import annotations
@@ -99,6 +106,25 @@ def reference(tmp_path_factory):
     spec = importlib.util.spec_from_file_location("c1_run_grid_reference", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    return _with_the_blas_pin(module)
+
+
+def _with_the_blas_pin(module):
+    """The monolith plus the pin: its probe fits under PROBE_BLAS_THREADS, its sidecars record it.
+
+    It is this module's private copy, so rebinding its globals touches nothing else.
+    """
+    from dermssl import probe_threads, probes, run_environment
+
+    def run_probe(*args):
+        return probe_threads.call_pinned(probes.run_probe, *args)
+
+    def write_sidecar(path, args=None):
+        return run_environment.write_sidecar(path, args,
+                                             loky_inner_threads=probe_threads.PROBE_BLAS_THREADS)
+
+    module.probes = types.SimpleNamespace(run_probe=run_probe)
+    module.run_environment = types.SimpleNamespace(write_sidecar=write_sidecar)
     return module
 
 

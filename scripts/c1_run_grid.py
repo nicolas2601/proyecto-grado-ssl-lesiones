@@ -57,6 +57,7 @@ from dermssl import c1_grid_extraction as gx  # noqa: E402
 from dermssl import c1_grid_inputs as gi  # noqa: E402
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import cli_args  # noqa: E402
+from dermssl import probe_threads  # noqa: E402
 from dermssl import run_environment  # noqa: E402
 from dermssl.pretrain import tracking  # noqa: E402
 
@@ -194,7 +195,8 @@ def write_outputs(out_dir: Path, results: dict, val_labels, val_ids_sha256: str,
         json.dumps(cells, indent=1, ensure_ascii=False), encoding="utf-8"
     )
     for name in ("c1_bootstrap.json", "c1_cells.json"):
-        run_environment.write_sidecar(out_dir / name, args)
+        run_environment.write_sidecar(out_dir / name, args,
+                                      loky_inner_threads=probe_threads.PROBE_BLAS_THREADS)
     print(f"\ncontrastes: {len(contrasts['results'])} filas, celdas: {len(cells)} -> {out_dir}")
 
 

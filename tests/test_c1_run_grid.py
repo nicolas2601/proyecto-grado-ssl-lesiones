@@ -228,6 +228,18 @@ def test_both_c1_jsons_get_an_environment_sidecar(tmp_path):
     assert sidecar_env(tmp_path / "c1_cells.json")["schema"] == 1
 
 
+@pytest.mark.parametrize("pinned", [3, 4])
+def test_both_c1_sidecars_record_the_pinned_probe_threads_not_the_hosts(tmp_path, monkeypatch, pinned):
+    from dermssl import probe_threads
+
+    monkeypatch.setattr(probe_threads, "PROBE_BLAS_THREADS", pinned)
+    results = {("public", "none"): _cell(True, 0), ("public", "mask"): _cell(True, 1)}
+    labels = np.random.default_rng(0).integers(0, 3, 40)
+    grid.write_outputs(tmp_path, results, labels, "a" * 64)
+    for name in ("c1_bootstrap.json", "c1_cells.json"):
+        assert sidecar_env(tmp_path / name)["knobs"]["loky_inner_threads"] == pinned
+
+
 def _clean_tally(n_images: int):
     from dermssl import c1_cell_gates as cg
 
