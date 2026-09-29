@@ -2,7 +2,8 @@
 
 Runs after ``pad_ufes_download.py --extract``, on the pod. It checks, before
 any feature is extracted: the four official files against Mendeley, the
-published counts (2298 images, 1373 patients, 1641 lesions, per diagnostic),
+published counts (2298 images, 1373 patients, 1641 distinct lesion_id values,
+per diagnostic; one diagnosis per (patient_id, lesion_id)),
 that every ``img_id`` resolves to exactly one PNG that decodes, and records
 the sha256 of every image. Any mismatch aborts; nothing is written.
 
@@ -80,7 +81,7 @@ def build_manifest(root: Path) -> dict:
         "official_files_sha256": archives,
         "n_images": len(records),
         "n_patients": len({r.patient_id for r in records}),
-        "n_lesions": len({r.lesion_id for r in records}),
+        "n_lesions": pu.lesion_counts(records),
         "fst": pu.fst_summary(records),
         "images": image_rows(records, paths, root),
     }

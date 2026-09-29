@@ -21,6 +21,9 @@ ALWAYS_PRESENT = ("patient_id", "lesion_id", "img_id", "diagnostic")
 
 EXPECTED_IMAGES = 2298
 EXPECTED_PATIENTS = 1373
+#: Distinct raw ``lesion_id`` values, which is what the article counts. The id is
+#: a per-patient counter, so the real lesion is ``(patient_id, lesion_id)``
+#: (1891 in the published file; docs/30 errata).
 EXPECTED_LESIONS = 1641
 EXPECTED_DIAGNOSTIC_COUNTS = {"ACK": 730, "BCC": 845, "MEL": 52, "NEV": 244, "SCC": 192, "SEK": 235}
 
@@ -55,6 +58,11 @@ class PadRecord:
     ham_label: str
     fst: int | None
     fst_status: str  # "ok" | "missing" | "out_of_range"
+
+    @property
+    def lesion_key(self) -> tuple[str, str]:
+        """``lesion_id`` repeats across patients in PAD; only the pair names one lesion."""
+        return self.patient_id, self.lesion_id
 
     @property
     def fst_bin(self) -> str:
@@ -135,13 +143,18 @@ def count_discrepancies(records: list[PadRecord]) -> list[str]:
     diagnostics = Counter(r.diagnostic for r in records)
     found += [f"{dx}: {diagnostics.get(dx, 0)}, el articulo dice {want}"
               for dx, want in EXPECTED_DIAGNOSTIC_COUNTS.items() if diagnostics.get(dx, 0) != want]
-    owners: dict[str, set[str]] = {}
+    diagnoses: dict[tuple[str, str], set[str]] = {}
     for record in records:
-        owners.setdefault(record.lesion_id, set()).add(record.patient_id)
-    shared = sorted(lesion for lesion, patients in owners.items() if len(patients) > 1)
-    if shared:
-        found.append(f"{len(shared)} lesiones con mas de un paciente, p. ej. {shared[:3]}")
+        diagnoses.setdefault(record.lesion_key, set()).add(record.diagnostic)
+    mixed = sorted(key for key, found_dx in diagnoses.items() if len(found_dx) > 1)
+    if mixed:
+        found.append(f"{len(mixed)} lesiones (patient_id, lesion_id) con mas de un diagnostico, p. ej. {mixed[:3]}")
     return found
+
+
+def lesion_counts(records: list[PadRecord]) -> dict:
+    return {"lesion_keys": len({r.lesion_key for r in records}),
+            "raw_lesion_ids": len({r.lesion_id for r in records})}
 
 
 def check_published_counts(records: list[PadRecord]) -> None:

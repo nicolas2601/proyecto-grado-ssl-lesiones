@@ -32,9 +32,10 @@ def _row(i: int, diagnostic: str = "BCC", fst: str = "2", lesion: int | None = N
 
 
 def _published_like() -> list[dict]:
-    """2298 rows with the article's counts: 1641 lesions, 1373 patients."""
+    """2298 rows with the article's counts: 1373 patients and 1641 distinct lesion_id
+    values, reused across patients as in the real file (more composite lesions)."""
     diagnostics = [dx for dx, n in pu.EXPECTED_DIAGNOSTIC_COUNTS.items() for _ in range(n)]
-    return [_row(i, dx, lesion=i % 1641, patient=(i % 1641) % 1373) for i, dx in enumerate(diagnostics)]
+    return [_row(i, dx, lesion=i % 1641, patient=i % 1373) for i, dx in enumerate(diagnostics)]
 
 
 class TestFitzpatrick:
@@ -104,10 +105,19 @@ class TestPublishedCounts:
         with pytest.raises(pu.PadMetadataError, match="imagenes: 2297"):
             pu.check_published_counts(records)
 
-    def test_a_lesion_shared_by_two_patients_is_reported(self, tmp_path):
-        rows = [_row(0, lesion=5, patient=1), _row(1, lesion=5, patient=2)]
+    def test_the_same_lesion_id_in_two_patients_is_two_lesions(self, tmp_path):
+        """lesion_id is a per-patient counter in PAD (lesion 17 is PAT_9's ACK
+        and PAT_998's SEK); the lesion key is (patient_id, lesion_id)."""
+        rows = [_row(0, "ACK", lesion=17, patient=9), _row(1, "SEK", lesion=17, patient=998)]
+        records = pu.parse_metadata(_write(tmp_path / "m.csv", rows))
+        assert not any("diagnostico" in p for p in pu.count_discrepancies(records))
+        assert len({r.lesion_key for r in records}) == 2
+        assert pu.lesion_counts(records) == {"lesion_keys": 2, "raw_lesion_ids": 1}
+
+    def test_one_lesion_with_two_diagnoses_is_refused(self, tmp_path):
+        rows = [_row(0, "BCC", lesion=5, patient=1), _row(1, "SCC", lesion=5, patient=1)]
         problems = pu.count_discrepancies(pu.parse_metadata(_write(tmp_path / "m.csv", rows)))
-        assert any("mas de un paciente" in p for p in problems)
+        assert any("mas de un diagnostico" in p for p in problems)
 
     def test_readings_keep_only_mapped_classes(self):
         mapped = set(pu.PAD_TO_HAM.values())
