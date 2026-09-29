@@ -293,3 +293,36 @@ class TestTrainFeaturesAreHashed:
 
         with pytest.raises(TypeError, match="train_features"):
             store.save("b", "none", _features(), proba=_proba(), provenance=PROVENANCE)
+
+
+class TestAGridFromBeforeTheTrainHashIsRecomputed:
+    """Decision: a cell whose manifest predates ``train_features_sha256`` is not
+    reused. It is still readable as JSON (audit tools treat the field as
+    optional), but a resumed grid recomputes it instead of mixing auditable and
+    unauditable cells in one table. In practice its ``code_revision`` already
+    differs; this makes the rule explicit rather than incidental."""
+
+    def _old_cell(self, tmp_path, value="drop"):
+        import json
+
+        store = cs.CellStore(tmp_path)
+        store.save("b", "none", _features(), proba=_proba(), train_features=_train(), provenance=PROVENANCE)
+        path = store.manifest_path("b", "none")
+        manifest = json.loads(path.read_text())
+        if value == "drop":
+            del manifest["train_features_sha256"]
+        else:
+            manifest["train_features_sha256"] = value
+        path.write_text(json.dumps(manifest))
+        return store
+
+    def test_a_cell_without_the_train_hash_is_not_reused(self, tmp_path):
+        store = self._old_cell(tmp_path)
+
+        assert store.load("b", "none", provenance=PROVENANCE) is None
+        plan = store.plan(backbones=["b"], conditions=["none"], provenance=PROVENANCE)
+        assert plan == {"done": [], "pending": [("b", "none")]}
+
+    @pytest.mark.parametrize("value", [None, "", "A" * 64, "a" * 63])
+    def test_a_cell_with_a_malformed_train_hash_is_not_reused(self, tmp_path, value):
+        assert self._old_cell(tmp_path, value).load("b", "none", provenance=PROVENANCE) is None

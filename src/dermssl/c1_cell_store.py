@@ -22,6 +22,7 @@ is not what we wrote".
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -162,6 +163,10 @@ class CellStore:
         for field in REQUIRED_PROVENANCE:
             if manifest.get(field) != provenance.get(field):
                 return None
+        # A manifest from before the train hash is not reused: a resumed grid
+        # recomputes it rather than mixing auditable and unauditable cells.
+        if not re.fullmatch(r"[0-9a-f]{64}", str(manifest.get("train_features_sha256") or "")):
+            return None
         if manifest.get("features_sha256") != _digest(features):
             return None
         if manifest.get("proba_sha256") != _digest(proba):
