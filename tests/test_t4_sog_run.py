@@ -16,6 +16,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from env_sidecar import sidecar_env  # noqa: E402
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -198,7 +199,7 @@ def test_identity_only_reports_the_reproduction_without_aborting(identity_runs):
     grid = json.loads((identity_runs[0] / "t4_holdout_grid.json").read_text())
     assert set(grid["inputs"]) == {"identity"} and grid["reproduction"]["passed"] is False
     assert not (identity_runs[0] / "sog_p6").exists()
-    env = grid["environment"]
+    env = sidecar_env(identity_runs[0] / "t4_holdout_grid.json")
     assert {"probe_jobs", "boot_jobs", "decode_workers", "loky_inner_threads"} <= set(env["knobs"])
     assert {"torch", "scikit-learn", "numpy"} <= set(env["packages"])
     assert {"cudnn_deterministic", "cudnn_benchmark", "num_threads"} <= set(env["torch"])
@@ -224,5 +225,5 @@ def test_two_identity_runs_on_cpu_compare_as_identical(identity_runs, tmp_path):
 @pytest.mark.parametrize("name", ["t4_holdout_grid.json", "t4_selection.json",
                                   "t4_final_eval_holdout_rehearsal.json"])
 def test_every_t4_result_json_records_its_environment(ran, name):
-    env = json.loads((ran / name).read_text())["environment"]
+    env = sidecar_env(ran / name)
     assert env["schema"] == 1 and env["torch"]["loaded"] is True and env["knobs"]["boot_jobs"] == 1

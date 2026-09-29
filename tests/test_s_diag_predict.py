@@ -22,6 +22,7 @@ import seg_paths  # noqa: F401
 import evaluate_segmentation as ev
 from scripts import s_diag_parallel_check as pc
 from scripts import s_diag_predict as sp
+from env_sidecar import sidecar_env  # noqa: E402
 
 torch = pytest.importorskip("torch")
 
@@ -131,9 +132,10 @@ def test_masks_are_binary_pngs_at_the_evaluation_grid(tmp_path, fake_backbone):
 
 def test_run_json_records_the_provenance(tmp_path, fake_backbone):
     images, _ = _write_set(tmp_path, count=2)
-    record = json.loads((_run(tmp_path, images, "primary") / "run.json").read_text())
+    out = _run(tmp_path, images, "primary")
+    record = json.loads((out / "run.json").read_text())
     assert record["methods"] == ["primary"]
-    assert record["environment"]["knobs"]["workers"] == record["workers"]
+    assert sidecar_env(out / "run.json")["knobs"]["workers"] == record["workers"]
     assert record["input_resolution"] == 224 and record["mask_resolution"] == 224
     assert record["backbone"] == {"name": "public", "spec": "dinov2_vitb14:public",
                                   "weights_sha256": "public"}

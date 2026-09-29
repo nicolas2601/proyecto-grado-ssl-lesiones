@@ -353,7 +353,6 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 for dataset, dataset_rows in sorted(grouped.items())
             },
         },
-        "environment": run_environment.snapshot(args),
     }
     if args.output_csv is not None:
         _write_csv(args.output_csv, records)
@@ -362,6 +361,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         json.dumps(manifest, indent=2, ensure_ascii=False, allow_nan=False) + "\n",
         encoding="utf-8",
     )
+    run_environment.write_sidecar(args.output_json, args)
     return manifest
 
 

@@ -255,8 +255,8 @@ def main(argv: list[str] | None = None) -> int:
     summary = loop.train(run, config)
     if context.is_main:
         _write(output_dir / "timing.json", summary)
-        _write(output_dir / RUN_FILE, {**record, "result": summary, "complete": True,
-                                       "environment": run_environment.snapshot(args)})
+        _write(output_dir / RUN_FILE, {**record, "result": summary, "complete": True})
+        run_environment.write_sidecar(output_dir / RUN_FILE, args)
     du.cleanup(context)
     return 0
 

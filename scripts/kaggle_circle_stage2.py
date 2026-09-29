@@ -295,7 +295,8 @@ def main(argv: list[str] | None = None) -> None:
     except ValueError as exc:
         raise SystemExit(f"error de configuración: {exc}") from exc
     output = Path(args.output_json)
-    _write_json(output, {**result, "environment": run_environment.snapshot(args)})
+    _write_json(output, result)
+    run_environment.write_sidecar(output, args)
     print(f"se escribió {output} | estado={result['status']}")
 
 

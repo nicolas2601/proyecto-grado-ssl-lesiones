@@ -15,6 +15,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from env_sidecar import sidecar_env  # noqa: E402
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -255,6 +256,6 @@ def test_a_bad_holdout_digest_aborts_the_smoke_before_extraction(pod, tmp_path):
 @pytest.mark.parametrize("name", ["pretest.json", "holdout_grid.json", "units/public@224/result.json",
                                   "selection.json", "v71_final_eval_holdout_rehearsal.json"])
 def test_every_result_json_records_its_environment(ran, name):
-    env = json.loads((ran / name).read_text())["environment"]
+    env = sidecar_env(ran / name)
     assert env["schema"] == 1 and env["torch"]["loaded"] is True
     assert env["knobs"]["probe_jobs"] == 1 and env["knobs"]["decode_workers"] == 2

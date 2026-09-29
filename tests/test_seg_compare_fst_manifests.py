@@ -6,6 +6,7 @@ import pytest
 
 import seg_paths  # noqa: F401
 import compare_fst_manifests as cmp
+from env_sidecar import sidecar_env  # noqa: E402
 
 
 def _dataset(tone, fst, flagged=None):
@@ -96,6 +97,6 @@ def test_cli_writes_the_comparison_with_its_labels(tmp_path):
     ])
     saved = json.loads(output.read_text(encoding="utf-8"))
     assert saved["labels"] == {"a": "original", "b": "s2a"}
-    assert saved["environment"]["schema"] == 1
+    assert sidecar_env(output)["schema"] == 1
     assert saved["sources"] == {"a": str(paths[0]), "b": str(paths[1])}
     assert saved["scopes"]["ham"]["tone_distribution"]["bins"]["dark"]["diff_count"] == -1

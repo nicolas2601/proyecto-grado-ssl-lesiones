@@ -98,9 +98,9 @@ def main(argv=None) -> int:
     doc = {"a_vs_b": compare_runs(args.run_a, args.run_b)}
     for name, run in (("a", args.run_a), ("b", args.run_b)):
         doc[f"{name}_vs_published"] = row_deltas(_read(run / "t4_holdout_grid.json")["inputs"][INPUT], published)
-        doc[f"{name}_environment"] = _read(run / "t4_holdout_grid.json").get("environment")
-    doc["environment"] = run_environment.snapshot(args)
+        doc[f"{name}_environment"] = run_environment.read_sidecar(run / "t4_holdout_grid.json")
     args.out.write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    run_environment.write_sidecar(args.out, args)
     verdict = "IDENTICAS: el origen es el entorno" if doc["a_vs_b"]["identical"] else "DIFIEREN: no determinismo"
     print(f"a vs b: {verdict}; max |d macro_f1| a-b {doc['a_vs_b']['max_abs_delta'].get('macro_f1', 0):.2e}, "
           f"a-publicada {doc['a_vs_published']['max_abs_delta'].get('macro_f1', 0):.2e}, "

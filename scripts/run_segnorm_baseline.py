@@ -462,11 +462,11 @@ def run(argv: list[str] | None = None) -> list[dict]:
             "source_files": source_tree["files"],
             "source_tree": source_tree,
             "environment": environment,
-            "run_environment": run_environment.snapshot(args),
         }
         provenance_path = staging / "provenance.json"
         _ensure_inside(provenance_path, staging)
         provenance_path.write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        run_environment.write_sidecar(provenance_path, args)
         os.rename(staging, output)
         return diagnostics
     except Exception:

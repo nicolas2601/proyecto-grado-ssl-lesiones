@@ -115,11 +115,10 @@ def main():
         }
 
     report["seconds"] = round(time.time() - start, 1)
-    report["environment"] = run_environment.snapshot()
     print(json.dumps(report, indent=1, ensure_ascii=False))
-    Path("/home/jovyan/work/proyectonp/salidas/c1/crop_regate_report.json").write_text(
-        json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8"
-    )
+    out = Path("/home/jovyan/work/proyectonp/salidas/c1/crop_regate_report.json")
+    out.write_text(json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8")
+    run_environment.write_sidecar(out)
 
 
 if __name__ == "__main__":

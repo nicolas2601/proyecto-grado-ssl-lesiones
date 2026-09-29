@@ -377,10 +377,10 @@ def main() -> int:
     # nobody involved can act on.
     cache_check = pv.compare_to_published_cache(recomputed, bank_features)
     report["published_cache_check"] = cache_check
-    report["environment"] = run_environment.snapshot(args)
 
     if args.report:
         args.report.expanduser().write_text(json.dumps(report, indent=1), encoding="utf-8")
+        run_environment.write_sidecar(args.report.expanduser(), args)
 
     if tracker is not None:
         # Logged on BOTH outcomes. A dashboard that only holds the runs that

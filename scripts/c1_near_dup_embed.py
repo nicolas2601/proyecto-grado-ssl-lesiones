@@ -172,10 +172,10 @@ def main() -> int:
         "review_top20": review_pairs(scores, index, query_ids, pool_paths),
         "n_queries": len(query_ids),
         "n_pool_kept": len(pool_paths),
-        "environment": run_environment.snapshot(args),
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1), encoding="utf-8")
+    run_environment.write_sidecar(out, args)
     print(json.dumps({k: document[k] for k in ("top1", "reproduction_min_cosine")}, indent=1))
     return 0
 

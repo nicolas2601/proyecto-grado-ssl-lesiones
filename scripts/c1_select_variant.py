@@ -137,10 +137,10 @@ def main() -> int:
         "results": results,
         "winner": winner,
         "paired_vs_winner": paired,
-        "environment": run_environment.snapshot(args),
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1), encoding="utf-8")
+    run_environment.write_sidecar(out, args)
     # Probabilities kept so later contrasts need no second feature extraction.
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y_hold, **probas)
     print(f"ganadora: {winner} -> {out}")

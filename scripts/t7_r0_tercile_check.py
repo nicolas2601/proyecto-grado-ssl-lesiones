@@ -234,10 +234,10 @@ def main(argv: list[str] | None = None) -> int:
            "provenance": {"registration_commit": registration, "code_revision": revision,
                           "manifest_sha256": MANIFEST_SHA256, "pseudo_r0_sha256": PSEUDO_R0_SHA256,
                           "cache_manifest_sha256": CACHE_MANIFEST_SHA256,
-                          "rows_sha256": rp.file_sha256(args.out / ROWS_FILE)},
-           "environment": run_environment.snapshot(args)}
+                          "rows_sha256": rp.file_sha256(args.out / ROWS_FILE)}}
     (args.out / JSON_FILE).write_text(json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False) + "\n",
                                       encoding="utf-8")
+    run_environment.write_sidecar(args.out / JSON_FILE, args)
     (args.out / TABLE_FILE).write_text(render_markdown(doc), encoding="utf-8")
     print(f"addendum_required = {doc['analysis']['addendum_required']} -> {args.out}")
     return 0

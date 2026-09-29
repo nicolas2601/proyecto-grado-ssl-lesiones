@@ -171,9 +171,9 @@ def main(argv=None) -> int:
                            eval_proba, head_proba, release["cuda_fp16_autocast"])
     report.update(model=release["model"], device=args.device, note=AUTOCAST_NOTE,
                   build_device=release["device"],
-                  preprocess_max_abs_diff=preprocess_check(val_ids, index, args.n_images),
-                  environment=run_environment.snapshot(args))
+                  preprocess_max_abs_diff=preprocess_check(val_ids, index, args.n_images))
     package.write_json(args.model_dir / "parity.json", report)
+    run_environment.write_sidecar(args.model_dir / "parity.json", args)
     fp16 = report["deployment_metrics"].get("onnx_fp16", {}).get("gate", {}).get("publish", False)
     print(json.dumps(report["gates"], indent=1), f"\nfp16 publish: {fp16}")
     return 0 if report["pass"] else 1

@@ -257,8 +257,9 @@ def main(argv: list[str] | None = None) -> int:
     masks_dir = out / "masks"
     masks_dir.mkdir(parents=True)
     ids = predict(args, masks_dir, resolution)
-    record = {**run_record(args, resolution, ids, revision), "environment": run_environment.snapshot(args)}
+    record = run_record(args, resolution, ids, revision)
     (out / "run.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    run_environment.write_sidecar(out / "run.json", args)
     print(json.dumps({k: record[k] for k in ("methods", "reference_set", "n_images")}))
     return 0
 

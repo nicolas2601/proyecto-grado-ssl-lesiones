@@ -15,6 +15,7 @@ from dermssl.segnorm import (
     normalize_x,
     segment,
 )
+from env_sidecar import sidecar_env  # noqa: E402
 
 
 def red_dominant_disk(size: int = 33) -> np.ndarray:
@@ -627,7 +628,7 @@ def test_cli_writes_run_level_provenance_with_hashes_and_polarity_assumption(tmp
     }
     assert provenance["environment"]["python_version"]
     assert len(provenance["environment"]["packages_sha256"]) == 64
-    assert provenance["run_environment"]["schema"] == 1
+    assert sidecar_env(output_dir / "provenance.json")["schema"] == 1
     assert "secret" not in json.dumps(provenance).lower()
 
 

@@ -9,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from env_sidecar import sidecar_env  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
@@ -63,7 +64,7 @@ def test_each_run_is_compared_with_the_published_grid(tmp_path):
     assert doc["a_vs_published"]["max_abs_delta"]["macro_f1"] == 0.0
     assert doc["b_vs_published"]["max_abs_delta"]["macro_f1"] == pytest.approx(0.002)
     assert doc["a_vs_b"]["identical"] is False
-    assert doc["environment"]["schema"] == 1
+    assert sidecar_env(out)["schema"] == 1
 
 
 def test_missing_units_are_an_error_not_a_silent_skip(tmp_path):

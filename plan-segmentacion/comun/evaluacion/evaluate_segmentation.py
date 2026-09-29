@@ -180,8 +180,8 @@ def _write_report(args, pairs, rows, resolution: int, meta_extra: dict, predict_
         "note": "reference masks were read only to compute these metrics",
         **meta_extra,
     }
-    write_summary_json(output_dir / "summary.json", summary, meta, strata,
-                       environment=run_environment.snapshot(args))
+    write_summary_json(output_dir / "summary.json", summary, meta, strata)
+    run_environment.write_sidecar(output_dir / "summary.json", args)
     overlays = _write_overlays(args, pairs, rows, resolution, predict_for)
     track_evaluation(args, summary, strata, rows, overlays)
     return summary

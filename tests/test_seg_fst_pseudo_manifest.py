@@ -10,6 +10,7 @@ from PIL import Image
 import seg_paths  # noqa: F401
 import fst_pseudo_manifest as fpm
 from dermssl import fitzpatrick
+from env_sidecar import sidecar_env  # noqa: E402
 
 
 def _write_fixture(tmp_path, *, include_stats=True):
@@ -58,7 +59,7 @@ def test_run_reads_cache_inputs_and_writes_traceable_json(tmp_path):
     saved = json.loads(output_path.read_text(encoding="utf-8"))
     row = saved["records"][0]
     assert result == saved
-    assert saved["environment"]["schema"] == 1
+    assert sidecar_env(output_path)["schema"] == 1
     assert row["index"] == 0
     assert row["dataset"] == "ham10000"
     assert row["image_id"] == "img-a"
@@ -487,3 +488,21 @@ def test_output_csv_carries_the_tone_and_the_medians(tmp_path):
     ]
     assert [row["tone_tercile"] for row in rows] == ["dark", "medium", "light"]
     assert all(row["n_skin_px"] == "55" for row in rows)
+
+
+def test_the_manifest_bytes_do_not_depend_on_the_machine(tmp_path, monkeypatch):
+    """The tone manifest is pinned by sha256 (57df1e65... for the CSV): two machines, same payload, same bytes."""
+    import hashlib
+
+    from dermssl import run_environment
+
+    manifest_path, masks_path = _write_fixture(tmp_path)
+    digests = []
+    for gpu in ("Tesla T4", "RTX PRO 4000"):
+        monkeypatch.setattr(run_environment, "snapshot", lambda args=None, gpu=gpu, **_: {"gpu": gpu})
+        out = tmp_path / gpu.replace(" ", "_")
+        fpm.run(fpm.parse_args(["--manifest", str(manifest_path), "--pseudo-masks", str(masks_path),
+                                "--output-json", str(out / "fst.json"), "--output-csv", str(out / "fst.csv")]))
+        digests.append({name: hashlib.sha256((out / name).read_bytes()).hexdigest() for name in ("fst.json", "fst.csv")})
+        assert sidecar_env(out / "fst.json") == {"gpu": gpu}
+    assert digests[0] == digests[1]

@@ -96,8 +96,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--out", type=Path, default=V71 / "extra_contrasts.json")
     args = parser.parse_args(argv)
-    doc = {**document(load_inputs(V71, V7_S43)), "environment": run_environment.snapshot(args)}
+    doc = document(load_inputs(V71, V7_S43))
     args.out.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    run_environment.write_sidecar(args.out, args)
     print(f"-> {args.out}")
     return 0
 

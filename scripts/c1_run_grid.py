@@ -369,15 +369,13 @@ def main() -> int:
     for (backbone, condition), payload in sorted(results.items()):
         print(f"  {backbone} / {condition}: {'PASA' if payload['passes'] else 'FRENA'}")
 
-    write_outputs(args.out_dir.expanduser(), results, val_labels, si.ids_sha256(val_ids),
-                  environment=run_environment.snapshot(args))
+    write_outputs(args.out_dir.expanduser(), results, val_labels, si.ids_sha256(val_ids), args=args)
     return 0
 
 
-def write_outputs(out_dir: Path, results: dict, val_labels, val_ids_sha256: str, environment=None) -> None:
-    """``environment`` goes in c1_bootstrap.json; c1_cells.json stays a map of cells only."""
+def write_outputs(out_dir: Path, results: dict, val_labels, val_ids_sha256: str, args=None) -> None:
+    """Both JSONs get an environment sidecar; their own bytes stay machine-independent."""
     contrasts = build_contrasts(results, val_labels, {"c1_val_ids_sha256": val_ids_sha256})
-    contrasts["environment"] = environment or run_environment.snapshot()
     (out_dir / "c1_bootstrap.json").write_text(
         json.dumps(contrasts, indent=1, ensure_ascii=False), encoding="utf-8"
     )
@@ -394,6 +392,8 @@ def write_outputs(out_dir: Path, results: dict, val_labels, val_ids_sha256: str,
     (out_dir / "c1_cells.json").write_text(
         json.dumps(cells, indent=1, ensure_ascii=False), encoding="utf-8"
     )
+    for name in ("c1_bootstrap.json", "c1_cells.json"):
+        run_environment.write_sidecar(out_dir / name, args)
     print(f"\ncontrastes: {len(contrasts['results'])} filas, celdas: {len(cells)} -> {out_dir}")
 
 

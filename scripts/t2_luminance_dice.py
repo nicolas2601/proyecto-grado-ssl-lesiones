@@ -202,9 +202,9 @@ def main(argv: list[str] | None = None) -> int:
     doc = build_document(RESULTS, terciles_csv, args.n_resamples, args.seed)
     doc["provenance"] = {"registration_commit": registration, "code_revision": revision,
                          "manifest": str(args.manifest)}
-    doc["environment"] = run_environment.snapshot(args)
     (args.out / JSON_FILE).write_text(json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False) + "\n",
                                       encoding="utf-8")
+    run_environment.write_sidecar(args.out / JSON_FILE, args)
     (args.out / TABLE_FILE).write_text(render_markdown(doc), encoding="utf-8")
     print(f"-> {args.out}")
     return 0

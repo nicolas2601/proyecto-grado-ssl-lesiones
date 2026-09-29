@@ -156,10 +156,11 @@ def main(argv: list[str] | None = None) -> int:
     pad = load_pad(args.manifest.expanduser(), args.pad_root.expanduser())
     rows, skipped = evaluate_rows(pad)
     provenance = {"code_revision": revision, "registration_commit": registration}
-    document = {**build_document(rows, pad, skipped, provenance), "environment": run_environment.snapshot(args)}
+    document = build_document(rows, pad, skipped, provenance)
     out = args.out.expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")
+    run_environment.write_sidecar(out, args)
     print(write_fst_table(out, pad["fst"]))
     print(document["verdicts"], f"-> {out}")
     return 0

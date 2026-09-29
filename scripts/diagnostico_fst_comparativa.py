@@ -188,7 +188,8 @@ def run(args: argparse.Namespace) -> list[dict]:
         else Path("diagnostico_fst.json")
     )
     manifest = build_diagnostic_manifest(args.dataset_id, rows, smoke=args.smoke)
-    write_diagnostic_manifest({**manifest, "environment": run_environment.snapshot(args)}, output_json)
+    write_diagnostic_manifest(manifest, output_json)
+    run_environment.write_sidecar(output_json, args)
     print(f"Se escribieron {len(rows)} registros JSON de comparación FST en {output_json}")
     return rows
 

@@ -140,9 +140,9 @@ def main() -> int:
         "predictions": fe.predictions(fe.paired_from_rows(rows)),
     }
     document["secondary_ece_basic_ci"] = fe.ece_basic_ci(document)
-    document["environment"] = run_environment.snapshot(args)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")
+    run_environment.write_sidecar(out, args)
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y_eval, **probas)
     for name, pred in document["predictions"].items():
         print(f"{name}: {pred['verdict']}")

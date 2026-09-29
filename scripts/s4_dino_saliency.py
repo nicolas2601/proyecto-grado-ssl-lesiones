@@ -213,8 +213,9 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"ABORT: {exc}") from exc
     out.mkdir(parents=True)
     results = build(args.cache_dir, out / SALIENCY_FILE, fingerprint["n_images"], args)
-    record = {**run_record(args, fingerprint, results, revision), "environment": run_environment.snapshot(args)}
+    record = run_record(args, fingerprint, results, revision)
     (out / "run.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    run_environment.write_sidecar(out / "run.json", args)
     print(json.dumps({"images": fingerprint["n_images"], "seconds": record["compute_seconds"]}))
     return 0
 

@@ -204,7 +204,8 @@ def run_pretest(args, ctx, store, weights, device, revision) -> None:
     passed = all(c["passed"] for c in checks) and bank_check["status"] != "failed"
     io.write_json(path, {"passed": passed, "checks": checks, "bank_cache_check": bank_check,
                          "holdout_ids_sha256": ctx["holdout_sha"], "run_fingerprint": ctx["run_fingerprint"],
-                         "code_revision": revision, "environment": run_environment.snapshot(args)})
+                         "code_revision": revision})
+    run_environment.write_sidecar(path, args)
     if not passed:
         raise SystemExit(f"ABORT: el pre-test de docs/29 §2.1 fallo; ver {path}")
     print("pre-test OK: alpha 0 = publico y alpha 1 = final en pesos y metricas (tol 1e-6)")
@@ -246,10 +247,11 @@ def run_unit(args, ctx, store, weights, device, revision, name: str, resolution:
                                     **{f"hold_{k}": v for k, v in hold_parts.items()}})
     result = {"weights": name, "resolution": resolution, "holdout_ids_sha256": ctx["holdout_sha"],
               "run_fingerprint": ctx["run_fingerprint"], "code_revision": revision, "cells": cells, "rows": rows,
-              "feature_sha256": digests, "environment": run_environment.snapshot(args),
+              "feature_sha256": digests,
               "timing": {"extract_s": extract_s, "img_per_s": n_fwd / max(extract_s, 1e-9),
                          "probe_and_ci_s": time.time() - start - extract_s}}
     io.write_json(udir / "result.json", result)
+    run_environment.write_sidecar(udir / "result.json", args)
     if not args.keep_features:
         feats_path.unlink(missing_ok=True)
     t = result["timing"]
@@ -272,7 +274,8 @@ def stage_grid(args, ctx, revision) -> None:
     io.write_json(args.out_dir / "holdout_grid.json", {
         "code_revision": revision, "holdout_ids_sha256": ctx["holdout_sha"], "n_configs": len(rows),
         "rule": "docs/29 §2.4 (docs/28 §4.1): max macro_f1, ties < 0.005 by lowest ece",
-        "limit": args.limit, "environment": run_environment.snapshot(args), "rows": rows})
+        "limit": args.limit, "rows": rows})
+    run_environment.write_sidecar(args.out_dir / "holdout_grid.json", args)
     print(f"-> {args.out_dir / 'holdout_grid.json'} ({len(rows)} configuraciones)")
 
 

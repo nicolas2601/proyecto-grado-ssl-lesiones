@@ -87,9 +87,9 @@ def stage_select(args, ctx) -> None:
                      holdout_contrasts=contrasts, resolution_diagnostic=_resolution_diagnostic(args, ctx, selection, grid),
                      note_optimism=("El holdout ya eligio A3/B1 en los pilotos y aca elige entre "
                                     f"{grid['n_configs']} configuraciones: sus numeros tienen optimismo "
-                                    "de seleccion; la lectura que vale es la de val (docs/29 §1, §2.7.6)."),
-                     environment=run_environment.snapshot(args))
+                                    "de seleccion; la lectura que vale es la de val (docs/29 §1, §2.7.6)."))
     io.write_json(out, selection)
+    run_environment.write_sidecar(out, args)
     for arm, cid in selection["winners"].items():
         print(f"{arm}: {cid} (macro-F1 {selection['winner_rows'][arm]['macro_f1']:.4f})")
     print(f"fase 2 habilitada para proponer: {selection['phase2']['enabled']} -> {out}")
@@ -199,8 +199,8 @@ def stage_val(args, ctx, revision, device) -> None:
         "bootstrap": {"n_resamples": args.ci_resamples, "rng_seed": vm.BOOTSTRAP_SEED, "paired": True},
         "n_fit_threshold_probe": len(ctx["ids"]["fit"]),
         "note_operating_points": plan.OPERATING_POINT_PROTOCOL,
-        "environment": run_environment.snapshot(args),
     })
+    run_environment.write_sidecar(out, args)
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y, **probas,
                         **{f"{label}__fit80": p for label, p in probas80.items()})
     for label in ("A71", "B71"):

@@ -623,10 +623,10 @@ def main() -> int:
             "upsample": UPSAMPLE,
         },
     )
-    manifest["environment"] = run_environment.snapshot(args)
     (output_dir / MANIFEST_NAME).write_text(
         json.dumps(manifest, indent=1, ensure_ascii=False), encoding="utf-8"
     )
+    run_environment.write_sidecar(output_dir / MANIFEST_NAME, args)
 
     # How much lesion the bank crop costs, measured on the artifact that C1
     # will actually consume rather than estimated from a worked example.

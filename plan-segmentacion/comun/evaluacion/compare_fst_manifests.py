@@ -164,12 +164,12 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         "labels": {"a": args.label_a, "b": args.label_b},
         "sources": {"a": str(args.a), "b": str(args.b)},
         **compare(_load(args.a), _load(args.b)),
-        "environment": run_environment.snapshot(args),
     }
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_json.write_text(
         json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8"
     )
+    run_environment.write_sidecar(args.output_json, args)
     print(json.dumps(result["scopes"][POOL], indent=2, ensure_ascii=False))
     return result
 

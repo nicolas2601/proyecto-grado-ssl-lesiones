@@ -119,6 +119,14 @@ def sidecar_path(path) -> Path:
     return path.with_name(stem + SIDECAR_SUFFIX)
 
 
+def read_sidecar(path) -> dict | None:
+    """The environment recorded next to ``path``, or None when it has no sidecar."""
+    target = sidecar_path(path)
+    if not target.is_file():
+        return None
+    return json.loads(target.read_text(encoding="utf-8"))["environment"]
+
+
 def write_sidecar(path, args=None, *, environment=None, **extra) -> Path:
     """Write the block next to an already written result, naming it and its sha256.
 

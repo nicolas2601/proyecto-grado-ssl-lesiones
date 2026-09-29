@@ -184,10 +184,10 @@ def run(args: argparse.Namespace) -> list[dict]:
     report = build_report(
         rows, ground_truth_total=len(ground_truth), color_constancy=args.color_constancy
     )
-    report["environment"] = run_environment.snapshot(args)
     Path(args.output_json).write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+    run_environment.write_sidecar(args.output_json, args)
     print(
         f"Se evaluaron {report['n_images_found']}/{report['n_ground_truth']} imagenes "
         f"({report['n_images_missing']} faltantes)."

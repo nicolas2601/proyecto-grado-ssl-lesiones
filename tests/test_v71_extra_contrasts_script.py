@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from env_sidecar import sidecar_env  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
@@ -87,9 +88,7 @@ def test_misaligned_labels_are_refused(tmp_path):
 def test_the_committed_json_is_what_the_script_writes(doc):
     committed = V71 / "extra_contrasts.json"
     assert committed.exists(), "falta resultados/clasificacion/v71/extra_contrasts.json"
-    written = json.loads(committed.read_text(encoding="utf-8"))
-    written.pop("environment", None)  # where it ran, not what it computed
-    assert written == json.loads(json.dumps(doc))
+    assert json.loads(committed.read_text(encoding="utf-8")) == json.loads(json.dumps(doc))
 
 
 def test_main_writes_the_document(tmp_path, monkeypatch):
@@ -97,5 +96,5 @@ def test_main_writes_the_document(tmp_path, monkeypatch):
     monkeypatch.setattr(xc, "document", lambda inputs: {"ok": 1})
     out = tmp_path / "extra.json"
     assert xc.main(["--out", str(out)]) == 0
-    written = json.loads(out.read_text(encoding="utf-8"))
-    assert written.pop("environment")["schema"] == 1 and written == {"ok": 1}
+    assert json.loads(out.read_text(encoding="utf-8")) == {"ok": 1}
+    assert sidecar_env(out)["schema"] == 1

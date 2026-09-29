@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from PIL import Image
+from env_sidecar import sidecar_env  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
@@ -241,7 +242,7 @@ def test_run_also_writes_a_summary_json_next_to_the_csv(tmp_path):
     summary = json.loads(out_json.read_text(encoding="utf-8"))
     assert summary["dataset"] == "d"
     assert summary["n"] == 1
-    assert summary["environment"]["schema"] == 1
+    assert sidecar_env(out_json)["schema"] == 1
 
 
 def test_run_defaults_to_json_primary_without_creating_a_csv(tmp_path, monkeypatch):

@@ -13,6 +13,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from env_sidecar import sidecar_env  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
@@ -215,11 +216,10 @@ class TestNonFiniteFailsTheCell:
         assert any("auc" in r for r in reasons)
 
 
-def test_the_bootstrap_json_records_the_environment_and_the_cells_stay_a_cell_map(tmp_path):
-    import json
+def test_both_c1_jsons_get_an_environment_sidecar(tmp_path):
 
     results = {("public", "none"): _cell(True, 0), ("public", "mask"): _cell(True, 1)}
     labels = np.random.default_rng(0).integers(0, 3, 40)
     grid.write_outputs(tmp_path, results, labels, "a" * 64)
-    assert json.loads((tmp_path / "c1_bootstrap.json").read_text())["environment"]["schema"] == 1
-    assert "environment" not in json.loads((tmp_path / "c1_cells.json").read_text())
+    assert sidecar_env(tmp_path / "c1_bootstrap.json")["schema"] == 1
+    assert sidecar_env(tmp_path / "c1_cells.json")["schema"] == 1

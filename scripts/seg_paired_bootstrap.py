@@ -105,10 +105,10 @@ def main(argv: list[str] | None = None) -> int:
         "rng_seed": args.seed, "n_resamples": args.n_resamples,
         "n_paired": result.pop("n_paired"), "metrics": result,
         "note": "secondary; delta = a - b, paired percentile 95 % interval",
-        "environment": run_environment.snapshot(args),
     }
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_json.write_text(json.dumps(doc, indent=2, allow_nan=False) + "\n")
+    run_environment.write_sidecar(args.output_json, args)
     print(json.dumps({m: {k: v for k, v in r.items() if k in ("delta", "ci95_low", "ci95_high",
                                                             "direction")}
                       for m, r in doc["metrics"].items()}))

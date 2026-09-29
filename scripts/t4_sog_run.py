@@ -113,11 +113,11 @@ def _grid_input(args, ctx, weights, device, revision, name: str) -> dict:
     return {cid: row for result in results for cid, row in result["rows"].items()}
 
 
-def _environment(args) -> dict:
-    """The shared block plus loky's inner threads: what can make two extractions or probe fits differ."""
+def _write_environment(path, args) -> None:
+    """The shared sidecar plus loky's inner threads: what can make two extractions or probe fits differ."""
     import joblib  # noqa: PLC0415
 
-    return run_environment.snapshot(args, loky_inner_threads=max(joblib.cpu_count() // max(args.probe_jobs, 1), 1))
+    run_environment.write_sidecar(path, args, loky_inner_threads=max(joblib.cpu_count() // max(args.probe_jobs, 1), 1))
 
 
 def _reproduction(args, identity_rows: dict) -> dict:
@@ -127,7 +127,8 @@ def _reproduction(args, identity_rows: dict) -> dict:
     report = t4.reproduction_check(identity_rows, io.read_json(args.v71_grid.expanduser())["rows"], tol=tol)
     report["reference"] = str(args.v71_grid)
     if not report["passed"] and args.inputs == "both":
-        io.write_json(args.out_dir / "reproduction_failed.json", {**report, "environment": _environment(args)})
+        io.write_json(args.out_dir / "reproduction_failed.json", report)
+        _write_environment(args.out_dir / "reproduction_failed.json", args)
         raise SystemExit(f"ABORT: sin SoG no se reproduce la grilla v7.1 commiteada (tol {tol:g}); ver "
                          f"{args.out_dir / 'reproduction_failed.json'}. No se extrae nada con SoG.")
     return report
@@ -142,8 +143,9 @@ def stage_grid(args, ctx, revision, registration) -> None:
         inputs[t4.SOG] = _grid_input(args, ctx, weights, device, revision, t4.SOG)
     io.write_json(args.out_dir / "t4_holdout_grid.json", {
         "code_revision": revision, "registration_commit": registration, "holdout_ids_sha256": ctx["holdout_sha"],
-        "limit": args.limit, "reproduction": reproduction, "sog_p": t4.SOG_P, "environment": _environment(args),
+        "limit": args.limit, "reproduction": reproduction, "sog_p": t4.SOG_P,
         "inputs": inputs})
+    _write_environment(args.out_dir / "t4_holdout_grid.json", args)
     print(f"-> {args.out_dir / 't4_holdout_grid.json'} ({sum(len(r) for r in inputs.values())} celdas)")
 
 

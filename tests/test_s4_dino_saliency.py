@@ -14,6 +14,7 @@ import numpy as np
 import pytest
 
 import seg_paths  # noqa: F401
+from env_sidecar import sidecar_env  # noqa: E402
 
 torch = pytest.importorskip("torch")
 import cache_io  # noqa: E402
@@ -90,7 +91,7 @@ def test_builder_writes_a_ccam_shaped_float16_saliency_and_provenance(tmp_path, 
     assert record["pool"]["manifest_sha256"] == ds.sha256_file(tmp_path / "cache" / "manifest.csv")
     assert record["rule"].startswith("S-diag primary")
     assert record["reads_masks_or_labels"] is False
-    assert record["environment"]["schema"] == 1
+    assert sidecar_env(out / "run.json")["schema"] == 1
     assert fake_backbone == [("dinov2_vitb14", "public")]
 
 

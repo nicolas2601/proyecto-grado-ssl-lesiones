@@ -10,6 +10,7 @@ from PIL import Image
 import seg_paths  # noqa: F401
 import eval_inputs
 import evaluate_segmentation as ev
+from env_sidecar import sidecar_env  # noqa: E402
 
 SIZE = 16
 
@@ -64,7 +65,7 @@ def test_external_masks_produce_the_same_report_as_a_checkpoint_run(tmp_path):
     assert payload["meta"]["n_images"] == 2
     assert payload["meta"]["resolution"] == SIZE
     assert payload["meta"]["threshold"] == 0.5
-    assert payload["environment"]["schema"] == 1 and "environment" not in payload["meta"]
+    assert sidecar_env(output / "summary.json")["schema"] == 1 and "environment" not in payload["meta"]
 
 
 def test_a_shifted_external_mask_scores_the_hand_computed_dice(tmp_path):

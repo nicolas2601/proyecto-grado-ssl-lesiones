@@ -128,10 +128,10 @@ def main() -> int:
         code_sha256=code_sha256(),
         retained_threshold=cb.RETAINED_THRESHOLD,
         stratified=cb.stratified_summary(probas, passes, y_true, retained),
-        environment=run_environment.snapshot(args),
     )
     out = args.out.expanduser()
     out.write_text(json.dumps(document, indent=1), encoding="utf-8")
+    run_environment.write_sidecar(out, args)
     print(f"escrito {out}: {len(records)} contrastes, estratos "
           f"{[(s['stratum'], s['n']) for s in document['stratified']]}")
     if wandb_module is not None:

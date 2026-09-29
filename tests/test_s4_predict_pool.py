@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 import seg_paths  # noqa: F401
+from env_sidecar import sidecar_env  # noqa: E402
 
 torch = pytest.importorskip("torch")
 import cache_io  # noqa: E402
@@ -89,7 +90,7 @@ def test_provenance_pins_checkpoint_pool_revision_and_output(tmp_path):
     run = json.loads((out / pp.RUN_FILE).read_text(encoding="utf-8"))
     assert run["checkpoint"]["sha256"] == sha256_file(checkpoint)
     assert run["checkpoint"]["arch"] == s4.ARCH
-    assert run["environment"]["torch"]["loaded"] is True
+    assert sidecar_env(out / pp.RUN_FILE)["torch"]["loaded"] is True
     assert run["pool"]["manifest_sha256"] == sha256_file(cache / "manifest.csv")
     assert run["pool"]["n_images"] == COUNT and run["n"] == COUNT
     assert run["code_revision"] == "c0ffee"

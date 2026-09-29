@@ -1,9 +1,11 @@
-"""Every script that writes an evaluation/result JSON embeds the environment block.
+"""Every script that writes an evaluation/result JSON records its environment in a sidecar.
 
 v7.1 recorded no versions or threads, and a T4 reproduction drift of ~1e-3 could
 not be attributed. The registry below is the contract: a script is either WIRED
-(it calls ``run_environment.snapshot`` for the JSON it writes) or EXEMPT with a
-reason. A new JSON-writing script that is in neither fails the discovery test.
+(it calls ``run_environment.write_sidecar`` for the JSON it writes) or EXEMPT
+with a reason. A new JSON-writing script that is in neither fails the discovery
+test. The block never goes INSIDE a result: guards pin results by the sha256 of
+their bytes, and those bytes must not depend on the machine.
 """
 
 import ast
@@ -14,16 +16,16 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# script -> the JSON(s) whose top level carries ``environment``.
+# script -> the JSON(s) that get a ``<name>.environment.json`` sidecar.
 WIRED = {
     "scripts/v71_run.py": "units/*/result.json, holdout_grid.json, pretest.json",
     "scripts/v71_val.py": "selection.json, v71_final_eval*.json",
     "scripts/t4_sog_run.py": "t4_holdout_grid.json (via the shared block, was a local copy)",
     "scripts/t4_sog_val.py": "t4_selection.json, t4_final_eval*.json",
-    "scripts/t4_repro_compare.py": "the comparison JSON (plus a_/b_environment of the runs)",
+    "scripts/t4_repro_compare.py": "the comparison JSON (plus a_/b_environment read from the runs' sidecars)",
     "scripts/v71_extra_contrasts.py": "extra_contrasts.json",
     "scripts/c1_final_eval.py": "c1 final_eval.json",
-    "scripts/c1_run_grid.py": "c1_bootstrap.json (c1_cells.json stays a pure cell map)",
+    "scripts/c1_run_grid.py": "c1_bootstrap.json and c1_cells.json",
     "scripts/c1_cross_backbone.py": "c1_cross_backbone.json",
     "scripts/c1_select_variant.py": "the selection JSON",
     "scripts/c1_reevaluate_crop_gate.py": "crop_regate_report.json",
@@ -40,11 +42,11 @@ WIRED = {
     "scripts/t7_compare.py": "t7 comparison JSON",
     "scripts/seg_paired_bootstrap.py": "the paired segmentation bootstrap JSON",
     "plan-segmentacion/comun/evaluacion/evaluate_segmentation.py": "summary.json (via eval_report)",
-    "scripts/cluster_frozen_bank.py": "bank.json (strata.json stays a map of backbones)",
+    "scripts/cluster_frozen_bank.py": "bank.json",
     "scripts/kaggle_circle_stage2.py": "the CIRCLe Stage 2 result JSON",
     "scripts/kaggle_fst_manifest.py": "the FST manifest inferred on Kaggle",
     "scripts/release_parity.py": "parity.json",
-    "scripts/run_segnorm_baseline.py": "provenance.json under run_environment ('environment' is its older fingerprint)",
+    "scripts/run_segnorm_baseline.py": "provenance.json (its own 'environment' key is the older package fingerprint)",
     "scripts/s4_unet_train.py": "run.json of the finished run",
     "scripts/s_diag_predict.py": "run.json",
     "scripts/s4_dino_saliency.py": "run.json",
@@ -93,18 +95,18 @@ WRITES_JSON = re.compile(r"json\.dump\(|write_text\(\s*json\.dumps|\bwrite_\w*js
 
 
 
-def _calls_snapshot(path: Path) -> bool:
-    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
-        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
-                and node.func.attr == "snapshot" and isinstance(node.func.value, ast.Name)
-                and node.func.value.id == "run_environment"):
-            return True
-    return False
+def _run_environment_calls(path: Path) -> set[str]:
+    """Names of ``run_environment.<name>(...)`` calls in a script."""
+    return {node.func.attr for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name) and node.func.value.id == "run_environment"}
 
 
 @pytest.mark.parametrize("script", sorted(WIRED))
-def test_every_wired_script_embeds_the_environment_block(script):
-    assert _calls_snapshot(ROOT / script), f"{script} writes a result JSON without run_environment.snapshot()"
+def test_every_wired_script_writes_an_environment_sidecar(script):
+    calls = _run_environment_calls(ROOT / script)
+    assert "write_sidecar" in calls, f"{script} writes a result JSON without run_environment.write_sidecar()"
+    assert "snapshot" not in calls, f"{script} puts the block inside a result, where it changes its sha256"
 
 
 def test_every_json_writing_script_is_wired_or_exempt_with_a_reason():
@@ -124,3 +126,78 @@ def test_the_detector_sees_a_multiline_write():
     assert WRITES_JSON.search('out.write_text(\n    json.dumps(doc), encoding="utf-8")')
     assert WRITES_JSON.search("eval_report.write_summary_json(path, m, meta)")
     assert not WRITES_JSON.search("print(json.dumps(doc))")
+
+
+def _tracked_json() -> list[Path]:
+    import subprocess
+
+    out = subprocess.run(["git", "-C", str(ROOT), "ls-files", "*.json"], capture_output=True, text=True, check=True)
+    return [ROOT / line for line in out.stdout.split()]
+
+
+def test_no_committed_result_carries_the_block_inside():
+    import json
+
+    inside = []
+    for path in _tracked_json():
+        if path.name.endswith(".environment.json"):
+            continue
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if isinstance(doc, dict) and isinstance(doc.get("environment"), dict) and "schema" in doc["environment"]:
+            inside.append(str(path.relative_to(ROOT)))
+    assert not inside, f"environment block inside a hashed result: {inside}"
+
+
+# Committed artifacts other guards or documents pin by sha256: the move to a
+# sidecar must not change a single byte of them.
+PINNED = {
+    "resultados/clasificacion/v71/selection.json":
+        "24e24e4ee6b97717e1bb79ac4e7dfa6447c69c7e40b222a5c40b02cb49af0ec1",
+}
+
+
+@pytest.mark.parametrize("rel", sorted(PINNED))
+def test_pinned_committed_artifacts_keep_their_sha256(rel):
+    import hashlib
+
+    assert hashlib.sha256((ROOT / rel).read_bytes()).hexdigest() == PINNED[rel]
+
+
+def _recorded_file_shas(node, found: list) -> None:
+    """(path, sha256) pairs a committed JSON records for files: {path: sha} or {path:, sha256:}."""
+    if isinstance(node, list):
+        for item in node:
+            _recorded_file_shas(item, found)
+    if not isinstance(node, dict):
+        return
+    if isinstance(node.get("path"), str) and isinstance(node.get("sha256"), str):
+        found.append((node["path"], node["sha256"]))
+    for key, value in node.items():
+        if isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) and "/" in key:
+            found.append((key, value))
+        _recorded_file_shas(value, found)
+
+
+def test_every_sha256_a_committed_json_records_for_a_committed_file_still_matches():
+    import hashlib
+    import json
+
+    checked, stale = 0, []
+    for path in _tracked_json():
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            continue
+        found: list = []
+        _recorded_file_shas(doc, found)
+        for rel, sha in found:
+            target = ROOT / rel
+            if not target.is_file():
+                continue  # a pod path: not in the repository, nothing to recompute here
+            checked += 1
+            if hashlib.sha256(target.read_bytes()).hexdigest() != sha:
+                stale.append(f"{path.relative_to(ROOT)} -> {rel}")
+    assert checked >= 7 and not stale, stale

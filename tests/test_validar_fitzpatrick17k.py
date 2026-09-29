@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from PIL import Image
+from env_sidecar import sidecar_env  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
@@ -134,7 +135,7 @@ def test_run_writes_report_matching_evaluated_images(tmp_path):
 
     report = json.loads(out_json.read_text(encoding="utf-8"))
     assert report["schema_version"] == "1.0"
-    assert report["environment"]["schema"] == 1
+    assert sidecar_env(out_json)["schema"] == 1
     assert report["n_ground_truth"] == 3
     assert report["n_images_found"] == 2
     assert report["n_images_missing"] == 1

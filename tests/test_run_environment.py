@@ -140,3 +140,10 @@ def test_a_sidecar_for_a_missing_result_is_refused(tmp_path):
 
     with pytest.raises(FileNotFoundError):
         re_.write_sidecar(tmp_path / "nothing.json", environment={})
+
+
+def test_read_sidecar_returns_the_block_or_none(tmp_path):
+    path = tmp_path / "grid.json"
+    assert re_.read_sidecar(path) is None
+    _write_result(path, {}, {"schema": 1})
+    assert re_.read_sidecar(path) == {"schema": 1}

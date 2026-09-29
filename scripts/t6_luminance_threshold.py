@@ -307,9 +307,9 @@ def main(argv: list[str] | None = None) -> int:
     doc["provenance"] = {"registration_commit": registration, "code_revision": revision,
                          "manifest": str(args.manifest),
                          "probabilities": {d: str(p) for d, p in zip(DATASETS, (args.probs_ham, args.probs_isic))}}
-    doc["environment"] = run_environment.snapshot(args)
     (out / JSON_FILE).write_text(json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False) + "\n",
                                  encoding="utf-8")
+    run_environment.write_sidecar(out / JSON_FILE, args)
     (out / TABLE_FILE).write_text(render_markdown(doc), encoding="utf-8")
     print(f"-> {out}")
     return 0

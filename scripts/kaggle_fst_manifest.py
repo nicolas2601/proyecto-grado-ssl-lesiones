@@ -299,8 +299,9 @@ def run(args: argparse.Namespace) -> int:
             }
         )
 
-    fst_manifest = {**build_fst_manifest(fst_records), "environment": run_environment.snapshot(args)}
+    fst_manifest = build_fst_manifest(fst_records)
     write_fst_manifest(fst_manifest, Path(args.output_json))
+    run_environment.write_sidecar(args.output_json, args)
     if args.output_csv:
         write_manifest(rows, Path(args.output_csv))
         print(f"se escribieron {len(rows)} filas CSV heredadas en {args.output_csv}")

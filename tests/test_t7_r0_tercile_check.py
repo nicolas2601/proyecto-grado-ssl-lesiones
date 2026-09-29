@@ -16,6 +16,7 @@ import seg_paths  # noqa: F401
 import evaluate_segmentation as es
 from dermssl import pad_ufes_guard as pg
 from scripts import t7_r0_tercile_check as t7r
+from env_sidecar import sidecar_env  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 SIZE = 8
@@ -149,7 +150,7 @@ def test_the_runner_writes_the_json_and_a_table_generated_from_it(tmp_path, monk
     assert doc["analysis"]["terciles"]["dark"]["n_excluded"] == 1
     assert doc["analysis"]["terciles"]["dark"]["dice_binary"] == pytest.approx(2 * 16 / (16 + 20))
     assert doc["provenance"]["registration_commit"] == "r" * 40
-    assert "environment" in doc
+    assert sidecar_env(out / t7r.JSON_FILE)["schema"] == 1
     assert (out / t7r.TABLE_FILE).read_text(encoding="utf-8") == t7r.render_markdown(doc)
     with open(out / t7r.ROWS_FILE, newline="") as handle:
         assert len(list(csv.DictReader(handle))) == 5

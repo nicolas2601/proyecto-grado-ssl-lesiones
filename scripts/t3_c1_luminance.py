@@ -228,9 +228,9 @@ def main(argv: list[str] | None = None) -> int:
     write_terciles(terciles_csv, t2.extract_terciles(args.manifest.expanduser(), set(val_ids)))
     doc = build_document(inputs, terciles_csv, n_resamples=args.n_resamples, seed=args.seed)
     doc["provenance"] = {"registration_commit": registration, "code_revision": revision}
-    doc["environment"] = run_environment.snapshot(args)
     (args.out / JSON_FILE).write_text(json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False) + "\n",
                                       encoding="utf-8")
+    run_environment.write_sidecar(args.out / JSON_FILE, args)
     (args.out / TABLE_FILE).write_text(render_markdown(doc), encoding="utf-8")
     print(f"-> {args.out}")
     return 0
