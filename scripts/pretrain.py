@@ -38,6 +38,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from dermssl.pretrain import config as config_mod  # noqa: E402
+from dermssl.pretrain import launch_guards  # noqa: E402
 from dermssl.pretrain import tracking  # noqa: E402
 from dermssl.cli import build_spanish_parser  # noqa: E402
 
@@ -171,8 +172,19 @@ def resolve_wandb_module(wandb_project: str, importer=importlib.import_module):
     return tracking.require_wandb(wandb_project, importer=importer)
 
 
+def check_launch(args: argparse.Namespace, env=os.environ) -> None:
+    """Launch guards; a smoke validates wiring only and records no result."""
+    if not args.smoke:
+        head = launch_guards.repo_head(Path(__file__).resolve().parents[1])
+        launch_guards.require_code_revision(env, head)
+
+
 def main() -> None:
     args = parse_args()
+    try:
+        check_launch(args)
+    except launch_guards.LaunchRefused as exc:
+        raise SystemExit(f"ABORT: {exc}") from exc
     cfg = build_config(args)
     cfg = config_mod.validate(cfg)  # Falla antes de usar torch o la GPU.
 
