@@ -65,6 +65,7 @@ for _extra in (REPO / "src", REPO / "scripts", REPO / "plan-segmentacion" / "com
 
 import dist_utils as du  # noqa: E402
 import s4_unet_loop as loop  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import torch_s4_unet as s4  # noqa: E402
 from s4_provenance import (  # noqa: E402
@@ -179,7 +180,8 @@ def main(argv: list[str] | None = None) -> int:
     summary = loop.train(run, config)
     if context.is_main:
         _write(output_dir / "timing.json", summary)
-        _write(output_dir / RUN_FILE, {**record, "result": summary, "complete": True})
+        _write(output_dir / RUN_FILE, {**record, "result": summary, "complete": True,
+                                       "environment": run_environment.snapshot(args)})
     du.cleanup(context)
     return 0
 

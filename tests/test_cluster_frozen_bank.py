@@ -362,6 +362,8 @@ def test_end_to_end_smoke_writes_consistent_outputs(tmp_path, monkeypatch):
     assert on_disk["backbones"]["tiny"]["frozen_trainable_params"] == 0
     assert on_disk["backbones"]["tiny"]["dim"] == 8
     assert on_disk["split"]["overlap_lesions"] == 0
+    assert on_disk["environment"]["schema"] == 1
+    assert "environment" not in json.loads((output_dir / "strata.json").read_text())
     assert len(on_disk["rows"]) > 0
     assert "tiny" in on_disk["strata"]
     assert set(on_disk["strata"]["tiny"]["labels"]) >= {"unavailable"}

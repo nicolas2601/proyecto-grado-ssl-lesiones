@@ -90,6 +90,7 @@ def test_builder_writes_a_ccam_shaped_float16_saliency_and_provenance(tmp_path, 
     assert record["pool"]["manifest_sha256"] == ds.sha256_file(tmp_path / "cache" / "manifest.csv")
     assert record["rule"].startswith("S-diag primary")
     assert record["reads_masks_or_labels"] is False
+    assert record["environment"]["schema"] == 1
     assert fake_backbone == [("dinov2_vitb14", "public")]
 
 

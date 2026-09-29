@@ -36,6 +36,16 @@ WIRED = {
     "scripts/t6_luminance_threshold.py": "t6 luminance-threshold JSON",
     "scripts/seg_paired_bootstrap.py": "the paired segmentation bootstrap JSON",
     "plan-segmentacion/comun/evaluacion/evaluate_segmentation.py": "summary.json (via eval_report)",
+    "scripts/cluster_frozen_bank.py": "bank.json (strata.json stays a map of backbones)",
+    "scripts/kaggle_circle_stage2.py": "the CIRCLe Stage 2 result JSON",
+    "scripts/kaggle_fst_manifest.py": "the FST manifest inferred on Kaggle",
+    "scripts/release_parity.py": "parity.json",
+    "scripts/run_segnorm_baseline.py": "provenance.json under run_environment ('environment' is its older fingerprint)",
+    "scripts/s4_unet_train.py": "run.json of the finished run",
+    "scripts/s_diag_predict.py": "run.json",
+    "scripts/s4_dino_saliency.py": "run.json",
+    "scripts/s4_predict_pool.py": "run.json",
+    "scripts/c1_predict_masks.py": "the masks manifest",
 }
 
 

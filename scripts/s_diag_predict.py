@@ -69,6 +69,7 @@ for _extra in (REPO / "src", REPO / "scripts", REPO / "plan-segmentacion" / "com
 
 import cluster_frozen_bank as bank  # noqa: E402
 import eval_inputs  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import s_diag as sd  # noqa: E402
 
@@ -256,7 +257,7 @@ def main(argv: list[str] | None = None) -> int:
     masks_dir = out / "masks"
     masks_dir.mkdir(parents=True)
     ids = predict(args, masks_dir, resolution)
-    record = run_record(args, resolution, ids, revision)
+    record = {**run_record(args, resolution, ids, revision), "environment": run_environment.snapshot(args)}
     (out / "run.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({k: record[k] for k in ("methods", "reference_set", "n_images")}))
     return 0

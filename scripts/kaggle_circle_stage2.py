@@ -24,7 +24,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from dermssl import circle, metrics  # noqa: E402
+from dermssl import circle, metrics, run_environment  # noqa: E402
 from dermssl.cli import build_spanish_parser  # noqa: E402
 
 SMOKE_EPOCHS = 2
@@ -295,7 +295,7 @@ def main(argv: list[str] | None = None) -> None:
     except ValueError as exc:
         raise SystemExit(f"error de configuración: {exc}") from exc
     output = Path(args.output_json)
-    _write_json(output, result)
+    _write_json(output, {**result, "environment": run_environment.snapshot(args)})
     print(f"se escribió {output} | estado={result['status']}")
 
 

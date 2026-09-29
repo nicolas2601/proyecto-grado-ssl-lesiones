@@ -106,6 +106,7 @@ from dermssl import c1_extraction as ex  # noqa: E402
 from dermssl import c1_mask_export as mx  # noqa: E402
 from dermssl import c1_mask_provenance as mp  # noqa: E402
 from dermssl import cli_args  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl.pretrain import tracking  # noqa: E402
 
 IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png")
@@ -622,6 +623,7 @@ def main() -> int:
             "upsample": UPSAMPLE,
         },
     )
+    manifest["environment"] = run_environment.snapshot(args)
     (output_dir / MANIFEST_NAME).write_text(
         json.dumps(manifest, indent=1, ensure_ascii=False), encoding="utf-8"
     )

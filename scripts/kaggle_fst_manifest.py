@@ -40,6 +40,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from dermssl import run_environment  # noqa: E402
 from dermssl.cli import build_spanish_parser  # noqa: E402
 
 # Orden de columnas de fst_manifest.csv (D4 en design.md: esquema GPU/CPU).
@@ -298,7 +299,7 @@ def run(args: argparse.Namespace) -> int:
             }
         )
 
-    fst_manifest = build_fst_manifest(fst_records)
+    fst_manifest = {**build_fst_manifest(fst_records), "environment": run_environment.snapshot(args)}
     write_fst_manifest(fst_manifest, Path(args.output_json))
     if args.output_csv:
         write_manifest(rows, Path(args.output_csv))

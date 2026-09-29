@@ -80,6 +80,7 @@ def test_training_uses_the_student_split_and_its_exclusions(pool, tmp_path):
     assert record["training"]["n_train_confident"] == COUNT - 3  # 2 val + 1 all-ignore
     assert record["training"]["n_val_confident"] == 2
     assert record["complete"] is True and record["code_revision"] == "c0ffee"
+    assert record["environment"]["torch"]["loaded"] is True
     assert record["pseudo_masks"]["sha256"] == st.sha256_file(pool[1])
     assert record["seed"] == 42 and record["variant"] == "A2"
     assert record["evaluation_regime"].startswith("transductive without labels")

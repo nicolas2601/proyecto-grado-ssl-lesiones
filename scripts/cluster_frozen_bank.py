@@ -24,6 +24,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from dermssl import run_environment  # noqa: E402
 from dermssl.data_resolver import index_images  # noqa: E402
 from dermssl.feature_cache import FeatureCache, cache_key  # noqa: E402
 from dermssl.label_regimes import build_regimes, stratified_regime_indices  # noqa: E402
@@ -412,9 +413,10 @@ def render_markdown(bank: dict) -> str:
         lines += _strata_table(backbone, entry)
     return "\n".join(lines) + "\n"
 
-def write_outputs(output_dir: Path, bank: dict, rows: list[dict]) -> None:
+def write_outputs(output_dir: Path, bank: dict, rows: list[dict], environment=None) -> None:
+    """``environment`` goes in bank.json; strata.json stays a map of backbones."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    safe_bank = json_safe(bank)
+    safe_bank = json_safe({**bank, "environment": environment or run_environment.snapshot()})
     (output_dir / "bank.json").write_text(json.dumps(safe_bank, indent=2) + "\n", encoding="utf-8")
     (output_dir / "strata.json").write_text(
         json.dumps(json_safe(bank["strata"]), indent=2) + "\n", encoding="utf-8")
@@ -518,7 +520,7 @@ def main(argv: list[str] | None = None) -> dict:
                     "classes": split["classes"], "overlap_lesions": split["overlap_lesions"]},
         rows=rows, strata=strata,
     )
-    write_outputs(Path(args.output_dir), bank, rows)
+    write_outputs(Path(args.output_dir), bank, rows, environment=run_environment.snapshot(args))
     maybe_log_wandb(args, rows, strata)
     return bank
 

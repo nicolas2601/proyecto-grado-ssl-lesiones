@@ -3,7 +3,7 @@ r"""Pod check: ``s_diag_predict.py --workers N`` writes the serial run's masks.
 Runs the predictor twice on the first ``--limit`` sorted images, once with
 ``--workers 1`` (the serial path) and once with ``--workers N``, then compares
 every mask PNG by sha256 and ``run.json`` field by field, ignoring only the
-runtime fields (``workers``). Prints PASS or FAIL with every difference and
+runtime fields (``workers`` and the ``environment`` block). Prints PASS or FAIL with every difference and
 exits 0 or 1. Every other argument goes to the predictor unchanged::
 
     cd ~/work/proyectonp/repo_v7 && source ~/work/proyectonp/.venv/bin/activate
@@ -27,7 +27,7 @@ import time
 from pathlib import Path
 
 PREDICT = Path(__file__).resolve().with_name("s_diag_predict.py")
-RUNTIME_FIELDS = frozenset({"workers"})
+RUNTIME_FIELDS = frozenset({"workers", "environment"})
 
 
 def _mask_digests(masks_dir: Path) -> dict[str, str]:

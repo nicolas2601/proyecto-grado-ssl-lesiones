@@ -19,6 +19,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from dermssl import run_environment  # noqa: E402
+
 
 def _records(path: Path) -> list[dict[str, str]]:
     if path.suffix.lower() == ".json":
@@ -460,6 +462,7 @@ def run(argv: list[str] | None = None) -> list[dict]:
             "source_files": source_tree["files"],
             "source_tree": source_tree,
             "environment": environment,
+            "run_environment": run_environment.snapshot(args),
         }
         provenance_path = staging / "provenance.json"
         _ensure_inside(provenance_path, staging)

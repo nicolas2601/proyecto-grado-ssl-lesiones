@@ -133,6 +133,7 @@ def test_run_json_records_the_provenance(tmp_path, fake_backbone):
     images, _ = _write_set(tmp_path, count=2)
     record = json.loads((_run(tmp_path, images, "primary") / "run.json").read_text())
     assert record["methods"] == ["primary"]
+    assert record["environment"]["knobs"]["workers"] == record["workers"]
     assert record["input_resolution"] == 224 and record["mask_resolution"] == 224
     assert record["backbone"] == {"name": "public", "spec": "dinov2_vitb14:public",
                                   "weights_sha256": "public"}

@@ -90,6 +90,7 @@ for _extra in (REPO / "src", REPO / "scripts", _SEG / "evaluacion", _SEG / "nucl
     if str(_extra) not in sys.path:
         sys.path.insert(0, str(_extra))
 
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from s4_provenance import pool_fingerprint, sha256_file  # noqa: E402
 
@@ -218,7 +219,7 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(_threshold_stats(args, count), indent=2) + "\n", encoding="utf-8")
     names = [PREDICTIONS_FILE, *([THRESHOLD_MASKS_FILE] if args.threshold_masks else [])]
     outputs = {name: sha256_file(out / name) for name in names}
-    record = run_record(args, fingerprint, count, seconds, revision, outputs)
+    record = {**run_record(args, fingerprint, count, seconds, revision, outputs), "environment": run_environment.snapshot(args)}
     (out / RUN_FILE).write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"n": count, "seconds": seconds,
                       "images_per_second": record["images_per_second"]}))

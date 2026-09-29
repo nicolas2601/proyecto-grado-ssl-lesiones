@@ -35,6 +35,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "scripts"))
 
+from dermssl import run_environment  # noqa: E402
 from dermssl.release import package  # noqa: E402
 
 FORMS = ("torch", "transformers", "onnx")
@@ -170,7 +171,8 @@ def main(argv=None) -> int:
                            eval_proba, head_proba, release["cuda_fp16_autocast"])
     report.update(model=release["model"], device=args.device, note=AUTOCAST_NOTE,
                   build_device=release["device"],
-                  preprocess_max_abs_diff=preprocess_check(val_ids, index, args.n_images))
+                  preprocess_max_abs_diff=preprocess_check(val_ids, index, args.n_images),
+                  environment=run_environment.snapshot(args))
     package.write_json(args.model_dir / "parity.json", report)
     fp16 = report["deployment_metrics"].get("onnx_fp16", {}).get("gate", {}).get("publish", False)
     print(json.dumps(report["gates"], indent=1), f"\nfp16 publish: {fp16}")

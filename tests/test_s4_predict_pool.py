@@ -89,6 +89,7 @@ def test_provenance_pins_checkpoint_pool_revision_and_output(tmp_path):
     run = json.loads((out / pp.RUN_FILE).read_text(encoding="utf-8"))
     assert run["checkpoint"]["sha256"] == sha256_file(checkpoint)
     assert run["checkpoint"]["arch"] == s4.ARCH
+    assert run["environment"]["torch"]["loaded"] is True
     assert run["pool"]["manifest_sha256"] == sha256_file(cache / "manifest.csv")
     assert run["pool"]["n_images"] == COUNT and run["n"] == COUNT
     assert run["code_revision"] == "c0ffee"

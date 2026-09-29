@@ -50,6 +50,7 @@ for _extra in (REPO / "src", REPO / "scripts", REPO / "plan-segmentacion" / "com
     if str(_extra) not in sys.path:
         sys.path.insert(0, str(_extra))
 
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import s_diag as sd  # noqa: E402
 from s4_provenance import (  # noqa: E402
@@ -212,7 +213,7 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"ABORT: {exc}") from exc
     out.mkdir(parents=True)
     results = build(args.cache_dir, out / SALIENCY_FILE, fingerprint["n_images"], args)
-    record = run_record(args, fingerprint, results, revision)
+    record = {**run_record(args, fingerprint, results, revision), "environment": run_environment.snapshot(args)}
     (out / "run.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"images": fingerprint["n_images"], "seconds": record["compute_seconds"]}))
     return 0
