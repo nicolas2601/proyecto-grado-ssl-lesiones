@@ -168,6 +168,36 @@ class TestRunConsistency:
         with pytest.raises(ValueError, match="exclude"):
             fe.check_runs_consistent({"plain": self._run(), "proposed": self._run(sha="y")})
 
+    @pytest.mark.parametrize("missing", [None, ""])
+    def test_a_missing_revision_is_not_equal_to_another_missing_one(self, missing):
+        with pytest.raises(ValueError, match="code_revision"):
+            fe.check_runs_consistent({"plain": self._run(rev=missing), "proposed": self._run(rev=missing)})
+
+
+class TestSameSeed:
+    def test_one_seed_passes(self):
+        fe.check_same_seed({"plain": {"seed": 44}, "proposed": {"seed": 44}})
+
+    def test_finals_of_different_seeds_refuse(self):
+        with pytest.raises(ValueError, match="semilla"):
+            fe.check_same_seed({"plain": {"seed": 44}, "proposed": {"seed": 43}})
+
+    def test_a_run_without_seed_refuses(self):
+        with pytest.raises(ValueError, match="semilla"):
+            fe.check_same_seed({"plain": {"seed": 44}, "proposed": {}})
+
+
+def test_val_guard_refuses_finals_of_two_seeds(monkeypatch):
+    import c1_final_eval as ev
+    from dermssl.feature_cache import fingerprint_ids
+
+    monkeypatch.setattr(fe, "C1_TRAIN_FINGERPRINT", fingerprint_ids(["a"]))
+    monkeypatch.setattr(fe, "C1_VAL_FINGERPRINT", fingerprint_ids(["b"]))
+    runs = {"plain": {"code_revision": "f1", "exclude_ids_sha256": "e", "seed": 44},
+            "proposed": {"code_revision": "f1", "exclude_ids_sha256": "e", "seed": 43}}
+    with pytest.raises(ValueError, match="semilla"):
+        ev.guard_val({"train_ids": ["a"], "val_ids": ["b"]}, runs, "e")
+
 
 def test_val_guard_refuses_a_final_trained_with_another_exclusion(monkeypatch):
     import c1_final_eval as ev
@@ -175,7 +205,7 @@ def test_val_guard_refuses_a_final_trained_with_another_exclusion(monkeypatch):
 
     monkeypatch.setattr(fe, "C1_TRAIN_FINGERPRINT", fingerprint_ids(["a"]))
     monkeypatch.setattr(fe, "C1_VAL_FINGERPRINT", fingerprint_ids(["b"]))
-    runs = {r: {"code_revision": "f1", "exclude_ids_sha256": "old"} for r in ("plain", "proposed")}
+    runs = {r: {"code_revision": "f1", "exclude_ids_sha256": "old", "seed": 42} for r in ("plain", "proposed")}
     with pytest.raises(ValueError, match="exclude"):
         ev.guard_val({"train_ids": ["a"], "val_ids": ["b"]}, runs, "new")
     ev.guard_val({"train_ids": ["a"], "val_ids": ["b"]}, runs, "old")

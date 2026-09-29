@@ -88,6 +88,7 @@ def guard_val(split: dict, runs: dict, exclude_sha: str) -> None:
     """Val is read once, so every precondition is checked before any extraction."""
     fe.check_val_protocol(split["train_ids"], split["val_ids"])
     fe.check_runs_consistent(runs)
+    fe.check_same_seed(runs)
     for role, run in runs.items():
         if run.get("exclude_ids_sha256") != exclude_sha:
             raise ValueError(f"{role}: el run.json no uso el exclude {exclude_sha[:12]}")

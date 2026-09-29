@@ -152,5 +152,19 @@ def check_runs_consistent(runs: dict) -> None:
     """All finals must share one code revision and one exclusion list."""
     for key, label in (("code_revision", "code_revision"), ("exclude_ids_sha256", "exclude sha")):
         values = {role: run.get(key) for role, run in runs.items()}
+        if not all(values.values()):
+            # None == None is not "the same revision": it is two unknowns.
+            raise ValueError(f"{label} ausente en algun run.json: {values}")
         if len(set(values.values())) != 1:
             raise ValueError(f"{label} distinto entre finales: {values}")
+
+
+def check_same_seed(runs: dict) -> None:
+    """A* and B* of one evaluation must come from one pretraining seed.
+
+    Kept apart from ``check_runs_consistent``: v7.1 reads the finals of both
+    seeds together and must still pass that one.
+    """
+    seeds = {role: run.get("seed") for role, run in runs.items()}
+    if None in seeds.values() or len(set(seeds.values())) != 1:
+        raise ValueError(f"semilla distinta o ausente entre finales: {seeds}")
