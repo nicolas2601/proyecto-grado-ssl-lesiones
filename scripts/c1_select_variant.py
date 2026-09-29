@@ -35,7 +35,7 @@ from c1_build_val_index import rebuild_split  # noqa: E402
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import metrics as _metrics  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
-from dermssl import probes  # noqa: E402
+from dermssl import probe_threads, probes  # noqa: E402
 from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import selection_holdout as sh  # noqa: E402
@@ -73,7 +73,7 @@ def score(spec: str, holdout: dict, image_index, id2label, device, args) -> dict
     x_fit, y_fit = extract(holdout["fit_ids"])
     x_hold, y_hold = extract(holdout["holdout_ids"])
     n_classes = int(max(y_fit.max(), y_hold.max())) + 1
-    proba = probes.run_probe(PROBE, x_fit, y_fit, x_hold, n_classes)
+    proba = probe_threads.call_pinned(probes.run_probe, PROBE, x_fit, y_fit, x_hold, n_classes)
     summary = _metrics.summarize(y_hold, proba, n_classes)
     print(f"{name}: " + " | ".join(f"{k} {summary[k]:.4f}" for k in REPORTED))
     return {
@@ -140,7 +140,7 @@ def main() -> int:
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1), encoding="utf-8")
-    run_environment.write_sidecar(out, args)
+    run_environment.write_sidecar(out, args, loky_inner_threads=probe_threads.PROBE_BLAS_THREADS)
     # Probabilities kept so later contrasts need no second feature extraction.
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y_hold, **probas)
     print(f"ganadora: {winner} -> {out}")
