@@ -60,6 +60,18 @@ def test_the_strata_show_k_over_the_resamples(document):
     assert k > 0 and f"no calculable ({k}/20)" in text
 
 
+def test_the_strata_arm_cells_show_k_exactly_over_1000(document):
+    doc = json.loads(json.dumps(document))
+    doc["bootstrap"]["n_resamples"] = 1000
+    stratum = doc["fst_strata"]["bins"]["II"]
+    arm = stratum["arms"][pa.A71]
+    arm["n_nonfinite"]["ece"], arm["ci95"]["ece"] = 7, pa.NOT_CALCULABLE
+    row = stratum["paired"][0]
+    row.update(n_nonfinite=6, ci95_low=None, ci95_high=None, excludes_zero=None, reading=pa.NOT_CALCULABLE)
+    text = bt.render(doc)
+    assert "no calculable (7/1000)" in text and "no calculable (6/1000)" in text
+
+
 def test_the_table_is_descriptive_only(document):
     text = bt.render(document)
     assert not re.search(r"\bmejora|\bgana|PAD-P", text, re.IGNORECASE)  # the FST note says "sin veredicto"
