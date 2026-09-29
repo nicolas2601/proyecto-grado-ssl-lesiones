@@ -36,7 +36,8 @@ NO_PARITY = ("Not in this copy: the métricas de despliegue are written into the
              "`MODEL_CARD.md` by `scripts/finalize_release.py`, from each model's `parity.json`.")
 
 
-_NUMBER_EN = {2: "two", 4: "four", 6: "six", 8: "eight"}
+_NUMBER_EN = {2: "two", 3: "three", 4: "four", 6: "six", 8: "eight"}
+MET = "cumplida"
 
 
 def _models_text(arm: str) -> str:
@@ -96,6 +97,28 @@ def deployment_table(parity_root: Path | None) -> str:
     return "\n".join(lines)
 
 
+def _met_count(docs: dict, key: str) -> int:
+    return sum(doc["predictions"][key]["verdict"] == MET for doc in docs.values())
+
+
+def _with_seeds(met: int, n: int) -> str:
+    return f"all {_NUMBER_EN.get(n, str(n))} seeds" if met == n else f"{met} of {n} seeds"
+
+
+def reading(docs: dict) -> str:
+    """The docs/28 §5.1 reading, counted over every registered seed instead of typed."""
+    n = len(docs)
+    wins, tone = _met_count(docs, "P3-IC"), _met_count(docs, "P2")
+    f1 = [doc["results"]["plain"]["macro_f1"] for doc in docs.values()]
+    effect = sum(doc["predictions"]["P1"]["evidence"]["macro_f1"]["point_delta"] for doc in docs.values()) / n
+    tone_text = ("the tone term adds nothing measurable over A\\* with any seed (P2 not met)" if tone == 0
+                 else f"P2 met with {tone} of {n} seeds")
+    return (f"Reading (docs/28 §5.1): B\\* beats public DINOv2 in macro-F1 with {_with_seeds(wins, n)} "
+            f"(interval above zero); {tone_text}; A\\* macro-F1 spans {max(f1) - min(f1):.4f} across seeds "
+            f"(max - min) against a mean A\\* - public difference of {effect:+.4f}, so the size of the effect "
+            "is uncertain.")
+
+
 def load() -> tuple[dict, dict]:
     docs, probas = {}, {}
     for seed, path in FINAL.items():
@@ -109,6 +132,7 @@ def render(parity_root: Path | None = None) -> str:
     docs, probas = load()
     values = {
         "metrics_table": metrics_table(docs, probas),
+        "reading": reading(docs),
         "deployment_table": deployment_table(parity_root),
         "n_val": str(docs[seeds.BASE_SEED]["n_eval"]),
         "n_models": _NUMBER_EN.get(len(MODELS) * len(FINAL), str(len(MODELS) * len(FINAL))).capitalize(),

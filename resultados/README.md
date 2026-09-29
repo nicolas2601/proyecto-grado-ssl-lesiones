@@ -10,10 +10,11 @@ clasificador. Que gano, que perdio, y como mejorarlo.
 
 | Resultado | Tabla (generada) | Datos | Estado |
 |---|---|---|---|
-| v7: las dos semillas combinadas (lectura principal) | [clasificacion/v7/SEMILLAS.md](clasificacion/v7/SEMILLAS.md) | los dos `final_eval.json` | Vigente |
+| v7: las tres semillas combinadas (lectura principal) | [clasificacion/v7/SEMILLAS.md](clasificacion/v7/SEMILLAS.md) | los tres `final_eval.json` | Vigente |
 | v7: evaluación única A\*, B\* y DINOv2 público sobre val, semilla 42 | [clasificacion/v7/README.md](clasificacion/v7/README.md) | `clasificacion/v7/final_eval.json` | Vigente |
 | v7: réplica con semilla 43 (registrada en docs/28 §4.1) | [clasificacion/v7/s43/README.md](clasificacion/v7/s43/README.md) | `clasificacion/v7/s43/final_eval.json` | Vigente |
-| Clasificador: v6, C1 y v7 lado a lado, con matriz de confusión, F1 y recall por clase y melanoma | [clasificacion/TABLA_CLASIFICADOR.md](clasificacion/TABLA_CLASIFICADOR.md) | `clasificacion/bank.json`, `clasificacion/c1/c1_cells.json`, los dos `final_eval.json` y `final_eval.probas.npz` | Vigente |
+| v7: réplica con semilla 44 (registrada en docs/29 §2.5), con su procedencia (control s42 y arranque abortado) | [clasificacion/v7/s44/README.md](clasificacion/v7/s44/README.md) | `clasificacion/v7/s44/final_eval.json`, `clasificacion/v7/s44/eval_provenance.json` | Vigente |
+| Clasificador: v6, C1 y v7 lado a lado, con matriz de confusión, F1 y recall por clase y melanoma | [clasificacion/TABLA_CLASIFICADOR.md](clasificacion/TABLA_CLASIFICADOR.md) | `clasificacion/bank.json`, `clasificacion/c1/c1_cells.json`, los tres `final_eval.json` y `final_eval.probas.npz` | Vigente |
 | Segmentación: estudiante final (Dice, IoU, HD95) y pseudo-máscaras v7 contra los umbrales de docs/27 | [segmentacion/TABLA_SEGMENTACION.md](segmentacion/TABLA_SEGMENTACION.md) | `summary.json` y `*_stats.json` de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
 | Cierre: pedidos del profesor y plan de Pau → qué se hizo → resultado, con veredicto por regla | [TABLA_CIERRE.md](TABLA_CIERRE.md) | los JSON de `clasificacion/` y de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
 | C1: grilla de condiciones de máscara por backbone | [clasificacion/c1/README.md](clasificacion/c1/README.md) | `clasificacion/c1/*.json` | Vigente |

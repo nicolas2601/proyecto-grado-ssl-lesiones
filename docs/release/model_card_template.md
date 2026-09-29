@@ -25,7 +25,7 @@ Validation: C1 fold-0 val of HAM10000, n = {{n_val}}, scored once per seed (docs
 
 {{metrics_table}}
 
-Reading (docs/28 §5.1): B\* beats public DINOv2 in macro-F1 with both seeds (interval above zero); the tone term adds nothing measurable over A\*; A\* moved about 0.04 macro-F1 between seeds, as large as the effect itself, so the size of the effect is uncertain. Seed comparison: `resultados/clasificacion/v7/SEMILLAS.md`; per-class results and confusion matrices: `resultados/clasificacion/TABLA_CLASIFICADOR.md`.
+{{reading}} Seed comparison: `resultados/clasificacion/v7/SEMILLAS.md`; per-class results and confusion matrices: `resultados/clasificacion/TABLA_CLASIFICADOR.md`.
 
 These numbers are the evaluated models. The released files are re-exported from them; `parity.json` in each model folder records how closely each form reproduces them (rules below).
 

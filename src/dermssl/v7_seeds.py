@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-REGISTERED_SEEDS: tuple[int, ...] = (42, 43)
+REGISTERED_SEEDS: tuple[int, ...] = (42, 43, 44)
 BASE_SEED = REGISTERED_SEEDS[0]  # Its files and folders carry no seed suffix.
 V71_SOUP_SEEDS: tuple[int, ...] = (42, 43)  # Frozen: the v7.1 selection used this soup.
 

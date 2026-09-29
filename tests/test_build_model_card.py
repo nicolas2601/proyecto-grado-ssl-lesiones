@@ -16,7 +16,7 @@ def test_committed_model_card_is_fresh(text):
 
 
 def test_every_released_model_has_a_row_with_intervals(text):
-    for name in ("`A_s42`", "`A_s43`", "`B_s42`", "`B_s43`"):
+    for name in ("`A_s42`", "`A_s43`", "`A_s44`", "`B_s42`", "`B_s43`", "`B_s44`"):
         row = next(line for line in text.splitlines() if line.startswith(f"| {name}"))
         assert row.count("[") == len(bmc.COLUMNS)
 
@@ -78,3 +78,27 @@ def test_licencias_section_names_both_license_files_and_no_open_flags(text):
                    "challenge.isic-archive.com/data", "doi:10.7910/DVN/DBW86T"):
         assert phrase in text, phrase
     assert "verify before publishing" not in text
+
+
+def _reading_doc(p3ic: str, p2: str, a_f1: float, a_delta: float) -> dict:
+    return {"results": {"plain": {"macro_f1": a_f1}},
+            "predictions": {"P3-IC": {"verdict": p3ic}, "P2": {"verdict": p2},
+                            "P1": {"evidence": {"macro_f1": {"point_delta": a_delta}}}}}
+
+
+def test_the_reading_counts_the_seeds_it_is_given():
+    docs = {42: _reading_doc("cumplida", "no cumplida", 0.60, 0.02),
+            43: _reading_doc("cumplida", "no cumplida", 0.64, 0.06),
+            44: _reading_doc("no cumplida", "no cumplida", 0.62, 0.04)}
+    text = bmc.reading(docs)
+    assert "B\\* beats public DINOv2 in macro-F1 with 2 of 3 seeds" in text
+    assert "adds nothing measurable over A\\* with any seed" in text
+    assert "spans 0.0400 across seeds (max - min)" in text and "+0.0400" in text
+    docs[44] = _reading_doc("cumplida", "cumplida", 0.62, 0.04)
+    text = bmc.reading(docs)
+    assert "with all three seeds" in text and "P2 met with 1 of 3 seeds" in text
+
+
+def test_committed_card_carries_the_generated_reading(text):
+    docs, _ = bmc.load()
+    assert bmc.reading(docs) in text and "both seeds" not in text

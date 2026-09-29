@@ -4,15 +4,15 @@ Repositorio de trabajo para investigar la clasificación experimental de lesione
 
 ## Resultado principal (v7)
 
-La tabla principal es la [combinada de las dos semillas](resultados/clasificacion/v7/SEMILLAS.md): cada semilla por separado, la media y la diferencia s43 − s42. Detrás están las tablas de la [semilla 42](resultados/clasificacion/v7/README.md) y de la [réplica con semilla 43](resultados/clasificacion/v7/s43/README.md). Las tres se generan desde los `final_eval.json`, y un test falla si alguien edita un número a mano, así que acá no se copia ninguna cifra.
+La tabla principal es la [combinada de las tres semillas](resultados/clasificacion/v7/SEMILLAS.md): cada semilla por separado, la media y el rango (máx − mín). Detrás están las tablas de la [semilla 42](resultados/clasificacion/v7/README.md) y de las réplicas con [semilla 43](resultados/clasificacion/v7/s43/README.md) y [semilla 44](resultados/clasificacion/v7/s44/README.md). Todas se generan desde los `final_eval.json`, y un test falla si alguien edita un número a mano, así que acá no se copia ninguna cifra.
 
 Dos tablas generadas más, con el mismo test: la del [clasificador](resultados/clasificacion/TABLA_CLASIFICADOR.md) (v6, C1 y v7 lado a lado, y por clase: matriz de confusión, F1, recall y sensibilidad y AUC de melanoma) y la de [segmentación](resultados/segmentacion/TABLA_SEGMENTACION.md) (estudiante final contra las máscaras de referencia y pseudo-máscaras v7 contra los umbrales registrados en docs/27).
 
 Compara tres brazos sobre la validación del fold 0 de C1: DINOv2 público, SSL anclado sin tono (A\*) y SSL propuesto con tono (B\*). Usa un probe lineal, una sola evaluación e intervalos bootstrap del 95 %. Las predicciones se registraron antes de correrla ([docs/28 §5](docs/28-rediseno-brazo-propuesto-v7.md)).
 
-Lectura al 2026-09-28, con las dos semillas y sin elegir ninguna (regla en [docs/28 §4.1](docs/28-rediseno-brazo-propuesto-v7.md)):
-- B\* le gana al DINOv2 público en macro-F1 en las dos semillas, con intervalos que excluyen el cero.
-- A\* no pierde contra el público en ninguna.
+Lectura al 2026-09-29, con las tres semillas y sin elegir ninguna (regla en [docs/28 §4.1](docs/28-rediseno-brazo-propuesto-v7.md), extendida a tres semillas en [docs/29 §2.5](docs/29-plan-v7.1.md)):
+- B\* le gana al DINOv2 público en macro-F1 en las tres semillas, con intervalos que excluyen el cero.
+- A\* no pierde contra el público en ninguna (P1). La no inferioridad estricta (P1-NI) se cumple en s43 y s44 pero no en s42: no es robusta a la semilla.
 - B\* y A\* no se distinguen entre sí, y B\* no calibra mejor que A\*.
 - La variación entre semillas es del orden del efecto medido.
 
