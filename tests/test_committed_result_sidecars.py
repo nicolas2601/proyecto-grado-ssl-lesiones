@@ -37,6 +37,7 @@ PRODUCES = {
     "scripts/diagnostico_fst_comparativa.py": ("*diagnostico_fst*.json",),
     "scripts/kaggle_circle_stage2.py": ("*circle_stage2_results*.json",),
     "scripts/kaggle_fst_manifest.py": ("*/fst_manifest.json",),
+    "scripts/pad_ufes_addendum.py": ("*/pad_ufes_addendum_a71_s44.json",),
     "scripts/pad_ufes_eval.py": ("*/pad_ufes_eval.json",),
     "scripts/pad_ufes_fst_validation.py": ("*/pad_ufes_fst_validation.json",),
     "scripts/probe_convergence_check.py": ("*/probe_convergence.json",),
