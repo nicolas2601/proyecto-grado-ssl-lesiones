@@ -66,10 +66,11 @@ def _same(a, b) -> bool:
     return a.keys() == b.keys() and all(torch.equal(a[k], b[k]) for k in a)
 
 
-def test_k1_and_p0_train_exactly_a2s_weights(t7_pool, tmp_path):
+def test_k1_and_p0_train_exactly_a2s_weights(t7_pool, tmp_path, monkeypatch):
     pool, manifest = t7_pool
     st.main(_argv(pool, tmp_path / "a2"))
-    st.main(_t7_argv(pool, manifest, tmp_path / "t7", "--no-oversample", "--darken-p", "0"))
+    monkeypatch.setitem(st.ga.DARKEN_DEFAULTS, "probability", 0.0)  # p = 0 is not a CLI option
+    st.main(_t7_argv(pool, manifest, tmp_path / "t7", "--no-oversample"))
     assert _same(_weights(tmp_path / "a2" / "last.pt"), _weights(tmp_path / "t7" / "last.pt"))
 
 
@@ -143,3 +144,11 @@ def test_seed_43_is_the_a2_recipe_with_another_seed(t7_pool, tmp_path):
     record = json.loads((tmp_path / "s43" / "run.json").read_text(encoding="utf-8"))
     assert record["variant"] == "A2" and record["seed"] == 43 and "t7" not in record
     assert np.isfinite(record["result"]["total_seconds"])
+
+
+@pytest.mark.parametrize("extra", [("--dark-oversample", "3"), ("--dark-oversample", "1"), ("--darken-p", "0.4")])
+def test_unregistered_factors_or_probabilities_cannot_be_launched(t7_pool, tmp_path, extra):
+    pool, manifest = t7_pool
+    with pytest.raises(SystemExit):
+        st.main(_t7_argv(pool, manifest, tmp_path / "x", *extra))
+    assert not (tmp_path / "x" / "run.json").exists()

@@ -134,11 +134,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--preload", action="store_true")
     parser.add_argument("--force-cpu", action="store_true")
     parser.add_argument("--tercile-manifest", default="", help="T7: fst_pseudo_manifest.csv (sha 57df1e65...)")
-    parser.add_argument("--dark-oversample", type=int, default=ls.REGISTERED_K, metavar="K",
-                        help="T7: copies of each dark-tercile row per epoch, at A2's budget")
+    parser.add_argument("--dark-oversample", type=int, default=ls.REGISTERED_K, choices=(ls.REGISTERED_K,),
+                        metavar="K", help="T7: copies of each dark-tercile row per epoch (only the registered 2)")
     parser.add_argument("--no-oversample", action="store_true", help="T7 arm (b): K = 1, augmentation only")
-    parser.add_argument("--darken-p", type=float, default=ga.DARKEN_DEFAULTS["probability"],
-                        help="T7: probability of the darkening augmentation (medium and light only)")
     add_tracking_arguments(parser)
     return parser.parse_args(argv)
 
@@ -194,7 +192,7 @@ def t7_setup(args, record: dict) -> tuple[loop.T7Plan | None, dict | None]:
     registration = _t7_guard(args, record)
     rows = read_manifest(Path(args.cache_dir) / "manifest.csv")
     labels = ls.terciles_by_row(rows, Path(args.tercile_manifest), ls.MANIFEST_SHA256)
-    darken = {**ga.DARKEN_DEFAULTS, "probability": args.darken_p}
+    darken = dict(ga.DARKEN_DEFAULTS)  # the registered darkening; no CLI override
     k = 1 if args.no_oversample else args.dark_oversample
     block = {"registration_commit": registration, "tercile_manifest_sha256": ls.MANIFEST_SHA256,
              "oversample_k": k, "darken": {key: list(v) if isinstance(v, tuple) else v for key, v in darken.items()}
