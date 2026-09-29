@@ -40,6 +40,7 @@ PRODUCES = {
     "scripts/pad_ufes_addendum.py": ("*/pad_ufes_addendum_a71_s44.json",),
     "scripts/pad_ufes_eval.py": ("*/pad_ufes_eval.json",),
     "scripts/pad_ufes_fst_validation.py": ("*/pad_ufes_fst_validation.json",),
+    "scripts/pad_ufes_wiseft.py": ("*/pad_ufes_wiseft.json",),
     "scripts/probe_convergence_check.py": ("*/probe_convergence.json",),
     "scripts/c1_thread_repro_check.py": ("*/c1_thread_repro.json",),
     "scripts/release_parity.py": ("*/parity.json",),

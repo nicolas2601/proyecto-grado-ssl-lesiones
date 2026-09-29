@@ -191,3 +191,15 @@ def build_document(probas7: dict, pad: dict, provenance: dict, ham_grid: dict) -
                        "bins": pr.fst_strata(*args, pad["fst_bins"], ordered, pairs)},
         "ham_holdout": {"scope": HAM_SCOPE, "curves": ham_curves(ham_grid)},
     }
+
+
+#: Points this curve shares with the first pass (docs/30 2): same weights, same protocol.
+FIRST_PASS_ROLES = {vp.PUBLIC: pr.PUBLIC, weights_of("A_s42", ADAPTED): pr.role("plain", 42),
+                    weights_of("A_s43", ADAPTED): pr.role("plain", 43)}
+
+
+def first_pass_agreement(probas7: dict, first_pass: dict) -> dict:
+    """Descriptive: largest probability gap to the first pass on the three points both computed."""
+    return {role: {"first_pass_role": old,
+                   "max_abs_diff": float(np.abs(np.asarray(probas7[role]) - np.asarray(first_pass[old])).max())}
+            for role, old in FIRST_PASS_ROLES.items()}

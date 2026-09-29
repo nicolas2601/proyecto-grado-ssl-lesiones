@@ -36,6 +36,7 @@ WIRED = {
     "scripts/pad_ufes_eval.py": "the PAD-UFES zero-shot evaluation JSON",
     "scripts/pad_ufes_addendum.py": "the PAD-UFES A71/s44 descriptive addendum JSON (docs/30 7)",
     "scripts/pad_ufes_fst_validation.py": "the PAD-UFES FST validation JSON",
+    "scripts/pad_ufes_wiseft.py": "the PAD-UFES WiSE-FT alpha curve JSON (docs/30 8)",
     "scripts/validar_fitzpatrick17k.py": "the Fitzpatrick17k validation report",
     "scripts/diagnostico_fst_comparativa.py": "the FST diagnostic manifest",
     "scripts/t2_luminance_dice.py": "t2 luminance-Dice JSON",
