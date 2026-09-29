@@ -76,3 +76,20 @@ No hay fine-tune ni reentrenamiento del probe en PAD, ni ajuste de umbrales, de 
 ## 4. Resultado
 
 Pendiente. Se completa después de la única evaluación, desde el JSON que genera `scripts/pad_ufes_eval.py`.
+
+## 5. Validación del estimador FST contra el fototipo de PAD (exploratoria, pedido T1 de Paula)
+
+**Registrado el 2026-09-28, antes de escribir el código y de computar nada.** Es un bloque aparte del de §2-3 y tiene su propio guard: `scripts/pad_ufes_fst_validation.py` se niega a correr si este bloque no está en un commit anterior al script o si cambió desde entonces.
+
+<!-- registro-pad-fst:inicio -->
+
+- **Qué se valida:** el estimador de fototipo del proyecto, ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`, `FST_THRESHOLDS`), contra la columna `fitspatrick` de PAD (1 a 6). Se usan las dos condiciones de docs/20: la imagen completa (`estimate_fst_whole_image`) y el fondo por Otsu (`estimate_fst` sin máscara, que cae al fallback Otsu). No se aplica constancia de color (`identity`, la corrida principal de docs/20). El cálculo por imagen y las métricas base son los de `scripts/validar_fitzpatrick17k.py` (`evaluate_image`, `accuracy_metrics`), no una segunda implementación.
+- **Qué es la referencia.** El artículo de PAD no dice quién asigna el fototipo: solo que las columnas que no son `patient_id`, `lesion_id`, `img_id`, `age`, `region` y `biopsed` dependen de lo que se relevó en la consulta. Alipour et al. 2026 la tratan como asignada por dermatólogo. En cualquier caso no es una medición del color de la piel, así que esto es un contraste externo y no una verdad clínica, igual que en docs/20.
+- **Filas:** una por imagen. Las imágenes sin fototipo válido (vacío o fuera de 1-6, según `dermssl.pad_ufes.parse_fst`) quedan fuera y se cuentan. Las imágenes donde el estimador no llega a `status == "ok"` se cuentan en `n_unavailable` y quedan fuera de las métricas, con el mismo criterio que docs/20.
+- **Métricas, por condición:** matriz de confusión, accuracy exacta, accuracy off-by-one y kappa de Cohen con pesos lineales. La baseline de mayoría es predecir siempre el fototipo más frecuente de las mismas filas evaluables; se reporta su accuracy exacta y su off-by-one. La accuracy exacta y el kappa llevan un IC 95 % bootstrap agrupado por paciente (semilla 20260923, 1.000 remuestras), que es descriptivo.
+- **Predicción:** con las dos condiciones, la accuracy exacta del estimador **no supera** la baseline de mayoría en las mismas filas. Probabilidad estimada: ≈90 %. Antecedentes: en Fitzpatrick17k, 28,5-30,8 % contra 32,9 % de la baseline trivial (docs/20). En PAD-UFES-20, con parches de piel, 22,9 % contra 51,3 % de la baseline de mayoría (Alipour, Burke y Courtney, *Skin Research and Technology* 32(8):e70374, 2026, doi 10.1111/srt.70374, PMC13459198; cifras verificadas en el resumen).
+- **Predicción secundaria:** el kappa lineal queda por debajo de 0,20 con las dos condiciones. ≈75 %.
+- **Qué la refuta:** si en alguna condición la accuracy exacta supera la baseline, se reporta así. Aun en ese caso no se afirma que el estimador sea válido, porque la referencia no es una medición.
+- **Es exploratorio.** No cambia las lecturas de §3 ni la estratificación de §2.5, que usa el `fitspatrick` de PAD tal cual y no el estimador.
+
+<!-- registro-pad-fst:fin -->
