@@ -166,3 +166,10 @@ def test_t7_refuses_when_the_teacher_gate_is_closed(t7_pool, tmp_path, monkeypat
     with pytest.raises(SystemExit, match="ABORT: falta la adenda"):
         st.main(_t7_argv(pool, manifest, tmp_path / "x"))
     assert not (tmp_path / "x" / "run.json").exists()
+
+
+def test_the_t7_arms_only_train_with_seed_42(t7_pool, tmp_path):
+    pool, manifest = t7_pool
+    with pytest.raises(SystemExit, match="semilla"):
+        st.main(_t7_argv(pool, manifest, tmp_path / "x", "--seed", "43"))
+    assert not (tmp_path / "x" / "run.json").exists()

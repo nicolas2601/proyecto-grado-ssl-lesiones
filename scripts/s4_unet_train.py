@@ -98,6 +98,7 @@ from wandb_logging import add_tracking_arguments  # noqa: E402
 
 VARIANTS = ("A1", "A2", "A2-astar", "A2-T7")
 T7_VARIANT = "A2-T7"
+T7_SEED = 42
 RUN_FILE = "run.json"
 SMOKE_FILE = "timing_smoke.json"
 RESUME_KEYS = ("variant", "pool", "pseudo_masks", "backbone", "schedule", "seed", "t7")
@@ -193,6 +194,8 @@ def t7_setup(args, record: dict) -> tuple[loop.T7Plan | None, dict | None]:
         return None, None
     if not args.tercile_manifest:
         raise SystemExit("error: A2-T7 needs --tercile-manifest")
+    if args.seed != T7_SEED:
+        _abort(f"A2-T7 solo se entrena con la semilla registrada {T7_SEED}, no {args.seed} (el brazo (a) es A2)")
     registration, teacher = _t7_guard(args, record)
     rows = read_manifest(Path(args.cache_dir) / "manifest.csv")
     labels = ls.terciles_by_row(rows, Path(args.tercile_manifest), ls.MANIFEST_SHA256)
