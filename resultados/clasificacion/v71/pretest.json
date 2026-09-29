@@ -1,0 +1,90 @@
+{
+ "passed": true,
+ "checks": [
+  {
+   "arm": "A",
+   "alpha": 0.0,
+   "weights_max_abs_diff": 0.0,
+   "metric_abs_deltas": {
+    "macro_f1": 0.0,
+    "balanced_accuracy": 0.0,
+    "accuracy": 0.0,
+    "auc": 0.0,
+    "ece": 0.0,
+    "mel_recall": 0.0,
+    "mel_auc": 0.0,
+    "mel_sens_at_spec80": 0.0,
+    "mel_sens_at_spec90": 0.0,
+    "mel_spec_at_sens95": 0.0
+   },
+   "tolerance": 1e-06,
+   "passed": true
+  },
+  {
+   "arm": "A",
+   "alpha": 1.0,
+   "weights_max_abs_diff": 0.0,
+   "metric_abs_deltas": {
+    "macro_f1": 0.0,
+    "balanced_accuracy": 0.0,
+    "accuracy": 0.0,
+    "auc": 0.0,
+    "ece": 0.0,
+    "mel_recall": 0.0,
+    "mel_auc": 0.0,
+    "mel_sens_at_spec80": 0.0,
+    "mel_sens_at_spec90": 0.0,
+    "mel_spec_at_sens95": 0.0
+   },
+   "tolerance": 1e-06,
+   "passed": true
+  },
+  {
+   "arm": "B",
+   "alpha": 0.0,
+   "weights_max_abs_diff": 0.0,
+   "metric_abs_deltas": {
+    "macro_f1": 0.0,
+    "balanced_accuracy": 0.0,
+    "accuracy": 0.0,
+    "auc": 0.0,
+    "ece": 0.0,
+    "mel_recall": 0.0,
+    "mel_auc": 0.0,
+    "mel_sens_at_spec80": 0.0,
+    "mel_sens_at_spec90": 0.0,
+    "mel_spec_at_sens95": 0.0
+   },
+   "tolerance": 1e-06,
+   "passed": true
+  },
+  {
+   "arm": "B",
+   "alpha": 1.0,
+   "weights_max_abs_diff": 0.0,
+   "metric_abs_deltas": {
+    "macro_f1": 0.0,
+    "balanced_accuracy": 0.0,
+    "accuracy": 0.0,
+    "auc": 0.0,
+    "ece": 0.0,
+    "mel_recall": 0.0,
+    "mel_auc": 0.0,
+    "mel_sens_at_spec80": 0.0,
+    "mel_sens_at_spec90": 0.0,
+    "mel_spec_at_sens95": 0.0
+   },
+   "tolerance": 1e-06,
+   "passed": true
+  }
+ ],
+ "bank_cache_check": {
+  "status": "ok",
+  "key": "v1__dinov2_public_vitb14__train__r224__eval__d347edd52d0d7648",
+  "min_cosine": 0.9999977350234985,
+  "bound": 0.999
+ },
+ "holdout_ids_sha256": "15eb2490d11aa7f50eab669dcaf5d220a35dda4d90c3ae96878c1c405fab0716",
+ "run_fingerprint": "64fad7f7bb22c135",
+ "code_revision": "88e434f4576f1aa7dc89c27cdff571ddb3efefdc"
+}
