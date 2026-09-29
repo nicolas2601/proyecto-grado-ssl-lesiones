@@ -142,3 +142,16 @@ def test_the_selection_fits_every_arm_under_the_pinned_threads_and_records_them(
     assert select_variant.main() == 0
     assert spy.seen == [pinned] * 3
     assert sidecar_env(out)["knobs"]["loky_inner_threads"] == pinned
+
+
+@pytest.mark.parametrize("pinned", [2, 3])
+def test_the_v7_single_evaluation_fits_under_the_pinned_threads_and_records_them(
+        monkeypatch, spy, evaluation_world, pinned):
+    monkeypatch.setattr(probe_threads, "PROBE_BLAS_THREADS", pinned)
+    out = evaluation_world / "final_eval.json"
+    monkeypatch.setattr(sys, "argv", ["c1_final_eval.py", *_common_argv(evaluation_world), "--split", "holdout",
+                                      "--plain", "dinov2_vitb14:public", "--proposed", "dinov2_vitb14:public",
+                                      "--out", str(out)])
+    assert final_eval.main() == 0
+    assert spy.seen == [pinned] * 3
+    assert sidecar_env(out)["knobs"]["loky_inner_threads"] == pinned

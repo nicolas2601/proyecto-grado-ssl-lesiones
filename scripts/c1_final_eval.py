@@ -35,6 +35,7 @@ from c1_build_val_index import rebuild_split  # noqa: E402
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import final_eval as fe  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
+from dermssl import probe_threads  # noqa: E402
 from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 
@@ -142,7 +143,8 @@ def main() -> int:
     document["secondary_ece_basic_ci"] = fe.ece_basic_ci(document)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")
-    run_environment.write_sidecar(out, args)
+    # sel.score fits every arm under PROBE_BLAS_THREADS; the sidecar says so.
+    run_environment.write_sidecar(out, args, loky_inner_threads=probe_threads.PROBE_BLAS_THREADS)
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y_eval, **probas)
     for name, pred in document["predictions"].items():
         print(f"{name}: {pred['verdict']}")
