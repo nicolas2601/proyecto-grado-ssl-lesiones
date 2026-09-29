@@ -112,3 +112,45 @@ class TestPadW2:
     def test_the_verdict_refuses_a_missing_model(self):
         with pytest.raises(ValueError, match="modelo"):
             pw.w2_verdict({"A_s42": _curve(*[0.5] * 6)})
+
+
+def _row(model: str, delta: float, low: float, high: float, metric: str = "macro_f1") -> dict:
+    arm, control = pw.w1_pair(model)
+    return {"arm": arm, "control": control, "metric": metric, "point_delta": delta,
+            "ci95_low": low, "ci95_high": high, "excludes_zero": low > 0 or high < 0}
+
+
+class TestPadW1:
+    """alpha 0.8 - alpha 1.0 on primary macro-F1: point > 0 in all three; "mejora" only if the CI is above 0."""
+
+    def _rows(self, **over) -> list[dict]:
+        base = {m: (0.02, -0.01, 0.05) for m in pw.MODELS}
+        base.update(over)
+        other = [_row(m, -9.0, -9.5, -8.5, metric="ece") for m in pw.MODELS]  # never read
+        return [_row(m, *base[m]) for m in pw.MODELS] + other
+
+    def test_positive_points_in_all_three_meet_it_without_any_mejora(self):
+        result = pw.w1_verdict(self._rows())
+        assert result["PAD-W1"] == pw.MET
+        assert {m: r["mejora"] for m, r in result["by_model"].items()} == dict.fromkeys(pw.MODELS, False)
+
+    def test_mejora_only_where_the_interval_is_above_zero(self):
+        result = pw.w1_verdict(self._rows(A_s43=(0.04, 0.01, 0.07)))
+        assert result["PAD-W1"] == pw.MET
+        assert [m for m, r in result["by_model"].items() if r["mejora"]] == ["A_s43"]
+
+    @pytest.mark.parametrize("point", [0.0, -0.001])
+    def test_a_point_at_or_below_zero_in_one_model_refutes_it(self, point):
+        result = pw.w1_verdict(self._rows(A_soup=(point, -0.03, 0.02)))
+        assert result["PAD-W1"] == pw.NOT_MET
+        assert result["by_model"]["A_soup"]["holds"] is False
+
+    def test_an_interval_below_zero_is_never_mejora(self):
+        result = pw.w1_verdict(self._rows(A_s42=(-0.04, -0.07, -0.01)))
+        assert result["by_model"]["A_s42"]["mejora"] is False
+        assert result["PAD-W1"] == pw.NOT_MET
+
+    def test_a_missing_w1_row_is_refused(self):
+        rows = [r for r in self._rows() if r["arm"] != pw.w1_pair("A_s43")[0]]
+        with pytest.raises(ValueError, match="A_s43"):
+            pw.w1_verdict(rows)

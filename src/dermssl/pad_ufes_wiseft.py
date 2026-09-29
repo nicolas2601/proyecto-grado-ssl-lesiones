@@ -19,6 +19,7 @@ ALPHAS = (0.0, *vp.ALPHAS)
 SOURCES = {"A_s42": "s42", "A_s43": "s43", "A_soup": "soup"}
 MODELS = tuple(SOURCES)
 ADAPTED, W1_ALPHA = 1.0, 0.8
+W1_METRIC = "macro_f1"
 #: PAD-W2: the most a step down in alpha, or public below the curve's max, may lose in macro-F1.
 W2_TOLERANCE = 0.01
 #: A registered tolerance is compared on decimals; binary floats put 0.60 - 0.59 a hair above 0.01.
@@ -88,3 +89,25 @@ def w2_verdict(curves: dict) -> dict:
     by_model = {m: w2_model(curves[m]) for m in MODELS}
     return {"PAD-W2": MET if all(r["holds"] for r in by_model.values()) else NOT_MET,
             "tolerance": W2_TOLERANCE, "by_model": by_model}
+
+
+def _w1_row(rows: list[dict], model: str) -> dict:
+    arm, control = w1_pair(model)
+    found = [r for r in rows if (r["arm"], r["control"], r["metric"]) == (arm, control, W1_METRIC)]
+    if len(found) != 1:
+        raise ValueError(f"{model}: se esperaba una fila {arm} - {control} de {W1_METRIC}, hay {len(found)}")
+    return found[0]
+
+
+def w1_model(row: dict) -> dict:
+    """Holds if the point delta is > 0; "mejora" only if the paired interval also lies above 0."""
+    stats = {k: row[k] for k in ("point_delta", "ci95_low", "ci95_high", "excludes_zero")}
+    return {**stats, "holds": row["point_delta"] > 0,
+            "mejora": bool(row["excludes_zero"]) and row["ci95_low"] > 0}
+
+
+def w1_verdict(rows: list[dict]) -> dict:
+    """PAD-W1 from the primary reading's paired rows: it holds only if it holds in all three models."""
+    by_model = {m: w1_model(_w1_row(rows, m)) for m in MODELS}
+    return {"PAD-W1": MET if all(r["holds"] for r in by_model.values()) else NOT_MET,
+            "contrast": f"alpha {W1_ALPHA} - alpha {ADAPTED}", "metric": W1_METRIC, "by_model": by_model}
