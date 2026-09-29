@@ -310,3 +310,27 @@ def test_no_provenance_file_adds_no_section(tmp_path):
     doc.write_text(json.dumps(_document()), encoding="utf-8")
     assert bt.main([str(doc), "--out", str(out)]) == 0
     assert "Procedencia" not in out.read_text(encoding="utf-8")
+
+
+def test_the_launch_env_difference_is_rendered_from_its_field(tmp_path):
+    import json
+    doc, out = tmp_path / "final_eval.json", tmp_path / "README.md"
+    doc.write_text(json.dumps(_document()), encoding="utf-8")
+    prov = _provenance()
+    prov["environment_sidecar"]["launch_env_difference"] = "el prefijo solo elige la GPU."
+    (tmp_path / bt.PROVENANCE).write_text(json.dumps(prov), encoding="utf-8")
+    assert bt.main([str(doc), "--out", str(out)]) == 0
+    line = next(x for x in out.read_text(encoding="utf-8").splitlines() if x.startswith("- **Entorno.**"))
+    assert line.endswith("se capturó en proceso hermano. el prefijo solo elige la GPU.")
+
+
+def test_s44_records_the_verified_cuda_prefix_not_a_discrepancy():
+    import json
+    folder = Path(__file__).resolve().parents[1] / "resultados" / "clasificacion" / "v7" / "s44"
+    prov = json.loads((folder / "eval_provenance.json").read_text(encoding="utf-8"))
+    fact = prov["environment_sidecar"]["launch_env_difference"]
+    assert "s42ctl_rest.sh" in fact and "CUDA_VISIBLE_DEVICES=0" in fact
+    note = json.loads((folder / "final_eval.environment.json").read_text(encoding="utf-8"))
+    note = note["environment"]["capture"]["note"]
+    assert "s42ctl_rest.sh" in note and "operator record" not in note and "while" not in note
+    assert fact in (folder / "README.md").read_text(encoding="utf-8")

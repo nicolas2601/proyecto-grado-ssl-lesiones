@@ -128,7 +128,8 @@ def provenance_lines(prov: dict) -> list[str]:
         f"{_duration(ab['start_utc'], ab['killed_utc'])}, antes de puntuar ({ab['stage']}): {written}; "
         f"{val_read} como lectura de val. Carpeta conservada como evidencia en el pod: `{ab['pod_folder']}`. "
         f"Log: `{ab['log']}`.",
-        f"- **Entorno.** `{side['file']}` se capturó en {side['captured_in']}.",
+        f"- **Entorno.** `{side['file']}` se capturó en {side['captured_in']}."
+        + (f" {side['launch_env_difference']}" if "launch_env_difference" in side else ""),
     ]
 
 

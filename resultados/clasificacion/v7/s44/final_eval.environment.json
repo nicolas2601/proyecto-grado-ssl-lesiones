@@ -14,7 +14,7 @@
     "knobs",
     "env vars other than the four listed (NUMEXPR_NUM_THREADS, CUBLAS_WORKSPACE_CONFIG, PYTHONHASHSEED)"
    ],
-   "note": "the sibling recorded CUDA_VISIBLE_DEVICES unset, while the operator record (eval_provenance.json) says the evaluation ran with CUDA_VISIBLE_DEVICES=0; that variable only selects the GPU, it does not set the CPU thread pools"
+   "note": "the evaluation command ran with CUDA_VISIBLE_DEVICES=0 as a per-command prefix in the pod script (s42ctl_rest.sh); the sibling process that captured the thread environment ran without it. The prefix only selects the GPU and does not affect the CPU/BLAS thread pools"
   },
   "env": {
    "OMP_NUM_THREADS": null,
