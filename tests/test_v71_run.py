@@ -27,6 +27,7 @@ import v71_io  # noqa: E402
 import v71_run  # noqa: E402
 
 from dermssl import c1_split_identity as si  # noqa: E402
+from dermssl import probe_threads  # noqa: E402
 from dermssl import selection_holdout as sh  # noqa: E402
 from tests.release_helpers import tiny_hub_model  # noqa: E402
 
@@ -100,7 +101,8 @@ def _one_thread():
 
     threads = torch.get_num_threads()
     torch.set_num_threads(1)
-    with threadpool_limits(1):
+    with threadpool_limits(1), pytest.MonkeyPatch.context() as mp:
+        mp.setattr(probe_threads, "PROBE_BLAS_THREADS", 1)  # the probe pin would undo the limit
         yield
     torch.set_num_threads(threads)
 
@@ -264,6 +266,4 @@ def test_every_result_json_records_its_environment(ran, name):
 @pytest.mark.parametrize("name", ["holdout_grid.json", "units/public@224/result.json",
                                   "v71_final_eval_holdout_rehearsal.json"])
 def test_probe_results_record_the_pinned_probe_blas_threads(ran, name):
-    from dermssl.probe_threads import PROBE_BLAS_THREADS  # noqa: PLC0415
-
-    assert sidecar_env(ran / name)["knobs"]["loky_inner_threads"] == PROBE_BLAS_THREADS
+    assert sidecar_env(ran / name)["knobs"]["loky_inner_threads"] == probe_threads.PROBE_BLAS_THREADS

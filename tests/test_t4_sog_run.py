@@ -28,7 +28,7 @@ import t4_sog_run  # noqa: E402
 import v71_io  # noqa: E402
 import v71_run  # noqa: E402
 
-from dermssl import t4_sog  # noqa: E402
+from dermssl import probe_threads, t4_sog  # noqa: E402
 from tests.release_helpers import tiny_hub_model  # noqa: E402
 from tests.test_v71_run import _fake_ham, _weights  # noqa: E402
 
@@ -47,6 +47,7 @@ def _one_thread_and_tiny_hub():
     torch.set_num_threads(1)
     with threadpool_limits(1), pytest.MonkeyPatch.context() as mp:
         mp.setattr(v71_io, "hub_model", _hub)
+        mp.setattr(probe_threads, "PROBE_BLAS_THREADS", 1)  # the pin would undo the limit above
         mp.setattr(t4_sog_run, "check_registration", lambda repo: "registration-checked-in-tests")
         yield
     torch.set_num_threads(threads)
@@ -235,10 +236,8 @@ def test_environment_records_the_pinned_probe_threads_not_cpu_count_over_jobs(tm
 
     import joblib  # noqa: PLC0415
 
-    from dermssl.probe_threads import PROBE_BLAS_THREADS  # noqa: PLC0415
-
     monkeypatch.setattr(joblib, "cpu_count", lambda *a, **k: 48)  # the pod: 48 // 6 = 8, not 4
     result = tmp_path / "t4_holdout_grid.json"
     result.write_text("{}\n")
     t4_sog_run._write_environment(result, argparse.Namespace(probe_jobs=probe_jobs))
-    assert sidecar_env(result)["knobs"]["loky_inner_threads"] == PROBE_BLAS_THREADS
+    assert sidecar_env(result)["knobs"]["loky_inner_threads"] == probe_threads.PROBE_BLAS_THREADS
