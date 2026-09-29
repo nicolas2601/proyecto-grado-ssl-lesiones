@@ -245,3 +245,35 @@ def student_augment(
     out = color_jitter(out, generator, 0.4, 0.4, 0.4, 0.1, probability=0.8)
     out = random_grayscale(out, generator, probability=0.1)
     return out, out_masks
+
+
+#: T7 (docs/27): the registered darkening, applied after ``student_augment``.
+DARKEN_DEFAULTS = {"probability": 0.5, "gamma_range": (1.0, 2.2),
+                   "brightness_range": (0.85, 1.0), "contrast_range": (0.85, 1.0)}
+
+
+def random_darken(
+    images: torch.Tensor,
+    generator: torch.Generator,
+    eligible: torch.Tensor,
+    *,
+    probability: float = DARKEN_DEFAULTS["probability"],
+    gamma_range: tuple[float, float] = DARKEN_DEFAULTS["gamma_range"],
+    brightness_range: tuple[float, float] = DARKEN_DEFAULTS["brightness_range"],
+    contrast_range: tuple[float, float] = DARKEN_DEFAULTS["contrast_range"],
+) -> torch.Tensor:
+    """Gamma, then brightness, then contrast towards the grey mean, on eligible samples with ``probability``.
+
+    Photometric only: masks are never touched. Every sample draws its values
+    whether or not it is eligible, so the generator advances by a fixed amount.
+    With gamma >= 1 and factors <= 1 the mean luminance never goes up.
+    """
+    count, device = images.shape[0], images.device
+    gamma = _uniform(count, *gamma_range, generator, device).view(-1, 1, 1, 1)
+    brightness = _uniform(count, *brightness_range, generator, device).view(-1, 1, 1, 1)
+    contrast = _uniform(count, *contrast_range, generator, device).view(-1, 1, 1, 1)
+    gate = _per_sample_gate(count, probability, generator, device)
+    out = images.clamp(0.0, 1.0) ** gamma * brightness
+    mean = _grayscale(out).mean(dim=(1, 2, 3), keepdim=True)
+    out = ((out - mean) * contrast + mean).clamp(0.0, 1.0)
+    return torch.where(gate & eligible.to(device).view(-1, 1, 1, 1), out, images)
