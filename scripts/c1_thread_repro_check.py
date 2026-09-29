@@ -45,8 +45,9 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "scripts"))
 
-import c1_run_grid as grid  # noqa: E402
-
+from dermssl import c1_grid_cells as cells  # noqa: E402
+from dermssl import c1_grid_extraction as gx  # noqa: E402
+from dermssl import c1_grid_inputs as gi  # noqa: E402
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import c1_thread_repro as ctr  # noqa: E402
 from dermssl import run_environment  # noqa: E402
@@ -80,7 +81,7 @@ def parse_args(argv=None) -> argparse.Namespace:
 
 
 def load_labels(args, index):
-    return grid.load_bank_labels(args.cache_dir.expanduser(), args.labels_backbone,
+    return gi.load_bank_labels(args.cache_dir.expanduser(), args.labels_backbone,
                                  expected={"train": index["train_ids"], "val": index["val_ids"]})
 
 
@@ -117,8 +118,8 @@ def extract_features(ctx, cell, manifest):
         ids = index[split]
         masks = np.stack([np.asarray(all_masks[position[i]]) == mx.LESION_LABEL for i in ids])
         tally = cg.CellTally(backbone=cell["backbone"], condition=cell["condition"])
-        out.append(grid.extract_cell(model, args.image_dir.expanduser(), ids, masks, source,
-                                     cell["condition"], device, tally))
+        out.append(gx.extract_cell(model, args.image_dir.expanduser(), ids, masks, source,
+                                   cell["condition"], device, tally))
     return out[0], out[1]
 
 
@@ -151,7 +152,7 @@ def _pre_gate(ctx, cell, manifest, proba, published_f1) -> list[str]:
 
 def _refits(ctx, train, val, n_classes, published, published_f1) -> tuple[list, bool | None]:
     y_tr, y_va = ctx["labels"]
-    fit = lambda cap: ctr.fit_with_threads(grid.evaluate_cell, train, y_tr, val, y_va, "logreg",  # noqa: E731
+    fit = lambda cap: ctr.fit_with_threads(cells.evaluate_cell, train, y_tr, val, y_va, "logreg",  # noqa: E731
                                            n_classes, threads=cap)
     rows, first_explicit = [], None
     for label, cap in ctx["settings"]:

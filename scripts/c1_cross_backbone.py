@@ -25,10 +25,9 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "scripts"))
 
-import c1_run_grid as grid  # noqa: E402
-
 from dermssl import c1_cross_backbone as cb  # noqa: E402
 from dermssl import c1_extraction as ex  # noqa: E402
+from dermssl import c1_grid_inputs as gi  # noqa: E402
 from dermssl import c1_mask_export as mx  # noqa: E402
 from dermssl import c1_mask_provenance as mp  # noqa: E402
 from dermssl import c1_split_identity as si  # noqa: E402
@@ -109,7 +108,7 @@ def main() -> int:
 
     index = json.loads(args.split_index.expanduser().read_text(encoding="utf-8"))
     train_ids, val_ids = list(index["train_ids"]), list(index["val_ids"])
-    train_labels, val_labels = grid.load_bank_labels(
+    train_labels, val_labels = gi.load_bank_labels(
         args.cache_dir.expanduser(), cb.PUBLIC, expected={"train": train_ids, "val": val_ids}
     )
     labels_sha = _digest(np.concatenate([np.asarray(train_labels), np.asarray(val_labels)]))

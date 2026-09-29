@@ -19,7 +19,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "scripts"))
 
-import c1_run_grid as grid  # noqa: E402
+from dermssl import c1_grid_cells as cells  # noqa: E402
 from dermssl.feature_cache import FeatureCache  # noqa: E402
 
 TOLERANCE = 1e-9
@@ -42,7 +42,7 @@ def main() -> int:
             hit = sorted(cache_dir.glob(f"v1__{backbone}__{name}__r*__eval__*.features.npy"))[0]
             split[name] = cache.load(hit.name[: -len(".features.npy")])
         n_classes = int(max(split["train"].labels.max(), split["val"].labels.max())) + 1
-        _, metrics = grid.evaluate_cell(
+        _, metrics = cells.evaluate_cell(
             split["train"].features, split["train"].labels,
             split["val"].features, split["val"].labels, "logreg", n_classes,
         )

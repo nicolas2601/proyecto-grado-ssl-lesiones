@@ -20,6 +20,9 @@ sys.path.insert(0, str(REPO / "scripts"))
 
 import c1_run_grid as grid  # noqa: E402
 
+from dermssl import c1_grid_cells as cells  # noqa: E402
+from dermssl import c1_grid_inputs as inputs  # noqa: E402
+
 
 def _proba(n_rows: int, n_classes: int, seed: int) -> np.ndarray:
     rng = np.random.default_rng(seed)
@@ -47,7 +50,7 @@ class TestWhichCellsGetContrasted:
             ("b", "neutral_bg"): _cell(True, 3),
         }
 
-        document = grid.build_contrasts(results, np.arange(40) % 3, INDEX)
+        document = cells.build_contrasts(results, np.arange(40) % 3, INDEX)
 
         arms = {r["arm"] for r in document["results"]}
         assert arms == {"b__mask_pool", "b__neutral_bg"}
@@ -56,7 +59,7 @@ class TestWhichCellsGetContrasted:
     def test_the_baseline_is_not_contrasted_with_itself(self):
         results = {("b", "none"): _cell(True, 1)}
 
-        document = grid.build_contrasts(results, np.arange(40) % 3, INDEX)
+        document = cells.build_contrasts(results, np.arange(40) % 3, INDEX)
 
         assert document["results"] == []
 
@@ -65,14 +68,14 @@ class TestWhichCellsGetContrasted:
         filtered afterwards to whichever one favours a conclusion."""
         results = {("b", "none"): _cell(True, 1), ("b", "mask_pool"): _cell(True, 2)}
 
-        document = grid.build_contrasts(results, np.arange(40) % 3, INDEX)
+        document = cells.build_contrasts(results, np.arange(40) % 3, INDEX)
 
-        assert {r["metric"] for r in document["results"]} == set(grid.METRICS)
+        assert {r["metric"] for r in document["results"]} == set(cells.METRICS)
 
     def test_a_backbone_without_its_baseline_is_reported_not_silently_dropped(self):
         results = {("b", "mask_pool"): _cell(True, 2)}
 
-        document = grid.build_contrasts(results, np.arange(40) % 3, INDEX)
+        document = cells.build_contrasts(results, np.arange(40) % 3, INDEX)
 
         assert document["results"] == []
         assert any("no hay celda (0)" in reason for reason in document["not_contrasted"])
@@ -98,7 +101,7 @@ class TestWhichCellsGetContrasted:
             ("b2", "mask_pool"): _cell(True, 3),
         }
 
-        document = grid.build_contrasts(results, y_true, INDEX)
+        document = cells.build_contrasts(results, y_true, INDEX)
         rows = [r for r in document["results"] if r["metric"] == "macro_f1"]
         assert rows, "el escenario no produjo el contraste que se quiere verificar"
 
@@ -120,7 +123,7 @@ class TestAFailedGateStaysOutOfTheTable:
         and reads like a finding."""
         results = {("b", "none"): _cell(True, 1), ("b", "mask_pool"): _cell(False, 2)}
 
-        document = grid.build_contrasts(results, np.arange(40) % 3, INDEX)
+        document = cells.build_contrasts(results, np.arange(40) % 3, INDEX)
 
         assert document["results"] == []
         assert any("no paso su gate" in reason for reason in document["not_contrasted"])
@@ -132,7 +135,7 @@ class TestAFailedGateStaysOutOfTheTable:
             ("b", "neutral_bg"): _cell(True, 3),
         }
 
-        document = grid.build_contrasts(results, np.arange(40) % 3, INDEX)
+        document = cells.build_contrasts(results, np.arange(40) % 3, INDEX)
 
         assert document["results"] == []
         assert len(document["not_contrasted"]) == 2
@@ -142,7 +145,7 @@ class TestAFailedGateStaysOutOfTheTable:
         one that could not be answered."""
         results = {("b", "none"): _cell(True, 1), ("b", "mask_pool"): _cell(False, 2)}
 
-        document = grid.build_contrasts(results, np.arange(40) % 3, INDEX)
+        document = cells.build_contrasts(results, np.arange(40) % 3, INDEX)
 
         assert "not_contrasted" in document
         assert document["not_contrasted"], "no se registro por que falta el contraste"
@@ -152,7 +155,7 @@ class TestTheDocumentShape:
     def test_it_carries_the_split_digest_it_was_computed_on(self):
         results = {("b", "none"): _cell(True, 1), ("b", "mask_pool"): _cell(True, 2)}
 
-        document = grid.build_contrasts(results, np.arange(40) % 3, INDEX)
+        document = cells.build_contrasts(results, np.arange(40) % 3, INDEX)
 
         assert document["val_order_sha256"] == INDEX["c1_val_ids_sha256"]
         assert document["n_val"] == 40
@@ -163,12 +166,12 @@ class TestTheDocumentShape:
 
         results = {("b", "none"): _cell(True, 1), ("b", "mask_pool"): _cell(True, 2)}
 
-        json.dumps(grid.build_contrasts(results, np.arange(40) % 3, INDEX))
+        json.dumps(cells.build_contrasts(results, np.arange(40) % 3, INDEX))
 
     def test_the_ece_row_keeps_its_direction(self):
         results = {("b", "none"): _cell(True, 1), ("b", "mask_pool"): _cell(True, 2)}
 
-        document = grid.build_contrasts(results, np.arange(40) % 3, INDEX)
+        document = cells.build_contrasts(results, np.arange(40) % 3, INDEX)
         ece_rows = [r for r in document["results"] if r["metric"] == "ece"]
 
         assert ece_rows
@@ -180,10 +183,10 @@ class TestTheRunOrder:
     def test_the_baseline_condition_comes_first(self):
         """Every contrast needs (0), so a grid that dies early must already
         have it."""
-        assert grid.CONDITION_ORDER[0] == "none"
+        assert cells.CONDITION_ORDER[0] == "none"
 
     def test_the_priority_backbones_are_the_professors_question(self):
-        assert set(grid.PRIORITY_BACKBONES) == {
+        assert set(cells.PRIORITY_BACKBONES) == {
             "dinov2_public_vitb14",
             "ssl_proposed_vitb14",
         }
@@ -191,28 +194,28 @@ class TestTheRunOrder:
 
 class TestLimitSubsamplesInsteadOfTruncating:
     def test_it_spans_the_whole_list(self):
-        picks = grid._stride(8011, 40)
+        picks = inputs.stride(8011, 40)
 
         assert len(picks) == 40
         assert picks[0] == 0 and picks[-1] == 8010
 
     def test_no_limit_keeps_everything(self):
-        assert len(grid._stride(100, None)) == 100
+        assert len(inputs.stride(100, None)) == 100
 
 
 class TestNonFiniteFailsTheCell:
     def test_clean_arrays_give_no_reasons(self):
         ok = np.ones((4, 3))
-        assert grid.non_finite_reasons(ok, ok, ok, {"macro_f1": 0.5}) == []
+        assert cells.non_finite_reasons(ok, ok, ok, {"macro_f1": 0.5}) == []
 
     def test_a_nan_in_proba_is_caught(self):
         bad = np.ones((4, 3)); bad[1, 1] = np.nan
         ok = np.ones((4, 3))
-        assert any("proba" in r for r in grid.non_finite_reasons(ok, ok, bad, {"macro_f1": 0.5}))
+        assert any("proba" in r for r in cells.non_finite_reasons(ok, ok, bad, {"macro_f1": 0.5}))
 
     def test_a_nan_metric_is_caught(self):
         ok = np.ones((4, 3))
-        reasons = grid.non_finite_reasons(ok, ok, ok, {"auc": float("nan")})
+        reasons = cells.non_finite_reasons(ok, ok, ok, {"auc": float("nan")})
         assert any("auc" in r for r in reasons)
 
 
@@ -246,13 +249,13 @@ def test_a_finished_cell_records_the_hash_of_the_train_features_the_probe_was_fi
         fitted_on.append(train_features)
         return _proba(len(val_features), 3, 0), {"macro_f1": 0.5, "balanced_accuracy": 0.5, "auc": 0.5, "ece": 0.1}
 
-    monkeypatch.setattr(grid, "evaluate_cell", spy)
+    monkeypatch.setattr(cells, "evaluate_cell", spy)
     provenance = {"code_revision": "abc", "masks_sha256": "f" * 64, "c1_train_ids_sha256": "a" * 64,
                   "c1_val_ids_sha256": "b" * 64, "probe": "logreg", "backbone_spec": "dinov2_vitb14:public",
                   "labels_sha256": "c" * 64}
     store = cs.CellStore(tmp_path)
 
-    done = grid.fit_and_save_cell(
+    done = cells.fit_and_save_cell(
         store, "public", "none", train_features=train, train_labels=np.arange(12) % 3, val_features=val,
         val_labels=np.arange(6) % 3, train_tally=_clean_tally(12), val_tally=_clean_tally(6), probe="logreg",
         n_classes=3, provenance=provenance)
