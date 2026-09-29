@@ -8,11 +8,9 @@ name: CI
 # Every branch, not a list. `proposed-cluster` carried eleven commits with no
 # CI run at all because the name matched neither `main` nor `feature/**`, and
 # nothing said so: a branch CI ignores looks exactly like a branch CI passed.
+# Manual only since 2026-09-29: Actions billing blocked every run. To re-enable,
+# restore `push: {branches: ["**"]}` and `pull_request: {branches: [main]}`.
 on:
-  push:
-    branches: ["**"]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:

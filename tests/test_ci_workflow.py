@@ -62,9 +62,21 @@ def test_ci_runs_the_linter(ci):
     assert "ruff" in ci
 
 
-def test_ci_triggers_on_the_branches_this_repo_actually_uses(ci):
-    assert "main" in ci and "feature/**" in ci
-    assert "pull_request" in ci
+def _on_block(ci: str) -> str:
+    match = re.search(r"^on:\n((?:[ \t].*\n|\n)*)", ci, re.M)
+    assert match, "the workflow has no `on:` block"
+    return match.group(1)
+
+
+def test_ci_runs_only_when_dispatched_by_hand(ci):
+    """Decision of 2026-09-29: GitHub Actions billing blocked every run, so CI
+    is manual-only. It neither runs nor spends minutes on its own, and it can
+    be re-enabled by restoring the push trigger. The evidence for every
+    reported HEAD is the full local suite on that exact commit."""
+    triggers = _on_block(ci)
+    assert "workflow_dispatch" in triggers
+    assert "push" not in triggers and "pull_request" not in triggers, (
+        "un disparador automatico vuelve a gastar minutos de Actions")
 
 
 def test_ci_pins_action_versions_instead_of_tracking_a_moving_tag(ci):
@@ -85,19 +97,6 @@ def test_requirements_dev_does_not_hardcode_a_test_count():
     text = (REPO / "requirements-dev.txt").read_text()
     assert not re.search(r"\d+\s+passed", text), (
         "hard-coded test count in requirements-dev.txt: it goes stale silently")
-
-
-def test_ci_runs_on_every_branch():
-    """A branch CI ignores looks exactly like a branch CI passed.
-
-    `proposed-cluster` accumulated eleven commits without a single CI run,
-    because the name matched neither `main` nor `feature/**`. Nothing
-    reported that: the absence of a red check reads as green.
-    """
-    ci = (Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml").read_text()
-    assert 'branches: ["**"]' in ci, (
-        "el disparador vuelve a ser una lista de nombres; una rama fuera de "
-        "la lista corre sin verificar y parece verificada")
 
 
 def test_a_pytest_piped_into_tee_still_fails_the_step(ci):
