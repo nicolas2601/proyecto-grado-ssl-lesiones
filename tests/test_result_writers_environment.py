@@ -36,6 +36,7 @@ WIRED = {
     "scripts/t2_luminance_dice.py": "t2 luminance-Dice JSON",
     "scripts/t6_luminance_threshold.py": "t6 luminance-threshold JSON",
     "scripts/t3_c1_luminance.py": "t3 C1-v7 by luminance tercile JSON",
+    "scripts/t7_r0_tercile_check.py": "t7 r0 teacher-check JSON",
     "scripts/seg_paired_bootstrap.py": "the paired segmentation bootstrap JSON",
     "plan-segmentacion/comun/evaluacion/evaluate_segmentation.py": "summary.json (via eval_report)",
     "scripts/cluster_frozen_bank.py": "bank.json (strata.json stays a map of backbones)",
