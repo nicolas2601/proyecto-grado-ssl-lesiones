@@ -42,11 +42,11 @@ def _show(repo: Path, commit: str, path: str) -> str:
     return result.stdout
 
 
-def registered_block(text: str) -> str:
-    start, end = text.find(BLOCK_START), text.find(BLOCK_END)
-    if start < 0 or end < 0 or end < start or text.count(BLOCK_START) != 1:
-        raise RegistrationError(f"{REGISTRATION_DOC} no tiene un unico bloque {BLOCK_START} ... {BLOCK_END}")
-    return text[start:end + len(BLOCK_END)]
+def registered_block(text: str, start: str = BLOCK_START, end: str = BLOCK_END) -> str:
+    first, last = text.find(start), text.find(end)
+    if first < 0 or last < 0 or last < first or text.count(start) != 1:
+        raise RegistrationError(f"el documento no tiene un unico bloque {start} ... {end}")
+    return text[first:last + len(end)]
 
 
 def _is_ancestor(repo: Path, older: str, newer: str) -> bool:
@@ -62,15 +62,20 @@ def _first_added(repo: Path, path: str) -> str:
 
 
 def check_registration(repo: Path, commit: str = REGISTRATION_COMMIT, doc: str = REGISTRATION_DOC,
-                       script: str = EVAL_SCRIPT) -> str:
-    """Return the full registration commit, or raise :class:`RegistrationError`."""
+                       script: str = EVAL_SCRIPT, start: str = BLOCK_START, end: str = BLOCK_END) -> str:
+    """Return the full registration commit, or raise :class:`RegistrationError`.
+
+    ``start``/``end`` select the block, so a document can hold several
+    registrations (docs/30 5 guards the FST validation on its own).
+    """
     resolved = _git(repo, "rev-parse", "--verify", f"{commit}^{{commit}}")
     if resolved.returncode != 0:
         raise RegistrationError(f"el commit de registro {commit!r} no esta en el repositorio")
     full = resolved.stdout.strip()
     if not _is_ancestor(repo, full, "HEAD"):
         raise RegistrationError(f"el registro {full[:12]} no es ancestro de HEAD")
-    if registered_block(_show(repo, full, doc)) != registered_block(_show(repo, "HEAD", doc)):
+    block = lambda rev: registered_block(_show(repo, rev, doc), start, end)  # noqa: E731
+    if block(full) != block("HEAD"):
         raise RegistrationError(f"el bloque registrado de {doc} cambio despues de {full[:12]}")
     added = _first_added(repo, script)
     if added == full or not _is_ancestor(repo, full, added):

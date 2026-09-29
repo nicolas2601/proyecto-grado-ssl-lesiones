@@ -96,3 +96,17 @@ def test_the_block_must_be_single_and_ordered(text):
     with pytest.raises(pg.RegistrationError, match="unico bloque"):
         pg.registered_block(text)
 
+
+
+def test_a_second_block_is_guarded_on_its_own(repo):
+    """docs/30 5 registers the FST validation in its own block, with its own script."""
+    start, end = "<!-- otro:inicio -->", "<!-- otro:fin -->"
+    second = f"{start}\nno supera la mayoria\n{end}\n"
+    _commit(repo, {DOC: BLOCK}, "docs: first block")
+    registered = _commit(repo, {DOC: BLOCK + second}, "docs: second block")
+    _commit(repo, {"scripts/fst.py": "x\n"}, "feat: fst")
+    kwargs = dict(commit=registered, doc=DOC, script="scripts/fst.py", start=start, end=end)
+    assert pg.check_registration(repo, **kwargs) == registered
+    _commit(repo, {DOC: BLOCK + second.replace("no supera", "supera")}, "docs: rewrite")
+    with pytest.raises(pg.RegistrationError, match="cambio despues"):
+        pg.check_registration(repo, **kwargs)
