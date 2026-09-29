@@ -174,16 +174,16 @@ class TestTheHamHoldoutCurve:
         curves = pw.ham_curves(_grid())
         s42 = curves["A_s42"]
         assert s42["available"] is True
-        assert list(s42["points"]) == list(pw.ALPHAS)
-        assert s42["points"][0.0]["config"] == "public@224|cls|none|id"
-        assert s42["points"][0.8]["config"] == "A_s42_a0.8@224|cls|none|id"
-        assert s42["points"][0.8]["macro_f1"] == pytest.approx(0.54)  # never the tta row
-        assert s42["points"][0.8]["ci95"]["ece"] == pytest.approx([0.53, 0.55])
-        assert curves["A_soup"]["points"][1.0]["config"] == "A_soup_a1.0@224|cls|none|id"
+        assert list(s42["points"]) == [pw.alpha_key(a) for a in pw.ALPHAS]
+        assert s42["points"]["0.0"]["config"] == "public@224|cls|none|id"
+        assert s42["points"]["0.8"]["config"] == "A_s42_a0.8@224|cls|none|id"
+        assert s42["points"]["0.8"]["macro_f1"] == pytest.approx(0.54)  # never the tta row
+        assert s42["points"]["0.8"]["ci95"]["ece"] == pytest.approx([0.53, 0.55])
+        assert curves["A_soup"]["points"]["1.0"]["config"] == "A_soup_a1.0@224|cls|none|id"
 
     def test_alpha_zero_is_the_same_public_row_for_every_curve(self):
         curves = pw.ham_curves(_grid())
-        assert curves["A_s42"]["points"][0.0] == curves["A_soup"]["points"][0.0]
+        assert curves["A_s42"]["points"]["0.0"] == curves["A_soup"]["points"]["0.0"]
 
     def test_s43_has_no_ham_curve_and_says_so(self):
         s43 = pw.ham_curves(_grid())["A_s43"]
@@ -191,7 +191,7 @@ class TestTheHamHoldoutCurve:
         assert "s43" in s43["note"]
 
     def test_only_the_registered_metrics_are_carried(self):
-        point = pw.ham_curves(_grid())["A_s42"]["points"][0.4]
+        point = pw.ham_curves(_grid())["A_s42"]["points"]["0.4"]
         assert set(point) == {"config", *pw.HAM_METRICS, "ci95"}
         assert pw.HAM_METRICS == ("macro_f1", "balanced_accuracy", "auc", "ece")
 
@@ -246,7 +246,7 @@ class TestTheDocument:
         arms = document["readings"]["primary"]["arms"]
         for model in pw.MODELS:
             points = document["verdicts"]["PAD-W2"]["by_model"][model]["macro_f1"]
-            assert points == {a: arms[role]["macro_f1"] for a, role in pw.curve(model).items()}
+            assert points == {pw.alpha_key(a): arms[role]["macro_f1"] for a, role in pw.curve(model).items()}
 
     def test_w1_reads_the_primary_paired_row(self, document):
         rows = document["readings"]["primary"]["paired"]
@@ -262,7 +262,7 @@ class TestTheDocument:
 
     def test_the_ham_side_is_the_committed_curve_and_s43_has_none(self, document):
         assert document["ham_holdout"]["curves"]["A_s43"]["available"] is False
-        assert document["ham_holdout"]["curves"]["A_s42"]["points"][0.0]["config"] == "public@224|cls|none|id"
+        assert document["ham_holdout"]["curves"]["A_s42"]["points"]["0.0"]["config"] == "public@224|cls|none|id"
 
     def test_the_grid_and_the_provenance_are_recorded(self, document):
         assert document["alphas"] == list(pw.ALPHAS)
@@ -272,3 +272,16 @@ class TestTheDocument:
     def test_a_missing_role_is_refused(self):
         with pytest.raises(ValueError, match="A_s43_a0.4"):
             pw.check_roles({r: None for r in pw.roles() if r != "A_s43_a0.4"})
+
+
+class TestAlphaKeys:
+    """Every alpha-keyed mapping of the document uses one explicit text key, never a float's repr."""
+
+    def test_the_key_is_one_decimal(self):
+        assert [pw.alpha_key(a) for a in pw.ALPHAS] == ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"]
+
+    def test_every_alpha_mapping_is_keyed_by_text_already_in_memory(self, document):
+        keys = [pw.alpha_key(a) for a in pw.ALPHAS]
+        assert list(document["verdicts"]["PAD-W2"]["by_model"]["A_s42"]["macro_f1"]) == keys
+        assert list(document["ham_holdout"]["curves"]["A_soup"]["points"]) == keys
+        assert all(list(points) == keys for points in document["curves"].values())

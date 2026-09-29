@@ -39,6 +39,11 @@ HAM_SCOPE = ("v7.1 holdout of the C1 train (7 classes, cls|none|id at 224), alre
              "before docs/30 8: descriptive, not a prediction. Not the same classes as the PAD readings.")
 
 
+def alpha_key(alpha: float) -> str:
+    """The one text key of an alpha in the document (JSON keys are text; never rely on a float's repr)."""
+    return f"{alpha:.1f}"
+
+
 def weights_of(model: str, alpha: float) -> str:
     """The v7.1 weights name of one point; alpha = 0 is ``public`` for every model."""
     if model not in SOURCES:
@@ -86,7 +91,8 @@ def w2_model(points: dict) -> dict:
     violations = [{"from_alpha": high, "to_alpha": low, "drop": drop}
                   for high, low, drop in reversed(steps) if not _within(drop)]
     gap = max(f1.values()) - f1[0.0]
-    return {"macro_f1": f1, "violations": violations, "public_gap_to_max": gap,
+    return {"macro_f1": {alpha_key(a): v for a, v in f1.items()}, "violations": violations,
+            "public_gap_to_max": gap,
             "holds": not violations and _within(gap)}
 
 
@@ -146,7 +152,7 @@ def ham_curves(grid: dict) -> dict:
             out[model] = {"available": False,
                           "note": f"v7.1 no corrio {SOURCES[model]} en el holdout de HAM: sin contraparte"}
             continue
-        out[model] = {"available": True, "points": {a: _ham_point(rows, model, a) for a in ALPHAS}}
+        out[model] = {"available": True, "points": {alpha_key(a): _ham_point(rows, model, a) for a in ALPHAS}}
     return out
 
 
@@ -181,7 +187,7 @@ def build_document(probas7: dict, pad: dict, provenance: dict, ham_grid: dict) -
         **provenance,
         "scope": SCOPE,
         "alphas": list(ALPHAS),
-        "curves": {m: {f"{a:.1f}": role for a, role in curve(m).items()} for m in MODELS},
+        "curves": {m: {alpha_key(a): role for a, role in curve(m).items()} for m in MODELS},
         "contrasts": [list(pair) for pair in pairs],
         "bootstrap": {**pr.BOOTSTRAP, "paired": True, "resampling_unit": "patient_id"},
         "verdicts": verdicts(readings["primary"]),
