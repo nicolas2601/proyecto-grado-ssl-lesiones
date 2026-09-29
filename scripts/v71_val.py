@@ -22,6 +22,7 @@ from dermssl import v71_grid as vg
 from dermssl import v71_metrics as vm
 from dermssl import v71_plan as plan
 from dermssl import v71_protocol as vp
+from dermssl.probe_threads import PROBE_BLAS_THREADS
 
 CONTRAST_METRICS = (*fe.METRICS, "mel_recall", "mel_auc")
 V7_ROLES = {"A_v7": "plain", "B_v7": "proposed", "public_v7": "public"}
@@ -200,7 +201,7 @@ def stage_val(args, ctx, revision, device) -> None:
         "n_fit_threshold_probe": len(ctx["ids"]["fit"]),
         "note_operating_points": plan.OPERATING_POINT_PROTOCOL,
     })
-    run_environment.write_sidecar(out, args)
+    run_environment.write_sidecar(out, args, loky_inner_threads=PROBE_BLAS_THREADS)
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y, **probas,
                         **{f"{label}__fit80": p for label, p in probas80.items()})
     for label in ("A71", "B71"):

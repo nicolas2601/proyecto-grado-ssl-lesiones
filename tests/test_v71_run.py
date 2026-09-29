@@ -259,3 +259,11 @@ def test_every_result_json_records_its_environment(ran, name):
     env = sidecar_env(ran / name)
     assert env["schema"] == 1 and env["torch"]["loaded"] is True
     assert env["knobs"]["probe_jobs"] == 1 and env["knobs"]["decode_workers"] == 2
+
+
+@pytest.mark.parametrize("name", ["holdout_grid.json", "units/public@224/result.json",
+                                  "v71_final_eval_holdout_rehearsal.json"])
+def test_probe_results_record_the_pinned_probe_blas_threads(ran, name):
+    from dermssl.probe_threads import PROBE_BLAS_THREADS  # noqa: PLC0415
+
+    assert sidecar_env(ran / name)["knobs"]["loky_inner_threads"] == PROBE_BLAS_THREADS

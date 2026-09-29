@@ -65,6 +65,7 @@ import v71_io as io  # noqa: E402
 import v71_val  # noqa: E402
 
 from dermssl import run_environment  # noqa: E402
+from dermssl.probe_threads import PROBE_BLAS_THREADS  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import t4_sog  # noqa: E402
 from dermssl import v71_grid as vg  # noqa: E402
@@ -251,7 +252,7 @@ def run_unit(args, ctx, store, weights, device, revision, name: str, resolution:
               "timing": {"extract_s": extract_s, "img_per_s": n_fwd / max(extract_s, 1e-9),
                          "probe_and_ci_s": time.time() - start - extract_s}}
     io.write_json(udir / "result.json", result)
-    run_environment.write_sidecar(udir / "result.json", args)
+    run_environment.write_sidecar(udir / "result.json", args, loky_inner_threads=PROBE_BLAS_THREADS)
     if not args.keep_features:
         feats_path.unlink(missing_ok=True)
     t = result["timing"]
@@ -275,7 +276,7 @@ def stage_grid(args, ctx, revision) -> None:
         "code_revision": revision, "holdout_ids_sha256": ctx["holdout_sha"], "n_configs": len(rows),
         "rule": "docs/29 §2.4 (docs/28 §4.1): max macro_f1, ties < 0.005 by lowest ece",
         "limit": args.limit, "rows": rows})
-    run_environment.write_sidecar(args.out_dir / "holdout_grid.json", args)
+    run_environment.write_sidecar(args.out_dir / "holdout_grid.json", args, loky_inner_threads=PROBE_BLAS_THREADS)
     print(f"-> {args.out_dir / 'holdout_grid.json'} ({len(rows)} configuraciones)")
 
 
