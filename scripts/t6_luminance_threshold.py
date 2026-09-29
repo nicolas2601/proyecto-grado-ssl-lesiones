@@ -162,22 +162,31 @@ def _relative(path: Path) -> str:
     return str(path.relative_to(REPO)) if path.is_relative_to(REPO) else str(path)
 
 
+def _dataset_view(rows: list[dict], dataset: str) -> tuple[dict, dict, dict, list[dict]]:
+    subset = [r for r in rows if r["dataset"] == dataset]
+    curves = {r["image_id"]: r["curve"] for r in subset}
+    terciles = {r["image_id"]: r["tone_tercile"] for r in subset}
+    ids = {p: [r["image_id"] for r in subset if r["part"] == p] for p in ("fit", "eval")}
+    return curves, terciles, ids, subset
+
+
+def _with_coverage(cell: dict, subset: list[dict], ids: dict) -> dict:
+    return {**cell, "coverage": {p: _coverage(subset, p) for p in ("fit", "eval") if ids[p]}}
+
+
 def build_document(curves_csv: Path, n_resamples: int, seed: int) -> dict:
-    """Everything but the run provenance, rebuilt from the committed curves."""
+    """Everything but the run provenance, rebuilt from the committed curves.
+
+    The thresholds come from HAM10000 fit ids only; ISIC 2018 reuses them, descriptively.
+    """
     rows = read_curves(curves_csv)
-    by_set = {d: [r for r in rows if r["dataset"] == d] for d in DATASETS}
-    cells = {}
-    for dataset, subset in by_set.items():
-        curves = {r["image_id"]: r["curve"] for r in subset}
-        terciles = {r["image_id"]: r["tone_tercile"] for r in subset}
-        ids = {p: [r["image_id"] for r in subset if r["part"] == p] for p in ("fit", "eval")}
-        if dataset == "ham10000":
-            cell = lt.analyze(curves, terciles, ids["fit"], ids["eval"], n_resamples, seed)
-            thresholds = cell["thresholds"]
-        else:
-            cell = {"evaluation": lt.evaluate(curves, terciles, thresholds, ids["eval"], n_resamples, seed,
-                                              with_verdict=False)}
-        cells[dataset] = {**cell, "coverage": {p: _coverage(subset, p) for p in ("fit", "eval") if ids[p]}}
+    curves, terciles, ids, subset = _dataset_view(rows, "ham10000")
+    ham = lt.analyze(curves, terciles, ids["fit"], ids["eval"], n_resamples, seed)
+    cells = {"ham10000": _with_coverage(ham, subset, ids)}
+    curves, terciles, ids, subset = _dataset_view(rows, "isic2018")
+    isic = {"evaluation": lt.evaluate(curves, terciles, ham["thresholds"], ids["eval"], n_resamples, seed,
+                                      with_verdict=False)}
+    cells["isic2018"] = _with_coverage(isic, subset, ids)
     return {
         "analysis": "T6, exploratorio: umbral de mascara por tercil de luminancia sobre A2 (docs/27)",
         "source": "Stothers et al., Fitzpatrick Thresholding for Skin Image Segmentation, arXiv 2510.06655",
