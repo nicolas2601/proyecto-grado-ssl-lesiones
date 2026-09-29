@@ -1,0 +1,104 @@
+{
+  "experiment": "S4-UNet (docs/27, registered 2026-09-28)",
+  "variant": "A2-T7",
+  "code_revision": "83a9cdace9533113820b96a907db8776e6982706",
+  "seed": 42,
+  "pool": {
+    "cache_dir": "/home/jovyan/work/proyectonp/salidas/final/cache",
+    "manifest_sha256": "a83f927ab798b6f7a0614c3923fda77d082f887d10fdbe73416e34e9574ba71a",
+    "n_images": 58457,
+    "image_shape": [
+      224,
+      224,
+      3
+    ],
+    "splits": {
+      "train": 57288,
+      "val": 1169
+    }
+  },
+  "pseudo_masks": {
+    "path": "/home/jovyan/work/proyectonp/salidas/final/pseudo_r0/pseudo_masks.npy",
+    "sha256": "8c9e47978070baa7bfa9f0174a80eb4e4236d45737801abf690804ae1eb0fc87"
+  },
+  "backbone": {
+    "arch": "dinov2_vitb14",
+    "source": "public",
+    "weights_sha256": "public",
+    "frozen": true,
+    "blocks": [
+      3,
+      6,
+      9,
+      12
+    ]
+  },
+  "schedule": {
+    "epochs": 20,
+    "batch_size": 32,
+    "lr": 0.0001,
+    "weight_decay": 0.0,
+    "optimizer": "adam",
+    "warmup_epochs": 1,
+    "dice_weight": 1.0,
+    "selection": "best-val",
+    "precision": "bf16",
+    "features": 128,
+    "max_steps_per_epoch": 0
+  },
+  "evaluation_regime": "transductive without labels: the pool is the student_r3 cache (HAM10000, ISIC 2019 and ISIC 2020, deduplicated by id), so evaluation images that are also in the pool (722 ISIC 2018, 9,822 HAM10000) were seen as unlabelled images; no reference mask and no label is read before the evaluation stage",
+  "prediction": {
+    "metric": "ISIC 2018 Dice",
+    "student_r3": 0.7177,
+    "threshold": 0.7077
+  },
+  "reads_masks_or_labels": false,
+  "training": {
+    "n_train_confident": 52453,
+    "n_val_confident": 1082,
+    "train_indices_sha256": "1135949ec26437c32981da1f47e56662554965213c033ffa66302e24cdbc5b58"
+  },
+  "t7": {
+    "registration_commit": "d24a0f252e6c06a6bce5c85cf01de52139a64ae5",
+    "tercile_manifest_sha256": "57df1e65e88d3b54ba530d6e026010bfc8ce25d1437e50b4ffe37cfd7d4f87da",
+    "oversample_k": 1,
+    "teacher_check": {
+      "addendum_required": false,
+      "rows_sha256": "4dc4875f1f2288f191bdfe3ffe79676e362154dee22461fdb641f41ddc528f4e"
+    },
+    "darken": {
+      "probability": 0.5,
+      "gamma_range": [
+        1.0,
+        2.2
+      ],
+      "brightness_range": [
+        0.85,
+        1.0
+      ],
+      "contrast_range": [
+        0.85,
+        1.0
+      ],
+      "terciles": [
+        "medium",
+        "light"
+      ]
+    },
+    "n_dark_train_confident": 16643,
+    "n_darken_eligible_train_confident": 34261
+  },
+  "result": {
+    "epochs": 20,
+    "total_seconds": 1180.8996485029347,
+    "mean_seconds_per_epoch": 59.044982425146735,
+    "images_processed": 1048320,
+    "images_per_second": 887.7299619226661,
+    "selection": {
+      "mode": "best-val",
+      "best_epoch": 13,
+      "best_value": 0.10106723755598068
+    }
+  },
+  "complete": true
+}
