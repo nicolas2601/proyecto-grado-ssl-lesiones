@@ -1,0 +1,730 @@
+{
+ "code_revision": "ed48aab6512946178b2d46272f63b9024103bae6",
+ "settings": [
+  {
+   "label": "default",
+   "threads": null
+  },
+  {
+   "label": "1",
+   "threads": 1
+  },
+  {
+   "label": "4",
+   "threads": 4
+  },
+  {
+   "label": "8",
+   "threads": 8
+  },
+  {
+   "label": "12",
+   "threads": 12
+  },
+  {
+   "label": "24",
+   "threads": 24
+  },
+  {
+   "label": "48",
+   "threads": 48
+  }
+ ],
+ "recorded_threads": {
+  "value": null,
+  "source": "no environment sidecar next to any grid (C1-v7 predates sidecars)"
+ },
+ "cells": [
+  {
+   "name": "student_r3:dinov2_public_vitb14:none",
+   "grid": "student_r3",
+   "backbone": "dinov2_public_vitb14",
+   "condition": "none",
+   "cell_code_revision": "3f154871dcc62f4e1c83316e8fb60f622e412bc7",
+   "backbone_spec": "dinov2_vitb14:public",
+   "features_from": "gpu_extraction",
+   "train_features_check": "absent: the grid predates train_features_sha256, train features are trusted as re-extracted",
+   "gate": {
+    "passed": true,
+    "problems": []
+   },
+   "fits": [
+    {
+     "setting": "default",
+     "threads": null,
+     "resolved_threads": [
+      48,
+      24
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 48
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 24
+      }
+     ],
+     "seconds": 1.91,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6137154517245625,
+     "published_macro_f1": 0.6137154517245625
+    },
+    {
+     "setting": "1",
+     "threads": 1,
+     "resolved_threads": [
+      1,
+      1
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1
+      }
+     ],
+     "seconds": 2.8,
+     "bit_equal": false,
+     "max_abs_delta": 0.041301846504211426,
+     "argmax_flips": 3,
+     "abs_delta_macro_f1": 0.0035738144327992494,
+     "refit_macro_f1": 0.6172892661573618,
+     "published_macro_f1": 0.6137154517245625
+    },
+    {
+     "setting": "4",
+     "threads": 4,
+     "resolved_threads": [
+      4,
+      4
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4
+      }
+     ],
+     "seconds": 1.4,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6137154517245625,
+     "published_macro_f1": 0.6137154517245625
+    },
+    {
+     "setting": "8",
+     "threads": 8,
+     "resolved_threads": [
+      8,
+      8
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8
+      }
+     ],
+     "seconds": 0.95,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6137154517245625,
+     "published_macro_f1": 0.6137154517245625
+    },
+    {
+     "setting": "12",
+     "threads": 12,
+     "resolved_threads": [
+      12,
+      12
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 12
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 12
+      }
+     ],
+     "seconds": 0.87,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6137154517245625,
+     "published_macro_f1": 0.6137154517245625
+    },
+    {
+     "setting": "24",
+     "threads": 24,
+     "resolved_threads": [
+      24,
+      24
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 24
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 24
+      }
+     ],
+     "seconds": 0.91,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6137154517245625,
+     "published_macro_f1": 0.6137154517245625
+    },
+    {
+     "setting": "48",
+     "threads": 48,
+     "resolved_threads": [
+      48,
+      48
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 48
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 48
+      }
+     ],
+     "seconds": 1.03,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6137154517245625,
+     "published_macro_f1": 0.6137154517245625
+    }
+   ],
+   "repeat_bit_equal": true
+  },
+  {
+   "name": "student_r3:v7_astar_s42:none",
+   "grid": "student_r3",
+   "backbone": "v7_astar_s42",
+   "condition": "none",
+   "cell_code_revision": "3f154871dcc62f4e1c83316e8fb60f622e412bc7",
+   "backbone_spec": "dinov2_vitb14:/home/jovyan/work/proyectonp/salidas/v7/final_A/simsiam_dinov2_backbone_final.pt",
+   "features_from": "gpu_extraction",
+   "train_features_check": "absent: the grid predates train_features_sha256, train features are trusted as re-extracted",
+   "gate": {
+    "passed": true,
+    "problems": []
+   },
+   "fits": [
+    {
+     "setting": "default",
+     "threads": null,
+     "resolved_threads": [
+      48,
+      24
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 48
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 24
+      }
+     ],
+     "seconds": 1.65,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6516635103807543,
+     "published_macro_f1": 0.6516635103807543
+    },
+    {
+     "setting": "1",
+     "threads": 1,
+     "resolved_threads": [
+      1,
+      1
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1
+      }
+     ],
+     "seconds": 4.72,
+     "bit_equal": false,
+     "max_abs_delta": 0.025973498821258545,
+     "argmax_flips": 3,
+     "abs_delta_macro_f1": 0.0011491311508551316,
+     "refit_macro_f1": 0.6505143792298992,
+     "published_macro_f1": 0.6516635103807543
+    },
+    {
+     "setting": "4",
+     "threads": 4,
+     "resolved_threads": [
+      4,
+      4
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4
+      }
+     ],
+     "seconds": 1.87,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6516635103807543,
+     "published_macro_f1": 0.6516635103807543
+    },
+    {
+     "setting": "8",
+     "threads": 8,
+     "resolved_threads": [
+      8,
+      8
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8
+      }
+     ],
+     "seconds": 1.41,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6516635103807543,
+     "published_macro_f1": 0.6516635103807543
+    },
+    {
+     "setting": "12",
+     "threads": 12,
+     "resolved_threads": [
+      12,
+      12
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 12
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 12
+      }
+     ],
+     "seconds": 1.45,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6516635103807543,
+     "published_macro_f1": 0.6516635103807543
+    },
+    {
+     "setting": "24",
+     "threads": 24,
+     "resolved_threads": [
+      24,
+      24
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 24
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 24
+      }
+     ],
+     "seconds": 1.17,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6516635103807543,
+     "published_macro_f1": 0.6516635103807543
+    },
+    {
+     "setting": "48",
+     "threads": 48,
+     "resolved_threads": [
+      48,
+      48
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 48
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 48
+      }
+     ],
+     "seconds": 1.6,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6516635103807543,
+     "published_macro_f1": 0.6516635103807543
+    }
+   ],
+   "repeat_bit_equal": true
+  },
+  {
+   "name": "a2:v7_bstar_s42:mask_pool",
+   "grid": "a2",
+   "backbone": "v7_bstar_s42",
+   "condition": "mask_pool",
+   "cell_code_revision": "3f154871dcc62f4e1c83316e8fb60f622e412bc7",
+   "backbone_spec": "dinov2_vitb14:/home/jovyan/work/proyectonp/salidas/v7/final_B/simsiam_dinov2_backbone_final.pt",
+   "features_from": "gpu_extraction",
+   "train_features_check": "absent: the grid predates train_features_sha256, train features are trusted as re-extracted",
+   "gate": {
+    "passed": true,
+    "problems": []
+   },
+   "fits": [
+    {
+     "setting": "default",
+     "threads": null,
+     "resolved_threads": [
+      48,
+      24
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 48
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 24
+      }
+     ],
+     "seconds": 1.95,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6413820097586578,
+     "published_macro_f1": 0.6413820097586578
+    },
+    {
+     "setting": "1",
+     "threads": 1,
+     "resolved_threads": [
+      1,
+      1
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1
+      }
+     ],
+     "seconds": 5.4,
+     "bit_equal": false,
+     "max_abs_delta": 0.049869418144226074,
+     "argmax_flips": 4,
+     "abs_delta_macro_f1": 0.0008804483168778354,
+     "refit_macro_f1": 0.6405015614417799,
+     "published_macro_f1": 0.6413820097586578
+    },
+    {
+     "setting": "4",
+     "threads": 4,
+     "resolved_threads": [
+      4,
+      4
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4
+      }
+     ],
+     "seconds": 2.23,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6413820097586578,
+     "published_macro_f1": 0.6413820097586578
+    },
+    {
+     "setting": "8",
+     "threads": 8,
+     "resolved_threads": [
+      8,
+      8
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8
+      }
+     ],
+     "seconds": 1.81,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6413820097586578,
+     "published_macro_f1": 0.6413820097586578
+    },
+    {
+     "setting": "12",
+     "threads": 12,
+     "resolved_threads": [
+      12,
+      12
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 12
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 12
+      }
+     ],
+     "seconds": 1.62,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6413820097586578,
+     "published_macro_f1": 0.6413820097586578
+    },
+    {
+     "setting": "24",
+     "threads": 24,
+     "resolved_threads": [
+      24,
+      24
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 24
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 24
+      }
+     ],
+     "seconds": 1.69,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6413820097586578,
+     "published_macro_f1": 0.6413820097586578
+    },
+    {
+     "setting": "48",
+     "threads": 48,
+     "resolved_threads": [
+      48,
+      48
+     ],
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 48
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 48
+      }
+     ],
+     "seconds": 1.93,
+     "bit_equal": true,
+     "max_abs_delta": 0.0,
+     "argmax_flips": 0,
+     "abs_delta_macro_f1": 0.0,
+     "refit_macro_f1": 0.6413820097586578,
+     "published_macro_f1": 0.6413820097586578
+    }
+   ],
+   "repeat_bit_equal": true
+  }
+ ],
+ "summary": {
+  "all_gates_passed": true,
+  "n_cells": 3,
+  "n_gated": 3,
+  "per_setting": {
+   "default": {
+    "threads": null,
+    "n_cells": 3,
+    "n_bit_equal": 3,
+    "max_abs_delta": 0.0,
+    "max_argmax_flips": 0,
+    "max_abs_delta_macro_f1": 0.0
+   },
+   "1": {
+    "threads": 1,
+    "n_cells": 3,
+    "n_bit_equal": 0,
+    "max_abs_delta": 0.049869418144226074,
+    "max_argmax_flips": 4,
+    "max_abs_delta_macro_f1": 0.0035738144327992494
+   },
+   "4": {
+    "threads": 4,
+    "n_cells": 3,
+    "n_bit_equal": 3,
+    "max_abs_delta": 0.0,
+    "max_argmax_flips": 0,
+    "max_abs_delta_macro_f1": 0.0
+   },
+   "8": {
+    "threads": 8,
+    "n_cells": 3,
+    "n_bit_equal": 3,
+    "max_abs_delta": 0.0,
+    "max_argmax_flips": 0,
+    "max_abs_delta_macro_f1": 0.0
+   },
+   "12": {
+    "threads": 12,
+    "n_cells": 3,
+    "n_bit_equal": 3,
+    "max_abs_delta": 0.0,
+    "max_argmax_flips": 0,
+    "max_abs_delta_macro_f1": 0.0
+   },
+   "24": {
+    "threads": 24,
+    "n_cells": 3,
+    "n_bit_equal": 3,
+    "max_abs_delta": 0.0,
+    "max_argmax_flips": 0,
+    "max_abs_delta_macro_f1": 0.0
+   },
+   "48": {
+    "threads": 48,
+    "n_cells": 3,
+    "n_bit_equal": 3,
+    "max_abs_delta": 0.0,
+    "max_argmax_flips": 0,
+    "max_abs_delta_macro_f1": 0.0
+   }
+  },
+  "reproducing_settings": [
+   "default",
+   "4",
+   "8",
+   "12",
+   "24",
+   "48"
+  ],
+  "pin_to": 4,
+  "verdict": "pin"
+ }
+}
