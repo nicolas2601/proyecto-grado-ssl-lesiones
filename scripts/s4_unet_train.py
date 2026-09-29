@@ -49,6 +49,25 @@ Pod commands (P=~/work/proyectonp; clean clone in $P/repo_rel)::
 
 Prediction (docs/27): Dice(S4-UNet) >= Dice(student_r3) - 0.01 = 0.7077 on
 ISIC 2018. A relaunch of the same command resumes from ``last.pt``.
+
+T7 (docs/27, registered 2026-09-28): ``--variant A2-T7 --tercile-manifest``
+adds k = 2 oversampling of the dark luminance tercile at A2's budget and the
+darkening augmentation (medium and light only, p = 0.5). ``--no-oversample``
+is arm (b), augmentation only; arm (a) is ``--variant A2 --seed 43``. T7
+refuses unless its registration holds and the manifest, the r0 pseudo-masks
+and the cache manifest carry their registered sha256. Pod commands (run the
+r0 check first, then keep ``python -m dermssl.hub_keepalive`` alongside)::
+
+    T7=$P/salidas/t7; M=$F/strata_v2/fst_pseudo_manifest.csv
+    python -m dermssl.hub_keepalive > $T7/keepalive.log 2>&1 &
+    $T $COMMON --variant A2-T7 --tercile-manifest $M \
+      --pseudo-masks $F/pseudo_r0/pseudo_masks.npy --output-dir $T7/t7 --timing-smoke 50
+    setsid nohup $T $COMMON --variant A2-T7 --tercile-manifest $M \
+      --pseudo-masks $F/pseudo_r0/pseudo_masks.npy --output-dir $T7/t7 < /dev/null > $T7/t7.log 2>&1
+    setsid nohup $T $COMMON --variant A2 --seed 43 \
+      --pseudo-masks $F/pseudo_r0/pseudo_masks.npy --output-dir $T7/a2_s43 < /dev/null > $T7/a2_s43.log 2>&1
+    setsid nohup $T $COMMON --variant A2-T7 --no-oversample --tercile-manifest $M \
+      --pseudo-masks $F/pseudo_r0/pseudo_masks.npy --output-dir $T7/t7_aug < /dev/null > $T7/t7_aug.log 2>&1
 """
 
 from __future__ import annotations
@@ -64,7 +83,11 @@ for _extra in (REPO / "src", REPO / "scripts", REPO / "plan-segmentacion" / "com
         sys.path.insert(0, str(_extra))
 
 import dist_utils as du  # noqa: E402
+import gpu_augment as ga  # noqa: E402
 import s4_unet_loop as loop  # noqa: E402
+from cache_io import read_manifest  # noqa: E402
+from dermssl import luminance_sampling as ls  # noqa: E402
+from dermssl import pad_ufes_guard as pg  # noqa: E402
 from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import torch_s4_unet as s4  # noqa: E402
@@ -73,10 +96,11 @@ from s4_provenance import (  # noqa: E402
 )
 from wandb_logging import add_tracking_arguments  # noqa: E402
 
-VARIANTS = ("A1", "A2", "A2-astar")
+VARIANTS = ("A1", "A2", "A2-astar", "A2-T7")
+T7_VARIANT = "A2-T7"
 RUN_FILE = "run.json"
 SMOKE_FILE = "timing_smoke.json"
-RESUME_KEYS = ("variant", "pool", "pseudo_masks", "backbone", "schedule", "seed")
+RESUME_KEYS = ("variant", "pool", "pseudo_masks", "backbone", "schedule", "seed", "t7")
 STUDENT_R3_ISIC_DICE = 0.7177
 PREDICTION_MARGIN = 0.01
 
@@ -109,6 +133,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--no-resume", action="store_true")
     parser.add_argument("--preload", action="store_true")
     parser.add_argument("--force-cpu", action="store_true")
+    parser.add_argument("--tercile-manifest", default="", help="T7: fst_pseudo_manifest.csv (sha 57df1e65...)")
+    parser.add_argument("--dark-oversample", type=int, default=ls.REGISTERED_K, metavar="K",
+                        help="T7: copies of each dark-tercile row per epoch, at A2's budget")
+    parser.add_argument("--no-oversample", action="store_true", help="T7 arm (b): K = 1, augmentation only")
+    parser.add_argument("--darken-p", type=float, default=ga.DARKEN_DEFAULTS["probability"],
+                        help="T7: probability of the darkening augmentation (medium and light only)")
     add_tracking_arguments(parser)
     return parser.parse_args(argv)
 
@@ -136,6 +166,47 @@ def base_record(args, revision: str) -> dict:
     }
 
 
+def _abort(message: str):
+    raise SystemExit(f"ABORT: {message}")
+
+
+def _t7_guard(args, record: dict) -> str:
+    """The registration and the registered inputs, checked before any training step."""
+    try:
+        registration = ls.check_registration(REPO)
+    except pg.RegistrationError as exc:
+        _abort(str(exc))
+    registered = {"el manifiesto de terciles": (sha256_file(Path(args.tercile_manifest)), ls.MANIFEST_SHA256),
+                  "las pseudo-máscaras": (record["pseudo_masks"]["sha256"], ls.PSEUDO_R0_SHA256),
+                  "el manifiesto de la caché": (record["pool"]["manifest_sha256"], ls.CACHE_MANIFEST_SHA256)}
+    for what, (digest, expected) in registered.items():
+        if digest != expected:
+            _abort(f"{what} tiene sha256 {digest[:12]}, no el registrado {expected[:12]}")
+    return registration
+
+
+def t7_setup(args, record: dict) -> tuple[loop.T7Plan | None, dict | None]:
+    """T7's plan and its record block, or (None, None) for every other variant."""
+    if args.variant != T7_VARIANT:
+        return None, None
+    if not args.tercile_manifest:
+        raise SystemExit("error: A2-T7 needs --tercile-manifest")
+    registration = _t7_guard(args, record)
+    rows = read_manifest(Path(args.cache_dir) / "manifest.csv")
+    labels = ls.terciles_by_row(rows, Path(args.tercile_manifest), ls.MANIFEST_SHA256)
+    darken = {**ga.DARKEN_DEFAULTS, "probability": args.darken_p}
+    k = 1 if args.no_oversample else args.dark_oversample
+    block = {"registration_commit": registration, "tercile_manifest_sha256": ls.MANIFEST_SHA256,
+             "oversample_k": k, "darken": {key: list(v) if isinstance(v, tuple) else v for key, v in darken.items()}
+             | {"terciles": list(ls.DARKENED)}}
+    return loop.T7Plan(labels=labels, k=k, darken=darken), block
+
+
+def _t7_counts(run) -> dict:
+    return {"n_dark_train_confident": int(run.dark_train.sum()),
+            "n_darken_eligible_train_confident": int(run.eligible[run.train_indices].sum())}
+
+
 def _check_resume(output_dir: Path, record: dict) -> None:
     """A resumed run must be the same experiment, or the weights mix two runs."""
     previous_path = output_dir / RUN_FILE
@@ -160,8 +231,12 @@ def main(argv: list[str] | None = None) -> int:
     context = du.init_distributed(force_cpu=args.force_cpu)
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    run = loop.Run(args, context)
-    record = {**base_record(args, revision), "training": loop.confident_counts(run)}
+    record = base_record(args, revision)
+    plan, t7_block = t7_setup(args, record)
+    run = loop.Run(args, context, t7=plan)
+    record["training"] = loop.confident_counts(run)
+    if plan is not None:
+        record["t7"] = {**t7_block, **_t7_counts(run)}
     if args.timing_smoke > 0:
         report = {**loop.timing_smoke(run, args.timing_smoke), "code_revision": revision}
         if context.is_main:

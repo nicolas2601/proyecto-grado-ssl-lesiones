@@ -6,6 +6,11 @@ uncertainty module ignored (``student_data``), the pseudo-validation split
 (``cache_io``), the augmentation (``gpu_augment.student_augment``), batching,
 cosine schedule and checkpoint selection. Only the model differs.
 
+T7 (docs/27) adds, only when a :class:`T7Plan` is given, the fixed-budget
+oversampling of the dark luminance tercile and the darkening augmentation
+after ``student_augment``. The darkening draws from its own generator, so the
+student's draws are untouched; with ``k = 1`` and ``p = 0`` the run is A2's.
+
 Resume is exact at epoch boundaries: batches and augmentation are pure
 functions of (seed, epoch), and the decoder, optimizer and selector state are
 restored from ``last.pt``.
@@ -15,6 +20,7 @@ from __future__ import annotations
 
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -31,6 +37,7 @@ import dist_utils as du  # noqa: E402
 import gpu_augment as ga  # noqa: E402
 from cache_io import open_cache, read_manifest, split_indices  # noqa: E402
 from ckpt_io import load_checkpoint, save_checkpoint  # noqa: E402
+from dermssl import luminance_sampling as ls  # noqa: E402
 from dermssl import torch_s4_unet as s4  # noqa: E402
 from run_logging import JsonlLogger, ThroughputMeter, timing_summary  # noqa: E402
 from sampling import shard_batches  # noqa: E402
@@ -44,6 +51,17 @@ LAST_CHECKPOINT = "last.pt"
 BEST_CHECKPOINT = "best.pt"
 SMOKE_WARMUP_STEPS = 3
 SMOKE_VAL_BATCHES = 5
+#: Offset of the darkening generator's seed, so it never shares a stream with the student's.
+DARKEN_SEED_OFFSET = 7_000_003
+
+
+@dataclass(frozen=True)
+class T7Plan:
+    """T7's two changes: the luminance tercile of every cache row, the factor ``k`` and the darkening."""
+
+    labels: np.ndarray
+    k: int
+    darken: dict
 
 
 def load_backbone(arch: str, source: str):
@@ -58,8 +76,8 @@ def after_epoch(epoch: int) -> None:
 class Run:
     """Data, model and optimizer of one S4-UNet training run."""
 
-    def __init__(self, args, context):
-        self.args, self.context = args, context
+    def __init__(self, args, context, t7: T7Plan | None = None):
+        self.args, self.context, self.t7 = args, context, t7
         cache = Path(args.cache_dir)
         self.images = open_cache(cache / "images.npy", preload=args.preload)
         self.masks = open_cache(Path(args.pseudo_masks))
@@ -77,6 +95,23 @@ class Run:
         self.optimizer = optimizer_class(self.model.decoder.parameters(), lr=args.lr,
                                          weight_decay=args.weight_decay)
         self.decoder = du.wrap_ddp(self.model.decoder, context)
+        self.darken_generator = None
+        if t7 is not None:
+            self.dark_train = t7.labels[self.train_indices] == ls.DARK
+            self.eligible = ls.darken_eligible(t7.labels)
+
+    def begin_epoch(self, epoch: int) -> None:
+        if self.t7 is not None:
+            self.darken_generator = du.make_generator(self.context, self.args.seed + DARKEN_SEED_OFFSET, epoch)
+
+    def epoch_batches(self, epoch: int, rank: int) -> list:
+        """A2's batches, or T7's fixed-budget oversampled order (identical to A2's when k = 1)."""
+        args, world = self.args, self.context.world_size
+        if self.t7 is None:
+            return shard_batches(self.train_indices, args.batch_size, rank, world, epoch, args.seed)
+        order = ls.oversampled_epoch(self.train_indices, self.dark_train, self.t7.k,
+                                     self.train_indices.size, args.seed, epoch)
+        return shard_batches(order, args.batch_size, rank, world, epoch, args.seed, shuffle=False)
 
     @property
     def resolution(self) -> int:
@@ -104,6 +139,9 @@ class Run:
             group["lr"] = learning_rate
         batch, target = self.batch(indices)
         batch, target = ga.student_augment(batch, target, generator)
+        if self.t7 is not None:
+            eligible = torch.from_numpy(self.eligible[np.asarray(indices)])
+            batch = ga.random_darken(batch, self.darken_generator, eligible, **self.t7.darken)
         loss, _ = masked_bce_dice_loss(self.logits(batch).float(), target, self.args.dice_weight)
         self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
@@ -164,8 +202,8 @@ def train(run: Run, config: dict) -> dict:
     for epoch in range(start_epoch, args.epochs):
         run.model.train()
         generator = du.make_generator(context, args.seed, epoch)
-        batches = shard_batches(run.train_indices, args.batch_size, context.rank,
-                                context.world_size, epoch, args.seed)[:steps]
+        run.begin_epoch(epoch)
+        batches = run.epoch_batches(epoch, context.rank)[:steps]
         loss_sum = torch.zeros((), device=context.device)
         _sync(context)
         meter.start()
@@ -200,8 +238,8 @@ def timing_smoke(run: Run, steps_timed: int) -> dict:
     args, context = run.args, run.context
     run.model.train()
     generator = du.make_generator(context, args.seed, 0)
-    batches = shard_batches(run.train_indices, args.batch_size, context.rank,
-                            context.world_size, 0, args.seed)
+    run.begin_epoch(0)
+    batches = run.epoch_batches(0, context.rank)
     needed = SMOKE_WARMUP_STEPS + steps_timed
     batches = (batches * (needed // len(batches) + 1))[:needed]
     for indices in batches[:SMOKE_WARMUP_STEPS]:
