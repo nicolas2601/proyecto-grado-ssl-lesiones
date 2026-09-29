@@ -161,6 +161,36 @@ def gap_range(packed: np.ndarray, proba: np.ndarray) -> float:
     return max(f1s) - min(f1s)
 
 
+# --- the registered prediction, read off the paired rows (docs/31 §5, §7) ---
+
+P1_MAX_ABS_DELTA = 0.01
+P3_MAX_ABS_DELTA = 0.03
+P1_ARMS = ("A", "B")
+
+
+def _primary_row(rows, arm: str, metric: str) -> dict:
+    for row in rows:
+        if (row["arm"], row["control"], row["metric"]) == (f"{arm}_sog", f"{arm}_id", metric):
+            return row
+    raise KeyError(f"falta el contraste primario {arm}_sog - {arm}_id en {metric}")
+
+
+def verdicts(paired) -> dict:
+    """P1-P3 as registered, plus the 'mejora' flags of §7 (CI off zero on the good side)."""
+    f1 = {arm: _primary_row(paired, arm, "macro_f1") for arm in WEIGHTS}
+    gap = {arm: _primary_row(paired, arm, GAP_METRIC) for arm in WEIGHTS}
+    small = {arm: abs(r["point_delta"]) <= P1_MAX_ABS_DELTA and not r["excludes_zero"] for arm, r in f1.items()}
+    size = {arm: abs(r["point_delta"]) for arm, r in f1.items()}
+    gap_ok = {arm: abs(r["point_delta"]) <= P3_MAX_ABS_DELTA and not r["excludes_zero"] for arm, r in gap.items()}
+    return {
+        "P1": {"holds": all(small[a] for a in P1_ARMS), "per_arm": small,
+               "improvement": {a: r["excludes_zero"] and r["point_delta"] > 0 for a, r in f1.items()}},
+        "P2": {"holds": size["public"] > max(size[a] for a in P1_ARMS), "abs_delta": size},
+        "P3": {"holds": all(gap_ok.values()), "per_arm": gap_ok,
+               "reduction": {a: r["excludes_zero"] and r["point_delta"] < 0 for a, r in gap.items()}},
+    }
+
+
 # --- cost (docs/31 §8) ---
 
 FORWARD_IMG_PER_S = 720.0  # measured on the pod at 224

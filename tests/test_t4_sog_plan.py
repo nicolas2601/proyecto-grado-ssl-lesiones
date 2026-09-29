@@ -121,3 +121,35 @@ def test_cost_projection_matches_the_registered_estimate():
     assert cost["forwards"]["grid"] == 115_350 and cost["forwards"]["val"] == 144_258
     assert cost["gpu_hours"] == pytest.approx(259_608 / 720 / 3600)
     assert 0.4 < cost["cpu_hours"] < 0.8
+
+
+def _paired(delta_f1: dict, gap: dict, excl_f1=(), excl_gap=()) -> list[dict]:
+    rows = []
+    for arm in t4_sog.WEIGHTS:
+        rows.append({"arm": f"{arm}_sog", "control": f"{arm}_id", "metric": "macro_f1",
+                     "point_delta": delta_f1[arm], "excludes_zero": arm in excl_f1})
+        rows.append({"arm": f"{arm}_sog", "control": f"{arm}_id", "metric": t4_sog.GAP_METRIC,
+                     "point_delta": gap[arm], "excludes_zero": arm in excl_gap})
+    return rows
+
+
+def test_verdicts_hold_when_the_registered_prediction_holds():
+    rows = _paired({"A": 0.004, "B": -0.008, "public": 0.015}, {"A": 0.01, "B": -0.02, "public": 0.0})
+    verdicts = t4_sog.verdicts(rows)
+    assert [verdicts[p]["holds"] for p in ("P1", "P2", "P3")] == [True, True, True]
+    assert verdicts["P1"]["improvement"] == {"A": False, "B": False, "public": False}
+
+
+def test_verdicts_are_falsified_by_size_or_by_an_interval_off_zero():
+    big = t4_sog.verdicts(_paired({"A": 0.02, "B": 0.0, "public": 0.0}, {"A": 0.0, "B": 0.0, "public": 0.04}))
+    assert big["P1"]["holds"] is False and big["P2"]["holds"] is False and big["P3"]["holds"] is False
+    ci = t4_sog.verdicts(_paired({"A": 0.009, "B": 0.0, "public": 0.0}, {"A": -0.02, "B": 0.0, "public": 0.0},
+                                 excl_f1=("A",), excl_gap=("A",)))
+    assert ci["P1"]["holds"] is False and ci["P3"]["holds"] is False
+    assert ci["P1"]["improvement"]["A"] is True and ci["P3"]["reduction"]["A"] is True
+
+
+def test_verdicts_refuse_a_missing_contrast():
+    rows = _paired({"A": 0.0, "B": 0.0, "public": 0.0}, {"A": 0.0, "B": 0.0, "public": 0.0})[1:]
+    with pytest.raises(KeyError, match="macro_f1"):
+        t4_sog.verdicts(rows)
