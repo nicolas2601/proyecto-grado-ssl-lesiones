@@ -10,27 +10,11 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from blas_spy import blas_threads as _blas_threads
 
 from dermssl import v71_grid as vg
 
 N_CLASSES, DIM = 3, 4
-
-
-NUMPY_BLAS_PREFIXES = ("libscipy_openblas", "libmkl")
-
-
-def _blas_threads(pools=None) -> int:
-    """Threads of the BLAS numpy and scipy link against; -1 if it is absent or not uniform.
-
-    Not simply the first BLAS pool: opencv bundles a single-threaded OpenBLAS that no
-    limit can raise and the probe never calls, and a worker may have loaded it first.
-    """
-    from threadpoolctl import threadpool_info  # noqa: PLC0415
-
-    pools = threadpool_info() if pools is None else pools
-    ours = {pool["num_threads"] for pool in pools if pool["user_api"] == "blas"
-            and pool["filepath"].rsplit("/", 1)[-1].startswith(NUMPY_BLAS_PREFIXES)}
-    return ours.pop() if len(ours) == 1 else -1
 
 
 def thread_spy(x_fit, y_fit, x_views, n_classes, class_weight):

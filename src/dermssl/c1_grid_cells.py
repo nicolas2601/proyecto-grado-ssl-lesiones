@@ -13,7 +13,7 @@ import numpy as np
 from dermssl import c1_cell_gates as cg
 from dermssl import metrics as _metrics
 from dermssl import paired_bootstrap as pb
-from dermssl import probes
+from dermssl import probe_threads, probes
 
 #: The question the professor actually asked, run before the other sixteen.
 PRIORITY_BACKBONES = ("dinov2_public_vitb14", "ssl_proposed_vitb14")
@@ -46,7 +46,14 @@ def non_finite_reasons(train_features, val_features, proba, metrics) -> list[str
 
 
 def evaluate_cell(train_features, train_labels, val_features, val_labels, probe, n_classes):
-    proba = probes.run_probe(probe, train_features, train_labels, val_features, n_classes)
+    """Fit and score one cell under ``PROBE_BLAS_THREADS``, the count v7.1 is pinned to.
+
+    The lbfgs logreg is not bit-stable across BLAS thread counts; published C1-v7
+    cells refit bit for bit with 4 (resultados/clasificacion/c1_v7/diagnostico_hilos/).
+    """
+    proba = probe_threads.call_pinned(
+        probes.run_probe, probe, train_features, train_labels, val_features, n_classes
+    )
     summary = _metrics.summarize(val_labels, np.asarray(proba), n_classes)
     return np.asarray(proba), summary
 
