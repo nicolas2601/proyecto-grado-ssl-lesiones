@@ -17,6 +17,7 @@ import numpy as np
 import cluster_frozen_bank as bank
 from c1_build_val_index import rebuild_split
 from dermssl import feature_cache as fc
+from dermssl import t4_sog
 from dermssl import v71_plan as plan
 from dermssl import v71_protocol as vp
 from dermssl import v7_seeds as seeds
@@ -64,7 +65,7 @@ def load_context(args) -> dict:
     if args.limit:
         for key in ids:
             ids[key] = plan.limited_ids(ids[key], [id2label[i] for i in ids[key]], args.limit)
-    run_fingerprint = fc.fingerprint_ids([*ids["fit"], "|", *ids["holdout"]])  # changes with --limit
+    run_fingerprint = t4_sog.run_fingerprint(ids["fit"], ids["holdout"], t4_sog.IDENTITY)  # changes with --limit
     return {"split": split, "ids": ids, "id2label": id2label, "holdout_sha": holdout_sha,
             "run_fingerprint": run_fingerprint,
             "classes": split["classes"], "mel": split["classes"].index("mel"),
@@ -76,19 +77,23 @@ def labels_of(ctx: dict, ids) -> np.ndarray:
 
 
 class ImageStore:
-    """uint8 arrays after the bank's resize + centre crop, decoded once per (ids, resolution)."""
+    """uint8 arrays after the bank's resize + centre crop (then the docs/31 input),
+    decoded once per (ids, resolution, input); the input is in the file name."""
 
-    def __init__(self, root: Path, image_index: dict, workers: int):
+    def __init__(self, root: Path, image_index: dict, workers: int, input_name: str = t4_sog.IDENTITY):
+        t4_sog.input_suffix(input_name)  # an unregistered input fails here, not mid-decode
         self.root, self.image_index, self.workers = root, image_index, workers
+        self.input_name = input_name
 
     def _decode(self, image_id: str, resolution: int) -> np.ndarray:
         from dermssl import torch_v71 as tv  # noqa: PLC0415
 
         image = bank.load_rgb_or_placeholder(self.image_index[image_id], resolution)
-        return tv.resize_crop_uint8(image, resolution)
+        return t4_sog.preprocess(tv.resize_crop_uint8(image, resolution), self.input_name)
 
     def array(self, ids, resolution: int, tag: str) -> np.ndarray:
-        path = self.root / f"{tag}_{resolution}_{fc.fingerprint_ids(list(ids))}.npy"
+        suffix = t4_sog.input_suffix(self.input_name)
+        path = self.root / f"{tag}{suffix}_{resolution}_{fc.fingerprint_ids(list(ids))}.npy"
         if path.exists():
             return np.load(path, mmap_mode="r")
         missing = [i for i in ids if i not in self.image_index]
