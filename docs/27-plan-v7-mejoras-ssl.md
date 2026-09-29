@@ -255,6 +255,30 @@ Errata (2026-09-29): el rótulo 'FST' en este bloque se refiere a la estimación
 
 **Confirmación (2026-09-29): Paula confirma la regla estricta de seguimiento de T7 antes de lanzar.** Se vuelve a C1 solo si la predicción queda cumplida **y** S = R(T7) − R(A2-s43) se separa del ruido de semilla (extremo inferior del IC > 0). Si la predicción queda cumplida pero S no se separa, el veredicto es "cumplida, pero no se separa del ruido de semilla" y no hay seguimiento. La regla ya estaba dentro del bloque registrado (ítem "Regla de seguimiento") y está codificada en `luminance_retrain.conclusion`; esta nota no cambia el bloque, solo deja escrita la confirmación. El chequeo del maestro ya corrió (`2026-09-29-t7-r0-check/`) y no activó la adenda: |G(r0)| < |G(A2)|, así que no se agrega la predicción "T7 no cumple por techo del maestro". Por transparencia: la regla se decide con estimaciones puntuales, y el contraste pareado |G(A2)| − |G(r0)| tiene un IC que incluye 0, así que la brecha del maestro es indistinguible de la de A2. El riesgo de techo del maestro (pre-mortem, punto 1) sigue abierto; solo no se activó la adenda.
 
+**Revisión independiente de T7 con opencode (2026-09-29, antes de la GPU; fuera del bloque registrado).** `opencode run -m openai/gpt-5.6-luna` con `timeout 1500`, siempre sobre el diff dentro del repo (`.review/`, ignorado por git), revisando `scripts/t7_r0_tercile_check.py`, `src/dermssl/luminance_sampling.py`, `random_darken`, las variantes A2-T7 de `s4_unet_train.py`/`s4_unet_loop.py`, `src/dermssl/luminance_retrain.py` y `scripts/t7_compare.py` contra el bloque. Hubo 7 rondas: las rondas 1 a 6 dieron **FAIL** y la ronda 7 dio **PASS** (sin P1, dos P2, ambos aplicados). La ronda 2 se colgó la primera vez: salió por `timeout` con la salida vacía y sin crear sesión, y se relanzó según la regla 1 de la sección 10. Cada cambio de código se hizo con TDD, en un commit propio que cita el RED.
+- **Aplicado:**
+  - Solo se pueden lanzar el k y la p registrados: `--dark-oversample` solo acepta 2, `--no-oversample` da k = 1 y se quitó `--darken-p`.
+  - A2-T7 solo entrena con la semilla 42.
+  - Las banderas de T7 en otra variante abortan.
+  - El bootstrap distinto de 1.000/20260923 aborta en el chequeo r0 y en la comparación.
+  - Cada brazo debe igualar el `run.json` completo de A2 salvo sus cambios registrados.
+  - Los tres brazos deben venir de un solo `code_revision`.
+  - Ninguna corrida S4 reanuda bajo otro `code_revision`.
+  - Cada brazo debe evaluarse como A2 (`predictions`, `resolution`, `threshold`, `tta`, `n_images`, `image_dir`) desde su propio `best.pt`.
+  - El `summary.json` y el `per_image.csv` de A2 se verifican contra su `SHA256SUMS`.
+  - Las filas por imagen deben ser únicas, con Dice finito y dentro de [0, 1].
+  - El entrenamiento T7 exige el chequeo del maestro comprometido. Sus dos archivos quedan fijados por sha256, la regla de la adenda se recalcula desde las filas y el Dice publicado de A2, y si se hubiera activado se exigiría la marca de la adenda.
+  - El chequeo r0 fija el nombre de las máscaras de referencia y registra `reference_masks_sha256`.
+  - Un test verifica que todo el código de T7, incluidas las ediciones a archivos anteriores, entró después del registro.
+  - La tabla generada dice qué intervalos son estratificados.
+- **No aplicado, con su porqué:**
+  - *"El bootstrap del cambio global no está estratificado":* el bloque define ΔD con bootstrap pareado y con los estadísticos de T6 (`global_change`, sin estratificar); estratificarlo se apartaría del registro.
+  - *"El guard en tiempo de ejecución ancla un solo archivo y no detecta modificaciones posteriores":* el guard prueba que la predicción precede al código, y toda modificación posterior es, por construcción, posterior al registro. Qué código corrió lo fija el árbol limpio más el `code_revision` de cada `run.json`.
+  - *"Los artefactos de los brazos y los checkpoints no están fijados por hash":* los resultados de corridas que aún no existen no se pueden fijar por adelantado. Su integridad se establece al publicarlos con `SHA256SUMS`, como en A2, y A2 no registra el hash de su checkpoint, así que no hay contra qué compararlo.
+- **Declarado:**
+  - El resultado r0 comprometido (`2026-09-29-t7-r0-check/`) es anterior al campo `reference_masks_sha256`, así que su corpus de máscaras de referencia no quedó fijado por hash. Es la misma situación de la evaluación de A2 contra la que se compara. Recorrer el chequeo en CPU lo agregaría.
+  - El brazo (a) (`--variant A2 --seed 43`) no pasa por la compuerta del maestro, que es propia de A2-T7. Se lanza en el mismo commit en que la compuerta está abierta.
+
 **FST con la caché sin pelo (Paso 1 de docs/26 §6.4; en CPU, registrado el 2026-09-28).** Es la otra razón por la que Pau quería quitar el pelo: que el pelo no sesgue la estimación de tono.
 - `fst_pseudo_manifest.py` pasa a reportar por separado los registros con `artifact_detected = True` o `confidence < 1` (con TDD).
 - Se regenera el manifest FST con la caché de S2(a) y con la original, y se comparan `tone_distribution` y `FST_distribution`.
