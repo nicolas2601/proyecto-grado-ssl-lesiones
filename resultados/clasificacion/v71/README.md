@@ -42,3 +42,69 @@ Metricas con umbral de mel (sensibilidad y especificidad a los umbrales de espec
 | Público, su mejor protocolo − Público v7 (primario) | 0,0699 [0,0324; 0,1062] | 0,0699 [0,0312; 0,1088] | 0,0341 [0,0246; 0,0446] | -0,0605 [-0,0749; -0,0430] | 0,0811 [0,0092; 0,1508] | 0,0559 [0,0332; 0,0788] |
 
 Fase 2 (docs/29 §2.7 ítem 7): sensibilidad de mel a especificidad 80 % en el holdout: A 0,8764, B 0,8652. Habilitada para proponer: no.
+
+## Contrastes adicionales (`extra_contrasts.json`)
+
+'mejora' solo si el IC pareado excluye el 0; nunca 'gana' si el IC toca el 0.
+
+### Melanoma a umbral propio (comparación justa)
+
+Cada lectura se evalua con el probe entrenado en el 80 % del fit y con SU PROPIO umbral de holdout (el protocolo publicado); el contraste pareado usa el mismo remuestreo para ambas.
+
+| Contraste | Métrica | Brazo | Control | Δ | IC 95 % | Excluye 0 |
+|---|---|---|---|---|---|---|
+| A* v7.1 − Público, protocolo de A* v7.1 | Sens. mel (esp. 80 %) | 0,8604 | 0,6937 | 0,1667 | [0,1045; 0,2271] | sí |
+| A* v7.1 − Público, protocolo de A* v7.1 | Sens. mel (esp. 90 %) | 0,6892 | 0,5450 | 0,1441 | [0,0762; 0,2159] | sí |
+| A* v7.1 − Público, protocolo de A* v7.1 | Esp. mel (sens. 95 %) | 0,6336 | 0,3378 | 0,2957 | [0,2714; 0,3192] | sí |
+| B* v7.1 − Público, protocolo de B* v7.1 | Sens. mel (esp. 80 %) | 0,8333 | 0,7477 | 0,0856 | [0,0362; 0,1373] | sí |
+| B* v7.1 − Público, protocolo de B* v7.1 | Sens. mel (esp. 90 %) | 0,6757 | 0,6577 | 0,0180 | [-0,0337; 0,0708] | no |
+| B* v7.1 − Público, protocolo de B* v7.1 | Esp. mel (sens. 95 %) | 0,6723 | 0,5466 | 0,1257 | [0,1026; 0,1468] | sí |
+| A* v7.1 − Público, su mejor protocolo | Sens. mel (esp. 80 %) | 0,8604 | 0,7387 | 0,1216 | [0,0703; 0,1734] | sí |
+| A* v7.1 − Público, su mejor protocolo | Sens. mel (esp. 90 %) | 0,6892 | 0,6351 | 0,0541 | [0,0000; 0,1128] | no |
+| A* v7.1 − Público, su mejor protocolo | Esp. mel (sens. 95 %) | 0,6336 | 0,5443 | 0,0892 | [0,0676; 0,1124] | sí |
+| B* v7.1 − Público, su mejor protocolo | Sens. mel (esp. 80 %) | 0,8333 | 0,7387 | 0,0946 | [0,0482; 0,1467] | sí |
+| B* v7.1 − Público, su mejor protocolo | Sens. mel (esp. 90 %) | 0,6757 | 0,6351 | 0,0405 | [-0,0139; 0,1000] | no |
+| B* v7.1 − Público, su mejor protocolo | Esp. mel (sens. 95 %) | 0,6723 | 0,5443 | 0,1279 | [0,1062; 0,1496] | sí |
+
+### Melanomas clasificados como nevus
+
+Melanomas verdaderos cuyo argmax es nv (probe del train completo), sobre el total de mel verdaderos. Menor es mejor: un delta negativo favorece al brazo.
+
+| Lectura | mel→nv | Tasa |
+|---|---|---|
+| A* v7.1 | 62 | 0,2793 |
+| B* v7.1 | 67 | 0,3018 |
+| Público, protocolo de A* v7.1 | 76 | 0,3423 |
+| Público, protocolo de B* v7.1 | 67 | 0,3018 |
+| A* v7 (primario) | 86 | 0,3874 |
+| B* v7 (primario) | 75 | 0,3378 |
+| Público v7 (primario) | 87 | 0,3919 |
+| Público, su mejor protocolo | 68 | 0,3063 |
+| A* v7 s43 | 90 | 0,4054 |
+| B* v7 s43 | 98 | 0,4414 |
+
+| Contraste | Métrica | Brazo | Control | Δ | IC 95 % | Excluye 0 |
+|---|---|---|---|---|---|---|
+| A* v7.1 − Público, protocolo de A* v7.1 | Tasa mel→nv | 0,2793 | 0,3423 | -0,0631 | [-0,1293; -0,0045] | sí |
+| B* v7.1 − Público, protocolo de B* v7.1 | Tasa mel→nv | 0,3018 | 0,3018 | 0,0000 | [-0,0496; 0,0521] | no |
+| A* v7.1 − A* v7 (primario) | Tasa mel→nv | 0,2793 | 0,3874 | -0,1081 | [-0,1650; -0,0538] | sí |
+| B* v7.1 − B* v7 (primario) | Tasa mel→nv | 0,3018 | 0,3378 | -0,0360 | [-0,0923; 0,0197] | no |
+
+### Contra los primarios v7 s42 y v7 s43
+
+A* v7.1 es la sopa de los pesos s42 y s43, asi que su contraste contra A* v7 s43 no es independiente de s43; B* v7.1 usa solo s42. Las filas contra A_v7/B_v7 son s42 y repiten las publicadas.
+
+| Contraste | Métrica | Brazo | Control | Δ | IC 95 % | Excluye 0 |
+|---|---|---|---|---|---|---|
+| A* v7.1 − A* v7 (primario) | Macro-F1 | 0,7229 | 0,6464 | 0,0765 | [0,0362; 0,1215] | sí |
+| A* v7.1 − A* v7 (primario) | Bal-acc | 0,7305 | 0,6021 | 0,1284 | [0,0864; 0,1737] | sí |
+| A* v7.1 − A* v7 s43 | Macro-F1 | 0,7229 | 0,6850 | 0,0378 | [0,0023; 0,0761] | sí |
+| A* v7.1 − A* v7 s43 | Bal-acc | 0,7305 | 0,6457 | 0,0848 | [0,0471; 0,1231] | sí |
+| A* v7.1 − B* v7 s43 | Macro-F1 | 0,7229 | 0,6638 | 0,0591 | [0,0200; 0,1009] | sí |
+| A* v7.1 − B* v7 s43 | Bal-acc | 0,7305 | 0,6119 | 0,1186 | [0,0759; 0,1612] | sí |
+| B* v7.1 − B* v7 (primario) | Macro-F1 | 0,7141 | 0,6606 | 0,0535 | [0,0105; 0,0913] | sí |
+| B* v7.1 − B* v7 (primario) | Bal-acc | 0,6964 | 0,6327 | 0,0637 | [0,0166; 0,1054] | sí |
+| B* v7.1 − B* v7 s43 | Macro-F1 | 0,7141 | 0,6638 | 0,0503 | [0,0051; 0,0903] | sí |
+| B* v7.1 − B* v7 s43 | Bal-acc | 0,6964 | 0,6119 | 0,0845 | [0,0379; 0,1281] | sí |
+| B* v7.1 − A* v7 s43 | Macro-F1 | 0,7141 | 0,6850 | 0,0291 | [-0,0104; 0,0673] | no |
+| B* v7.1 − A* v7 s43 | Bal-acc | 0,6964 | 0,6457 | 0,0507 | [0,0130; 0,0901] | sí |
