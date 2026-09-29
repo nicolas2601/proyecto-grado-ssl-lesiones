@@ -10,7 +10,11 @@ from __future__ import annotations
 
 import math
 
+import numpy as np
+
 from dermssl import final_eval as fe
+from dermssl import pad_ufes as pu
+from dermssl import pad_ufes_readings as pr
 from dermssl import v71_protocol as vp
 
 ARM = "A"
@@ -28,6 +32,11 @@ MET, NOT_MET = fe.MET, fe.NOT_MET
 #: The committed HAM holdout curve (v7.1): the primary protocol of every weight set, 7 classes.
 HAM_PROTOCOL = {"resolution": 224, "feature": "cls", "weighting": "none", "tta": False}
 HAM_METRICS = fe.METRICS
+SCOPE = ("docs/30 8: PAD-W1 and PAD-W2 decide, on the primary reading's macro-F1 only. ECE, balanced "
+         "accuracy, AUC, the secondary and exploratory readings, the phototype strata and the HAM holdout "
+         "curve are descriptive.")
+HAM_SCOPE = ("v7.1 holdout of the C1 train (7 classes, cls|none|id at 224), already committed and known "
+             "before docs/30 8: descriptive, not a prediction. Not the same classes as the PAD readings.")
 
 
 def weights_of(model: str, alpha: float) -> str:
@@ -139,3 +148,46 @@ def ham_curves(grid: dict) -> dict:
             continue
         out[model] = {"available": True, "points": {a: _ham_point(rows, model, a) for a in ALPHAS}}
     return out
+
+
+def check_roles(probas7: dict) -> None:
+    missing = [r for r in roles() if r not in probas7]
+    if missing or len(probas7) != len(roles()):
+        raise ValueError(f"probabilidades de PAD sin {missing} o con roles de mas: {sorted(probas7)}")
+
+
+def evaluate_reading(reading: str, ham_labels, groups, probas7: dict, pairs) -> dict:
+    """The first pass's reading (:mod:`pad_ufes_readings`) without its PAD-P verdicts."""
+    mask, y = pr.targets(ham_labels, reading)
+    probas = {name: pr.restrict(np.asarray(p)[mask], reading) for name, p in probas7.items()}
+    result = pr.evaluate_subset(y, probas, np.asarray(groups)[mask], pairs)
+    result["classes"] = list(pu.READINGS[reading])
+    result["outside_rate"] = {name: pr.outside_rate(np.asarray(p)[mask], reading) for name, p in probas7.items()}
+    return result
+
+
+def verdicts(primary: dict) -> dict:
+    curves = {m: {a: primary["arms"][role]["macro_f1"] for a, role in curve(m).items()} for m in MODELS}
+    return {"PAD-W1": w1_verdict(primary["paired"]), "PAD-W2": w2_verdict(curves)}
+
+
+def build_document(probas7: dict, pad: dict, provenance: dict, ham_grid: dict) -> dict:
+    check_roles(probas7)
+    ordered = {role: probas7[role] for role in roles()}
+    pairs = contrast_pairs()
+    args = (pad["ham_labels"], pad["groups"])
+    readings = {name: evaluate_reading(name, *args, ordered, pairs) for name in pu.READINGS}
+    return {
+        **provenance,
+        "scope": SCOPE,
+        "alphas": list(ALPHAS),
+        "curves": {m: {f"{a:.1f}": role for a, role in curve(m).items()} for m in MODELS},
+        "contrasts": [list(pair) for pair in pairs],
+        "bootstrap": {**pr.BOOTSTRAP, "paired": True, "resampling_unit": "patient_id"},
+        "verdicts": verdicts(readings["primary"]),
+        "readings": readings,
+        "fst_strata": {"reading": "primary", "exploratory": True, "min_n": pr.MIN_BIN_N,
+                       "note": pu.fst_note(pu.fst_composition(pad["fst"])),
+                       "bins": pr.fst_strata(*args, pad["fst_bins"], ordered, pairs)},
+        "ham_holdout": {"scope": HAM_SCOPE, "curves": ham_curves(ham_grid)},
+    }

@@ -198,3 +198,77 @@ class TestTheHamHoldoutCurve:
     def test_a_curve_with_a_missing_point_is_refused(self):
         with pytest.raises(ValueError, match="A_soup_a0.6"):
             pw.ham_curves(_grid(drop=("A_soup_a0.6@224|cls|none|id",)))
+
+
+N_PAD = 90
+
+
+@pytest.fixture(scope="module")
+def document():
+    """A document on synthetic probabilities: the curve peaks at alpha 0.8 for every model."""
+    import numpy as np
+
+    from dermssl import pad_ufes as pu
+
+    mp = pytest.MonkeyPatch()
+    mp.setattr(pr, "BOOTSTRAP", {"n_resamples": 12, "rng_seed": 20260923})
+    cycle = ["bcc", "mel", "nv", "akiec", "bkl"]
+    labels = np.array([cycle[i % 5] for i in range(N_PAD)])
+    truth = np.array([pr.HAM_CLASSES.index(x) for x in labels])
+    rng = np.random.default_rng(0)
+    probas = {}
+    for role in pw.roles():
+        alpha = vp.parse_weights(role)["alpha"]
+        signal = 2.0 - abs(alpha - 0.8) * 2
+        raw = rng.random((N_PAD, len(pr.HAM_CLASSES)))
+        raw[np.arange(N_PAD), truth] += signal
+        probas[role] = raw / raw.sum(axis=1, keepdims=True)
+    pad = {"ham_labels": labels, "groups": np.array([f"P{i // 3}" for i in range(N_PAD)]),
+           "fst_bins": np.array([pu.FST_BINS[i % 4] for i in range(N_PAD)]), "fst": [2] * N_PAD}
+    doc = pw.build_document(probas, pad, {"code_revision": "f" * 40}, _grid())
+    mp.undo()
+    return doc
+
+
+class TestTheDocument:
+    def test_every_reading_scores_every_role_once(self, document):
+        from dermssl import pad_ufes as pu
+
+        assert set(document["readings"]) == set(pu.READINGS)
+        for entry in document["readings"].values():
+            assert list(entry["arms"]) == pw.roles()
+
+    def test_the_verdicts_live_on_the_primary_reading_only(self, document):
+        assert set(document["verdicts"]) == {"PAD-W1", "PAD-W2"}
+        assert all("verdicts" not in entry for entry in document["readings"].values())
+
+    def test_w2_reads_the_primary_macro_f1_points_of_each_curve(self, document):
+        arms = document["readings"]["primary"]["arms"]
+        for model in pw.MODELS:
+            points = document["verdicts"]["PAD-W2"]["by_model"][model]["macro_f1"]
+            assert points == {a: arms[role]["macro_f1"] for a, role in pw.curve(model).items()}
+
+    def test_w1_reads_the_primary_paired_row(self, document):
+        rows = document["readings"]["primary"]["paired"]
+        for model in pw.MODELS:
+            arm, control = pw.w1_pair(model)
+            row = next(r for r in rows if (r["arm"], r["control"], r["metric"]) == (arm, control, "macro_f1"))
+            assert document["verdicts"]["PAD-W1"]["by_model"][model]["point_delta"] == row["point_delta"]
+
+    def test_the_strata_carry_rule_b_and_no_verdict(self, document):
+        strata = document["fst_strata"]
+        assert strata["exploratory"] is True and strata["reading"] == "primary"
+        assert all("verdicts" not in entry for entry in strata["bins"].values())
+
+    def test_the_ham_side_is_the_committed_curve_and_s43_has_none(self, document):
+        assert document["ham_holdout"]["curves"]["A_s43"]["available"] is False
+        assert document["ham_holdout"]["curves"]["A_s42"]["points"][0.0]["config"] == "public@224|cls|none|id"
+
+    def test_the_grid_and_the_provenance_are_recorded(self, document):
+        assert document["alphas"] == list(pw.ALPHAS)
+        assert document["curves"]["A_soup"]["0.8"] == "A_soup_a0.8"
+        assert document["code_revision"] == "f" * 40
+
+    def test_a_missing_role_is_refused(self):
+        with pytest.raises(ValueError, match="A_s43_a0.4"):
+            pw.check_roles({r: None for r in pw.roles() if r != "A_s43_a0.4"})
