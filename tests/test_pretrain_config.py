@@ -385,6 +385,8 @@ class TestWandbAbortsBeforeTouchingTheGpu:
         # validate() is not what is under test here, and it would fail first on
         # paths that do not exist, hiding whether the W&B check ran at all.
         monkeypatch.setattr(launcher.config_mod, "validate", lambda cfg: cfg)
+        # The launch guard runs even earlier and is not under test either.
+        monkeypatch.setattr(launcher, "check_launch", lambda args: None)
         monkeypatch.setattr(
             sys,
             "argv",
