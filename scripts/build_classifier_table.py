@@ -23,12 +23,14 @@ sys.path.insert(0, str(REPO / "src"))
 
 from dermssl import final_eval as fe  # noqa: E402
 from dermssl import per_class_metrics as pcm  # noqa: E402
+from dermssl import v7_seeds as seeds  # noqa: E402
 
 CLS = Path("resultados") / "clasificacion"
 BANK = CLS / "bank.json"
 C1_CELLS = CLS / "c1" / "c1_cells.json"
-FINAL = {42: CLS / "v7" / "final_eval.json", 43: CLS / "v7" / "s43" / "final_eval.json"}
-PROBAS = {42: CLS / "v7" / "final_eval.probas.npz", 43: CLS / "v7" / "s43" / "final_eval.probas.npz"}
+FINAL = {seed: seeds.final_eval_path(seed) for seed in seeds.REGISTERED_SEEDS}
+PROBAS = {seed: seeds.probas_path(seed) for seed in seeds.REGISTERED_SEEDS}
+BASE = seeds.BASE_SEED
 TARGET = REPO / CLS / "TABLA_CLASIFICADOR.md"
 BACKBONES = ("dinov2_public_vits14", "dinov2_public_vitb14", "ssl_plain_vits14",
              "ssl_plain_vitb14", "ssl_proposed_vits14", "ssl_proposed_vitb14")
@@ -69,12 +71,13 @@ def load_sources() -> dict:
 
 
 def check_public_identical(docs: dict, probas: dict) -> None:
-    """The public arm has no seed: both evaluations must hold the same numbers."""
-    a, b = docs[42]["results"]["public"], docs[43]["results"]["public"]
-    same_json = all(a[m] == b[m] and a["ci95"][m] == b["ci95"][m] for m in fe.METRICS)
-    same_npz = np.array_equal(probas[42]["public"], probas[43]["public"])
-    if not (same_json and same_npz):
-        raise ValueError("el brazo DINOv2 público difiere entre s42 y s43; no se puede listar una vez")
+    """The public arm has no seed: every evaluation must hold the same numbers."""
+    a = docs[BASE]["results"]["public"]
+    for seed in docs:
+        b = docs[seed]["results"]["public"]
+        same_json = all(a[m] == b[m] and a["ci95"][m] == b["ci95"][m] for m in fe.METRICS)
+        if not (same_json and np.array_equal(probas[BASE]["public"], probas[seed]["public"])):
+            raise ValueError(f"el brazo DINOv2 público difiere entre s{BASE} y s{seed}; no se puede listar una vez")
 
 
 def v6_rows(bank: dict) -> list[str]:
@@ -95,28 +98,33 @@ def _v7_record(doc: dict, probas: dict, role: str) -> tuple[dict, dict]:
 
 
 def v7_rows(docs: dict, probas: dict) -> list[str]:
-    arms, both = docs[42]["arms"], f"`{FINAL[42].as_posix()}`, `{FINAL[43].as_posix()}`"
+    arms, every = docs[BASE]["arms"], ", ".join(f"`{FINAL[s].as_posix()}`" for s in docs)
     lines = []
     for role in ("plain", "proposed"):
         recs = {seed: _v7_record(doc, probas[seed], role) for seed, doc in docs.items()}
         for seed, (values, cis) in recs.items():
             lines.append(_row(f"v7 s{seed}", arms[role], values, cis, f"`{FINAL[seed].as_posix()}`"))
         mean = {m: sum(v[m] for v, _ in recs.values()) / len(recs) for m in COLUMNS}
-        lines.append(_row("media s42/s43", arms[role], mean, None, both))
-    values, cis = _v7_record(docs[42], probas[42], "public")
-    lines.append(_row("v7 s42 = s43", arms["public"], values, cis, both))
+        lines.append(_row("media " + "/".join(f"s{s}" for s in docs), arms[role], mean, None, every))
+    values, cis = _v7_record(docs[BASE], probas[BASE], "public")
+    lines.append(_row(f"v7 {_same(docs)}", arms["public"], values, cis, every))
     return lines
+
+
+def _same(docs: dict) -> str:
+    """Label of the seedless public arm: ``s42 = s43`` (= s44 ...)."""
+    return " = ".join(f"s{s}" for s in docs)
 
 
 def majority_row(y_true, classes: list[str]) -> str:
     share = pcm.majority_accuracy(y_true, classes, MAJORITY)
     return _row("referencia", f"siempre {MAJORITY}", {"accuracy": share}, None,
-                f"`y_true` de `{PROBAS[42].as_posix()}`")
+                f"`y_true` de `{PROBAS[BASE].as_posix()}`")
 
 
 def summary_section(src: dict) -> list[str]:
     bank, c1, docs, probas = src["bank"], src["c1"], src["docs"], src["probas"]
-    y_true, classes = probas[42]["y_true"], list(bank["split"]["classes"])
+    y_true, classes = probas[BASE]["y_true"], list(bank["split"]["classes"])
     n_c1 = sorted({cell["gate"]["n_images"] for cell in c1.values()})
     fraction = str(V6_ARM["fraction"]).replace(".", ",")
     header = "| Versión | Backbone/brazo | " + " | ".join(LABELS[m] for m in COLUMNS) + " | Fuente |"
@@ -127,8 +135,8 @@ def summary_section(src: dict) -> list[str]:
         "Los protocolos no son idénticos y las filas no se comparan entre versiones sin leerlos: "
         f"v6 = banco con probe `{V6_ARM['probe']}`, fracción {fraction}, "
         f"semilla {V6_ARM['seed']}, val n = {bank['split']['val']}; C1 = condición `{C1_CONDITION}`, "
-        f"n = {', '.join(map(str, n_c1))}; v7 = probe `{docs[42]['probe']}`, val n = "
-        f"{docs[42]['n_eval']} (s42) y {docs[43]['n_eval']} (s43).", "",
+        f"n = {', '.join(map(str, n_c1))}; v7 = probe `{docs[BASE]['probe']}`, val n = "
+        f"{seeds.join_es([str(doc['n_eval']) + f' (s{s})' for s, doc in docs.items()])}.", "",
         f"La accuracy sola engaña con este desbalance: `{MAJORITY}` es "
         f"{int((y_true == classes.index(MAJORITY)).sum())} de {len(y_true)} imágenes de val, así que "
         f"predecir siempre `{MAJORITY}` ya da {_num(pcm.majority_accuracy(y_true, classes, MAJORITY))}. "
@@ -142,8 +150,8 @@ def summary_section(src: dict) -> list[str]:
 def per_class_reports(src: dict) -> dict[str, dict]:
     """``{label: class_report}``; A*/B* per seed, the public arm once."""
     docs, probas, classes = src["docs"], src["probas"], src["bank"]["split"]["classes"]
-    arms, out = docs[42]["arms"], {}
-    jobs = [(seed, role) for role in ("plain", "proposed") for seed in docs] + [(42, "public")]
+    arms, out = docs[BASE]["arms"], {}
+    jobs = [(seed, role) for role in ("plain", "proposed") for seed in docs] + [(BASE, "public")]
     for seed, role in jobs:
         report = pcm.class_report(probas[seed]["y_true"], probas[seed][role], classes)
         published = docs[seed]["results"][role]["macro_f1"]
@@ -151,7 +159,7 @@ def per_class_reports(src: dict) -> dict[str, dict]:
             raise ValueError(f"macro-F1 de {role} s{seed} desde probas ({report['macro_f1']}) "
                              f"no coincide con final_eval.json ({published})")
         report["ci"] = pcm.positive_intervals(probas[seed]["y_true"], probas[seed][role], classes)
-        label = f"{arms[role]} s42 = s43" if role == "public" else f"{arms[role]} s{seed}"
+        label = f"{arms[role]} {_same(docs)}" if role == "public" else f"{arms[role]} s{seed}"
         out[label] = report
     return out
 

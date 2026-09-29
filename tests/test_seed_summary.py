@@ -38,6 +38,24 @@ def test_p3_ic_is_robust_only_when_both_seeds_meet_it():
     assert split == "no robusto a la semilla"
 
 
+def test_three_seeds_give_mean_and_range_not_a_difference():
+    docs = {42: _doc(0.64, 0.66, 0.01, "cumplida"), 43: _doc(0.68, 0.66, 0.01, "cumplida"),
+            44: _doc(0.62, 0.66, 0.01, "cumplida")}
+    plain = bs.arm_rows(docs)["plain"]["macro_f1"]
+    assert plain["s44"] == pytest.approx(0.62) and plain["mean"] == pytest.approx((0.64 + 0.68 + 0.62) / 3)
+    assert plain["range"] == pytest.approx(0.06) and "diff" not in plain
+    text = bs.render(docs)
+    assert "# v7: las tres semillas" in text and "Rango (máx − mín)" in text
+    assert "| s42 | s43 | s44 |" in text and "(semilla 44)" in text
+    assert "P3-IC con las tres semillas: robusto a la semilla." in text
+
+
+def test_one_seed_that_misses_p3_ic_breaks_robustness_across_three():
+    docs = {42: _doc(0.6, 0.66, 0.01, "cumplida"), 43: _doc(0.6, 0.66, 0.01, "cumplida"),
+            44: _doc(0.6, 0.66, -0.01, "no cumplida")}
+    assert bs.robustness(docs) == "no robusto a la semilla"
+
+
 def test_render_lists_verdicts_per_seed_and_marks_generated():
     text = bs.render({42: _doc(0.64, 0.66, 0.01, "cumplida"), 43: _doc(0.68, 0.66, 0.01, "cumplida")})
     assert "No editar a mano" in text and "P3-IC" in text and "robusto a la semilla" in text

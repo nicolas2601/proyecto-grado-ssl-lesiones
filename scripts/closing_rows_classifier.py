@@ -6,19 +6,23 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import closing_table_rules as r  # noqa: E402
 from build_segmentation_table import _signed  # noqa: E402
+
+from dermssl import v7_seeds as seeds  # noqa: E402
 
 CLF = Path("resultados") / "clasificacion"
 C1_BOOT, C1_CROSS = CLF / "c1" / "c1_bootstrap.json", CLF / "c1" / "c1_cross_backbone.json"
 C1V7_STUDENT = CLF / "c1_v7" / "student_r3" / "c1_bootstrap.json"
 C1V7_A2 = CLF / "c1_v7" / "a2" / "c1_bootstrap.json"
 A2_VS_STUDENT = CLF / "c1_v7" / "a2_vs_student_cells.json"
-FINAL = {42: CLF / "v7" / "final_eval.json", 43: CLF / "v7" / "s43" / "final_eval.json"}
+FINAL = {seed: seeds.final_eval_path(seed) for seed in seeds.REGISTERED_SEEDS}
 PUBLIC, PROPOSED_V6 = "dinov2_public_vitb14", "ssl_proposed_vitb14"
-BACKBONE = {PUBLIC: "público", "v7_astar_s42": "A\\* s42", "v7_astar_s43": "A\\* s43",
-            "v7_bstar_s42": "B\\* s42", "v7_bstar_s43": "B\\* s43"}
+# C1-v7 cells were run for s42 and s43 only; the labels cover every registered seed.
+BACKBONE = {PUBLIC: "público", **{f"v7_{arm.lower()}star_s{seed}": f"{arm}\\* s{seed}"
+                                  for arm in ("A", "B") for seed in seeds.REGISTERED_SEEDS}}
 CONDITION = {"none": "(0) sin máscara", "bbox_crop": "(a) recorte", "neutral_bg": "(b) fondo gris",
              "mask_pool": "(c) pooling"}
 PREDICTIONS = {
@@ -113,7 +117,7 @@ def v7_prediction(key: str):
         preds = {seed: d[path]["predictions"][key] for seed, path in FINAL.items()}
         verdicts = {seed: p["verdict"] for seed, p in preds.items()}
         per_seed = " ".join(f"s{seed}: {_evidence(p)} → {p['verdict']}." for seed, p in preds.items())
-        criterion = preds[42]["criterion"].replace("*", "\\*")
+        criterion = preds[seeds.BASE_SEED]["criterion"].replace("*", "\\*")
         text = f"Criterio: {criterion}. {per_seed}"
         if len(set(verdicts.values())) > 1:
             text += " Las semillas no coinciden: no robusto a la semilla."
@@ -142,7 +146,7 @@ def rows() -> list[r.RowSpec]:
     ]
     specs += [r.RowSpec("Profesor (docs/27 §3.3) · docs/28 §5", PREDICTIONS[k],
                         "Finales A\\* y B\\* (SimSiam anclado sobre DINOv2 ViT-B), evaluación única en val "
-                        "con dos semillas (docs/28 §4.1, §5.1)",
+                        f"con {seeds.count_word(len(FINAL))} semillas (docs/28 §4.1, §5.1)",
                         tuple(FINAL.values()), v7_prediction(k)) for k in PREDICTIONS]
     specs.append(r.RowSpec("Profesor (docs/27 §3.3)", "D1: generalización cross-dominio (HAM10000 → ISIC 2019/2020)",
                            "Registrado en docs/27 FASE 5; no se corrió", (), None))

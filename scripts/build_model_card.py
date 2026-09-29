@@ -1,6 +1,7 @@
 """Generate docs/release/MODEL_CARD.md from the committed v7 evaluation files.
 
-Every number comes from ``resultados/clasificacion/v7[/s43]/final_eval.json``
+Every number comes from the ``final_eval.json`` of each registered seed
+(``dermssl.v7_seeds``)
 and the committed probabilities beside them (accuracy and melanoma metrics
 with the same bootstrap as TABLA_CLASIFICADOR.md). Nothing is transcribed.
 
@@ -21,10 +22,10 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from dermssl import per_class_metrics as pcm  # noqa: E402
+from dermssl import v7_seeds as seeds  # noqa: E402
 from dermssl.release import package, preprocess  # noqa: E402
 
-V7 = Path("resultados") / "clasificacion" / "v7"
-FINAL = {42: V7 / "final_eval.json", 43: V7 / "s43" / "final_eval.json"}
+FINAL = {seed: seeds.final_eval_path(seed) for seed in seeds.REGISTERED_SEEDS}
 TARGET = REPO / "docs" / "release" / "MODEL_CARD.md"
 MODELS = (("A", "plain"), ("B", "proposed"))
 TEMPLATE = REPO / "docs" / "release" / "model_card_template.md"
@@ -33,6 +34,13 @@ DEPLOYED = (("macro_f1", "Macro-F1"), ("balanced_accuracy", "Bal-acc"), ("accura
             ("mel_sensitivity", "Mel sensitivity"), ("mel_auc", "Mel AUC"), ("ece", "ECE"))
 NO_PARITY = ("Not in this copy: the métricas de despliegue are written into the release folder's "
              "`MODEL_CARD.md` by `scripts/finalize_release.py`, from each model's `parity.json`.")
+
+
+_NUMBER_EN = {2: "two", 4: "four", 6: "six", 8: "eight"}
+
+
+def _models_text(arm: str) -> str:
+    return ", ".join(f"`{name}`" for name in seeds.model_names((arm,)))
 
 
 def _cell(value: float, ci) -> str:
@@ -61,8 +69,8 @@ def metrics_table(docs: dict, probas: dict) -> str:
         for seed in sorted(docs):
             lines.append(model_row(f"`{arm}_s{seed}` ({docs[seed]['arms'][role]})", docs[seed],
                                    probas[seed], role, classes))
-    lines.append(model_row("DINOv2 public ViT-B/14 (reference, not released)", docs[42],
-                           probas[42], "public", classes))
+    lines.append(model_row("DINOv2 public ViT-B/14 (reference, not released)", docs[seeds.BASE_SEED],
+                           probas[seeds.BASE_SEED], "public", classes))
     return "\n".join(lines)
 
 
@@ -102,7 +110,9 @@ def render(parity_root: Path | None = None) -> str:
     values = {
         "metrics_table": metrics_table(docs, probas),
         "deployment_table": deployment_table(parity_root),
-        "n_val": str(docs[42]["n_eval"]),
+        "n_val": str(docs[seeds.BASE_SEED]["n_eval"]),
+        "n_models": _NUMBER_EN.get(len(MODELS) * len(FINAL), str(len(MODELS) * len(FINAL))).capitalize(),
+        "a_models": _models_text("A"), "b_models": _models_text("B"),
         "sources": ", ".join(f"`{p.as_posix()}`" for p in FINAL.values()),
         "preprocessing": json.dumps(preprocess.PREPROCESSING, indent=1),
         "forms_atol": f"{package.FORMS_ATOL:g}", "json_tol": f"{package.JSON_F1_TOLERANCE:g}",

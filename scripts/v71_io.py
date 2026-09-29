@@ -19,11 +19,13 @@ from c1_build_val_index import rebuild_split
 from dermssl import feature_cache as fc
 from dermssl import v71_plan as plan
 from dermssl import v71_protocol as vp
+from dermssl import v7_seeds as seeds
 
 ARCH = "dinov2_vitb14"
 WEIGHTS_FILE = "simsiam_dinov2_backbone_final.pt"
-FINAL_DIRS = {("A", "s42"): "final_A", ("A", "s43"): "final_A_s43",
-              ("B", "s42"): "final_B", ("B", "s43"): "final_B_s43"}
+# v7.1 closed over the s42+s43 soup (56e7670): its own fixed pair, never the registry.
+SOUP_SEEDS = seeds.V71_SOUP_SEEDS
+FINAL_DIRS = {(arm, f"s{seed}"): seeds.final_dir_name(arm, seed) for arm in ("A", "B") for seed in SOUP_SEEDS}
 
 
 def write_json(path: Path, payload) -> None:
@@ -136,7 +138,8 @@ class WeightBank:
                 state = hub_model(self.arch, pretrained=True).state_dict()
             elif key.endswith("_soup"):
                 arm = key[0]
-                state = tv.average_states(self._state(f"{arm}_s42"), self._state(f"{arm}_s43"))
+                first, second = SOUP_SEEDS
+                state = tv.average_states(self._state(f"{arm}_s{first}"), self._state(f"{arm}_s{second}"))
             else:
                 arm, seed = key.split("_")
                 state = torch.load(self.final_path(arm, seed), map_location="cpu", weights_only=True)
@@ -154,7 +157,7 @@ class WeightBank:
 
     def direct_state(self, arm: str) -> dict:
         """The seed-42 final read straight from disk, for the pre-test."""
-        return self._state(f"{arm}_s42")
+        return self._state(f"{arm}_s{SOUP_SEEDS[0]}")
 
     def model(self, state: dict):
         """One module reused for every weight set: load_state_dict is strict."""

@@ -21,11 +21,14 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "scripts"))
 
+from dermssl import v7_seeds as seeds  # noqa: E402
 from dermssl.release import package  # noqa: E402
 
-MODELS = ("A_s42", "A_s43", "B_s42", "B_s43")
+MODELS = seeds.model_names(("A", "B"))
 RELEASE_SRC = REPO / "src" / "dermssl" / "release"
 V7 = REPO / "resultados" / "clasificacion" / "v7"
+_RESULTS = {f"results/s{seed}/{path.name}": REPO / path for seed in seeds.REGISTERED_SEEDS
+            for path in (seeds.final_eval_path(seed), seeds.probas_path(seed))}
 COPIES = {
     "README.md": REPO / "docs" / "release" / "README.md",
     "LICENSE": REPO / "LICENSE",
@@ -35,10 +38,7 @@ COPIES = {
     "dinov2_plain.py": RELEASE_SRC / "plain_dinov2.py",
     "web/index.html": REPO / "docs" / "release" / "web" / "index.html",
     "web/preprocess.js": REPO / "docs" / "release" / "web" / "preprocess.js",
-    "results/s42/final_eval.json": V7 / "final_eval.json",
-    "results/s42/final_eval.probas.npz": V7 / "final_eval.probas.npz",
-    "results/s43/final_eval.json": V7 / "s43" / "final_eval.json",
-    "results/s43/final_eval.probas.npz": V7 / "s43" / "final_eval.probas.npz",
+    **_RESULTS,
     "results/SEMILLAS.md": V7 / "SEMILLAS.md",
     "results/TABLA_CLASIFICADOR.md": REPO / "resultados" / "clasificacion" / "TABLA_CLASIFICADOR.md",
 }
