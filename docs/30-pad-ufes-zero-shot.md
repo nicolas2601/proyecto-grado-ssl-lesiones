@@ -117,3 +117,22 @@ Los bloques de §2-3 y §5 no se editan: el guard los compara byte a byte contra
 - **Código:** la segunda pasada se implementa después de este commit, con TDD, y se niega a correr si esta adenda no está en un commit anterior al script o cambió desde entonces.
 
 <!-- registro-pad-adenda-a71-s44:fin -->
+
+## 8. WiSE-FT en PAD-UFES-20: curva de α (registrada el 2026-09-29T10:36Z, antes de extraer nada)
+
+<!-- registro-pad-wiseft:inicio -->
+
+**Registrada el 2026-09-29T10:36Z UTC, antes de extraer features o calcular cualquier número de esta sección.** Ya se conocen (y motivaron esto) los resultados de §2-3 y de la adenda §7 (2bcfadf): en PAD la ventaja de A\*, B\* y A71 sobre el público se invierte. Pregunta: ¿interpolar los pesos entre el público y el adaptado (WiSE-FT) recupera el desempeño en PAD?
+
+- **Grilla:** la de v7.1, α ∈ {0; 0,2; 0,4; 0,6; 0,8; 1,0}, con los pesos interpolados como en v7.1 (`WeightBank`); α = 0 es exactamente el público y α = 1 el adaptado.
+- **Modelos:** A\* s42, A\* s43 y la sopa de A\* (s42+s43, la base de A71). B\* no entra.
+- **Protocolo en PAD:** el de §2 (logreg sobre CLS @224, sin TTA, ajustado sobre el train completo de C1 de HAM10000), las mismas lecturas (primaria bcc/mel/nv, secundaria akiec, SEK exploratoria), bootstrap pareado agrupado por paciente (semilla 20260923, 1.000 remuestras) y los estratos de fototipo con la regla (b) de §6. Hilos del probe fijados a `PROBE_BLAS_THREADS` = 4.
+- **HAM10000: no se lee nada nuevo.** No se toca val. La curva de HAM es la del holdout ya commiteada en `resultados/clasificacion/v71/holdout_grid.json` (filas `A_s42_a*` y `A_soup_a*` con `cls|none|id`); para A\* s43 no existe esa curva y queda sin contraparte en HAM. Esa curva ya se conocía, así que no es predicción.
+- **Predicción registrada (solo PAD, macro-F1 primaria):**
+  - **PAD-W1 (decide):** en los tres modelos, el contraste pareado α = 0,8 − α = 1,0 tiene Δ puntual > 0. Se lee "mejora" solo en los modelos donde además el IC excluye el 0 por arriba. Probabilidad estimada ≈60 %.
+  - **PAD-W2:** en los tres modelos la curva es monótona al bajar α dentro de una tolerancia: ningún paso de α a α − 0,2 baja el macro-F1 puntual en más de 0,01, y α = 0 (el público) es el máximo o queda a ≤ 0,01 del máximo. ≈50 %.
+- **Descriptivo, sin veredicto:** ECE, balanced accuracy, AUC, las lecturas secundaria y exploratoria, los estratos de fototipo y la comparación con la curva de HAM holdout.
+- **Qué lo refuta:** PAD-W1 si en algún modelo Δ(0,8 − 1,0) ≤ 0; PAD-W2 si algún paso viola la tolerancia.
+- **Código:** se implementa después de este commit, con TDD, y se niega a correr si este bloque no está en un commit anterior al script o cambió desde entonces.
+
+<!-- registro-pad-wiseft:fin -->
