@@ -209,6 +209,11 @@ def test_select_refuses_an_identity_only_grid(pod, identity_runs):
         t4_sog_run.main(_t4(pod, identity_runs[0], "--stage", "select"))
 
 
+def test_the_errata_tolerance_needs_a_committed_errata_block(pod, tmp_path):
+    with pytest.raises(SystemExit, match="errata"):
+        t4_sog_run.main(_t4(pod, tmp_path, "--stage", "grid", "--reproduction-errata"))
+
+
 def test_two_identity_runs_on_cpu_compare_as_identical(identity_runs, tmp_path):
     import t4_repro_compare
 

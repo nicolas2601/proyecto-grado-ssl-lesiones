@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -73,6 +74,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--v71-final", type=Path, default=V71_FINAL, help="committed v7.1 val read")
     p.add_argument("--inputs", choices=("both", "identity"), default="both",
                    help="identity: diagnostic grid, reports the reproduction without aborting, no SoG")
+    p.add_argument("--reproduction-errata", action="store_true",
+                   help="tolerance 5e-3, only with the errata block committed in docs/31")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--limit", type=int, default=None, help="smoke: skips the reproduction guard")
     p.add_argument("--allow-dirty", action="store_true", help="smoke/rehearsal only; never for val")
@@ -137,10 +140,20 @@ def run_environment(args) -> dict:
     }
 
 
+def committed_errata_tolerance(repo: Path) -> float:
+    """The errata tolerance as committed at HEAD (a working-tree draft does not count)."""
+    shown = subprocess.run(["git", "-C", str(repo), "show", f"HEAD:{t4.REGISTRATION_DOC}"],
+                           capture_output=True, text=True)
+    try:
+        return t4.errata_tolerance(shown.stdout)
+    except ValueError as exc:
+        raise SystemExit(f"ABORT: --reproduction-errata sin errata commiteada en docs/31: {exc}") from exc
+
+
 def _reproduction(args, identity_rows: dict) -> dict:
     if args.limit:
         return {"status": "skipped", "reason": "--limit cambia los ids", "passed": True}
-    tol = t4.REPRODUCTION_TOLERANCE
+    tol = committed_errata_tolerance(REPO) if args.reproduction_errata else t4.REPRODUCTION_TOLERANCE
     report = t4.reproduction_check(identity_rows, io.read_json(args.v71_grid.expanduser())["rows"], tol=tol)
     report["reference"] = str(args.v71_grid)
     if not report["passed"] and args.inputs == "both":
@@ -166,6 +179,8 @@ def stage_grid(args, ctx, revision, registration) -> None:
 
 
 def _early_guards(args) -> None:
+    if args.reproduction_errata:
+        committed_errata_tolerance(REPO)
     if args.stage == "val" and args.split == "val":
         if not args.single_evaluation:
             raise SystemExit("ABORT: --split val exige --single-evaluation (la validacion se toca una vez)")

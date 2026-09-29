@@ -230,7 +230,12 @@ def cost_projection(*, n_fit: int, n_hold: int, n_train: int, n_val: int) -> dic
                             "decode_img_per_s_per_core": plan.DECODE_IMG_PER_S_PER_CORE}}
 
 
-# --- reproduction diagnosis (Paula, 2026-09-29) ---
+# --- reproduction diagnosis and the conditional errata (Paula, 2026-09-29) ---
+
+ERRATA_START, ERRATA_END = "<!-- errata-t4-reproduccion:inicio -->", "<!-- errata-t4-reproduccion:fin -->"
+ERRATA_TOLERANCE = 5e-3
+ERRATA_TOLERANCE_TEXT = "5e-3"
+
 
 def array_digests(arrays: dict) -> dict:
     """``name -> sha256`` of each float32 array's bytes: two extractions are equal or they are not."""
@@ -239,3 +244,12 @@ def array_digests(arrays: dict) -> dict:
     return {name: hashlib.sha256(np.ascontiguousarray(value, dtype=np.float32).tobytes()).hexdigest()
             for name, value in arrays.items()}
 
+
+def errata_tolerance(doc_text: str) -> float:
+    """The widened tolerance, only if docs/31 carries the marked errata naming it."""
+    first, last = doc_text.find(ERRATA_START), doc_text.find(ERRATA_END)
+    if first < 0 or last < first:
+        raise ValueError("docs/31 no tiene el bloque de errata de reproduccion")
+    if ERRATA_TOLERANCE_TEXT not in doc_text[first:last]:
+        raise ValueError(f"el bloque de errata no fija la tolerancia {ERRATA_TOLERANCE_TEXT}")
+    return ERRATA_TOLERANCE

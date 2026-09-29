@@ -153,3 +153,12 @@ def test_verdicts_refuse_a_missing_contrast():
     rows = _paired({"A": 0.0, "B": 0.0, "public": 0.0}, {"A": 0.0, "B": 0.0, "public": 0.0})[1:]
     with pytest.raises(KeyError, match="macro_f1"):
         t4_sog.verdicts(rows)
+
+
+def test_the_errata_tolerance_is_read_only_from_a_marked_block():
+    text = f"x\n{t4_sog.ERRATA_START}\ntolerancia de reproduccion: 5e-3\n{t4_sog.ERRATA_END}\n"
+    assert t4_sog.errata_tolerance(text) == 5e-3
+    with pytest.raises(ValueError, match="errata"):
+        t4_sog.errata_tolerance("sin bloque")
+    with pytest.raises(ValueError, match="5e-3"):
+        t4_sog.errata_tolerance(f"{t4_sog.ERRATA_START}\notra cosa\n{t4_sog.ERRATA_END}")
