@@ -33,7 +33,7 @@ from dermssl import metrics as _metrics
 #: Metrics where a SMALLER value is better. The verdict must read this rather
 #: than infer a side from the sign of the delta: inferring is exactly the
 #: inverted-label bug that hit HD95, and it would flip every ECE row.
-LOWER_IS_BETTER = frozenset({"ece"})
+LOWER_IS_BETTER = frozenset({"ece", "mel_to_nv_rate"})  # melanomas sent to nevus: fewer is better
 
 #: Metrics whose direction is known. An unlisted one is refused rather than
 #: assumed higher-is-better, because the next lower-is-better metric to arrive
@@ -42,6 +42,8 @@ LOWER_IS_BETTER = frozenset({"ece"})
 KNOWN_METRICS = frozenset({
     "ece", "macro_f1", "balanced_accuracy", "auc",
     "accuracy", "mel_recall", "mel_auc",  # docs/29 2.3b secondaries, higher is better
+    # docs/29 2.7 item 1 operating points at a fixed holdout threshold, higher is better
+    "mel_sens_at_thr_spec80", "mel_sens_at_thr_spec90", "mel_spec_at_thr_sens95",
 }) | LOWER_IS_BETTER
 
 
@@ -127,12 +129,16 @@ def paired_contrast(
     seed: int = 0,
     alpha: float = 0.05,
     groups: Sequence | None = None,
+    control_metric_fn: Callable[[np.ndarray, np.ndarray], float] | None = None,
 ) -> dict:
     """Point estimates plus a percentile interval on the paired delta.
 
     ``groups`` switches the resampling unit from the row to the group; the
     pairing does not change: both arms still see the same draw.
+    ``control_metric_fn`` scores the control when it needs its own function
+    (an operating point at the control's own threshold); default: ``metric_fn``.
     """
+    control_fn = metric_fn if control_metric_fn is None else control_metric_fn
     y_true = np.asarray(y_true)
     arm_proba = np.asarray(arm_proba)
     control_proba = np.asarray(control_proba)
@@ -150,7 +156,7 @@ def paired_contrast(
         )
 
     point_arm = float(metric_fn(y_true, arm_proba))
-    point_control = float(metric_fn(y_true, control_proba))
+    point_control = float(control_fn(y_true, control_proba))
     point_delta = point_arm - point_control
 
     rng = np.random.RandomState(seed)
@@ -159,7 +165,7 @@ def paired_contrast(
     for index in range(n_resamples):
         # ONE index draw, used for both arms. This is the whole point.
         picks = draw(rng)
-        deltas[index] = metric_fn(y_true[picks], arm_proba[picks]) - metric_fn(
+        deltas[index] = metric_fn(y_true[picks], arm_proba[picks]) - control_fn(
             y_true[picks], control_proba[picks]
         )
 
@@ -200,6 +206,7 @@ def contrast_record(
     rng_seed: int = 20260923,
     metric_fn: Callable[[np.ndarray, np.ndarray], float] | None = None,
     groups: Sequence | None = None,
+    control_metric_fn: Callable[[np.ndarray, np.ndarray], float] | None = None,
 ) -> dict:
     """One row of ``bootstrap.json``, in the published schema.
 
@@ -222,6 +229,7 @@ def contrast_record(
         n_resamples=n_resamples,
         seed=rng_seed,
         groups=groups,
+        control_metric_fn=control_metric_fn,
     )
 
     return {

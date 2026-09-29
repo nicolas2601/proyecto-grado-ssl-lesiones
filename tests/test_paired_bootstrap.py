@@ -159,7 +159,18 @@ class TestTheDirectionOfECE:
             pb.direction_for(metric="hd95_inventada", point_delta=0.1, excludes_zero=True)
 
     def test_the_registry_says_which_metrics_are_lower_is_better(self):
-        assert pb.LOWER_IS_BETTER == frozenset({"ece"})
+        assert pb.LOWER_IS_BETTER == frozenset({"ece", "mel_to_nv_rate"})
+
+    def test_a_higher_mel_to_nv_rate_favours_the_control(self):
+        """More melanomas sent to nevus is worse: a positive delta is the control's."""
+        assert pb.direction_for(metric="mel_to_nv_rate", point_delta=0.03, excludes_zero=True) == (
+            "control_better"
+        )
+
+    @pytest.mark.parametrize("metric", ["mel_sens_at_thr_spec80", "mel_sens_at_thr_spec90",
+                                        "mel_spec_at_thr_sens95"])
+    def test_the_fixed_threshold_operating_points_are_higher_is_better(self, metric):
+        assert pb.direction_for(metric=metric, point_delta=0.02, excludes_zero=True) == "arm_better"
 
     @pytest.mark.parametrize("metric", ["accuracy", "mel_recall", "mel_auc"])
     def test_the_v71_secondaries_are_higher_is_better(self, metric):
@@ -246,3 +257,45 @@ class TestGuards:
                 control_proba=_proba(12, 3, 2), metric_fn=sometimes_nan,
                 n_resamples=200, seed=0,
             )
+
+
+class TestEachArmMayHaveItsOwnMetric:
+    """Operating points at each entry's OWN holdout threshold: the two arms are
+    scored by different functions, still on the same draw."""
+
+    def test_the_control_function_scores_the_control_and_the_draw_is_shared(self):
+        y_true = np.arange(40) % 3
+        arm, control = _proba(40, 3, 5), _proba(40, 3, 6)
+        arm_fn = lambda y, p: float(p[:, 0].mean())  # noqa: E731
+        control_fn = lambda y, p: float(p[:, 1].mean())  # noqa: E731
+
+        out = pb.paired_contrast(y_true=y_true, arm_proba=arm, control_proba=control,
+                                 metric_fn=arm_fn, control_metric_fn=control_fn,
+                                 n_resamples=50, seed=7)
+
+        assert out["point_arm"] == arm_fn(y_true, arm)
+        assert out["point_control"] == control_fn(y_true, control)
+        rng = np.random.RandomState(7)
+        deltas = []
+        for _ in range(50):
+            i = rng.randint(0, 40, 40)
+            deltas.append(arm_fn(y_true[i], arm[i]) - control_fn(y_true[i], control[i]))
+        assert out["ci95_low"] == float(np.percentile(deltas, 2.5))
+        assert out["ci95_high"] == float(np.percentile(deltas, 97.5))
+
+    def test_without_a_control_function_both_arms_use_the_same_one(self):
+        y_true = np.arange(40) % 3
+        arm, control = _proba(40, 3, 5), _proba(40, 3, 6)
+        kwargs = dict(y_true=y_true, arm_proba=arm, control_proba=control,
+                      metric_fn=pb.metric_macro_f1, n_resamples=30, seed=1)
+        assert pb.paired_contrast(**kwargs) == pb.paired_contrast(**kwargs,
+                                                                  control_metric_fn=pb.metric_macro_f1)
+
+    def test_the_record_passes_the_control_function_through(self):
+        y_true = np.arange(40) % 3
+        arm, control = _proba(40, 3, 5), _proba(40, 3, 6)
+        record = pb.contrast_record(arm="a", control="b", metric="mel_sens_at_thr_spec80",
+                                    probe="logreg", fraction=1.0, seed=0, y_true=y_true,
+                                    arm_proba=arm, control_proba=control, n_resamples=10,
+                                    metric_fn=lambda y, p: 1.0, control_metric_fn=lambda y, p: 0.0)
+        assert record["point_delta"] == 1.0
