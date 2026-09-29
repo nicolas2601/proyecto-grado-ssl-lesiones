@@ -67,3 +67,9 @@ Razones: A\* y B\* ya vieron SoG y gray-world en el 60 % de las vistas del preen
 - *El redondeo:* se trunca al volver a uint8, igual que en el preentrenamiento.
 
 <!-- registro-t4-sog:fin -->
+
+## 10. Notas posteriores al registro (no cambian el bloque)
+
+- **Costo, con el código.** `t4_sog.cost_projection` (lo que imprime `--dry-run`) da 0,10 GPU-h y 0,75 CPU-h con los tamaños reales (fit 6.409, holdout 1.602, train 8.011, val 2.004): probes de la grilla 0,11, probes de val 0,17 (cota: la feature del ganador SoG no se conoce antes de `select` y se acota por la más ancha), bootstrap 0,30 (incluye los contrastes de val y las dos brechas), decodificación 0,17. El 0,6 de §8 subestimaba los probes y el bootstrap de val.
+- **Macro-F1 dentro de un tercil.** Se calcula con `metrics.macro_f1` sobre las 7 clases, como en los estratos del banco: una clase ausente en el tercil cuenta con F1 = 0. Es la convención del repo y pesa más en el tercil claro (~183 imágenes).
+- **Comandos del pod.** En el docstring de `scripts/t4_sog_run.py` (grid con `--dry-run` primero, grid, select y la lectura única de val).
