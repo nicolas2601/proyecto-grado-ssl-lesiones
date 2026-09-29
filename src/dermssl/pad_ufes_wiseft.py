@@ -25,6 +25,9 @@ W2_TOLERANCE = 0.01
 #: A registered tolerance is compared on decimals; binary floats put 0.60 - 0.59 a hair above 0.01.
 FLOAT_SLACK = 1e-12
 MET, NOT_MET = fe.MET, fe.NOT_MET
+#: The committed HAM holdout curve (v7.1): the primary protocol of every weight set, 7 classes.
+HAM_PROTOCOL = {"resolution": 224, "feature": "cls", "weighting": "none", "tta": False}
+HAM_METRICS = fe.METRICS
 
 
 def weights_of(model: str, alpha: float) -> str:
@@ -111,3 +114,28 @@ def w1_verdict(rows: list[dict]) -> dict:
     by_model = {m: w1_model(_w1_row(rows, m)) for m in MODELS}
     return {"PAD-W1": MET if all(r["holds"] for r in by_model.values()) else NOT_MET,
             "contrast": f"alpha {W1_ALPHA} - alpha {ADAPTED}", "metric": W1_METRIC, "by_model": by_model}
+
+
+def _ham_point(rows: dict, model: str, alpha: float) -> dict:
+    cid = vp.config_id(weights_of(model, alpha), **HAM_PROTOCOL)
+    if cid not in rows:
+        raise ValueError(f"la curva de HAM de {model} no tiene {cid}")
+    row = rows[cid]
+    return {"config": cid, **{m: row[m] for m in HAM_METRICS}, "ci95": {m: row["ci95"][m] for m in HAM_METRICS}}
+
+
+def _has_curve(rows: dict, model: str) -> bool:
+    return any(vp.config_id(weights_of(model, a), **HAM_PROTOCOL) in rows for a in ALPHAS if a)
+
+
+def ham_curves(grid: dict) -> dict:
+    """Each model's committed HAM holdout curve (descriptive); a model v7.1 never ran has none."""
+    rows = grid["rows"]
+    out = {}
+    for model in MODELS:
+        if not _has_curve(rows, model):
+            out[model] = {"available": False,
+                          "note": f"v7.1 no corrio {SOURCES[model]} en el holdout de HAM: sin contraparte"}
+            continue
+        out[model] = {"available": True, "points": {a: _ham_point(rows, model, a) for a in ALPHAS}}
+    return out

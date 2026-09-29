@@ -154,3 +154,47 @@ class TestPadW1:
         rows = [r for r in self._rows() if r["arm"] != pw.w1_pair("A_s43")[0]]
         with pytest.raises(ValueError, match="A_s43"):
             pw.w1_verdict(rows)
+
+
+def _grid(sources=("s42", "soup"), drop=()) -> dict:
+    rows = {}
+    for k, weights in enumerate([vp.PUBLIC] + [vp.weights_name("A", s, a) for s in sources for a in vp.ALPHAS]):
+        for feature, weighting, tta in (("cls", "none", False), ("cls_attn", "la0.5", True)):
+            cid = vp.config_id(weights, 224, feature, weighting, tta)
+            value = 0.5 + k / 100 + (0.2 if tta else 0.0)
+            rows[cid] = {m: value for m in pw.HAM_METRICS} | {
+                "mel_auc": 0.0, "ci95": {m: [value - 0.01, value + 0.01] for m in pw.HAM_METRICS}}
+    for cid in drop:
+        rows.pop(cid)
+    return {"code_revision": "c" * 40, "rows": rows}
+
+
+class TestTheHamHoldoutCurve:
+    def test_s42_and_the_soup_are_read_from_the_cls_none_id_rows(self):
+        curves = pw.ham_curves(_grid())
+        s42 = curves["A_s42"]
+        assert s42["available"] is True
+        assert list(s42["points"]) == list(pw.ALPHAS)
+        assert s42["points"][0.0]["config"] == "public@224|cls|none|id"
+        assert s42["points"][0.8]["config"] == "A_s42_a0.8@224|cls|none|id"
+        assert s42["points"][0.8]["macro_f1"] == pytest.approx(0.54)  # never the tta row
+        assert s42["points"][0.8]["ci95"]["ece"] == pytest.approx([0.53, 0.55])
+        assert curves["A_soup"]["points"][1.0]["config"] == "A_soup_a1.0@224|cls|none|id"
+
+    def test_alpha_zero_is_the_same_public_row_for_every_curve(self):
+        curves = pw.ham_curves(_grid())
+        assert curves["A_s42"]["points"][0.0] == curves["A_soup"]["points"][0.0]
+
+    def test_s43_has_no_ham_curve_and_says_so(self):
+        s43 = pw.ham_curves(_grid())["A_s43"]
+        assert s43["available"] is False and "points" not in s43
+        assert "s43" in s43["note"]
+
+    def test_only_the_registered_metrics_are_carried(self):
+        point = pw.ham_curves(_grid())["A_s42"]["points"][0.4]
+        assert set(point) == {"config", *pw.HAM_METRICS, "ci95"}
+        assert pw.HAM_METRICS == ("macro_f1", "balanced_accuracy", "auc", "ece")
+
+    def test_a_curve_with_a_missing_point_is_refused(self):
+        with pytest.raises(ValueError, match="A_soup_a0.6"):
+            pw.ham_curves(_grid(drop=("A_soup_a0.6@224|cls|none|id",)))
