@@ -37,6 +37,7 @@ Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Redise
 | [26](26-plan-correccion-segmentacion-y-clasificador.md) | Plan de corrección de segmentación y clasificador. | Superado por 27 |
 | [27](27-plan-v7-mejoras-ssl.md) | Plan v7: segmentación (S1, S2, S2'), C1 y comparativa justa. | Vigente |
 | [28](28-rediseno-brazo-propuesto-v7.md) | Rediseño v7 del brazo propuesto, predicciones registradas y réplica de semilla. | Vigente |
+| [30](30-pad-ufes-zero-shot.md) | PAD-UFES-20: licencia, protocolo y predicción de la prueba externa sin entrenar. | Registrado, sin correr |
 
 Otros documentos:
 

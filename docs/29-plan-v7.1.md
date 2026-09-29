@@ -62,6 +62,7 @@ A\* y B\* con la semilla 44, una GPU cada una, con la misma receta, la revisión
   - **secundaria:** además, akiec contra ACK + SCC.
 - Público contra A\* contra B\*, con bootstrap agrupado por paciente.
 - Es robustez fuera de dominio (PAD son fotos clínicas de smartphone, no dermatoscopia) y va a la tesis tal cual, sin ajustar nada.
+- Protocolo completo, licencia y predicción registrada: [docs/30](30-pad-ufes-zero-shot.md).
 
 ### 2.7 Bloque v7.1-mel (registrado el 2026-09-28, antes de correr)
 
