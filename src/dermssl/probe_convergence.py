@@ -25,11 +25,12 @@ import numpy as np
 from dermssl import probes
 from dermssl import v71_grid as vg
 from dermssl import v71_protocol as vp
+from dermssl.probe_threads import PROBE_BLAS_THREADS
 
 MAX_ITER = inspect.signature(probes.fit_logreg).parameters["max_iter"].default
 # probe_jobs 10 on the 48-core pod -> loky gave each worker 48 // 10 = 4 BLAS
 # threads: the setting that reproduced v7.1 bit for bit (t4/diagnostico_reproduccion).
-BLAS_THREADS = 4
+BLAS_THREADS = PROBE_BLAS_THREADS
 
 
 def fit_views_recorded(x_fit, y_fit, x_views, n_classes, class_weight, *, max_iter=MAX_ITER,
