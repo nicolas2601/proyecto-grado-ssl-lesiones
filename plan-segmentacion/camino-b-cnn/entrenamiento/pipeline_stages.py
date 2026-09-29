@@ -47,6 +47,9 @@ FST_CSV_FILE = "fst_pseudo_manifest.csv"
 SMOKE_EVAL_COUNT = 16
 SMOKE_RESOLUTION = 64
 SMOKE_SYNTHETIC_COUNT = 64
+# The smoke is a check, not a benchmark: on a loaded machine a child with one
+# torch thread per core crawls (the smoke went from ~34 s to ~300 s under load).
+SMOKE_THREADS = {name: "2" for name in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")}
 
 
 @dataclass(frozen=True)
@@ -96,12 +99,10 @@ def parse_eval_set(spec: str) -> EvalSet:
 
 def child_env(config: PipelineConfig) -> dict[str, str]:
     """Extra environment for the child processes; never carries the API key."""
-    if not config.wandb_project:
-        return {}
-    return {
-        "WANDB_PROJECT": config.wandb_project,
-        "WANDB_RUN_GROUP": Path(config.workdir).name,
-    }
+    env = dict(SMOKE_THREADS) if config.smoke else {}
+    if config.wandb_project:
+        env.update(WANDB_PROJECT=config.wandb_project, WANDB_RUN_GROUP=Path(config.workdir).name)
+    return env
 
 
 def evaluation_sets(config: PipelineConfig) -> list[EvalSet]:

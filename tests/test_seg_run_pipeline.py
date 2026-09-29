@@ -119,6 +119,22 @@ def test_smoke_mode_uses_synthetic_data_two_rounds_and_a_synthetic_eval_set(tmp_
     assert _flag(stages["student_r1"], "--epochs") == "4"
 
 
+def test_the_smoke_student_is_a_narrow_unet(tmp_path):
+    """Every stage still runs; the student is 8 base channels instead of 32 (~16x fewer
+    FLOPs), which is what took the smoke from ~34 s idle and ~300 s under load to ~25 s."""
+    config = rp.smoke_config(tmp_path / "w", python="py", nproc_per_node=1)
+    stages = {s.name: s for s in rp.build_stage_commands(config)}
+    assert _flag(stages["student_r1"], "--base-channels") == "8"
+    assert _flag(stages["student_r2"], "--base-channels") == "8"
+
+
+def test_the_smoke_pins_the_threads_of_its_children(tmp_path):
+    """On a loaded machine a torch child with one thread per core crawls; the smoke is a
+    check, not a benchmark, so its children get two threads each."""
+    env = rp.child_env(rp.smoke_config(tmp_path / "w", python="py", nproc_per_node=1))
+    assert {env[k] for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")} == {"2"}
+
+
 def test_smoke_mode_also_exercises_the_field_flags(tmp_path):
     config = rp.smoke_config(tmp_path / "w", python="py", nproc_per_node=1)
     stages = {s.name: s for s in rp.build_stage_commands(config)}

@@ -61,9 +61,9 @@ SMOKE_PRESET = {
     "pipeline": {"rounds": 2, "epochs_per_round": 4, "seed": 0},
     "cache": {"resolution": SMOKE_RESOLUTION, "threads": 4, "synthetic": SMOKE_SYNTHETIC_COUNT,
               "field_black_threshold": 0.06, "field_margin_fraction": 0.04},
-    "contrastive": {"epochs": 1, "batch_size": 8, "queue_size": 64, "max_steps_per_epoch": 4,
+    "contrastive": {"epochs": 1, "batch_size": 8, "queue_size": 64, "max_steps_per_epoch": 2,
                     "bn_splits": 2, "log_every": 2, "warmup_epochs": 0},
-    "ccam": {"epochs": 1, "batch_size": 8, "max_steps_per_epoch": 4, "log_every": 2,
+    "ccam": {"epochs": 1, "batch_size": 8, "max_steps_per_epoch": 2, "log_every": 2,
              "predict_batch_size": 16},
     # Same cap as the cluster presets on purpose. The synthetic frames have lit
     # corners, so the field detector reports "full_frame" and the oriented region
@@ -71,7 +71,8 @@ SMOKE_PRESET = {
     # every sample, read excluded_by_area in pseudo_masks_stats.json before
     # loosening it: the orientation flip is the usual culprit, not the cap.
     "pseudo": {"max_area_fraction": 0.6},
-    "student": {"batch_size": 8, "lr": 0.003, "log_every": 4, "warmup_epochs": 0},
+    # 8 base channels, not 32: every stage still runs, the student just costs ~16x fewer FLOPs.
+    "student": {"batch_size": 8, "base_channels": 8, "lr": 0.003, "log_every": 4, "warmup_epochs": 0},
     "evaluate": {"batch_size": 8},
 }
 # The FST manifest needs the original files on disk, which the synthetic cache does not have.
