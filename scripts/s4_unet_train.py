@@ -101,7 +101,7 @@ T7_VARIANT = "A2-T7"
 T7_SEED = 42
 RUN_FILE = "run.json"
 SMOKE_FILE = "timing_smoke.json"
-RESUME_KEYS = ("variant", "pool", "pseudo_masks", "backbone", "schedule", "seed", "t7")
+RESUME_KEYS = ("variant", "code_revision", "pool", "pseudo_masks", "backbone", "schedule", "seed", "t7")
 STUDENT_R3_ISIC_DICE = 0.7177
 PREDICTION_MARGIN = 0.01
 

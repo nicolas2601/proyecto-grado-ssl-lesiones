@@ -173,3 +173,15 @@ def test_the_t7_arms_only_train_with_seed_42(t7_pool, tmp_path):
     with pytest.raises(SystemExit, match="semilla"):
         st.main(_t7_argv(pool, manifest, tmp_path / "x", "--seed", "43"))
     assert not (tmp_path / "x" / "run.json").exists()
+
+
+def test_resuming_under_another_code_revision_is_refused(t7_pool, tmp_path, monkeypatch):
+    pool, manifest = t7_pool
+    out = tmp_path / "run"
+    monkeypatch.setattr(loop, "after_epoch", lambda epoch: (_ for _ in ()).throw(KeyboardInterrupt))
+    with pytest.raises(KeyboardInterrupt):
+        st.main(_t7_argv(pool, manifest, out))
+    monkeypatch.setattr(loop, "after_epoch", lambda epoch: None)
+    monkeypatch.setattr(st.rp, "clean_revision", lambda repo: "beef")
+    with pytest.raises(SystemExit, match="code_revision"):
+        st.main(_t7_argv(pool, manifest, out))
