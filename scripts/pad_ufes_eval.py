@@ -81,6 +81,7 @@ def load_pad(manifest_path: Path, pad_root: Path) -> dict:
     column = lambda key: np.array([row[key] for row in rows])  # noqa: E731
     return {"ids": [row["img_id"] for row in rows], "paths": paths, "ham_labels": column("ham_label"),
             "groups": column("patient_id"), "fst_bins": column("fst_bin"),
+            "fst": [row.get("fst") for row in rows],
             "manifest_sha256": rp.file_sha256(manifest_path)}
 
 
