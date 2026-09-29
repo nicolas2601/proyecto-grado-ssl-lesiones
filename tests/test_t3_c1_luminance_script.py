@@ -115,3 +115,21 @@ def test_the_table_is_generated_from_the_document(tmp_path):
     assert f"**{doc['prediction']['verdict']}**" in table
     assert table.count("| oscuro |") >= 12 and "sin potencia" in table
     assert "270" in table
+
+
+T3_DIR = Path(__file__).resolve().parents[1] / "resultados" / "clasificacion" / "c1_v7" / "t3_luminance"
+
+
+@pytest.mark.skipif(not (T3_DIR / "t3_c1_luminance.json").exists(), reason="T3 not run yet")
+def test_committed_t3_readme_matches_its_json():
+    doc = json.loads((T3_DIR / "t3_c1_luminance.json").read_text(encoding="utf-8"))
+    assert (T3_DIR / "README.md").read_text(encoding="utf-8") == t3.render_markdown(doc)
+
+
+@pytest.mark.skipif(not (T3_DIR / "t3_c1_luminance.json").exists(), reason="T3 not run yet")
+def test_committed_t3_verdict_is_the_one_the_key_cells_give():
+    doc = json.loads((T3_DIR / "t3_c1_luminance.json").read_text(encoding="utf-8"))
+    readme = (T3_DIR / "README.md").read_text(encoding="utf-8")
+    assert "Celdas clave: 12." in readme
+    assert "Predicción de Paula: **cumplida**" in readme
+    assert doc["prediction"]["verdict"] == "cumplida"
