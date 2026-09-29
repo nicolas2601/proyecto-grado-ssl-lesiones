@@ -109,3 +109,18 @@ class TestDescriptiveOnly:
     def test_the_guard_refuses_a_verdict_smuggled_in(self, bad):
         with pytest.raises(ValueError, match="descriptiv"):
             pa.assert_descriptive(bad)
+
+
+class TestNonFiniteStrata:
+    """docs/30 6, rule (b), inherited by 7: an interval with non-finite resamples is "no calculable"."""
+
+    def test_the_stratum_row_is_labelled_not_calculable_and_keeps_its_k(self):
+        labels = np.array(["bcc"] * 6 + ["nv"] * 6)
+        groups = np.array(["PA"] * 6 + ["PB"] * 6)
+        bins = np.array(["I"] * 12)
+        strata = pa.fst_strata(labels, groups, bins, _probas(pa.roles(), n=12), pa.contrast_pairs())
+        auc = [r for r in strata["I"]["paired"] if r["metric"] == "auc"]
+        assert auc and all(r["reading"] == pa.NOT_CALCULABLE and r["n_nonfinite"] > 0 for r in auc)
+        f1 = [r for r in strata["I"]["paired"] if r["metric"] == "macro_f1"]
+        assert all(r["reading"] in (pa.EXCLUDES_ZERO, pa.INDISTINGUISHABLE) and r["n_nonfinite"] == 0 for r in f1)
+        pa.assert_descriptive(strata)

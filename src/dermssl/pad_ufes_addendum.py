@@ -4,7 +4,8 @@ Same readings, bootstrap and phototype strata as the first pass
 (:mod:`pad_ufes_readings`), computed by its functions, with two differences
 the addendum registers: there is no prediction, so no verdict is produced,
 and each paired contrast is labelled only by its interval, "excludes 0" or
-"indistinguishable" (never "mejora"). :func:`assert_descriptive` refuses a
+"indistinguishable" (never "mejora"), or, in a phototype stratum with a
+non-finite resample, "no calculable" with its k (docs/30 6, rule (b)). :func:`assert_descriptive` refuses a
 document that carries anything else.
 """
 
@@ -25,6 +26,8 @@ A71_CONFIG = "A_soup_a1.0@224|cls_attn|la0.5|tta"
 PUBLIC_A71_CONFIG = vp.with_weights(A71_CONFIG, vp.PUBLIC)
 SELECTION_SHA256 = "24e24e4ee6b97717e1bb79ac4e7dfa6447c69c7e40b222a5c40b02cb49af0ec1"
 EXCLUDES_ZERO, INDISTINGUISHABLE = "excludes 0", "indistinguishable"
+#: docs/30 6, rule (b), inherited here: a stratum interval with a non-finite resample.
+NOT_CALCULABLE = pr.NOT_CALCULABLE
 SCOPE = ("docs/30 7: descriptive only. No prediction, and no number here enters any "
          "decision rule. Contrasts are labelled by their paired interval only.")
 _FORBIDDEN_KEYS = frozenset({"verdict", "verdicts", "mejora_robusta", "direction"})
@@ -47,11 +50,15 @@ def contrast_pairs() -> list[tuple[str, str]]:
     return [(A71, PUBLIC_A71), *pr.contrast_pairs((SEED,))]
 
 
+def _label(row: dict) -> str:
+    if row["excludes_zero"] is None:
+        return NOT_CALCULABLE
+    return EXCLUDES_ZERO if row["excludes_zero"] else INDISTINGUISHABLE
+
+
 def describe(rows: list[dict]) -> list[dict]:
-    """Each paired row without its direction, labelled by whether its interval excludes 0."""
-    return [{**{k: v for k, v in row.items() if k != "direction"},
-             "reading": EXCLUDES_ZERO if row["excludes_zero"] else INDISTINGUISHABLE}
-            for row in rows]
+    """Each paired row without its direction, labelled only by its interval (or "no calculable")."""
+    return [{**{k: v for k, v in row.items() if k != "direction"}, "reading": _label(row)} for row in rows]
 
 
 def evaluate_reading(reading: str, ham_labels, groups, probas7: dict, pairs) -> dict:
