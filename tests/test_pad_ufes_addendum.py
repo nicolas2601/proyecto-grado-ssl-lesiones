@@ -14,6 +14,7 @@ import pytest
 from dermssl import pad_ufes as pu
 from dermssl import pad_ufes_addendum as pa
 from dermssl import pad_ufes_readings as pr
+from dermssl import v71_protocol as vp
 
 
 @pytest.fixture(autouse=True)
@@ -45,7 +46,8 @@ class TestRolesAndContrasts:
     def test_the_frozen_v71_protocols(self):
         assert pa.A71_CONFIG == "A_soup_a1.0@224|cls_attn|la0.5|tta"
         assert pa.PUBLIC_A71_CONFIG == "public@224|cls_attn|la0.5|tta"
-        assert pa.A71_CELL == ("cls_attn", "la0.5", True)
+        cfg = vp.parse_config_id(pa.A71_CONFIG)
+        assert (cfg["weights"], cfg["feature"], cfg["weighting"], cfg["tta"]) == ("A_soup_a1.0", "cls_attn", "la0.5", True)
 
 
 class TestSameNumbersAsTheFirstPass:

@@ -34,14 +34,6 @@ _FORBIDDEN_KEYS = frozenset({"verdict", "verdicts", "mejora_robusta", "direction
 _FORBIDDEN = re.compile(r"\bmejora|\bgana|PAD-P|arm_better|control_better", re.IGNORECASE)
 
 
-def _cell(config: str) -> tuple:
-    cfg = vp.parse_config_id(config)
-    return cfg["feature"], cfg["weighting"], cfg["tta"]
-
-
-A71_CELL = _cell(A71_CONFIG)
-
-
 def roles() -> list[str]:
     return [*pr.roles((SEED,)), A71, PUBLIC_A71]
 
