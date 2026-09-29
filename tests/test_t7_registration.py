@@ -9,7 +9,10 @@ The runners check later that this block did not change after its registration.
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
+
+import pytest
 
 from dermssl.pad_ufes_guard import registered_block
 
@@ -63,3 +66,34 @@ def test_limitations_replica_probability_and_pre_mortem_are_explicit():
     block = _block()
     _require(block, "Limitación del diseño: transductividad", "Réplica descriptiva en ISIC 2018",
              "722", "158", "20-30 %", "Pre-mortem", "no es ciego", "diagnóstico", "dermatoscopio")
+
+
+T7_CODE = (
+    ("scripts/t7_r0_tercile_check.py", None),
+    ("src/dermssl/luminance_sampling.py", None),
+    ("src/dermssl/luminance_retrain.py", None),
+    ("scripts/t7_compare.py", None),
+    ("plan-segmentacion/comun/nucleo/gpu_augment.py", "def random_darken"),
+    ("scripts/s4_unet_loop.py", "class T7Plan"),
+    ("scripts/s4_unet_train.py", 'T7_VARIANT = "A2-T7"'),
+)
+
+
+def _git(*args: str) -> str:
+    return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True, check=True).stdout
+
+
+def test_every_piece_of_t7_code_was_introduced_after_the_registration():
+    """The runtime guards anchor one file each; this pins the order for all of T7's code, including edits to older files."""
+    if _git("rev-parse", "--is-shallow-repository").strip() != "false":
+        pytest.skip("clon superficial: el orden no se puede mostrar sin historia")
+    registration = "d24a0f252e6c06a6bce5c85cf01de52139a64ae5"
+    for path, symbol in T7_CODE:
+        selector = ["-S", symbol] if symbol else ["--diff-filter=A"]
+        commits = _git("log", "--format=%H", *selector, "--", path).split()
+        assert commits, f"no commit introduces {symbol or path}"
+        first = commits[-1]
+        assert first != registration, f"{path} entered in the registration commit itself"
+        descends = subprocess.run(["git", "-C", str(REPO), "merge-base", "--is-ancestor", registration, first],
+                                  capture_output=True).returncode == 0
+        assert descends, f"{symbol or path} ({first[:12]}) does not descend from the registration"
