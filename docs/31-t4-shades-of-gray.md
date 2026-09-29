@@ -73,3 +73,11 @@ Razones: A\* y B\* ya vieron SoG y gray-world en el 60 % de las vistas del preen
 - **Costo, con el código.** `t4_sog.cost_projection` (lo que imprime `--dry-run`) da 0,10 GPU-h y 0,75 CPU-h con los tamaños reales (fit 6.409, holdout 1.602, train 8.011, val 2.004): probes de la grilla 0,11, probes de val 0,17 (cota: la feature del ganador SoG no se conoce antes de `select` y se acota por la más ancha), bootstrap 0,30 (incluye los contrastes de val y las dos brechas), decodificación 0,17. El 0,6 de §8 subestimaba los probes y el bootstrap de val.
 - **Macro-F1 dentro de un tercil.** Se calcula con `metrics.macro_f1` sobre las 7 clases, como en los estratos del banco: una clase ausente en el tercil cuenta con F1 = 0. Es la convención del repo y pesa más en el tercil claro (~183 imágenes).
 - **Comandos del pod.** En el docstring de `scripts/t4_sog_run.py` (grid con `--dry-run` primero, grid, select y la lectura única de val).
+
+## 11. Limitación: sensibilidad del probe a los hilos BLAS
+
+<!-- limitacion-hilos-blas:inicio -->
+Limitación (no errata): el probe lineal tiene una sensibilidad de implementación de hasta 0,014 de macro-F1 según el número de hilos BLAS por proceso (4 vs 8 hilos; probe_jobs 10 vs 6; cambian 48 de 60 celdas en cada una de las 3 unidades, con hasta 18 imágenes que cambian de clase predicha por celda); con la configuración registrada (4 hilos) reproduce la grilla publicada bit a bit (máx. |Δ| 0). El efecto SSL (A* v7.1 − público con el mismo protocolo, macro-F1 +0,091 [+0,050; +0,132]) es ~6,5× esa sensibilidad. No es falta de convergencia: los 30 ajustes publicados convergen por tolerancia (0/30 alcanzan max_iter=2000; n_iter 165–862); la sensibilidad es de redondeo en punto flotante dentro de la tolerancia del optimizador. En T4 el umbral de P1 (≤ 0,01) está por debajo de esa sensibilidad, así que P1 solo se lee pareado dentro de la misma corrida con hilos fijos. Evidencia: commits 0a691eb (reproducción) y 278efd2 (convergencia).
+
+Generado desde `resultados/clasificacion/t4/diagnostico_reproduccion/identity_j10_vs_j10.json`, `identity_j10_vs_j6.json`, `t4/diagnostico_convergencia/probe_convergence.json`, el contraste pareado `A71 − public_A71` de `v71_final_eval.json` y `t4_sog.P1_MAX_ABS_DELTA`; no editar a mano.
+<!-- limitacion-hilos-blas:fin -->

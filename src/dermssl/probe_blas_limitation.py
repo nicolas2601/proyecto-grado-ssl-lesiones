@@ -28,6 +28,8 @@ REPRO_COMMIT, CONVERGENCE_COMMIT = "0a691eb", "278efd2"
 SSL_CONTRAST = ("A71", "public_A71", "macro_f1")
 METRIC = "macro_f1"
 TITLE = "Limitación: sensibilidad del probe a los hilos BLAS"
+REGION_START = "<!-- limitacion-hilos-blas:inicio -->"
+REGION_END = "<!-- limitacion-hilos-blas:fin -->"
 
 
 def _paths(t4_dir: Path) -> tuple[Path, Path, Path]:
@@ -131,3 +133,15 @@ def body(facts: dict) -> list[str]:
             f"`t4/{CONVERGENCE_DIR}/{CONVERGENCE_FILE}`, el contraste pareado "
             f"`{SSL_CONTRAST[0]} − {SSL_CONTRAST[1]}` de `v71_final_eval.json` y "
             "`t4_sog.P1_MAX_ABS_DELTA`; no editar a mano."]
+
+
+def fill_region(text: str, lines: list[str]) -> str:
+    """Replace the generated region of docs/31; it must sit after the registered T4 block."""
+    first, last = text.find(REGION_START), text.find(REGION_END)
+    if first < 0 or last < first or text.count(REGION_START) != 1 or text.count(REGION_END) != 1:
+        raise ValueError(f"el documento no tiene una única región {REGION_START} ... {REGION_END}")
+    block_end = text.find(t4_sog.BLOCK_END)
+    if block_end >= 0 and first < block_end + len(t4_sog.BLOCK_END):
+        raise ValueError("la región generada tiene que ir después del bloque registrado")
+    inner = "\n".join(lines)
+    return text[:first + len(REGION_START)] + "\n" + inner + "\n" + text[last:]
