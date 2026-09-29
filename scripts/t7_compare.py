@@ -137,22 +137,26 @@ def _read_per_image(path: Path) -> tuple[dict, dict]:
     return dice, {r["image_id"]: float(r["hd95"]) for r in rows}
 
 
-def read_a2(dataset: str) -> tuple[dict, dict]:
-    """A2's per-image Dice and HD95, refused unless they match the run's published ``SHA256SUMS``."""
-    path = RESULTS / A2_RUN / f"evaluacion_{dataset}" / "per_image.csv"
+def _published_a2(dataset: str, name: str) -> Path:
+    """A file of A2's published evaluation, refused unless it matches the run's ``SHA256SUMS``."""
+    path = RESULTS / A2_RUN / f"evaluacion_{dataset}" / name
     sums = {}
     for line in (RESULTS / A2_RUN / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
-        digest, name = line.split(maxsplit=1)
-        sums[name] = digest
-    expected = sums[f"./evaluacion_{dataset}/per_image.csv"]
-    _require(rp.file_sha256(path) == expected, f"el per_image.csv de A2 ({dataset}) no es el publicado")
-    return _read_per_image(path)
+        digest, listed = line.split(maxsplit=1)
+        sums[listed] = digest
+    expected = sums[f"./evaluacion_{dataset}/{name}"]
+    _require(rp.file_sha256(path) == expected, f"el {name} de A2 ({dataset}) no es el publicado")
+    return path
+
+
+def read_a2(dataset: str) -> tuple[dict, dict]:
+    """A2's per-image Dice and HD95 from its published evaluation."""
+    return _read_per_image(_published_a2(dataset, "per_image.csv"))
 
 
 def read_a2_meta(dataset: str) -> dict:
-    """The meta of A2's published evaluation (its per_image.csv is pinned by ``read_a2``)."""
-    path = RESULTS / A2_RUN / f"evaluacion_{dataset}" / "summary.json"
-    return json.loads(path.read_text(encoding="utf-8"))["meta"]
+    """The meta of A2's published evaluation."""
+    return json.loads(_published_a2(dataset, "summary.json").read_text(encoding="utf-8"))["meta"]
 
 
 def check_evaluation(arm: str, dataset: str, arm_dir: Path, meta: dict, a2_meta: dict) -> None:

@@ -246,3 +246,14 @@ def test_all_arms_must_come_from_one_code_revision():
     records["T7-aug"]["code_revision"] = "b" * 40
     with pytest.raises(ValueError, match="code_revision"):
         tc.check_same_revision(records)
+
+
+def test_a2s_evaluation_meta_must_match_its_sha256sums(monkeypatch, tmp_path):
+    fake = tmp_path / tc.A2_RUN / "evaluacion_ham10000"
+    fake.mkdir(parents=True)
+    (fake / "summary.json").write_text(json.dumps({"meta": A2_META["ham10000"]}), encoding="utf-8")
+    (tmp_path / tc.A2_RUN / "SHA256SUMS").write_text(
+        (tc.RESULTS / tc.A2_RUN / "SHA256SUMS").read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setattr(tc, "RESULTS", tmp_path)
+    with pytest.raises(ValueError, match="summary.json"):
+        tc.read_a2_meta("ham10000")
