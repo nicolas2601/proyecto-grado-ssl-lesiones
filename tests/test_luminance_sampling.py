@@ -82,22 +82,48 @@ def test_invalid_factors_and_budgets_are_refused():
         ls.oversampled_epoch(train, is_dark[:9], k=1, n_samples=10, seed=0, epoch=0)
 
 
-def _teacher_repo(tmp_path: Path, addendum: bool, marker: bool = False, **provenance) -> Path:
+def _teacher_repo(tmp_path: Path, addendum: bool, marker: bool = False, teacher_dark: float = 0.78,
+                  **provenance) -> Path:
+    """A fake repo: rows where r0's dark tercile scores ``teacher_dark`` against A2's 0.70 (rest 0.80 for both)."""
     import json
 
     result = tmp_path / ls.TEACHER_CHECK_DIR
     result.mkdir(parents=True)
-    (result / "r0_per_image.csv").write_text("image_id\n", encoding="utf-8")
-    rows_sha = hashlib.sha256((result / "r0_per_image.csv").read_bytes()).hexdigest()
+    ids = [("d1", "dark"), ("d2", "dark"), ("m1", "medium"), ("l1", "light"), ("x1", "dark")]
+    with open(result / ls.TEACHER_CHECK_ROWS, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["image_id", "tone_tercile", "excluded", "dice_binary", "dice_confident"])
+        for image_id, tercile in ids:
+            if image_id == "x1":
+                writer.writerow([image_id, tercile, "True", "", ""])
+                continue
+            value = teacher_dark if tercile == "dark" else 0.80
+            writer.writerow([image_id, tercile, "False", value, value])
+    a2 = tmp_path / ls.A2_HAM_PER_IMAGE
+    a2.parent.mkdir(parents=True)
+    with open(a2, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["image_id", "dice"])
+        writer.writerows([i, 0.70 if t == "dark" else 0.80] for i, t in ids)
+    rows_sha = hashlib.sha256((result / ls.TEACHER_CHECK_ROWS).read_bytes()).hexdigest()
     prov = {"registration_commit": ls.REGISTRATION_COMMIT, "manifest_sha256": ls.MANIFEST_SHA256,
             "pseudo_r0_sha256": ls.PSEUDO_R0_SHA256, "cache_manifest_sha256": ls.CACHE_MANIFEST_SHA256,
             "rows_sha256": rows_sha, **provenance}
     doc = {"analysis": {"addendum_required": addendum}, "provenance": prov}
-    (result / "t7_r0_tercile_check.json").write_text(json.dumps(doc), encoding="utf-8")
+    (result / ls.TEACHER_CHECK_JSON).write_text(json.dumps(doc), encoding="utf-8")
     docs = tmp_path / "docs"
     docs.mkdir()
     (docs / Path(ls.REGISTRATION_DOC).name).write_text(ls.ADDENDUM_MARKER if marker else "doc", encoding="utf-8")
     return tmp_path
+
+
+@pytest.fixture
+def fake_a2_sha(monkeypatch):
+    def pin(repo: Path) -> Path:
+        monkeypatch.setattr(ls, "A2_HAM_PER_IMAGE_SHA256",
+                            hashlib.sha256((repo / ls.A2_HAM_PER_IMAGE).read_bytes()).hexdigest())
+        return repo
+    return pin
 
 
 def test_the_committed_teacher_check_opens_the_gate():
@@ -112,12 +138,26 @@ def test_no_teacher_check_means_no_training(tmp_path):
 
 @pytest.mark.parametrize("key", ["registration_commit", "manifest_sha256", "pseudo_r0_sha256",
                                  "cache_manifest_sha256", "rows_sha256"])
-def test_a_teacher_check_on_other_inputs_is_refused(tmp_path, key):
+def test_a_teacher_check_on_other_inputs_is_refused(tmp_path, key, fake_a2_sha):
     with pytest.raises(ls.TeacherGateError, match=key):
-        ls.check_teacher_gate(_teacher_repo(tmp_path, False, **{key: "0" * 64}))
+        ls.check_teacher_gate(fake_a2_sha(_teacher_repo(tmp_path, False, **{key: "0" * 64})))
 
 
-def test_a_triggered_addendum_must_be_committed_before_training(tmp_path):
+def test_a_triggered_addendum_must_be_committed_before_training(tmp_path, fake_a2_sha):
     with pytest.raises(ls.TeacherGateError, match="adenda"):
-        ls.check_teacher_gate(_teacher_repo(tmp_path / "a", True))
-    assert ls.check_teacher_gate(_teacher_repo(tmp_path / "b", True, marker=True))["addendum_required"] is True
+        ls.check_teacher_gate(fake_a2_sha(_teacher_repo(tmp_path / "a", True, teacher_dark=0.60)))
+    repo = fake_a2_sha(_teacher_repo(tmp_path / "b", True, marker=True, teacher_dark=0.60))
+    assert ls.check_teacher_gate(repo)["addendum_required"] is True
+
+
+@pytest.mark.parametrize(("flag", "teacher_dark"), [(False, 0.60), (True, 0.78)])
+def test_the_addendum_flag_must_match_the_one_recomputed_from_the_hashed_rows(tmp_path, fake_a2_sha, flag,
+                                                                             teacher_dark):
+    repo = fake_a2_sha(_teacher_repo(tmp_path, flag, marker=True, teacher_dark=teacher_dark))
+    with pytest.raises(ls.TeacherGateError, match="recalculad"):
+        ls.check_teacher_gate(repo)
+
+
+def test_a2s_reference_must_be_the_published_one(tmp_path):
+    with pytest.raises(ls.TeacherGateError, match="A2"):
+        ls.check_teacher_gate(_teacher_repo(tmp_path, False))

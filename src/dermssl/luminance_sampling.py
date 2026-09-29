@@ -35,6 +35,9 @@ REGISTERED_K = 2
 #: The committed r0 teacher check that must precede any T7 GPU job (docs/27, T7).
 TEACHER_CHECK_DIR = "plan-segmentacion/camino-b-cnn/resultados/2026-09-29-t7-r0-check"
 TEACHER_CHECK_JSON, TEACHER_CHECK_ROWS = "t7_r0_tercile_check.json", "r0_per_image.csv"
+#: A2's published HAM10000 per-image Dice (its SHA256SUMS entry), the other side of the addendum rule.
+A2_HAM_PER_IMAGE = "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/evaluacion_ham10000/per_image.csv"
+A2_HAM_PER_IMAGE_SHA256 = "f464932812aa9e9f67a065f165f12cc3945e86b10228e9a045a89ff284eeef78"
 #: Written outside the block by the dated addendum "T7 no cumple por techo del maestro".
 ADDENDUM_MARKER = "<!-- adenda-t7-techo-maestro -->"
 DARK = "dark"
@@ -93,9 +96,29 @@ def oversampled_epoch(train: np.ndarray, is_dark: np.ndarray, k: int, n_samples:
     return pool[order][:n_samples]
 
 
+def _read_csv(path: Path) -> list[dict]:
+    with open(path, newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def recomputed_addendum(rows: list[dict], a2_dice: Mapping[str, float]) -> bool:
+    """The registered rule from the rows: |G(r0)| >= |G(A2)|, point estimates, form (a), same kept images."""
+    kept = [r for r in rows if r["excluded"] == "False" and r["tone_tercile"] in (DARK, *DARKENED)]
+    dark = [r for r in kept if r["tone_tercile"] == DARK]
+    rest = [r for r in kept if r["tone_tercile"] != DARK]
+    if not dark or not rest:
+        raise TeacherGateError("el chequeo del maestro no tiene imágenes en el oscuro o en el resto")
+    mean = lambda group, value: float(np.mean([value(r) for r in group]))  # noqa: E731
+    teacher = mean(dark, lambda r: float(r["dice_binary"])) - mean(rest, lambda r: float(r["dice_binary"]))
+    a2 = mean(dark, lambda r: a2_dice[r["image_id"]]) - mean(rest, lambda r: a2_dice[r["image_id"]])
+    return abs(teacher) >= abs(a2)
+
+
 def check_teacher_gate(repo: Path) -> dict:
-    """The registered teacher check ran on the registered inputs, and its addendum is committed if triggered."""
-    result = Path(repo) / TEACHER_CHECK_DIR
+    """The registered teacher check ran on the registered inputs, its addendum flag is the one its hashed
+    rows imply, and the addendum is committed if triggered."""
+    repo = Path(repo)
+    result = repo / TEACHER_CHECK_DIR
     if not (result / TEACHER_CHECK_JSON).is_file():
         raise TeacherGateError(f"no está el chequeo del maestro en {TEACHER_CHECK_DIR}: se corre antes de la GPU")
     doc = json.loads((result / TEACHER_CHECK_JSON).read_text(encoding="utf-8"))
@@ -106,7 +129,12 @@ def check_teacher_gate(repo: Path) -> dict:
     for key, value in expected.items():
         if provenance.get(key) != value:
             raise TeacherGateError(f"el chequeo del maestro no coincide en {key}")
-    addendum = bool(doc["analysis"]["addendum_required"])
-    if addendum and ADDENDUM_MARKER not in (Path(repo) / REGISTRATION_DOC).read_text(encoding="utf-8"):
+    if _sha256(repo / A2_HAM_PER_IMAGE) != A2_HAM_PER_IMAGE_SHA256:
+        raise TeacherGateError("el per_image.csv de A2 en HAM10000 no es el publicado")
+    a2_dice = {r["image_id"]: float(r["dice"]) for r in _read_csv(repo / A2_HAM_PER_IMAGE)}
+    addendum = recomputed_addendum(_read_csv(result / TEACHER_CHECK_ROWS), a2_dice)
+    if addendum != bool(doc["analysis"]["addendum_required"]):
+        raise TeacherGateError("addendum_required del JSON no coincide con lo recalculado desde las filas")
+    if addendum and ADDENDUM_MARKER not in (repo / REGISTRATION_DOC).read_text(encoding="utf-8"):
         raise TeacherGateError("el chequeo del maestro exige la adenda fechada y no está en el registro")
     return {"addendum_required": addendum, "rows_sha256": expected["rows_sha256"]}
