@@ -9,12 +9,25 @@ gradient checkpointing), on CPU with a tiny ViT in place of the hub model.
 f1c2053 (``python tests/test_pretrain_finals_characterization.py <src>``);
 the only thing patched there is ``Path.rglob``, whose ``recurse_symlinks``
 argument f1c2053 needs Python 3.13 for (no symlinks here, same file list).
+
+Both the golden and the comparison run in a child process under PINNED_ENV.
+Without it the result depends on the machine: with 1 or 2 torch threads the
+same code gives 3.5107e-05 for blocks.0.norm1.weight instead of 3.5882e-05
+(six threads), a 2 % drift that six training steps grow from last-bit
+rounding, and CI failed on it from the day the test landed. One thread
+fixes the reduction order (six threads still differ even with the rest
+pinned), scalar ATen kernels (ATEN_CPU_CAPABILITY=default) and MKL's
+conditional numerical reproducibility (MKL_CBWR=COMPATIBLE) take the CPU's
+vector unit out of it. They must be set before torch is imported, hence the
+child. Under them f1c2053 and HEAD give GOLDEN bit for bit.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -25,6 +38,9 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("torchvision")
 nn = torch.nn
 
+ROOT = Path(__file__).resolve().parents[1]
+PINNED_ENV = {"ATEN_CPU_CAPABILITY": "default", "MKL_CBWR": "COMPATIBLE", "OMP_NUM_THREADS": "1",
+              "MKL_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1"}
 DIM, DEPTH, RES = 8, 3, 28
 # Batch 128 as in the finals: the LR scales with it, and at batch 4 the whole
 # update is smaller than float32 noise. One image is excluded, 128 remain.
@@ -131,56 +147,57 @@ def run_arm(root: Path, arm: str, patch) -> dict:
     }
 
 
-# Another CPU may round a float32 kernel differently in the last bit, which
-# moves a summed update by ~1e-8 (weights ~0.3, updates ~1e-5 per element).
+# Under PINNED_ENV the run is bit-for-bit reproducible on this machine; the
+# tolerance is for another x86 CPU whose libm or MKL build rounds differently.
 # A real change to the training path (schedule, levers, augmentation, loss)
-# moves it by tens of percent. The sums can cancel, so they also get an
+# moves the update by tens of percent. The sums can cancel, so they also get an
 # absolute floor; the sums of squares cannot, so they get none.
 REL, ABS_SUM, REL_LOSS = 1e-2, 1e-7, 1e-4
-# Generated at f1c2053 (see the module docstring); HEAD produced the identical output.
+# Generated at f1c2053 under PINNED_ENV (see the module docstring); HEAD, under the same
+# environment, produced the identical output bit for bit.
 GOLDEN = {'A': {'run': {'consistency_loss': None,
                'samples_processed': 768,
-               'ssl_loss': -0.01044647543070217,
+               'ssl_loss': -0.010449913602011899,
                'steps_executed': 6,
-               'total_loss': -0.01044647543070217},
+               'total_loss': -0.010449913602011899},
        'update': {'blocks.0.fc.bias': [0.0, 0.0],
                   'blocks.0.fc.weight': [0.0, 0.0],
-                  'blocks.0.norm1.bias': [-1.6915576452447567e-05, 1.143969345001629e-08],
-                  'blocks.0.norm1.weight': [3.5881996154785156e-05, 8.71504113320043e-09],
-                  'blocks.1.fc.bias': [0.00011227279901504517, 1.791252018934486e-08],
-                  'blocks.1.fc.weight': [7.214443758130074e-05, 1.4664417343965546e-07],
-                  'blocks.1.norm1.bias': [0.00012831932144763414, 2.198456895379145e-08],
-                  'blocks.1.norm1.weight': [1.9669532775878906e-05, 2.1257015703213256e-08],
-                  'blocks.2.fc.bias': [-4.736077971756458e-05, 2.9606398322149733e-08],
-                  'blocks.2.fc.weight': [5.420530214905739e-06, 2.4015551030725233e-07],
-                  'blocks.2.norm1.bias': [-0.00024213392225647112, 3.159251573234226e-08],
-                  'blocks.2.norm1.weight': [0.00013375282287597656, 2.286163436338029e-08],
+                  'blocks.0.norm1.bias': [-1.7493344785179943e-05, 1.1478608489800369e-08],
+                  'blocks.0.norm1.weight': [3.4868717193603516e-05, 8.669143625184006e-09],
+                  'blocks.1.fc.bias': [0.00011090561747550964, 1.784292470025095e-08],
+                  'blocks.1.fc.weight': [8.206930942833424e-05, 1.4623987994183277e-07],
+                  'blocks.1.norm1.bias': [0.00012684580360655673, 2.1987212131239614e-08],
+                  'blocks.1.norm1.weight': [1.9848346710205078e-05, 2.1339861433489205e-08],
+                  'blocks.2.fc.bias': [-4.768953658640385e-05, 2.99004017023847e-08],
+                  'blocks.2.fc.weight': [0.0001599048264324665, 2.4200238518006824e-07],
+                  'blocks.2.norm1.bias': [-0.0002429067799312179, 3.1604121390077074e-08],
+                  'blocks.2.norm1.weight': [0.00013679265975952148, 2.259059428411092e-08],
                   'cls_token': [0.0, 0.0],
-                  'norm.bias': [8.796030670055188e-06, 3.663216368728565e-09],
-                  'norm.weight': [2.300739288330078e-05, 4.4051596148619865e-08],
+                  'norm.bias': [2.6002260710811242e-05, 8.846289999846241e-10],
+                  'norm.weight': [2.3484230041503906e-05, 4.479608861629458e-08],
                   'patch_embed.bias': [0.0, 0.0],
                   'patch_embed.weight': [0.0, 0.0],
                   'pos_embed': [0.0, 0.0]}},
- 'B': {'run': {'consistency_loss': -0.009807558031752706,
+ 'B': {'run': {'consistency_loss': -0.009796595821777979,
                'samples_processed': 768,
-               'ssl_loss': -0.009807558031752706,
+               'ssl_loss': -0.009796595821777979,
                'steps_executed': 6,
-               'total_loss': -0.007307125876347224},
+               'total_loss': -0.0072961657618482905},
        'update': {'blocks.0.fc.bias': [0.0, 0.0],
                   'blocks.0.fc.weight': [0.0, 0.0],
-                  'blocks.0.norm1.bias': [2.377521514063119e-05, 9.054252376139144e-09],
-                  'blocks.0.norm1.weight': [-6.157159805297852e-05, 1.0568793840093349e-08],
-                  'blocks.1.fc.bias': [-4.8041343688964844e-05, 1.1015624745702723e-08],
-                  'blocks.1.fc.weight': [0.00018159340834245086, 1.2560770952605915e-07],
-                  'blocks.1.norm1.bias': [-3.0239303669077344e-05, 1.3479651695113836e-08],
-                  'blocks.1.norm1.weight': [2.8967857360839844e-05, 2.169941382135221e-08],
-                  'blocks.2.fc.bias': [8.933991193771362e-05, 3.098484308017291e-08],
-                  'blocks.2.fc.weight': [-4.8837391659617424e-05, 1.86007173446029e-07],
-                  'blocks.2.norm1.bias': [-0.00024194231536966981, 2.7420947620678967e-08],
-                  'blocks.2.norm1.weight': [8.475780487060547e-05, 1.2559375761611591e-08],
+                  'blocks.0.norm1.bias': [2.4615094389446313e-05, 9.058626309063107e-09],
+                  'blocks.0.norm1.weight': [-6.151199340820312e-05, 1.0551737261721428e-08],
+                  'blocks.1.fc.bias': [-4.7072768211364746e-05, 1.0966831776038077e-08],
+                  'blocks.1.fc.weight': [0.0001795592252165079, 1.2515712989607944e-07],
+                  'blocks.1.norm1.bias': [-2.8959158044017386e-05, 1.3479076910258116e-08],
+                  'blocks.1.norm1.weight': [3.0279159545898438e-05, 2.167619328474757e-08],
+                  'blocks.2.fc.bias': [9.256554767489433e-05, 3.077974778547578e-08],
+                  'blocks.2.fc.weight': [-4.699523560702801e-05, 1.8536680918918242e-07],
+                  'blocks.2.norm1.bias': [-0.0002415854669379769, 2.7260474842655067e-08],
+                  'blocks.2.norm1.weight': [7.963180541992188e-05, 1.2517894276697916e-08],
                   'cls_token': [0.0, 0.0],
-                  'norm.bias': [-8.927432645577937e-06, 8.299059535201982e-08],
-                  'norm.weight': [-7.241964340209961e-05, 5.885090459400999e-08],
+                  'norm.bias': [-8.927418093662709e-06, 8.299098022338941e-08],
+                  'norm.weight': [-6.127357482910156e-05, 5.6767596845475055e-08],
                   'patch_embed.bias': [0.0, 0.0],
                   'patch_embed.weight': [0.0, 0.0],
                   'pos_embed': [0.0, 0.0]}}}
@@ -188,7 +205,7 @@ GOLDEN = {'A': {'run': {'consistency_loss': None,
 
 @pytest.mark.parametrize("arm", ("A", "B"))
 def test_head_trains_the_finals_like_f1c2053(arm, tmp_path, monkeypatch):
-    got = run_arm(tmp_path, arm, monkeypatch.setattr)
+    got = run_pinned(tmp_path, arm)
     want = GOLDEN[arm]
     assert got["run"]["steps_executed"] == want["run"]["steps_executed"] == 6
     assert sorted(got["update"]) == sorted(want["update"])
@@ -208,20 +225,41 @@ def test_the_frozen_block_did_not_move_and_the_trained_ones_did(tmp_path, monkey
     assert update["blocks.2.fc.weight"][1] > 0 and abs(update["blocks.1.fc.bias"][0]) > 100 * ABS_SUM
 
 
-def _generate(src: str) -> None:  # pragma: no cover - run by hand against f1c2053
+def run_pinned(root: Path, arm: str, src: Path = ROOT / "src") -> dict:
+    """``run_arm`` in a child under PINNED_ENV; the same entry point produced GOLDEN."""
+    env = {**os.environ, **PINNED_ENV}
+    done = subprocess.run([sys.executable, __file__, str(src), arm, str(root)], env=env,
+                          capture_output=True, text=True, check=False, timeout=600)
+    assert done.returncode == 0, done.stdout[-2000:] + done.stderr[-2000:]
+    return json.loads(done.stdout.strip().splitlines()[-1])[arm]
+
+
+def test_the_child_really_runs_under_the_pinned_environment(tmp_path):
+    env = {**os.environ, **PINNED_ENV}
+    probe = "import torch; print(torch.backends.cpu.get_cpu_capability(), torch.get_num_threads())"
+    out = subprocess.run([sys.executable, "-c", probe], env=env, capture_output=True, text=True, check=True)
+    assert out.stdout.split() == ["DEFAULT", "1"]
+
+
+def _generate(src: str, arms: list[str], workdir: str) -> None:
+    """Print ``{arm: run_arm(...)}`` as the last stdout line. Run it under PINNED_ENV:
+    ``env ATEN_CPU_CAPABILITY=default MKL_CBWR=COMPATIBLE OMP_NUM_THREADS=1 ... python <this> <src>``."""
     import pathlib  # noqa: PLC0415
-    import tempfile  # noqa: PLC0415
 
     sys.path.insert(0, src)
-    rglob = pathlib.Path.rglob
-    pathlib.Path.rglob = lambda self, pattern, **kw: rglob(self, pattern)
+    if sys.version_info < (3, 13):  # f1c2053 passes recurse_symlinks; no symlinks here
+        rglob = pathlib.Path.rglob
+        pathlib.Path.rglob = lambda self, pattern, **kw: rglob(self, pattern)
 
     def patch(obj, name, value):
         setattr(obj, name, value)
 
-    with tempfile.TemporaryDirectory() as tmp:
-        print(json.dumps({arm: run_arm(Path(tmp), arm, patch) for arm in ("A", "B")}, indent=1))
+    print(json.dumps({arm: run_arm(Path(workdir), arm, patch) for arm in arms}))
 
 
 if __name__ == "__main__":  # pragma: no cover
-    _generate(sys.argv[1])
+    import tempfile
+
+    src_arg, arms_arg = sys.argv[1], (sys.argv[2:3] or ["AB"])[0]
+    with tempfile.TemporaryDirectory() as scratch:
+        _generate(src_arg, list(arms_arg), sys.argv[3] if len(sys.argv) > 3 else scratch)
