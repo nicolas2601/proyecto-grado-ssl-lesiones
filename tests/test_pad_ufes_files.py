@@ -101,3 +101,18 @@ class TestExtractAndIndex:
     def test_an_image_without_file_is_refused(self, tmp_path):
         with pytest.raises(pf.IntegrityError, match="sin archivo"):
             pf.resolve_images(["PAT_9_9_9"], {})
+
+
+class TestTheDefaultOpener:
+    def test_it_does_not_send_the_urllib_user_agent_mendeley_refuses(self, monkeypatch):
+        seen = {}
+
+        def fake_urlopen(request, timeout):
+            seen["ua"] = request.get_header("User-agent")
+            seen["url"] = request.full_url
+            return io.BytesIO(b"")
+
+        monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+        pf._default_opener("https://data.mendeley.com/x")
+        assert seen["url"] == "https://data.mendeley.com/x"
+        assert seen["ua"] and "urllib" not in seen["ua"].lower()

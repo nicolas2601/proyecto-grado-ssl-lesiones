@@ -19,6 +19,7 @@ from typing import BinaryIO
 DATASET_DOI = "10.17632/zr7vgbcyr2.1"
 LICENSE = "CC BY 4.0 (http://creativecommons.org/licenses/by/4.0)"
 DOWNLOAD_URL = "https://data.mendeley.com/public-files/datasets/zr7vgbcyr2/files/{file_id}/file_downloaded"
+USER_AGENT = "dermssl-pad-ufes-download/1.0 (research; CC BY 4.0 dataset)"
 CHUNK_BYTES = 1 << 20
 
 
@@ -75,9 +76,11 @@ Opener = Callable[[str], BinaryIO]
 
 
 def _default_opener(url: str) -> BinaryIO:
-    from urllib.request import urlopen  # noqa: PLC0415
+    # Mendeley answers 403 to urllib's default "Python-urllib/x.y" agent.
+    from urllib.request import Request, urlopen  # noqa: PLC0415
 
-    return urlopen(url, timeout=60)  # noqa: S310 - fixed https URL above
+    request = Request(url, headers={"User-Agent": USER_AGENT})
+    return urlopen(request, timeout=60)  # noqa: S310 - fixed https URL above
 
 
 def fetch(official: OfficialFile, dest_dir: Path, opener: Opener = _default_opener) -> Path:
