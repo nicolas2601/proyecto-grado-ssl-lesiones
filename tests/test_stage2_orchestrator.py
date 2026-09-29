@@ -94,6 +94,14 @@ def test_only_the_proposed_arm_gets_the_transformed_inputs(tmp_path):
     assert "--transformed-image-root" not in stages["ssl_plain"].argv
 
 
+def test_both_arms_declare_the_resume_their_relaunch_relies_on(tmp_path):
+    """The stage is relaunched verbatim after a pod death and must continue
+    from resume.pt; scripts/pretrain.py refuses that without --resume."""
+    stages = {s.name: s for s in orch.build_stages(_args(tmp_path))}
+    assert "--resume" in stages["ssl_plain"].argv
+    assert "--resume" in stages["ssl_proposed"].argv
+
+
 def test_the_two_arms_write_to_different_directories(tmp_path):
     stages = {s.name: s for s in orch.build_stages(_args(tmp_path))}
     plain = stages["ssl_plain"].argv

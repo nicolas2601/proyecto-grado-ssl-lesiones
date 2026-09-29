@@ -267,6 +267,7 @@ def _pretrain_argv(settings: Settings, output_dir: Path, arch: str) -> list[str]
         "--backbone", arch,
         "--image-root", str(settings.outputs / "tone" / "inputs" / "originals"),
         "--output-dir", str(output_dir),
+        "--resume",  # a relaunch continues from resume.pt; pretrain.py refuses it implicitly
         "--budget-gpu-hours", str(settings.budget_gpu_hours),
         "--batch-size-per-gpu", str(settings.batch_size_per_gpu),
         "--num-workers", str(settings.num_workers),

@@ -36,6 +36,28 @@ def require_code_revision(env: Mapping[str, str], repo_head: str | None) -> str:
     return sha
 
 
+RESUME_FILE = "resume.pt"  # What the loop picks up from --output-dir on its own.
+
+
+def refuse_implicit_resume(output_dir: str | Path, *, resume: bool, resume_checkpoint: str) -> None:
+    """A folder holding ``resume.pt`` is resumed only when the command says so.
+
+    The loop resumes from ``<output-dir>/resume.pt`` whenever it exists, so a
+    new seed pointed by mistake at an old folder continued the old run under
+    the new name. ``--resume`` (or an explicit ``--resume-checkpoint``) makes
+    the resume a declared act; on a fresh folder the flag just starts, which
+    is what a relaunch loop that always passes it needs.
+    """
+    if resume or resume_checkpoint:
+        return
+    leftover = Path(output_dir) / RESUME_FILE
+    if leftover.exists():
+        raise LaunchRefused(
+            f"{leftover} existe: para reanudar esa corrida pasa --resume; "
+            "para una corrida nueva usa otro --output-dir"
+        )
+
+
 def repo_head(repo: Path) -> str | None:
     """HEAD of ``repo``, or None when it is not a git checkout (a copied bundle)."""
     try:

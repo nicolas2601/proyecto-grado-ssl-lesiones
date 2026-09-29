@@ -39,6 +39,32 @@ class TestCodeRevision:
         assert lg.require_code_revision({"GIT_COMMIT": SHA}, repo_head=None) == SHA
 
 
+class TestImplicitResume:
+    """A leftover resume.pt used to be picked up silently, even by a new seed
+    pointed at an old folder; resuming is now something the command says."""
+
+    def _leftover(self, tmp_path):
+        (tmp_path / "resume.pt").write_bytes(b"x")
+        return tmp_path
+
+    def test_a_fresh_folder_starts(self, tmp_path):
+        lg.refuse_implicit_resume(tmp_path / "new", resume=False, resume_checkpoint="")
+
+    def test_a_folder_with_resume_pt_refuses_without_the_flag(self, tmp_path):
+        with pytest.raises(lg.LaunchRefused, match="--resume"):
+            lg.refuse_implicit_resume(self._leftover(tmp_path), resume=False, resume_checkpoint="")
+
+    def test_the_flag_allows_the_resume(self, tmp_path):
+        lg.refuse_implicit_resume(self._leftover(tmp_path), resume=True, resume_checkpoint="")
+
+    def test_the_flag_on_a_fresh_folder_just_starts(self, tmp_path):
+        """A relaunch loop passes --resume every time, including the first."""
+        lg.refuse_implicit_resume(tmp_path / "new", resume=True, resume_checkpoint="")
+
+    def test_an_explicit_checkpoint_is_already_a_declared_resume(self, tmp_path):
+        lg.refuse_implicit_resume(self._leftover(tmp_path), resume=False, resume_checkpoint="/x/resume.pt")
+
+
 def _pretrain_args(tmp_path, *extra):
     import pretrain  # noqa: PLC0415
 
@@ -62,4 +88,13 @@ class TestPretrainEntryPoint:
 
     def test_a_smoke_needs_no_commit(self, tmp_path):
         pretrain, args = _pretrain_args(tmp_path, "--smoke")
+        pretrain.check_launch(args, env={})
+
+    def test_a_leftover_resume_pt_refuses_even_a_smoke(self, tmp_path):
+        (tmp_path / "out").mkdir()
+        (tmp_path / "out" / "resume.pt").write_bytes(b"x")
+        pretrain, args = _pretrain_args(tmp_path, "--smoke")
+        with pytest.raises(lg.LaunchRefused, match="--resume"):
+            pretrain.check_launch(args, env={})
+        pretrain, args = _pretrain_args(tmp_path, "--smoke", "--resume")
         pretrain.check_launch(args, env={})

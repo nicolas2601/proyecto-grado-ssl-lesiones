@@ -60,6 +60,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--backbone", default="", help="Arquitectura base; se resuelve desde el método si se omite")
     parser.add_argument("--initial-weights", default="", help="Pesos iniciales; se resuelven desde el método si se omiten")
     parser.add_argument("--resume-checkpoint", default="", help="Punto de control desde el cual reanudar")
+    parser.add_argument(
+        "--resume", action="store_true",
+        help="Permite reanudar desde <output-dir>/resume.pt; sin este flag una carpeta con resume.pt aborta",
+    )
     parser.add_argument("--data-revision", default="", help="Revisión de los datos de entrada")
     parser.add_argument("--transformed-image-root", default="", help="Carpeta de imágenes transformadas para adaptación pareada")
     parser.add_argument("--transformed-manifest-path", default="", help="Ruta al manifiesto auditable de las imágenes transformadas")
@@ -174,6 +178,9 @@ def resolve_wandb_module(wandb_project: str, importer=importlib.import_module):
 
 def check_launch(args: argparse.Namespace, env=os.environ) -> None:
     """Launch guards; a smoke validates wiring only and records no result."""
+    launch_guards.refuse_implicit_resume(
+        args.output_dir, resume=args.resume, resume_checkpoint=args.resume_checkpoint
+    )
     if not args.smoke:
         head = launch_guards.repo_head(Path(__file__).resolve().parents[1])
         launch_guards.require_code_revision(env, head)

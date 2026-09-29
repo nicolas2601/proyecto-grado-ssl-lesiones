@@ -652,7 +652,10 @@ interprete y es el unico que tiene `wandb`. Si se pide `--wandb-project` y el
 paquete no esta en ese interprete, la corrida falla al arrancar y el mensaje
 dice que interprete es, en vez de entrenar sin seguimiento.
 
-Reanudacion tras una caida del contenedor: relanzar EL MISMO comando. El
+Reanudacion tras una caida del contenedor: relanzar EL MISMO comando con
+`--resume` agregado (desde el 2026-09-28, `scripts/pretrain.py` aborta si
+`<output-dir>/resume.pt` existe y el comando no dice `--resume`; en una carpeta
+nueva el flag solo arranca, y `run_stage2.py` ya lo pasa siempre). El
 entrenamiento busca `<output-dir>/resume.pt` y, si existe, recupera modelo,
 optimizador y el tiempo ya consumido. El checkpoint solo se escribe en las
 fracciones de `--checkpoint-fractions`, asi que la cadencia fina de arriba
