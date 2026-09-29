@@ -99,7 +99,8 @@ def test_the_document_has_every_registered_reading_and_the_strata(monkeypatch):
     cycle = ["bcc", "mel", "nv", "akiec", "bkl"]
     pad = {"ham_labels": np.array([cycle[i % 5] for i in range(n)]),
            "groups": np.array([f"P{i // 3}" for i in range(n)]),
-           "fst_bins": np.array([pu.FST_BINS[i % 4] for i in range(n)])}
+           "fst_bins": np.array([pu.FST_BINS[i % 4] for i in range(n)]),
+           "fst": [[1, 2, 3, 4, None][i % 5] for i in range(n)]}
     rng = np.random.default_rng(0)
     probas7 = {role: (lambda raw: raw / raw.sum(axis=1, keepdims=True))(rng.random((n, 7)))
                for role in pr.roles()}
@@ -108,4 +109,13 @@ def test_the_document_has_every_registered_reading_and_the_strata(monkeypatch):
     assert document["bootstrap"]["resampling_unit"] == "patient_id"
     assert set(document["fst_strata"]["bins"]) == set(pu.FST_BINS)
     assert all(b["power"] == pr.NO_POWER for b in document["fst_strata"]["bins"].values())
+    assert document["fst_strata"]["note"] == pu.fst_note(pu.fst_composition(pad["fst"]))
     json.dumps(document)  # everything in it must be serializable as is
+
+
+def test_the_fst_table_is_written_beside_the_json_with_its_computed_note(tmp_path):
+    out = tmp_path / "pad.json"
+    note = ev.write_fst_table(out, [3, 3, 3, 4, None, 1])
+    table = out.with_suffix(".fst_table.md").read_text(encoding="utf-8")
+    assert "75 % tipo III (3/4)" in note and note in table
+    assert pu.THESIS_FST_SENTENCE in table

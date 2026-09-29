@@ -42,6 +42,10 @@ READINGS_WITH_VERDICT = ("primary", "secondary")
 FST_MISSING = "sin_fst"
 FST_BINS = ("I", "II", "III-VI", FST_MISSING)
 FST_VALID = range(1, 7)
+#: Types reported only as counts: too few images for any reading (Paula, 2026-09-28).
+FST_DESCRIPTIVE_ONLY = (4, 5, 6)
+THESIS_FST_SENTENCE = "PAD-UFES-20 no permite concluir sobre FST V-VI"
+_ROMAN = {1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI"}
 _FST_BLANKS = frozenset({"", "nan", "none", "unk", "na"})
 
 
@@ -164,7 +168,39 @@ def check_published_counts(records: list[PadRecord]) -> None:
 
 
 def fst_summary(records: list[PadRecord]) -> dict:
+    composition = fst_composition([r.fst for r in records])
     return {
         "by_bin": {b: sum(r.fst_bin == b for r in records) for b in FST_BINS},
         "by_status": dict(Counter(r.fst_status for r in records)),
+        "composition": composition,
+        "note": fst_note(composition),
     }
+
+
+def fst_composition(values) -> dict:
+    """Images per phototype, blanks apart, and how much of III-VI is type III."""
+    counts = Counter(v for v in values if v is not None)
+    by_type = {t: counts.get(t, 0) for t in FST_VALID}
+    iii_vi = sum(by_type[t] for t in FST_VALID if t >= 3)
+    return {"by_type": by_type, "n_missing": sum(v is None for v in values), "iii_vi_total": iii_vi,
+            "iii_share_of_iii_vi": by_type[3] / iii_vi if iii_vi else None}
+
+
+def fst_note(comp: dict) -> str:
+    """The caveat every PAD tone table carries, computed from the counts."""
+    by_type, total = comp["by_type"], comp["iii_vi_total"]
+    share = "sin imagenes" if not total else f"{round(100 * comp['iii_share_of_iii_vi'])} % tipo III"
+    rare = ", ".join(f"{_ROMAN[t]} ({by_type[t]})" for t in FST_DESCRIPTIVE_ONLY[:-1])
+    last = FST_DESCRIPTIVE_ONLY[-1]
+    return (f"El grupo III-VI es {share} ({by_type[3]}/{total}), así que NO representa piel oscura. "
+            f"{rare} y {_ROMAN[last]} ({by_type[last]}) van solo como descriptivo, sin veredicto. "
+            f"{THESIS_FST_SENTENCE}.")
+
+
+def fst_table_markdown(comp: dict) -> str:
+    by_type = comp["by_type"]
+    rows = [("I", by_type[1]), ("II", by_type[2]), ("III-VI", comp["iii_vi_total"])]
+    rows += [(f"{_ROMAN[t]} (descriptivo, sin veredicto)", by_type[t]) for t in FST_DESCRIPTIVE_ONLY]
+    rows.append((FST_MISSING, comp["n_missing"]))
+    lines = ["| Grupo FST | Imágenes |", "|---|---|"] + [f"| {name} | {n} |" for name, n in rows]
+    return "\n".join(lines) + "\n\n" + fst_note(comp) + "\n"

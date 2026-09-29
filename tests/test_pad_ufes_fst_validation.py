@@ -113,3 +113,10 @@ def test_the_real_fst_registration_precedes_this_script():
     got = pg.check_registration(REPO, commit=fv.FST_REGISTRATION_COMMIT, doc=pg.REGISTRATION_DOC,
                                 script=fv.THIS_SCRIPT, start=fv.FST_BLOCK[0], end=fv.FST_BLOCK[1])
     assert got == fv.FST_REGISTRATION_COMMIT
+
+
+def test_the_document_carries_the_fst_note():
+    rows = [_row(3, 3, 3, "a"), _row(4, 2, 2, "b")]
+    document = fv.build_document(rows, {"fst": [3, 4, None], "ids": ["a", "b", "c"],
+                                        "manifest_sha256": "x"}, skipped=1, provenance={})
+    assert "50 % tipo III (1/2)" in document["fst_note"]

@@ -27,9 +27,10 @@ sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "scripts"))
 
 import validar_fitzpatrick17k as vf  # noqa: E402
-from pad_ufes_eval import load_pad  # noqa: E402
+from pad_ufes_eval import load_pad, write_fst_table  # noqa: E402
 
 from dermssl import final_eval as fe  # noqa: E402
+from dermssl import pad_ufes as pu  # noqa: E402
 from dermssl import pad_ufes_guard as pg  # noqa: E402
 from dermssl import pad_ufes_readings as pr  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
@@ -129,6 +130,14 @@ def evaluate_rows(pad: dict, loader=load_rgb) -> tuple[list[dict], int]:
     return rows, skipped
 
 
+def build_document(rows: list[dict], pad: dict, skipped: int, provenance: dict) -> dict:
+    reports = {c: condition_report(rows, c) for c in CONDITIONS}
+    return {**provenance, "exploratory": True, "manifest_sha256": pad["manifest_sha256"],
+            "color_constancy": "identity", "n_images": len(pad["ids"]), "n_without_fst": skipped,
+            "fst_note": pu.fst_note(pu.fst_composition(pad["fst"])), "metrics": reports,
+            "verdicts": verdicts(reports), "records": rows}
+
+
 def preflight(args: argparse.Namespace) -> tuple[str, str]:
     if args.out.expanduser().exists():
         raise SystemExit(f"ABORT: {args.out} ya existe; la validacion no se repite")
@@ -145,14 +154,12 @@ def main(argv: list[str] | None = None) -> int:
     registration, revision = preflight(args)
     pad = load_pad(args.manifest.expanduser(), args.pad_root.expanduser())
     rows, skipped = evaluate_rows(pad)
-    reports = {c: condition_report(rows, c) for c in CONDITIONS}
-    document = {"code_revision": revision, "registration_commit": registration, "exploratory": True,
-                "manifest_sha256": pad["manifest_sha256"], "color_constancy": "identity",
-                "n_images": len(pad["ids"]), "n_without_fst": skipped, "metrics": reports,
-                "verdicts": verdicts(reports), "records": rows}
+    provenance = {"code_revision": revision, "registration_commit": registration}
+    document = build_document(rows, pad, skipped, provenance)
     out = args.out.expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")
+    print(write_fst_table(out, pad["fst"]))
     print(document["verdicts"], f"-> {out}")
     return 0
 

@@ -118,8 +118,16 @@ def build_document(probas7: dict, pad: dict, provenance: dict) -> dict:
         "bootstrap": {**pr.BOOTSTRAP, "paired": True, "resampling_unit": "patient_id"},
         "readings": {name: pr.evaluate_reading(name, *args, probas7, pairs) for name in pu.READINGS},
         "fst_strata": {"reading": "primary", "exploratory": True, "min_n": pr.MIN_BIN_N,
+                       "note": pu.fst_note(pu.fst_composition(pad["fst"])),
                        "bins": pr.fst_strata(*args, pad["fst_bins"], probas7, pairs)},
     }
+
+
+def write_fst_table(out: Path, fst_values) -> str:
+    """``<out>.fst_table.md``: images per phototype with the note computed from them."""
+    composition = pu.fst_composition(list(fst_values))
+    out.with_suffix(".fst_table.md").write_text(pu.fst_table_markdown(composition), encoding="utf-8")
+    return pu.fst_note(composition)
 
 
 def preflight(args: argparse.Namespace) -> tuple[str, str]:
@@ -160,6 +168,7 @@ def main(argv: list[str] | None = None) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")
     np.savez_compressed(out.with_suffix(".probas.npz"), ids=np.array(pad["ids"]), **probas7)
+    print(write_fst_table(out, pad["fst"]))
     for name in pu.READINGS_WITH_VERDICT:
         print(name, document["readings"][name]["verdicts"])
     print(f"-> {out}")
