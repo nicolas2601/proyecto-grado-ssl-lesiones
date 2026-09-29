@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -65,6 +66,8 @@ PSEUDO_R0_SHA256 = "8c9e47978070baa7bfa9f0174a80eb4e4236d45737801abf690804ae1eb0
 CACHE_MANIFEST_SHA256 = "a83f927ab798b6f7a0614c3923fda77d082f887d10fdbe73416e34e9574ba71a"
 A2_RUN = "2026-09-28-s4-a2"
 REGISTERED_BOOTSTRAP = {"n_resamples": 1000, "seed": 20260923}
+#: HAM10000 reference masks are ``<image_id>_segmentation.png``, as in A2's evaluation; not configurable.
+MASK_SUFFIX, MASK_EXTENSION = "_segmentation", ".png"
 JSON_FILE, TABLE_FILE, ROWS_FILE = "t7_r0_tercile_check.json", "README.md", "r0_per_image.csv"
 ROW_COLUMNS = ("image_id", "tone_tercile", "excluded", "dice_binary", "dice_confident")
 TERCILE_NAMES = {"dark": "oscuro", "medium": "medio", "light": "claro"}
@@ -176,8 +179,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     for name in ("cache-dir", "pseudo-masks", "manifest", "ham-mask-dir", "out"):
         parser.add_argument(f"--{name}", required=True, type=Path)
-    parser.add_argument("--mask-suffix", default="_segmentation")
-    parser.add_argument("--mask-extension", default=".png")
     parser.add_argument("--n-resamples", type=int, default=REGISTERED_BOOTSTRAP["n_resamples"])
     parser.add_argument("--seed", type=int, default=REGISTERED_BOOTSTRAP["seed"])
     args = parser.parse_args(argv)
@@ -205,12 +206,21 @@ def _inputs(args) -> tuple[dict, dict, dict, np.ndarray]:
     return terciles, index, a2, np.load(args.pseudo_masks, mmap_mode="r")
 
 
+def _mask_path(args, image_id: str) -> Path:
+    return args.ham_mask_dir / f"{image_id}{MASK_SUFFIX}{MASK_EXTENSION}"
+
+
+def reference_masks_digest(paths: list[tuple[str, Path]]) -> str:
+    """sha256 of the ``<id>  <sha256 of the mask file>`` listing, in scoring order: pins the reference corpus."""
+    listing = "".join(f"{image_id}  {rp.file_sha256(path)}\n" for image_id, path in paths)
+    return hashlib.sha256(listing.encode()).hexdigest()
+
+
 def _score(args, ids: list[str], terciles: dict, index: dict, masks: np.ndarray) -> list[dict]:
     resolution = int(masks.shape[1])
     rows = []
     for image_id in ids:
-        path = args.ham_mask_dir / f"{image_id}{args.mask_suffix}{args.mask_extension}"
-        truth = load_binary_mask(path, resolution)
+        truth = load_binary_mask(_mask_path(args, image_id), resolution)
         rows.append({"image_id": image_id, "tone_tercile": terciles[image_id],
                      **teacher_dice(np.asarray(masks[index[image_id]]), truth)})
     return rows
@@ -239,7 +249,8 @@ def main(argv: list[str] | None = None) -> int:
            "provenance": {"registration_commit": registration, "code_revision": revision,
                           "manifest_sha256": MANIFEST_SHA256, "pseudo_r0_sha256": PSEUDO_R0_SHA256,
                           "cache_manifest_sha256": CACHE_MANIFEST_SHA256,
-                          "rows_sha256": rp.file_sha256(args.out / ROWS_FILE)}}
+                          "rows_sha256": rp.file_sha256(args.out / ROWS_FILE),
+                          "reference_masks_sha256": reference_masks_digest([(i, _mask_path(args, i)) for i in ids])}}
     (args.out / JSON_FILE).write_text(json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False) + "\n",
                                       encoding="utf-8")
     run_environment.write_sidecar(args.out / JSON_FILE, args)

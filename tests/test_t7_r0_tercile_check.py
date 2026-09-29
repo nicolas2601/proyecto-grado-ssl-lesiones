@@ -151,6 +151,8 @@ def test_the_runner_writes_the_json_and_a_table_generated_from_it(tmp_path, monk
     assert doc["analysis"]["terciles"]["dark"]["n_excluded"] == 1
     assert doc["analysis"]["terciles"]["dark"]["dice_binary"] == pytest.approx(2 * 16 / (16 + 20))
     assert doc["provenance"]["registration_commit"] == "r" * 40
+    listing = "".join(f"{i}  {_sha(fx['gt'] / f'{i}_segmentation.png')}\n" for i in fx["ids"][:5])
+    assert doc["provenance"]["reference_masks_sha256"] == hashlib.sha256(listing.encode()).hexdigest()
     assert sidecar_env(out / t7r.JSON_FILE)["schema"] == 1
     assert (out / t7r.TABLE_FILE).read_text(encoding="utf-8") == t7r.render_markdown(doc)
     with open(out / t7r.ROWS_FILE, newline="") as handle:
@@ -163,3 +165,11 @@ def test_an_unregistered_bootstrap_is_refused_before_anything_runs(tmp_path, ext
     with pytest.raises(SystemExit, match="bootstrap"):
         t7r.main(["--cache-dir", missing, "--pseudo-masks", missing, "--manifest", missing,
                   "--ham-mask-dir", missing, "--out", str(tmp_path / "out"), *extra])
+
+
+@pytest.mark.parametrize("extra", [("--mask-suffix", "_other"), ("--mask-extension", ".jpg")])
+def test_the_reference_mask_naming_is_fixed(tmp_path, extra):
+    missing = str(tmp_path / "missing")
+    with pytest.raises(SystemExit):
+        t7r.parse_args(["--cache-dir", missing, "--pseudo-masks", missing, "--manifest", missing,
+                        "--ham-mask-dir", missing, "--out", str(tmp_path / "out"), *extra])
