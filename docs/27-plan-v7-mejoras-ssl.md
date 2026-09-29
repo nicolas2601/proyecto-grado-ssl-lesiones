@@ -148,7 +148,7 @@ Ninguna se acerca, así que se activa la Opción A de docs/26 §5.1. La Opción 
 - **Arquitectura, común a A1 y A2:** ViT-B/14 de DINOv2 público congelado. Las features de 4 bloques intermedios (3, 6, 9 y 12) se reproyectan a mapas multi-escala con un decoder liviano tipo U-Net (estilo DPT/UNETR). Solo se entrena el decoder, con el mismo protocolo y un presupuesto de épocas comparable al de student_r3. No usa máscaras reales, así que la cadena sigue siendo auto-supervisada.
 - **Variante adicional de A2:** el encoder A\* semilla 42, al mismo costo.
 - **Evaluación:** Dice, IoU y HD95 (menor es mejor) en ISIC 2018 y HAM10000, contra student_r3, con el mismo código.
-- **Predicción registrada:** Dice(S4-UNet) ≥ Dice(student_r3) − 0,01. Si lo supera, pasa a ser el segmentador candidato, y la estimación ITA no validada (no es FST), abajo, se vuelve a correr con sus máscaras.
+- **Predicción registrada:** Dice(S4-UNet) ≥ Dice(student_r3) − 0,01. Si lo supera, pasa a ser el segmentador candidato, y el FST (abajo) se vuelve a correr con sus máscaras.
 - **Autorización:** se lanza sin esperar si el costo medido es ≤ 4 GPU-h por variante; si es mayor, se consulta antes. Orden de GPU: S-diag, A1/A2, C1-v7, v7.1, semilla 44, PAD.
 - **Notas de implementación (2026-09-28, sin cambiar el método).** Código: `src/dermssl/torch_s4_unet.py`, `scripts/s4_unet_train.py` (+ `s4_unet_loop.py`) y `scripts/s4_dino_saliency.py`; los comandos del pod están en sus docstrings.
   - *Presupuesto:* una ronda de student_r3 de `cluster-final.json`: 20 épocas, 32 imágenes por GPU en 2 GPU, Adam 1e-4, 1 época de calentamiento, coseno, selección por pérdida de pseudo-validación, bf16, semilla 42. A2 no tiene rondas de re-etiquetado, así que se compara con el presupuesto de UNA ronda (el que tuvo student_r3), no con las 60 épocas de la cadena.
@@ -158,6 +158,8 @@ Ninguna se acerca, así que se activa la Opción A de docs/26 §5.1. La Opción 
   - *A1:* la saliencia es el mapa PCA de S-diag primario (`dermssl.s_diag`, sin binarizar), repetido de 16×16 a 224×224 por vecino más cercano (la regla de reescalado de S-diag), en float16 como `ccam/saliency.npy`. Entra a `make_pseudo_masks.py --source dino` con las banderas exactas de r0: normaliza min-max por imagen pero NO re-orienta el signo, porque S-diag ya lo fijó con su bloque central y la orientación borde-centro de CCAM podría invertirlo.
   - *Evaluación:* `evaluate_segmentation.py --checkpoint` reconoce el checkpoint S4 y usa el mismo código de binarización (0,5), métricas y reporte que student_r3. Régimen: transductivo sin etiquetas, igual que el estudiante.
   - *Costo medido en CPU local (arquitectura real ViT-B/14, pesos aleatorios):* 0,8-2,3 s por imagen por proceso para la saliencia de A1, del orden de 0,4-1,2 h con 32 procesos sobre las 58.457 imágenes. El costo de GPU de A1/A2 sale del `--timing-smoke` en el pod antes de lanzar.
+
+Errata (2026-09-29): el rótulo 'FST' en este bloque se refiere a la estimación ITA no validada (ver docs/20, PMC13459198), y 'terciles de tono' se lee como 'terciles de luminancia'
 
 **Resultados S4-UNet (2026-09-28).** Datos en `plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-*`. La predicción registrada es Dice ISIC ≥ student_r3 − 0,01 = 0,7077.
 - **A2 (r0, DINOv2 público congelado): cumplida.** ISIC 0,7221 [0,7134; 0,7308], HAM 0,7949 [0,7918; 0,7984]. Contra student_r3, mejora pequeña pero consistente en Dice: +0,004 en ISIC y +0,010 en HAM, con IC pareado sin cero. HD95 igual en ISIC y mejor en HAM. Pasa a ser el segmentador candidato.
@@ -172,16 +174,18 @@ Ninguna se acerca, así que se activa la Opción A de docs/26 §5.1. La Opción 
 
 **Estimación ITA no validada (no es FST) con las máscaras de A2 (2026-09-28).** A2 pasó a segmentador candidato, así que la estimación ITA no validada (no es FST) se vuelve a correr con sus máscaras por el mismo camino que el publicado: las probabilidades de A2 sobre el pool (`scripts/s4_predict_pool.py`) entran a `make_pseudo_masks.py --source student` con las mismas banderas de `pseudo_r2`, y de ahí salen el manifiesto de la estimación ITA no validada (no es FST) y su comparación con el publicado. **Supuesto a la vista:** `pseudo_r2/pseudo_masks_stats.json` no registra `region_mode`, porque esa bandera se agregó el 2026-09-27 (f43b610) con default `central`, que es el comportamiento publicado. Se tomó `region_mode = central` para `pseudo_r2`; el resto de las banderas coincide. El supuesto también queda escrito junto al manifiesto (`a2_fst/fst/assumptions.json`).
 
-**Estimación ITA no validada (no es FST) con la caché sin pelo (Paso 1 de docs/26 §6.4; en CPU, registrado el 2026-09-28).** Es la otra razón por la que Pau quería quitar el pelo: que el pelo no sesgue la estimación ITA no validada (no es FST).
+**FST con la caché sin pelo (Paso 1 de docs/26 §6.4; en CPU, registrado el 2026-09-28).** Es la otra razón por la que Pau quería quitar el pelo: que el pelo no sesgue la estimación de tono.
 - `fst_pseudo_manifest.py` pasa a reportar por separado los registros con `artifact_detected = True` o `confidence < 1` (con TDD).
-- Se regenera el manifest de la estimación ITA no validada (no es FST) con la caché de S2(a) y con la original, y se comparan `tone_distribution` y `FST_distribution`.
+- Se regenera el manifest FST con la caché de S2(a) y con la original, y se comparan `tone_distribution` y `FST_distribution`.
 - Se reporta aunque S2 no haya subido la cobertura.
+
+Errata (2026-09-29): el rótulo 'FST' en este bloque se refiere a la estimación ITA no validada (ver docs/20, PMC13459198), y 'terciles de tono' se lee como 'terciles de luminancia'
 
 ### FASE 2 — fixes baratos de segmentación (línea de Pau, en paralelo a la Fase 1)
 
 **S1 — Unión de regiones en `select_central_region`** (docs/26 §2.4). Regenerar solo las pseudo-máscaras y comparar `mean_foreground_fraction` y `excluded_no_region` contra la tabla base (docs/26 §2.1).
 **S2 — Remoción de pelo (black-hat + TELEA) dentro de la etapa `cache`** (docs/26 §3.4). Validar en los casos "worst" con pelo y en `tone_distribution`.
-**S3 — Usar la `confidence` de la estimación ITA no validada (no es FST)** (docs/26 §6.4, paso 1). Reportar aparte los registros con `artifact_detected`.
+**S3 — Usar la `confidence` de FST** (docs/26 §6.4, paso 1). Reportar aparte los registros con `artifact_detected`.
 - **SSL:** preprocesamiento clásico (morfología e inpainting sin entrenar) y lógica de selección. Cumple.
 - **Predicción registrada (reformulada el 2026-09-27, antes de correr S1):** S1 sube `mean_foreground_fraction` hacia 0,21-0,27 sin empeorar el Dice contra la referencia en ISIC 2018. S2 mejora sobre todo los casos con pelo visible.
 - **Por qué se reformuló:** la versión anterior predecía que S1 bajaba `excluded_no_region`, y eso es imposible por construcción. Una imagen queda sin región cuando ninguna región pasa el filtro de área y el de centralidad, y la región que hoy se elige ya es la de menor distancia al centro, así que con la unión queda sin región exactamente en los mismos casos (`tests/test_seg_uncertainty_module.py::test_union_and_central_agree_on_what_is_empty`). S1 solo puede cambiar qué píxeles se pintan cuando ya hay al menos una región válida.
@@ -208,6 +212,8 @@ Ninguna se acerca, así que se activa la Opción A de docs/26 §5.1. La Opción 
   - **Lectura (2026-09-28):** el resultado principal de la v7, que B\* le gana al DINOv2 público, no depende de la segmentación. El preentrenamiento y la evaluación usan la imagen completa. La línea de segmentación es complementaria, y C1 ya había mostrado que enmascarar no mejora la clasificación de forma consistente ([tabla principal de C1](../resultados/clasificacion/c1/README.md)). Hay 12 contrastes de macro-F1 contra la condición sin máscara en el mismo backbone: recorte a la caja y pooling en la máscara, en 6 backbones. En 11 la diferencia no se distingue del ruido; el único que mejora es el recorte en SSL plain ViT-S/14. El fondo gris empeora en 3 de los 6 backbones y no mejora en ninguno.
 
 - **Cierre de fase:** con las máscaras mejoradas se **vuelve a correr C1**. Así se mide si mejor segmentación trae mejor clasificación.
+
+Errata (2026-09-29): el rótulo 'FST' en este bloque se refiere a la estimación ITA no validada (ver docs/20, PMC13459198), y 'terciles de tono' se lee como 'terciles de luminancia'
 
 ### FASE 3 — diagnóstico del clasificador y confusores (requiere reentrenar: caro)
 
