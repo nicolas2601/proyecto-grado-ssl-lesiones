@@ -3,8 +3,10 @@
 The lbfgs logreg probe (``probes.fit_logreg``) is not bit-stable across BLAS
 thread counts: on the 48-CPU pod, 4 vs 8 threads moved v7.1 macro-F1 by up to
 0.014 (resultados/clasificacion/t4/diagnostico_reproduccion/). v7.1 and T4 are
-pinned by ``probe_threads``; C1 never was -- its grid fitted in-process with
-whatever the library default resolved to. This module refits published C1
+pinned by ``probe_threads``; C1 was not -- its grid fitted in-process with
+whatever the library default resolved to, as the published cells were. Its
+verdict (default and 4..48 reproduce every checked cell, only 1 differs) is
+why C1 now fits under ``PROBE_BLAS_THREADS`` too. This module refits published C1
 cells under explicit thread caps and compares each refit with the published
 ``.proba.npy``. It changes no protocol and rewrites nothing published.
 """

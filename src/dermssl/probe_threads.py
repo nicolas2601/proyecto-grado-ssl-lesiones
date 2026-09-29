@@ -8,7 +8,10 @@ Measured on the 48-CPU pod (resultados/clasificacion/t4/diagnostico_reproduccion
 features flips about 260 argmaxes per unit and moves macro-F1 by up to 0.014.
 
 So the published numbers are the 4-thread numbers, and every probe fit runs with
-exactly ``PROBE_BLAS_THREADS`` whatever the worker count or the host.
+exactly ``PROBE_BLAS_THREADS`` whatever the worker count or the host. C1 (grid,
+selection, v7 single evaluation) shares the constant: its published cells refit bit
+for bit with the default and with 4..48 threads, only 1 differs
+(resultados/clasificacion/c1_v7/diagnostico_hilos/).
 """
 
 from __future__ import annotations
