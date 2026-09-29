@@ -147,3 +147,40 @@ def test_read_sidecar_returns_the_block_or_none(tmp_path):
     assert re_.read_sidecar(path) is None
     _write_result(path, {}, {"schema": 1})
     assert re_.read_sidecar(path) == {"schema": 1}
+
+
+# --- sidecar_problems: what a committed sidecar must satisfy ---
+
+def test_a_sidecar_that_pins_its_file_has_no_problem(tmp_path):
+    sidecar = _write_result(tmp_path / "grid.json", {"rows": []}, {"schema": 1})
+    assert re_.sidecar_problems(sidecar) == []
+
+
+def test_an_orphan_sidecar_is_a_problem(tmp_path):
+    sidecar = _write_result(tmp_path / "grid.json", {"rows": []}, {"schema": 1})
+    (tmp_path / "grid.json").unlink()
+    assert re_.sidecar_problems(sidecar) == ["grid.environment.json: orphan, grid.json does not exist"]
+
+
+def test_a_sidecar_whose_sha_no_longer_matches_is_a_problem(tmp_path):
+    sidecar = _write_result(tmp_path / "grid.json", {"rows": []}, {"schema": 1})
+    (tmp_path / "grid.json").write_text('{"rows": [1]}', encoding="utf-8")
+    [problem] = re_.sidecar_problems(sidecar)
+    assert problem.startswith("grid.environment.json: sha256 ") and "grid.json" in problem
+
+
+def test_a_sidecar_that_names_another_file_is_a_problem(tmp_path):
+    sidecar = _write_result(tmp_path / "grid.json", {"rows": []}, {"schema": 1})
+    record = json.loads(sidecar.read_text(encoding="utf-8"))
+    sidecar.write_text(json.dumps({**record, "describes": "other.json"}), encoding="utf-8")
+    assert re_.sidecar_problems(sidecar) == [
+        "grid.environment.json: describes 'other.json', its name says grid.json"]
+
+
+def test_a_sidecar_without_the_block_or_unreadable_is_a_problem(tmp_path):
+    sidecar = _write_result(tmp_path / "grid.json", {"rows": []}, {"schema": 1})
+    record = json.loads(sidecar.read_text(encoding="utf-8"))
+    sidecar.write_text(json.dumps({k: v for k, v in record.items() if k != "environment"}), encoding="utf-8")
+    assert re_.sidecar_problems(sidecar) == ["grid.environment.json: no environment block"]
+    sidecar.write_text("{not json", encoding="utf-8")
+    assert re_.sidecar_problems(sidecar) == ["grid.environment.json: not valid JSON"]

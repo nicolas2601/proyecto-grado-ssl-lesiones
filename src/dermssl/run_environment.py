@@ -143,3 +143,25 @@ def write_sidecar(path, args=None, *, environment=None, **extra) -> Path:
     tmp.write_text(json.dumps(record, indent=1, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
     os.replace(tmp, target)
     return target
+
+
+def sidecar_problems(sidecar) -> list[str]:
+    """Why a sidecar no longer describes its result: orphan, stale sha256, wrong name, no block."""
+    sidecar = Path(sidecar)
+    name = sidecar.name
+    try:
+        record = json.loads(sidecar.read_text(encoding="utf-8"))
+    except ValueError:
+        return [f"{name}: not valid JSON"]
+    if not isinstance(record, dict) or "environment" not in record:
+        return [f"{name}: no environment block"]
+    expected = name[: -len(SIDECAR_SUFFIX)] + ".json"
+    if record.get("describes") != expected:
+        return [f"{name}: describes {record.get('describes')!r}, its name says {expected}"]
+    result = sidecar.with_name(expected)
+    if not result.is_file():
+        return [f"{name}: orphan, {expected} does not exist"]
+    actual = hashlib.sha256(result.read_bytes()).hexdigest()
+    if record.get("sha256") != actual:
+        return [f"{name}: sha256 {str(record.get('sha256'))[:12]} is not that of {expected} ({actual[:12]})"]
+    return []
