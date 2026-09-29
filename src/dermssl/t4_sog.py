@@ -228,3 +228,14 @@ def cost_projection(*, n_fit: int, n_hold: int, n_train: int, n_val: int) -> dic
             "assumptions": {"forward_img_per_s": FORWARD_IMG_PER_S, "probe_s_per_unit": PROBE_SECONDS_PER_UNIT,
                             "bootstrap_s_per_cell": plan.BOOTSTRAP_SECONDS_PER_CELL,
                             "decode_img_per_s_per_core": plan.DECODE_IMG_PER_S_PER_CORE}}
+
+
+# --- reproduction diagnosis (Paula, 2026-09-29) ---
+
+def array_digests(arrays: dict) -> dict:
+    """``name -> sha256`` of each float32 array's bytes: two extractions are equal or they are not."""
+    import hashlib  # noqa: PLC0415
+
+    return {name: hashlib.sha256(np.ascontiguousarray(value, dtype=np.float32).tobytes()).hexdigest()
+            for name, value in arrays.items()}
+

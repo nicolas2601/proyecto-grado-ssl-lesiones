@@ -65,6 +65,7 @@ import v71_io as io  # noqa: E402
 import v71_val  # noqa: E402
 
 from dermssl import run_provenance as rp  # noqa: E402
+from dermssl import t4_sog  # noqa: E402
 from dermssl import v71_grid as vg  # noqa: E402
 from dermssl import v71_plan as plan  # noqa: E402
 from dermssl import v71_protocol as vp  # noqa: E402
@@ -240,8 +241,11 @@ def run_unit(args, ctx, store, weights, device, revision, name: str, resolution:
     np.savez_compressed(udir / "probas.npz", y=y_hold,
                         **{f"p{k}": probas[key].astype(np.float32) for k, key in enumerate(probas)})
     n_fwd = len(ctx["ids"]["fit"]) + tv.N_D4 * len(ctx["ids"]["holdout"])
+    digests = t4_sog.array_digests({**{f"fit_{k}": v for k, v in fit_parts.items()},
+                                    **{f"hold_{k}": v for k, v in hold_parts.items()}})
     result = {"weights": name, "resolution": resolution, "holdout_ids_sha256": ctx["holdout_sha"],
               "run_fingerprint": ctx["run_fingerprint"], "code_revision": revision, "cells": cells, "rows": rows,
+              "feature_sha256": digests,
               "timing": {"extract_s": extract_s, "img_per_s": n_fwd / max(extract_s, 1e-9),
                          "probe_and_ci_s": time.time() - start - extract_s}}
     io.write_json(udir / "result.json", result)

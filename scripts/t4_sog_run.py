@@ -39,6 +39,7 @@ to ``resultados/clasificacion/t4_sog/``.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -70,6 +71,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--exclude-ids-file", type=Path, default=None, help="required for --split val")
     p.add_argument("--v71-grid", type=Path, default=V71_GRID, help="committed v7.1 holdout grid")
     p.add_argument("--v71-final", type=Path, default=V71_FINAL, help="committed v7.1 val read")
+    p.add_argument("--inputs", choices=("both", "identity"), default="both",
+                   help="identity: diagnostic grid, reports the reproduction without aborting, no SoG")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--limit", type=int, default=None, help="smoke: skips the reproduction guard")
     p.add_argument("--allow-dirty", action="store_true", help="smoke/rehearsal only; never for val")
@@ -110,29 +113,56 @@ def _grid_input(args, ctx, weights, device, revision, name: str) -> dict:
     return {cid: row for result in results for cid, row in result["rows"].items()}
 
 
+def run_environment(args) -> dict:
+    """What can make two extractions or two probe fits differ: threads, versions, GPU flags."""
+    import joblib  # noqa: PLC0415
+    import numpy  # noqa: PLC0415
+    import sklearn  # noqa: PLC0415
+    import torch  # noqa: PLC0415
+    from threadpoolctl import threadpool_info  # noqa: PLC0415
+
+    cpu = joblib.cpu_count()
+    cuda = torch.cuda.is_available()
+    return {
+        "probe_jobs": args.probe_jobs, "boot_jobs": args.boot_jobs, "decode_workers": args.decode_workers,
+        "batch_size": args.batch_size, "cpu_count": cpu, "loky_inner_threads": max(cpu // max(args.probe_jobs, 1), 1),
+        "torch": torch.__version__, "cuda": torch.version.cuda, "cudnn": torch.backends.cudnn.version(),
+        "cudnn_deterministic": torch.backends.cudnn.deterministic, "cudnn_benchmark": torch.backends.cudnn.benchmark,
+        "device": torch.cuda.get_device_name(0) if cuda else "cpu", "torch_threads": torch.get_num_threads(),
+        "sklearn": sklearn.__version__, "numpy": numpy.__version__,
+        "threadpools": [{k: pool.get(k) for k in ("internal_api", "num_threads", "version")}
+                        for pool in threadpool_info()],
+        "env": {k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS",
+                                               "CUBLAS_WORKSPACE_CONFIG", "CUDA_VISIBLE_DEVICES")},
+    }
+
+
 def _reproduction(args, identity_rows: dict) -> dict:
     if args.limit:
         return {"status": "skipped", "reason": "--limit cambia los ids", "passed": True}
-    report = t4.reproduction_check(identity_rows, io.read_json(args.v71_grid.expanduser())["rows"])
+    tol = t4.REPRODUCTION_TOLERANCE
+    report = t4.reproduction_check(identity_rows, io.read_json(args.v71_grid.expanduser())["rows"], tol=tol)
     report["reference"] = str(args.v71_grid)
-    if not report["passed"]:
+    if not report["passed"] and args.inputs == "both":
         io.write_json(args.out_dir / "reproduction_failed.json", report)
-        raise SystemExit("ABORT: sin SoG no se reproduce la grilla v7.1 commiteada (tol 1e-6); ver "
+        raise SystemExit(f"ABORT: sin SoG no se reproduce la grilla v7.1 commiteada (tol {tol:g}); ver "
                          f"{args.out_dir / 'reproduction_failed.json'}. No se extrae nada con SoG.")
     return report
 
 
 def stage_grid(args, ctx, revision, registration) -> None:
     device, weights = v71_run._device(args), io.WeightBank(args.weights_dir.expanduser())
-    identity = _grid_input(args, ctx, weights, device, revision, t4.IDENTITY)
-    reproduction = _reproduction(args, identity)
+    environment = run_environment(args)
+    inputs = {t4.IDENTITY: _grid_input(args, ctx, weights, device, revision, t4.IDENTITY)}
+    reproduction = _reproduction(args, inputs[t4.IDENTITY])
     print(f"reproduccion v7.1 sin SoG: {reproduction.get('status', 'ok' if reproduction['passed'] else 'falla')}")
-    sog = _grid_input(args, ctx, weights, device, revision, t4.SOG)
+    if args.inputs == "both":
+        inputs[t4.SOG] = _grid_input(args, ctx, weights, device, revision, t4.SOG)
     io.write_json(args.out_dir / "t4_holdout_grid.json", {
         "code_revision": revision, "registration_commit": registration, "holdout_ids_sha256": ctx["holdout_sha"],
-        "limit": args.limit, "reproduction": reproduction, "sog_p": t4.SOG_P,
-        "inputs": {t4.IDENTITY: identity, t4.SOG: sog}})
-    print(f"-> {args.out_dir / 't4_holdout_grid.json'} ({len(identity) + len(sog)} celdas)")
+        "limit": args.limit, "reproduction": reproduction, "sog_p": t4.SOG_P, "environment": environment,
+        "inputs": inputs})
+    print(f"-> {args.out_dir / 't4_holdout_grid.json'} ({sum(len(r) for r in inputs.values())} celdas)")
 
 
 def _early_guards(args) -> None:

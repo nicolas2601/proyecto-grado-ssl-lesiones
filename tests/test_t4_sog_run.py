@@ -172,3 +172,49 @@ def test_val_split_refuses_limit_because_it_skips_the_reproduction_guard(pod, tm
     with pytest.raises(SystemExit, match="--limit"):
         t4_sog_run.main(_t4(pod, tmp_path, "--stage", "val", "--split", "val", "--single-evaluation",
                             "--limit", "10"))
+
+
+# --- reproduction diagnosis (Paula, 2026-09-29): identity-only runs, feature hashes, errata flag ---
+
+
+def test_every_unit_records_the_sha256_of_its_features(ran):
+    result = json.loads((ran / "identity" / "units" / "public@224" / "result.json").read_text())
+    digests = result["feature_sha256"]
+    assert set(digests) == {f"{split}_{p}" for split in ("fit", "hold")
+                            for p in ("cls", "mean", "gem", "attn", "cls4")}
+    assert all(len(v) == 64 for v in digests.values())
+
+
+@pytest.fixture(scope="module")
+def identity_runs(pod, tmp_path_factory):
+    """Two identity-only runs, same flags, against the real committed grid (which fake data fails)."""
+    outs = [tmp_path_factory.mktemp(f"id{k}") for k in (1, 2)]
+    for out in outs:
+        assert t4_sog_run.main(_t4(pod, out, "--stage", "grid", "--inputs", "identity")) == 0
+    return outs
+
+
+def test_identity_only_reports_the_reproduction_without_aborting(identity_runs):
+    grid = json.loads((identity_runs[0] / "t4_holdout_grid.json").read_text())
+    assert set(grid["inputs"]) == {"identity"} and grid["reproduction"]["passed"] is False
+    assert not (identity_runs[0] / "sog_p6").exists()
+    env = grid["environment"]
+    for key in ("probe_jobs", "loky_inner_threads", "cpu_count", "torch", "sklearn", "numpy",
+                "cudnn_deterministic", "cudnn_benchmark", "threadpools", "env"):
+        assert key in env
+
+
+def test_select_refuses_an_identity_only_grid(pod, identity_runs):
+    with pytest.raises(SystemExit, match="solo identity"):
+        t4_sog_run.main(_t4(pod, identity_runs[0], "--stage", "select"))
+
+
+def test_two_identity_runs_on_cpu_compare_as_identical(identity_runs, tmp_path):
+    import t4_repro_compare
+
+    out = tmp_path / "cmp.json"
+    assert t4_repro_compare.main(["--run-a", str(identity_runs[0]), "--run-b", str(identity_runs[1]),
+                                  "--out", str(out)]) == 0
+    doc = json.loads(out.read_text())
+    assert doc["a_vs_b"]["identical"] is True
+    assert doc["a_vs_published"]["max_abs_delta"]["macro_f1"] > 0  # fake data vs the real v7.1 grid

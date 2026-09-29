@@ -58,6 +58,8 @@ def stage_select(args, ctx) -> None:
     if out.exists():
         raise SystemExit(f"ABORT: {out} ya existe; una seleccion no se reescribe")
     grid = _read_checked(args.out_dir / "t4_holdout_grid.json", ctx)
+    if t4.SOG not in grid["inputs"]:
+        raise SystemExit("ABORT: la grilla es solo identity (corrida de diagnostico); no hay nada que seleccionar")
     winners = t4.sog_winners(grid["inputs"][t4.SOG])
     contrasts = []
     for arm, cid in t4.FIXED_PROTOCOLS.items():
