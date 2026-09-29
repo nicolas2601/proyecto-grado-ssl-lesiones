@@ -16,6 +16,7 @@ import v71_io as io
 from dermssl import c1_split_identity as si
 from dermssl import final_eval as fe
 from dermssl import paired_bootstrap as pb
+from dermssl import run_environment
 from dermssl import run_provenance as rp
 from dermssl import v71_grid as vg
 from dermssl import v71_metrics as vm
@@ -86,7 +87,8 @@ def stage_select(args, ctx) -> None:
                      holdout_contrasts=contrasts, resolution_diagnostic=_resolution_diagnostic(args, ctx, selection, grid),
                      note_optimism=("El holdout ya eligio A3/B1 en los pilotos y aca elige entre "
                                     f"{grid['n_configs']} configuraciones: sus numeros tienen optimismo "
-                                    "de seleccion; la lectura que vale es la de val (docs/29 §1, §2.7.6)."))
+                                    "de seleccion; la lectura que vale es la de val (docs/29 §1, §2.7.6)."),
+                     environment=run_environment.snapshot(args))
     io.write_json(out, selection)
     for arm, cid in selection["winners"].items():
         print(f"{arm}: {cid} (macro-F1 {selection['winner_rows'][arm]['macro_f1']:.4f})")
@@ -197,6 +199,7 @@ def stage_val(args, ctx, revision, device) -> None:
         "bootstrap": {"n_resamples": args.ci_resamples, "rng_seed": vm.BOOTSTRAP_SEED, "paired": True},
         "n_fit_threshold_probe": len(ctx["ids"]["fit"]),
         "note_operating_points": plan.OPERATING_POINT_PROTOCOL,
+        "environment": run_environment.snapshot(args),
     })
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y, **probas,
                         **{f"{label}__fit80": p for label, p in probas80.items()})

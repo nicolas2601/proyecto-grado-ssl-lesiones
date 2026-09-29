@@ -63,6 +63,7 @@ def test_each_run_is_compared_with_the_published_grid(tmp_path):
     assert doc["a_vs_published"]["max_abs_delta"]["macro_f1"] == 0.0
     assert doc["b_vs_published"]["max_abs_delta"]["macro_f1"] == pytest.approx(0.002)
     assert doc["a_vs_b"]["identical"] is False
+    assert doc["environment"]["schema"] == 1
 
 
 def test_missing_units_are_an_error_not_a_silent_skip(tmp_path):

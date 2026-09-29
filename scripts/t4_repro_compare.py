@@ -20,6 +20,10 @@ from pathlib import Path
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
+
+from dermssl import run_environment  # noqa: E402
+
 V71_GRID = REPO / "resultados/clasificacion/v71/holdout_grid.json"
 INPUT = "identity"
 
@@ -95,6 +99,7 @@ def main(argv=None) -> int:
     for name, run in (("a", args.run_a), ("b", args.run_b)):
         doc[f"{name}_vs_published"] = row_deltas(_read(run / "t4_holdout_grid.json")["inputs"][INPUT], published)
         doc[f"{name}_environment"] = _read(run / "t4_holdout_grid.json").get("environment")
+    doc["environment"] = run_environment.snapshot(args)
     args.out.write_text(json.dumps(doc, indent=1), encoding="utf-8")
     verdict = "IDENTICAS: el origen es el entorno" if doc["a_vs_b"]["identical"] else "DIFIEREN: no determinismo"
     print(f"a vs b: {verdict}; max |d macro_f1| a-b {doc['a_vs_b']['max_abs_delta'].get('macro_f1', 0):.2e}, "

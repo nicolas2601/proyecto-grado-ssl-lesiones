@@ -39,7 +39,6 @@ to ``resultados/clasificacion/t4_sog/``.
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -53,6 +52,7 @@ import v71_run  # noqa: E402
 from t4_sog_val import input_args, input_ctx, store_for, unit_probas  # noqa: E402, F401 - unit_probas is API
 
 from dermssl import pad_ufes_guard as guard  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import t4_sog as t4  # noqa: E402
 
@@ -113,28 +113,11 @@ def _grid_input(args, ctx, weights, device, revision, name: str) -> dict:
     return {cid: row for result in results for cid, row in result["rows"].items()}
 
 
-def run_environment(args) -> dict:
-    """What can make two extractions or two probe fits differ: threads, versions, GPU flags."""
+def _environment(args) -> dict:
+    """The shared block plus loky's inner threads: what can make two extractions or probe fits differ."""
     import joblib  # noqa: PLC0415
-    import numpy  # noqa: PLC0415
-    import sklearn  # noqa: PLC0415
-    import torch  # noqa: PLC0415
-    from threadpoolctl import threadpool_info  # noqa: PLC0415
 
-    cpu = joblib.cpu_count()
-    cuda = torch.cuda.is_available()
-    return {
-        "probe_jobs": args.probe_jobs, "boot_jobs": args.boot_jobs, "decode_workers": args.decode_workers,
-        "batch_size": args.batch_size, "cpu_count": cpu, "loky_inner_threads": max(cpu // max(args.probe_jobs, 1), 1),
-        "torch": torch.__version__, "cuda": torch.version.cuda, "cudnn": torch.backends.cudnn.version(),
-        "cudnn_deterministic": torch.backends.cudnn.deterministic, "cudnn_benchmark": torch.backends.cudnn.benchmark,
-        "device": torch.cuda.get_device_name(0) if cuda else "cpu", "torch_threads": torch.get_num_threads(),
-        "sklearn": sklearn.__version__, "numpy": numpy.__version__,
-        "threadpools": [{k: pool.get(k) for k in ("internal_api", "num_threads", "version")}
-                        for pool in threadpool_info()],
-        "env": {k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS",
-                                               "CUBLAS_WORKSPACE_CONFIG", "CUDA_VISIBLE_DEVICES")},
-    }
+    return run_environment.snapshot(args, loky_inner_threads=max(joblib.cpu_count() // max(args.probe_jobs, 1), 1))
 
 
 def _reproduction(args, identity_rows: dict) -> dict:
@@ -144,7 +127,7 @@ def _reproduction(args, identity_rows: dict) -> dict:
     report = t4.reproduction_check(identity_rows, io.read_json(args.v71_grid.expanduser())["rows"], tol=tol)
     report["reference"] = str(args.v71_grid)
     if not report["passed"] and args.inputs == "both":
-        io.write_json(args.out_dir / "reproduction_failed.json", report)
+        io.write_json(args.out_dir / "reproduction_failed.json", {**report, "environment": _environment(args)})
         raise SystemExit(f"ABORT: sin SoG no se reproduce la grilla v7.1 commiteada (tol {tol:g}); ver "
                          f"{args.out_dir / 'reproduction_failed.json'}. No se extrae nada con SoG.")
     return report
@@ -152,7 +135,6 @@ def _reproduction(args, identity_rows: dict) -> dict:
 
 def stage_grid(args, ctx, revision, registration) -> None:
     device, weights = v71_run._device(args), io.WeightBank(args.weights_dir.expanduser())
-    environment = run_environment(args)
     inputs = {t4.IDENTITY: _grid_input(args, ctx, weights, device, revision, t4.IDENTITY)}
     reproduction = _reproduction(args, inputs[t4.IDENTITY])
     print(f"reproduccion v7.1 sin SoG: {reproduction.get('status', 'ok' if reproduction['passed'] else 'falla')}")
@@ -160,7 +142,7 @@ def stage_grid(args, ctx, revision, registration) -> None:
         inputs[t4.SOG] = _grid_input(args, ctx, weights, device, revision, t4.SOG)
     io.write_json(args.out_dir / "t4_holdout_grid.json", {
         "code_revision": revision, "registration_commit": registration, "holdout_ids_sha256": ctx["holdout_sha"],
-        "limit": args.limit, "reproduction": reproduction, "sog_p": t4.SOG_P, "environment": environment,
+        "limit": args.limit, "reproduction": reproduction, "sog_p": t4.SOG_P, "environment": _environment(args),
         "inputs": inputs})
     print(f"-> {args.out_dir / 't4_holdout_grid.json'} ({sum(len(r) for r in inputs.values())} celdas)")
 

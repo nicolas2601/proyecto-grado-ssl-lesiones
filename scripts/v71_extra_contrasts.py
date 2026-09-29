@@ -18,6 +18,7 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import v71_extra as vx  # noqa: E402
 from dermssl import v71_metrics as vm  # noqa: E402
@@ -95,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--out", type=Path, default=V71 / "extra_contrasts.json")
     args = parser.parse_args(argv)
-    doc = document(load_inputs(V71, V7_S43))
+    doc = {**document(load_inputs(V71, V7_S43)), "environment": run_environment.snapshot(args)}
     args.out.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"-> {args.out}")
     return 0

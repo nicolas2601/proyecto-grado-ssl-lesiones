@@ -199,9 +199,10 @@ def test_identity_only_reports_the_reproduction_without_aborting(identity_runs):
     assert set(grid["inputs"]) == {"identity"} and grid["reproduction"]["passed"] is False
     assert not (identity_runs[0] / "sog_p6").exists()
     env = grid["environment"]
-    for key in ("probe_jobs", "loky_inner_threads", "cpu_count", "torch", "sklearn", "numpy",
-                "cudnn_deterministic", "cudnn_benchmark", "threadpools", "env"):
-        assert key in env
+    assert {"probe_jobs", "boot_jobs", "decode_workers", "loky_inner_threads"} <= set(env["knobs"])
+    assert {"torch", "scikit-learn", "numpy"} <= set(env["packages"])
+    assert {"cudnn_deterministic", "cudnn_benchmark", "num_threads"} <= set(env["torch"])
+    assert env["cpu_count"] and "threadpools" in env and "OMP_NUM_THREADS" in env["env"]
 
 
 def test_select_refuses_an_identity_only_grid(pod, identity_runs):
@@ -218,3 +219,10 @@ def test_two_identity_runs_on_cpu_compare_as_identical(identity_runs, tmp_path):
     doc = json.loads(out.read_text())
     assert doc["a_vs_b"]["identical"] is True
     assert doc["a_vs_published"]["max_abs_delta"]["macro_f1"] > 0  # fake data vs the real v7.1 grid
+
+
+@pytest.mark.parametrize("name", ["t4_holdout_grid.json", "t4_selection.json",
+                                  "t4_final_eval_holdout_rehearsal.json"])
+def test_every_t4_result_json_records_its_environment(ran, name):
+    env = json.loads((ran / name).read_text())["environment"]
+    assert env["schema"] == 1 and env["torch"]["loaded"] is True and env["knobs"]["boot_jobs"] == 1

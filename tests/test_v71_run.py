@@ -250,3 +250,11 @@ def test_a_bad_holdout_digest_aborts_the_smoke_before_extraction(pod, tmp_path):
     with pytest.raises(SystemExit, match="digest"):
         v71_run.main(argv)
     assert not (tmp_path / "out").exists()
+
+
+@pytest.mark.parametrize("name", ["pretest.json", "holdout_grid.json", "units/public@224/result.json",
+                                  "selection.json", "v71_final_eval_holdout_rehearsal.json"])
+def test_every_result_json_records_its_environment(ran, name):
+    env = json.loads((ran / name).read_text())["environment"]
+    assert env["schema"] == 1 and env["torch"]["loaded"] is True
+    assert env["knobs"]["probe_jobs"] == 1 and env["knobs"]["decode_workers"] == 2

@@ -18,6 +18,7 @@ import v71_val
 from dermssl import c1_split_identity as si
 from dermssl import final_eval as fe
 from dermssl import paired_bootstrap as pb
+from dermssl import run_environment
 from dermssl import run_provenance as rp
 from dermssl import t4_sog as t4
 from dermssl import v71_metrics as vm
@@ -72,7 +73,8 @@ def stage_select(args, ctx) -> None:
         "winner_rows": {arm: grid["inputs"][t4.SOG][cid] for arm, cid in winners.items()},
         "fixed_protocols": t4.FIXED_PROTOCOLS, "holdout_contrasts": contrasts,
         "code_revision": grid["code_revision"], "holdout_ids_sha256": grid["holdout_ids_sha256"],
-        "note_optimism": "el holdout ya eligio los protocolos v7.1; la lectura que vale es la de val"})
+        "note_optimism": "el holdout ya eligio los protocolos v7.1; la lectura que vale es la de val",
+        "environment": run_environment.snapshot(args)})
     for arm, cid in winners.items():
         print(f"{arm}: ganador SoG {cid}")
     print(f"-> {out}")
@@ -142,7 +144,8 @@ def stage_val(args, ctx, revision, device, registration) -> None:
         **guard, "entries": {k: {"input": i, "config": c} for k, (i, c) in entries.items()},
         "results": results, "terciles": {label: t4.tercile_macro_f1(packed, p) for label, p in probas.items()},
         "paired": paired, "verdicts": t4.verdicts(paired), "v71_reproduction_delta": _v71_reproduction(args, results),
-        "bootstrap": {"n_resamples": args.ci_resamples, "rng_seed": vm.BOOTSTRAP_SEED, "paired": True}})
+        "bootstrap": {"n_resamples": args.ci_resamples, "rng_seed": vm.BOOTSTRAP_SEED, "paired": True},
+        "environment": run_environment.snapshot(args)})
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y, tercile=packed[:, 1], **probas)
     for key, verdict in t4.verdicts(paired).items():
         print(f"{key}: {'se cumple' if verdict['holds'] else 'no se cumple'}")

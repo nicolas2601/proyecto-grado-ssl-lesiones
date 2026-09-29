@@ -64,6 +64,7 @@ sys.path.insert(0, str(REPO / "scripts"))
 import v71_io as io  # noqa: E402
 import v71_val  # noqa: E402
 
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import t4_sog  # noqa: E402
 from dermssl import v71_grid as vg  # noqa: E402
@@ -203,7 +204,7 @@ def run_pretest(args, ctx, store, weights, device, revision) -> None:
     passed = all(c["passed"] for c in checks) and bank_check["status"] != "failed"
     io.write_json(path, {"passed": passed, "checks": checks, "bank_cache_check": bank_check,
                          "holdout_ids_sha256": ctx["holdout_sha"], "run_fingerprint": ctx["run_fingerprint"],
-                         "code_revision": revision})
+                         "code_revision": revision, "environment": run_environment.snapshot(args)})
     if not passed:
         raise SystemExit(f"ABORT: el pre-test de docs/29 §2.1 fallo; ver {path}")
     print("pre-test OK: alpha 0 = publico y alpha 1 = final en pesos y metricas (tol 1e-6)")
@@ -245,7 +246,7 @@ def run_unit(args, ctx, store, weights, device, revision, name: str, resolution:
                                     **{f"hold_{k}": v for k, v in hold_parts.items()}})
     result = {"weights": name, "resolution": resolution, "holdout_ids_sha256": ctx["holdout_sha"],
               "run_fingerprint": ctx["run_fingerprint"], "code_revision": revision, "cells": cells, "rows": rows,
-              "feature_sha256": digests,
+              "feature_sha256": digests, "environment": run_environment.snapshot(args),
               "timing": {"extract_s": extract_s, "img_per_s": n_fwd / max(extract_s, 1e-9),
                          "probe_and_ci_s": time.time() - start - extract_s}}
     io.write_json(udir / "result.json", result)
@@ -271,7 +272,7 @@ def stage_grid(args, ctx, revision) -> None:
     io.write_json(args.out_dir / "holdout_grid.json", {
         "code_revision": revision, "holdout_ids_sha256": ctx["holdout_sha"], "n_configs": len(rows),
         "rule": "docs/29 §2.4 (docs/28 §4.1): max macro_f1, ties < 0.005 by lowest ece",
-        "limit": args.limit, "rows": rows})
+        "limit": args.limit, "environment": run_environment.snapshot(args), "rows": rows})
     print(f"-> {args.out_dir / 'holdout_grid.json'} ({len(rows)} configuraciones)")
 
 
