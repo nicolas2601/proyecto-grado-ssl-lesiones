@@ -1,0 +1,34 @@
+{
+ "describes": "final_eval.json",
+ "sha256": "a6f0e4325b476d378c92de6a5eef056a8e250638afa001d5164799d216f5769a",
+ "environment": {
+  "schema": 1,
+  "capture": {
+   "how": "sibling process: a separate python process started right before the evaluation, on the same pod, with the same thread variables (OMP/OPENBLAS/MKL unset); not the evaluating process",
+   "why": "the evaluating code (1d1109e) predates the sidecar contract (3fa9292), so scripts/c1_final_eval.py wrote no sidecar",
+   "source": "threads_env.json",
+   "not_recorded": [
+    "python",
+    "packages",
+    "torch",
+    "knobs",
+    "env vars other than the four listed (NUMEXPR_NUM_THREADS, CUBLAS_WORKSPACE_CONFIG, PYTHONHASHSEED)"
+   ],
+   "note": "the sibling recorded CUDA_VISIBLE_DEVICES unset, while the operator record (eval_provenance.json) says the evaluation ran with CUDA_VISIBLE_DEVICES=0; that variable only selects the GPU, it does not set the CPU thread pools"
+  },
+  "env": {
+   "OMP_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "MKL_NUM_THREADS": null,
+   "CUDA_VISIBLE_DEVICES": null
+  },
+  "threadpools": [
+   {
+    "internal_api": "openblas",
+    "num_threads": 48,
+    "filepath": "/opt/conda/lib/libopenblasp-r0.3.34.so"
+   }
+  ],
+  "cpu_count": 48
+ }
+}

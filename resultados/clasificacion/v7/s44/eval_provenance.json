@@ -1,0 +1,58 @@
+{
+ "seed": 44,
+ "evaluation": {
+  "command": "scripts/c1_final_eval.py --split val --single-evaluation",
+  "clone": "repo_s44",
+  "code_revision": "1d1109eaf2c8382fab1b0e5ed7aae9f5de356a17",
+  "clean_tree": true,
+  "launch_env": {
+   "CUDA_VISIBLE_DEVICES": "0",
+   "OMP_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "MKL_NUM_THREADS": null
+  },
+  "start_utc": "2026-09-29T08:01:15Z",
+  "end_utc": "2026-09-29T08:05:56Z",
+  "log": "logs/eval.log"
+ },
+ "training": {
+  "code_revision": "1d1109e",
+  "reference_revision": "f1c2053",
+  "reference_seeds": [
+   42,
+   43
+  ],
+  "guard": "tests/test_pretrain_finals_characterization.py::test_head_trains_the_finals_like_f1c2053"
+ },
+ "control": {
+  "seed": 42,
+  "start_utc": "2026-09-29T07:56Z",
+  "end_utc": "2026-09-29T08:01Z",
+  "reference": "resultados/clasificacion/v7/final_eval.json",
+  "probas_bit_equal": [
+   "plain",
+   "proposed",
+   "public",
+   "y_true"
+  ],
+  "dtype_equal": true,
+  "json_identical": [
+   "results",
+   "paired"
+  ],
+  "log": "logs/control_s42_eval.log"
+ },
+ "aborted_start": {
+  "start_utc": "2026-09-29T07:53:35Z",
+  "killed_utc": "2026-09-29T07:55:46Z",
+  "stage": "carga del hub y extracción",
+  "outputs_written": [],
+  "counts_as_val_read": false,
+  "pod_folder": "salidas/v7/eval_final_s44_aborted_0755",
+  "log": "logs/aborted_0755_eval.log"
+ },
+ "environment_sidecar": {
+  "file": "final_eval.environment.json",
+  "captured_in": "un proceso hermano con las mismas variables de hilos (`threads_env.json`), porque el código que evaluó (1d1109e) es anterior al contrato de sidecars (3fa9292); no registra versiones de paquetes ni el estado de torch"
+ }
+}

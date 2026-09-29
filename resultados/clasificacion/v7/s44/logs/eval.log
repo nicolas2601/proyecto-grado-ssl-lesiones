@@ -1,0 +1,18 @@
+Using cache found in /home/jovyan/work/.torch/hub/facebookresearch_dinov2_main
+/home/jovyan/work/.torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn("xFormers is not available (SwiGLU)")
+/home/jovyan/work/.torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn("xFormers is not available (Attention)")
+/home/jovyan/work/.torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn("xFormers is not available (Block)")
+Using cache found in /home/jovyan/work/.torch/hub/facebookresearch_dinov2_main
+Using cache found in /home/jovyan/work/.torch/hub/facebookresearch_dinov2_main
+plain: macro_f1 0.6843 | balanced_accuracy 0.6445 | auc 0.9639 | ece 0.0239
+proposed: macro_f1 0.6725 | balanced_accuracy 0.6405 | auc 0.9643 | ece 0.0204
+public: macro_f1 0.6158 | balanced_accuracy 0.5924 | auc 0.9257 | ece 0.1307
+P1: cumplida
+P2: no cumplida
+P3: cumplida
+P1-NI: cumplida
+P3-IC: cumplida
+-> /home/jovyan/work/proyectonp/salidas/v7/eval_final_s44/final_eval.json
