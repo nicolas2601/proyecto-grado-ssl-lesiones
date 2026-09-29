@@ -166,3 +166,35 @@ def test_the_scratch_inside_a_published_grid_is_refused(run):
     argv = [a for a in argv if not a.startswith("--scratch-dir")] + [f"--scratch-dir={grid / 'f'}"]
     with pytest.raises(SystemExit):
         script.main(argv)
+
+
+def _pin_train_hash(grid: Path, value: str) -> None:
+    path = grid / f"cell__{BACKBONE}__{CONDITION}.manifest.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    path.write_text(json.dumps({**manifest, "train_features_sha256": value}), encoding="utf-8")
+
+
+def test_a_grid_that_pinned_its_train_features_has_them_verified(run):
+    script, argv, grid, out, _ = run
+    _pin_train_hash(grid, _digest(_data()[0]))
+    assert script.main(argv) == 0
+    cell = _doc(out)["cells"][0]
+    assert cell["gate"]["passed"] and cell["train_features_check"] == "verified"
+
+
+def test_train_features_that_differ_from_the_pinned_hash_fail_the_gate_before_any_fit(run, monkeypatch):
+    script, argv, grid, out, _ = run
+    _pin_train_hash(grid, _digest(_data()[0]))
+    x_tr, _, x_va, _ = _data()
+    x_tr[0, 0] = np.nextafter(x_tr[0, 0], np.float32(9))
+    monkeypatch.setattr(script, "extract_features", lambda ctx, cell, manifest: (x_tr, x_va))
+    assert script.main(argv) == 1
+    cell = _doc(out)["cells"][0]
+    assert not cell["gate"]["passed"] and cell["fits"] == []
+    assert any("train_features_sha256" in p for p in cell["gate"]["problems"])
+
+
+def test_a_grid_from_before_the_train_hash_is_still_checked_and_says_so(run):
+    script, argv, _, out, _ = run
+    assert script.main(argv) == 0
+    assert _doc(out)["cells"][0]["train_features_check"].startswith("absent")

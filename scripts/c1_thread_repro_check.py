@@ -5,7 +5,9 @@ default thread count, never pinned. For each requested published cell this
 script re-extracts the cell's train AND val features with the grid's own
 ``extract_cell`` (the grid stored only val features, so the train side has to
 be recomputed on GPU), refuses the cell unless the re-extracted val features
-hash to the cell's ``features_sha256`` and its split, labels, masks and
+hash to the cell's ``features_sha256`` -- and the train ones to its
+``train_features_sha256`` when the grid recorded it (C1-v7 predates it; the
+cell then says ``absent``) -- and its split, labels, masks and
 published macro-F1 match, then refits the probe through the grid's own
 ``evaluate_cell`` under every thread setting and compares with the published
 ``.proba.npy``. Nothing published is written to or refitted in place.
@@ -170,6 +172,17 @@ def _refits(ctx, train, val, n_classes, published, published_f1) -> tuple[list, 
     return rows, bool(np.array_equal(again, first_explicit[1]))
 
 
+def _train_check(train, manifest, problems: list) -> str:
+    """Verify the train features against the grid's ``train_features_sha256``; older grids did not record it."""
+    pinned = manifest.get("train_features_sha256")
+    if pinned is None:
+        return "absent: the grid predates train_features_sha256, train features are trusted as re-extracted"
+    if _digest(train) != pinned:
+        problems.append("train features re-extracted do not hash to the cell's train_features_sha256")
+        return "mismatch"
+    return "verified"
+
+
 def run_cell(ctx, spec: str) -> dict:
     name, backbone, condition = spec.split(":")
     cell = {"name": spec, "grid": name, "backbone": backbone, "condition": condition}
@@ -180,12 +193,14 @@ def run_cell(ctx, spec: str) -> dict:
     cell.update(cell_code_revision=manifest.get("code_revision"), backbone_spec=manifest.get("backbone_spec"))
     print(f"\n=== {spec} ===", flush=True)
     problems = _pre_gate(ctx, cell, manifest, published, published_f1)
-    source = None
+    source, train_check = None, None
     if not problems:
         train, val, source = _features(ctx, cell, manifest)
         if _digest(val) != manifest["features_sha256"]:
             problems.append("val features re-extracted do not hash to the cell's features_sha256")
-    cell.update(features_from=source, gate={"passed": not problems, "problems": problems})
+        train_check = _train_check(train, manifest, problems)
+    cell.update(features_from=source, train_features_check=train_check,
+                gate={"passed": not problems, "problems": problems})
     if problems:
         print("  GATE: " + "; ".join(problems), flush=True)
         return {**cell, "fits": [], "repeat_bit_equal": None}
