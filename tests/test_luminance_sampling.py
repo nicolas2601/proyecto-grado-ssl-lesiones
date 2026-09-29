@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -84,9 +86,9 @@ def test_invalid_factors_and_budgets_are_refused():
 
 def _teacher_repo(tmp_path: Path, addendum: bool, marker: bool = False, teacher_dark: float = 0.78,
                   **provenance) -> Path:
-    """A fake repo: rows where r0's dark tercile scores ``teacher_dark`` against A2's 0.70 (rest 0.80 for both)."""
-    import json
+    """A fake repo: rows where r0's dark tercile scores ``teacher_dark`` against A2's 0.70 (rest 0.80 for both).
 
+    A ``provenance`` value of ``None`` drops that key from the teacher check's provenance."""
     result = tmp_path / ls.TEACHER_CHECK_DIR
     result.mkdir(parents=True)
     ids = [("d1", "dark"), ("d2", "dark"), ("m1", "medium"), ("l1", "light"), ("x1", "dark")]
@@ -108,7 +110,8 @@ def _teacher_repo(tmp_path: Path, addendum: bool, marker: bool = False, teacher_
     rows_sha = hashlib.sha256((result / ls.TEACHER_CHECK_ROWS).read_bytes()).hexdigest()
     prov = {"registration_commit": ls.REGISTRATION_COMMIT, "manifest_sha256": ls.MANIFEST_SHA256,
             "pseudo_r0_sha256": ls.PSEUDO_R0_SHA256, "cache_manifest_sha256": ls.CACHE_MANIFEST_SHA256,
-            "rows_sha256": rows_sha, **provenance}
+            "rows_sha256": rows_sha, "reference_masks_sha256": "e" * 64, **provenance}
+    prov = {k: v for k, v in prov.items() if v is not None}
     doc = {"analysis": {"addendum_required": addendum}, "provenance": prov}
     (result / ls.TEACHER_CHECK_JSON).write_text(json.dumps(doc), encoding="utf-8")
     docs = tmp_path / "docs"
@@ -189,8 +192,6 @@ def test_duplicated_teacher_rows_are_refused(tmp_path, fake_a2_sha):
     rows = repo / ls.TEACHER_CHECK_DIR / ls.TEACHER_CHECK_ROWS
     lines = rows.read_text(encoding="utf-8").splitlines()
     rows.write_text("\n".join([*lines, lines[1]]) + "\n", encoding="utf-8")
-    import json
-
     doc_path = repo / ls.TEACHER_CHECK_DIR / ls.TEACHER_CHECK_JSON
     doc = json.loads(doc_path.read_text(encoding="utf-8"))
     doc["provenance"]["rows_sha256"] = hashlib.sha256(rows.read_bytes()).hexdigest()
@@ -199,10 +200,13 @@ def test_duplicated_teacher_rows_are_refused(tmp_path, fake_a2_sha):
         ls.check_teacher_gate(fake_a2_sha(repo))
 
 
-def test_the_committed_teacher_check_pins_its_reference_masks():
-    import json
-    from pathlib import Path
+@pytest.mark.parametrize("value", [None, "", "E" * 64, "e" * 63, "g" * 64, 64])
+def test_a_teacher_check_without_a_pinned_reference_mask_hash_is_refused(tmp_path, fake_a2_sha, value):
+    repo = _teacher_repo(tmp_path, False, reference_masks_sha256=value)
+    with pytest.raises(ls.TeacherGateError, match="reference_masks_sha256"):
+        ls.check_teacher_gate(fake_a2_sha(repo))
 
-    doc = json.loads((Path(__file__).resolve().parents[1] / ls.TEACHER_CHECK_DIR / ls.TEACHER_CHECK_JSON)
-                     .read_text(encoding="utf-8"))
-    assert len(doc["provenance"]["reference_masks_sha256"]) == 64
+
+def test_the_committed_teacher_check_pins_its_reference_masks():
+    doc = json.loads((REPO / ls.TEACHER_CHECK_DIR / ls.TEACHER_CHECK_JSON).read_text(encoding="utf-8"))
+    assert re.fullmatch(r"[0-9a-f]{64}", doc["provenance"]["reference_masks_sha256"])

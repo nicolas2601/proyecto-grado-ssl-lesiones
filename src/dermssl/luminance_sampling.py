@@ -15,6 +15,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import re
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 
@@ -136,6 +137,9 @@ def check_teacher_gate(repo: Path) -> dict:
     for key, value in expected.items():
         if provenance.get(key) != value:
             raise TeacherGateError(f"el chequeo del maestro no coincide en {key}")
+    reference = provenance.get("reference_masks_sha256")
+    if not isinstance(reference, str) or not re.fullmatch(r"[0-9a-f]{64}", reference):
+        raise TeacherGateError("el chequeo del maestro no fija reference_masks_sha256 (sha256 hex de 64)")
     if _sha256(repo / A2_HAM_PER_IMAGE) != A2_HAM_PER_IMAGE_SHA256:
         raise TeacherGateError("el per_image.csv de A2 en HAM10000 no es el publicado")
     a2_dice = {r["image_id"]: float(r["dice"]) for r in _read_csv(repo / A2_HAM_PER_IMAGE)}
