@@ -35,6 +35,7 @@ from c1_build_val_index import rebuild_split  # noqa: E402
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import final_eval as fe  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 
 ARM_LABELS = {"plain": "A*", "proposed": "B*", "public": "DINOv2 público"}
@@ -139,6 +140,7 @@ def main() -> int:
         "predictions": fe.predictions(fe.paired_from_rows(rows)),
     }
     document["secondary_ece_basic_ci"] = fe.ece_basic_ci(document)
+    document["environment"] = run_environment.snapshot(args)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")
     np.savez_compressed(out.with_suffix(".probas.npz"), y_true=y_eval, **probas)

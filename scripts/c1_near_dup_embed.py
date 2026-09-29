@@ -37,6 +37,7 @@ import cluster_frozen_bank as bank  # noqa: E402
 from c1_build_val_index import rebuild_split  # noqa: E402
 
 from dermssl import near_duplicates as nd  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl.feature_cache import FeatureCache, fingerprint_ids  # noqa: E402
 from dermssl.pretrain import config as config_mod  # noqa: E402
@@ -171,6 +172,7 @@ def main() -> int:
         "review_top20": review_pairs(scores, index, query_ids, pool_paths),
         "n_queries": len(query_ids),
         "n_pool_kept": len(pool_paths),
+        "environment": run_environment.snapshot(args),
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1), encoding="utf-8")

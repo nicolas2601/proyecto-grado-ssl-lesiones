@@ -21,6 +21,13 @@ WIRED = {
     "scripts/t4_sog_val.py": "t4_selection.json, t4_final_eval*.json",
     "scripts/t4_repro_compare.py": "the comparison JSON (plus a_/b_environment of the runs)",
     "scripts/v71_extra_contrasts.py": "extra_contrasts.json",
+    "scripts/c1_final_eval.py": "c1 final_eval.json",
+    "scripts/c1_run_grid.py": "c1_bootstrap.json (c1_cells.json stays a pure cell map)",
+    "scripts/c1_cross_backbone.py": "c1_cross_backbone.json",
+    "scripts/c1_select_variant.py": "the selection JSON",
+    "scripts/c1_reevaluate_crop_gate.py": "crop_regate_report.json",
+    "scripts/c1_verify_bank_reproduction.py": "the --report JSON",
+    "scripts/c1_near_dup_embed.py": "the embedding near-duplicate JSON (floating point, GPU)",
 }
 
 

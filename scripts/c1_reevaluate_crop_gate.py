@@ -21,6 +21,7 @@ sys.path.insert(0, str(REPO / "scripts"))
 
 from dermssl import c1_extraction as ex  # noqa: E402
 from dermssl import c1_mask_export as mx  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from c1_predict_masks import evaluate_crop_gates  # noqa: E402
 
 MASKS_DIR = Path("/home/jovyan/work/proyectonp/salidas/c1/masks")
@@ -114,6 +115,7 @@ def main():
         }
 
     report["seconds"] = round(time.time() - start, 1)
+    report["environment"] = run_environment.snapshot()
     print(json.dumps(report, indent=1, ensure_ascii=False))
     Path("/home/jovyan/work/proyectonp/salidas/c1/crop_regate_report.json").write_text(
         json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8"

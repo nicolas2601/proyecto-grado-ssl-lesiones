@@ -53,6 +53,7 @@ from dermssl import c1_mask_provenance as mp  # noqa: E402
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import cli_args  # noqa: E402
 from dermssl import metrics as _metrics  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
 from dermssl import probes  # noqa: E402
 from dermssl.feature_cache import FeatureCache, _digest, fingerprint_ids  # noqa: E402
@@ -368,12 +369,15 @@ def main() -> int:
     for (backbone, condition), payload in sorted(results.items()):
         print(f"  {backbone} / {condition}: {'PASA' if payload['passes'] else 'FRENA'}")
 
-    write_outputs(args.out_dir.expanduser(), results, val_labels, si.ids_sha256(val_ids))
+    write_outputs(args.out_dir.expanduser(), results, val_labels, si.ids_sha256(val_ids),
+                  environment=run_environment.snapshot(args))
     return 0
 
 
-def write_outputs(out_dir: Path, results: dict, val_labels, val_ids_sha256: str) -> None:
+def write_outputs(out_dir: Path, results: dict, val_labels, val_ids_sha256: str, environment=None) -> None:
+    """``environment`` goes in c1_bootstrap.json; c1_cells.json stays a map of cells only."""
     contrasts = build_contrasts(results, val_labels, {"c1_val_ids_sha256": val_ids_sha256})
+    contrasts["environment"] = environment or run_environment.snapshot()
     (out_dir / "c1_bootstrap.json").write_text(
         json.dumps(contrasts, indent=1, ensure_ascii=False), encoding="utf-8"
     )

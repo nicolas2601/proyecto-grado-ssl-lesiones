@@ -33,6 +33,7 @@ from dermssl import c1_mask_export as mx  # noqa: E402
 from dermssl import c1_mask_provenance as mp  # noqa: E402
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl.feature_cache import _digest  # noqa: E402
 from dermssl.pretrain import tracking  # noqa: E402
 
@@ -127,6 +128,7 @@ def main() -> int:
         code_sha256=code_sha256(),
         retained_threshold=cb.RETAINED_THRESHOLD,
         stratified=cb.stratified_summary(probas, passes, y_true, retained),
+        environment=run_environment.snapshot(args),
     )
     out = args.out.expanduser()
     out.write_text(json.dumps(document, indent=1), encoding="utf-8")

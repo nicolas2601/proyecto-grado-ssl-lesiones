@@ -213,3 +213,13 @@ class TestNonFiniteFailsTheCell:
         ok = np.ones((4, 3))
         reasons = grid.non_finite_reasons(ok, ok, ok, {"auc": float("nan")})
         assert any("auc" in r for r in reasons)
+
+
+def test_the_bootstrap_json_records_the_environment_and_the_cells_stay_a_cell_map(tmp_path):
+    import json
+
+    results = {("public", "none"): _cell(True, 0), ("public", "mask"): _cell(True, 1)}
+    labels = np.random.default_rng(0).integers(0, 3, 40)
+    grid.write_outputs(tmp_path, results, labels, "a" * 64)
+    assert json.loads((tmp_path / "c1_bootstrap.json").read_text())["environment"]["schema"] == 1
+    assert "environment" not in json.loads((tmp_path / "c1_cells.json").read_text())

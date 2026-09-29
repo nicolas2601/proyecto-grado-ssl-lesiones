@@ -61,6 +61,7 @@ from dermssl import c1_mask_export as mx  # noqa: E402
 from dermssl import c1_mask_provenance as mp
 from dermssl import c1_provenance as pv  # noqa: E402
 from dermssl import cli_args  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl.pretrain import tracking  # noqa: E402
 
 # torch_c1_extraction imports torch at module level, so it is imported lazily
@@ -376,6 +377,7 @@ def main() -> int:
     # nobody involved can act on.
     cache_check = pv.compare_to_published_cache(recomputed, bank_features)
     report["published_cache_check"] = cache_check
+    report["environment"] = run_environment.snapshot(args)
 
     if args.report:
         args.report.expanduser().write_text(json.dumps(report, indent=1), encoding="utf-8")

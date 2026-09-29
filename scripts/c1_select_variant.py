@@ -36,6 +36,7 @@ from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import metrics as _metrics  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
 from dermssl import probes  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl import selection_holdout as sh  # noqa: E402
 
@@ -136,6 +137,7 @@ def main() -> int:
         "results": results,
         "winner": winner,
         "paired_vs_winner": paired,
+        "environment": run_environment.snapshot(args),
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=1), encoding="utf-8")
