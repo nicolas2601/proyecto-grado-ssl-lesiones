@@ -169,16 +169,32 @@ def test_the_hair_free_fst_row_is_filled_from_its_files():
 
 
 # docs/20 and PMC13459198: the per-image ITA with fixed Groh cuts does not beat
-# a trivial baseline against expert FST, so no row may present it as FST.
-_ESTIMATOR = re.compile(r"\bFST\b|fst_|\bITA\b|[Tt]ercil|Fitzpatrick")
+# a trivial baseline against expert FST, so no row may present it as FST. Which
+# note a row carries is declared on its spec (what its sources hold), not
+# guessed from its wording: a luminance tercile is not the ITA estimate.
 _CODE = re.compile(r"`[^`]*`|\([^)]*\.(?:json|md|py|csv)\)")
+_NAMES_ITA = re.compile(r"\bITA\b")
+_NAMES_TERCILE = re.compile(r"[Tt]ercil")
+
+
+def _strip_notes(text: str) -> str:
+    for note in (ct.ITA_NOTE, ct.LUMINANCE_NOTE):
+        text = text.replace(note, "")
+    return text
+
+
+def _specs_and_rows():
+    return list(zip(ct.specs(), ct.build_rows()))
 
 
 def _estimator_rows():
-    rows = [r for r in ct.build_rows()
-            if _ESTIMATOR.search(" ".join((r.pedido, r.hecho, r.resultado.replace(ct.ITA_NOTE, ""))))]
-    assert len(rows) >= 3, "the S3, hair-free and A2 rows use the ITA estimate"
+    rows = [row for spec, row in _specs_and_rows() if spec.uses_ita_estimator]
+    assert len(rows) >= 4, "the S3, hair-free, A2 and T1 rows use the ITA estimate"
     return rows
+
+
+def _luminance_rows():
+    return [row for spec, row in _specs_and_rows() if spec.uses_luminance_terciles]
 
 
 def test_every_row_that_uses_the_ita_estimate_carries_the_unvalidated_note():
@@ -186,13 +202,49 @@ def test_every_row_that_uses_the_ita_estimate_carries_the_unvalidated_note():
     assert not missing, f"rows without the unvalidated-ITA note: {missing}"
 
 
-def test_the_note_is_added_by_rule_to_any_row_that_names_the_estimate(tmp_path):
+def test_only_rows_that_use_the_ita_estimate_carry_its_note():
+    extra = [row.pedido for spec, row in _specs_and_rows()
+             if not spec.uses_ita_estimator and ct.ITA_NOTE in row.resultado]
+    assert not extra, f"ITA note on rows that do not use the estimate: {extra}"
+
+
+@pytest.mark.parametrize("pedido", ["T2 (HAM10000)", "T2 (ISIC 2018)", "T3:", "T4:", "T6:", "T7:"])
+def test_a_luminance_tercile_row_carries_the_luminance_note_and_not_the_ita_note(pedido):
+    row = _by_pedido(pedido)
+    assert ct.ITA_NOTE not in row.resultado
+    assert row.resultado.endswith(ct.LUMINANCE_NOTE)
+
+
+@pytest.mark.parametrize("pedido", ["S3: reportar aparte", "con la caché sin pelo",
+                                    "con las máscaras de A2 (segmentador", "T1:"])
+def test_an_ita_row_carries_the_ita_note(pedido):
+    assert ct.ITA_NOTE in _by_pedido(pedido).resultado
+
+
+def test_the_luminance_note_says_what_the_bins_are():
+    assert ct.LUMINANCE_NOTE == "Nota: terciles de luminancia (L\\*), no tono de piel."
+
+
+def test_each_declaration_matches_what_the_row_names():
+    """A forgotten flag fails here: naming the ITA or a tercil requires declaring it, and vice versa."""
+    for spec, row in _specs_and_rows():
+        text = _strip_notes(" ".join((spec.pedido, spec.hecho, row.resultado)))
+        assert spec.uses_ita_estimator == bool(_NAMES_ITA.search(text)), spec.pedido
+        assert spec.uses_luminance_terciles == bool(_NAMES_TERCILE.search(text)), spec.pedido
+
+
+def test_the_notes_follow_the_declaration_not_the_wording(tmp_path):
     path = Path("d.json")
     (tmp_path / path).write_text("{}", encoding="utf-8")
-    named = ct.build_row(ct.RowSpec("Pau", "ITA por imagen", "h", (path,), lambda d: ("x", ct.DONE)), tmp_path)
-    other = ct.build_row(ct.RowSpec("Pau", "Dice", "h", (path,), lambda d: ("x", ct.DONE)), tmp_path)
-    assert named.resultado.endswith(ct.ITA_NOTE)
-    assert other.resultado == "x"
+
+    def row(pedido: str, **flags):
+        return ct.build_row(ct.RowSpec("Pau", pedido, "h", (path,), lambda d: ("x", ct.DONE), **flags), tmp_path)
+    assert row("ITA por imagen", uses_ita_estimator=True).resultado == f"x {ct.ITA_NOTE}"
+    assert row("tercil oscuro", uses_luminance_terciles=True).resultado == f"x {ct.LUMINANCE_NOTE}"
+    assert row("ambos", uses_ita_estimator=True, uses_luminance_terciles=True).resultado == (
+        f"x {ct.ITA_NOTE} {ct.LUMINANCE_NOTE}")
+    assert row("tercil oscuro sin declarar").resultado == "x"
+    assert row("Dice").resultado == "x"
 
 
 def test_the_note_cites_both_external_checks_against_expert_fst():
@@ -202,14 +254,14 @@ def test_the_note_cites_both_external_checks_against_expert_fst():
 
 
 def test_the_rendered_table_never_calls_the_estimate_fst():
-    text = ct.render(ct.build_rows()).replace(ct.ITA_NOTE, "")
+    text = _strip_notes(ct.render(ct.build_rows()))
     text = re.sub(re.escape(ct.ITA_LABEL), "", text, flags=re.IGNORECASE)
     bare = [line for line in _CODE.sub("", text).splitlines() if re.search(r"\bFST\b", line)]
     assert not bare, f"bare FST label in: {bare}"
 
 
 def test_lightness_terciles_are_never_called_tone():
-    for row in _estimator_rows():
-        text = " ".join((row.pedido, row.hecho, row.resultado.replace(ct.ITA_NOTE, "")))
+    for row in _estimator_rows() + _luminance_rows():
+        text = " ".join((row.pedido, row.hecho, _strip_notes(row.resultado)))
         assert not re.search(r"\bton[oe]\b", _CODE.sub("", text), flags=re.IGNORECASE), row.pedido
     assert "terciles de luminancia" in _by_pedido("con la caché sin pelo").resultado

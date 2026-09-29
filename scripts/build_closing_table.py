@@ -22,7 +22,7 @@ import closing_rows_exploratory as exrows  # noqa: E402
 import closing_rows_limitations as limits  # noqa: E402
 import closing_rows_segmentation as segrows  # noqa: E402
 from closing_table_rules import (  # noqa: E402, F401
-    BETTER, DISTINGUISHABLE, DONE, ITA_LABEL, ITA_NOTE, LUMINANCE_TERCILES, MEETS_THRESHOLD, MET, NOT_MET, PENDING, REPO, SAME,
+    BETTER, DISTINGUISHABLE, DONE, ITA_LABEL, ITA_NOTE, LUMINANCE_NOTE, LUMINANCE_TERCILES, MEETS_THRESHOLD, MET, NOT_MET, PENDING, REPO, SAME,
     WORSE, Row, RowSpec, below_without_overlap, build_row,
     mask_helps, paired_verdict, s4_threshold_met, seeds_verdict)
 
@@ -76,8 +76,10 @@ def rules() -> list[str]:
         f"{ITA_LABEL} no traen IC y se leen contra el umbral registrado.",
         f"- **{ITA_LABEL}**: la estimación por imagen del proyecto es el ITA con los umbrales fijos de Groh "
         "(`src/dermssl/fitzpatrick.py`), no un fototipo validado. Toda fila que lo usa lleva esta nota, "
-        f"agregada por regla: «{ITA_NOTE}» Los terciles son {LUMINANCE_TERCILES} (de la mediana de L\\* "
-        "de la piel), no tono de piel.",
+        f"agregada por regla: «{ITA_NOTE}»",
+        f"- **{LUMINANCE_TERCILES}**: los terciles salen de la mediana de L\\* de la piel (`tone_tercile`), "
+        "no del ITA ni de un fototipo. Toda fila que los usa lleva, también por regla, "
+        f"«{LUMINANCE_NOTE}» Una fila que usa ambos lleva las dos notas.",
         "- En Dice e IoU mayor es mejor; en HD95 y ECE, menor es mejor.",
     ]
 

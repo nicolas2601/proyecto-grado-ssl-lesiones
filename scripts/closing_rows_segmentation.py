@@ -22,6 +22,9 @@ A1_STATS = S4["A1"] / "pseudo_masks_stats.json"
 R0 = seg.PSEUDO["r0 publicada"]
 ITA, TERCILES = r.ITA_LABEL, r.LUMINANCE_TERCILES
 ITA_CAP = ITA[0].upper() + ITA[1:]
+# The manifest comparisons hold both ``FST_distribution`` (the ITA estimate)
+# and ``tone_distribution`` (luminance terciles), and the rows print both.
+BOTH_BINNINGS = {"uses_ita_estimator": True, "uses_luminance_terciles": True}
 FST = RES / "2026-09-28-fst-a2"
 FST_CMP, FST_ASSUMPTION = FST / "comparison_vs_published.json", FST / "assumptions.json"
 FST_HAIR = RES / "2026-09-28-fst-hair"
@@ -266,14 +269,15 @@ def rows() -> list[r.RowSpec]:
                   (A1_STATS, R0), a1_coverage),
         r.RowSpec(f"{pau} §6.4, paso 1)", f"S3: reportar aparte los registros de la {ITA} con `artifact_detected` "
                   "o `confidence < 1`",
-                  "`fst_pseudo_manifest.py` los reporta por separado (docs/27 FASE 2, S3)", (FST_CMP,), fst_flagged),
+                  "`fst_pseudo_manifest.py` los reporta por separado (docs/27 FASE 2, S3)", (FST_CMP,), fst_flagged,
+                  uses_ita_estimator=True),
         r.RowSpec(f"{pau} §6.4, paso 1) · docs/27", f"{ITA_CAP} con la caché sin pelo, comparada con la original",
                   f"Manifiesto de la {ITA} regenerado con la caché de S2(a) y con la original, más un sanity "
                   "del original recalculado contra el publicado (docs/27, caché sin pelo)",
-                  (FST_HAIR_CMP, FST_HAIR_SANITY), fst_hair),
+                  (FST_HAIR_CMP, FST_HAIR_SANITY), fst_hair, **BOTH_BINNINGS),
         r.RowSpec(f"{pau} §6.2) · docs/27 S4-UNet", f"{ITA_CAP} con las máscaras de A2 (segmentador candidato)",
                   "Probabilidades de A2 sobre el pool → `make_pseudo_masks.py` con las banderas de `pseudo_r2` "
-                  f"→ manifiesto de la {ITA} (docs/27)", (FST_CMP, FST_ASSUMPTION), fst_a2),
+                  f"→ manifiesto de la {ITA} (docs/27)", (FST_CMP, FST_ASSUMPTION), fst_a2, **BOTH_BINNINGS),
         r.RowSpec(f"{pau} §7.3)", "C3: ablación Plain vs Proposed-oráculo",
                   "Reemplazada por el rediseño v7 (docs/28 §5.2); el oráculo queda como fase 2", (), None),
     ]

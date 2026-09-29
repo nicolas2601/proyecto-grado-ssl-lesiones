@@ -172,29 +172,29 @@ def rows() -> list[r.RowSpec]:
                   f"La {r.ITA_LABEL} por imagen (completa y con fondo por Otsu) contra la columna `fitspatrick` "
                   "de PAD-UFES-20; predicción: no supera la baseline de mayoría (`FST-P1`) y el kappa lineal "
                   f"queda bajo {_num(fv.SLIGHT_KAPPA, 2)} (`FST-P2`)", (T1,), t1,
-                  (T1, T1.with_name("pad_ufes_fst_validation.fst_table.md"))),
+                  (T1, T1.with_name("pad_ufes_fst_validation.fst_table.md")), uses_ita_estimator=True),
     ]
     specs += [r.RowSpec(pau, f"T2 ({REFS[ref]}): Dice de A2 y student_r3 en el tercil oscuro de luminancia, "
                              "claramente menor que el resto",
                         "Dice por tercil de luminancia desde los `per_image.csv` ya evaluados, bootstrap no "
-                        "pareado estratificado", (T2,), t2(ref)) for ref in ("ham10000", "isic2018")]
+                        "pareado estratificado", (T2,), t2(ref), uses_luminance_terciles=True) for ref in ("ham10000", "isic2018")]
     specs += [
         r.RowSpec("Pau (docs/28, exploratorio)",
                   "T3: en el tercil oscuro de luminancia, recorte y pooling de C1-v7 tampoco mejoran a sin máscara",
                   "Probabilidades de val ya guardadas por C1-v7 (máscaras de student_r3 y de A2), Δ pareado "
-                  "por tercil de luminancia", (T3,), t3),
+                  "por tercil de luminancia", (T3,), t3, uses_luminance_terciles=True),
         r.RowSpec("docs/31 (exploratorio)",
                   "T4: Shades of Gray antes del encoder no cambia el macro-F1 ni la brecha entre terciles "
                   "de luminancia",
                   "Lectura única de val con el protocolo v7.1 fijo, público, A\\* y B\\*; P1-P3 registradas en "
-                  "docs/31", (T4,), t4),
+                  "docs/31", (T4,), t4, uses_luminance_terciles=True),
         r.RowSpec(pau, "T6: un umbral de máscara por tercil de luminancia sobre A2 achica la brecha de Dice "
                        f"{GOAL}",
                   "Umbral elegido por tercil en el ajuste de HAM10000 y evaluado en HAM val, sin reentrenar "
-                  "(análogo barato de arXiv 2510.06655)", (T6,), t6),
+                  "(análogo barato de arXiv 2510.06655)", (T6,), t6, uses_luminance_terciles=True),
         r.RowSpec(pau, "T7: A2 reentrenado con oscurecimiento y sobremuestreo del tercil oscuro de luminancia "
                        f"achica la brecha {GOAL} y se separa del ruido de semilla",
                   "Tres brazos reentrenados (T7, A2 semilla 43, solo aumento) más el chequeo del maestro r0",
-                  (T7, T7_R0), t7),
+                  (T7, T7_R0), t7, uses_luminance_terciles=True),
     ]
     return specs
