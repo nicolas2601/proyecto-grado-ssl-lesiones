@@ -262,3 +262,51 @@ def test_augment_adds_the_secondary_block_once_and_keeps_everything_else(tmp_pat
     assert new["secondary_ece_basic_ci"]["reading"] == "secundaria"
     assert {k: v for k, v in new.items() if k != "secondary_ece_basic_ci"} == json.loads(json.dumps(doc))
     assert aug.main([str(path)]) == 1  # never overwrites
+
+
+def _provenance():
+    return {
+        "seed": 44,
+        "evaluation": {"command": "scripts/c1_final_eval.py --split val --single-evaluation",
+                       "clone": "repo_s44", "code_revision": "1d1109e", "clean_tree": True,
+                       "launch_env": {"CUDA_VISIBLE_DEVICES": "0", "OMP_NUM_THREADS": None},
+                       "start_utc": "2026-09-29T08:01:15Z", "end_utc": "2026-09-29T08:05:56Z",
+                       "log": "logs/eval.log"},
+        "training": {"code_revision": "1d1109e", "reference_revision": "f1c2053", "reference_seeds": [42, 43],
+                     "guard": "tests/x.py::test_guard"},
+        "control": {"seed": 42, "start_utc": "2026-09-29T07:56Z", "end_utc": "2026-09-29T08:01Z",
+                    "reference": "resultados/clasificacion/v7/final_eval.json",
+                    "probas_bit_equal": ["plain", "public"], "dtype_equal": True,
+                    "json_identical": ["results", "paired"], "log": "logs/control.log"},
+        "aborted_start": {"start_utc": "2026-09-29T07:53:35Z", "killed_utc": "2026-09-29T07:55:46Z",
+                          "stage": "carga del hub", "outputs_written": [], "counts_as_val_read": False,
+                          "pod_folder": "salidas/v7/eval_final_s44_aborted_0755", "log": "logs/aborted.log"},
+        "environment_sidecar": {"file": "final_eval.environment.json", "captured_in": "proceso hermano"},
+    }
+
+
+def test_a_provenance_file_beside_the_evaluation_is_rendered_from_its_data(tmp_path):
+    import json
+    doc, out = tmp_path / "final_eval.json", tmp_path / "README.md"
+    doc.write_text(json.dumps(_document()), encoding="utf-8")
+    (tmp_path / bt.PROVENANCE).write_text(json.dumps(_provenance()), encoding="utf-8")
+    assert bt.main([str(doc), "--out", str(out)]) == 0
+    text = out.read_text(encoding="utf-8")
+    assert "## Procedencia" in text and "1d1109e" in text and "f1c2053" in text
+    assert "arranque abortado a los 2 min 11 s, antes de puntuar" in text
+    assert "no cuenta como lectura de val" in text
+    assert "`plain`, `public`" in text and "salidas/v7/eval_final_s44_aborted_0755" in text
+    assert "2026-09-29 07:56 a 08:01 UTC" in text and "07:53:35 a 07:55:46 UTC" in text
+    assert "`CUDA_VISIBLE_DEVICES=0`" in text and "`OMP_NUM_THREADS` sin fijar" in text
+    prov = _provenance()
+    prov["control"]["probas_bit_equal"] = ["plain"]
+    (tmp_path / bt.PROVENANCE).write_text(json.dumps(prov), encoding="utf-8")
+    assert bt.main([str(doc), "--out", str(out), "--check"]) == 1
+
+
+def test_no_provenance_file_adds_no_section(tmp_path):
+    import json
+    doc, out = tmp_path / "final_eval.json", tmp_path / "README.md"
+    doc.write_text(json.dumps(_document()), encoding="utf-8")
+    assert bt.main([str(doc), "--out", str(out)]) == 0
+    assert "Procedencia" not in out.read_text(encoding="utf-8")
