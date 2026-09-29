@@ -119,11 +119,14 @@ def _fit_subset(parts: dict, ids, subset) -> dict:
     return {name: value[:, picks] for name, value in parts.items()}
 
 
-def _score_entries(args, ctx, entries, fit_ids, eval_ids, device) -> tuple[dict, dict]:
-    """``(full, fit80)``: each entry's val probas from the full-train probe and from the 80 % probe."""
+def _score_entries(args, ctx, entries, fit_ids, eval_ids, device, store=None) -> tuple[dict, dict]:
+    """``(full, fit80)``: each entry's val probas from the full-train probe and from the 80 % probe.
+
+    ``store`` defaults to identity input; docs/31 passes a Shades of Gray one."""
     from dermssl import torch_v71 as tv  # noqa: PLC0415
 
-    store = io.ImageStore(args.out_dir / "inputs", ctx["image_index"], args.decode_workers)
+    if store is None:
+        store = io.ImageStore(args.out_dir / "inputs", ctx["image_index"], args.decode_workers)
     weights = io.WeightBank(args.weights_dir.expanduser())
     tags = ("fit", "holdout") if args.split == "holdout" else ("train", "val")
     fit80_ids = ctx["ids"]["fit"]

@@ -18,6 +18,11 @@ from dermssl import v71_plan as plan
 from dermssl import v71_protocol as vp
 from dermssl.pretrain import color_constancy as cc
 
+REGISTRATION_COMMIT = "fecf7b740d126fe0be27ad8a2e8dc419bfae1838"  # docs/31, pushed before any T4 code
+REGISTRATION_DOC = "docs/31-t4-shades-of-gray.md"
+BLOCK_START, BLOCK_END = "<!-- registro-t4-sog:inicio -->", "<!-- registro-t4-sog:fin -->"
+RUN_SCRIPT = "scripts/t4_sog_run.py"
+MANIFEST_SHA256 = "57df1e65e88d3b54ba530d6e026010bfc8ce25d1437e50b4ffe37cfd7d4f87da"  # docs/31 §4
 IDENTITY = "identity"
 SOG = "sog_p6"
 SOG_P = 6  # docs/31 §2: fixed a priori, never tuned
@@ -143,10 +148,15 @@ def pack_strata(y: np.ndarray, codes: np.ndarray) -> np.ndarray:
     return np.stack([np.asarray(y, dtype=int), np.asarray(codes, dtype=int)], axis=1)
 
 
-def _tercile_f1(packed: np.ndarray, proba: np.ndarray) -> list[float]:
+def tercile_macro_f1(packed: np.ndarray, proba: np.ndarray) -> dict:
+    """``{dark, medium, light} -> macro-F1`` inside each tercile (``unavailable`` left out)."""
     y, codes, pred = packed[:, 0], packed[:, 1], np.asarray(proba).argmax(axis=1)
     n_classes = proba.shape[1]
-    return [metrics.macro_f1(y[codes == c], pred[codes == c], n_classes) for c in TERCILES.values()]
+    return {name: metrics.macro_f1(y[codes == c], pred[codes == c], n_classes) for name, c in TERCILES.items()}
+
+
+def _tercile_f1(packed: np.ndarray, proba: np.ndarray) -> list[float]:
+    return list(tercile_macro_f1(packed, proba).values())
 
 
 def gap_dark_light(packed: np.ndarray, proba: np.ndarray) -> float:
