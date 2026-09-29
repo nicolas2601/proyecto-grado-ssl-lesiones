@@ -33,6 +33,7 @@ from dermssl import c1_luminance as cl  # noqa: E402
 from dermssl import luminance_dice as ld  # noqa: E402
 from dermssl import pad_ufes_guard as pg  # noqa: E402
 from dermssl import paired_bootstrap as pb  # noqa: E402
+from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 from dermssl.c1_split_identity import ids_sha256  # noqa: E402
 from dermssl.feature_cache import _digest, fingerprint_ids  # noqa: E402
@@ -227,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
     write_terciles(terciles_csv, t2.extract_terciles(args.manifest.expanduser(), set(val_ids)))
     doc = build_document(inputs, terciles_csv, n_resamples=args.n_resamples, seed=args.seed)
     doc["provenance"] = {"registration_commit": registration, "code_revision": revision}
+    doc["environment"] = run_environment.snapshot(args)
     (args.out / JSON_FILE).write_text(json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False) + "\n",
                                       encoding="utf-8")
     (args.out / TABLE_FILE).write_text(render_markdown(doc), encoding="utf-8")
