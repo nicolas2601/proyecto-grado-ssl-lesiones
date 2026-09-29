@@ -40,6 +40,7 @@ PRODUCES = {
     "scripts/pad_ufes_eval.py": ("*/pad_ufes_eval.json",),
     "scripts/pad_ufes_fst_validation.py": ("*/pad_ufes_fst_validation.json",),
     "scripts/probe_convergence_check.py": ("*/probe_convergence.json",),
+    "scripts/c1_thread_repro_check.py": ("*/c1_thread_repro.json",),
     "scripts/release_parity.py": ("*/parity.json",),
     "scripts/run_segnorm_baseline.py": ("*/provenance.json",),
     "scripts/s4_dino_saliency.py": ("*/saliency_run.json", "*_saliency/run.json"),

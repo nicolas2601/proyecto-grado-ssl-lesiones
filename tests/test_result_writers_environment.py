@@ -23,6 +23,7 @@ WIRED = {
     "scripts/t4_sog_run.py": "t4_holdout_grid.json (via the shared block, was a local copy)",
     "scripts/t4_sog_val.py": "t4_selection.json, t4_final_eval*.json",
     "scripts/probe_convergence_check.py": "probe_convergence.json (logreg convergence diagnostic)",
+    "scripts/c1_thread_repro_check.py": "c1_thread_repro.json (C1 BLAS-thread reproduction diagnostic)",
     "scripts/t4_repro_compare.py": "the comparison JSON (plus a_/b_environment read from the runs' sidecars)",
     "scripts/v71_extra_contrasts.py": "extra_contrasts.json",
     "scripts/c1_final_eval.py": "c1 final_eval.json",
