@@ -1,0 +1,45 @@
+{
+ "describes": "t7_compare.json",
+ "sha256": "102fab723f47fd9c382bf79be2de32514ee724edeb022d0703b684710839dbc4",
+ "environment": {
+  "schema": 1,
+  "python": "3.13.15",
+  "packages": {
+   "numpy": "2.5.3",
+   "scipy": "1.18.0",
+   "scikit-learn": "1.9.0",
+   "torch": "2.11.0+cu128",
+   "torchvision": "0.26.0+cu128",
+   "joblib": "1.6.0",
+   "threadpoolctl": "3.6.0"
+  },
+  "torch": {
+   "loaded": false
+  },
+  "env": {
+   "OMP_NUM_THREADS": null,
+   "MKL_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "NUMEXPR_NUM_THREADS": null,
+   "CUBLAS_WORKSPACE_CONFIG": null,
+   "CUDA_VISIBLE_DEVICES": null,
+   "PYTHONHASHSEED": null
+  },
+  "threadpools": [
+   {
+    "user_api": "blas",
+    "internal_api": "openblas",
+    "num_threads": 48,
+    "version": "0.3.34"
+   },
+   {
+    "user_api": "openmp",
+    "internal_api": "openmp",
+    "num_threads": 48,
+    "version": null
+   }
+  ],
+  "cpu_count": 48,
+  "knobs": {}
+ }
+}
