@@ -225,6 +225,7 @@ def test_an_arm_evaluated_like_a2_passes(tmp_path):
     (_meta(threshold=0.4), "threshold"), (_meta(tta=True), "tta"), (_meta(n_images=10), "n_images"),
     (_meta(resolution=448), "resolution"), (_meta(predictions="external"), "predictions"),
     (_meta(arm_dir="a2"), "checkpoint"), (_meta(checkpoint="/x/t7/last.pt"), "checkpoint"),
+    (_meta(image_dir="/other/images"), "image_dir"),
 ])
 def test_an_arm_evaluated_otherwise_is_refused(tmp_path, meta, match):
     with pytest.raises(ValueError, match=match):
@@ -235,3 +236,13 @@ def test_an_arm_evaluated_otherwise_is_refused(tmp_path, meta, match):
 def test_a_dice_outside_zero_one_is_refused(tmp_path, value):
     with pytest.raises(ValueError, match="fuera de"):
         tc._read_per_image(_csv(tmp_path, [("a", value, "1")]))
+
+
+def test_all_arms_must_come_from_one_code_revision():
+    records = {arm: _arm_record(arm) for arm in tc.ARMS}
+    for record in records.values():
+        record["code_revision"] = "a" * 40
+    tc.check_same_revision(records)
+    records["T7-aug"]["code_revision"] = "b" * 40
+    with pytest.raises(ValueError, match="code_revision"):
+        tc.check_same_revision(records)

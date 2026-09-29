@@ -71,7 +71,7 @@ ARM_KEYS = ("variant", "seed", "t7", "code_revision", "result", "complete", "env
 FREE_PATHS = {"pool": ("cache_dir",), "pseudo_masks": ("path",)}
 REGISTERED_BOOTSTRAP = {"n_resamples": 1000, "seed": 20260923}
 #: evaluate_segmentation meta that must equal A2's: same evaluator path, binarisation, resolution and image set.
-EVAL_KEYS = ("predictions", "resolution", "threshold", "tta", "n_images")
+EVAL_KEYS = ("predictions", "resolution", "threshold", "tta", "n_images", "image_dir")
 JSON_FILE, TABLE_FILE = "t7_compare.json", "README.md"
 DATASET_NAMES = {"ham10000": "HAM10000 (veredicto)", "ham10000_fold0_val": "HAM10000 fold-0 val (descriptivo)",
                  "isic2018": "ISIC 2018, réplica (descriptivo)"}
@@ -115,6 +115,12 @@ def check_arm(arm: str, record: dict, a2: dict) -> None:
     _require(t7.get("tercile_manifest_sha256") == ls.MANIFEST_SHA256, f"{arm}: otro manifiesto")
     _require(t7.get("oversample_k") == OVERSAMPLE[arm], f"{arm}: k = {t7.get('oversample_k')}")
     _require(t7.get("darken") == REGISTERED_DARKEN, f"{arm}: darken distinto del registrado")
+
+
+def check_same_revision(records: dict) -> None:
+    """The three arms were trained from one clean commit (A2 predates T7, so it is not part of this)."""
+    revisions = {arm: record.get("code_revision") for arm, record in records.items()}
+    _require(len(set(revisions.values())) == 1, f"los brazos no comparten code_revision: {revisions}")
 
 
 def _read_per_image(path: Path) -> tuple[dict, dict]:
@@ -276,8 +282,10 @@ def _terciles(manifest: Path) -> dict[str, str]:
 
 def _load(args, dirs: dict) -> tuple[dict, dict]:
     a2_record = json.loads((RESULTS / A2_RUN / "run.json").read_text(encoding="utf-8"))
-    for arm, path in dirs.items():
-        check_arm(arm, json.loads((path / "run.json").read_text(encoding="utf-8")), a2_record)
+    records = {arm: json.loads((path / "run.json").read_text(encoding="utf-8")) for arm, path in dirs.items()}
+    for arm, record in records.items():
+        check_arm(arm, record, a2_record)
+    check_same_revision(records)
     dice, hd95 = {}, {}
     for dataset in ("ham10000", "isic2018"):
         dice[dataset], hd95[dataset] = {}, {}
