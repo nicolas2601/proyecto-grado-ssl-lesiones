@@ -103,3 +103,28 @@ def score_pairs(
         for (image_id, _, mask_path), probability in zip(chunk, probabilities, strict=True):
             rows.append(make_row(image_id, probability, mask_path))
     return rows
+
+
+class ProbabilityStore:
+    """The float32 maps the evaluator scored, kept for re-binarisation (T6, docs/27).
+
+    One ``(N, H, W)`` memmap in the order of ``image_ids`` plus the id list. It
+    stores; it never thresholds and never reads a reference mask.
+    """
+
+    def __init__(self, directory: Path, image_ids: Sequence[str], resolution: int,
+                 array_name: str, ids_name: str):
+        self.directory = Path(directory)
+        self.directory.mkdir(parents=True, exist_ok=False)
+        self.index = {image_id: k for k, image_id in enumerate(image_ids)}
+        self.ids_path = self.directory / ids_name
+        self.maps = np.lib.format.open_memmap(self.directory / array_name, mode="w+", dtype=np.float32,
+                                              shape=(len(image_ids), resolution, resolution))
+        self.ids = list(image_ids)
+
+    def put(self, image_id: str, probability: np.ndarray) -> None:
+        self.maps[self.index[image_id]] = probability
+
+    def close(self) -> None:
+        self.maps.flush()
+        self.ids_path.write_text("\n".join(self.ids) + "\n", encoding="utf-8")

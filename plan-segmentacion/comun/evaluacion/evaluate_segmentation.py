@@ -49,6 +49,9 @@ COVERAGE_METRICS = ("pred_coverage", "ref_coverage")
 OVERLAY_SEED = 0
 # External masks carry no training resolution, so the comparison grid is fixed here.
 EXTERNAL_RESOLUTION = 224
+# --save-probabilities (T6, docs/27): float32 so the Dice at 0.5 is reproduced exactly.
+PROBABILITIES_FILE = "probabilities.npy"
+PROBABILITY_IDS_FILE = "ids.txt"
 
 
 # ------------------------------------------------------------------ metrics
@@ -220,8 +223,14 @@ def evaluate_checkpoint(args: argparse.Namespace) -> dict:
     model, checkpoint_resolution = eval_student.load_student(Path(args.checkpoint), device)
     resolution = args.eval_resolution or checkpoint_resolution
     pairs = _reference_pairs(args)
+    store = None
+    if args.save_probabilities:
+        store = eval_student.ProbabilityStore(Path(args.save_probabilities), [p[0] for p in pairs],
+                                              resolution, PROBABILITIES_FILE, PROBABILITY_IDS_FILE)
 
     def make_row(image_id, probability, mask_path):
+        if store is not None:
+            store.put(image_id, probability)
         truth = load_mask(mask_path, resolution)
         return _row(image_id, binarize(probability), truth, args.hausdorff)
 
@@ -231,7 +240,10 @@ def evaluate_checkpoint(args: argparse.Namespace) -> dict:
     rows = eval_student.score_pairs(
         model, device, pairs, resolution, args.batch_size, make_row, tta=args.tta
     )
-    meta = {"predictions": "checkpoint", "checkpoint": str(args.checkpoint), "tta": bool(args.tta)}
+    if store is not None:
+        store.close()
+    meta = {"predictions": "checkpoint", "checkpoint": str(args.checkpoint), "tta": bool(args.tta),
+            "probabilities": str(args.save_probabilities) if store is not None else None}
     return _write_report(args, pairs, rows, resolution, meta, predict_for)
 
 
@@ -268,9 +280,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--strata-column", default=eval_report.BUCKET_COLUMN, help="Columna del manifiesto que define los estratos (fst_bucket o tone_tercile)")
     parser.add_argument("--overlay-dir", default="", help="Carpeta para las rejillas PNG de superposicion")
     parser.add_argument("--overlay-count", type=int, default=12, help="Imagenes por grupo (peores, mejores, aleatorias)")
+    parser.add_argument("--save-probabilities", default="", help="Carpeta nueva donde guardar las probabilidades float32 (solo con --checkpoint)")
     parser.add_argument("--wandb-project", default=os.environ.get("WANDB_PROJECT", ""), help="Proyecto de Weights & Biases (vacio = sin seguimiento)")
     parser.add_argument("--wandb-run-name", default="", help="Nombre de la corrida en Weights & Biases")
     args = parser.parse_args(argv)
+    if args.save_probabilities and not args.checkpoint:
+        parser.error("--save-probabilities necesita --checkpoint: las mascaras externas no traen probabilidades")
+    if args.save_probabilities and Path(args.save_probabilities).exists():
+        parser.error(f"{args.save_probabilities} ya existe; las probabilidades nunca se sobrescriben")
     if args.pred_mask_dir and not args.eval_resolution:
         args.eval_resolution = EXTERNAL_RESOLUTION
     if args.fst_manifest:
