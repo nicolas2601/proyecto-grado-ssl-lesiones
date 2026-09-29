@@ -266,11 +266,11 @@ def main(argv: list[str] | None = None) -> int:
     doc = {"experiment": "T7 (docs/27)", "datasets": datasets,
            "bootstrap": {"n_resamples": args.n_resamples, "seed": args.seed},
            "provenance": {"registration_commit": registration, "code_revision": revision,
-                          "manifest_sha256": MANIFEST_SHA256, "arms": {a: str(p) for a, p in dirs.items()}},
-           "environment": run_environment.snapshot(args)}
+                          "manifest_sha256": MANIFEST_SHA256, "arms": {a: str(p) for a, p in dirs.items()}}}
     args.out.mkdir(parents=True, exist_ok=False)
     (args.out / JSON_FILE).write_text(json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False) + "\n",
                                       encoding="utf-8")
+    run_environment.write_sidecar(args.out / JSON_FILE, args)
     (args.out / TABLE_FILE).write_text(render_markdown(doc), encoding="utf-8")
     print(f"{datasets['ham10000']['verdict']['conclusion']} -> {args.out}")
     return 0

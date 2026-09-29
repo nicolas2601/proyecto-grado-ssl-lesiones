@@ -71,40 +71,5 @@
   "pseudo_r0_sha256": "8c9e47978070baa7bfa9f0174a80eb4e4236d45737801abf690804ae1eb0fc87",
   "cache_manifest_sha256": "a83f927ab798b6f7a0614c3923fda77d082f887d10fdbe73416e34e9574ba71a",
   "rows_sha256": "4dc4875f1f2288f191bdfe3ffe79676e362154dee22461fdb641f41ddc528f4e"
- },
- "environment": {
-  "schema": 1,
-  "python": "3.13.15",
-  "packages": {
-   "numpy": "2.5.3",
-   "scipy": "1.18.0",
-   "scikit-learn": "1.9.0",
-   "torch": "2.11.0+cu128",
-   "torchvision": "0.26.0+cu128",
-   "joblib": "1.6.0",
-   "threadpoolctl": "3.6.0"
-  },
-  "torch": {
-   "loaded": false
-  },
-  "env": {
-   "OMP_NUM_THREADS": "8",
-   "MKL_NUM_THREADS": null,
-   "OPENBLAS_NUM_THREADS": null,
-   "NUMEXPR_NUM_THREADS": null,
-   "CUBLAS_WORKSPACE_CONFIG": null,
-   "CUDA_VISIBLE_DEVICES": null,
-   "PYTHONHASHSEED": null
-  },
-  "threadpools": [
-   {
-    "user_api": "blas",
-    "internal_api": "openblas",
-    "num_threads": 8,
-    "version": "0.3.34"
-   }
-  ],
-  "cpu_count": 48,
-  "knobs": {}
  }
 }

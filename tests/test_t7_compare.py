@@ -17,6 +17,7 @@ from dermssl import luminance_retrain as lr
 from dermssl import luminance_threshold as lt
 from dermssl import pad_ufes_guard as pg
 from scripts import t7_compare as tc
+from env_sidecar import sidecar_env  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 A2_RECORD = json.loads((tc.RESULTS / tc.A2_RUN / "run.json").read_text(encoding="utf-8"))
@@ -143,7 +144,8 @@ def test_the_runner_writes_the_json_and_a_table_generated_from_it(tmp_path, monk
     assert set(doc["datasets"]) == {"ham10000", "ham10000_fold0_val", "isic2018"}
     assert "verdict" in doc["datasets"]["ham10000"]
     assert "verdict" not in doc["datasets"]["isic2018"] and "verdict" not in doc["datasets"]["ham10000_fold0_val"]
-    assert doc["provenance"]["registration_commit"] == "r" * 40 and "environment" in doc
+    assert doc["provenance"]["registration_commit"] == "r" * 40
+    assert sidecar_env(out / tc.JSON_FILE)["schema"] == 1
     assert (out / tc.TABLE_FILE).read_text(encoding="utf-8") == tc.render_markdown(doc)
 
 
