@@ -66,10 +66,11 @@
  },
  "provenance": {
   "registration_commit": "d24a0f252e6c06a6bce5c85cf01de52139a64ae5",
-  "code_revision": "f1ff6137b8d68147fa7366fe28629880c72cfe3d",
+  "code_revision": "2ba7f2d1e13436bb88c80e461d03cbd3ab29eded",
   "manifest_sha256": "57df1e65e88d3b54ba530d6e026010bfc8ce25d1437e50b4ffe37cfd7d4f87da",
   "pseudo_r0_sha256": "8c9e47978070baa7bfa9f0174a80eb4e4236d45737801abf690804ae1eb0fc87",
   "cache_manifest_sha256": "a83f927ab798b6f7a0614c3923fda77d082f887d10fdbe73416e34e9574ba71a",
-  "rows_sha256": "4dc4875f1f2288f191bdfe3ffe79676e362154dee22461fdb641f41ddc528f4e"
+  "rows_sha256": "4dc4875f1f2288f191bdfe3ffe79676e362154dee22461fdb641f41ddc528f4e",
+  "reference_masks_sha256": "fe4e2904c2721c989f7f697cb39cad8d9020d5ae2b51183ef9d4b41197b4bea9"
  }
 }

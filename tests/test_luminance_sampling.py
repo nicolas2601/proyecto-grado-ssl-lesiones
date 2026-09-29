@@ -171,7 +171,7 @@ def test_a2s_reference_must_be_the_published_one(tmp_path, fake_a2_sha, monkeypa
 
 def test_the_committed_teacher_artifacts_are_pinned():
     assert ls.TEACHER_CHECK_SHA256 == {
-        "t7_r0_tercile_check.json": "6c5cbf433a036068a05d978c22b89c2d854d33ff909df7d33e67b221169ff623",
+        "t7_r0_tercile_check.json": "3f6e5443446c3c02d227181ff7e7d64b0e5b3730d6522731d8afded292e55163",
         "r0_per_image.csv": "4dc4875f1f2288f191bdfe3ffe79676e362154dee22461fdb641f41ddc528f4e"}
 
 
@@ -197,3 +197,12 @@ def test_duplicated_teacher_rows_are_refused(tmp_path, fake_a2_sha):
     doc_path.write_text(json.dumps(doc), encoding="utf-8")
     with pytest.raises(ls.TeacherGateError, match="duplicad"):
         ls.check_teacher_gate(fake_a2_sha(repo))
+
+
+def test_the_committed_teacher_check_pins_its_reference_masks():
+    import json
+    from pathlib import Path
+
+    doc = json.loads((Path(__file__).resolve().parents[1] / ls.TEACHER_CHECK_DIR / ls.TEACHER_CHECK_JSON)
+                     .read_text(encoding="utf-8"))
+    assert len(doc["provenance"]["reference_masks_sha256"]) == 64

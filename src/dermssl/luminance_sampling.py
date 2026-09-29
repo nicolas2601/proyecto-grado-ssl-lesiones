@@ -35,8 +35,9 @@ REGISTERED_K = 2
 #: The committed r0 teacher check that must precede any T7 GPU job (docs/27, T7).
 TEACHER_CHECK_DIR = "plan-segmentacion/camino-b-cnn/resultados/2026-09-29-t7-r0-check"
 TEACHER_CHECK_JSON, TEACHER_CHECK_ROWS = "t7_r0_tercile_check.json", "r0_per_image.csv"
-#: The committed result (bbbcd4a, block moved to its sidecar in 01b414f): a later commit cannot swap it silently.
-TEACHER_CHECK_SHA256 = {TEACHER_CHECK_JSON: "6c5cbf433a036068a05d978c22b89c2d854d33ff909df7d33e67b221169ff623",
+#: The committed result (bbbcd4a; block moved to its sidecar in 01b414f; re-run with reference_masks_sha256,
+#: identical analysis and rows): a later commit cannot swap it silently.
+TEACHER_CHECK_SHA256 = {TEACHER_CHECK_JSON: "3f6e5443446c3c02d227181ff7e7d64b0e5b3730d6522731d8afded292e55163",
                         TEACHER_CHECK_ROWS: "4dc4875f1f2288f191bdfe3ffe79676e362154dee22461fdb641f41ddc528f4e"}
 #: A2's published HAM10000 per-image Dice (its SHA256SUMS entry), the other side of the addendum rule.
 A2_HAM_PER_IMAGE = "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/evaluacion_ham10000/per_image.csv"
