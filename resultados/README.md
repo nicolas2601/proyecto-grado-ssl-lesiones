@@ -38,7 +38,7 @@ esta medido se dice que no esta medido.
 
 1. [Que se entreno y con que](#1-que-se-entreno-y-con-que)
 2. [Segmentacion sin mascaras ni etiquetas](#2-segmentacion-sin-mascaras-ni-etiquetas)
-3. [Tono de piel y equidad de la segmentacion](#3-tono-de-piel-y-equidad-de-la-segmentacion)
+3. [Terciles de luminancia y equidad de la segmentacion](#3-terciles-de-luminancia-y-equidad-de-la-segmentacion)
 4. [Clasificacion: los seis backbones](#4-clasificacion-los-seis-backbones)
 5. [Que gano](#5-que-gano)
 6. [Que perdio](#6-que-perdio)
@@ -70,7 +70,7 @@ modelo nunca vio, y por eso es el que responde si el metodo generaliza.
 | Etapa | Que produce | Estado |
 |---|---|---|
 | Segmentacion (camino B) | Pseudo-mascara por imagen | Cerrada |
-| Tono de piel | Tercil de luminosidad y buckets ITA por imagen | Cerrada |
+| Luminancia de la piel | Tercil de luminancia y buckets de la estimación ITA no validada (no es FST) por imagen | Cerrada |
 | Pares de tono | 55 034 pares original / piel oscurecida | Cerrada |
 | Preentrenamiento ×4 | Backbones adaptados (ViT-S y ViT-B, con y sin tono) | Cerrada |
 | Banco congelado | Tabla de clasificacion con 6 backbones | Cerrada |
@@ -129,7 +129,9 @@ HAM10000 (0,530 contra 0,507).
 
 ---
 
-## 3. Tono de piel y equidad de la segmentacion
+## 3. Terciles de luminancia y equidad de la segmentacion
+
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
 
 Un defecto encontrado el 2026-09-21 obligo a retirar la primera medicion de
 equidad: el bucket Fitzpatrick no medía tono sino el **signo de b\***, porque
@@ -139,7 +141,7 @@ b\* ≤ 0 concentraba 2,26 veces mas melanoma: cualquier "brecha por fototipo"
 habria medido prevalencia de enfermedad, no tono.
 
 Corregido (commits `c272bdb` y `bbd9bab`): el estimador exige b\* ≥ 5 y el
-estrato pasa a terciles de la mediana de L\* de la piel.
+estrato pasa a terciles de luminancia: terciles de la mediana de L\* de la piel.
 
 | Conjunto | Estrato | n | Dice medio [IC 95 %] | HD95 mediana |
 |---|---|---|---|---|

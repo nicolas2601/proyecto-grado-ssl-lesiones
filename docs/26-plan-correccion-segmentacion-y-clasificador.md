@@ -3,7 +3,7 @@
 **Fecha:** 2026-09-26
 **Propósito:** documentar, con causa raíz y fuentes, los fixes acordados para el pipeline de pseudo-máscaras (`camino-b-cnn`) y la ruta de experimentación recomendada para decidir si la fuga de máscaras explica la caída del clasificador `proposed` vs `plain`. Este documento junta lo ya registrado en `docs/25-diagnostico-mascaras-clasificador.md` con la exploración de código y de literatura hecha para decidir los fixes concretos.
 
-División de trabajo acordada: la segmentación es un resultado propio de la tesis (alimenta además la estimación ITA/FST) y se corrige de forma independiente; el diagnóstico y las pruebas del lado del clasificador quedan a cargo de Nico. Ambas líneas corren en paralelo, ninguna bloquea a la otra.
+División de trabajo acordada: la segmentación es un resultado propio de la tesis (alimenta además la estimación ITA no validada, que no es FST) y se corrige de forma independiente; el diagnóstico y las pruebas del lado del clasificador quedan a cargo de Nico. Ambas líneas corren en paralelo, ninguna bloquea a la otra.
 
 ---
 
@@ -194,7 +194,9 @@ Hay dos variantes distintas, no una sola "opción DINO". Se documentan ambas por
 
 ---
 
-## 6. Estimación de tono / FST — qué tenemos, qué cambia con los fixes, y qué sigue roto
+## 6. Estimación ITA no validada (no es FST) — qué tenemos, qué cambia con los fixes, y qué sigue roto
+
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
 
 Se revisó el código real (`plan-segmentacion/comun/evaluacion/fst_pseudo_manifest.py` y `src/dermssl/fitzpatrick.py`) antes de escribir esta sección, específicamente para verificar si los fixes de las secciones 2-3 ya resuelven esto de por sí. **No lo resuelven del todo** — hay que ajustar el fix #2 y queda un hueco real sin cubrir.
 
@@ -206,9 +208,9 @@ Ya existe, además, un detector parcial de artefactos dentro de `fitzpatrick.py`
 
 ### 6.2 Qué cambia con los fixes de las secciones 2-3, y qué NO cambia
 
-| Fix | Efecto real sobre ITA/FST, verificado en código |
+| Fix | Efecto real sobre la estimación ITA, verificado en código |
 |---|---|
-| Fix #1 (unión de regiones en `select_central_region`) | **No reduce la contaminación de ITA.** Los fragmentos de lesión que hoy se descartan quedan marcados como `255` (ignorar), y `border = pseudo == 255 \| ~field` ya los excluye de la muestra de "piel" — no se están contando como piel hoy por esta vía. Lo que sí mejora: menos imágenes caen en cuarentena por "ninguna región encontrada" (`excluded_no_region`), así que más imágenes van a tener un bucket FST asignado — mejora la **completitud** de la muestra, no la exactitud de cada estimación individual. |
+| Fix #1 (unión de regiones en `select_central_region`) | **No reduce la contaminación de ITA.** Los fragmentos de lesión que hoy se descartan quedan marcados como `255` (ignorar), y `border = pseudo == 255 \| ~field` ya los excluye de la muestra de "piel" — no se están contando como piel hoy por esta vía. Lo que sí mejora: menos imágenes caen en cuarentena por "ninguna región encontrada" (`excluded_no_region`), así que más imágenes van a tener un bucket de la estimación ITA asignado — mejora la **completitud** de la muestra, no la exactitud de cada estimación individual. |
 | Fix #2 (remoción de pelo) | **Sí ayuda, pero solo si se cablea en la etapa `cache`** (ver sección 3.4, nota agregada) para que `fst_pseudo_manifest.py` lea la imagen ya limpia — hoy esa etapa carga el archivo fuente original de forma independiente, así que el fix, insertado solo antes de `contrastive(moco)`, no llega ahí. |
 
 ### 6.3 Lo que sigue sin resolver — y es el argumento real para el clasificador dedicado
@@ -220,7 +222,7 @@ Ya existe, además, un detector parcial de artefactos dentro de `fitzpatrick.py`
 **Paso 1 — barato, hacer ya junto con los fixes de segmentación:**
 1. Cablear el fix #2 (remoción de pelo) en la etapa `cache`, no como paso aislado (ver nota en sección 3.4).
 2. Hacer que `fst_pseudo_manifest.py` filtre o al menos reporte por separado los registros con `artifact_detected=True` / `confidence < 1.0` en `_dataset_summary` — la señal ya está calculada, solo falta usarla.
-3. Después de aplicar 1 y 2, volver a generar el manifest FST y comparar `tone_distribution`/`FST_distribution` contra la corrida actual. Esto responde, con datos y no con supuestos, cuánto de la sección 6.3 se explica por pelo/artefactos (que ya se corrige) contra cuánto queda por el hueco de saliencia (que no se corrige con nada de esto).
+3. Después de aplicar 1 y 2, volver a generar el manifest de la estimación ITA no validada (no es FST) y comparar `tone_distribution`/`FST_distribution` contra la corrida actual. Esto responde, con datos y no con supuestos, cuánto de la sección 6.3 se explica por pelo/artefactos (que ya se corrige) contra cuánto queda por el hueco de saliencia (que no se corrige con nada de esto).
 
 **Paso 2 — condicional, decisión de alcance separada, no se activa todavía:** si después del Paso 1 la distribución de tono sigue viéndose sospechosa (por ejemplo, muy pocas imágenes en el tercio oscuro comparado con lo esperado, o mucha diferencia entre ITA y el agrupamiento manual si se llega a hacer uno), ahí se justifica construir el clasificador dedicado de Fitzpatrick validado por Bencevic et al. (2024) y Groh et al.: VGG16 preentrenado en Fitzpatrick-17k (dataset que el proyecto ya usa en `docs/20`), afinado en datos de lesiones. Su ventaja real no es que sea "más preciso" en abstracto — es que **no depende de la pseudo-máscara de lesión en absoluto**, así que esquiva por completo tanto el hueco de la sección 6.3 como cualquier bug futuro del segmentador. Importante: el propio paper prueba que usar este clasificador para *mitigar* el sesgo (muestreo estratificado) no funciona — sirve como herramienta de medición/auditoría confiable, no como solución al sesgo de segmentación por sí sola.
 
@@ -280,7 +282,7 @@ Se descartó (por ahora) correr las 3-4 ramas completas de la Fase B (`Plain`/`P
 | Segmentador | Pelo/tinta/brillos no cubiertos | Detección morfológica (black-hat) + inpainting (TELEA) sobre la imagen, antes de MoCo/CCAM | Entrenar un modelo generativo de remoción de pelo propio (GAN/VAE/difusión) |
 | Clasificador | Caída Proposed vs Plain, causa no demostrada | Ablación emparejada mínima Plain vs Proposed-oracle-mask, steps igualados, IDs de validación excluidos del pool SSL | Correr las 4 ramas completas de la Fase B antes de saber si es necesario |
 | Segmentador (Plan B, condicional) | Los fixes de las secciones 2-3 no alcanzan | Opción A primero: DINO/DINOv2/DINOv3 como segmentador, empezando por la variante training-free (INSID3-style); Opción B (destilación DINO-teacher → U-Net-student) solo si se necesita un modelo liviano para despliegue clínico — ver sección 5 | Comprometerse a reescribir la arquitectura sin medir antes el efecto de los fixes baratos |
-| Estimación de tono/FST | ITA depende de la pseudo-máscara; pelo no llega limpio a esa etapa; píxeles de lesión de bajo contraste nunca detectados se cuentan como piel | Cablear el fix #2 en la etapa `cache` (no aislado), usar la `confidence` que ya se calcula y hoy se ignora, remedir `tone_distribution` — clasificador dedicado (Bencevic/Groh) solo si después de eso sigue viéndose sesgado — ver sección 6 | Asumir que los fixes de segmentación arreglan el ITA automáticamente sin haber verificado el código de `fst_pseudo_manifest.py` primero |
+| Estimación ITA no validada (no es FST) | ITA depende de la pseudo-máscara; pelo no llega limpio a esa etapa; píxeles de lesión de bajo contraste nunca detectados se cuentan como piel | Cablear el fix #2 en la etapa `cache` (no aislado), usar la `confidence` que ya se calcula y hoy se ignora, remedir `tone_distribution` — clasificador dedicado (Bencevic/Groh) solo si después de eso sigue viéndose sesgado — ver sección 6 | Asumir que los fixes de segmentación arreglan el ITA automáticamente sin haber verificado el código de `fst_pseudo_manifest.py` primero |
 
 ---
 

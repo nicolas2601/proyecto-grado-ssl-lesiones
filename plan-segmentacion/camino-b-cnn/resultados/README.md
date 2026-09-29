@@ -22,10 +22,11 @@ Nunca la cache, los checkpoints, `field.npy` ni el manifiesto FST completo
 - ISIC 2018 se reporta ademas en dos filas: ids dentro del pool de
   entrenamiento por la deduplicacion (transductivo, 722) y fuera del pool
   (1 872).
-- Estratificacion por tono de piel: terciles de la mediana de L* de la piel
+- Estratificacion por terciles de luminancia: terciles de la mediana de L* de la piel
   (fuera de la pseudo-mascara y dentro del campo) sobre todo el pool, con
   `min_n` 30 por estrato. Los buckets ITA de Groh quedan como estrato
-  secundario, solo donde la mediana de b* es al menos 5 (ver "Tono de piel").
+  secundario, solo donde la mediana de b* es al menos 5 (ver "Terciles de
+  luminancia y estimación ITA").
 - Pisos no supervisados con el mismo evaluador: SegRNorm y SegXNorm
   (`scripts/run_segnorm_baseline.py`, ROI circular, `--max-side 1024`). No hay
   techo supervisado por decision del proyecto.
@@ -154,7 +155,9 @@ La cifra honesta de generalizacion en ISIC 2018 es la de fuera del pool:
 0,686. La diferencia con la fila transductiva es la ganancia de haber visto la
 imagen, sin su mascara, durante el entrenamiento.
 
-## Tono de piel (HAM10000)
+## Terciles de luminancia y estimación ITA (HAM10000)
+
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
 
 ### Tabla retirada: buckets ITA (commits hasta `6f92f24`)
 
@@ -193,7 +196,7 @@ descartan 147 imagenes con menos de 200 pixeles de piel.
   empobrecida en melanoma (7,57 % frente a 10,92 % global); se reportan solo
   con su n y ese caveat.
 
-### Dice por tercil de luminosidad (corrida de estratos sobre `bbd9bab`)
+### Dice por tercil de luminancia (corrida de estratos sobre `bbd9bab`)
 
 Misma inferencia que la corrida final (`student_r3/best.pt`, metricas
 globales identicas bit a bit); solo cambia el estimador de tono y el bloque
@@ -211,15 +214,15 @@ oscuro (864 / 4 876 / 4 082) y ISIC 2020 en el claro (14 754 de 33 126).
 | ISIC 2018 | claro | 260 | 0,820 [0,802, 0,838] | 0,718 | 11,1 px |
 | ISIC 2018 | medio | 304 | 0,802 [0,783, 0,819] | 0,695 | 13,1 px |
 | ISIC 2018 | oscuro | 158 | 0,765 [0,737, 0,788] | 0,646 | 15,5 px |
-| ISIC 2018 | sin tono asignado | 1 872 | 0,686 [0,675, 0,696] | 0,566 | 13,9 px |
+| ISIC 2018 | sin tercil asignado | 1 872 | 0,686 [0,675, 0,696] | 0,566 | 13,9 px |
 | ISIC 2018 | brecha claro - oscuro | | 0,055 | | |
 | HAM10000 | claro | 864 | 0,862 [0,854, 0,870] | 0,774 | 9,2 px |
 | HAM10000 | medio | 4 876 | 0,803 [0,798, 0,808] | 0,699 | 12,0 px |
 | HAM10000 | oscuro | 4 082 | 0,750 [0,744, 0,756] | 0,636 | 14,3 px |
-| HAM10000 | sin tono asignado | 193 | 0,703 [0,653, 0,751] | 0,637 | 19,6 px |
+| HAM10000 | sin tercil asignado | 193 | 0,703 [0,653, 0,751] | 0,637 | 19,6 px |
 | HAM10000 | brecha claro - oscuro | | 0,111 | | |
 
-La fila "sin tono asignado" NO es un cuarto nivel de piel: son las imagenes
+La fila "sin tercil asignado" NO es un cuarto nivel de piel: son las imagenes
 sin pseudo-mascara utilizable con que medir la piel. En ISIC 2018 son las
 1 872 que quedan fuera del pool de entrenamiento; en HAM10000, las 193 en
 cuarentena por mascara no elegible.
@@ -243,15 +246,16 @@ Lectura:
   que hay que declarar, y la motivacion directa de la adaptacion de tono
   de la etapa siguiente.
 - ISIC 2018 es secundario por tres razones que apuntan al mismo lado: el
-  tono solo existe para 722 de 2 594 imagenes (las demas quedan fuera del
+  tercil solo existe para 722 de 2 594 imagenes (las demas quedan fuera del
   pool), el tercil medio solapa con los dos extremos, y el control por
   tamano de lesion no confirma el efecto: el tercil
   oscuro tiene 2,5 veces mas lesiones grandes, la brecha se concentra en la
   banda 0,25 a 0,60 (0,102) y desaparece o se invierte en las bandas
   pequenas (`fst_diagnostico_v2/diag_isic2018_tercil_tamano.txt`). Se
   reporta como "no confirmado en el conjunto externo".
-- Los buckets ITA de Groh sobreviven solo con b* >= 5 (31 397 de 58 457,
-  el 74 % en el bucket 1; del antiguo bucket 6 quedan 198 en todo el pool) y
+- Los buckets de la estimación ITA no validada (no es FST), con los umbrales
+  de Groh, sobreviven solo con b* >= 5 (31 397 de 58 457, el 74 % en el
+  bucket 1; del antiguo bucket 6 quedan 198 en todo el pool) y
   son una submuestra empobrecida en melanoma; no se usan para equidad.
 - Fuente de los intervalos: `2026-09-21-final/strata_v3/` (bootstrap por
   estrato, commit `5d947ea`; misma inferencia, metricas globales identicas).
@@ -360,10 +364,11 @@ detecten. Con la corrida final:
   ademas la banda ignorada y el exterior del campo.
 - Tono de piel: la brecha entre buckets ITA publicada antes (0,027) queda
   retirada porque el bucket media el signo de b*, no el tono. Por terciles
-  de luminosidad de la piel la brecha real en HAM10000 es 0,111 (claro
+  de luminancia de la piel la brecha real en HAM10000 es 0,111 (claro
   0,862, oscuro 0,750) y sobrevive al control por diagnostico: la
   segmentacion sin etiquetas rinde peor en piel menos luminosa, y eso es
-  lo que la etapa de adaptacion de tono debe atacar (ver "Tono de piel").
+  lo que la etapa de adaptacion de tono debe atacar (ver "Terciles de
+  luminancia y estimación ITA").
 
 Conclusion: es utilizable ya como paso previo del ITA y del clasificador, con
 la dilatacion anterior y respetando la cuarentena. Donde no es utilizable sin

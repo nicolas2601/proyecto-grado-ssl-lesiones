@@ -144,11 +144,13 @@ No se recomienda TTA como valor por defecto: el cambio de Dice es marginal y cue
 
 El límite de área 0,6 parece excluir algunas lesiones que ocupan gran parte del campo; elevarlo a 0,75 no mejoró el rendimiento agregado. La hipótesis de ajustar el límite no se debe volver a presentar como solución probada.
 
-### 4.5 Tono de piel en segmentación
+### 4.5 Terciles de luminancia y estimación ITA en segmentación
+
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
 
 La primera versión de la medición por buckets ITA queda retirada. ITA se vuelve inestable cuando `b*` se acerca a cero y el signo de `b*` separaba grupos con luminosidad similar; el 40,7 % de las imágenes tenía `|b*| < 5`. Además, `b* ≤ 0` tenía 17,10 % de melanoma frente a 7,57 % cuando `b* > 0`, por lo que la primera brecha mezclaba tono con prevalencia diagnóstica.
 
-La medición corregida exige mediana de `b* ≥ 5` para ITA y usa como estrato principal terciles de la mediana `L*` de piel. Los cortes del pool son 67,25 y 78,59. Son **terciles relativos de luminosidad del pool**, no fototipos clínicos.
+La medición corregida exige mediana de `b* ≥ 5` para ITA y usa como estrato principal terciles de la mediana `L*` de piel. Los cortes del pool son 67,25 y 78,59. Son **terciles relativos de luminancia del pool**, no fototipos clínicos.
 
 | Dataset | Estrato | n | Dice [IC 95 %] | IoU | HD95 mediana |
 |---|---|---:|---|---:|---:|
@@ -277,9 +279,9 @@ Bootstrap pareado sobre los mismos índices del holdout de validación (`n_val=2
 | Plain ViT-B − DINOv2 público ViT-B | AUC | +0,0190 | [+0,0074; +0,0320] | Gana Plain. |
 | Plain ViT-B − DINOv2 público ViT-B | ECE | −0,1146 | [−0,1239; −0,0882] | Gana Plain. |
 
-### 5.5 Métricas por tercil de tono
+### 5.5 Métricas por tercil de luminancia
 
-El estrato de tono se construye con terciles relativos de luminosidad. Los conteos son `dark` 820, `light` 183, `medium` 957 y `unavailable` 44. `unavailable` no es un fototipo. Las cifras de cada celda son `macro-F1 / AUC` usando `logreg_balanced` al 100 %.
+El estrato se construye con terciles relativos de luminancia (`tone_tercile`), no con tono de piel. Los conteos son `dark` 820, `light` 183, `medium` 957 y `unavailable` 44. `unavailable` no es un fototipo. Las cifras de cada celda son `macro-F1 / AUC` usando `logreg_balanced` al 100 %.
 
 | Backbone | Dark (n=820) | Light (n=183) | Medium (n=957) | Sin tono (n=44) | Brecha max−min F1 | Intervalos extremos separados |
 |---|---|---|---|---|---:|---|
@@ -290,7 +292,7 @@ El estrato de tono se construye con terciles relativos de luminosidad. Los conte
 | `ssl_plain_vitb14` | 0,5230 / 0,9246 | 0,4635 / 0,8942 | 0,5719 / 0,9347 | 0,3985 / 0,9113 | 0,108 | No |
 | `ssl_proposed_vitb14` | 0,5309 / 0,9446 | 0,4969 / 0,8845 | 0,5289 / 0,9288 | 0,3710 / 0,8714 | 0,034 | No |
 
-La brecha max–min se calcula entre los tres terciles con tono asignado; `unavailable` queda fuera. Los intervalos de los estratos extremos se solapan en los seis backbones. En consecuencia, no se demuestra que el clasificador tenga una brecha por tono ni que proposed la reduzca. El grupo `light` es mucho menor; cualquier ausencia de diferencia debe interpretarse con esa limitación. El bootstrap de las comparaciones remuestrea imágenes estratificadas por clase, no lesiones como clusters ni entrenamientos independientes; puede subestimar incertidumbre si varias imágenes pertenecen a una misma lesión. El banco final no incluye una matriz de confusión ni métricas completas por clase; por tanto, no permite identificar con precisión qué clases explican la caída del macro-F1. No se deben trasladar a este banco las métricas por clase de la corrida v4.
+La brecha max–min se calcula entre los tres terciles asignados; `unavailable` queda fuera. Los intervalos de los estratos extremos se solapan en los seis backbones. En consecuencia, no se demuestra que el clasificador tenga una brecha por tono ni que proposed la reduzca. El grupo `light` es mucho menor; cualquier ausencia de diferencia debe interpretarse con esa limitación. El bootstrap de las comparaciones remuestrea imágenes estratificadas por clase, no lesiones como clusters ni entrenamientos independientes; puede subestimar incertidumbre si varias imágenes pertenecen a una misma lesión. El banco final no incluye una matriz de confusión ni métricas completas por clase; por tanto, no permite identificar con precisión qué clases explican la caída del macro-F1. No se deben trasladar a este banco las métricas por clase de la corrida v4.
 
 ### 5.6 Reproducibilidad del banco
 
@@ -409,7 +411,7 @@ Los tamaños y metadatos citados provienen de las páginas oficiales/artículos 
 1. Actualizar los documentos principales con las corridas finales y marcar explícitamente v4 y la prueba de 4 h-GPU como históricas/preliminares.
 2. Presentar la conclusión de clasificación como resultado negativo: el emparejamiento por tono pierde macro-F1 y balanced accuracy frente a Plain; no se demuestra cambio de AUC/ECE ni de brecha de clasificación.
 3. Presentar la brecha de segmentación HAM10000 como una asociación por terciles relativos L*, con las limitaciones de pool/transducción y de medición de tono descritas en este informe.
-4. Guardar para el holdout de validación ordenado los vectores de etiquetas reales, probabilidades por brazo y tercil de tono, o un artefacto lossless equivalente con su hash. Mantener `bank_rows.csv` como resumen agregado y agregar un comando documentado que regenere `bootstrap.json` desde las predicciones por imagen. No declarar los intervalos plenamente reproducibles hasta versionar esos insumos y el comando.
+4. Guardar para el holdout de validación ordenado los vectores de etiquetas reales, probabilidades por brazo y tercil de luminancia, o un artefacto lossless equivalente con su hash. Mantener `bank_rows.csv` como resumen agregado y agregar un comando documentado que regenere `bootstrap.json` desde las predicciones por imagen. No declarar los intervalos plenamente reproducibles hasta versionar esos insumos y el comando.
 5. No afirmar que el modelo se validó clínicamente, que generaliza a Colombia o que corrigió la equidad por tono.
 
 **Costo y riesgo:** el más bajo en GPU y anotación. No promete una mejora positiva; sí permite una tesis honesta sobre segmentación por tono, una intervención que no funcionó y lo que falta para probar ADA.

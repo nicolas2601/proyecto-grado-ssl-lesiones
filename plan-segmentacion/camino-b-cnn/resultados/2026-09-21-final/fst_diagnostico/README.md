@@ -4,6 +4,8 @@ Evidencia de que el `FST_bucket` del estimador previo al guard de b* no medía
 tono de piel sino el signo de b*, y de que ese signo está fuertemente asociado
 al diagnóstico.
 
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
+
 ## Contenido
 
 | Archivo | Qué es |
@@ -45,4 +47,4 @@ reejecutar.
 Pod UNABIA `jupyter-nmoreno534`, 2026-09-21. Python del entorno base
 (numpy 2.5.3, scipy 1.18.0, scikit-image 0.26.0). Estado del repo en el momento
 del diagnóstico: `91814a9`, antes de aplicar `c272bdb` (guard de b*) y `bbd9bab`
-(terciles de tono).
+(terciles de luminancia).

@@ -22,9 +22,9 @@ pool sin etiquetas (58 457 imagenes: HAM10000, ISIC 2019 sin HAM, ISIC 2020)
     salida: pseudo-mascara por imagen (lesion / piel / ignorar)
    |
    v
-[2] tono de piel sobre la piel (fuera de la mascara, dentro del campo)
-    mediana de L* y b* CIELAB -> tercil de luminosidad (claro / medio / oscuro)
-    ITA / Fitzpatrick solo donde b* >= 5 (secundario)
+[2] luminancia de la piel (fuera de la mascara, dentro del campo)
+    mediana de L* y b* CIELAB -> tercil de luminancia (claro / medio / oscuro)
+    estimacion ITA no validada (no es FST) solo donde b* >= 5 (secundario)
    |
    v
 [3] pares de tono (CIRCLe): misma imagen con la piel oscurecida 16 L*,
@@ -37,7 +37,7 @@ pool sin etiquetas (58 457 imagenes: HAM10000, ISIC 2019 sin HAM, ISIC 2020)
    |
    v
 [5] clasificador congelado en HAM10000 (7 clases, probes lineales y kNN)
-    resultados por tercil de tono, contra DINOv2 publico y los bancos v5
+    resultados por tercil de luminancia, contra DINOv2 publico y los bancos v5
 ```
 
 Restricciones que gobiernan el diseno:
@@ -80,7 +80,9 @@ incorrecto. Una ablacion con tope de area 0,75 (`v2`) pierde de forma
 significativa y queda documentada como negativa; los volteos en inferencia
 no mueven el Dice.
 
-## 3. Etapa 2: tono de piel y equidad de la segmentacion (cerrada)
+## 3. Etapa 2: terciles de luminancia, estimación ITA y equidad de la segmentacion (cerrada)
+
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
 
 Estimador: `src/dermssl/fitzpatrick.py`. Manifiesto:
 `plan-segmentacion/comun/evaluacion/fst_pseudo_manifest.py`.
@@ -104,10 +106,10 @@ cortes 67,25 y 78,59. "Oscuro" es el tercio inferior de este pool (L* medio
 | HAM10000 | medio | 4 876 | 0,803 [0,798, 0,808] | 0,699 | 12,0 px |
 | HAM10000 | oscuro | 4 082 | 0,750 [0,744, 0,756] | 0,636 | 14,3 px |
 | HAM10000 | brecha claro - oscuro | | 0,111 | | |
-| ISIC 2018 (722 con tono) | claro | 260 | 0,820 [0,802, 0,838] | 0,718 | 11,1 px |
-| ISIC 2018 (722 con tono) | medio | 304 | 0,802 [0,783, 0,819] | 0,695 | 13,1 px |
-| ISIC 2018 (722 con tono) | oscuro | 158 | 0,765 [0,737, 0,788] | 0,646 | 15,5 px |
-| ISIC 2018 (722 con tono) | brecha claro - oscuro | | 0,055 | | |
+| ISIC 2018 (722 con tercil) | claro | 260 | 0,820 [0,802, 0,838] | 0,718 | 11,1 px |
+| ISIC 2018 (722 con tercil) | medio | 304 | 0,802 [0,783, 0,819] | 0,695 | 13,1 px |
+| ISIC 2018 (722 con tercil) | oscuro | 158 | 0,765 [0,737, 0,788] | 0,646 | 15,5 px |
+| ISIC 2018 (722 con tercil) | brecha claro - oscuro | | 0,055 | | |
 
 - En HAM10000 los tres terciles estan completamente separados (ningun par
   de intervalos se solapa) y el borde degrada en la misma direccion: la
@@ -146,7 +148,7 @@ particion por `lesion_id`, semilla 42):
 | `ssl_proposed` | SimSiam con vista de tono desplazado | el metodo propuesto: invarianza al tono con la lesion protegida |
 
 Resultado esperado a reportar: macro-F1 y AUC por probe y regimen de
-etiquetas (100 % y 10 %), y para cada backbone la tabla por tercil de tono
+etiquetas (100 % y 10 %), y para cada backbone la tabla por tercil de luminancia
 con la brecha claro - oscuro. La hipotesis es que `ssl_proposed` reduce la
 brecha sin perder macro-F1 global; si no lo hace, se reporta igual.
 
@@ -170,8 +172,8 @@ conjunto de imagenes y la unica diferencia entre ellos es la segunda vista.
 Revision del manifiesto de tono (la que exige el modo pareado):
 `a754961bfd97bee21b4e48edd35b71314ed82b50cc6355480252b4d075e60e51`.
 
-La cuarentena de la exportacion (3 423) y las imagenes sin tercil de tono
-del manifiesto FST (3 479) son dos filtros distintos sobre el mismo pool:
+La cuarentena de la exportacion (3 423) y las imagenes sin tercil de luminancia
+del manifiesto de la estimación ITA no validada (no es FST) (3 479) son dos filtros distintos sobre el mismo pool:
 el primero pide una mascara de area valida, el segundo ademas pide piel
 suficiente para medir la mediana. La diferencia de 56 imagenes es esa
 condicion extra, no una inconsistencia.
@@ -193,7 +195,7 @@ Artefactos: `salidas/tone/bank/` en el pod; W&B run `2t73zuvf`.
 macro-F1 con `logreg` al 100 %, +0,083 al 10 %, +0,039 con `logreg_balanced`
 al 100 %, +0,057 al 10 %, y +0,014 de AUC con kNN al 100 %. La excepcion es
 kNN al 10 % de etiquetas, donde pierde por 0,010 (0,705 contra 0,715). Y reduce la
-brecha entre terciles de tono de 0,162 a 0,102, un 37 % menos. Como los dos
+brecha entre terciles de luminancia de 0,162 a 0,102, un 37 % menos. Como los dos
 brazos comparten datos, presupuesto, semilla, particion y protocolo, y la
 unica diferencia es la segunda vista, esa mejora es atribuible a la
 adaptacion de tono.
@@ -210,7 +212,7 @@ no compiten con LVD-142M: el preentrenamiento en dominio a ese presupuesto
 mejora respecto de su propio control, no respecto del estado del arte. Decir
 lo contrario seria falso.
 
-**Lo que no se puede afirmar todavia.** La direccion de la brecha de tono en
+**Lo que no se puede afirmar todavia.** La direccion de la brecha entre terciles de luminancia en
 clasificacion. El estrato peor no es el oscuro sino el claro, en los tres
 backbones, pero ese estrato tiene n = 183 contra 820 (oscuro) y 957 (medio),
 repartidos en siete clases; el estrato `unavailable`, con n = 44, es el peor

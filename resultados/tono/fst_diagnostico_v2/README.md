@@ -1,13 +1,15 @@
-# Control del gap por tono — estimador corregido
+# Control del gap por tercil de luminancia — estimador corregido
 
 Segunda tanda de diagnóstico, posterior al fix del estimador de fototipo
-(`c272bdb` guard de b*, `bbd9bab` terciles de luminosidad).
+(`c272bdb` guard de b*, `bbd9bab` terciles de luminancia).
+
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
 
 ## Qué responde
 
 Con el estimador v1 la "brecha por fototipo" resultó ser prevalencia de
 enfermedad, no tono. Con el estimador corregido vuelve a aparecer un gap por
-tono en HAM10000 (`gap_dice` 0,1114). La pregunta obvia era si el gap nuevo es
+tercil de luminancia en HAM10000 (`gap_dice` 0,1114). La pregunta obvia era si el gap nuevo es
 otra vez composición.
 
 **No lo es.** El Dice por tercil dentro de cada diagnóstico mantiene el orden

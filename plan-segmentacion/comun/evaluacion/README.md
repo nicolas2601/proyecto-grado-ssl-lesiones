@@ -17,6 +17,8 @@ Candidatos del repositorio a revisar: `src/dermssl/fitzpatrick.py`, `scripts/dia
 
 ## Pseudo-mascaras -> ITA/FST
 
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
+
 El adaptador lee el `manifest.csv` de la cache, `pseudo_masks.npy` y el
 `pseudo_masks_stats.json` opcional, y escribe el manifiesto canonico JSON por
 imagen. La mascara de lesion es estrictamente `pseudo == 1`; los pixeles
@@ -36,11 +38,12 @@ Si existe, el CLI busca automaticamente `pseudo_masks_stats.json` junto a
 `pseudo_masks.npy`. Se puede indicar otra ubicacion con `--stats-json`.
 
 Cada registro conserva indice, dataset, imagen, split, ruta local, origen y
-ronda de mascara, cobertura, fraccion ignorada, ITA, bucket FST, confianza,
+ronda de mascara, cobertura, fraccion ignorada, ITA, bucket de la estimación ITA no validada (no es FST), confianza,
 calidad, estado y el registro de provenance de `mask_manifest`. Las filas con
 cobertura insuficiente o un estado de estimacion distinto de `ok` quedan en
 `quarantine` y no inventan ITA/FST. El resumen incluye `n`, estados,
-estadisticos ITA y distribucion FST por dataset.
+estadisticos ITA y distribucion de buckets de la
+estimación ITA por dataset.
 
 Esta etapa no modifica `run_pipeline.py` y todavia no conecta DINOv2 ni
 CIRCLe.

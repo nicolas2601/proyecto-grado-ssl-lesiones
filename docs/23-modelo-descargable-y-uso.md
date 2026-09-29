@@ -22,8 +22,10 @@ Lo que si es estable es la convencion de nombres:
 | `ssl_plain_<arquitectura>_backbone.pt` | El mismo backbone adaptado **sin** pares de tono. El control con el que se compara, al mismo presupuesto. |
 | `<arm>_run.json` | La evidencia de esa corrida: arquitectura, modo, presupuesto en horas-GPU, semilla, hash de particion. |
 | `student_r3/best.pt` | U-Net de segmentacion sin mascaras ni etiquetas (camino B). |
-| `fst_pseudo_manifest.csv` | Tono por imagen del pool: bucket ITA, tercil de luminosidad, medianas L*/b*, pixeles de piel. |
-| `bank.json`, `strata.json`, `bank.md` | Resultados del banco congelado y su desglose por tono. |
+| `fst_pseudo_manifest.csv` | Por imagen del pool: bucket de la estimación ITA no validada (no es FST), tercil de luminancia, medianas L*/b*, pixeles de piel. |
+| `bank.json`, `strata.json`, `bank.md` | Resultados del banco congelado y su desglose por terciles de luminancia. |
+
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
 
 Cada peso viaja con su `run.json` y ambos llevan el nombre del brazo. Es
 deliberado: un peso emparejado con el manifiesto de otro brazo pasa todos los

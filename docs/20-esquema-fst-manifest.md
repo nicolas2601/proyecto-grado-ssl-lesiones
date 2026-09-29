@@ -11,18 +11,20 @@ Este documento fija el ESQUEMA, no trae datos reales: `fst_manifest.csv`
 nunca se commitea (son estimaciones sobre imagenes de pacientes, generadas
 en una corrida Kaggle real con GPU).
 
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
+
 ## 1. Columnas
 
 | Columna | Tipo | Rango / valores | Descripcion |
 |---|---|---|---|
 | `image_id` | string | - | Stem del archivo de imagen (sin extension), la misma clave que usan `data_resolver`/`va_ids` en el notebook v5 para unir por `image_id`. |
 | `ita` | float | `[-90, 90]` o `NaN` | Individual Typology Angle en grados, mediana sobre pixeles de piel (`fitzpatrick.ita_degrees`). `NaN` cuando `status != "ok"`. |
-| `fst_bucket` | int (1-6) o string | `1..6` o `"unavailable"` | Bucket de Fitzpatrick (Groh et al.) o marcador explicito cuando no hay estimacion. |
+| `fst_bucket` | int (1-6) o string | `1..6` o `"unavailable"` | Bucket de la estimación ITA no validada (no es FST), con los umbrales de Groh et al., o marcador explicito cuando no hay estimacion. |
 | `skin_fraction` | float | `[0, 1]` | Fraccion de pixeles clasificados como piel (no-lesion, no-borde) sobre el total de la imagen. |
 | `mask_source` | string | `"unet"` \| `"otsu_fallback"` | Cual mascara uso realmente `estimate_fst`: la del U-Net (primaria, D3) o el fallback Otsu de `pretrain.lesion_guided` (cuando la del U-Net es degenerada: area fuera de `[MIN_MASK_AREA_FRACTION, MAX_MASK_AREA_FRACTION]`). |
 | `mask_confidence` | float | `[0, 1]` | Certeza media de la salida sigmoide del U-Net respecto al umbral 0.5. |
 | `fallback_used` | bool | `True` \| `False` | Indica que la mascara primaria falto, fue degenerada o quedo bajo el umbral de confianza y se uso Otsu. |
-| `confidence` | float | `[0, 1]` | Confianza heuristica FST. Baja con fallback o artefactos; vale 0 si el bucket no esta disponible. No es probabilidad calibrada. |
+| `confidence` | float | `[0, 1]` | Confianza heuristica de la estimación ITA no validada (no es FST). Baja con fallback o artefactos; vale 0 si el bucket no esta disponible. No es probabilidad calibrada. |
 | `artifact_detected` | bool | `True` \| `False` | Bandera conservadora para lineas oscuras de alto contraste o borde oscuro compatibles con pelo, reglas o tinta. No elimina la fila. |
 | `status` | string | `"ok"` \| `"no_skin"` \| `"degenerate_mask"` \| `"ita_out_of_range"` | Copia literal de `FSTEstimate.status` (`fitzpatrick.py`). Solo `"ok"` trae un `fst_bucket` valido. |
 

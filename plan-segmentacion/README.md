@@ -25,6 +25,8 @@ En la reunión con el profesor (2026-09-18) se acordó hacer más pruebas en el 
 - Con la máscara obtenida, calcular el **ITA y el tipo Fitzpatrick (FST)** siguiendo el flujo del paper de referencia (Corbin y Marques, IEEE Access 2023).
 - Después, aplicar la **transformación de color** de ese paper y la **adaptación de dominio con DINOv2** (pesos de Hugging Face).
 
+> **Nota: estimación ITA no validada (no es FST).** Lo que aquí aparece como «FST», «fototipo» o «bucket Fitzpatrick» por imagen es el ITA con los umbrales fijos de Groh (`src/dermssl/fitzpatrick.py`), y no está validado. Contra FST asignado por expertos acierta 28,5–30,8 % frente a 32,9 % de la baseline trivial en Fitzpatrick17k-C (11.098 imágenes, docs/20-validacion-externa-fst-fitzpatrick17k.md); en PAD-UFES-20, el ITA con umbrales fijos acierta 22,9 % frente a 51,3 % de la baseline de mayoría (Alipour et al., *Skin Research and Technology* 2026, PMC13459198; FST asignado por dermatólogo según ese artículo). Los terciles `tone_tercile` son terciles de luminancia (mediana de L\* de la piel), no tono de piel.
+
 Alcance de este documento: **solo la etapa de segmentacion**. La etapa de
 clasificacion y preentrenamiento (SimSiam sobre DINOv2) se documenta en
 [docs/22](../docs/22-pipeline-propuesto-segmentacion-tono-clasificador.md) y
