@@ -1,0 +1,186 @@
+{
+ "analysis": "T6, exploratorio: umbral de mascara por tercil de luminancia sobre A2 (docs/27)",
+ "source": "Stothers et al., Fitzpatrick Thresholding for Skin Image Segmentation, arXiv 2510.06655",
+ "bins": "tone_tercile = tercil de la mediana de L* de la piel sobre el pool; no es tono de piel",
+ "params": {
+  "grid": [
+   0.3,
+   0.35,
+   0.4,
+   0.45,
+   0.5,
+   0.55,
+   0.6,
+   0.65,
+   0.7
+  ],
+  "fixed": 0.5,
+  "n_resamples": 1000,
+  "seed": 20260923,
+  "gap_margin": 0.02,
+  "global_tolerance": -0.005,
+  "min_n": 100
+ },
+ "inputs": {
+  "curves": "/home/jovyan/work/proyectonp/salidas/t6/result/dice_curves.csv",
+  "curves_sha256": "65ba05697ff167bdf10cf8404b729a5fec6977366ced38431e2de48b7a33bfd4",
+  "manifest_sha256": "57df1e65e88d3b54ba530d6e026010bfc8ce25d1437e50b4ffe37cfd7d4f87da",
+  "val_ids_sha256": "6ff4c17f04a9eae2f0d058aaa41084ea65b9aff91e4d5e5b05c924b4465a2fc6"
+ },
+ "datasets": {
+  "ham10000": {
+   "thresholds": {
+    "dark": {
+     "threshold": 0.3,
+     "fit_n": 3262,
+     "fit_dice": 0.7647436565574308,
+     "fit_dice_at_fixed": 0.7619976566245736
+    },
+    "medium": {
+     "threshold": 0.3,
+     "fit_n": 3919,
+     "fit_dice": 0.8195331354194713,
+     "fit_dice_at_fixed": 0.8182460039310322
+    },
+    "light": {
+     "threshold": 0.4,
+     "fit_n": 681,
+     "fit_dice": 0.8557062740102336,
+     "fit_dice_at_fixed": 0.8554636005242203
+    }
+   },
+   "evaluation": {
+    "n_without_tercile": 44,
+    "terciles": {
+     "dark": {
+      "n": 820,
+      "dice_fixed": 0.763522035837068,
+      "dice_adapted": 0.7664239305148521
+     },
+     "medium": {
+      "n": 957,
+      "dice_fixed": 0.7934195831080672,
+      "dice_adapted": 0.795113337271263
+     },
+     "light": {
+      "n": 183,
+      "dice_fixed": 0.8840394239569097,
+      "dice_adapted": 0.8837077663907044
+     }
+    },
+    "gap": {
+     "n_dark": 820,
+     "n_rest": 1140,
+     "gap_fixed": {
+      "delta": -0.04444441645989228,
+      "ci95_low": -0.06185141003482945,
+      "ci95_high": -0.028586562353874363
+     },
+     "gap_adapted": {
+      "delta": -0.042911144062426465,
+      "ci95_low": -0.059845664763344665,
+      "ci95_high": -0.027345411812682494
+     },
+     "reduction": {
+      "delta": 0.0015332723974658125,
+      "ci95_low": 0.0004983184641764893,
+      "ci95_high": 0.0025834198719123787
+     }
+    },
+    "global": {
+     "delta": 0.002010093385380472,
+     "ci95_low": 0.0014553489550869698,
+     "ci95_high": 0.0025508854434929244,
+     "n": 1960,
+     "mean_fixed": 0.7893723596963932,
+     "mean_adapted": 0.7913824530817736
+    },
+    "verdict": {
+     "gap": "se achica, pero menos de 0,02",
+     "global": "se sostiene",
+     "prediction": "no cumplida"
+    }
+   },
+   "coverage": {
+    "fit": {
+     "dark": 3262,
+     "medium": 3919,
+     "light": 681,
+     "unavailable": 149
+    },
+    "eval": {
+     "dark": 820,
+     "medium": 957,
+     "light": 183,
+     "unavailable": 44
+    }
+   }
+  },
+  "isic2018": {
+   "evaluation": {
+    "n_without_tercile": 50,
+    "terciles": {
+     "dark": {
+      "n": 158,
+      "dice_fixed": 0.7807582247496623,
+      "dice_adapted": 0.7858016230276803
+     },
+     "medium": {
+      "n": 304,
+      "dice_fixed": 0.8153733780334259,
+      "dice_adapted": 0.817266483002718
+     },
+     "light": {
+      "n": 260,
+      "dice_fixed": 0.8366640331070587,
+      "dice_adapted": 0.8369940485515728
+     }
+    },
+    "gap": {
+     "n_dark": 158,
+     "n_rest": 564,
+     "gap_fixed": {
+      "delta": -0.044429994275154594,
+      "ci95_low": -0.07250356961015754,
+      "ci95_high": -0.015865559119773717
+     },
+     "gap_adapted": {
+      "delta": -0.04055912778124737,
+      "ci95_low": -0.06782585681783951,
+      "ci95_high": -0.012567635152491579
+     },
+     "reduction": {
+      "delta": 0.0038708664939072213,
+      "ci95_low": 0.0017901418726965518,
+      "ci95_high": 0.006057954625839257
+     }
+    },
+    "global": {
+     "delta": 0.0020196189115863385,
+     "ci95_low": 0.0012667511941904684,
+     "ci95_high": 0.002747102677813589,
+     "n": 722,
+     "mean_fixed": 0.8154653116903647,
+     "mean_adapted": 0.8174849306019512
+    }
+   },
+   "coverage": {
+    "eval": {
+     "dark": 158,
+     "medium": 304,
+     "light": 260,
+     "unavailable": 50
+    }
+   }
+  }
+ },
+ "provenance": {
+  "registration_commit": "4971fc1063ea8a80a8c96233ebc33a6a5311390c",
+  "code_revision": "8962ecce1ae3b70f4989e4b2cdb329204d8e1c55",
+  "manifest": "/home/jovyan/work/proyectonp/salidas/final/fst/fst_pseudo_manifest.csv",
+  "probabilities": {
+   "ham10000": "/home/jovyan/work/proyectonp/salidas/t6/probs_ham10000",
+   "isic2018": "/home/jovyan/work/proyectonp/salidas/t6/probs_isic2018"
+  }
+ }
+}
