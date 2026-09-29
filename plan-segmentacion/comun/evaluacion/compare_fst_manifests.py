@@ -57,11 +57,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from fst_flags import TONE_LABELS
+_SRC = Path(__file__).resolve().parents[3] / "src"
+if str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
+from dermssl import run_environment  # noqa: E402
+from fst_flags import TONE_LABELS  # noqa: E402
 
 DISTRIBUTIONS = ("tone_distribution", "FST_distribution")
 FLAG_COUNTS = ("n", "n_artifact_detected", "n_confidence_below_1")
@@ -158,6 +164,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         "labels": {"a": args.label_a, "b": args.label_b},
         "sources": {"a": str(args.a), "b": str(args.b)},
         **compare(_load(args.a), _load(args.b)),
+        "environment": run_environment.snapshot(args),
     }
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_json.write_text(

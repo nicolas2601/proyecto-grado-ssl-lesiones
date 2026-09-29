@@ -23,7 +23,7 @@ for _extra in (_PLAN_ROOT.parent / "src", _PLAN_ROOT / "comun" / "nucleo"):
     if str(_extra) not in sys.path:
         sys.path.insert(0, str(_extra))
 
-from dermssl import fitzpatrick, mask_manifest
+from dermssl import fitzpatrick, mask_manifest, run_environment
 from fst_arrays import cache_pixels, load_cache_images, load_field
 from fst_flags import (
     TONE_LABELS,
@@ -353,6 +353,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 for dataset, dataset_rows in sorted(grouped.items())
             },
         },
+        "environment": run_environment.snapshot(args),
     }
     if args.output_csv is not None:
         _write_csv(args.output_csv, records)

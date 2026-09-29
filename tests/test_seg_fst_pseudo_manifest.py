@@ -58,6 +58,7 @@ def test_run_reads_cache_inputs_and_writes_traceable_json(tmp_path):
     saved = json.loads(output_path.read_text(encoding="utf-8"))
     row = saved["records"][0]
     assert result == saved
+    assert saved["environment"]["schema"] == 1
     assert row["index"] == 0
     assert row["dataset"] == "ham10000"
     assert row["image_id"] == "img-a"
