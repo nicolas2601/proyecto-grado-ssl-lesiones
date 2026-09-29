@@ -100,3 +100,19 @@ Los bloques de §2-3 y §5 no se editan: el guard los compara byte a byte contra
 
 - **Errata de §2.1, clave de lesión (2026-09-28).** Donde §2.1 dice "1.641 lesiones" y "ninguna lesión repartida entre dos pacientes", se asumió que `lesion_id` era global. No lo es: es un contador por paciente. Por ejemplo, la lesión 17 es una ACK de PAT_9 y una SEK de PAT_998. El manifiesto abortó en el pod por eso, con "250 lesiones con mas de un paciente". Se verificó sobre el `metadata.csv` oficial (sha256 `14d14523…`, igual al fijado): 2.298 imágenes, 1.373 pacientes, 1.641 valores distintos de `lesion_id` (que es lo que cuenta el artículo) y 1.891 lesiones reales si la clave es `(patient_id, lesion_id)`. Dentro de cada par, el diagnóstico es siempre el mismo (0 inconsistencias). Ahora el manifiesto usa esa clave compuesta: sigue exigiendo los 1.641 ids del artículo, aborta si un mismo par tiene dos diagnósticos y registra los dos conteos. El remuestreo sigue siendo por paciente, como está registrado, así que el análisis no cambia.
 - **Nota sobre los grupos de fototipo (Paula, 2026-09-28).** El metadata tiene, por imagen: I 153, II 876, III 392, IV 62, V 10, VI 1 y 804 vacíos. Se reportan I, II y III-VI agrupado. El grupo III-VI es casi todo tipo III, así que no representa piel oscura. IV, V y VI van solo como conteo descriptivo, sin veredicto. La frase para la tesis es literal: "PAD-UFES-20 no permite concluir sobre FST V-VI". La nota con el porcentaje no se transcribe a mano: `dermssl.pad_ufes.fst_note` la calcula desde el metadata, y la escriben el manifiesto, el JSON de la evaluación y el de la validación FST, junto con la tabla `<salida>.fst_table.md`. Con los conteos de arriba sale "84 % tipo III (392/465)".
+
+## 7. Adenda descriptiva: A71 y s44 (registrada el 2026-09-29T09:36Z, sin ver resultados)
+
+<!-- registro-pad-adenda-a71-s44:inicio -->
+
+**Registrada el 2026-09-29T09:36Z UTC, antes de abrir cualquier número de PAD-UFES-20.** La primera pasada de §2-3 (s42/s43) se lanzó en el pod a las 09:18 UTC del 2026-09-29; al escribir esta adenda su JSON no se había abierto ni leído, ni se había mirado ninguna salida parcial con métricas. Pedido de Paula (2026-09-29): saber si la ventaja del mejor modelo, A71, se transfiere a PAD.
+
+- **Alcance: solo descriptivo.** No tiene predicción ni veredicto, no cambia PAD-P1..P4 ni sus lecturas, y no entra en ninguna regla de decisión. Ningún número de esta adenda se lee como "mejora": a lo sumo "el IC pareado excluye el 0" o "no se distingue".
+- **Modelos:**
+  - **A71:** el ganador congelado de v7.1 para A (`resultados/clasificacion/v71/selection.json`, sha256 `24e24e4e…`): `A_soup_a1.0@224|cls_attn|la0.5|tta`, con su protocolo completo (pesos de la sopa s42+s43, feature `cls_attn`, ponderación `la0.5`, TTA), ajustado sobre el train completo de C1 de HAM10000 como en la lectura única v7.1. Su control es el público con el mismo protocolo (`public@224|cls_attn|la0.5|tta`), igual que `public_A71` en v7.1.
+  - **s44:** A\* y B\* de la semilla 44 (`final_A_s44`, `final_B_s44`) con el protocolo de §2 (logreg sobre CLS, como s42/s43), contra el público de §2.
+- **Lecturas:** las mismas de §2 (macro-F1 sobre bcc/mel/nv como primaria descriptiva, akiec = ACK+SCC como secundaria, SEK exploratoria, ECE), bootstrap pareado agrupado por paciente con la misma semilla y remuestras de §2, y el estrato por fototipo de PAD en I / II / III-VI con la nota de §6 ("84 % tipo III"). "PAD-UFES-20 no permite concluir sobre FST V-VI" vale igual acá.
+- **Hilos:** los ajustes del probe corren con `PROBE_BLAS_THREADS` = 4 (`dermssl.probe_threads`), igual que la primera pasada, que se lanzó con OMP/OPENBLAS/MKL = 4.
+- **Código:** la segunda pasada se implementa después de este commit, con TDD, y se niega a correr si esta adenda no está en un commit anterior al script o cambió desde entonces.
+
+<!-- registro-pad-adenda-a71-s44:fin -->
