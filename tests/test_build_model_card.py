@@ -15,7 +15,7 @@ def test_committed_model_card_is_fresh(text):
     assert bmc.TARGET.read_text(encoding="utf-8") == text, "run: python scripts/build_model_card.py"
 
 
-def test_every_released_model_has_a_row_with_intervals(text):
+def test_every_evaluated_model_has_a_row_with_intervals(text):
     for name in ("`A_s42`", "`A_s43`", "`A_s44`", "`B_s42`", "`B_s43`", "`B_s44`"):
         row = next(line for line in text.splitlines() if line.startswith(f"| {name}"))
         assert row.count("[") == len(bmc.COLUMNS)
@@ -102,3 +102,16 @@ def test_the_reading_counts_the_seeds_it_is_given():
 def test_committed_card_carries_the_generated_reading(text):
     docs, _ = bmc.load()
     assert bmc.reading(docs) in text and "both seeds" not in text
+
+
+def test_card_lists_the_released_models_and_marks_robustness_seeds(text):
+    what = next(line for line in text.splitlines() if "research models, one per arm" in line)
+    assert what.startswith("Four research models")
+    assert "`A_s42`, `A_s43` (A\\*" in what and "`B_s42`, `B_s43` (B\\*" in what
+    assert "s44" not in what
+    for name in ("`A_s44`", "`B_s44`"):
+        row = next(line for line in text.splitlines() if line.startswith(f"| {name}"))
+        assert "not released" in row
+    for name in ("`A_s42`", "`B_s43`"):
+        row = next(line for line in text.splitlines() if line.startswith(f"| {name}"))
+        assert "not released" not in row

@@ -41,7 +41,7 @@ MET = "cumplida"
 
 
 def _models_text(arm: str) -> str:
-    return ", ".join(f"`{name}`" for name in seeds.model_names((arm,)))
+    return ", ".join(f"`{name}`" for name in seeds.model_names((arm,), seeds.RELEASE_SEEDS))
 
 
 def _cell(value: float, ci) -> str:
@@ -63,12 +63,18 @@ def model_row(label: str, doc: dict, probas: dict, role: str, classes) -> str:
     return f"| {label} | " + " | ".join(cells) + " |"
 
 
+def _row_label(arm: str, seed: int, name: str) -> str:
+    if seed in seeds.RELEASE_SEEDS:
+        return f"`{arm}_s{seed}` ({name})"
+    return f"`{arm}_s{seed}` ({name}; seed robustness, not released)"
+
+
 def metrics_table(docs: dict, probas: dict) -> str:
     classes = pcm.HAM10000_CLASSES
     lines = ["| Model | " + " | ".join(COLUMNS) + " |", "|---|" + "---|" * len(COLUMNS)]
     for arm, role in MODELS:
         for seed in sorted(docs):
-            lines.append(model_row(f"`{arm}_s{seed}` ({docs[seed]['arms'][role]})", docs[seed],
+            lines.append(model_row(_row_label(arm, seed, docs[seed]["arms"][role]), docs[seed],
                                    probas[seed], role, classes))
     lines.append(model_row("DINOv2 public ViT-B/14 (reference, not released)", docs[seeds.BASE_SEED],
                            probas[seeds.BASE_SEED], "public", classes))
@@ -135,7 +141,8 @@ def render(parity_root: Path | None = None) -> str:
         "reading": reading(docs),
         "deployment_table": deployment_table(parity_root),
         "n_val": str(docs[seeds.BASE_SEED]["n_eval"]),
-        "n_models": _NUMBER_EN.get(len(MODELS) * len(FINAL), str(len(MODELS) * len(FINAL))).capitalize(),
+        "n_models": _NUMBER_EN.get(len(MODELS) * len(seeds.RELEASE_SEEDS),
+                                   str(len(MODELS) * len(seeds.RELEASE_SEEDS))).capitalize(),
         "a_models": _models_text("A"), "b_models": _models_text("B"),
         "sources": ", ".join(f"`{p.as_posix()}`" for p in FINAL.values()),
         "preprocessing": json.dumps(preprocess.PREPROCESSING, indent=1),

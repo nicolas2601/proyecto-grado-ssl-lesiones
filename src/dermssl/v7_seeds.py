@@ -3,8 +3,9 @@
 A seed is registered once its single evaluation (``final_eval.json`` and the
 probabilities beside it) is committed. Every generator of tables, the model
 card and the release reads this, so adding a seed is one line here plus the
-regenerated outputs. v7.1 is not part of it: its selection closed over the
-s42+s43 soup (56e7670) and keeps that pair fixed.
+regenerated outputs. The release packages ``RELEASE_SEEDS`` only. v7.1 is
+not part of it: its selection closed over the s42+s43 soup (56e7670) and keeps
+that pair fixed.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from pathlib import Path
 REGISTERED_SEEDS: tuple[int, ...] = (42, 43, 44)
 BASE_SEED = REGISTERED_SEEDS[0]  # Its files and folders carry no seed suffix.
 V71_SOUP_SEEDS: tuple[int, ...] = (42, 43)  # Frozen: the v7.1 selection used this soup.
+RELEASE_SEEDS: tuple[int, ...] = (42, 43)  # v7.0.0 frozen; s44 is robustness only, a future v7.1.0 decides.
 
 V7_RESULTS = Path("resultados") / "clasificacion" / "v7"
 _WORDS = {1: "una", 2: "dos", 3: "tres", 4: "cuatro", 5: "cinco"}

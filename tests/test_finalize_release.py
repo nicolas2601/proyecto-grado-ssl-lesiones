@@ -63,3 +63,11 @@ def test_finalize_writes_sizes_and_checksums_and_enforces_the_limit(tmp_path):
     assert "| `B_s42` | ONNX fp32 |" in (tmp_path / "MODEL_CARD.md").read_text()
     with pytest.raises(fr.package.AssetTooLarge):
         fr.finalize(tmp_path, ["B_s42"], limit_bytes=100)
+
+
+def test_the_release_packages_the_frozen_seeds_only():
+    from dermssl import v7_seeds  # noqa: PLC0415
+
+    assert 44 in v7_seeds.REGISTERED_SEEDS
+    assert fr.MODELS == ("A_s42", "A_s43", "B_s42", "B_s43")
+    assert {name.split("/")[1] for name in fr.COPIES if name.startswith("results/s")} == {"s42", "s43"}

@@ -24,10 +24,10 @@ sys.path.insert(0, str(REPO / "scripts"))
 from dermssl import v7_seeds as seeds  # noqa: E402
 from dermssl.release import package  # noqa: E402
 
-MODELS = seeds.model_names(("A", "B"))
+MODELS = seeds.model_names(("A", "B"), seeds.RELEASE_SEEDS)
 RELEASE_SRC = REPO / "src" / "dermssl" / "release"
 V7 = REPO / "resultados" / "clasificacion" / "v7"
-_RESULTS = {f"results/s{seed}/{path.name}": REPO / path for seed in seeds.REGISTERED_SEEDS
+_RESULTS = {f"results/s{seed}/{path.name}": REPO / path for seed in seeds.RELEASE_SEEDS
             for path in (seeds.final_eval_path(seed), seeds.probas_path(seed))}
 COPIES = {
     "README.md": REPO / "docs" / "release" / "README.md",

@@ -74,9 +74,15 @@ def test_the_v71_final_dirs_come_from_its_fixed_pair():
                                  ("B", "s42"): "final_B", ("B", "s43"): "final_B_s43"}
 
 
-def test_release_models_and_copies_follow_the_registry():
+def test_release_models_and_copies_follow_the_release_seeds():
     import finalize_release as fr  # noqa: PLC0415
 
-    assert fr.MODELS == ("A_s42", "A_s43", "A_s44", "B_s42", "B_s43", "B_s44")
+    assert fr.MODELS == ("A_s42", "A_s43", "B_s42", "B_s43")
     assert fr.COPIES["results/s43/final_eval.json"] == ROOT / V7 / "s43" / "final_eval.json"
-    assert fr.COPIES["results/s44/final_eval.probas.npz"] == ROOT / V7 / "s44" / "final_eval.probas.npz"
+    assert "results/s44/final_eval.probas.npz" not in fr.COPIES
+
+
+def test_release_seeds_are_frozen_and_a_subset_of_the_registry():
+    assert vs.RELEASE_SEEDS == (42, 43)
+    assert set(vs.RELEASE_SEEDS) <= set(vs.REGISTERED_SEEDS)
+    assert 44 in vs.REGISTERED_SEEDS and 44 not in vs.RELEASE_SEEDS
