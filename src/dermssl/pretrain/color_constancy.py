@@ -46,7 +46,10 @@ def illuminant_gains(img: np.ndarray, p: float = 6) -> np.ndarray:
 
     A black image has no illuminant to remove and gets unit gains.
     """
-    norms = _minkowski_norms(img, p)
+    return _gains_from_norms(_minkowski_norms(img, p))
+
+
+def _gains_from_norms(norms: np.ndarray) -> np.ndarray:
     target = norms.mean()
     if target < _EPS:
         return np.ones(3)
@@ -61,9 +64,10 @@ def shades_of_gray(img: np.ndarray, p: float = 6) -> np.ndarray:
     """
     if p == 1:
         return gray_world(img)
-    if _minkowski_norms(img, p).mean() < _EPS:
+    norms = _minkowski_norms(img, p)
+    if norms.mean() < _EPS:
         return img.copy()
-    return np.clip(img * illuminant_gains(img, p), 0.0, 1.0)
+    return np.clip(img * _gains_from_norms(norms), 0.0, 1.0)
 
 
 def max_rgb(img: np.ndarray) -> np.ndarray:

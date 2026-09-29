@@ -155,19 +155,15 @@ def tercile_macro_f1(packed: np.ndarray, proba: np.ndarray) -> dict:
     return {name: metrics.macro_f1(y[codes == c], pred[codes == c], n_classes) for name, c in TERCILES.items()}
 
 
-def _tercile_f1(packed: np.ndarray, proba: np.ndarray) -> list[float]:
-    return list(tercile_macro_f1(packed, proba).values())
-
-
 def gap_dark_light(packed: np.ndarray, proba: np.ndarray) -> float:
     """|macro-F1(dark) - macro-F1(light)|; lower is better."""
-    dark, _, light = _tercile_f1(packed, proba)
-    return abs(dark - light)
+    f1s = tercile_macro_f1(packed, proba)
+    return abs(f1s["dark"] - f1s["light"])
 
 
 def gap_range(packed: np.ndarray, proba: np.ndarray) -> float:
     """max - min of the three terciles' macro-F1; lower is better."""
-    f1s = _tercile_f1(packed, proba)
+    f1s = tercile_macro_f1(packed, proba).values()
     return max(f1s) - min(f1s)
 
 
