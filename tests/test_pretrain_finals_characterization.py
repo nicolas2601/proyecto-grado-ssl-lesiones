@@ -4,26 +4,21 @@ The seed-44 replica runs from a later revision (the launch guards live there)
 while another change splits ``torch_loop``. This test pins the training path:
 the full ``torch_loop.train`` with the finals' levers (frozen blocks, layer
 decay, L2-SP, head warm-up, and for B the paired tone view, the tone term and
-gradient checkpointing), on CPU with a tiny ViT in place of the hub model.
-``GOLDEN`` was produced by this same harness run against a checkout of
-f1c2053 (``python tests/test_pretrain_finals_characterization.py <src>``);
-the only thing patched there is ``Path.rglob``, whose ``recurse_symlinks``
-argument f1c2053 needs Python 3.13 for (no symlinks here, same file list).
+gradient checkpointing, bf16 autocast), on CPU with a tiny ViT in place of
+the hub model. f1c2053's ``src`` is extracted with ``git archive`` and both
+revisions train in child processes on THIS machine, under PINNED_ENV; the two
+results must be equal bit for bit. The only thing patched for f1c2053 is
+``Path.rglob``, whose ``recurse_symlinks`` argument it needs Python 3.13 for
+(no symlinks here, same file list).
 
-Both the golden and the comparison run in a child process under PINNED_ENV.
-Without it the result depends on the machine: with 1 or 2 torch threads the
-same code gives 3.5107e-05 for blocks.0.norm1.weight instead of 3.5882e-05
-(six threads), a 2 % drift that six training steps grow from last-bit
-rounding, and CI failed on it from the day the test landed. One thread
-fixes the reduction order (six threads still differ even with the rest
-pinned), scalar ATen kernels (ATEN_CPU_CAPABILITY=default) and MKL's
-conditional numerical reproducibility (MKL_CBWR=COMPATIBLE) take the CPU's
-vector unit out of it. They must be set before torch is imported, hence the
-child. The child also turns oneDNN off: the augmentation's depthwise
-convolution ran through its JIT kernels, chosen by the CPU (AVX2 here,
-AVX-512 on some CI runners), which is why the first pinned version still
-failed on two of the three CI jobs. Under all of it f1c2053 and HEAD give
-GOLDEN bit for bit.
+Why not a stored golden: it was one, and CI failed on it from the day the
+test landed. With one or two torch threads the same code gave 3.5107e-05 for
+blocks.0.norm1.weight instead of the stored 3.5882e-05 (six threads); pinning
+one thread, scalar ATen kernels, MKL_CBWR and no oneDNN made it reproducible
+here, yet CI runners still differed by ~2 % run to run of the matrix,
+because a bf16 training through six steps turns each CPU's last-bit rounding
+into a visible drift. Comparing against f1c2053 on the same CPU removes the
+CPU from the question and asks exactly what the test is for.
 """
 
 from __future__ import annotations
@@ -151,73 +146,37 @@ def run_arm(root: Path, arm: str, patch) -> dict:
     }
 
 
-# Under PINNED_ENV the run is bit-for-bit reproducible on this machine; the
-# tolerance is for another x86 CPU whose libm or MKL build rounds differently.
-# A real change to the training path (schedule, levers, augmentation, loss)
-# moves the update by tens of percent. The sums can cancel, so they also get an
-# absolute floor; the sums of squares cannot, so they get none.
-REL, ABS_SUM, REL_LOSS = 1e-2, 1e-7, 1e-4
-# Generated at f1c2053 under PINNED_ENV (see the module docstring); HEAD, under the same
-# environment, produced the identical output bit for bit.
-GOLDEN = {'A': {'run': {'consistency_loss': None,
-               'samples_processed': 768,
-               'ssl_loss': -0.01045061481030037,
-               'steps_executed': 6,
-               'total_loss': -0.01045061481030037},
-       'update': {'blocks.0.fc.bias': [0.0, 0.0],
-                  'blocks.0.fc.weight': [0.0, 0.0],
-                  'blocks.0.norm1.bias': [-1.7361821846861858e-05, 1.1477656785196688e-08],
-                  'blocks.0.norm1.weight': [3.516674041748047e-05, 8.690697939073289e-09],
-                  'blocks.1.fc.bias': [0.00011029466986656189, 1.789893029624512e-08],
-                  'blocks.1.fc.weight': [7.827644003555179e-05, 1.4620651452168176e-07],
-                  'blocks.1.norm1.bias': [0.00012660841639444698, 2.1953596318396276e-08],
-                  'blocks.1.norm1.weight': [2.0325183868408203e-05, 2.1428572694048853e-08],
-                  'blocks.2.fc.bias': [-4.5515596866607666e-05, 3.010484100895994e-08],
-                  'blocks.2.fc.weight': [0.0001562254037708044, 2.4023388324820186e-07],
-                  'blocks.2.norm1.bias': [-0.0002429707956252969, 3.148658427983256e-08],
-                  'blocks.2.norm1.weight': [0.00013953447341918945, 2.2311905212291094e-08],
-                  'cls_token': [0.0, 0.0],
-                  'norm.bias': [6.738127126482141e-06, 8.644614904035569e-10],
-                  'norm.weight': [-7.450580596923828e-05, 4.8545850006576075e-08],
-                  'patch_embed.bias': [0.0, 0.0],
-                  'patch_embed.weight': [0.0, 0.0],
-                  'pos_embed': [0.0, 0.0]}},
- 'B': {'run': {'consistency_loss': -0.009796655581643185,
-               'samples_processed': 768,
-               'ssl_loss': -0.009796655581643185,
-               'steps_executed': 6,
-               'total_loss': -0.007296227539579074},
-       'update': {'blocks.0.fc.bias': [0.0, 0.0],
-                  'blocks.0.fc.weight': [0.0, 0.0],
-                  'blocks.0.norm1.bias': [2.4745757855271222e-05, 9.069063679520658e-09],
-                  'blocks.0.norm1.weight': [-6.186962127685547e-05, 1.0578737885680312e-08],
-                  'blocks.1.fc.bias': [-4.714354872703552e-05, 1.0958675591976608e-08],
-                  'blocks.1.fc.weight': [0.00017984281294047832, 1.2507356624246986e-07],
-                  'blocks.1.norm1.bias': [-2.930683422164293e-05, 1.3491261924406104e-08],
-                  'blocks.1.norm1.weight': [2.944469451904297e-05, 2.1719650078466657e-08],
-                  'blocks.2.fc.bias': [9.175552986562252e-05, 3.0800812712025814e-08],
-                  'blocks.2.fc.weight': [-4.752911627292633e-05, 1.8478839024574367e-07],
-                  'blocks.2.norm1.bias': [-0.00024156909421435557, 2.723401142152083e-08],
-                  'blocks.2.norm1.weight': [7.921457290649414e-05, 1.2530794180065641e-08],
-                  'cls_token': [0.0, 0.0],
-                  'norm.bias': [-8.928356692194939e-06, 8.299129576025322e-08],
-                  'norm.weight': [-6.377696990966797e-05, 5.7234203154621355e-08],
-                  'patch_embed.bias': [0.0, 0.0],
-                  'patch_embed.weight': [0.0, 0.0],
-                  'pos_embed': [0.0, 0.0]}}}
+# The frozen-block check below needs a floor far above float32 noise.
+ABS_SUM = 1e-7
+REFERENCE = "f1c2053"
+
+
+def reference_src(dest: Path) -> Path:
+    """f1c2053's ``src`` tree, from git history (CI checks out with fetch-depth 0)."""
+    import io  # noqa: PLC0415
+    import tarfile  # noqa: PLC0415
+
+    archive = subprocess.run(["git", "-C", str(ROOT), "archive", "--format=tar", REFERENCE, "src"],
+                             capture_output=True, check=False)
+    if archive.returncode != 0:
+        pytest.fail(f"{REFERENCE} is not in this clone ({archive.stderr.decode().strip()}); "
+                    "the characterization needs history (a full clone; CI checks out with fetch-depth: 0)")
+    with tarfile.open(fileobj=io.BytesIO(archive.stdout)) as tar:
+        tar.extractall(dest, filter="data")
+    return dest / "src"
+
+
+@pytest.fixture(scope="module")
+def reference(tmp_path_factory) -> dict:
+    root = tmp_path_factory.mktemp("f1c2053")
+    return run_pinned(root / "runs", "AB", reference_src(root))
 
 
 @pytest.mark.parametrize("arm", ("A", "B"))
-def test_head_trains_the_finals_like_f1c2053(arm, tmp_path, monkeypatch):
-    got = run_pinned(tmp_path, arm)
-    want = GOLDEN[arm]
-    assert got["run"]["steps_executed"] == want["run"]["steps_executed"] == 6
-    assert sorted(got["update"]) == sorted(want["update"])
-    for key, (total, squares) in want["update"].items():
-        assert got["update"][key][0] == pytest.approx(total, rel=REL, abs=ABS_SUM), key
-        assert got["update"][key][1] == pytest.approx(squares, rel=REL, abs=0.0), key
-    for key, value in want["run"].items():
-        assert got["run"][key] == pytest.approx(value, rel=REL_LOSS), key
+def test_head_trains_the_finals_like_f1c2053(arm, reference, tmp_path):
+    got = run_pinned(tmp_path, arm)[arm]
+    assert got["run"]["steps_executed"] == 6 and got["update"]["blocks.2.fc.weight"][1] > 0
+    assert got == reference[arm]
 
 
 def test_the_frozen_block_did_not_move_and_the_trained_ones_did(tmp_path, monkeypatch):
@@ -229,13 +188,14 @@ def test_the_frozen_block_did_not_move_and_the_trained_ones_did(tmp_path, monkey
     assert update["blocks.2.fc.weight"][1] > 0 and abs(update["blocks.1.fc.bias"][0]) > 100 * ABS_SUM
 
 
-def run_pinned(root: Path, arm: str, src: Path = ROOT / "src") -> dict:
-    """``run_arm`` in a child under PINNED_ENV; the same entry point produced GOLDEN."""
+def run_pinned(root: Path, arms: str, src: Path = ROOT / "src") -> dict:
+    """``{arm: run_arm(...)}`` for each letter of ``arms``, in a child under PINNED_ENV."""
+    root.mkdir(parents=True, exist_ok=True)
     env = {**os.environ, **PINNED_ENV}
-    done = subprocess.run([sys.executable, __file__, str(src), arm, str(root)], env=env,
+    done = subprocess.run([sys.executable, __file__, str(src), arms, str(root)], env=env,
                           capture_output=True, text=True, check=False, timeout=600)
     assert done.returncode == 0, done.stdout[-2000:] + done.stderr[-2000:]
-    return json.loads(done.stdout.strip().splitlines()[-1])[arm]
+    return json.loads(done.stdout.strip().splitlines()[-1])
 
 
 def test_the_child_really_runs_under_the_pinned_environment():

@@ -45,7 +45,12 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
+      # Full history: the finals characterization trains f1c2053's own src
+      # (git archive) next to HEAD on the same runner, and the registration
+      # tests check commit ancestry instead of skipping on a shallow clone.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
