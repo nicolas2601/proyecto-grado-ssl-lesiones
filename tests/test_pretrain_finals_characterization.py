@@ -19,7 +19,11 @@ fixes the reduction order (six threads still differ even with the rest
 pinned), scalar ATen kernels (ATEN_CPU_CAPABILITY=default) and MKL's
 conditional numerical reproducibility (MKL_CBWR=COMPATIBLE) take the CPU's
 vector unit out of it. They must be set before torch is imported, hence the
-child. Under them f1c2053 and HEAD give GOLDEN bit for bit.
+child. The child also turns oneDNN off: the augmentation's depthwise
+convolution ran through its JIT kernels, chosen by the CPU (AVX2 here,
+AVX-512 on some CI runners), which is why the first pinned version still
+failed on two of the three CI jobs. Under all of it f1c2053 and HEAD give
+GOLDEN bit for bit.
 """
 
 from __future__ import annotations
@@ -157,47 +161,47 @@ REL, ABS_SUM, REL_LOSS = 1e-2, 1e-7, 1e-4
 # environment, produced the identical output bit for bit.
 GOLDEN = {'A': {'run': {'consistency_loss': None,
                'samples_processed': 768,
-               'ssl_loss': -0.010449913602011899,
+               'ssl_loss': -0.01045061481030037,
                'steps_executed': 6,
-               'total_loss': -0.010449913602011899},
+               'total_loss': -0.01045061481030037},
        'update': {'blocks.0.fc.bias': [0.0, 0.0],
                   'blocks.0.fc.weight': [0.0, 0.0],
-                  'blocks.0.norm1.bias': [-1.7493344785179943e-05, 1.1478608489800369e-08],
-                  'blocks.0.norm1.weight': [3.4868717193603516e-05, 8.669143625184006e-09],
-                  'blocks.1.fc.bias': [0.00011090561747550964, 1.784292470025095e-08],
-                  'blocks.1.fc.weight': [8.206930942833424e-05, 1.4623987994183277e-07],
-                  'blocks.1.norm1.bias': [0.00012684580360655673, 2.1987212131239614e-08],
-                  'blocks.1.norm1.weight': [1.9848346710205078e-05, 2.1339861433489205e-08],
-                  'blocks.2.fc.bias': [-4.768953658640385e-05, 2.99004017023847e-08],
-                  'blocks.2.fc.weight': [0.0001599048264324665, 2.4200238518006824e-07],
-                  'blocks.2.norm1.bias': [-0.0002429067799312179, 3.1604121390077074e-08],
-                  'blocks.2.norm1.weight': [0.00013679265975952148, 2.259059428411092e-08],
+                  'blocks.0.norm1.bias': [-1.7361821846861858e-05, 1.1477656785196688e-08],
+                  'blocks.0.norm1.weight': [3.516674041748047e-05, 8.690697939073289e-09],
+                  'blocks.1.fc.bias': [0.00011029466986656189, 1.789893029624512e-08],
+                  'blocks.1.fc.weight': [7.827644003555179e-05, 1.4620651452168176e-07],
+                  'blocks.1.norm1.bias': [0.00012660841639444698, 2.1953596318396276e-08],
+                  'blocks.1.norm1.weight': [2.0325183868408203e-05, 2.1428572694048853e-08],
+                  'blocks.2.fc.bias': [-4.5515596866607666e-05, 3.010484100895994e-08],
+                  'blocks.2.fc.weight': [0.0001562254037708044, 2.4023388324820186e-07],
+                  'blocks.2.norm1.bias': [-0.0002429707956252969, 3.148658427983256e-08],
+                  'blocks.2.norm1.weight': [0.00013953447341918945, 2.2311905212291094e-08],
                   'cls_token': [0.0, 0.0],
-                  'norm.bias': [2.6002260710811242e-05, 8.846289999846241e-10],
-                  'norm.weight': [2.3484230041503906e-05, 4.479608861629458e-08],
+                  'norm.bias': [6.738127126482141e-06, 8.644614904035569e-10],
+                  'norm.weight': [-7.450580596923828e-05, 4.8545850006576075e-08],
                   'patch_embed.bias': [0.0, 0.0],
                   'patch_embed.weight': [0.0, 0.0],
                   'pos_embed': [0.0, 0.0]}},
- 'B': {'run': {'consistency_loss': -0.009796595821777979,
+ 'B': {'run': {'consistency_loss': -0.009796655581643185,
                'samples_processed': 768,
-               'ssl_loss': -0.009796595821777979,
+               'ssl_loss': -0.009796655581643185,
                'steps_executed': 6,
-               'total_loss': -0.0072961657618482905},
+               'total_loss': -0.007296227539579074},
        'update': {'blocks.0.fc.bias': [0.0, 0.0],
                   'blocks.0.fc.weight': [0.0, 0.0],
-                  'blocks.0.norm1.bias': [2.4615094389446313e-05, 9.058626309063107e-09],
-                  'blocks.0.norm1.weight': [-6.151199340820312e-05, 1.0551737261721428e-08],
-                  'blocks.1.fc.bias': [-4.7072768211364746e-05, 1.0966831776038077e-08],
-                  'blocks.1.fc.weight': [0.0001795592252165079, 1.2515712989607944e-07],
-                  'blocks.1.norm1.bias': [-2.8959158044017386e-05, 1.3479076910258116e-08],
-                  'blocks.1.norm1.weight': [3.0279159545898438e-05, 2.167619328474757e-08],
-                  'blocks.2.fc.bias': [9.256554767489433e-05, 3.077974778547578e-08],
-                  'blocks.2.fc.weight': [-4.699523560702801e-05, 1.8536680918918242e-07],
-                  'blocks.2.norm1.bias': [-0.0002415854669379769, 2.7260474842655067e-08],
-                  'blocks.2.norm1.weight': [7.963180541992188e-05, 1.2517894276697916e-08],
+                  'blocks.0.norm1.bias': [2.4745757855271222e-05, 9.069063679520658e-09],
+                  'blocks.0.norm1.weight': [-6.186962127685547e-05, 1.0578737885680312e-08],
+                  'blocks.1.fc.bias': [-4.714354872703552e-05, 1.0958675591976608e-08],
+                  'blocks.1.fc.weight': [0.00017984281294047832, 1.2507356624246986e-07],
+                  'blocks.1.norm1.bias': [-2.930683422164293e-05, 1.3491261924406104e-08],
+                  'blocks.1.norm1.weight': [2.944469451904297e-05, 2.1719650078466657e-08],
+                  'blocks.2.fc.bias': [9.175552986562252e-05, 3.0800812712025814e-08],
+                  'blocks.2.fc.weight': [-4.752911627292633e-05, 1.8478839024574367e-07],
+                  'blocks.2.norm1.bias': [-0.00024156909421435557, 2.723401142152083e-08],
+                  'blocks.2.norm1.weight': [7.921457290649414e-05, 1.2530794180065641e-08],
                   'cls_token': [0.0, 0.0],
-                  'norm.bias': [-8.927418093662709e-06, 8.299098022338941e-08],
-                  'norm.weight': [-6.127357482910156e-05, 5.6767596845475055e-08],
+                  'norm.bias': [-8.928356692194939e-06, 8.299129576025322e-08],
+                  'norm.weight': [-6.377696990966797e-05, 5.7234203154621355e-08],
                   'patch_embed.bias': [0.0, 0.0],
                   'patch_embed.weight': [0.0, 0.0],
                   'pos_embed': [0.0, 0.0]}}}
@@ -234,11 +238,16 @@ def run_pinned(root: Path, arm: str, src: Path = ROOT / "src") -> dict:
     return json.loads(done.stdout.strip().splitlines()[-1])[arm]
 
 
-def test_the_child_really_runs_under_the_pinned_environment(tmp_path):
+def test_the_child_really_runs_under_the_pinned_environment():
     env = {**os.environ, **PINNED_ENV}
-    probe = "import torch; print(torch.backends.cpu.get_cpu_capability(), torch.get_num_threads())"
-    out = subprocess.run([sys.executable, "-c", probe], env=env, capture_output=True, text=True, check=True)
-    assert out.stdout.split() == ["DEFAULT", "1"]
+    out = subprocess.run([sys.executable, __file__, "--probe"], env=env, capture_output=True, text=True, check=True)
+    assert out.stdout.split() == ["DEFAULT", "1", "False"]
+
+
+def _pin_torch():
+    """What the environment cannot pin: oneDNN's CPU-dependent JIT kernels."""
+    torch.backends.mkldnn.enabled = False
+    return torch
 
 
 def _generate(src: str, arms: list[str], workdir: str) -> None:
@@ -254,12 +263,17 @@ def _generate(src: str, arms: list[str], workdir: str) -> None:
     def patch(obj, name, value):
         setattr(obj, name, value)
 
+    _pin_torch()
     print(json.dumps({arm: run_arm(Path(workdir), arm, patch) for arm in arms}))
 
 
 if __name__ == "__main__":  # pragma: no cover
     import tempfile
 
+    if sys.argv[1] == "--probe":
+        pinned = _pin_torch()
+        print(pinned.backends.cpu.get_cpu_capability(), pinned.get_num_threads(), pinned.backends.mkldnn.enabled)
+        sys.exit(0)
     src_arg, arms_arg = sys.argv[1], (sys.argv[2:3] or ["AB"])[0]
     with tempfile.TemporaryDirectory() as scratch:
         _generate(src_arg, list(arms_arg), sys.argv[3] if len(sys.argv) > 3 else scratch)
