@@ -2,11 +2,12 @@ r"""E5 (docs/33): descriptive Fitzpatrick analysis of HAM10000, ISIC 2019 and IS
 
 Per dataset it writes ``<out-dir>/e5_fitzpatrick_<dataset>.json`` (+ ``.environment.json``): per image
 the ITA bucket I-VI of two global estimators (Otsu lesion removal, whole image) with abstention, the
-L* tercile of THIS dataset, and the perilesional-ring estimator (outside the student_r3 mask, without
-hair / specular / saturated / border pixels, with abstention); plus class x bucket, bucket x split and
+L* tercile of THIS dataset, and the perilesional-ring estimator (outside the automatic student_r3 mask,
+without hair / specular / saturated / border pixels, with abstention); plus class x bucket, bucket x split and
 tercile counts. The ITA estimator is the one that scored 22.9 % against dermatologists in PAD-UFES-20
 (docs/30, PMC13459198) and the terciles are luminance, not skin tone: the JSON says so. Only HAM10000
-has masks; for ISIC 2019 / 2020 the ring estimator declares itself not applicable (no masks are invented).
+has native masks (450 x 600); ISIC 2019 / 2020 use the automatic 224 x 224 pool masks, and an image whose mask
+is quarantined or absent falls back to the image border as skin (``no_mask_border``), counted apart.
 
 Images are decoded to a canonical resolution before any math (PIL draft + antialiased resize, shorter
 side 450, never upsampled), on CPU, in ``--workers`` processes that return small dicts (memory-safe).
@@ -21,9 +22,11 @@ Pod (P=$HOME/work/proyectonp; R=$P/repo_bench4; D=$HOME/work/datos)::
     python scripts/e5_fitzpatrick.py --dataset ham10000 --data-root $D/ham10000 \
         --masks $M/c1_pseudo_masks.npy --masks-manifest $M/c1_pseudo_masks_manifest.json \
         --out-dir $O --workers 40
+    T=$P/salidas/tone/inputs
     python scripts/e5_fitzpatrick.py --dataset isic2019 --data-root $D/isic2019_fullres \
-        --image-dir $D/isic2019/train-image --out-dir $O --workers 40
-    python scripts/e5_fitzpatrick.py --dataset isic2020 --data-root $D/isic2020 --out-dir $O --workers 40
+        --image-dir $D/isic2019/train-image --pool-root $T --out-dir $O --workers 40
+    python scripts/e5_fitzpatrick.py --dataset isic2020 --data-root $D/isic2020 --pool-root $T \
+        --out-dir $O --workers 40
 
 Add ``--dry-run`` first (split / mask check, no images read) or ``--limit 50`` for a smoke run.
 """
@@ -59,6 +62,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--dataset", choices=e5_data.DATASETS, required=True)
     p.add_argument("--data-root", type=Path, required=True, help="folder holding the metadata / ground-truth CSV")
     p.add_argument("--image-dir", type=Path, default=None, help="folder searched for the images (default: data-root)")
+    p.add_argument("--pool-root", type=Path, default=None,
+                   help="isic only: salidas/tone/inputs (originals/, masks/, mask_manifest.json; 224 x 224)")
     p.add_argument("--masks", type=Path, default=None, help="ham10000 only: c1_pseudo_masks.npy (student_r3)")
     p.add_argument("--masks-manifest", type=Path, default=None, help="ham10000 only: c1_pseudo_masks_manifest.json")
     p.add_argument("--out-dir", type=Path, default=None)
@@ -108,15 +113,24 @@ def _progress(started: float):
 def analyze_spec(args, spec) -> list[dict]:
     masked = spec.masks is not None
     return an.run_tasks(spec.tasks, workers=args.workers, chunk_size=args.chunk_size,
-                        masks_path=args.masks.expanduser() if masked else None, use_hair=masked,
+                        masks_path=args.masks.expanduser() if args.masks else None, use_hair=masked,
                         progress=_progress(time.time()))
+
+
+def coverage_text(spec) -> str:
+    """Mask state per split, printed before any image is read (the dry run shows it)."""
+    lines = []
+    for split in spec.splits:
+        mine = [t.mask_state or "none" for t in spec.tasks if t.split == split]
+        lines.append(f"  {split}: " + ", ".join(f"{s} {mine.count(s)}" for s in dict.fromkeys(mine)))
+    return "\n".join(lines)
 
 
 def main(argv=None) -> int:
     args = parse_args(argv)
     spec = e5_data.load_spec(args)
-    print(f"{spec.name}: {len(spec.tasks)} images, splits {list(spec.splits)}, "
-          f"masks {'yes' if spec.masks else 'no (ring estimator not applicable)'}")
+    print(f"{spec.name}: {len(spec.tasks)} images, splits {list(spec.splits)}, masks {'yes' if spec.masks else 'no'}")
+    print(coverage_text(spec))
     if args.dry_run:
         return 0
     out = out_path(args, spec.name)

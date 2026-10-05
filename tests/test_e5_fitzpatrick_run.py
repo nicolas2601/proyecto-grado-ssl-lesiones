@@ -130,3 +130,41 @@ def test_dirty_tree_is_refused_except_for_a_smoke_run_with_allow_dirty(monkeypat
     smoke = run.parse_args(["--dataset", "isic2019", "--data-root", str(tmp_path), "--out-dir", str(tmp_path),
                             "--limit", "5", "--allow-dirty"])
     assert run.revision(smoke) == "dirty"
+
+
+def _pool_spec(tmp_path) -> DatasetSpec:
+    yy, xx = np.mgrid[:224, :224]
+    disc = (yy - 112) ** 2 + (xx - 112) ** 2 <= 40**2
+    tasks = []
+    for i, state in enumerate(("eligible", "eligible", "quarantine", "absent")):
+        src = _png(tmp_path, i)
+        img = np.empty((224, 224, 3), dtype=np.uint8)
+        img[:] = SKINS[0]
+        img[disc] = (60, 35, 28)
+        img = np.clip(img + np.random.RandomState(i).randint(-3, 4, img.shape), 0, 255).astype(np.uint8)
+        pool_img, pool_mask = tmp_path / f"pool{i}.png", tmp_path / f"mask{i}.png"
+        Image.fromarray(img).save(pool_img)
+        Image.fromarray((disc * 255).astype(np.uint8)).save(pool_mask)
+        tasks.append(Task(f"im{i}", str(src), "train" if i < 2 else "val", "mel", mask_state=state,
+                          pool_image=None if state == "absent" else str(pool_img),
+                          pool_mask=str(pool_mask) if state == "eligible" else None))
+    return DatasetSpec("isic2020", ("mel",), ("train", "val"), tasks, {"split": {}}, {"kind": "pool", "n_entries": 3})
+
+
+def test_isic_with_pool_masks_reports_coverage_and_both_roi_estimators(patched, tmp_path):
+    patched["set"](_pool_spec(tmp_path))
+    assert run.main(["--dataset", "isic2020", "--data-root", str(tmp_path), "--pool-root", str(tmp_path),
+                     "--out-dir", str(tmp_path / "out"), "--workers", "2"]) == 0
+    d = json.loads((tmp_path / "out" / "e5_fitzpatrick_isic2020.json").read_text())
+    roi = d["report"]["estimators"]["roi"]
+    assert roi["applicable"] is True and d["estimators"]["roi"]["fallback"]["estimator"] == "no_mask_border"
+    assert roi["mask_coverage"]["by_split"]["train"]["eligible"] == 2
+    assert roi["mask_coverage"]["by_split"]["val"] == {"c1_native": 0, "eligible": 0, "quarantine": 1, "absent": 1, "none": 0}
+    assert roi["by_estimator"]["perilesional_roi"]["n"] == 2 and roi["by_estimator"]["no_mask_border"]["n"] == 2
+
+
+def test_the_dry_run_prints_the_mask_coverage_per_split(patched, tmp_path, capsys):
+    patched["set"](_pool_spec(tmp_path))
+    run.main(["--dataset", "isic2020", "--data-root", str(tmp_path), "--pool-root", str(tmp_path), "--dry-run"])
+    out = capsys.readouterr().out
+    assert "train: eligible 2" in out and "val: quarantine 1, absent 1" in out
