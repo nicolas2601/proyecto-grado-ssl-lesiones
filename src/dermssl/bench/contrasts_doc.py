@@ -58,6 +58,19 @@ def e3_mcc(repo: Path) -> list[Contrast]:
     return [c for rel in rels for c in L.f4_vs_b71(repo, rel) if c.metric == "mcc"]
 
 
+NEAR_ZERO = 0.0025  # a CI bound closer to 0 than this is read as "≈ 0": the interval only just excludes it
+
+
+def e3_mcc_reading(cells: list[Contrast]) -> str:
+    """How many F4 − B71 MCC intervals exclude 0 and how many do it only barely, counted from the cells."""
+    measured = [c for c in cells if not c.unavailable]
+    hit = [c for c in measured if c.excludes_zero]
+    near = [c for c in hit if min(abs(c.low), abs(c.high)) < NEAR_ZERO]
+    return (f"IC que excluye 0 en {len(hit)} de {len(measured)} celdas; {len(near)} con límite inferior ≈ 0 "
+            f"(a menos de {num(NEAR_ZERO)} de 0). F4 sigue siendo exploratorio: el MCC no cambia la regla de lectura "
+            "de la robustez a la semilla (errata de docs/33).")
+
+
 def mcc_table(repo: Path) -> Table:
     models = _load(repo, CANON)["models"]
     above, raised = L.e3b_contrasts(repo, CANON)
@@ -70,7 +83,8 @@ def mcc_table(repo: Path) -> Table:
     n_all = sum(c.metric == "mcc" for c in [*above, *raised])
     n_same = _load(repo, CANON)["contrasts_rebuild"]["records_reproduced"]
     e3 = e3_mcc(repo)
-    e3_text = (f"E3 final: {len(e3)} contrastes de MCC en los JSON, {sum(bool(c.unavailable) for c in e3)} no disponibles."
+    e3_text = (f"E3 final: {len(e3)} contrastes de MCC en los JSON, {sum(bool(c.unavailable) for c in e3)} no disponibles. "
+               f"{e3_mcc_reading(e3)}"
                if e3 else "E3 final: sus JSON no traen MCC y sus probabilidades no se guardaron; se recomputan en el pod "
                "con `scripts/e3_contrasts_rebuild.py` (refit del probe desde los features cacheados, verificado contra "
                "los puntos registrados).")

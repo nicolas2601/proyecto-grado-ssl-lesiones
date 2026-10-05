@@ -104,3 +104,17 @@ def test_interval_only_table_never_claims_a_pairwise_win():
 
 def test_numbers_use_decimal_comma():
     assert not POINT.findall(_text())
+
+
+def test_the_e3_f4_mcc_reading_is_generated_from_the_cells_and_keeps_f4_exploratory():
+    import json
+
+    near_zero = 0.0025  # the bound documented in contrasts_doc.NEAR_ZERO, restated so a silent change fails here
+    rels = dict.fromkeys([*(rel for _, _, rel in D.COMPUTES), *L.SEED_FILES.values()])
+    cells = [c for rel in rels for c in json.loads((REPO / rel).read_text(encoding="utf-8"))["contrasts"]
+             if c["metric"] == "mcc"]
+    hit = [c for c in cells if c["ci95_low"] > 0 or c["ci95_high"] < 0]
+    near = [c for c in hit if min(abs(c["ci95_low"]), abs(c["ci95_high"])) < near_zero]
+    text = _text().split("### HAM10000: MCC puntual")[1].split("###")[0]
+    assert f"IC que excluye 0 en {len(hit)} de {len(cells)} celdas; {len(near)} con límite inferior ≈ 0" in text
+    assert "F4 sigue siendo exploratorio" in text and "regla de lectura de la robustez" in text

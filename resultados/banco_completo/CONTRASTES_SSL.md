@@ -242,7 +242,7 @@ Resumen de 8 baselines por celda; el detalle del canónico está arriba.
 
 ### HAM10000: MCC puntual de los baselines sin y con F4 y su contraste pareado (E3b)
 
-E3b, cómputo canónico (batch 64 + autocast): 40 contrastes pareados de MCC (8 de F4 sobre cada baseline, 32 de B71 frente a los baselines), recomputados con el código actual desde las probabilidades commiteadas (`e3b_probas.npz`), con el mismo bootstrap (1.000 remuestras, semilla 20260923, por `lesion_id`); los 120 registros previos (F1 macro, exactitud balanceada, recall de melanoma) se reprodujeron idénticos antes de escribir. La última columna es el contraste pareado de F4 sobre el baseline (Δ MCC [IC 95 %]). E3 final: 10 contrastes de MCC en los JSON, 0 no disponibles.
+E3b, cómputo canónico (batch 64 + autocast): 40 contrastes pareados de MCC (8 de F4 sobre cada baseline, 32 de B71 frente a los baselines), recomputados con el código actual desde las probabilidades commiteadas (`e3b_probas.npz`), con el mismo bootstrap (1.000 remuestras, semilla 20260923, por `lesion_id`); los 120 registros previos (F1 macro, exactitud balanceada, recall de melanoma) se reprodujeron idénticos antes de escribir. La última columna es el contraste pareado de F4 sobre el baseline (Δ MCC [IC 95 %]). E3 final: 10 contrastes de MCC en los JSON, 0 no disponibles. IC que excluye 0 en 9 de 10 celdas; 2 con límite inferior ≈ 0 (a menos de 0,0025 de 0). F4 sigue siendo exploratorio: el MCC no cambia la regla de lectura de la robustez a la semilla (errata de docs/33).
 
 | Baseline | MCC sin F4 | MCC con F4 | Contraste pareado: Δ MCC [IC 95 %] | El IC excluye 0 |
 |---|---|---|---|---|
