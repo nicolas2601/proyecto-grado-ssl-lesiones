@@ -12,18 +12,22 @@ CAPTIONS = {"counts": "Conteos", "norm": "Normalizada por fila (recall por clase
 def readme(arts: list[dict], pend: list[dict]) -> str:
     lines = [f"- `{rel_json(a).as_posix()}` (+ `.png`): {a['dataset']}, {a['modelo']}, {a['condicion']}; "
              f"origen: {a['origen']}." for a in arts]
-    waiting = [f"- {p['dataset']}, {p['modelo']} ({p['condicion']}): {p['estado']}; {p['motivo']}." for p in pend]
+    waiting = [f"- {p['dataset']}, {p['modelo']} ({p['condicion']}): {p['estado']}; {p['motivo']}; ETA {p['eta']}."
+               for p in pend]
     return "\n".join([
         "# Matrices de confusión de los modelos auto-supervisados", "",
         "Generado por `scripts/build_bench_tables.py` desde los JSON del repositorio. No editar a mano. "
         "Alcance (docs/33, E4): solo los auto-supervisados, DINOv2 ViT-S/14, DINOv2 ViT-B/14 y SimSiam "
-        "ResNet-50, congelados y con fine-tuning, más A71 y B71.", "",
+        "ResNet-50, congelados y con fine-tuning, más A71 y B71 (HAM10000) y, en ISIC, B71-limpio (canónico) y "
+        "B71/A71 originales (sensibilidad: batch 16, transductivo).", "",
         "Cada celda tiene un `.json` (clases, conteos, matriz normalizada por fila, MCC, fuente) y un `.png` "
         "con dos paneles: conteos y normalizada por fila. Filas = clase real, columnas = clase predicha.", "",
         "## Origen de los números", "",
         "- Baselines: `matriz_confusion` de los JSON de `results/` (probe `logreg` para congelados, `finetune` "
         "para fine-tuning).",
-        f"- A71 y B71: `{V71_JSON}` no trae matriz de confusión. Se derivó con el argmax de las "
+        "- ISIC 2019 e ISIC 2020, B71-limpio y B71/A71 originales: `matriz_confusion` de la celda E1 "
+        "(`resultados/banco_completo/isic_eval/...`); el JSON de cada matriz guarda n de la celda y n desde la matriz.",
+        f"- A71 y B71 (HAM10000): `{V71_JSON}` no trae matriz de confusión. Se derivó con el argmax de las "
         "probabilidades commiteadas (`v71_final_eval.probas.npz`); el JSON de cada celda guarda la accuracy "
         "del JSON y la recomputada desde la matriz, y un test exige que coincidan.", "",
         "## Figura de diferencias frente a B71", "", NO_DIFF, "",

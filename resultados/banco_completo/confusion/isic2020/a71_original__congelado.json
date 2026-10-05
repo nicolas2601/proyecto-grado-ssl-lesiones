@@ -1,0 +1,39 @@
+{
+  "dataset": "ISIC 2020",
+  "modelo": "A71 original (sensibilidad: batch 16, transductivo)",
+  "condicion": "congelado",
+  "clases": [
+    "benigno",
+    "maligno"
+  ],
+  "n": 6660,
+  "conteos": [
+    [
+      6399,
+      139
+    ],
+    [
+      71,
+      51
+    ]
+  ],
+  "normalizada_por_fila": [
+    [
+      0.9787396757418171,
+      0.02126032425818293
+    ],
+    [
+      0.5819672131147541,
+      0.4180327868852459
+    ]
+  ],
+  "mcc": 0.3196060234525182,
+  "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+  "fuente": [
+    "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2020/A71__original.json"
+  ],
+  "verificacion": {
+    "n_val_json": 6660,
+    "n_desde_matriz": 6660
+  }
+}

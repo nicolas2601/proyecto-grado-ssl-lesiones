@@ -157,6 +157,39 @@
       ]
     },
     {
+      "json": "confusion/isic2019/b71limpio__congelado.json",
+      "png": "confusion/isic2019/b71limpio__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "B71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__clean.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/b71_original__congelado.json",
+      "png": "confusion/isic2019/b71_original__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "B71 original (sensibilidad: batch 16, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2019/B71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/a71_original__congelado.json",
+      "png": "confusion/isic2019/a71_original__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "A71 original (sensibilidad: batch 16, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2019/A71__original.json"
+      ]
+    },
+    {
       "json": "confusion/isic2020/dinov2_vits14__congelado.json",
       "png": "confusion/isic2020/dinov2_vits14__congelado.png",
       "dataset": "ISIC 2020",
@@ -188,6 +221,39 @@
       "fuente": [
         "results/baselines_isic2020/results_simsiam_r50_isic2020.json"
       ]
+    },
+    {
+      "json": "confusion/isic2020/b71limpio__congelado.json",
+      "png": "confusion/isic2020/b71limpio__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "B71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__clean.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/b71_original__congelado.json",
+      "png": "confusion/isic2020/b71_original__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "B71 original (sensibilidad: batch 16, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2020/B71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/a71_original__congelado.json",
+      "png": "confusion/isic2020/a71_original__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "A71 original (sensibilidad: batch 16, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2020/A71__original.json"
+      ]
     }
   ],
   "pendientes": [
@@ -196,7 +262,8 @@
       "modelo": "DINOv2 ViT-S/14",
       "condicion": "fine-tuning",
       "estado": "no ejecutado todavia",
-      "motivo": "G1.3 de docs/33 (fine-tuning en ISIC 2020)",
+      "motivo": "el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2",
+      "eta": "arranca al terminar E2 (~10:30 UTC); la duración no está medida",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
@@ -204,7 +271,8 @@
       "modelo": "DINOv2 ViT-B/14",
       "condicion": "fine-tuning",
       "estado": "no ejecutado todavia",
-      "motivo": "G1.3 de docs/33 (fine-tuning en ISIC 2020)",
+      "motivo": "el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2",
+      "eta": "arranca al terminar E2 (~10:30 UTC); la duración no está medida",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
@@ -212,89 +280,82 @@
       "modelo": "SimSiam ResNet-50",
       "condicion": "fine-tuning",
       "estado": "no ejecutado todavia",
-      "motivo": "G1.3 de docs/33 (fine-tuning en ISIC 2020)",
+      "motivo": "el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2",
+      "eta": "arranca al terminar E2 (~10:30 UTC); la duración no está medida",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
       "dataset": "HAM10000",
-      "modelo": "B71-limpio",
+      "modelo": "B71-limpio (canónico)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "E1 de docs/33",
+      "motivo": "E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio)",
+      "eta": "no declarada por el operador",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
       "dataset": "HAM10000",
-      "modelo": "A71-limpio",
+      "modelo": "A71-limpio (canónico)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "E1 de docs/33",
+      "motivo": "falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios",
+      "eta": "~15:00 UTC",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
       "dataset": "ISIC 2019",
-      "modelo": "B71-limpio",
+      "modelo": "A71-limpio (canónico)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "E1 de docs/33",
+      "motivo": "falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios",
+      "eta": "~15:00 UTC",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
       "dataset": "ISIC 2019",
-      "modelo": "B71 original (transductivo)",
+      "modelo": "B71 original (canónico, transductivo)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "E1 de docs/33",
+      "motivo": "re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16",
+      "eta": "~15:00 UTC",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
       "dataset": "ISIC 2019",
-      "modelo": "A71-limpio",
+      "modelo": "A71 original (canónico, transductivo)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "E1 de docs/33",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
-    {
-      "dataset": "ISIC 2019",
-      "modelo": "A71 original (transductivo)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "E1 de docs/33",
+      "motivo": "re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16",
+      "eta": "~15:00 UTC",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
       "dataset": "ISIC 2020",
-      "modelo": "B71-limpio",
+      "modelo": "A71-limpio (canónico)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "E1 de docs/33",
+      "motivo": "falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios",
+      "eta": "~15:00 UTC",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
       "dataset": "ISIC 2020",
-      "modelo": "B71 original (transductivo)",
+      "modelo": "B71 original (canónico, transductivo)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "E1 de docs/33",
+      "motivo": "re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16",
+      "eta": "~15:00 UTC",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
       "dataset": "ISIC 2020",
-      "modelo": "A71-limpio",
+      "modelo": "A71 original (canónico, transductivo)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "E1 de docs/33",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
-    {
-      "dataset": "ISIC 2020",
-      "modelo": "A71 original (transductivo)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "E1 de docs/33",
+      "motivo": "re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16",
+      "eta": "~15:00 UTC",
       "fuente": "docs/33-banco-completo-multidataset.md"
     }
   ],
-  "figura_de_diferencias": "No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partición v6/v7 (n = 2.004) y los baselines sobre la de Kaggle (n = 2.014); no comparten partición ni imágenes, así que una resta celda a celda no tiene sentido. Se hará cuando exista B71 sobre la misma partición que un baseline."
+  "figura_de_diferencias": "No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partición v6/v7 (n = 2.004) y los baselines sobre la de Kaggle (n = 2.014); no comparten partición ni imágenes, así que una resta celda a celda no tiene sentido. En ISIC 2019 e ISIC 2020 B71-limpio sí comparte partición con los baselines, pero tampoco se genera la figura de diferencias (decisión de alcance)."
 }

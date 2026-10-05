@@ -42,8 +42,9 @@ def text_outputs(repo: Path = REPO) -> dict[Path, str]:
     arts = confusion.artifacts(repo)
     for art in arts:
         out[confusion.rel_json(art)] = confusion.dump(art)
-    out[confusion.OUT / "manifest.json"] = confusion.dump(confusion.manifest(arts))
-    out[confusion.OUT / "README.md"] = readme(arts, confusion.pending())
+    waiting = confusion.pending(repo)
+    out[confusion.OUT / "manifest.json"] = confusion.dump(confusion.manifest(arts, waiting))
+    out[confusion.OUT / "README.md"] = readme(arts, waiting)
     return out
 
 
@@ -58,20 +59,24 @@ def stale(outputs: dict[Path, str], root: Path) -> list[Path]:
             if not (root / rel).is_file() or (root / rel).read_text(encoding="utf-8") != text]
 
 
-def write(outputs: dict[Path, str], root: Path, png: bool = True) -> None:
+def write(outputs: dict[Path, str], root: Path, png: bool = True, redraw: bool = False) -> None:
+    """Write the text files; draw only the PNG that are missing (PNG bytes vary by matplotlib version)."""
     for rel, text in outputs.items():
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
         (root / rel).write_text(text, encoding="utf-8")
     if not png:
         return
     for art in confusion.artifacts(REPO):
-        write_png(art, root / confusion.rel_json(art).with_suffix(".png"))
+        target = root / confusion.rel_json(art).with_suffix(".png")
+        if redraw or not target.is_file():
+            write_png(art, target)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if a generated file is stale")
     parser.add_argument("--skip-png", action="store_true", help="do not draw or require the PNG figures")
+    parser.add_argument("--redraw-png", action="store_true", help="redraw PNG that already exist")
     parser.add_argument("--out-root", type=Path, default=REPO / OUT, help="output directory (tests use a tmp dir)")
     args = parser.parse_args(argv)
     outputs = text_outputs()
@@ -81,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
         for rel in bad:
             print(f"{OUT / rel} is stale: run scripts/build_bench_tables.py", file=sys.stderr)
         return 1 if bad else 0
-    write(outputs, args.out_root, png=not args.skip_png)
+    write(outputs, args.out_root, png=not args.skip_png, redraw=args.redraw_png)
     print(f"wrote {len(outputs)} files under {OUT}")
     return 0
 

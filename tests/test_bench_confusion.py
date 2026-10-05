@@ -28,10 +28,22 @@ def _expand(cm):
     return y_true, y_pred
 
 
-def test_scope_is_self_supervised_only_and_has_17_cells():
+def test_scope_is_self_supervised_only_and_has_23_cells():
     assert {a["modelo"].split(" (")[0] for a in ARTS} == {
-        "DINOv2 ViT-S/14", "DINOv2 ViT-B/14", "SimSiam ResNet-50", "B71", "A71"}
-    assert len(ARTS) == 17
+        "DINOv2 ViT-S/14", "DINOv2 ViT-B/14", "SimSiam ResNet-50", "B71", "A71", "B71-limpio", "B71 original",
+        "A71 original"}
+    assert len(ARTS) == 17 + 6
+
+
+def test_isic_cells_come_from_the_e1_json_and_state_their_compute():
+    isic = [a for a in ARTS if a["dataset"] != "HAM10000" and a["modelo"].startswith(("B71", "A71"))]
+    assert len(isic) == 6
+    for art in isic:
+        cell = json.loads((REPO / art["fuente"][0]).read_text(encoding="utf-8"))["result"]
+        assert art["conteos"] == cell["metrics"]["matriz_confusion"]
+        assert art["verificacion"] == {"n_val_json": cell["n_val"], "n_desde_matriz": art["n"]}
+        assert ("canónico" in art["origen"]) == (art["modelo"] == "B71-limpio (canónico)")
+        assert ("transductivo" in art["modelo"]) == art["modelo"].endswith("transductivo)")
 
 
 def test_committed_json_files_equal_the_generated_artifacts():
@@ -41,7 +53,7 @@ def test_committed_json_files_equal_the_generated_artifacts():
 
 
 def test_counts_come_from_the_source_matrix_and_rows_normalize_to_one():
-    for art in (a for a in ARTS if a["origen"].startswith("matriz_confusion")):
+    for art in (a for a in ARTS if a["origen"] == "matriz_confusion del JSON"):
         source = json.loads((REPO / art["fuente"][0]).read_text(encoding="utf-8"))["probes"]
         probe = source["logreg"] if art["condicion"] == "congelado" else source["finetune"]
         assert art["conteos"] == probe["matriz_confusion"]
@@ -55,7 +67,7 @@ def test_artifact_mcc_matches_sklearn_on_expanded_labels():
 
 
 def test_v71_matrices_are_derived_and_reproduce_the_stored_accuracy():
-    v71 = [a for a in ARTS if a["modelo"].startswith(("A71", "B71"))]
+    v71 = [a for a in ARTS if a["dataset"] == "HAM10000" and a["modelo"].startswith(("A71", "B71"))]
     assert len(v71) == 2 and all("no trae matriz_confusion" in a["origen"] for a in v71)
     for art in v71:
         check = art["verificacion"]
@@ -67,7 +79,11 @@ def test_manifest_lists_pending_cells_and_the_missing_diff_figure():
     manifest = json.loads((OUT / "confusion" / "manifest.json").read_text(encoding="utf-8"))
     pend = {(p["dataset"], p["modelo"], p["condicion"]): p["estado"] for p in manifest["pendientes"]}
     assert pend[("ISIC 2020", "DINOv2 ViT-B/14", "fine-tuning")] == "no ejecutado todavia"
-    assert any(m.endswith("-limpio") for _, m, _ in pend)
+    assert any(m.startswith("A71-limpio") for _, m, _ in pend)
+    assert all(p["eta"] and p["motivo"] for p in manifest["pendientes"])
+    names = {(p["dataset"], p["modelo"]) for p in manifest["pendientes"]}
+    assert ("ISIC 2019", "B71 original (canónico, transductivo)") in names
+    assert ("ISIC 2019", "B71-limpio (canónico)") not in names
     assert "no comparten partición" in manifest["figura_de_diferencias"]
     readme = (OUT / "confusion" / "README.md").read_text(encoding="utf-8")
     assert "No se genera figura de diferencias frente a B71" in readme
