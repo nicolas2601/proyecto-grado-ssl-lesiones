@@ -37,6 +37,7 @@ WIRED = {
     "scripts/c1_verify_bank_reproduction.py": "the --report JSON",
     "scripts/c1_near_dup_embed.py": "the embedding near-duplicate JSON (floating point, GPU)",
     "scripts/pad_ufes_eval.py": "the PAD-UFES zero-shot evaluation JSON",
+    "scripts/pad_e2_eval.py": "the PAD-UFES E2 evaluation JSON of D0..D3 on target_test (docs/33 E2)",
     "scripts/pad_ufes_addendum.py": "the PAD-UFES A71/s44 descriptive addendum JSON (docs/30 7)",
     "scripts/pad_ufes_fst_validation.py": "the PAD-UFES FST validation JSON",
     "scripts/pad_ufes_wiseft.py": "the PAD-UFES WiSE-FT alpha curve JSON (docs/30 8)",
