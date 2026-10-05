@@ -24,7 +24,8 @@ JSON_KEYS = {"auc": "auc_ovr_macro"}
 FROZEN, FINETUNE = "congelados (sin fine-tuning)", "con fine-tuning"
 SENSITIVITY = "sensibilidad (cómputo no canónico: batch 16, transductivo)"
 EXPLORATORY = "exploratorio (segmentación, no cambia el propuesto)"
-BLOCKS = (FROZEN, FINETUNE, SENSITIVITY, EXPLORATORY)
+CLEAN_HAM = "pesos limpios (sensibilidad)"
+BLOCKS = (FROZEN, FINETUNE, CLEAN_HAM, SENSITIVITY, EXPLORATORY)
 OK, PENDING = "ok", "pendiente"
 MODELS = ("alexnet", "vgg19", "resnet50", "efficientnet_b0", "vit_b16", "simsiam_r50",
           "dinov2_vits14", "dinov2_vitb14")
@@ -142,13 +143,18 @@ def baseline_rows(repo: Path, ds: Dataset) -> list[Row]:
 
 
 def v71_derived(repo: Path, key: str) -> tuple[list[list[int]], dict[str, Value]]:
-    """Confusion matrix of a v7.1 arm from its stored probabilities, and its metric values.
+    """Confusion matrix of a v7.1 arm from its stored probabilities, and its metric values."""
+    return derived(repo, V71_JSON, V71_NPZ, key)
+
+
+def derived(repo: Path, json_rel: str, npz_rel: str, key: str) -> tuple[list[list[int]], dict[str, Value]]:
+    """Same for any result JSON of the v7.1 shape (``results[key]`` + probabilities under ``key``).
 
     Accuracy, balanced accuracy, macro-F1, AUC and ECE come from the JSON (with its CI);
     precision, recall and MCC are not stored there, so they come from the argmax of the
     committed probabilities (which reproduce the stored accuracy and macro-F1 exactly).
     """
-    doc, npz = _load(repo, V71_JSON), np.load(repo / V71_NPZ)
+    doc, npz = _load(repo, json_rel), np.load(repo / npz_rel)
     cm = metrics.confusion_from_probabilities(npz["y_true"], npz[key])
     precision, recall = metrics.macro_precision_recall(cm)
     stored = doc["results"][key]

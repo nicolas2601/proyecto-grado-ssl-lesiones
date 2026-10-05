@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from dermssl import ham_clean as hc
 from dermssl.bench import pending
 from dermssl.bench.contrast import num
-from dermssl.bench.rows import (EXPLORATORY, FROZEN, OK, OWN_A, OWN_B, PENDING, PLAN_DOC, V71_JSON, V71_NPZ, V71_ROWS,
-                                Row, Value, _load, v71_derived)
+from dermssl.bench.rows import (CLEAN_HAM, EXPLORATORY, FROZEN, OK, OWN_A, OWN_B, PENDING, PLAN_DOC, V71_JSON, V71_NPZ, V71_ROWS,
+                                Row, Value, _load, derived, v71_derived)
 
 E3_DIR = "resultados/banco_completo/e3"
 E3B_CANONICAL = "resultados/banco_completo/e3b_bs64/e3b_summary.json"
@@ -21,6 +22,12 @@ COMPUTES = (("S0", "batch 16 + autocast", f"{E3_DIR}/e3_final_eval.json"),
 F4_ARM = "B71+F4_tta"
 F4_SEGMENTATION = "sí (F4, exploratorio)"
 F4_METRICS = {"auc": "auc_ovr_macro"}
+ORIGINAL_NOTE = "pesos originales (selección)"
+CLEAN_NOTE = ("pesos limpios (pool SSL sin las imágenes de val de ISIC); análisis de sensibilidad posterior, no es "
+              "selección: configuración y umbrales del holdout original (ajustados con los pesos originales y "
+              "aplicados sin cambios); cómputo canónico (batch 64 + autocast); se lee al lado de la fila registrada "
+              "de pesos originales, que no se reemplaza")
+CLEAN_ROWS = (("B71_clean", "B71-limpio (canónico)", OWN_B), ("A71_clean", "A71-limpio (canónico)", OWN_A))
 
 
 def compute_values(repo: Path, model: str) -> dict[str, float]:
@@ -41,6 +48,7 @@ def proposed_rows(repo: Path) -> list[Row]:
     out = []
     for key, name, pre in V71_ROWS:
         note = b71_note(repo) if key == "B71" else "probe logreg C1; precisión, recall y MCC desde las probabilidades"
+        note = ORIGINAL_NOTE + "; " + note
         out.append(Row("ham10000", FROZEN, name, pre, False, False, OK, (V71_JSON, V71_NPZ), n_eval,
                        v71_derived(repo, key)[1], note))
     return out
@@ -74,12 +82,15 @@ def f4_row(repo: Path) -> Row:
                (E3B_CANONICAL, COMPUTES[1][2]), record["n"], f4_values(record), f4_note(repo), F4_SEGMENTATION)
 
 
-def pending_rows() -> list[Row]:
-    return [Row("ham10000", FROZEN, "B71-limpio (canónico)", OWN_B, False, False, PENDING, (PLAN_DOC,),
-                note=pending.HAM_CLEAN.note),
-            Row("ham10000", FROZEN, "A71-limpio (canónico)", OWN_A, False, False, PENDING, (PLAN_DOC,),
-                note=pending.HAM_CLEAN.note)]
+def clean_rows(repo: Path) -> list[Row]:
+    """Measured clean-weight rows when the result JSON exists, else the pending ones (derived from the file)."""
+    if not (repo / hc.RESULT_JSON).is_file():
+        return [Row("ham10000", CLEAN_HAM, name, pre, False, False, PENDING, (PLAN_DOC,), note=pending.HAM_CLEAN.note)
+                for _, name, pre in CLEAN_ROWS]
+    n_eval = _load(repo, hc.RESULT_JSON)["n_eval"]
+    return [Row("ham10000", CLEAN_HAM, name, pre, False, False, OK, (hc.RESULT_JSON, hc.RESULT_NPZ), n_eval,
+                derived(repo, hc.RESULT_JSON, hc.RESULT_NPZ, key)[1], CLEAN_NOTE) for key, name, pre in CLEAN_ROWS]
 
 
 def ham_rows(repo: Path) -> list[Row]:
-    return proposed_rows(repo) + [f4_row(repo)] + pending_rows()
+    return proposed_rows(repo) + [f4_row(repo)] + clean_rows(repo)

@@ -132,5 +132,5 @@ def test_shared_reading_rule_says_isic2020_finetune_ran_in_our_pod():
 
 def test_ham_clean_rows_stay_pending_with_the_current_reason_and_no_eta():
     rows = [ln for ln in _md("TABLA_HAM10000").splitlines() if ln.startswith("| — | ") and "limpio" in ln]
-    with_reason = [r for r in rows if "no hay transductividad que corregir" in r and "sin ETA" in r]
+    with_reason = [r for r in rows if "ham_clean_val.json" in r and "sin ETA" in r]
     assert len(with_reason) == 2 and len(rows) == 4  # condition table + metrics table

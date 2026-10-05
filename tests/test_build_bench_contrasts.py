@@ -62,7 +62,7 @@ def test_ham_mcc_pairs_are_declared_unavailable_not_invented():
 def test_pending_contrasts_are_only_the_ones_without_data():
     block = _text().split("### Contrastes pendientes")[1]
     assert "D3 − D2" not in block and "~10:30" not in block and "~15:00" not in block
-    assert "MCC en HAM10000" in block and "no hay transductividad que corregir" in block
+    assert "MCC en HAM10000" in block and "ham_clean_val.json" in block and "no es una corrección de transductividad" in block
     assert block.count("sin ETA") == 2
 
 

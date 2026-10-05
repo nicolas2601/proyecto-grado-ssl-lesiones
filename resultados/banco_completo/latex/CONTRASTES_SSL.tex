@@ -678,7 +678,7 @@ SimSiam ResNet-50 & 0,4795 [0,4693; 0,4906] & los IC no se solapan (solo de inte
 Contraste & Motivo & ETA \\
 \midrule
 Contrastes pareados de MCC en HAM10000 (E3 y E3b) & los JSON de E3/E3b no traen MCC en sus contrastes; recomputarlos con el código actual (1d7e447) & sin ETA \\
-B71-limpio y A71-limpio contra el original en HAM10000 & no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte & sin ETA \\
+B71-limpio y A71-limpio contra el original en HAM10000 & la sensibilidad de pesos limpios sobre la val de HAM10000 (scripts/ham\_clean\_run.py) no se ha ejecutado: todavía no existe resultados/banco\_completo/ham\_clean/ham\_clean\_val.json; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican & sin ETA \\
 \bottomrule
 \end{tabular}}
 \caption{Contrastes pendientes}\label{tab:contrast-pending}

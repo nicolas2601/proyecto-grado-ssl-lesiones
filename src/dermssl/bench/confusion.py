@@ -10,9 +10,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from dermssl import ham_clean as hc
 from dermssl.bench import glossary, isic_rows, metrics, pending as pend
 from dermssl.bench.rows import (DATASETS, MODEL_NAMES, PENDING, PLAN_DOC, V71_JSON, V71_NPZ, V71_ROWS,
-                                _load, v71_derived)
+                                _load, derived, v71_derived)
 
 SSL_MODELS = ("dinov2_vits14", "dinov2_vitb14", "simsiam_r50")
 CONDITIONS = ("congelado", "fine-tuning")
@@ -69,6 +70,25 @@ def _v71_cell(repo: Path, key: str) -> dict:
     return art
 
 
+HAM_CLEAN_CELLS = (("B71_clean", "B71-limpio (canónico)"), ("A71_clean", "A71-limpio (canónico)"))
+HAM_CLEAN_ORIGIN = ("argmax de las probabilidades commiteadas de la sensibilidad de pesos limpios (cómputo canónico; "
+                    "análisis posterior, no es selección)")
+
+
+def _ham_clean_cells(repo: Path) -> list[dict]:
+    """Matrices of the clean-weight rows; none until the result JSON exists."""
+    if not (repo / hc.RESULT_JSON).is_file():
+        return []
+    out = []
+    for key, model in HAM_CLEAN_CELLS:
+        cm = derived(repo, hc.RESULT_JSON, hc.RESULT_NPZ, key)[0]
+        art = _artifact(repo, "ham10000", model, CONDITIONS[0], cm, [hc.RESULT_JSON, hc.RESULT_NPZ], HAM_CLEAN_ORIGIN)
+        art["verificacion"] = {"accuracy_json": _load(repo, hc.RESULT_JSON)["results"][key]["accuracy"],
+                               "accuracy_desde_matriz": sum(cm[i][i] for i in range(len(cm))) / art["n"]}
+        out.append(art)
+    return out
+
+
 def _isic_cell(repo: Path, ds_key: str, folder: str, cell: str, model: str, origin: str) -> dict | None:
     rel = isic_rows.cell_path(folder, ds_key, cell)
     if not (repo / rel).is_file():
@@ -95,7 +115,7 @@ def artifacts(repo: Path) -> list[dict]:
         for model in SSL_MODELS:
             out += [a for c in CONDITIONS if (a := _baseline_cell(repo, ds_key, model, c))]
         if ds_key == "ham10000":
-            out += [_v71_cell(repo, key) for key, _, _ in V71_ROWS if key in V71_ARMS]
+            out += [_v71_cell(repo, key) for key, _, _ in V71_ROWS if key in V71_ARMS] + _ham_clean_cells(repo)
             continue
         out += [a for f, c, m, _, o in ISIC_CELLS if (a := _isic_cell(repo, ds_key, f, c, m, o))]
     return out
@@ -116,7 +136,8 @@ def pending(repo: Path) -> list[dict]:
     out = [_pending(DATASETS["isic2020"].title, MODEL_NAMES[m], pend.missing(f"{ft}/results_{m}_ft_isic2020.json"),
                     CONDITIONS[1]) for m in SSL_MODELS if _baseline_cell(repo, "isic2020", m, CONDITIONS[1]) is None]
     ham = DATASETS["ham10000"].title
-    out += [_pending(ham, f"{key}-limpio (canónico)", pend.HAM_CLEAN) for key in V71_ARMS]
+    if not (repo / hc.RESULT_JSON).is_file():
+        out += [_pending(ham, f"{key}-limpio (canónico)", pend.HAM_CLEAN) for key in V71_ARMS]
     for ds in (d for d in DATASETS.values() if d.key != "ham10000"):
         for cell, label in ((f"{key}__clean", f"{key}-limpio (canónico)") for key in V71_ARMS):
             if _missing(repo, ds.key, cell):

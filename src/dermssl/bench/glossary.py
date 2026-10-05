@@ -32,6 +32,9 @@ GLOSSARY = [
     "etiquetas). Solo aplica a B71/A71 originales en ISIC 2019 e ISIC 2020.",
     "- **Cómputo canónico:** extracción de features con batch 64 y autocast CUDA (el de v7.1). El batch 16 "
     "mueve las cifras unas milésimas (orden de reducción en fp16) y se reporta solo como **sensibilidad**.",
+    "- **Pesos limpios (sensibilidad):** B71/A71 re-preentrenados con un pool SSL sin las imágenes de val de ISIC "
+    "(docs/33, sección 2). En HAM10000 son un análisis posterior que se lee al lado de la fila registrada de "
+    "**pesos originales (selección)**; no es selección y no reemplaza al propuesto.",
     "- **Contraste pareado:** diferencia entre dos modelos sobre las mismas imágenes, con IC bootstrap de la "
     "diferencia. «Mejor» solo si el IC excluye 0; si lo incluye, «sin diferencia demostrable».",
     "- **Exploratorio:** variantes post-hoc o con selección en otro conjunto; se reportan pero no cambian el "
@@ -96,6 +99,11 @@ def reading_rules(repo: Path, datasets: dict[str, Dataset]) -> list[str]:
         "macro; B71/A71, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall "
         "macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en B71/A71 salen "
         "de las probabilidades commiteadas, también sin IC.",
+        "- **Pesos limpios en HAM10000: sensibilidad posterior, no es selección.** La fila registrada del propuesto "
+        "(pesos originales, selección) no se reemplaza. Las filas del bloque «pesos limpios (sensibilidad)» usan la "
+        "configuración y los umbrales de operación del holdout original, ajustados con los pesos originales y "
+        "aplicados sin cambios a los limpios (supuesto declarado), con cómputo canónico; sus contrastes pareados "
+        "(por `lesion_id`, con MCC) están en `CONTRASTES_SSL.md` y `TABLA_ABLACION.md`.",
         "- Las filas «pendiente» no tienen número: se listan con su motivo técnico (sin "
         "ETA inventada), para que nada parezca olvidado. No se inventa ninguna cifra.",
     ]

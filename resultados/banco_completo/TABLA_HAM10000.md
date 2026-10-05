@@ -17,6 +17,7 @@ Generado por `scripts/build_bench_tables.py` desde los JSON del repositorio. No 
 - **Segmentación:** uso de máscaras de lesión como entrada. La columna dice «no» en todas las filas salvo en el bloque exploratorio de HAM10000 (variante F4 del bloque E3 de docs/33), que no cambia el propuesto.
 - **Transductivo:** el pool de preentrenamiento auto-supervisado contenía las imágenes de val (sin etiquetas). Solo aplica a B71/A71 originales en ISIC 2019 e ISIC 2020.
 - **Cómputo canónico:** extracción de features con batch 64 y autocast CUDA (el de v7.1). El batch 16 mueve las cifras unas milésimas (orden de reducción en fp16) y se reporta solo como **sensibilidad**.
+- **Pesos limpios (sensibilidad):** B71/A71 re-preentrenados con un pool SSL sin las imágenes de val de ISIC (docs/33, sección 2). En HAM10000 son un análisis posterior que se lee al lado de la fila registrada de **pesos originales (selección)**; no es selección y no reemplaza al propuesto.
 - **Contraste pareado:** diferencia entre dos modelos sobre las mismas imágenes, con IC bootstrap de la diferencia. «Mejor» solo si el IC excluye 0; si lo incluye, «sin diferencia demostrable».
 - **Exploratorio:** variantes post-hoc o con selección en otro conjunto; se reportan pero no cambian el propuesto ni se leen como resultado confirmado.
 
@@ -35,6 +36,7 @@ Particiones de val de este banco (no son la misma partición):
 - **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 e ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). Las de ISIC 2020 corrieron en nuestro pod (GPU RTX PRO 4000), no en el banco de Karen. El propuesto no tiene fine-tuning y no se ve afectado.
 - **Modelo y protocolo no son lo mismo.** El propuesto usa el protocolo de B71 (features cls4, TTA, probe balanceado); la fila «DINOv2 público, protocolo de B71» es el control con el mismo protocolo y pesos públicos. Los 8 baselines siguen el protocolo de su propio banco (probe logreg).
 - Los IC solo existen donde la fuente los publica: los baselines, para exactitud balanceada y F1 macro; B71/A71, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en B71/A71 salen de las probabilidades commiteadas, también sin IC.
+- **Pesos limpios en HAM10000: sensibilidad posterior, no es selección.** La fila registrada del propuesto (pesos originales, selección) no se reemplaza. Las filas del bloque «pesos limpios (sensibilidad)» usan la configuración y los umbrales de operación del holdout original, ajustados con los pesos originales y aplicados sin cambios a los limpios (supuesto declarado), con cómputo canónico; sus contrastes pareados (por `lesion_id`, con MCC) están en `CONTRASTES_SSL.md` y `TABLA_ABLACION.md`.
 - Las filas «pendiente» no tienen número: se listan con su motivo técnico (sin ETA inventada), para que nada parezca olvidado. No se inventa ninguna cifra.
 
 ## Congelados (sin fine-tuning)
@@ -45,11 +47,11 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 
 | # | Modelo | Preentrenamiento | Fine-tuning | Segmentación | Transductivo | Val n | Estado | Nota | Fuente |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | A71 (ablación sin término de tono) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
-| 2 | B71 (propuesto) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades; cómputo canónico = S1 (batch 64 + autocast, el de v7.1). F1 macro de B71 en S0/S1/S2: 0,7106 / 0,7141 / 0,7089 (el cómputo de extracción mueve la cifra) | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
-| 3 | DINOv2 público, su mejor protocolo v7.1 | auto-supervisado (DINOv2 público) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
-| 4 | DINOv2 público, protocolo de B71 | auto-supervisado (DINOv2 público) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
-| 5 | DINOv2 público, protocolo de A71 | auto-supervisado (DINOv2 público) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
+| 1 | A71 (ablación sin término de tono) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | 2.004 | ok | pesos originales (selección); probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
+| 2 | B71 (propuesto) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | 2.004 | ok | pesos originales (selección); probe logreg C1; precisión, recall y MCC desde las probabilidades; cómputo canónico = S1 (batch 64 + autocast, el de v7.1). F1 macro de B71 en S0/S1/S2: 0,7106 / 0,7141 / 0,7089 (el cómputo de extracción mueve la cifra) | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
+| 3 | DINOv2 público, su mejor protocolo v7.1 | auto-supervisado (DINOv2 público) | no | no | no | 2.004 | ok | pesos originales (selección); probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
+| 4 | DINOv2 público, protocolo de B71 | auto-supervisado (DINOv2 público) | no | no | no | 2.004 | ok | pesos originales (selección); probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
+| 5 | DINOv2 público, protocolo de A71 | auto-supervisado (DINOv2 público) | no | no | no | 2.004 | ok | pesos originales (selección); probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
 | 6 | DINOv2 ViT-B/14 | auto-supervisado (DINOv2 público) | no | no | no | 2.014 | ok | — | `results/baselines/results_dinov2_vitb14.json` |
 | 7 | DINOv2 ViT-S/14 | auto-supervisado (DINOv2 público) | no | no | no | 2.014 | ok | — | `results/baselines/results_dinov2_vits14.json` |
 | 8 | EfficientNet-B0 | supervisado (ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_efficientnet_b0.json` |
@@ -58,8 +60,6 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | 11 | AlexNet | supervisado (ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_alexnet.json` |
 | 12 | VGG19 | supervisado (ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_vgg19.json` |
 | 13 | SimSiam ResNet-50 | auto-supervisado (SimSiam, ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_simsiam_r50.json` |
-| — | B71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | — | pendiente | no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; sin ETA | `docs/33-banco-completo-multidataset.md` |
-| — | A71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | — | pendiente | no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; sin ETA | `docs/33-banco-completo-multidataset.md` |
 
 ### Métricas [IC 95 % donde la fuente lo publica]
 
@@ -78,8 +78,6 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | 11 | AlexNet | 0,6663 | 0,5892 [0,5478; 0,6311] | 0,4496 | 0,5892 | 0,4929 [0,4584; 0,5215] | 0,8961 | 0,0793 | 0,4862 |
 | 12 | VGG19 | 0,6182 | 0,5147 [0,4724; 0,5546] | 0,3771 | 0,5147 | 0,4151 [0,3858; 0,4404] | 0,8702 | 0,0707 | 0,4140 |
 | 13 | SimSiam ResNet-50 | 0,4896 | 0,4942 [0,4531; 0,5394] | 0,3354 | 0,4942 | 0,3169 [0,2939; 0,3405] | 0,8291 | 0,2465 | 0,3186 |
-| — | B71-limpio (canónico) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
-| — | A71-limpio (canónico) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
 
 ## Con fine-tuning
 
@@ -110,6 +108,24 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | 6 | SimSiam ResNet-50 | 0,6877 | 0,6782 [0,6396; 0,7174] | 0,4724 | 0,6782 | 0,5323 [0,5007; 0,5634] | 0,9243 | 0,0246 | 0,5198 |
 | 7 | DINOv2 ViT-S/14 | 0,6390 | 0,6207 [0,5808; 0,6598] | 0,4471 | 0,6207 | 0,4953 [0,4643; 0,5252] | 0,9147 | 0,0536 | 0,4657 |
 | 8 | DINOv2 ViT-B/14 | 0,5929 | 0,5325 [0,4903; 0,5724] | 0,3950 | 0,5325 | 0,4268 [0,3970; 0,4545] | 0,8881 | 0,0601 | 0,4149 |
+
+## Pesos limpios (sensibilidad)
+
+Orden: F1 macro de mayor a menor; las filas sin número van al final.
+
+### Condición
+
+| # | Modelo | Preentrenamiento | Fine-tuning | Segmentación | Transductivo | Val n | Estado | Nota | Fuente |
+|---|---|---|---|---|---|---|---|---|---|
+| — | B71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | — | pendiente | la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican; sin ETA | `docs/33-banco-completo-multidataset.md` |
+| — | A71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | — | pendiente | la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican; sin ETA | `docs/33-banco-completo-multidataset.md` |
+
+### Métricas [IC 95 % donde la fuente lo publica]
+
+| # | Modelo | Accuracy | Exactitud balanceada | Precisión macro | Recall macro | F1 macro | AUC OvR macro | ECE ↓ | MCC |
+|---|---|---|---|---|---|---|---|---|---|
+| — | B71-limpio (canónico) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
+| — | A71-limpio (canónico) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
 
 ## Exploratorio (segmentación, no cambia el propuesto)
 

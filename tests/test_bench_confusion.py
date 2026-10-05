@@ -86,7 +86,7 @@ def test_manifest_lists_pending_cells_and_the_missing_diff_figure():
     assert all(p["eta"] and p["motivo"] for p in manifest["pendientes"])
     names = {(p["dataset"], p["modelo"]) for p in manifest["pendientes"]}
     assert names == {("HAM10000", "B71-limpio (canónico)"), ("HAM10000", "A71-limpio (canónico)")}
-    assert all("no hay transductividad que corregir" in p["motivo"] for p in manifest["pendientes"])
+    assert all("ham_clean_val.json" in p["motivo"] for p in manifest["pendientes"])
     assert "no comparten partición" in manifest["figura_de_diferencias"]
     readme = (OUT / "confusion" / "README.md").read_text(encoding="utf-8")
     assert "No se genera figura de diferencias frente a B71" in readme

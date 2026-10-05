@@ -8,12 +8,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dermssl.bench import e2_tables, isic_rows
+from dermssl.bench import contrasts_doc, e2_tables, isic_rows
 from dermssl.bench.contrast import num
 from dermssl.bench.ham_rows import COMPUTES, E3_DIR
 from dermssl.bench.contrasts_load import ROBUSTNESS
 from dermssl.bench.render import cell
-from dermssl.bench.rows import (DATASETS, FROZEN, OK, SENSITIVITY, V71_JSON, V71_NPZ, Value, _load,
+from dermssl.bench.rows import (CLEAN_HAM, DATASETS, FROZEN, OK, SENSITIVITY, V71_JSON, V71_NPZ, Value, _load,
                                 dataset_rows, v71_derived)
 from dermssl.bench.tables import Table
 
@@ -57,7 +57,7 @@ def clean_table(repo: Path) -> Table:
     rows = []
     for ds in DATASETS.values():
         for r in dataset_rows(repo, ds):
-            if not r.name.startswith(("B71", "A71")) or "F4" in r.name or r.block not in (FROZEN, SENSITIVITY):
+            if not r.name.startswith(("B71", "A71")) or "F4" in r.name or r.block not in (FROZEN, SENSITIVITY, CLEAN_HAM):
                 continue
             ok = r.status == OK
             rows.append([ds.title, r.name, YES_NO[r.transductive], cell(r.values["macro_f1"]) if ok else r.status,
@@ -174,6 +174,7 @@ def robustness_table(repo: Path) -> Table:
 
 
 def tables(repo: Path) -> list[Table]:
-    out = [version_table(repo), clean_table(repo), selection_table(repo), val_table(repo),
+    out = [version_table(repo), clean_table(repo), *contrasts_doc.ham_clean_table(repo, "ablation-ham-clean")[0],
+           selection_table(repo), val_table(repo),
            sensitivity_table(repo), robustness_table(repo)]
     return out + ([e2_tables.arms_table(repo), e2_tables.contrasts_table(repo)] if e2_tables.exists(repo) else [])

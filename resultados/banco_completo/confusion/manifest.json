@@ -361,7 +361,7 @@
       "modelo": "B71-limpio (canónico)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte",
+      "motivo": "la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican",
       "eta": "sin ETA",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
@@ -370,7 +370,7 @@
       "modelo": "A71-limpio (canónico)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte",
+      "motivo": "la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican",
       "eta": "sin ETA",
       "fuente": "docs/33-banco-completo-multidataset.md"
     }

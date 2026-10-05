@@ -2,12 +2,14 @@
 
 A cell is pending only while its JSON is missing: every row, matrix and contrast is derived from
 the files on disk, so a stale reason cannot outlive its data. The only reason written by hand is
-the HAM10000 clean-weights one, a decision and not a wait. No ETA is invented: ``sin ETA``.
+the HAM10000 clean-weights one, which names the missing file. No ETA is invented: ``sin ETA``.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+
+from dermssl import ham_clean
 
 NO_ETA = "sin ETA"
 
@@ -22,9 +24,10 @@ class Pending:
         return f"{self.reason}; {self.eta}"
 
 
-HAM_CLEAN = Pending("no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba "
-                    "excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no "
-                    "justificó una corrida más antes del corte")
+HAM_CLEAN = Pending(f"la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se "
+                    f"ha ejecutado: todavía no existe `{ham_clean.RESULT_JSON}`; el val de HAM ya estaba excluido del "
+                    "pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian "
+                    "las cifras con los pesos que se publican")
 
 
 def missing(rel: str) -> Pending:

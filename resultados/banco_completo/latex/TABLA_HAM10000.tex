@@ -22,8 +22,6 @@ ResNet-50 & supervisado & no & no & no & 0,7314 & 0,5716 & 0,4980 & 0,5716 & 0,5
 AlexNet & supervisado & no & no & no & 0,6663 & 0,5892 & 0,4496 & 0,5892 & 0,4929 & 0,8961 & 0,0793 & 0,4862 & [0,4584; 0,5215] \\
 VGG19 & supervisado & no & no & no & 0,6182 & 0,5147 & 0,3771 & 0,5147 & 0,4151 & 0,8702 & 0,0707 & 0,4140 & [0,3858; 0,4404] \\
 SimSiam ResNet-50 & auto-supervisado & no & no & no & 0,4896 & 0,4942 & 0,3354 & 0,4942 & 0,3169 & 0,8291 & 0,2465 & 0,3186 & [0,2939; 0,3405] \\
-B71-limpio (canónico) & auto-supervisado propio & no & no & no & \multicolumn{9}{l}{pendiente} \\
-A71-limpio (canónico) & auto-supervisado propio & no & no & no & \multicolumn{9}{l}{pendiente} \\
 \midrule
 \multicolumn{14}{l}{\textit{con fine-tuning}} \\
 \midrule
@@ -36,11 +34,16 @@ SimSiam ResNet-50 & auto-supervisado & sí & no & no & 0,6877 & 0,6782 & 0,4724 
 DINOv2 ViT-S/14 & auto-supervisado & sí & no & no & 0,6390 & 0,6207 & 0,4471 & 0,6207 & 0,4953 & 0,9147 & 0,0536 & 0,4657 & [0,4643; 0,5252] \\
 DINOv2 ViT-B/14 & auto-supervisado & sí & no & no & 0,5929 & 0,5325 & 0,3950 & 0,5325 & 0,4268 & 0,8881 & 0,0601 & 0,4149 & [0,3970; 0,4545] \\
 \midrule
+\multicolumn{14}{l}{\textit{pesos limpios (sensibilidad)}} \\
+\midrule
+B71-limpio (canónico) & auto-supervisado propio & no & no & no & \multicolumn{9}{l}{pendiente} \\
+A71-limpio (canónico) & auto-supervisado propio & no & no & no & \multicolumn{9}{l}{pendiente} \\
+\midrule
 \multicolumn{14}{l}{\textit{exploratorio (segmentación, no cambia el propuesto)}} \\
 \midrule
 B71 + F4 (exploratorio) & auto-supervisado propio & no & sí (F4, exploratorio) & no & 0,8633 & 0,7186 & 0,7847 & 0,7186 & 0,7441 & 0,9659 & 0,0483 & 0,7355 & [0,6913; 0,7884] \\
 \bottomrule
 \end{tabular}
-\caption{Banco completo en HAM10000: particiones de val distintas entre HAM10000 (v6/v7 y Kaggle), ISIC 2019 e ISIC 2020; la comparación entre particiones es solo de intervalos. El fine-tuning elige su época sobre val (optimista). Las filas de sensibilidad usan batch 16 (no canónico) y las exploratorias no cambian el propuesto. IC solo donde la fuente lo publica.}
+\caption{Banco completo en HAM10000: particiones de val distintas entre HAM10000 (v6/v7 y Kaggle), ISIC 2019 e ISIC 2020; la comparación entre particiones es solo de intervalos. El fine-tuning elige su época sobre val (optimista). Las filas de sensibilidad usan batch 16 (no canónico) las exploratorias no cambian el propuesto y las de pesos limpios son una sensibilidad posterior, no selección. IC solo donde la fuente lo publica.}
 \label{tab:bench-ham10000}
 \end{table}

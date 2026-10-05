@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from dermssl import ham_clean as hc
 from dermssl.bench import isic_rows
 from dermssl.bench.contrast import Contrast, flipped, from_record
 from dermssl.bench.ham_rows import COMPUTES, E3_DIR
@@ -74,6 +75,18 @@ def f4_vs_b71(repo: Path, rel: str) -> list[Contrast]:
 def v71_contrasts(repo: Path) -> list[Contrast]:
     return [from_record(r, arm=V71_LABELS[r["arm"]], control=V71_LABELS[r["control"]], unit=UNIT_HAM,
                         source=V71_JSON) for r in _load(repo, V71_JSON)["paired"]]
+
+
+CLEAN_HAM_LABELS = {"B71_clean": "B71-limpio", "A71_clean": "A71-limpio", "B71": "B71 original", "A71": "A71 original",
+                    "public_B71": V71_LABELS["public_B71"], "public_A71": V71_LABELS["public_A71"]}
+
+
+def ham_clean_contrasts(repo: Path) -> list[Contrast]:
+    """The paired contrasts of the HAM10000 clean-weights sensitivity; empty until its result JSON exists."""
+    if not (repo / hc.RESULT_JSON).is_file():
+        return []
+    return [from_record(r, arm=CLEAN_HAM_LABELS[r["arm"]], control=CLEAN_HAM_LABELS[r["control"]], unit=UNIT_HAM,
+                        source=hc.RESULT_JSON) for r in _load(repo, hc.RESULT_JSON)["paired"]]
 
 
 def isic_all(repo: Path, ds_key: str) -> dict[str, list[Contrast]]:

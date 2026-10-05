@@ -60,6 +60,6 @@ def render_latex(repo: Path, ds: Dataset) -> str:
         rf"\caption{{Banco completo en {escape(ds.title)}: particiones de val distintas entre HAM10000 "
         r"(v6/v7 y Kaggle), ISIC 2019 e ISIC 2020; la comparación entre particiones es solo de intervalos. "
         r"El fine-tuning elige su época sobre val (optimista). Las filas de sensibilidad usan batch 16 (no canónico) "
-        r"y las exploratorias no cambian el propuesto. IC solo donde la fuente lo publica.}",
+        r"las exploratorias no cambian el propuesto y las de pesos limpios son una sensibilidad posterior, no selección. IC solo donde la fuente lo publica.}",
         rf"\label{{tab:bench-{ds.key}}}", r"\end{table}", "",
     ])

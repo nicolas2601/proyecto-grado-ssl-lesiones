@@ -51,7 +51,7 @@ No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partici
 
 ## Pendientes (sin matriz, no se inventa)
 
-- HAM10000, B71-limpio (canónico) (congelado): pendiente; no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; ETA sin ETA.
-- HAM10000, A71-limpio (canónico) (congelado): pendiente; no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; ETA sin ETA.
+- HAM10000, B71-limpio (canónico) (congelado): pendiente; la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican; ETA sin ETA.
+- HAM10000, A71-limpio (canónico) (congelado): pendiente; la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican; ETA sin ETA.
 
 Modelos incluidos: dinov2_vits14, dinov2_vitb14, simsiam_r50; condiciones: congelado, fine-tuning.

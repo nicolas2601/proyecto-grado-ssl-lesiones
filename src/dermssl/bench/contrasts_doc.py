@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from dermssl import ham_clean as hc
 from dermssl.bench import contrasts_load as L, e2_tables, ft_contrasts, isic_rows
 from dermssl.bench import glossary, pending, tables
 from dermssl.bench.contrast import COMPACT_HEADER, METRIC_ES, Contrast, compact_cells, count_excluding, num
@@ -80,6 +81,22 @@ def ham_v71(repo: Path) -> tuple[Table, list[Contrast]]:
     return _table("HAM10000: v7 y v7.1 (48 contrastes)", got, note, "contrast-v71"), got
 
 
+CLEAN_TITLE = "HAM10000: pesos limpios (sensibilidad) frente al original y al público"
+
+
+def ham_clean_table(repo: Path, label: str = "contrast-ham-clean") -> tuple[list[Table], list[Contrast]]:
+    """B71-limpio / A71-limpio contrasts (with MCC); no table until the result JSON exists."""
+    got = L.ham_clean_contrasts(repo)
+    if not got:
+        return [], []
+    n = f"{_load(repo, hc.RESULT_JSON)['n_eval']:,}".replace(",", ".")
+    note = ("Análisis de sensibilidad posterior, no es selección: configuración y umbrales del holdout original "
+            "(los umbrales se ajustaron con los pesos originales y se aplican sin cambios a los limpios). Cómputo "
+            f"canónico, HAM10000 val n = {n}, bootstrap pareado por `lesion_id`, 1.000 remuestras, semilla "
+            f"20260923. Fuente: `{hc.RESULT_JSON}`.")
+    return [_table(CLEAN_TITLE, got, note, label)], got
+
+
 def isic(repo: Path) -> tuple[list[Table], list[Contrast]]:
     out, items = [], []
     for ds in ("isic2019", "isic2020"):
@@ -129,7 +146,8 @@ def pending_table(repo: Path) -> Table:
         rows.append(["Contrastes pareados de MCC en HAM10000 (E3 y E3b)",
                      "los JSON de E3/E3b no traen MCC en sus contrastes; recomputarlos con el código actual (1d7e447)",
                      pending.NO_ETA])
-    rows.append(["B71-limpio y A71-limpio contra el original en HAM10000", pending.HAM_CLEAN.reason, pending.NO_ETA])
+    if not (repo / hc.RESULT_JSON).is_file():
+        rows.append(["B71-limpio y A71-limpio contra el original en HAM10000", pending.HAM_CLEAN.reason, pending.NO_ETA])
     return Table("Contrastes pendientes", ["Contraste", "Motivo", "ETA"], rows, "", "contrast-pending")
 
 
@@ -147,12 +165,13 @@ def build(repo: Path) -> tuple[list[Table], list[Contrast]]:
     f4, f4_items = ham_f4(repo)
     v71, v71_items = ham_v71(repo)
     isic_tables, isic_items = isic(repo)
+    clean_tabs, clean_items = ham_clean_table(repo)
     ft_tab, ft_items = ft_table(repo)
     e2 = [e2_tables.contrasts_table(repo)] if e2_tables.exists(repo) else []
     e2_items = e2_tables.contrasts(repo) if e2 else []
-    tabs = [*e3b, compute_table(repo), mcc_table(repo), *f4, v71, *isic_tables, ft_tab, *e2,
+    tabs = [*e3b, compute_table(repo), mcc_table(repo), *f4, v71, *clean_tabs, *isic_tables, ft_tab, *e2,
             interval_table(repo, "isic2019"), interval_table(repo, "isic2020"), pending_table(repo)]
-    return tabs, e3b_items + f4_items + v71_items + isic_items + ft_items + e2_items
+    return tabs, e3b_items + f4_items + v71_items + clean_items + isic_items + ft_items + e2_items
 
 
 def render_markdown(repo: Path) -> str:
