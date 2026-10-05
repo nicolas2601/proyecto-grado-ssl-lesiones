@@ -106,7 +106,8 @@ def run_contrast(store, contrasts_store, arm: str, control: str, *, n_resamples:
         return None
     docs, (a, c) = _contrast_inputs(store, arm, control)
     key = {"arm": arm, "control": control, "arm_probas_sha256": docs[0]["probas_sha256"],
-           "control_probas_sha256": docs[1]["probas_sha256"], "n_resamples": n_resamples}
+           "control_probas_sha256": docs[1]["probas_sha256"], "n_resamples": n_resamples,
+           "metrics": list(scoring.CONTRAST_METRICS)}
     groups = a["groups"] if a["groups"].size else None
     return contrasts_store.run(f"{arm}__vs__{control}", key, lambda: {
         "paired": scoring.contrasts(arm, control, a["y"], a["proba"], c["proba"], groups=groups,
@@ -118,7 +119,12 @@ def run_all_contrasts(store, contrasts_store, *, n_resamples: int) -> dict[str, 
     """Every registered pair whose two cells are on disk: ``name -> done|skipped|failed``."""
     out = {}
     for arm, control in pr.contrast_pairs():
-        status = run_contrast(store, contrasts_store, arm, control, n_resamples=n_resamples)
+        name = f"{arm}__vs__{control}"
+        try:
+            status = run_contrast(store, contrasts_store, arm, control, n_resamples=n_resamples)
+        except ProbasIntegrityError as exc:  # one corrupt legacy cell fails its contrasts, not the others
+            contrasts_store.failures.append((name, f"{type(exc).__name__}: {exc}"))
+            status = "failed"
         if status is not None:
-            out[f"{arm}__vs__{control}"] = status
+            out[name] = status
     return out

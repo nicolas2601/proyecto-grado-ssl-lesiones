@@ -29,6 +29,7 @@ from collections.abc import Callable, Sequence
 import numpy as np
 
 from dermssl import metrics as _metrics
+from dermssl.bench.metrics import mcc_from_confusion
 
 #: Metrics where a SMALLER value is better. The verdict must read this rather
 #: than infer a side from the sign of the delta: inferring is exactly the
@@ -44,7 +45,7 @@ LOWER_IS_BETTER = frozenset({
 #: backwards, and a backwards verdict still looks like a result.
 KNOWN_METRICS = frozenset({
     "ece", "macro_f1", "balanced_accuracy", "auc",
-    "accuracy", "mel_recall", "mel_auc",  # docs/29 2.3b secondaries, higher is better
+    "accuracy", "mcc", "mel_recall", "mel_auc",  # docs/29 2.3b secondaries, higher is better
     # docs/29 2.7 item 1 operating points at a fixed holdout threshold, higher is better
     "mel_sens_at_thr_spec80", "mel_sens_at_thr_spec90", "mel_spec_at_thr_sens95",
 }) | LOWER_IS_BETTER
@@ -70,6 +71,16 @@ def metric_auc(y_true: np.ndarray, proba: np.ndarray) -> float:
 
 def metric_ece(y_true: np.ndarray, proba: np.ndarray) -> float:
     return float(_metrics.ece(y_true, proba))
+
+
+def metric_mcc(y_true: np.ndarray, proba: np.ndarray) -> float:
+    """Multiclass Matthews coefficient of the argmax prediction (exact, from the confusion matrix).
+
+    Not in ``METRIC_FUNCTIONS``: callers that add it to a contrast pass it as ``metric_fn``, so
+    the contracts that iterate that registry keep their metric set.
+    """
+    matrix = _metrics.confusion_matrix(y_true, proba.argmax(axis=1), proba.shape[1])
+    return float(mcc_from_confusion(matrix.tolist()))
 
 
 METRIC_FUNCTIONS: dict[str, Callable[[np.ndarray, np.ndarray], float]] = {

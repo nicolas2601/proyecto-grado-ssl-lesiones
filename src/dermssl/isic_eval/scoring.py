@@ -12,17 +12,14 @@ import numpy as np
 from dermssl import metrics as m
 from dermssl import paired_bootstrap as pb
 from dermssl import v71_metrics as vm
-from dermssl.bench import metrics as bm
 
 N_RESAMPLES = vm.BOOTSTRAP_RESAMPLES
 SEED = vm.BOOTSTRAP_SEED
-CONTRAST_METRICS = ("macro_f1", "balanced_accuracy", "accuracy", "auc", "ece")
+CONTRAST_METRICS = ("macro_f1", "balanced_accuracy", "accuracy", "auc", "ece", "mcc")
 HEADLINE = ("macro_f1", "balanced_accuracy", "accuracy", "auc", "ece", "mcc")
 
 
-def mcc(y_true, proba) -> float:
-    n = np.asarray(proba).shape[1]
-    return bm.mcc_from_confusion(m.confusion_matrix(np.asarray(y_true), np.asarray(proba).argmax(axis=1), n).tolist())
+mcc = pb.metric_mcc
 
 
 def accuracy(y_true, proba) -> float:
@@ -64,7 +61,7 @@ def score(y_true, proba, classes, *, groups=None, n_resamples: int = N_RESAMPLES
 
 
 def _metric_fn(metric: str):
-    return {"accuracy": accuracy}.get(metric) or pb.METRIC_FUNCTIONS[metric]
+    return {"accuracy": accuracy, "mcc": mcc}.get(metric) or pb.METRIC_FUNCTIONS[metric]
 
 
 def contrasts(arm: str, control: str, y_true, arm_proba, control_proba, *, groups=None,
