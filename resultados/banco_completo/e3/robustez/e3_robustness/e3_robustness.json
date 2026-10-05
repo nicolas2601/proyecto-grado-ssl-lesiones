@@ -1,0 +1,105 @@
+{
+ "comparison": "F4 vs B71, paired, subset all",
+ "selection_sha256": "2446c05a18e6e76d16d9953d89a8d28547cde61a6c25cc64aa60fb92c0563777",
+ "seeds": {
+  "42": {
+   "weights_sha256": "a1d6a41623dae7b4e41701a5642746f4542286989ac035207e5485ba2966e0c7",
+   "B71": {
+    "macro_f1": 0.7141070341743633,
+    "balanced_accuracy": 0.6964047618710041
+   },
+   "F4": {
+    "macro_f1": 0.7441282873093702,
+    "balanced_accuracy": 0.7185793937203092
+   },
+   "macro_f1": {
+    "delta": 0.03002125313500692,
+    "ci95": [
+     -0.0045781874161918675,
+     0.07148079450282278
+    ],
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   },
+   "balanced_accuracy": {
+    "delta": 0.022174631849305126,
+    "ci95": [
+     -0.015921906727847168,
+     0.06244213234512861
+    ],
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   }
+  },
+  "43": {
+   "weights_sha256": "3f689b653c2b3b75cffce17e0821e0c1cfd4b7d79c15fbb2f34df84dfd8b6f2f",
+   "B71": {
+    "macro_f1": 0.7026486888345341,
+    "balanced_accuracy": 0.6947120481027845
+   },
+   "F4": {
+    "macro_f1": 0.7118240784100925,
+    "balanced_accuracy": 0.6905962989239767
+   },
+   "macro_f1": {
+    "delta": 0.009175389575558413,
+    "ci95": [
+     -0.03394171594921898,
+     0.04994042700117057
+    ],
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   },
+   "balanced_accuracy": {
+    "delta": -0.004115749178807859,
+    "ci95": [
+     -0.04725822350995512,
+     0.0353911326539796
+    ],
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   }
+  },
+  "44": {
+   "weights_sha256": "594bd20c69e7f8cd5cf104e6bff3a2d70340bb4ca0d6cdc1eac443d15290ff33",
+   "B71": {
+    "macro_f1": 0.7040789035538485,
+    "balanced_accuracy": 0.6897068258821832
+   },
+   "F4": {
+    "macro_f1": 0.7301308769113596,
+    "balanced_accuracy": 0.7025423921747392
+   },
+   "macro_f1": {
+    "delta": 0.026051973357511082,
+    "ci95": [
+     -0.0039495827440076065,
+     0.05773436757096675
+    ],
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   },
+   "balanced_accuracy": {
+    "delta": 0.012835566292556,
+    "ci95": [
+     -0.016835673139761226,
+     0.043966882185324824
+    ],
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   }
+  }
+ },
+ "delta_macro_f1": {
+  "mean": 0.021749538689358805,
+  "min": 0.009175389575558413,
+  "max": 0.03002125313500692
+ },
+ "n_excluding_zero": 0,
+ "reading": "none",
+ "inputs_sha256": {
+  "42": "3c92041532e1dbdce8cb02eea95bfe0271df1c56ec873a347c5edcb8c20ac2bb",
+  "43": "506d7caa762b0080e23a383ed15cffb7c8d9a386bcf022789aa549c9ee0d93d1",
+  "44": "f2c822687d4140e85da0e746280e3b9a5eeb19460c98c274e3a56d204c259c76"
+ }
+}
