@@ -1,5 +1,6 @@
 {
   "label": "probas de val reconstruidas por inferencia desde el checkpoint de la mejor epoca; verificadas contra las metricas registradas",
+  "checkpoint_identity_note": "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de m\u00e9tricas",
   "tolerance": 0.0001,
   "models": [
     {
@@ -10,7 +11,8 @@
       "checkpoint_epoch": null,
       "n_val": 6660,
       "ids_order_equal_reference": true,
-      "probas_sha256": "fd53639ae799aab99c0329549c947512039de40b35ef43104e8fd5d276ee0e5d"
+      "probas_sha256": "fd53639ae799aab99c0329549c947512039de40b35ef43104e8fd5d276ee0e5d",
+      "checkpoint_identity_note": "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de m\u00e9tricas"
     },
     {
       "model": "vgg19",
@@ -20,7 +22,8 @@
       "checkpoint_epoch": null,
       "n_val": 6660,
       "ids_order_equal_reference": true,
-      "probas_sha256": "219c7439a3ec5dc42b8b2e31f4177964f20848a28a518ab8147d861ff5710a12"
+      "probas_sha256": "219c7439a3ec5dc42b8b2e31f4177964f20848a28a518ab8147d861ff5710a12",
+      "checkpoint_identity_note": "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de m\u00e9tricas"
     },
     {
       "model": "efficientnet_b0",
@@ -30,7 +33,8 @@
       "checkpoint_epoch": null,
       "n_val": 6660,
       "ids_order_equal_reference": true,
-      "probas_sha256": "e2403ddcdee1d58b6e92883889f33832cc8f32c816a35ba70f87dc6b91cc7ab8"
+      "probas_sha256": "e2403ddcdee1d58b6e92883889f33832cc8f32c816a35ba70f87dc6b91cc7ab8",
+      "checkpoint_identity_note": "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de m\u00e9tricas"
     },
     {
       "model": "resnet50",
@@ -40,7 +44,8 @@
       "checkpoint_epoch": null,
       "n_val": 6660,
       "ids_order_equal_reference": true,
-      "probas_sha256": "38656de28bf9e8476d5cb1974366ca4d554eb6f0bba4d07afce4aaaa076d0707"
+      "probas_sha256": "38656de28bf9e8476d5cb1974366ca4d554eb6f0bba4d07afce4aaaa076d0707",
+      "checkpoint_identity_note": "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de m\u00e9tricas"
     },
     {
       "model": "vit_b16",
@@ -50,7 +55,8 @@
       "checkpoint_epoch": null,
       "n_val": 6660,
       "ids_order_equal_reference": true,
-      "probas_sha256": "faff98880057daa17a3b6252a98f75f20ac53cc9cf9c0a3879b648ee62b694eb"
+      "probas_sha256": "faff98880057daa17a3b6252a98f75f20ac53cc9cf9c0a3879b648ee62b694eb",
+      "checkpoint_identity_note": "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de m\u00e9tricas"
     },
     {
       "model": "simsiam_r50",
@@ -60,7 +66,8 @@
       "checkpoint_epoch": null,
       "n_val": 6660,
       "ids_order_equal_reference": true,
-      "probas_sha256": "060e992f5c973648aaa32c51cd45f168ce2dcc18628ba0b4c23dba82b341acda"
+      "probas_sha256": "060e992f5c973648aaa32c51cd45f168ce2dcc18628ba0b4c23dba82b341acda",
+      "checkpoint_identity_note": "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de m\u00e9tricas"
     },
     {
       "model": "dinov2_vits14",
@@ -70,7 +77,8 @@
       "checkpoint_epoch": null,
       "n_val": 6660,
       "ids_order_equal_reference": true,
-      "probas_sha256": "775b04251ccac9b062bef61cc2929f8bf5fb8ab351d6d66b9fc1603010b17ac0"
+      "probas_sha256": "775b04251ccac9b062bef61cc2929f8bf5fb8ab351d6d66b9fc1603010b17ac0",
+      "checkpoint_identity_note": "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de m\u00e9tricas"
     },
     {
       "model": "dinov2_vitb14",
@@ -80,7 +88,8 @@
       "checkpoint_epoch": null,
       "n_val": 6660,
       "ids_order_equal_reference": true,
-      "probas_sha256": "df869bc932e1b5d32edf8d8ab3bb37b905e520904ea1fa1655da5ca018fee45a"
+      "probas_sha256": "df869bc932e1b5d32edf8d8ab3bb37b905e520904ea1fa1655da5ca018fee45a",
+      "checkpoint_identity_note": "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de m\u00e9tricas"
     }
   ]
 }
