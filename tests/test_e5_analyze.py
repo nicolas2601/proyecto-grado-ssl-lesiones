@@ -91,9 +91,12 @@ def test_the_pool_reads_masks_from_the_npy_in_each_worker(tmp_path):
 
 
 def test_the_hair_detector_is_required_when_asked_and_missing(monkeypatch):
-    monkeypatch.setattr(an, "_nucleo_dir", lambda: an.Path("/nonexistent"))
+    import sys
+
+    monkeypatch.setitem(sys.modules, "hair_removal", None)  # an import of it now raises ImportError
     with pytest.raises(an.HairDetectorUnavailable):
         an.load_hair_fn()
+
 
 
 def test_the_pool_builds_the_real_hair_detector_once_per_worker_when_asked(tmp_path):
