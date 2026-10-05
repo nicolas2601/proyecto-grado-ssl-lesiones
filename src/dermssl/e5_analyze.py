@@ -14,6 +14,7 @@ input order, so the result does not depend on ``workers`` or on the chunk size.
 from __future__ import annotations
 
 import sys
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -24,6 +25,7 @@ from dermssl import e5_counts, e5_ita, e5_roi
 
 LESION = 1  # c1_mask_export.LESION_LABEL: 255 (uncertain) is NOT lesion
 DEFAULT_CHUNK = 32
+DEFAULT_PROGRESS_EVERY = 2000
 
 
 class MaskGridError(ValueError):
@@ -110,12 +112,22 @@ def _work(task: Task) -> dict:
     return analyze(task, masks=_WORKER["masks"], hair_fn=_WORKER["hair_fn"])
 
 
-def run_tasks(tasks: list[Task], *, workers: int, chunk_size: int = DEFAULT_CHUNK,
-              masks_path: Path | None = None, use_hair: bool = False) -> list[dict]:
+def _stream(records, total: int, progress: Callable[[int, int], None] | None, every: int) -> list[dict]:
+    out = []
+    for record in records:
+        out.append(record)
+        if progress is not None and (len(out) % every == 0 or len(out) == total):
+            progress(len(out), total)
+    return out
+
+
+def run_tasks(tasks: list[Task], *, workers: int, chunk_size: int = DEFAULT_CHUNK, masks_path: Path | None = None,
+              use_hair: bool = False, progress: Callable[[int, int], None] | None = None,
+              progress_every: int = DEFAULT_PROGRESS_EVERY) -> list[dict]:
     """Records in task order. ``workers`` = 1 runs in this process (same code path, no pool)."""
     path = None if masks_path is None else str(masks_path)
     if workers <= 1:
         _init_worker(path, use_hair)
-        return [_work(task) for task in tasks]
+        return _stream((_work(task) for task in tasks), len(tasks), progress, progress_every)
     with ProcessPoolExecutor(workers, initializer=_init_worker, initargs=(path, use_hair)) as pool:
-        return list(pool.map(_work, tasks, chunksize=chunk_size))
+        return _stream(pool.map(_work, tasks, chunksize=chunk_size), len(tasks), progress, progress_every)

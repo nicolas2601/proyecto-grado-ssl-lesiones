@@ -109,3 +109,11 @@ def test_the_hair_detector_parameters_are_read_from_the_module_that_runs():
     pytest.importorskip("cv2")
     params = an.hair_parameters()
     assert params["module"].endswith("hair_removal.py") and params["KERNEL"] == 9 and "MIN_HAIR_LENGTH" in params
+
+
+@pytest.mark.parametrize("workers", [1, 2])
+def test_progress_is_reported_every_interval_and_at_the_end(tmp_path, workers):
+    tasks = [_task(_write(tmp_path, f"g{i}.png")[0], i) for i in range(5)]
+    seen = []
+    an.run_tasks(tasks, workers=workers, progress=lambda done, total: seen.append((done, total)), progress_every=2)
+    assert seen == [(2, 5), (4, 5), (5, 5)]

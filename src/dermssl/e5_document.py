@@ -8,6 +8,7 @@ The per-image table is columnar (one row per image, in task order, floats rounde
 
 from __future__ import annotations
 
+import json
 from collections.abc import Sequence
 from dataclasses import dataclass
 
@@ -131,3 +132,13 @@ def build_document(spec: DatasetSpec, records: Sequence[dict], *, code_revision:
         "unreadable": [{"image_id": r["image_id"], "error": r["error"]} for r in final if "error" in r],
         "per_image": {"columns": columns, "rows": rows},
     }
+
+
+def dump_document(document: dict) -> str:
+    """Indented JSON with one image per line in ``per_image.rows``; NaN is an error, never written."""
+    head = {k: v for k, v in document.items() if k != "per_image"}
+    table = document["per_image"]
+    rows = ",\n".join("   " + json.dumps(row, ensure_ascii=False, allow_nan=False) for row in table["rows"])
+    columns = json.dumps(table["columns"], ensure_ascii=False, allow_nan=False)
+    body = json.dumps(head, indent=1, ensure_ascii=False, allow_nan=False)[:-2]
+    return f'{body},\n "per_image": {{\n  "columns": {columns},\n  "rows": [\n{rows}\n  ]\n }}\n}}\n'

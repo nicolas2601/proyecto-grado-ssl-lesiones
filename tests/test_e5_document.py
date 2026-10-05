@@ -111,3 +111,19 @@ def test_unreadable_images_are_listed_in_the_document():
     recs[2] = ec.unreadable_record("i2", "train", "nv", "cannot decode /x/i2.jpg")
     d = doc.build_document(_spec(), recs, code_revision="abc", smoke=None, hair_detector=None)
     assert d["report"]["n_unreadable"] == 1 and d["unreadable"] == [{"image_id": "i2", "error": "cannot decode /x/i2.jpg"}]
+
+
+def test_dump_is_valid_json_round_trips_and_keeps_one_image_per_line():
+    d = _build(masks=True)
+    text = doc.dump_document(d)
+    assert json.loads(text) == d
+    lines = text.splitlines()
+    assert sum(line.lstrip().startswith('["i') for line in lines) == 9
+    assert text.endswith("\n") and "NaN" not in text
+
+
+def test_dump_refuses_nan_instead_of_writing_invalid_json():
+    d = _build()
+    d["report"]["x"] = float("nan")
+    with pytest.raises(ValueError):
+        doc.dump_document(d)
