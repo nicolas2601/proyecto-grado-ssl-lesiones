@@ -82,7 +82,7 @@ def test_full_run_writes_rows_contrasts_probas_and_sidecars(e3, tmp_path, capsys
     assert set(doc["models"]["alexnet"]["rows"]) == {"full", "F4"}
     assert set(doc["proposed"]["rows"]) == {"B71", "B71+F4", "B71_tta", "B71+F4_tta"}
     assert doc["proposed"]["check_against_e3_final"]["matches"]
-    assert len(doc["contrasts"]) == 2 * 5 * 3 and {c["family"] for c in doc["contrasts"]} >= {"seg_effect"}
+    assert len(doc["contrasts"]) == 2 * 5 * 4 and {c["family"] for c in doc["contrasts"]} >= {"seg_effect"}
     assert doc["protocol"]["bootstrap"]["grouped_by"] == "lesion_id" and doc["failures"] == []
     with np.load(tmp_path / "e3b_probas.npz") as data:
         assert {"y_val", "val_ids", "alexnet", "alexnet+F4", "B71", "B71+F4_tta"} <= set(data.files)

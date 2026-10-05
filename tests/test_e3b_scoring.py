@@ -78,7 +78,7 @@ def test_contrasts_are_paired_named_and_seeded():
     groups = np.arange(120) // 2
     recs = contrasts.paired(y, {"x+F4": p_arm, "x": p_ctl}, [("x+F4", "x", "seg_effect")], groups,
                             n_classes=3, mel=1, n_resamples=25)
-    assert {r["metric"] for r in recs} == {"macro_f1", "balanced_accuracy", "mel_recall"}
+    assert {r["metric"] for r in recs} == {"macro_f1", "balanced_accuracy", "mel_recall", "mcc"}
     assert all(r["arm"] == "x+F4" and r["control"] == "x" and r["family"] == "seg_effect" for r in recs)
     assert all(r["n_resamples"] == 25 and r["rng_seed"] == 20260923 for r in recs)
     again = contrasts.paired(y, {"x+F4": p_arm, "x": p_ctl}, [("x+F4", "x", "seg_effect")], groups,

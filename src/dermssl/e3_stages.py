@@ -31,7 +31,7 @@ from dermssl import v71_metrics as vm
 
 BOOTSTRAP_SEED = 20260923
 BOOTSTRAP_RESAMPLES = 1000
-CONTRAST_METRICS = ("macro_f1", "balanced_accuracy", "mel_recall")
+CONTRAST_METRICS = ("macro_f1", "balanced_accuracy", "mel_recall", "mcc")
 PROBE_NAME = "logreg_balanced"
 INVARIANT_KEYS = ("protocol", "masks_sha256", "weights_sha256", "manifest_sha256", "holdout_sha256")
 SEED_BOUND_KEYS = ("protocol", "weights_sha256")  # the only ones a declared B* seed may change (e3_seed)
@@ -129,6 +129,7 @@ def _metric_fns(y, n_classes: int, mel: int) -> dict:
     """The contrast metrics; ``mel_recall`` is left out when the rows hold no melanoma (undefined)."""
     fns = {m: pb.METRIC_FUNCTIONS[m] for m in ("macro_f1", "balanced_accuracy")}
     fns.update({m: f for m, f in lum.metric_functions(y, n_classes=n_classes, mel=mel).items() if m == "mel_recall"})
+    fns["mcc"] = pb.metric_mcc  # last: the draws and values of the other metrics do not depend on it
     return fns
 
 
