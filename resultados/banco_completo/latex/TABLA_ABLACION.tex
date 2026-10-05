@@ -1,0 +1,135 @@
+% Generado por scripts/build_bench_ablation.py. No editar a mano. Requiere booktabs, longtable y graphicx.
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+Método & Configuración & F1 macro & Exactitud balanceada & AUC & ECE $\downarrow$ & MCC \\
+\midrule
+v7: DINOv2 público & public@224\textbar{}cls\textbar{}none\textbar{}id & 0,6158 [0,5690; 0,6550] & 0,5924 [0,5459; 0,6376] & 0,9257 [0,9123; 0,9370] & 0,1307 [0,1159; 0,1476] & 0,5783 \\
+v7: A* & A\_s42\_a1.0@224\textbar{}cls\textbar{}none\textbar{}id & 0,6464 [0,5980; 0,6894] & 0,6021 [0,5565; 0,6488] & 0,9619 [0,9563; 0,9671] & 0,0135 [0,0138; 0,0336] & 0,6647 \\
+v7: B* & B\_s42\_a1.0@224\textbar{}cls\textbar{}none\textbar{}id & 0,6606 [0,6157; 0,7040] & 0,6327 [0,5871; 0,6838] & 0,9629 [0,9563; 0,9690] & 0,0325 [0,0253; 0,0497] & 0,6682 \\
+v7.1: DINOv2 público, mejor protocolo & public@224\textbar{}cls4\textbar{}la0.5\textbar{}tta & 0,6857 [0,6412; 0,7208] & 0,6622 [0,6160; 0,7058] & 0,9598 [0,9516; 0,9665] & 0,0702 [0,0605; 0,0871] & 0,6683 \\
+v7.1: DINOv2 público, protocolo de A71 & public@224\textbar{}cls\_attn\textbar{}la0.5\textbar{}tta & 0,6320 [0,5875; 0,6710] & 0,6174 [0,5714; 0,6632] & 0,9432 [0,9339; 0,9519] & 0,0806 [0,0684; 0,0987] & 0,6110 \\
+v7.1: DINOv2 público, protocolo de B71 & public@224\textbar{}cls4\textbar{}balanced\textbar{}tta & 0,6837 [0,6381; 0,7202] & 0,6659 [0,6176; 0,7102] & 0,9619 [0,9549; 0,9680] & 0,0688 [0,0573; 0,0846] & 0,6712 \\
+v7.1: A71 & A\_soup\_a1.0@224\textbar{}cls\_attn\textbar{}la0.5\textbar{}tta & 0,7229 [0,6795; 0,7592] & 0,7305 [0,6844; 0,7719] & 0,9644 [0,9558; 0,9718] & 0,0154 [0,0135; 0,0339] & 0,6996 \\
+v7.1: B71 (propuesto) & B\_s42\_a1.0@224\textbar{}cls4\textbar{}balanced\textbar{}tta & 0,7141 [0,6703; 0,7547] & 0,6964 [0,6504; 0,7408] & 0,9602 [0,9516; 0,9680] & 0,0529 [0,0428; 0,0695] & 0,6901 \\
+\bottomrule
+\end{tabular}}
+\caption{v7 y v7.1 en HAM10000}\label{tab:ablation-v71}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llllll@{}}
+\toprule
+Dataset & Método & Transductivo & F1 macro [IC 95 \%] & MCC & Nota \\
+\midrule
+HAM10000 & A71 (ablación sin término de tono) & no & 0,7229 [0,6795; 0,7592] & 0,6996 & probe logreg C1; precisión, recall y MCC desde las probabilidades \\
+HAM10000 & B71 (propuesto) & no & 0,7141 [0,6703; 0,7547] & 0,6901 & probe logreg C1; precisión, recall y MCC desde las probabilidades; cómputo canónico = S1 (batch 64 + autocast, el de v7.1). F1 macro de B71 en S0/S1/S2: 0,7106 / 0,7141 / 0,7089 (el cómputo de extracción mueve la cifra) \\
+HAM10000 & B71-limpio (canónico) & no & pendiente & pendiente & E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio); ETA no declarada por el operador \\
+HAM10000 & A71-limpio (canónico) & no & pendiente & pendiente & falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC \\
+ISIC 2019 & B71-limpio (canónico) & no & 0,6662 [0,6401; 0,6911] & 0,6628 & cómputo canónico (batch 64 + autocast) \\
+ISIC 2019 & A71-limpio (canónico) & no & pendiente & pendiente & falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC \\
+ISIC 2019 & B71 original (canónico) & sí & pendiente & pendiente & re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC \\
+ISIC 2019 & A71 original (canónico) & sí & pendiente & pendiente & re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC \\
+ISIC 2019 & B71 original (batch 16) & sí & 0,6756 [0,6482; 0,6977] & 0,6677 & sensibilidad: cómputo no canónico (batch 16); transductivo \\
+ISIC 2019 & A71 original (batch 16) & sí & 0,6522 [0,6256; 0,6759] & 0,6669 & sensibilidad: cómputo no canónico (batch 16); transductivo \\
+ISIC 2020 & B71-limpio (canónico) & no & 0,6229 [0,5865; 0,6602] & 0,2506 & cómputo canónico (batch 64 + autocast) \\
+ISIC 2020 & A71-limpio (canónico) & no & pendiente & pendiente & falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC \\
+ISIC 2020 & B71 original (canónico) & sí & pendiente & pendiente & re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC \\
+ISIC 2020 & A71 original (canónico) & sí & pendiente & pendiente & re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC \\
+ISIC 2020 & A71 original (batch 16) & sí & 0,6554 [0,6197; 0,6910] & 0,3196 & sensibilidad: cómputo no canónico (batch 16); transductivo \\
+ISIC 2020 & B71 original (batch 16) & sí & 0,6123 [0,5781; 0,6486] & 0,2315 & sensibilidad: cómputo no canónico (batch 16); transductivo \\
+\bottomrule
+\end{tabular}}
+\caption{Limpios (E1) frente a originales}\label{tab:ablation-clean}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+Variante & Descripción & F1 macro holdout [IC 95 \%] & F1 macro, tercil L* oscuro & Recall de melanoma & Cumple la regla & Adoptable \\
+\midrule
+B71 & Referencia: B71 sin segmentación & 0,7725 [0,7328; 0,8062] & 0,7533 & 0,5955 & — & — \\
+F1 & concat(features de la imagen completa, features del recorte con margen 10 \%) & 0,7859 [0,7486; 0,8165] & 0,7754 & 0,6180 & sí & sí \\
+F2 & F1 con el recorte tomado de la resolución original & 0,7819 [0,7464; 0,8117] & 0,7868 & 0,5899 & sí & sí \\
+F2\_448 & F2 con el recorte a 448 px (crop\_orig448) & 0,7858 [0,7460; 0,8168] & 0,7643 & 0,6236 & sí & sí \\
+F3 & TTA guiada por máscara (imagen completa + 4 recortes) & 0,7456 [0,7024; 0,7804] & 0,7479 & 0,5787 & no & no \\
+F4 & F1 + descriptores de forma y color de la máscara & 0,7868 [0,7496; 0,8148] & 0,7951 & 0,6067 & sí & sí \\
+F5 & F1 + anillo perilesional & 0,7812 [0,7440; 0,8126] & 0,7849 & 0,5955 & sí & sí \\
+\bottomrule
+\end{tabular}}
+\caption{F1-F5 con segmentación (E3): holdout}\label{tab:ablation-e3-holdout}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llllll@{}}
+\toprule
+Variante & F1 macro & Exactitud balanceada & Recall de melanoma & AUC & ECE $\downarrow$ \\
+\midrule
+B71 & 0,7106 [0,6591; 0,7548] & 0,6937 [0,6437; 0,7509] & 0,5135 [0,4350; 0,5945] & 0,9600 & 0,0532 \\
+F4 & 0,7466 [0,6942; 0,7901] & 0,7213 [0,6679; 0,7810] & 0,5495 [0,4661; 0,6272] & 0,9656 & 0,0491 \\
+\bottomrule
+\end{tabular}}
+\caption{F4 frente a B71 en val (E3, cómputo S0)}\label{tab:ablation-e3-val}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+Cómputo & B71 F1 macro & F4 F1 macro & $\Delta$ F1 macro [IC 95 \%] & IC excluye 0 & $\Delta$ exactitud balanceada [IC 95 \%] & $\Delta$ recall de melanoma [IC 95 \%] \\
+\midrule
+S0: batch 16 + autocast & 0,7106 & 0,7466 & +0,0360 [+0,0020; +0,0778] & sí & +0,0276 [-0,0102; +0,0688] & +0,0360 [-0,0154; +0,0876] \\
+S1: batch 64 + autocast (canónico, el de v7.1) & 0,7141 & 0,7441 & +0,0300 [-0,0046; +0,0715] & no & +0,0222 [-0,0159; +0,0624] & +0,0135 [-0,0446; +0,0714] \\
+S2: batch 64, fp32 & 0,7089 & 0,7483 & +0,0393 [+0,0039; +0,0824] & sí & +0,0318 [-0,0069; +0,0749] & +0,0360 [-0,0154; +0,0876] \\
+\bottomrule
+\end{tabular}}
+\caption{F4 $-$ B71: sensibilidad al cómputo de extracción (HAM10000, n = 2.004)}\label{tab:ablation-f4-compute}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+Semilla & B71 F1 macro & F4 F1 macro & $\Delta$ F1 macro [IC 95 \%] & IC excluye 0 & $\Delta$ exactitud balanceada [IC 95 \%] & IC excluye 0 \\
+\midrule
+42 & 0,7141 & 0,7441 & +0,0300 [-0,0046; +0,0715] & no & +0,0222 [-0,0159; +0,0624] & no \\
+43 & 0,7026 & 0,7118 & +0,0092 [-0,0339; +0,0499] & no & -0,0041 [-0,0473; +0,0354] & no \\
+44 & 0,7041 & 0,7301 & +0,0261 [-0,0039; +0,0577] & no & +0,0128 [-0,0168; +0,0440] & no \\
+\bottomrule
+\end{tabular}}
+\caption{Robustez de F4 $-$ B71 a la semilla de B*}\label{tab:ablation-f4-seeds}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Brazo & Descripción & Estado & Motivo & ETA \\
+\midrule
+D0 & DINOv2 público & pendiente & los pesos de D2 y D3 (GPU) y la única lectura de target\_test de PAD no han terminado; el split de PAD ya existe (resultados/banco\_completo/pad\_da/target\_split.json) & ~10:30 UTC \\
+D1 & A* s42 limpio & pendiente & los pesos de D2 y D3 (GPU) y la única lectura de target\_test de PAD no han terminado; el split de PAD ya existe (resultados/banco\_completo/pad\_da/target\_split.json) & ~10:30 UTC \\
+D2 & D1 continuado con el pool limpio (control de cómputo) & pendiente & los pesos de D2 y D3 (GPU) y la única lectura de target\_test de PAD no han terminado; el split de PAD ya existe (resultados/banco\_completo/pad\_da/target\_split.json) & ~10:30 UTC \\
+D3 & D2 más las imágenes de target\_adapt de PAD, sin etiquetas & pendiente & los pesos de D2 y D3 (GPU) y la única lectura de target\_test de PAD no han terminado; el split de PAD ya existe (resultados/banco\_completo/pad\_da/target\_split.json) & ~10:30 UTC \\
+\bottomrule
+\end{tabular}}
+\caption{D0-D3 (E2): pendientes}\label{tab:ablation-d}
+\end{table}

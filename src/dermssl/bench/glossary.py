@@ -99,3 +99,10 @@ def reading_rules(repo: Path, datasets: dict[str, Dataset]) -> list[str]:
         "- Las filas «pendiente» y «no ejecutado todavia» no tienen número: se listan con su motivo técnico y la "
         "ETA declarada por el operador, para que nada parezca olvidado. No se inventa ninguna cifra.",
     ]
+
+
+def preamble(repo: Path, datasets: dict[str, Dataset], script: str) -> list[str]:
+    """Generated-file notice, glossary and reading rules shared by the ablation and contrast documents."""
+    return [f"Generado por `{script}` desde los JSON del repositorio. No editar a mano. "
+            "Plan y reglas: `docs/33-banco-completo-multidataset.md`.", "",
+            "## Glosario", "", *GLOSSARY, "", "## Cómo leer este documento", "", *reading_rules(repo, datasets), ""]
