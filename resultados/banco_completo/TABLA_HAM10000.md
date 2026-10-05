@@ -14,8 +14,11 @@ Generado por `scripts/build_bench_tables.py` desde los JSON del repositorio. No 
 - **IC 95 %:** intervalo de confianza por bootstrap, tal como lo publica cada fuente. Si los IC de dos modelos se solapan, no se puede afirmar que uno gane: es empate.
 - **Congelado (sin fine-tuning):** la red no se toca; solo se entrena el clasificador lineal de encima (regresión logística).
 - **Fine-tuning:** se reentrena toda la red con las etiquetas del dataset.
-- **Segmentación:** uso de máscaras de lesión como entrada. No se usa en este banco: la columna dice «no» en todas las filas (las variantes con segmentación son el bloque exploratorio E3 de docs/33).
+- **Segmentación:** uso de máscaras de lesión como entrada. La columna dice «no» en todas las filas salvo en el bloque exploratorio de HAM10000 (variante F4 del bloque E3 de docs/33), que no cambia el propuesto.
 - **Transductivo:** el pool de preentrenamiento auto-supervisado contenía las imágenes de val (sin etiquetas). Solo aplica a B71/A71 originales en ISIC 2019 e ISIC 2020.
+- **Cómputo canónico:** extracción de features con batch 64 y autocast CUDA (el de v7.1). El batch 16 mueve las cifras unas milésimas (orden de reducción en fp16) y se reporta solo como **sensibilidad**.
+- **Contraste pareado:** diferencia entre dos modelos sobre las mismas imágenes, con IC bootstrap de la diferencia. «Mejor» solo si el IC excluye 0; si lo incluye, «sin diferencia demostrable».
+- **Exploratorio:** variantes post-hoc o con selección en otro conjunto; se reportan pero no cambian el propuesto ni se leen como resultado confirmado.
 
 En este val la clase «nv» es el 67,7 % de las imágenes (7 clases): predecir siempre «nv» da una accuracy de 0,6768 y una exactitud balanceada de 0,1429.
 
@@ -28,10 +31,11 @@ Particiones de val de este banco (no son la misma partición):
 - ISIC 2019, baselines (Kaggle): val n = 5.067; StratifiedKFold estratificado simple SIN grupo de paciente (el release no trae patient_id) - riesgo de fuga entre imagenes del mismo paciente, metricas con sesgo optimista.
 - ISIC 2020, baselines (Kaggle): val n = 6.660; StratifiedGroupKFold por patient_id (0 pacientes compartidos).
 
-- **Entre particiones distintas la comparación es solo de intervalos (IC 95 %)**, no un test pareado: HAM10000 usa la partición v6/v7 (n = 2.004) para el propuesto y la de Kaggle (n = 2.014) para los baselines; ISIC 2019 e ISIC 2020 tienen la suya. Los contrastes pareados se harán solo donde dos modelos comparten partición e imágenes (docs/33, sección 5).
+- **Entre particiones distintas la comparación es solo de intervalos (IC 95 %)**, no un test pareado: HAM10000 usa la partición v6/v7 (n = 2.004) para el propuesto y la de Kaggle (n = 2.014) para los baselines; ISIC 2019 e ISIC 2020 tienen la suya. Los contrastes pareados solo existen donde dos modelos comparten partición e imágenes y hay probabilidades por imagen (docs/33, sección 5); están al final de cada tabla y, todos juntos, en `CONTRASTES_SSL.md` (sin corrección por multiplicidad).
 - **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 y la corrida pendiente de ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). El propuesto no tiene fine-tuning y no se ve afectado.
+- **Modelo y protocolo no son lo mismo.** El propuesto usa el protocolo de B71 (features cls4, TTA, probe balanceado); la fila «DINOv2 público, protocolo de B71» es el control con el mismo protocolo y pesos públicos. Los 8 baselines siguen el protocolo de su propio banco (probe logreg).
 - Los IC solo existen donde la fuente los publica: los baselines, para exactitud balanceada y F1 macro; B71/A71, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en B71/A71 salen de las probabilidades commiteadas, también sin IC.
-- Las filas «pendiente» y «no ejecutado todavia» no tienen número: se listan para que nada parezca olvidado. No se inventa ninguna cifra.
+- Las filas «pendiente» y «no ejecutado todavia» no tienen número: se listan con su motivo técnico y la ETA declarada por el operador, para que nada parezca olvidado. No se inventa ninguna cifra.
 
 ## Congelados (sin fine-tuning)
 
@@ -42,7 +46,7 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | # | Modelo | Preentrenamiento | Fine-tuning | Segmentación | Transductivo | Val n | Estado | Nota | Fuente |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | A71 (ablación sin término de tono) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
-| 2 | B71 (propuesto) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
+| 2 | B71 (propuesto) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades; cómputo canónico = S1 (batch 64 + autocast, el de v7.1). F1 macro de B71 en S0/S1/S2: 0,7106 / 0,7141 / 0,7089 (el cómputo de extracción mueve la cifra) | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
 | 3 | DINOv2 público, su mejor protocolo v7.1 | auto-supervisado (DINOv2 público) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
 | 4 | DINOv2 público, protocolo de B71 | auto-supervisado (DINOv2 público) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
 | 5 | DINOv2 público, protocolo de A71 | auto-supervisado (DINOv2 público) | no | no | no | 2.004 | ok | probe logreg C1; precisión, recall y MCC desde las probabilidades | `resultados/clasificacion/v71/v71_final_eval.json` · `resultados/clasificacion/v71/v71_final_eval.probas.npz` |
@@ -54,8 +58,8 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | 11 | AlexNet | supervisado (ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_alexnet.json` |
 | 12 | VGG19 | supervisado (ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_vgg19.json` |
 | 13 | SimSiam ResNet-50 | auto-supervisado (SimSiam, ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_simsiam_r50.json` |
-| — | B71-limpio (B* s42 limpio, config fija) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | — | pendiente | E1 de docs/33 | `docs/33-banco-completo-multidataset.md` |
-| — | A71-limpio (sopa A* s42+s43 limpios) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | — | pendiente | E1 de docs/33 | `docs/33-banco-completo-multidataset.md` |
+| — | B71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | — | pendiente | E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio); ETA no declarada por el operador | `docs/33-banco-completo-multidataset.md` |
+| — | A71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | — | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC | `docs/33-banco-completo-multidataset.md` |
 
 ### Métricas [IC 95 % donde la fuente lo publica]
 
@@ -74,8 +78,8 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | 11 | AlexNet | 0,6663 | 0,5892 [0,5478; 0,6311] | 0,4496 | 0,5892 | 0,4929 [0,4584; 0,5215] | 0,8961 | 0,0793 | 0,4862 |
 | 12 | VGG19 | 0,6182 | 0,5147 [0,4724; 0,5546] | 0,3771 | 0,5147 | 0,4151 [0,3858; 0,4404] | 0,8702 | 0,0707 | 0,4140 |
 | 13 | SimSiam ResNet-50 | 0,4896 | 0,4942 [0,4531; 0,5394] | 0,3354 | 0,4942 | 0,3169 [0,2939; 0,3405] | 0,8291 | 0,2465 | 0,3186 |
-| — | B71-limpio (B* s42 limpio, config fija) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
-| — | A71-limpio (sopa A* s42+s43 limpios) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
+| — | B71-limpio (canónico) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
+| — | A71-limpio (canónico) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
 
 ## Con fine-tuning
 
@@ -106,3 +110,53 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | 6 | SimSiam ResNet-50 | 0,6877 | 0,6782 [0,6396; 0,7174] | 0,4724 | 0,6782 | 0,5323 [0,5007; 0,5634] | 0,9243 | 0,0246 | 0,5198 |
 | 7 | DINOv2 ViT-S/14 | 0,6390 | 0,6207 [0,5808; 0,6598] | 0,4471 | 0,6207 | 0,4953 [0,4643; 0,5252] | 0,9147 | 0,0536 | 0,4657 |
 | 8 | DINOv2 ViT-B/14 | 0,5929 | 0,5325 [0,4903; 0,5724] | 0,3950 | 0,5325 | 0,4268 [0,3970; 0,4545] | 0,8881 | 0,0601 | 0,4149 |
+
+## Exploratorio (segmentación, no cambia el propuesto)
+
+Orden: F1 macro de mayor a menor; las filas sin número van al final.
+
+### Condición
+
+| # | Modelo | Preentrenamiento | Fine-tuning | Segmentación | Transductivo | Val n | Estado | Nota | Fuente |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | B71 + F4 (exploratorio) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | sí (F4, exploratorio) | no | 2.004 | ok | exploratorio, no demostrable de forma robusta: Δ F1 macro frente a B71 +0,0300 [-0,0046; +0,0715] en el cómputo canónico; el IC pareado excluye 0 en 2 de 3 cómputos; no reemplaza al propuesto (TABLA_ABLACION.md) | `resultados/banco_completo/e3b_bs64/e3b_summary.json` · `resultados/banco_completo/e3/robustez/e3_s1_bs64_autocast/e3_final_eval.json` |
+
+### Métricas [IC 95 % donde la fuente lo publica]
+
+| # | Modelo | Accuracy | Exactitud balanceada | Precisión macro | Recall macro | F1 macro | AUC OvR macro | ECE ↓ | MCC |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | B71 + F4 (exploratorio) | 0,8633 [0,8456; 0,8815] | 0,7186 [0,6648; 0,7791] | 0,7847 | 0,7186 | 0,7441 [0,6913; 0,7884] | 0,9659 [0,9577; 0,9745] | 0,0483 [0,0382; 0,0662] | 0,7355 [0,7019; 0,7689] |
+
+## Contrastes pareados (partición v6/v7, n = 2.004)
+
+Contraste solo contra baselines CONGELADOS: el fine-tuning sigue en la partición de Kaggle y no es pareado. Los 8 baselines se re-evaluaron sobre la partición v6/v7 con el mismo probe (E3b, `resultados/banco_completo/e3b_bs64/e3b_summary.json`); sus cifras difieren de las de la tabla de arriba (partición de Kaggle). `*` = el IC pareado excluye 0. Δ = B71 − baseline (positivo favorece a B71).
+
+### B71 frente a cada baseline congelado (F1 macro)
+
+| Baseline (congelado) | F1 macro (v6/v7) | Δ vs B71 (1 vista, sin TTA) | Δ vs B71 (TTA, canónico) | Δ vs B71 + F4 (1 vista) | Δ vs B71 + F4 (TTA) |
+|---|---|---|---|---|---|
+| AlexNet | 0,4728 | +0,2067 [+0,1613; +0,2564] * | +0,2413 [+0,1942; +0,2898] * | +0,2059 [+0,1607; +0,2551] * | +0,2504 [+0,2050; +0,3010] * |
+| VGG19 | 0,3810 | +0,2985 [+0,2518; +0,3466] * | +0,3331 [+0,2844; +0,3800] * | +0,2213 [+0,1751; +0,2688] * | +0,2658 [+0,2212; +0,3180] * |
+| ResNet-50 | 0,4670 | +0,2125 [+0,1587; +0,2653] * | +0,2471 [+0,1969; +0,2943] * | +0,1635 [+0,1155; +0,2157] * | +0,2080 [+0,1569; +0,2640] * |
+| EfficientNet-B0 | 0,5041 | +0,1754 [+0,1176; +0,2301] * | +0,2100 [+0,1579; +0,2609] * | +0,1273 [+0,0780; +0,1807] * | +0,1718 [+0,1227; +0,2235] * |
+| ViT-B/16 | 0,5633 | +0,1163 [+0,0608; +0,1748] * | +0,1509 [+0,1005; +0,2068] * | +0,1072 [+0,0629; +0,1557] * | +0,1517 [+0,1089; +0,2013] * |
+| SimSiam ResNet-50 | 0,5369 | +0,1426 [+0,0934; +0,1938] * | +0,1772 [+0,1278; +0,2299] * | +0,1103 [+0,0609; +0,1645] * | +0,1548 [+0,1119; +0,2065] * |
+| DINOv2 ViT-S/14 | 0,5508 | +0,1287 [+0,0801; +0,1800] * | +0,1633 [+0,1198; +0,2066] * | +0,0607 [+0,0100; +0,1120] * | +0,1052 [+0,0594; +0,1562] * |
+| DINOv2 ViT-B/14 | 0,6002 | +0,0793 [+0,0349; +0,1251] * | +0,1139 [+0,0728; +0,1585] * | +0,0829 [+0,0379; +0,1291] * | +0,1274 [+0,0819; +0,1749] * |
+
+B71 por encima del baseline con IC que excluye 0, por variante: B71 (1 vista, sin TTA): 8/8; B71 (TTA, canónico): 8/8; B71 + F4 (1 vista): 8/8; B71 + F4 (TTA): 8/8. Las otras métricas (exactitud balanceada, recall de melanoma) y las 120 comparaciones están en `CONTRASTES_SSL.md`.
+
+### F4 (segmentación, exploratorio) sobre cada baseline congelado (F1 macro)
+
+| Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura | Unidad | Fuente |
+|---|---|---|---|---|---|---|---|
+| AlexNet + F4 | AlexNet | F1 macro | +0,0210 [-0,0121; +0,0536] | no | sin diferencia demostrable (el IC incluye 0) | lesion_id | `resultados/banco_completo/e3b_bs64/e3b_summary.json` |
+| VGG19 + F4 | VGG19 | F1 macro | +0,0973 [+0,0577; +0,1352] | sí | VGG19 + F4 mejor (el IC excluye 0) | lesion_id | `resultados/banco_completo/e3b_bs64/e3b_summary.json` |
+| EfficientNet-B0 + F4 | EfficientNet-B0 | F1 macro | +0,0683 [+0,0204; +0,1125] | sí | EfficientNet-B0 + F4 mejor (el IC excluye 0) | lesion_id | `resultados/banco_completo/e3b_bs64/e3b_summary.json` |
+| ResNet-50 + F4 | ResNet-50 | F1 macro | +0,0692 [+0,0344; +0,1046] | sí | ResNet-50 + F4 mejor (el IC excluye 0) | lesion_id | `resultados/banco_completo/e3b_bs64/e3b_summary.json` |
+| ViT-B/16 + F4 | ViT-B/16 | F1 macro | +0,0292 [-0,0164; +0,0724] | no | sin diferencia demostrable (el IC incluye 0) | lesion_id | `resultados/banco_completo/e3b_bs64/e3b_summary.json` |
+| SimSiam ResNet-50 + F4 | SimSiam ResNet-50 | F1 macro | +0,0524 [+0,0132; +0,0929] | sí | SimSiam ResNet-50 + F4 mejor (el IC excluye 0) | lesion_id | `resultados/banco_completo/e3b_bs64/e3b_summary.json` |
+| DINOv2 ViT-S/14 + F4 | DINOv2 ViT-S/14 | F1 macro | +0,0882 [+0,0477; +0,1330] | sí | DINOv2 ViT-S/14 + F4 mejor (el IC excluye 0) | lesion_id | `resultados/banco_completo/e3b_bs64/e3b_summary.json` |
+| DINOv2 ViT-B/14 + F4 | DINOv2 ViT-B/14 | F1 macro | +0,0166 [-0,0193; +0,0508] | no | sin diferencia demostrable (el IC incluye 0) | lesion_id | `resultados/banco_completo/e3b_bs64/e3b_summary.json` |
+
+F4 sube el F1 macro de los 8 baselines en 8 de 8 casos; el IC excluye 0 en 5 de 8: VGG19, EfficientNet-B0, ResNet-50, SimSiam ResNet-50, DINOv2 ViT-S/14. Es exploratorio (docs/33, erratas).

@@ -23,7 +23,7 @@ def test_every_row_has_an_existing_source_path(key):
 
 @pytest.mark.parametrize("key", list(ALL))
 def test_rows_are_sorted_by_macro_f1_inside_each_block_and_pending_rows_come_last(key):
-    for block in (R.FROZEN, R.FINETUNE):
+    for block in R.BLOCKS:
         mine = [r for r in ALL[key] if r.block == block]
         statuses = [r.status == R.OK for r in mine]
         assert statuses == sorted(statuses, reverse=True), "pending rows must follow the measured ones"
@@ -32,16 +32,17 @@ def test_rows_are_sorted_by_macro_f1_inside_each_block_and_pending_rows_come_las
 
 
 def test_counts_per_dataset():
-    assert len(ALL["ham10000"]) == 8 + 8 + 5 + 2
-    assert len(ALL["isic2019"]) == 8 + 8 + 4
-    assert len(ALL["isic2020"]) == 8 + 4 + 1
+    assert len(ALL["ham10000"]) == 8 + 8 + 5 + 1 + 2
+    assert len(ALL["isic2019"]) == 8 + 8 + 6 + 4
+    assert len(ALL["isic2020"]) == 8 + 6 + 4 + 1
 
 
 def test_isic2020_finetune_block_is_an_explicit_not_run_row_and_originals_are_transductive():
     ft = [r for r in ALL["isic2020"] if r.block == R.FINETUNE]
     assert [r.status for r in ft] == [R.NOT_RUN] and not ft[0].values
-    originals = [r for r in ALL["isic2019"] if r.name.endswith("original")]
+    originals = [r for r in ALL["isic2019"] if "original (canónico)" in r.name]
     assert len(originals) == 2 and all(r.transductive and r.status == R.PENDING for r in originals)
+    assert all("ETA ~15:00 UTC" in r.note for r in originals)
     assert not any(r.transductive for r in ALL["ham10000"])
 
 
@@ -54,7 +55,9 @@ def test_measured_rows_have_every_metric_and_the_source_ci():
     for rs in ALL.values():
         for r in (r for r in rs if r.status == R.OK):
             assert set(r.values) == set(R.METRICS)
-            assert r.values["macro_f1"].ci and r.values["mcc"].ci is None
+            assert r.values["macro_f1"].ci
+            if r.block in (R.FROZEN, R.FINETUNE) and r.sources[0].startswith(("results/", "resultados/clasificacion")):
+                assert r.values["mcc"].ci is None
 
 
 def test_baseline_value_is_the_json_logreg_number():

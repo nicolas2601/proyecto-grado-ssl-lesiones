@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dermssl.bench import glossary
-from dermssl.bench.rows import DATASETS, FINETUNE, FROZEN, METRICS, OK, Dataset, Row, Value, dataset_rows
+from dermssl.bench import glossary, table_extras
+from dermssl.bench.rows import BLOCKS, DATASETS, METRICS, OK, Dataset, Row, Value, dataset_rows
 
 NO_VALUE = "—"
 HEADERS = {"accuracy": "Accuracy", "balanced_accuracy": "Exactitud balanceada", "macro_precision": "Precisión macro",
@@ -71,5 +71,6 @@ def render_markdown(repo: Path, ds: Dataset) -> str:
         "Plan y reglas: `docs/33-banco-completo-multidataset.md`.", "",
         "## Glosario", "", *glossary.GLOSSARY, "", glossary.macro_note(facts), "",
         "## Cómo leer esta tabla", "", *glossary.reading_rules(repo, DATASETS), "",
-        *block_section(rows, FROZEN), *block_section(rows, FINETUNE),
+        *(line for block in BLOCKS if any(r.block == block for r in rows) for line in block_section(rows, block)),
+        *(table_extras.ham_section(repo) if ds.key == "ham10000" else table_extras.isic_section(repo, ds)),
     ])

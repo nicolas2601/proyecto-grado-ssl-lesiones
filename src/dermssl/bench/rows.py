@@ -22,6 +22,9 @@ V71_NPZ = "resultados/clasificacion/v71/v71_final_eval.probas.npz"
 METRICS = ("accuracy", "balanced_accuracy", "macro_precision", "macro_recall", "macro_f1", "auc", "ece", "mcc")
 JSON_KEYS = {"auc": "auc_ovr_macro"}
 FROZEN, FINETUNE = "congelados (sin fine-tuning)", "con fine-tuning"
+SENSITIVITY = "sensibilidad (cómputo no canónico: batch 16, transductivo)"
+EXPLORATORY = "exploratorio (segmentación, no cambia el propuesto)"
+BLOCKS = (FROZEN, FINETUNE, SENSITIVITY, EXPLORATORY)
 OK, PENDING, NOT_RUN = "ok", "pendiente", "no ejecutado todavia"
 MODELS = ("alexnet", "vgg19", "resnet50", "efficientnet_b0", "vit_b16", "simsiam_r50",
           "dinov2_vits14", "dinov2_vitb14")
@@ -143,32 +146,10 @@ def v71_derived(repo: Path, key: str) -> tuple[list[list[int]], dict[str, Value]
     return cm, out
 
 
-def proposed_rows_ham(repo: Path) -> list[Row]:
-    n_eval = _load(repo, V71_JSON)["n_eval"]
-    return [Row("ham10000", FROZEN, name, pre, False, False, OK, (V71_JSON, V71_NPZ), n_eval,
-                v71_derived(repo, key)[1], "probe logreg C1; precisión, recall y MCC desde las probabilidades")
-            for key, name, pre in V71_ROWS]
-
-
-def pending_rows(ds: Dataset) -> list[Row]:
-    """Rows the plan (docs/33, E1 and G1.3) will add; listed explicitly so nothing looks forgotten."""
-    clean = (("B71-limpio (B* s42 limpio, config fija)", OWN_B), ("A71-limpio (sopa A* s42+s43 limpios)", OWN_A))
-    out = [Row(ds.key, FROZEN, name, pre, False, False, PENDING, (PLAN_DOC,), note="E1 de docs/33")
-           for name, pre in clean]
-    if ds.key != "ham10000":
-        out += [Row(ds.key, FROZEN, f"{name} original", pre, False, True, PENDING, (PLAN_DOC,),
-                    note="transductivo: imágenes de val en el pool SSL, sin etiquetas (E1)")
-                for name, pre in (("B71", OWN_B), ("A71", OWN_A))]
-    if ds.finetune is None:
-        out.append(Row(ds.key, FINETUNE, "8 baselines con fine-tuning", "varios", True, False, NOT_RUN,
-                       (PLAN_DOC,), note="G1.3 de docs/33; optimista: época elegida en val (receta existente)"))
-    return out
-
-
 def sort_rows(rows: list[Row]) -> list[Row]:
     """Per block: rows with values by macro-F1 descending (ties by name), then pending ones in given order."""
     out = []
-    for block in (FROZEN, FINETUNE):
+    for block in BLOCKS:
         mine = [r for r in rows if r.block == block]
         done = sorted((r for r in mine if r.status == OK), key=lambda r: (-r.values["macro_f1"].point, r.name))
         out += done + [r for r in mine if r.status != OK]
@@ -176,5 +157,11 @@ def sort_rows(rows: list[Row]) -> list[Row]:
 
 
 def dataset_rows(repo: Path, ds: Dataset) -> list[Row]:
-    rows = baseline_rows(repo, ds) + (proposed_rows_ham(repo) if ds.key == "ham10000" else [])
-    return sort_rows(rows + pending_rows(ds))
+    """Every row of one dataset table (measured and pending), sorted per block."""
+    from dermssl.bench import ham_rows, isic_rows  # lazy: both import this module
+
+    rows = baseline_rows(repo, ds)
+    rows += ham_rows.ham_rows(repo) if ds.key == "ham10000" else isic_rows.isic_rows(repo, ds.key)
+    if ds.finetune is None:
+        rows.append(isic_rows.finetune_pending(ds.key))
+    return sort_rows(rows)
