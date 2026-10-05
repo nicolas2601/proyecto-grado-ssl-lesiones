@@ -142,9 +142,6 @@ WANDB_PROJECT = "dermssl-baselines-finetune"
 MLFLOW_EXPERIMENT_PREFIX = "finetune-"
 
 
-OUTSIDE_MANIFEST = -1
-
-
 @dataclass(frozen=True)
 class Job:
     index: int
@@ -181,27 +178,6 @@ def manifest() -> list[Job]:
         for model in MODELS:
             jobs.append(Job(index=len(jobs), model=model, dataset=dataset))
     return jobs
-
-
-class UnknownJobError(ValueError):
-    """The (model, dataset) pair is not one the protocol defines."""
-
-
-def job_for(model: str, dataset: str) -> Job:
-    """The job for any (model, dataset) in MODELS x DATASETS, manifest or not.
-
-    ``manifest()`` is the SLURM array and stays at 16 jobs; a pair outside it
-    (isic2020, docs/33 G1.3) gets ``index == OUTSIDE_MANIFEST`` but the same
-    run name, result file and checkpoint conventions.
-    """
-    if model not in MODELS or dataset not in DATASETS:
-        raise UnknownJobError(
-            f"no job for model={model!r} dataset={dataset!r}; "
-            f"models {MODELS}, datasets {tuple(DATASETS)}")
-    for job in manifest():
-        if (job.model, job.dataset) == (model, dataset):
-            return job
-    return Job(index=OUTSIDE_MANIFEST, model=model, dataset=dataset)
 
 
 def job_from_index(index: int) -> Job:

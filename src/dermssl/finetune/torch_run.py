@@ -34,7 +34,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 
 from dermssl.data_resolver import find_files, index_images
-from dermssl.finetune import protocol, split_guard
+from dermssl.finetune import jobs, protocol, split_guard
 from dermssl.finetune.config import FinetuneConfig, weight_source
 from dermssl.finetune.tracking import CompositeTracker
 
@@ -333,7 +333,7 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     out_dir = Path(cfg.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    job = protocol.job_for(cfg.model, cfg.dataset)
+    job = jobs.job_for(cfg.model, cfg.dataset)
     print(f"[{job.run_name}] device={device} smoke={cfg.smoke} "
           f"pesos={weight_source(cfg.model)}")
 
