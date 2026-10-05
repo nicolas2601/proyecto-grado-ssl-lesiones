@@ -1,6 +1,6 @@
 {
- "describes": "A71__original__vs__PUBLIC_A71.json",
- "sha256": "29718bc6b3d5010f02ab4d190ad8b6f90814490b94b6bf84b544c1778dce326a",
+ "describes": "PUBLIC_A71.json",
+ "sha256": "ac7d6732b864ccf445e0981aa26aebc2af519a68fc0c6b79713aea9c0913af60",
  "environment": {
   "schema": 1,
   "python": "3.13.15",
@@ -37,7 +37,7 @@
    "OPENBLAS_NUM_THREADS": "4",
    "NUMEXPR_NUM_THREADS": null,
    "CUBLAS_WORKSPACE_CONFIG": null,
-   "CUDA_VISIBLE_DEVICES": "1",
+   "CUDA_VISIBLE_DEVICES": "0",
    "PYTHONHASHSEED": null
   },
   "threadpools": [
@@ -63,7 +63,7 @@
   "cpu_count": 48,
   "knobs": {
    "decode_workers": 8,
-   "batch_size": 16,
+   "batch_size": 64,
    "loky_inner_threads": 4
   }
  }

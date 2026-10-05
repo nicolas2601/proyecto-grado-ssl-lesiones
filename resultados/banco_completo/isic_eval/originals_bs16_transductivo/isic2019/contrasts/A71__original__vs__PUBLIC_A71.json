@@ -5,9 +5,17 @@
   "control": "PUBLIC_A71",
   "arm_probas_sha256": "a84b66b25e2622e298e5881b8d87f0feb894d711f1ae7e7e7e03b5911b585c55",
   "control_probas_sha256": "3da0e26a4cc4d3f34c60c61e63940e4acd062297dce6c5a6ffd7ad019d68dc33",
-  "n_resamples": 1000
+  "n_resamples": 1000,
+  "metrics": [
+   "macro_f1",
+   "balanced_accuracy",
+   "accuracy",
+   "auc",
+   "ece",
+   "mcc"
+  ]
  },
- "key_sha256": "e78beadc7af806389072670a91fda0c4589fc6ce5f4d9f860c422947533ec204",
+ "key_sha256": "033a33cae78e2a7bf85856e47115075fb8c332c81d4ad9005d53ea98dd4d360f",
  "result": {
   "paired": [
    {
@@ -82,6 +90,21 @@
     "point_delta": -0.02748012599245819,
     "ci95_low": -0.03864721077839315,
     "ci95_high": -0.011263483787478396,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   },
+   {
+    "arm": "A71__original",
+    "control": "PUBLIC_A71",
+    "metric": "mcc",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.6669012442272347,
+    "point_control": 0.6237833367686141,
+    "point_delta": 0.04311790745862065,
+    "ci95_low": 0.025883256913990814,
+    "ci95_high": 0.05948545322280773,
     "excludes_zero": true,
     "direction": "arm_better"
    }

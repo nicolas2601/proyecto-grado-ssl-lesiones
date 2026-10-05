@@ -1,0 +1,41 @@
+{
+ "describes": "A71__original__vs__PUBLIC_A71.json",
+ "sha256": "de1571fa2d893255b665ebc7fecb0c34c22f22638fdb24c11103bda7bcf6c860",
+ "environment": {
+  "schema": 1,
+  "python": "3.13.15",
+  "packages": {
+   "numpy": "2.5.3",
+   "scipy": "1.18.0",
+   "scikit-learn": "1.9.0",
+   "torch": "2.11.0+cu128",
+   "torchvision": "0.26.0+cu128",
+   "joblib": "1.6.0",
+   "threadpoolctl": "3.6.0"
+  },
+  "torch": {
+   "loaded": false
+  },
+  "env": {
+   "OMP_NUM_THREADS": "4",
+   "MKL_NUM_THREADS": "4",
+   "OPENBLAS_NUM_THREADS": "4",
+   "NUMEXPR_NUM_THREADS": null,
+   "CUBLAS_WORKSPACE_CONFIG": null,
+   "CUDA_VISIBLE_DEVICES": "1",
+   "PYTHONHASHSEED": null
+  },
+  "threadpools": [
+   {
+    "user_api": "blas",
+    "internal_api": "openblas",
+    "num_threads": 4,
+    "version": "0.3.34"
+   }
+  ],
+  "cpu_count": 48,
+  "knobs": {
+   "loky_inner_threads": 4
+  }
+ }
+}
