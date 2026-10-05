@@ -183,7 +183,8 @@ def pending_table(repo: Path) -> Table:
                      "en el pod con `scripts/e3_contrasts_rebuild.py` (E3b ya los tiene)", pending.NO_ETA])
     if not hc.measured(repo):
         rows.append(["B71-limpio y A71-limpio contra el original en HAM10000", pending.HAM_CLEAN.reason, pending.NO_ETA])
-    return Table("Contrastes pendientes", ["Contraste", "Motivo", "ETA"], rows, "", "contrast-pending")
+    note = "" if rows else "No queda ningún contraste pendiente: cada contraste del banco sale de datos commiteados."
+    return Table("Contrastes pendientes", ["Contraste", "Motivo", "ETA"], rows, note, "contrast-pending")
 
 
 def warning(items: list[Contrast]) -> list[str]:

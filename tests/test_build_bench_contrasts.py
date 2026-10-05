@@ -37,7 +37,10 @@ def test_every_contrast_family_of_the_bench_is_present():
         assert part in titles, part
     fixed = 160 + 6 * 8 + 48  # E3b: 120 contrasts of 3 metrics + 40 of MCC; E3 final: 6 evals x (6 + 2 MCC refit on the pod)
     isic = sum(len(c) for ds in ('isic2019', 'isic2020') for c in L.isic_all(REPO, ds).values())
-    assert len(items) == fixed + isic + len(F.contrasts(REPO)) + len(E2.contrasts(REPO))
+    import json
+
+    clean = len(json.loads((REPO / "resultados/banco_completo/ham_clean/ham_clean_val.json").read_text(encoding="utf-8"))["paired"])
+    assert len(items) == fixed + isic + len(F.contrasts(REPO)) + len(E2.contrasts(REPO)) + clean
 
 
 def test_multiplicity_warning_states_the_counts_from_the_data():
@@ -82,12 +85,12 @@ def test_e3b_tables_carry_mcc_like_any_other_metric():
     assert raised.count("| MCC |") == 8
 
 
-def test_pending_contrasts_are_only_the_ones_without_data():
+def test_no_contrast_is_pending_once_every_result_is_committed():
     block = _text().split("### Contrastes pendientes")[1]
     assert "D3 − D2" not in block and "~10:30" not in block and "~15:00" not in block
     assert "MCC en HAM10000" not in block  # E3 and E3b both carry their MCC contrasts now
-    assert "ham_clean_val.json" in block and "no es una corrección de transductividad" in block
-    assert block.count("sin ETA") == 1
+    assert "ham_clean_val.json" not in block and block.count("sin ETA") == 0  # HAM clean is measured too
+    assert "No queda ningún contraste pendiente" in block
 
 
 def test_e2_contrasts_are_listed_with_the_primary_one_first():

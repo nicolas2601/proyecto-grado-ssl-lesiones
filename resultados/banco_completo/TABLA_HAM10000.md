@@ -117,15 +117,15 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 
 | # | Modelo | Preentrenamiento | Fine-tuning | Segmentación | Transductivo | Val n | Estado | Nota | Fuente |
 |---|---|---|---|---|---|---|---|---|---|
-| — | B71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | — | pendiente | la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican; sin ETA | `docs/33-banco-completo-multidataset.md` |
-| — | A71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | — | pendiente | la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican; sin ETA | `docs/33-banco-completo-multidataset.md` |
+| 1 | B71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | 2.004 | ok | pesos limpios (pool SSL sin las imágenes de val de ISIC); análisis de sensibilidad posterior, no es selección: configuración y umbrales del holdout original (ajustados con los pesos originales y aplicados sin cambios); cómputo canónico (batch 64 + autocast); se lee al lado de la fila registrada de pesos originales, que no se reemplaza | `resultados/banco_completo/ham_clean/ham_clean_val.json` · `resultados/banco_completo/ham_clean/ham_clean_val.probas.npz` |
+| 2 | A71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | 2.004 | ok | pesos limpios (pool SSL sin las imágenes de val de ISIC); análisis de sensibilidad posterior, no es selección: configuración y umbrales del holdout original (ajustados con los pesos originales y aplicados sin cambios); cómputo canónico (batch 64 + autocast); se lee al lado de la fila registrada de pesos originales, que no se reemplaza | `resultados/banco_completo/ham_clean/ham_clean_val.json` · `resultados/banco_completo/ham_clean/ham_clean_val.probas.npz` |
 
 ### Métricas [IC 95 % donde la fuente lo publica]
 
 | # | Modelo | Accuracy | Exactitud balanceada | Precisión macro | Recall macro | F1 macro | AUC OvR macro | ECE ↓ | MCC |
 |---|---|---|---|---|---|---|---|---|---|
-| — | B71-limpio (canónico) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
-| — | A71-limpio (canónico) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
+| 1 | B71-limpio (canónico) | 0,8323 [0,8159; 0,8483] | 0,6936 [0,6472; 0,7395] | 0,7339 | 0,6936 | 0,7104 [0,6672; 0,7497] | 0,9612 [0,9545; 0,9673] | 0,0581 [0,0470; 0,0733] | 0,6790 |
+| 2 | A71-limpio (canónico) | 0,8428 [0,8258; 0,8588] | 0,7103 [0,6650; 0,7524] | 0,6964 | 0,7103 | 0,7025 [0,6606; 0,7432] | 0,9630 [0,9548; 0,9705] | 0,0156 [0,0140; 0,0334] | 0,7047 |
 
 ## Exploratorio (segmentación, no cambia el propuesto)
 

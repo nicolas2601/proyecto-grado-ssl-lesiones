@@ -24,6 +24,8 @@ No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partici
 - `confusion/ham10000/simsiam_resnet50__finetuning.json` (+ `.png`): HAM10000, SimSiam ResNet-50, fine-tuning; origen: matriz_confusion del JSON.
 - `confusion/ham10000/b71__congelado.json` (+ `.png`): HAM10000, B71 (propuesto), congelado; origen: argmax de las probabilidades commiteadas (el JSON v7.1 no trae matriz_confusion).
 - `confusion/ham10000/a71__congelado.json` (+ `.png`): HAM10000, A71 (ablación sin término de tono), congelado; origen: argmax de las probabilidades commiteadas (el JSON v7.1 no trae matriz_confusion).
+- `confusion/ham10000/b71limpio__congelado.json` (+ `.png`): HAM10000, B71-limpio (canónico), congelado; origen: argmax de las probabilidades commiteadas de la sensibilidad de pesos limpios (cómputo canónico; análisis posterior, no es selección).
+- `confusion/ham10000/a71limpio__congelado.json` (+ `.png`): HAM10000, A71-limpio (canónico), congelado; origen: argmax de las probabilidades commiteadas de la sensibilidad de pesos limpios (cómputo canónico; análisis posterior, no es selección).
 - `confusion/isic2019/dinov2_vits14__congelado.json` (+ `.png`): ISIC 2019, DINOv2 ViT-S/14, congelado; origen: matriz_confusion del JSON.
 - `confusion/isic2019/dinov2_vits14__finetuning.json` (+ `.png`): ISIC 2019, DINOv2 ViT-S/14, fine-tuning; origen: matriz_confusion del JSON.
 - `confusion/isic2019/dinov2_vitb14__congelado.json` (+ `.png`): ISIC 2019, DINOv2 ViT-B/14, congelado; origen: matriz_confusion del JSON.
@@ -51,7 +53,5 @@ No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partici
 
 ## Pendientes (sin matriz, no se inventa)
 
-- HAM10000, B71-limpio (canónico) (congelado): pendiente; la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican; ETA sin ETA.
-- HAM10000, A71-limpio (canónico) (congelado): pendiente; la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican; ETA sin ETA.
 
 Modelos incluidos: dinov2_vits14, dinov2_vitb14, simsiam_r50; condiciones: congelado, fine-tuning.

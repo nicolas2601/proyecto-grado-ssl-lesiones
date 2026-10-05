@@ -68,9 +68,11 @@ def test_artifact_mcc_matches_sklearn_on_expanded_labels():
 
 
 def test_v71_matrices_are_derived_and_reproduce_the_stored_accuracy():
-    v71 = [a for a in ARTS if a["dataset"] == "HAM10000" and a["modelo"].startswith(("A71", "B71"))]
+    ham = [a for a in ARTS if a["dataset"] == "HAM10000" and a["modelo"].startswith(("A71", "B71"))]
+    v71 = [a for a in ham if "limpio" not in a["modelo"]]
     assert len(v71) == 2 and all("no trae matriz_confusion" in a["origen"] for a in v71)
-    for art in v71:
+    assert {a["modelo"] for a in ham} - {a["modelo"] for a in v71} == {"B71-limpio (canónico)", "A71-limpio (canónico)"}
+    for art in ham:
         check = art["verificacion"]
         assert check["accuracy_desde_matriz"] == pytest.approx(check["accuracy_json"], abs=1e-12)
         assert art["n"] == 2004
@@ -85,8 +87,8 @@ def test_manifest_lists_pending_cells_and_the_missing_diff_figure():
         assert ("ISIC 2020", done, "fine-tuning") not in pend
     assert all(p["eta"] and p["motivo"] for p in manifest["pendientes"])
     names = {(p["dataset"], p["modelo"]) for p in manifest["pendientes"]}
-    assert names == {("HAM10000", "B71-limpio (canónico)"), ("HAM10000", "A71-limpio (canónico)")}
-    assert all("ham_clean_val.json" in p["motivo"] for p in manifest["pendientes"])
+    assert names == set()  # the HAM clean result is committed: its two cells have their matrices
+    assert {("HAM10000", "B71-limpio (canónico)"), ("HAM10000", "A71-limpio (canónico)")} <= {(a["dataset"], a["modelo"]) for a in ARTS}
     assert "no comparten partición" in manifest["figura_de_diferencias"]
     readme = (OUT / "confusion" / "README.md").read_text(encoding="utf-8")
     assert "No se genera figura de diferencias frente a B71" in readme

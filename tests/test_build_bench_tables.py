@@ -130,7 +130,8 @@ def test_shared_reading_rule_says_isic2020_finetune_ran_in_our_pod():
     assert "Las de ISIC 2020 corrieron en nuestro pod (GPU RTX PRO 4000), no en el banco de Karen" in text
 
 
-def test_ham_clean_rows_stay_pending_with_the_current_reason_and_no_eta():
-    rows = [ln for ln in _md("TABLA_HAM10000").splitlines() if ln.startswith("| — | ") and "limpio" in ln]
-    with_reason = [r for r in rows if "ham_clean_val.json" in r and "sin ETA" in r]
-    assert len(with_reason) == 2 and len(rows) == 4  # condition table + metrics table
+def test_ham_clean_rows_are_measured_in_their_own_block_once_the_result_is_committed():
+    lines = _md("TABLA_HAM10000").splitlines()
+    rows = [ln for ln in lines if "limpio (canónico)" in ln and "ham_clean_val.json" in ln]
+    assert len(rows) == 2 and all("| ok |" in r and "sensibilidad posterior" in r for r in rows)
+    assert not [ln for ln in lines if ln.startswith("| — | ") and "limpio" in ln]  # nothing pending is left

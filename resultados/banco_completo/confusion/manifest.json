@@ -91,6 +91,30 @@
       ]
     },
     {
+      "json": "confusion/ham10000/b71limpio__congelado.json",
+      "png": "confusion/ham10000/b71limpio__congelado.png",
+      "dataset": "HAM10000",
+      "modelo": "B71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "argmax de las probabilidades commiteadas de la sensibilidad de pesos limpios (cómputo canónico; análisis posterior, no es selección)",
+      "fuente": [
+        "resultados/banco_completo/ham_clean/ham_clean_val.json",
+        "resultados/banco_completo/ham_clean/ham_clean_val.probas.npz"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/a71limpio__congelado.json",
+      "png": "confusion/ham10000/a71limpio__congelado.png",
+      "dataset": "HAM10000",
+      "modelo": "A71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "argmax de las probabilidades commiteadas de la sensibilidad de pesos limpios (cómputo canónico; análisis posterior, no es selección)",
+      "fuente": [
+        "resultados/banco_completo/ham_clean/ham_clean_val.json",
+        "resultados/banco_completo/ham_clean/ham_clean_val.probas.npz"
+      ]
+    },
+    {
       "json": "confusion/isic2019/dinov2_vits14__congelado.json",
       "png": "confusion/isic2019/dinov2_vits14__congelado.png",
       "dataset": "ISIC 2019",
@@ -355,25 +379,6 @@
       ]
     }
   ],
-  "pendientes": [
-    {
-      "dataset": "HAM10000",
-      "modelo": "B71-limpio (canónico)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican",
-      "eta": "sin ETA",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
-    {
-      "dataset": "HAM10000",
-      "modelo": "A71-limpio (canónico)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican",
-      "eta": "sin ETA",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    }
-  ],
+  "pendientes": [],
   "figura_de_diferencias": "No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partición v6/v7 (n = 2.004) y los baselines sobre la de Kaggle (n = 2.014); no comparten partición ni imágenes, así que una resta celda a celda no tiene sentido. En ISIC 2019 e ISIC 2020 B71-limpio sí comparte partición con los baselines, pero tampoco se genera la figura de diferencias (decisión de alcance)."
 }

@@ -53,23 +53,35 @@ def synthetic_result(repo: Path) -> None:
     (repo / hc.RESULT_JSON).write_text(json.dumps(doc), encoding="utf-8")
 
 
-@pytest.fixture(scope="module")
-def measured(tmp_path_factory):
-    root = tmp_path_factory.mktemp("bench")
+def _copy_without_result(tmp_path_factory, name: str) -> Path:
+    """A tmp copy of the results with the committed HAM clean result removed: the pending state, whatever the repo holds."""
+    root = tmp_path_factory.mktemp(name)
     shutil.copytree(REPO / "resultados", root / "resultados")
     shutil.copytree(REPO / "results", root / "results")
+    shutil.rmtree(root / hc.DIR, ignore_errors=True)
+    return root
+
+
+@pytest.fixture(scope="module")
+def pending_repo(tmp_path_factory):
+    return _copy_without_result(tmp_path_factory, "pending")
+
+
+@pytest.fixture(scope="module")
+def measured(tmp_path_factory):
+    root = _copy_without_result(tmp_path_factory, "bench")
     synthetic_result(root)
     return root
 
 
-# --- pending state: the real repository has no result JSON ---------------------------------------------------
+# --- pending state: a copy of the results without the result JSON --------------------------------------------
 
-def test_without_the_json_the_two_rows_are_pending_in_the_clean_block():
-    rows = _by_name(REPO)
+def test_without_the_json_the_two_rows_are_pending_in_the_clean_block(pending_repo):
+    rows = _by_name(pending_repo)
     for name in NAMES:
         r = rows[name]
         assert r.block == R.CLEAN_HAM and r.status == R.PENDING and not r.values and "sin ETA" in r.note
-    assert not (REPO / hc.RESULT_JSON).exists()
+    assert not (pending_repo / hc.RESULT_JSON).exists()
 
 
 def test_the_registered_rows_stay_in_the_frozen_block_labelled_as_original_weights():
@@ -78,17 +90,17 @@ def test_the_registered_rows_stay_in_the_frozen_block_labelled_as_original_weigh
         assert rows[name].block == R.FROZEN and rows[name].note.startswith("pesos originales (selección)")
 
 
-def test_the_clean_block_comes_after_the_frozen_one_and_renders_as_its_own_section():
+def test_the_clean_block_comes_after_the_frozen_one_and_renders_as_its_own_section(pending_repo):
     assert R.BLOCKS.index(R.CLEAN_HAM) > R.BLOCKS.index(R.FROZEN)
-    text = render.render_markdown(REPO, HAM)
+    text = render.render_markdown(pending_repo, HAM)
     assert "## Pesos limpios (sensibilidad)" in text and text.index("## Congelados") < text.index("## Pesos limpios")
 
 
-def test_pending_reason_is_derived_from_the_missing_file_everywhere():
+def test_pending_reason_is_derived_from_the_missing_file_everywhere(pending_repo):
     assert hc.RESULT_JSON in pending.HAM_CLEAN.reason
-    table = contrasts_doc.pending_table(REPO)
+    table = contrasts_doc.pending_table(pending_repo)
     assert any(r[0] == "B71-limpio y A71-limpio contra el original en HAM10000" for r in table.rows)
-    names = {(p["dataset"], p["modelo"]) for p in confusion.pending(REPO)}
+    names = {(p["dataset"], p["modelo"]) for p in confusion.pending(pending_repo)}
     assert {("HAM10000", n) for n in NAMES} <= names
 
 
@@ -125,7 +137,7 @@ def test_pending_disappears_only_with_the_json_and_comes_back_without_it(measure
     assert _by_name(gone)[NAMES[0]].status == R.PENDING
 
 
-def test_contrasts_document_lists_the_five_pairs_with_mcc(measured):
+def test_contrasts_document_lists_the_five_pairs_with_mcc(measured, pending_repo):
     tabs, items = contrasts_doc.build(measured)
     mine = [t for t in tabs if t.label == "contrast-ham-clean"]
     assert len(mine) == 1 and len(mine[0].rows) == 5 * len(hc.CONTRAST_METRICS)
@@ -135,23 +147,23 @@ def test_contrasts_document_lists_the_five_pairs_with_mcc(measured):
                      ("A71-limpio", "DINOv2 público (prot. A71)"), ("A71-limpio", "A71 original"),
                      ("B71-limpio", "A71-limpio")}
     assert any(r[2] == "MCC" for r in mine[0].rows)
-    assert not [t for t in contrasts_doc.build(REPO)[0] if t.label == "contrast-ham-clean"]
+    assert not [t for t in contrasts_doc.build(pending_repo)[0] if t.label == "contrast-ham-clean"]
 
 
-def test_ablation_has_the_clean_rows_and_its_own_contrast_table_with_mcc(measured):
+def test_ablation_has_the_clean_rows_and_its_own_contrast_table_with_mcc(measured, pending_repo):
     tabs = {t.label: t for t in ablation_data.tables(measured)}
     clean = tabs["ablation-clean"]
     assert any(r[0] == "HAM10000" and r[1] == NAMES[0] and r[3] != "pendiente" for r in clean.rows)
     mine = tabs["ablation-ham-clean"]
     assert {r[2] for r in mine.rows} >= {"MCC", "F1 macro"} and "sensibilidad posterior" in mine.note
-    assert "ablation-ham-clean" not in {t.label for t in ablation_data.tables(REPO)}
+    assert "ablation-ham-clean" not in {t.label for t in ablation_data.tables(pending_repo)}
 
 
-def test_confusion_artifacts_exist_only_with_the_json(measured):
+def test_confusion_artifacts_exist_only_with_the_json(measured, pending_repo):
     ham = [a for a in confusion.artifacts(measured) if a["dataset"] == "HAM10000" and "limpio" in a["modelo"]]
     assert {a["modelo"] for a in ham} == set(NAMES)
     assert all(a["n"] == 420 and a["verificacion"]["accuracy_json"] > 0 for a in ham)
-    assert not [a for a in confusion.artifacts(REPO) if a["dataset"] == "HAM10000" and "limpio" in a["modelo"]]
+    assert not [a for a in confusion.artifacts(pending_repo) if a["dataset"] == "HAM10000" and "limpio" in a["modelo"]]
 
 
 def test_reading_rules_and_glossary_explain_the_clean_block():
@@ -188,5 +200,13 @@ def test_a_json_that_is_not_the_canonical_val_read_never_shows_as_measured(measu
     assert "ablation-ham-clean" not in {t.label for t in ablation_data.tables(broken)}
 
 
-def test_the_canonical_json_counts_as_measured(measured):
-    assert hc.measured(measured) and not hc.measured(REPO)
+def test_the_canonical_json_counts_as_measured(measured, pending_repo):
+    assert hc.measured(measured) and not hc.measured(pending_repo)
+
+
+def test_the_committed_result_is_the_canonical_val_read():
+    """The real result the bench publishes: one non-rehearsal read of the 2004 val images, canonical compute."""
+    assert hc.measured(REPO)
+    doc = json.loads((REPO / hc.RESULT_JSON).read_text(encoding="utf-8"))
+    assert doc["rehearsal"] is False and doc["split"] == "val" and doc["n_eval"] == 2004
+    assert doc["label"] == hc.declarations(rehearsal=False)["label"]

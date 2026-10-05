@@ -6,7 +6,7 @@ Generado por `scripts/build_bench_contrasts.py` desde los JSON del repositorio. 
 
 ## Advertencia de multiplicidad
 
-Este documento lista 456 contrastes (el IC excluye 0 en 289) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 23) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
+Este documento lista 491 contrastes (el IC excluye 0 en 299) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 25) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
 
 ## Glosario
 
@@ -400,6 +400,48 @@ v7.1 en HAM10000, bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resulta
 | DINOv2 público (mejor prot. v7.1) | DINOv2 público (v7) | Recall de melanoma | +0,0811 [+0,0092; +0,1508] | sí | DINOv2 público (mejor prot. v7.1) mejor (el IC excluye 0) |
 | DINOv2 público (mejor prot. v7.1) | DINOv2 público (v7) | AUC de melanoma | +0,0559 [+0,0332; +0,0788] | sí | DINOv2 público (mejor prot. v7.1) mejor (el IC excluye 0) |
 
+### HAM10000: pesos limpios (sensibilidad) frente al original y al público
+
+Análisis de sensibilidad posterior, no es selección: configuración y umbrales del holdout original (los umbrales se ajustaron con los pesos originales y se aplican sin cambios a los limpios). Cómputo canónico, HAM10000 val n = 2.004, bootstrap pareado por `lesion_id`, 1.000 remuestras, semilla 20260923. Fuente: `resultados/banco_completo/ham_clean/ham_clean_val.json`.
+
+| Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura |
+|---|---|---|---|---|---|
+| B71-limpio | DINOv2 público (prot. B71) | F1 macro | +0,0267 [-0,0122; +0,0686] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | DINOv2 público (prot. B71) | Exactitud balanceada | +0,0276 [-0,0114; +0,0690] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | DINOv2 público (prot. B71) | AUC OvR macro | -0,0007 [-0,0071; +0,0059] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | DINOv2 público (prot. B71) | ECE (menor es mejor) | -0,0107 [-0,0260; +0,0045] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | DINOv2 público (prot. B71) | Recall de melanoma | -0,0045 [-0,0773; +0,0672] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | DINOv2 público (prot. B71) | AUC de melanoma | +0,0055 [-0,0112; +0,0226] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | DINOv2 público (prot. B71) | MCC | +0,0078 [-0,0227; +0,0368] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | F1 macro | -0,0037 [-0,0360; +0,0270] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | Exactitud balanceada | -0,0028 [-0,0339; +0,0282] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | AUC OvR macro | +0,0010 [-0,0068; +0,0101] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | ECE (menor es mejor) | +0,0052 [-0,0072; +0,0166] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | Recall de melanoma | -0,0225 [-0,0820; +0,0294] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | AUC de melanoma | -0,0035 [-0,0171; +0,0110] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | MCC | -0,0111 [-0,0359; +0,0116] | no | sin diferencia demostrable (el IC incluye 0) |
+| A71-limpio | DINOv2 público (prot. A71) | F1 macro | +0,0705 [+0,0255; +0,1132] | sí | A71-limpio mejor (el IC excluye 0) |
+| A71-limpio | DINOv2 público (prot. A71) | Exactitud balanceada | +0,0929 [+0,0502; +0,1356] | sí | A71-limpio mejor (el IC excluye 0) |
+| A71-limpio | DINOv2 público (prot. A71) | AUC OvR macro | +0,0198 [+0,0101; +0,0304] | sí | A71-limpio mejor (el IC excluye 0) |
+| A71-limpio | DINOv2 público (prot. A71) | ECE (menor es mejor) | -0,0649 [-0,0766; -0,0415] | sí | A71-limpio mejor (el IC excluye 0) |
+| A71-limpio | DINOv2 público (prot. A71) | Recall de melanoma | +0,1892 [+0,1048; +0,2715] | sí | A71-limpio mejor (el IC excluye 0) |
+| A71-limpio | DINOv2 público (prot. A71) | AUC de melanoma | +0,0674 [+0,0390; +0,0949] | sí | A71-limpio mejor (el IC excluye 0) |
+| A71-limpio | DINOv2 público (prot. A71) | MCC | +0,0937 [+0,0569; +0,1283] | sí | A71-limpio mejor (el IC excluye 0) |
+| A71-limpio | A71 original | F1 macro | -0,0204 [-0,0578; +0,0140] | no | sin diferencia demostrable (el IC incluye 0) |
+| A71-limpio | A71 original | Exactitud balanceada | -0,0202 [-0,0574; +0,0167] | no | sin diferencia demostrable (el IC incluye 0) |
+| A71-limpio | A71 original | AUC OvR macro | -0,0014 [-0,0063; +0,0040] | no | sin diferencia demostrable (el IC incluye 0) |
+| A71-limpio | A71 original | ECE (menor es mejor) | +0,0002 [-0,0162; +0,0145] | no | sin diferencia demostrable (el IC incluye 0) |
+| A71-limpio | A71 original | Recall de melanoma | +0,0631 [+0,0084; +0,1174] | sí | A71-limpio mejor (el IC excluye 0) |
+| A71-limpio | A71 original | AUC de melanoma | -0,0034 [-0,0189; +0,0104] | no | sin diferencia demostrable (el IC incluye 0) |
+| A71-limpio | A71 original | MCC | +0,0051 [-0,0210; +0,0289] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | A71-limpio | F1 macro | +0,0079 [-0,0247; +0,0445] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | A71-limpio | Exactitud balanceada | -0,0167 [-0,0500; +0,0175] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | A71-limpio | AUC OvR macro | -0,0018 [-0,0083; +0,0051] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | A71-limpio | ECE (menor es mejor) | +0,0424 [+0,0204; +0,0511] | sí | A71-limpio mejor (el IC excluye 0) |
+| B71-limpio | A71-limpio | Recall de melanoma | -0,1396 [-0,2146; -0,0686] | sí | A71-limpio mejor (el IC excluye 0) |
+| B71-limpio | A71-limpio | AUC de melanoma | -0,0147 [-0,0318; +0,0024] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | A71-limpio | MCC | -0,0257 [-0,0551; +0,0028] | no | sin diferencia demostrable (el IC incluye 0) |
+
 ### ISIC 2019: canónico (batch 64 + autocast)
 
 Bootstrap pareado por imagen (sin grupo real), 1.000 remuestras. Fuente: `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__A71__original.json` y hermanos.
@@ -674,6 +716,7 @@ B71-limpio: F1 macro 0,6229 [0,5865; 0,6602]. Los baselines no tienen probabilid
 
 ### Contrastes pendientes
 
+No queda ningún contraste pendiente: cada contraste del banco sale de datos commiteados.
+
 | Contraste | Motivo | ETA |
 |---|---|---|
-| B71-limpio y A71-limpio contra el original en HAM10000 | la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican | sin ETA |
