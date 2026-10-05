@@ -22,6 +22,7 @@ def test_the_real_mode_evaluate_output_is_byte_for_byte_what_it_was():
     groups = np.array([f"P{p}" for p in range(30) for i in range(4)])
     probas = {a: rng.dirichlet(np.ones(7), size=len(labels)) for a in e2.ARMS}
     doc = e2.evaluate(labels, groups, probas, n_resamples=N_RES)
+    doc["paired"] = [r for r in doc["paired"] if r["metric"] != "mcc"]  # MCC joined the contrasts afterwards
     assert hashlib.sha256(json.dumps(doc, ensure_ascii=False).encode()).hexdigest() == GOLDEN_REAL_EVALUATE_SHA256
 
 

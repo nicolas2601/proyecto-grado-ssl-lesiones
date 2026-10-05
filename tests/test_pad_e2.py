@@ -65,7 +65,12 @@ class TestEvaluate:
     def test_all_pairs_are_contrasted_on_every_metric(self, evaluated):
         doc, _ = evaluated
         pairs = {(r["arm"], r["control"]) for r in doc["paired"]}
-        assert pairs == set(e2.CONTRASTS) and len(doc["paired"]) == len(e2.CONTRASTS) * 5
+        assert pairs == set(e2.CONTRASTS) and len(doc["paired"]) == len(e2.CONTRASTS) * 6
+
+    def test_every_pair_carries_an_mcc_row_with_its_own_interval(self, evaluated):
+        doc, _ = evaluated
+        mcc = [r for r in doc["paired"] if r["metric"] == "mcc"]
+        assert len(mcc) == len(e2.CONTRASTS) and all(r["ci95_low"] is not None for r in mcc)
 
     def test_the_outside_rate_is_descriptive_per_arm(self, evaluated):
         doc, _ = evaluated
