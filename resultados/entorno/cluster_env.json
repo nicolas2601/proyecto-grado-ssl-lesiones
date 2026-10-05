@@ -1,0 +1,76 @@
+{
+  "hardware_software": {
+    "measured_utc": "2026-10-05T01:05Z",
+    "gpus": [
+      {
+        "model": "NVIDIA RTX PRO 4000 Blackwell",
+        "vram_mib": 24467
+      },
+      {
+        "model": "NVIDIA RTX PRO 4000 Blackwell",
+        "vram_mib": 24467
+      }
+    ],
+    "nvidia_driver": "580.178.04",
+    "cuda_torch_build": "12.8",
+    "cudnn": "9.19.0 (según torch: 91900)",
+    "nccl": "2.28.9",
+    "cpu": {
+      "model": "Intel(R) Xeon(R) w7-2495X",
+      "logical_cpus": 48,
+      "threads_per_core": 2,
+      "sockets": 1
+    },
+    "ram_gib": 123,
+    "storage": [
+      {
+        "mount": "work (volumen de red compartido)",
+        "size": "40T",
+        "used": "318G"
+      },
+      {
+        "mount": "/dev/shm",
+        "size": "64M",
+        "note": "los DataLoader deben usar 0 workers"
+      }
+    ],
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "7.0.0-31-generic",
+    "container": "sesión JupyterHub de un solo usuario (no Docker; cgroup v2)",
+    "python": "3.13.15",
+    "torch": "2.11.0+cu128",
+    "sklearn_default": "1.9.0",
+    "sklearn_for_existing_splits": "1.7.2 (aislado; StratifiedGroupKFold(shuffle=True) cambió después de 1.7.2)",
+    "timm_installed": false,
+    "thread_env": {
+      "PROBE_BLAS_THREADS": "4 (fijado por dermssl.probe_threads)",
+      "pretrain_OMP_MKL_OPENBLAS": "12"
+    },
+    "pretrain_revision": "f1c2053d7e9e3f3eae4e1665d6942243b02e3872"
+  },
+  "pip_freeze_file": "resultados/entorno/pip_freeze.txt",
+  "pip_freeze_lines": 284,
+  "datasets": {
+    "isic2019": {
+      "n_images": 25331,
+      "split": "estratificado simple SIN grupo de paciente (el release no lo trae) - riesgo de fuga entre imagenes del mismo paciente y solape con HAM10000, metricas con sesgo optimista",
+      "val_n": 5067,
+      "val_sha256": "8cde8a71ccf5bf2e477ffdab445e8f1afbc37a164ee0cd1aba93ef785cc0b57f"
+    },
+    "isic2020": {
+      "n_images": 33126,
+      "split": "StratifiedGroupKFold por patient_id (0 grupos compartidos)",
+      "val_n": 6660,
+      "val_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e"
+    }
+  },
+  "ssl_pool": {
+    "pool_n": 55034,
+    "excluded_v7_n": 3851,
+    "effective_pool_n": 51256,
+    "exclude_ids_sha256_run": "95d21013a42a5c99a6024ef6c8ae73aada8bdc1193ae512665035bb59b737d87",
+    "clean_exclusion_n": 14842,
+    "clean_effective_pool_n": 40906,
+    "clean_exclude_file_sha256": "3b7e883392ba5ae0cb290166fa2d4e2dfbb325d4bce0bca3e96562f8c39dfc1d"
+  }
+}
