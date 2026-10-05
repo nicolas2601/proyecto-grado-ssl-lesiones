@@ -87,7 +87,7 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 
 | # | Modelo | Preentrenamiento | Fine-tuning | Segmentación | Transductivo | Val n | Estado | Nota | Fuente |
 |---|---|---|---|---|---|---|---|---|---|
-| — | 8 baselines con fine-tuning | varios | sí | no | no | — | no ejecutado todavia | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA arranca al terminar E2 (~10:30 UTC); la duración no está medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
+| — | 8 baselines con fine-tuning | varios | sí | no | no | — | no ejecutado todavia | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
 
 ### Métricas [IC 95 % donde la fuente lo publica]
 

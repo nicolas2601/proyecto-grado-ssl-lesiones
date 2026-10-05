@@ -10,14 +10,14 @@ sys.path.insert(0, str(REPO / "scripts"))
 
 import build_bench_all as ba  # noqa: E402
 
-EXPECTED = ("TABLA_HAM10000.md", "TABLA_ISIC2019.md", "TABLA_ISIC2020.md", "TABLA_ABLACION.md", "CONTRASTES_SSL.md",
+EXPECTED = ("TABLA_HAM10000.md", "TABLA_ISIC2019.md", "TABLA_ISIC2020.md", "TABLA_ABLACION.md", "CONTRASTES_SSL.md", "FITZPATRICK.md",
             "latex/TABLA_HAM10000.tex", "latex/TABLA_ISIC2019.tex", "latex/TABLA_ISIC2020.tex",
             "latex/TABLA_ABLACION.tex", "latex/CONTRASTES_SSL.tex", "confusion/manifest.json", "confusion/README.md")
 
 
 def test_every_generator_is_wired():
     assert [n for n, _ in ba.GENERATORS] == ["build_bench_tables.py", "build_bench_ablation.py",
-                                             "build_bench_contrasts.py"]
+                                             "build_bench_contrasts.py", "build_fitzpatrick_table.py"]
 
 
 def test_committed_bench_is_fresh(capsys):

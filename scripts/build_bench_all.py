@@ -1,4 +1,4 @@
-"""Run every generator of resultados/banco_completo/ (tables, ablation, contrasts, confusion, LaTeX).
+"""Run every generator of resultados/banco_completo/ (tables, ablation, contrasts, confusion, LaTeX, E5 Fitzpatrick).
 
     python scripts/build_bench_all.py            # write everything
     python scripts/build_bench_all.py --check    # exit 1 if ANY generated file is stale
@@ -20,13 +20,17 @@ sys.path.insert(0, str(REPO / "scripts"))
 import build_bench_ablation  # noqa: E402
 import build_bench_contrasts  # noqa: E402
 import build_bench_tables  # noqa: E402
+import build_fitzpatrick_table  # noqa: E402  (E5, owned by its own generator; only run and checked here)
 
 GENERATORS = (("build_bench_tables.py", build_bench_tables), ("build_bench_ablation.py", build_bench_ablation),
-              ("build_bench_contrasts.py", build_bench_contrasts))
+              ("build_bench_contrasts.py", build_bench_contrasts),
+              ("build_fitzpatrick_table.py", build_fitzpatrick_table))
 
 
 def _argv(args: argparse.Namespace, module) -> list[str]:
     out = ["--check"] if args.check else []
+    if module is build_fitzpatrick_table:  # takes a file, not a directory
+        return out + (["--out", str(args.out_root / "FITZPATRICK.md")] if args.out_root else [])
     out += ["--out-root", str(args.out_root)] if args.out_root else []
     if module is build_bench_tables:
         out += ["--skip-png"] if args.skip_png else []

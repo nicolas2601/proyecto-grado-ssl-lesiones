@@ -263,7 +263,7 @@
       "condicion": "fine-tuning",
       "estado": "no ejecutado todavia",
       "motivo": "el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2",
-      "eta": "arranca al terminar E2 (~10:30 UTC); la duración no está medida",
+      "eta": "inicio al terminar E2 (~10:30 UTC); duración no medida",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
@@ -272,7 +272,7 @@
       "condicion": "fine-tuning",
       "estado": "no ejecutado todavia",
       "motivo": "el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2",
-      "eta": "arranca al terminar E2 (~10:30 UTC); la duración no está medida",
+      "eta": "inicio al terminar E2 (~10:30 UTC); duración no medida",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
@@ -281,7 +281,7 @@
       "condicion": "fine-tuning",
       "estado": "no ejecutado todavia",
       "motivo": "el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2",
-      "eta": "arranca al terminar E2 (~10:30 UTC); la duración no está medida",
+      "eta": "inicio al terminar E2 (~10:30 UTC); duración no medida",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {

@@ -42,9 +42,9 @@ No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partici
 
 ## Pendientes (sin matriz, no se inventa)
 
-- ISIC 2020, DINOv2 ViT-S/14 (fine-tuning): no ejecutado todavia; el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA arranca al terminar E2 (~10:30 UTC); la duración no está medida.
-- ISIC 2020, DINOv2 ViT-B/14 (fine-tuning): no ejecutado todavia; el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA arranca al terminar E2 (~10:30 UTC); la duración no está medida.
-- ISIC 2020, SimSiam ResNet-50 (fine-tuning): no ejecutado todavia; el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA arranca al terminar E2 (~10:30 UTC); la duración no está medida.
+- ISIC 2020, DINOv2 ViT-S/14 (fine-tuning): no ejecutado todavia; el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida.
+- ISIC 2020, DINOv2 ViT-B/14 (fine-tuning): no ejecutado todavia; el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida.
+- ISIC 2020, SimSiam ResNet-50 (fine-tuning): no ejecutado todavia; el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida.
 - HAM10000, B71-limpio (canónico) (congelado): pendiente; E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio); ETA no declarada por el operador.
 - HAM10000, A71-limpio (canónico) (congelado): pendiente; falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC.
 - ISIC 2019, A71-limpio (canónico) (congelado): pendiente; falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC.

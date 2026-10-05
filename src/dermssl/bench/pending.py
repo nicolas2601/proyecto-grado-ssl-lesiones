@@ -27,7 +27,7 @@ A71_CLEAN = Pending("falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa 
 ORIGINAL_CANONICAL = Pending("re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) "
                              "en GPU0 después de A* s43; hoy solo existe la corrida de batch 16", "~15:00 UTC")
 FT_ISIC2020 = Pending("el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2",
-                      "arranca al terminar E2 (~10:30 UTC); la duración no está medida")
+                      "inicio al terminar E2 (~10:30 UTC); duración no medida")
 HAM_CLEAN = Pending("E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio)",
                     "no declarada por el operador")
 CLEAN_VS_ORIGINAL = Pending("el contraste B71-limpio contra B71 original exige el original con el mismo cómputo "
