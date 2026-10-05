@@ -135,3 +135,14 @@ def test_the_two_roi_estimators_are_counted_apart_by_bucket_and_split():
 
 def test_the_mask_file_hash_check_is_counted_and_never_hidden():
     assert _pool_report()["mask_coverage"]["sha256_file"] == {"match": 2, "mismatch": 1, "not_checked": 2}
+
+
+def test_the_image_origin_of_each_mask_state_is_counted_so_the_source_fallback_is_visible():
+    recs = [_pool_rec(0, "train", "perilesional_roi", "eligible", "I"), _pool_rec(1, "train", "no_mask_border", "quarantine", "II"),
+            _pool_rec(2, "val", "no_mask_border", "quarantine", "II"), _pool_rec(3, "val", "no_mask_border", "absent", None)]
+    recs[1]["roi"]["roi_image"] = "pool_224"
+    recs[2]["roi"]["roi_image"] = recs[3]["roi"]["roi_image"] = "source_224"
+    origin = _report(recs, masks=True)["estimators"]["roi"]["mask_coverage"]["image_origin_by_state"]
+    assert list(origin["quarantine"]) == ["pool_224", "source_224", "canonical", "none"]
+    assert origin["quarantine"] == {"pool_224": 1, "source_224": 1, "canonical": 0, "none": 0}
+    assert origin["absent"]["source_224"] == 1 and origin["eligible"]["pool_224"] == 1

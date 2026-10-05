@@ -17,6 +17,7 @@ BUCKET_COLUMNS = (*ita.BUCKET_LABELS, ita.ABSTAIN)
 TERCILE_COLUMNS = (*ita.TERCILES, ita.UNAVAILABLE)
 UNREADABLE = "unreadable"
 MASK_STATES = ("c1_native", "eligible", "quarantine", "absent", "none")
+IMAGE_ORIGINS = ("pool_224", "source_224", "canonical", "none")
 ROI_ESTIMATORS = ("perilesional_roi", "no_mask_border", "none")
 NO_ESTIMATE = {"bucket": None, "ita": None, "L_median": None, "b_median": None}
 
@@ -90,7 +91,9 @@ def _sha_counts(records) -> dict:
 def _mask_coverage(records, splits) -> dict:
     by_split = _crosstab(((r["split"], _state(r)) for r in records), splits, MASK_STATES)
     return {"by_split": by_split, "total": {s: sum(v[s] for v in by_split.values()) for s in MASK_STATES},
-            "sha256_file": _sha_counts(records)}
+            "sha256_file": _sha_counts(records),
+            "image_origin_by_state": _crosstab(((_state(r), r["roi"].get("roi_image") or "none") for r in records),
+                                               MASK_STATES, IMAGE_ORIGINS)}
 
 
 def _by_estimator(records, splits) -> dict:
