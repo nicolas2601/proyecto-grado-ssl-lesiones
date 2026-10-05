@@ -131,6 +131,10 @@ def main(argv=None) -> int:
     spec = e5_data.load_spec(args)
     print(f"{spec.name}: {len(spec.tasks)} images, splits {list(spec.splits)}, masks {'yes' if spec.masks else 'no'}")
     print(coverage_text(spec))
+    gaps = e5_data.require_intact_pool(spec) if spec.masks and spec.tasks[0].mask_pos is None else {}
+    if gaps:
+        print(f"  fallback sin máscara: {gaps['fallback_from_pool']} con la imagen del pool, "
+              f"{gaps['fallback_from_source']} leídas de la fuente a 224 x 224")
     if args.dry_run:
         return 0
     out = out_path(args, spec.name)

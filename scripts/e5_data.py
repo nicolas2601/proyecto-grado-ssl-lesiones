@@ -206,3 +206,26 @@ def load_spec(args) -> DatasetSpec:
     """The dataset named by ``args.dataset``, verified, with its tasks in a fixed order."""
     check_mask_args(args.dataset, masks=args.masks, masks_manifest=args.masks_manifest, pool_root=args.pool_root)
     return _ham_spec(args) if args.dataset == HAM else _isic_spec(args)
+
+
+def pool_gaps(spec: DatasetSpec) -> dict:
+    """Which tasks have no pool PNG: eligible ones are a corrupt pool; the others are read from the source."""
+    eligible_missing, from_source, from_pool = [], 0, 0
+    for t in spec.tasks:
+        if t.mask_state == "eligible" and not (Path(t.pool_image).is_file() and Path(t.pool_mask).is_file()):
+            eligible_missing.append(t.image_id)
+        elif t.mask_state in ("quarantine", "absent"):
+            if t.pool_image is not None and Path(t.pool_image).is_file():
+                from_pool += 1
+            else:
+                from_source += 1
+    return {"eligible_missing": eligible_missing, "fallback_from_source": from_source, "fallback_from_pool": from_pool}
+
+
+def require_intact_pool(spec: DatasetSpec) -> dict:
+    """Abort before any work if an ELIGIBLE entry lacks its PNG (a corrupt pool); return the gap counts."""
+    gaps = pool_gaps(spec)
+    if gaps["eligible_missing"]:
+        raise SystemExit(f"ABORT: {len(gaps['eligible_missing'])} entradas elegibles sin PNG en el pool (corrupción "
+                         f"del pool), p. ej. {gaps['eligible_missing'][:3]}")
+    return gaps

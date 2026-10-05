@@ -151,3 +151,29 @@ def test_a_manifest_of_any_other_shape_is_a_clear_abort(tmp_path, payload):
 def test_an_entry_without_dataset_or_image_id_is_a_clear_abort(tmp_path):
     with pytest.raises(SystemExit, match="dataset"):
         _write_manifest(tmp_path, {"masks": [{"image_id": "x"}]})
+
+
+def _task(state, pool_image=None, pool_mask=None, i="x"):
+    from dermssl.e5_analyze import Task
+
+    return Task(i, f"/src/{i}.jpg", "train", "mel", pool_image=pool_image, pool_mask=pool_mask, mask_state=state)
+
+
+def test_pool_gaps_count_the_fallbacks_that_read_the_source_and_list_the_eligible_holes(tmp_path):
+    have = tmp_path / "have.png"
+    have.write_bytes(b"x")
+    spec = data.DatasetSpec("isic2019", ("mel",), ("train", "val"), [
+        _task("eligible", str(have), str(have), "e_ok"), _task("eligible", str(tmp_path / "no.png"), str(have), "e_bad"),
+        _task("quarantine", str(tmp_path / "no.png"), None, "q_src"), _task("quarantine", str(have), None, "q_pool"),
+        _task("absent", None, None, "a")], {}, {"kind": "x"})
+    gaps = data.pool_gaps(spec)
+    assert gaps["eligible_missing"] == ["e_bad"] and gaps["fallback_from_source"] == 2 and gaps["fallback_from_pool"] == 1
+
+
+def test_a_run_with_an_eligible_png_missing_aborts_before_reading_any_image(tmp_path):
+    from dermssl.e5_analyze import Task
+
+    spec = data.DatasetSpec("isic2019", ("mel",), ("train", "val"), [
+        Task("e", "/s.jpg", "train", "mel", pool_image="/nope.png", pool_mask="/nope_m.png", mask_state="eligible")], {}, {})
+    with pytest.raises(SystemExit, match="corrupción"):
+        data.require_intact_pool(spec)

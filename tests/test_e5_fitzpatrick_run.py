@@ -168,3 +168,25 @@ def test_the_dry_run_prints_the_mask_coverage_per_split(patched, tmp_path, capsy
     run.main(["--dataset", "isic2020", "--data-root", str(tmp_path), "--pool-root", str(tmp_path), "--dry-run"])
     out = capsys.readouterr().out
     assert "train: eligible 2" in out and "val: quarantine 1, absent 1" in out
+
+
+def test_a_quarantined_image_with_no_pool_png_is_read_from_its_jpg_and_counted_apart(patched, tmp_path):
+    """The case of the pod: the manifest lists the image as quarantined, originals/ has no PNG, the jpg is in image-dir."""
+    image_dir = tmp_path / "image_dir"
+    image_dir.mkdir()
+    jpg = image_dir / "ISIC_FAKE.jpg"
+    arr = np.empty((300, 400, 3), dtype=np.uint8)
+    arr[:] = SKINS[0]
+    arr = np.clip(arr + np.random.RandomState(1).randint(-3, 4, arr.shape), 0, 255).astype(np.uint8)
+    Image.fromarray(arr).save(jpg, quality=95)
+    missing_png = tmp_path / "originals" / "isic2019" / "ISIC_FAKE.png"  # never exported by the pool
+    task = Task("ISIC_FAKE", str(jpg), "train", "mel", pool_image=str(missing_png), pool_mask=None, mask_state="quarantine")
+    patched["set"](DatasetSpec("isic2019", ("mel",), ("train", "val"), [task], {"split": {}}, {"kind": "pool", "n_entries": 1}))
+    assert run.main(["--dataset", "isic2019", "--data-root", str(tmp_path), "--pool-root", str(tmp_path),
+                     "--out-dir", str(tmp_path / "out"), "--workers", "1"]) == 0
+    d = json.loads((tmp_path / "out" / "e5_fitzpatrick_isic2019.json").read_text())
+    cov = d["report"]["estimators"]["roi"]["mask_coverage"]
+    assert cov["by_split"]["train"]["quarantine"] == 1
+    assert cov["image_origin_by_state"]["quarantine"]["source_224"] == 1
+    row = dict(zip(d["per_image"]["columns"], d["per_image"]["rows"][0], strict=True))
+    assert row["roi_estimator"] == "no_mask_border" and row["roi_image"] == "source_224" and row["roi_bucket"] == "III"
