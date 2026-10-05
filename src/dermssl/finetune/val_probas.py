@@ -27,7 +27,6 @@ from dermssl.finetune import torch_run
 from dermssl.finetune.config import FinetuneConfig
 
 TOLERANCE = 1e-4
-CORE_KEYS = ("accuracy", "balanced_accuracy", "macro_f1", "auc_ovr_macro", "ece")
 
 
 class ValProbasError(ValueError):
