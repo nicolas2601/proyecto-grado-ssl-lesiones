@@ -1,0 +1,86 @@
+{
+  "label": "probas de val reconstruidas por inferencia desde el checkpoint de la mejor epoca; verificadas contra las metricas registradas",
+  "tolerance": 0.0001,
+  "models": [
+    {
+      "model": "alexnet",
+      "status": "pareado",
+      "checkpoint_sha256": "cf01bac2bd077fa154941f786c88dd8246b2bcc3fa6ac8070650b85ebb1b366b",
+      "mejor_epoca_json": 7,
+      "checkpoint_epoch": null,
+      "n_val": 6660,
+      "ids_order_equal_reference": true,
+      "probas_sha256": "fd53639ae799aab99c0329549c947512039de40b35ef43104e8fd5d276ee0e5d"
+    },
+    {
+      "model": "vgg19",
+      "status": "pareado",
+      "checkpoint_sha256": "e54da9510a92c689f24f63c3809cabd7e407c6e518b9d8419ea893f621753e21",
+      "mejor_epoca_json": 8,
+      "checkpoint_epoch": null,
+      "n_val": 6660,
+      "ids_order_equal_reference": true,
+      "probas_sha256": "219c7439a3ec5dc42b8b2e31f4177964f20848a28a518ab8147d861ff5710a12"
+    },
+    {
+      "model": "efficientnet_b0",
+      "status": "pareado",
+      "checkpoint_sha256": "aa810229fe35521bc6336e8fbb1063c63165b267d620d7695be3f8e3795272f8",
+      "mejor_epoca_json": 2,
+      "checkpoint_epoch": null,
+      "n_val": 6660,
+      "ids_order_equal_reference": true,
+      "probas_sha256": "e2403ddcdee1d58b6e92883889f33832cc8f32c816a35ba70f87dc6b91cc7ab8"
+    },
+    {
+      "model": "resnet50",
+      "status": "pareado",
+      "checkpoint_sha256": "5218725298f03a45ba923fe6b186b94d658ef74d96c282cefdddd25de9caf551",
+      "mejor_epoca_json": 3,
+      "checkpoint_epoch": null,
+      "n_val": 6660,
+      "ids_order_equal_reference": true,
+      "probas_sha256": "38656de28bf9e8476d5cb1974366ca4d554eb6f0bba4d07afce4aaaa076d0707"
+    },
+    {
+      "model": "vit_b16",
+      "status": "pareado",
+      "checkpoint_sha256": "15d7960244d91573f42e1cd7169c9773983d322fa59ce031e2faa0918c7dbf43",
+      "mejor_epoca_json": 3,
+      "checkpoint_epoch": null,
+      "n_val": 6660,
+      "ids_order_equal_reference": true,
+      "probas_sha256": "faff98880057daa17a3b6252a98f75f20ac53cc9cf9c0a3879b648ee62b694eb"
+    },
+    {
+      "model": "simsiam_r50",
+      "status": "pareado",
+      "checkpoint_sha256": "17f86f2563edd211194a044621b046c9fa5d0aee6e0a4ec278358cb3752dbc64",
+      "mejor_epoca_json": 8,
+      "checkpoint_epoch": null,
+      "n_val": 6660,
+      "ids_order_equal_reference": true,
+      "probas_sha256": "060e992f5c973648aaa32c51cd45f168ce2dcc18628ba0b4c23dba82b341acda"
+    },
+    {
+      "model": "dinov2_vits14",
+      "status": "pareado",
+      "checkpoint_sha256": "3a5fdcc459c1a83d720a5be4da47c0f2138aa48dc24a40d4585e60547d8b3728",
+      "mejor_epoca_json": 5,
+      "checkpoint_epoch": null,
+      "n_val": 6660,
+      "ids_order_equal_reference": true,
+      "probas_sha256": "775b04251ccac9b062bef61cc2929f8bf5fb8ab351d6d66b9fc1603010b17ac0"
+    },
+    {
+      "model": "dinov2_vitb14",
+      "status": "pareado",
+      "checkpoint_sha256": "fea958eeb55785b52c0ff751fc1ae92df4bebb3505be65591fb218fe7a5c1638",
+      "mejor_epoca_json": 3,
+      "checkpoint_epoch": null,
+      "n_val": 6660,
+      "ids_order_equal_reference": true,
+      "probas_sha256": "df869bc932e1b5d32edf8d8ab3bb37b905e520904ea1fa1655da5ca018fee45a"
+    }
+  ]
+}
