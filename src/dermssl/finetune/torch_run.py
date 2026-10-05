@@ -43,13 +43,15 @@ from dermssl.finetune.tracking import CompositeTracker
 # Data: metadata, anti-leak split, smoke subsample (identical to notebooks)
 # --------------------------------------------------------------------------
 class SplitData:
-    def __init__(self, classes, paths, id2label, tr_ids, va_ids, split_desc):
+    def __init__(self, classes, paths, id2label, tr_ids, va_ids, split_desc,
+                 id2group=None):
         self.classes = classes
         self.paths = paths
         self.id2label = id2label
         self.tr_ids = tr_ids
         self.va_ids = va_ids
         self.split_desc = split_desc
+        self.id2group = id2group or {}
         self.y_tr = np.array([id2label[i] for i in tr_ids])
         self.y_va = np.array([id2label[i] for i in va_ids])
 
@@ -166,7 +168,7 @@ def load_split(cfg: FinetuneConfig) -> SplitData:
             return [id_list[i] for i in sorted(keep)]
 
         tr_ids, va_ids = subsample(tr_ids, min_tr), subsample(va_ids, min_va)
-    return SplitData(classes, paths, id2label, tr_ids, va_ids, desc)
+    return SplitData(classes, paths, id2label, tr_ids, va_ids, desc, id2group=g)
 
 
 # --------------------------------------------------------------------------
@@ -176,14 +178,20 @@ def _gap(features: nn.Module) -> nn.Module:
     return nn.Sequential(features, nn.AdaptiveAvgPool2d(1), nn.Flatten(1))
 
 
-def load_backbone(name: str):
-    """Return (backbone, interpolation). Weights per protocol.TIMM_HF_TAGS."""
+def load_backbone(name: str, pretrained: bool = True):
+    """Return (backbone, interpolation). Weights per protocol.TIMM_HF_TAGS.
+
+    ``pretrained=False`` builds the same architecture with random init (no download)."""
     res, interp = protocol.RESOLUTION, transforms.InterpolationMode.BILINEAR
     if name == "alexnet":
         from torchvision.models import AlexNet_Weights, alexnet
-        return _gap(alexnet(weights=AlexNet_Weights.IMAGENET1K_V1).features), interp
+        return _gap(alexnet(weights=AlexNet_Weights.IMAGENET1K_V1 if pretrained else None).features), interp
     if name == "simsiam_r50":
         from torchvision.models import resnet50
+        if not pretrained:
+            m = resnet50()
+            m.fc = nn.Identity()
+            return m, interp
         sd = torch.hub.load_state_dict_from_url(
             protocol.SIMSIAM_CHECKPOINT_URL, map_location="cpu")["state_dict"]
         sd = {k.replace("module.encoder.", ""): v for k, v in sd.items()
@@ -198,7 +206,7 @@ def load_backbone(name: str):
     if name == "efficientnet_b0":
         interp = transforms.InterpolationMode.BICUBIC
     kwargs = {"img_size": res} if "patch14" in tag else {}
-    m = timm.create_model(tag, pretrained=True, num_classes=0, **kwargs)
+    m = timm.create_model(tag, pretrained=pretrained, num_classes=0, **kwargs)
     if name in protocol.CONV_GAP_FROM_TIMM:
         # num_classes=0 leaves VGG's 4096-d pre-logits in place; the bank reads
         # every CNN at the GAP of its last conv block. The list lives in
@@ -313,6 +321,48 @@ def _autocast_dtype(precision: str):
     return {"fp16": torch.float16, "bf16": torch.bfloat16}.get(precision)
 
 
+def build_net(model: str, n_classes: int, device, pretrained: bool = True):
+    """Backbone + linear head on ``device``; asserts the protocol's feature width.
+
+    ``pretrained=False`` skips the weight download (inference from a checkpoint
+    overwrites every tensor anyway). Returns (net, feature_dim, interpolation).
+    """
+    backbone, interp = (load_backbone(model) if pretrained
+                        else load_backbone(model, pretrained=False))
+    backbone.eval().to(device)
+    with torch.no_grad():
+        dim = backbone(torch.zeros(1, 3, protocol.RESOLUTION, protocol.RESOLUTION,
+                                   device=device)).shape[-1]
+    expected = protocol.FEATURE_DIMS[model]
+    assert dim == expected, (
+        f"{model}: se extrajeron {dim} dims, el protocolo fija {expected}. "
+        "El punto de extraccion cambio; la corrida NO es comparable con el banco.")
+    for p in backbone.parameters():
+        p.requires_grad = True
+    return FTNet(backbone, dim, n_classes).to(device), int(dim), interp
+
+
+def make_val_loader(data: SplitData, cfg: FinetuneConfig, tf_eval) -> DataLoader:
+    return DataLoader(FTDataset(data.va_ids, data.paths, data.id2label, tf_eval),
+                      batch_size=cfg.effective_batch, shuffle=False,
+                      num_workers=cfg.num_workers, collate_fn=loading.collate_uint8)
+
+
+def predict_proba(net: nn.Module, loader: DataLoader, device) -> np.ndarray:
+    """Softmax probabilities over ``loader`` in order: no autocast, no TTA.
+
+    The one evaluation pass behind every metric in the results JSON; the
+    checkpoint inference script calls this same function.
+    """
+    net.eval()
+    probs = []
+    with torch.no_grad():
+        for xb, _ in loader:
+            out = net(loading.to_model_input(xb, device))
+            probs.append(torch.softmax(out.float(), 1).cpu().numpy())
+    return np.concatenate(probs)
+
+
 # --------------------------------------------------------------------------
 # One job end to end
 # --------------------------------------------------------------------------
@@ -331,27 +381,14 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
     print(f"clases={data.classes} train={len(data.tr_ids)} val={len(data.va_ids)} "
           f"| {data.split_desc}")
 
-    backbone, interp = load_backbone(cfg.model)
-    backbone.eval().to(device)
-    with torch.no_grad():
-        dim = backbone(torch.zeros(1, 3, protocol.RESOLUTION, protocol.RESOLUTION,
-                                   device=device)).shape[-1]
-    expected = protocol.FEATURE_DIMS[cfg.model]
-    assert dim == expected, (
-        f"{cfg.model}: se extrajeron {dim} dims, el protocolo fija {expected}. "
-        "El punto de extraccion cambio; la corrida NO es comparable con el banco.")
-    for p in backbone.parameters():
-        p.requires_grad = True
-    net = FTNet(backbone, dim, n).to(device)
+    net, dim, interp = build_net(cfg.model, n, device)
 
     tf_train, tf_eval = loading.build_worker_transforms(interp)
     batch = cfg.effective_batch
     dl_tr = DataLoader(FTDataset(data.tr_ids, data.paths, data.id2label, tf_train),
                        batch_size=batch, shuffle=True, num_workers=cfg.num_workers,
                        collate_fn=loading.collate_uint8, drop_last=True)
-    dl_va = DataLoader(FTDataset(data.va_ids, data.paths, data.id2label, tf_eval),
-                       batch_size=batch, shuffle=False, num_workers=cfg.num_workers,
-                       collate_fn=loading.collate_uint8)
+    dl_va = make_val_loader(data, cfg, tf_eval)
 
     counts = np.bincount(data.y_tr, minlength=n).astype(float)
     class_w = torch.tensor(counts.sum() / (n * counts), dtype=torch.float32, device=device)
@@ -413,13 +450,7 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
               f"mejor={best_ba:.4f} ({time.time() - t0:.0f}s)")
 
     net.load_state_dict(best_sd)
-    net.eval()
-    probs = []
-    with torch.no_grad():
-        for xb, _ in dl_va:
-            out = net(loading.to_model_input(xb, device))
-            probs.append(torch.softmax(out.float(), 1).cpu().numpy())
-    proba_va = np.concatenate(probs)
+    proba_va = predict_proba(net, dl_va, device)
     metrics = all_metrics(data.y_va, proba_va, data.classes, cfg.seed)
 
     results = {
