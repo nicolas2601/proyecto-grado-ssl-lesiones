@@ -101,8 +101,12 @@ def reading_rules(repo: Path, datasets: dict[str, Dataset]) -> list[str]:
     ]
 
 
-def preamble(repo: Path, datasets: dict[str, Dataset], script: str) -> list[str]:
-    """Generated-file notice, glossary and reading rules shared by the ablation and contrast documents."""
-    return [f"Generado por `{script}` desde los JSON del repositorio. No editar a mano. "
-            "Plan y reglas: `docs/33-banco-completo-multidataset.md`.", "",
+def notice(script: str) -> str:
+    return (f"Generado por `{script}` desde los JSON del repositorio. No editar a mano. "
+            "Plan y reglas: `docs/33-banco-completo-multidataset.md`.")
+
+
+def preamble(repo: Path, datasets: dict[str, Dataset], script: str, before_glossary: list[str] | None = None) -> list[str]:
+    """Notice, optional lines, glossary and reading rules shared by the ablation and contrast documents."""
+    return [notice(script), "", *(before_glossary or []),
             "## Glosario", "", *GLOSSARY, "", "## Cómo leer este documento", "", *reading_rules(repo, datasets), ""]

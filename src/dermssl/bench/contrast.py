@@ -75,5 +75,14 @@ def table(contrasts: list[Contrast]) -> list[str]:
     return ["| " + " | ".join(HEADER) + " |", "|" + "---|" * len(HEADER), *(row(c) for c in contrasts)]
 
 
+COMPACT_HEADER = ["Brazo", "Control", "Métrica", "Δ (brazo − control) [IC 95 %]", "El IC excluye 0", "Lectura"]
+
+
+def compact_cells(c: Contrast) -> list[str]:
+    """Cells without unit and source (stated once in the section note)."""
+    return [c.arm, c.control, METRIC_ES.get(c.metric, c.metric), interval(c), "sí" if c.excludes_zero else "no",
+            reading(c)]
+
+
 def count_excluding(contrasts: list[Contrast]) -> int:
     return sum(c.excludes_zero for c in contrasts)

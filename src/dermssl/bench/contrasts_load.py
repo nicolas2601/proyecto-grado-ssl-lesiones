@@ -31,7 +31,7 @@ ROBUSTNESS = f"{E3_DIR}/robustez/e3_robustness/e3_robustness.json"
 UNIT_HAM = "lesion_id"
 
 
-def _baseline_label(arm: str) -> str:
+def baseline_label(arm: str) -> str:
     base = arm.removesuffix("+F4")
     return MODEL_NAMES[base] + (" + F4" if arm.endswith("+F4") else "")
 
@@ -57,10 +57,10 @@ def e3b_contrasts(repo: Path, rel: str) -> tuple[list[Contrast], list[Contrast]]
     for rec in _load(repo, rel)["contrasts"]:
         arm, control = rec["arm"], rec["control"]
         if control in B71_VARIANTS:
-            above.append(flipped(from_record(rec, arm=_baseline_label(arm), control=B71_VARIANTS[control],
+            above.append(flipped(from_record(rec, arm=baseline_label(arm), control=B71_VARIANTS[control],
                                              unit=unit, source=rel)))
         else:
-            raised.append(from_record(rec, arm=_baseline_label(arm), control=_baseline_label(control),
+            raised.append(from_record(rec, arm=baseline_label(arm), control=baseline_label(control),
                                       unit=unit, source=rel))
     return above, raised
 
