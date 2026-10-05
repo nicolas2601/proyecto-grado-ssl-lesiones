@@ -87,6 +87,13 @@ def _build(
         extras = {"levers": levers, "exclusion": exclusion}
         pretrained = cfg.method in ("simsiam_dinov2", "simsiam_imagenet")
         model = torch_simsiam.SimSiam(cfg.backbone, pretrained=pretrained).to(device)
+        weights = config_mod.initial_weights_path(cfg.initial_weights)
+        if weights is not None:
+            # Before the anchors: L2-SP must point at THESE weights, not at the public ones.
+            torch_simsiam.load_backbone_weights(model.backbone, weights)
+            if not torch_simsiam.backbone_matches_file(model.backbone, weights):
+                raise config_mod.InitialWeightsNotLoadedError(
+                    f"el backbone no coincide con {weights} tras cargarlo; la corrida no puede declarar ese init")
         extras["anchors"] = adaptation.build_anchors(model.backbone, levers)
         adaptation.freeze_blocks(model.backbone, levers.freeze_blocks)
         if cfg.grad_checkpoint:

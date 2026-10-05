@@ -76,6 +76,14 @@ FORBIDDEN_FIELD_TOKENS = ("label", "target", "class", "dx")
 FORBIDDEN_VALUE_SUFFIXES = (".csv", ".tsv", ".parquet")
 
 
+class InitialWeightsError(ValueError):
+    """``initial_weights`` names a file that cannot be used; never a silent fallback to public weights."""
+
+
+class InitialWeightsNotLoadedError(RuntimeError):
+    """``initial_weights`` names a file that was not (verifiably) loaded; the run must not claim it."""
+
+
 class LabelLeakError(RuntimeError):
     """Se lanza cuando la configuración de preentrenamiento recibe etiquetas."""
 
@@ -190,6 +198,7 @@ def validate(cfg: PretrainConfig) -> PretrainConfig:
     if cfg.consistency_weight <= 0:
         raise ValueError("consistency_weight debe ser positivo")
     _validate_levers(cfg)
+    _validate_initial_weights(cfg)
     if cfg.max_steps < 0:
         raise ValueError("max_steps debe ser cero o positivo")
     if cfg.budget_gpu_hours <= 0:
@@ -248,6 +257,39 @@ def _validate_levers(cfg: PretrainConfig) -> None:
     if cfg.hue_jitter != PretrainConfig.hue_jitter and cfg.method not in SIMSIAM_METHODS:
         raise ValueError(
             f"hue_jitter solo llega al dataset SimSiam; en {cfg.method!r} se registraría sin efecto"
+        )
+
+
+WEIGHTS_SUFFIXES = (".pt", ".pth")
+
+
+def looks_like_path(value: str) -> bool:
+    return bool(value) and (os.sep in value or value.lower().endswith(WEIGHTS_SUFFIXES))
+
+
+def initial_weights_path(value: str) -> Path | None:
+    """The backbone file ``initial_weights`` names, or None when it is a label.
+
+    Labels (``dinov2-public-lvd142m``, ``random``, ``imagenet1k_v2``, empty) have no
+    separator and no weights suffix. A value that looks like a path but is not an
+    existing file is an error: falling back to the public weights would train from
+    the wrong init under the right name.
+    """
+    if not looks_like_path(value):
+        return None
+    path = Path(value).expanduser()
+    if not path.is_file():
+        raise InitialWeightsError(
+            f"initial_weights {value!r} parece una ruta pero el archivo no existe; "
+            "no se cae a los pesos publicos en silencio"
+        )
+    return path
+
+
+def _validate_initial_weights(cfg: PretrainConfig) -> None:
+    if initial_weights_path(cfg.initial_weights) is not None and cfg.method != "simsiam_dinov2":
+        raise ValueError(
+            f"initial_weights como archivo solo aplica a simsiam_dinov2, no a {cfg.method!r}: se ignoraria"
         )
 
 

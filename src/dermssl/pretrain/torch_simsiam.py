@@ -43,6 +43,18 @@ def _build_backbone(backbone_name: str, pretrained: bool) -> tuple[nn.Module, in
     return backbone, backbone.embed_dim
 
 
+def load_backbone_weights(backbone: nn.Module, path) -> None:
+    """Load a ``*_backbone_final.pt`` (the backbone's own ``state_dict``) strictly."""
+    backbone.load_state_dict(torch.load(path, map_location="cpu", weights_only=True), strict=True)
+
+
+def backbone_matches_file(backbone: nn.Module, path) -> bool:
+    """True when every tensor of ``backbone`` equals the file's (the load really happened)."""
+    saved = torch.load(path, map_location="cpu", weights_only=True)
+    current = backbone.state_dict()
+    return saved.keys() == current.keys() and all(torch.equal(current[k].cpu(), saved[k]) for k in saved)
+
+
 class SimSiam(nn.Module):
     def __init__(
         self,

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -116,7 +117,16 @@ def build_run_manifest(
         },
         "exclude_ids_file": cfg.exclude_ids_file or None,
         "exclude_ids_sha256": _file_sha256(cfg.exclude_ids_file),
+        **_initial_weights_evidence(cfg.initial_weights),
     }
+
+
+def _initial_weights_evidence(value: str) -> dict:
+    """Present only when a backbone file is loaded; runs from a label keep their manifest as it was."""
+    path = config_mod.initial_weights_path(value)
+    if path is None:
+        return {}
+    return {"initial_weights_loaded": True, "initial_weights_sha256": _file_sha256(str(path))}
 
 
 def _file_sha256(path: str) -> str | None:
@@ -125,8 +135,25 @@ def _file_sha256(path: str) -> str | None:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+SHA256_HEX = re.compile(r"[0-9a-f]{64}")
+
+
+def check_initial_weights_evidence(manifest: dict) -> None:
+    """A run.json that names a weights file must also say it loaded it, with the file's sha256."""
+    value = manifest.get("initial_weights") or ""
+    if not config_mod.looks_like_path(value):
+        return
+    if manifest.get("initial_weights_loaded") is not True:
+        raise config_mod.InitialWeightsNotLoadedError(
+            f"run.json diria initial_weights={value!r} sin initial_weights_loaded=true")
+    if not SHA256_HEX.fullmatch(str(manifest.get("initial_weights_sha256") or "")):
+        raise config_mod.InitialWeightsNotLoadedError(
+            f"run.json diria initial_weights={value!r} sin el sha256 del archivo cargado")
+
+
 def write_run_manifest(manifest: dict, path: str | Path) -> None:
     """Escribe JSON determinista para que cada checkpoint tenga un contrato legible."""
+    check_initial_weights_evidence(manifest)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(

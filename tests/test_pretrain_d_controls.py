@@ -47,9 +47,18 @@ class TestRecipe:
         assert "--tone-consistency-weight" not in _argv("D2")
 
     @pytest.mark.parametrize("variant", ["D2", "D3"])
-    def test_it_parses_and_validates_with_the_real_cli(self, variant):
-        cfg = config_mod.validate(pretrain_cli.build_config(pretrain_cli.parse_args(_argv(variant))))
-        assert cfg.max_steps == 2000 and cfg.anchor_l2sp == 1e-4 and cfg.initial_weights.endswith(".pt")
+    def test_it_parses_and_validates_with_the_real_cli(self, variant, tmp_path):
+        weights = tmp_path / "A_s42.pt"
+        weights.write_bytes(b"w")
+        argv = dc.pretrain_argv(variant, image_root=Path("/r/root"), output_dir=Path("/r/out"),
+                                **{**KW, "backbone_weights": weights})
+        cfg = config_mod.validate(pretrain_cli.build_config(pretrain_cli.parse_args(argv)))
+        assert cfg.max_steps == 2000 and cfg.anchor_l2sp == 1e-4
+        assert config_mod.initial_weights_path(cfg.initial_weights) == weights
+
+    def test_a_missing_backbone_file_is_refused_by_the_real_cli(self):
+        with pytest.raises(config_mod.InitialWeightsError):
+            config_mod.validate(pretrain_cli.build_config(pretrain_cli.parse_args(_argv("D2"))))
 
     def test_an_unknown_variant_is_refused(self):
         with pytest.raises(ValueError, match="D4"):
