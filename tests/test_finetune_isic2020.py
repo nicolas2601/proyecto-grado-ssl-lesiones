@@ -109,3 +109,35 @@ def test_cpu_smoke_writes_a_binary_results_json(isic2020_root, tmp_path, monkeyp
     assert {"balanced_accuracy", "macro_f1", "auc_ovr_macro", "ece",
             "ic95_bootstrap"} <= set(probes)
     assert (path.parent / "ft_alexnet_isic2020.pth").exists()
+
+
+def test_results_json_carries_the_per_epoch_curve(isic2020_root, tmp_path, monkeypatch,
+                                                  no_committed_check, capsys):
+    import re
+
+    torch = pytest.importorskip("torch")
+    from dermssl.finetune import protocol, torch_run
+    from dermssl.finetune.tracking import CompositeTracker
+
+    monkeypatch.setattr(protocol, "SMOKE_EPOCHS", 3)
+    tiny = lambda name: (torch.nn.Sequential(  # noqa: E731
+        torch.nn.Conv2d(3, 256, 3, stride=8), torch.nn.AdaptiveAvgPool2d(1),
+        torch.nn.Flatten(1)), torch_run.transforms.InterpolationMode.BILINEAR)
+    monkeypatch.setattr(torch_run, "load_backbone", tiny)
+    monkeypatch.setattr(torch_run, "bootstrap_ci",
+                        lambda y, p, seed, n_resamples=20: {"balanced_accuracy": [0, 1],
+                                                            "macro_f1": [0, 1]})
+    path = torch_run.run(_cfg(isic2020_root, tmp_path, smoke=True), CompositeTracker([]))
+    data = json.loads(path.read_text())
+
+    curve = data["curva_epocas"]
+    assert data["epocas_corridas"] == len(curve) == 3
+    assert [row["epoca"] for row in curve] == [1, 2, 3]
+    printed = re.findall(r"epoca (\d+)/3 loss=([\d.]+) val_bal_acc=([\d.]+)",
+                         capsys.readouterr().out)
+    assert len(printed) == 3
+    for row, (n, loss, ba) in zip(curve, printed):
+        assert row["epoca"] == int(n)
+        assert f"{row['train_loss']:.4f}" == loss
+        assert f"{row['val_balanced_accuracy']:.4f}" == ba
+    assert {"mejor_epoca", "probes", "protocolo", "split"} <= set(data)

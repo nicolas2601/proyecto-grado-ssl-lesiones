@@ -373,6 +373,7 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
     tracker.start(params)
 
     best_ba, best_sd, best_epoch = -1.0, None, -1
+    curve: list[dict] = []
     t0 = time.time()
     for epoch in range(epochs):
         net.train()
@@ -402,6 +403,8 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
         if ba > best_ba:
             best_ba, best_sd, best_epoch = ba, copy.deepcopy(net.state_dict()), epoch + 1
         train_loss = running / max(1, seen)
+        curve.append({"epoca": epoch + 1, "train_loss": float(train_loss),
+                      "val_balanced_accuracy": float(ba)})
         tracker.log_metrics({"train/loss": train_loss, "val/balanced_accuracy": ba,
                              "val/best_balanced_accuracy": best_ba,
                              "lr/backbone": optimizer.param_groups[0]["lr"],
@@ -428,7 +431,8 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
                                                "lr_head", "weight_decay", "precision")},
         "fuente_pesos": params["fuente_pesos"], "git_sha": params["git_sha"],
         "host": params["host"], "gpu": params["gpu"],
-        "mejor_epoca": best_epoch, "tiempo_s": round(time.time() - t0, 1),
+        "mejor_epoca": best_epoch, "epocas_corridas": len(curve),
+        "curva_epocas": curve, "tiempo_s": round(time.time() - t0, 1),
         "probes": {"finetune": metrics},
     }
     json_path = out_dir / job.results_file
