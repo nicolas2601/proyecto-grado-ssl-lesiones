@@ -32,6 +32,7 @@ WIRED = {
     "scripts/c1_select_variant.py": "the selection JSON",
     "scripts/e3_run.py": "e3_selection.json, e3_final_eval.json and the extract/select cells (docs/33 E3)",
     "scripts/e3b_run.py": "e3b_summary.json, e3b_probas.json and the e3b__* cells (docs/33 E3b)",
+    "scripts/isic_contrasts_rebuild.py": "the paired-contrast JSON rebuilt from the cells of the E1 ISIC bank (docs/33)",
     "scripts/isic_eval_run.py": "per-cell eval JSON and paired-contrast JSON of the E1 ISIC bank (docs/33), via e3_store.CellStore",
     "scripts/c1_reevaluate_crop_gate.py": "crop_regate_report.json",
     "scripts/c1_verify_bank_reproduction.py": "the --report JSON",
