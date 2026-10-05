@@ -35,7 +35,7 @@ def test_every_contrast_family_of_the_bench_is_present():
                  "semilla de B* 42", "semilla de B* 43", "semilla de B* 44", "v7 y v7.1", "ISIC 2019: canónico",
                  "ISIC 2020: sensibilidad", "contra el fine-tuning", "solo intervalos", "Contrastes pendientes", "MCC puntual"):
         assert part in titles, part
-    fixed = 120 + 6 * 6 + 48
+    fixed = 160 + 6 * 6 + 48  # E3b: 120 contrasts of 3 metrics + 40 of MCC (rebuilt from the committed probas)
     isic = sum(len(c) for ds in ('isic2019', 'isic2020') for c in L.isic_all(REPO, ds).values())
     assert len(items) == fixed + isic + len(F.contrasts(REPO)) + len(E2.contrasts(REPO))
 
@@ -54,15 +54,39 @@ def test_isic_contrasts_include_mcc_and_the_baselines_note_says_interval_only():
     assert "solo se comparan intervalos" in text and "no es un test pareado" in text
 
 
-def test_ham_mcc_pairs_are_declared_unavailable_not_invented():
+def test_e3b_mcc_has_real_paired_contrasts_and_the_note_says_what_exists():
     text = _text().split("### HAM10000: MCC puntual")[1].split("###")[0]
-    assert "NO es un contraste" in text and "SIN IC" in text and "1d7e447" in text
+    assert "NO es un contraste" not in text and "no traen contrastes" not in text
+    assert "contraste pareado" in text and "IC 95 %" in text and "40 contrastes" in text
+    assert "los 120 registros previos" in text and "idénticos" in text  # the count comes from the summary's rebuild block
+    assert "E3 final" in text and "scripts/e3_contrasts_rebuild.py" in text  # E3 is still to be recomputed on the pod
+
+
+def test_an_e3_mcc_cell_stored_as_unavailable_renders_unavailable_from_the_json(tmp_path):
+    import json
+
+    reason = "no disponible: el refit no reproduce los puntos registrados"
+    rec = {"arm": "F4", "control": "B71", "metric": "mcc", "subset": "dark_tercile", "available": False, "reason": reason}
+    (tmp_path / "e3.json").write_text(json.dumps({"contrasts": [rec]}), encoding="utf-8")
+    [c] = L.f4_vs_b71(tmp_path, "e3.json")
+    table = D._table("t", [c], "n", "l")
+    assert c.metric == "mcc" and c.unavailable == reason
+    assert table.rows[0][3] == reason and table.rows[0][4] == "—" and table.rows[0][0].startswith("F4")
+
+
+def test_e3b_tables_carry_mcc_like_any_other_metric():
+    text = _text()
+    above = text.split("### HAM10000: B71 frente a los 8 baselines")[1].split("###")[0]
+    assert "(4 variantes × 4 métricas)" in text and above.count("| MCC |") == 32
+    raised = text.split("### HAM10000: F4 sobre cada baseline congelado")[1].split("###")[0]
+    assert raised.count("| MCC |") == 8
 
 
 def test_pending_contrasts_are_only_the_ones_without_data():
     block = _text().split("### Contrastes pendientes")[1]
     assert "D3 − D2" not in block and "~10:30" not in block and "~15:00" not in block
-    assert "MCC en HAM10000" in block and "ham_clean_val.json" in block and "no es una corrección de transductividad" in block
+    assert "MCC en HAM10000 (E3 final)" in block and "E3b" not in block.split("MCC en HAM10000")[1].split("|")[0]
+    assert "ham_clean_val.json" in block and "no es una corrección de transductividad" in block
     assert block.count("sin ETA") == 2
 
 

@@ -7,7 +7,8 @@ from pathlib import Path
 from dermssl import ham_clean as hc
 from dermssl.bench import contrasts_load as L, e2_tables, ft_contrasts, isic_rows
 from dermssl.bench import glossary, pending, tables
-from dermssl.bench.contrast import COMPACT_HEADER, METRIC_ES, Contrast, compact_cells, count_excluding, num
+from dermssl.bench.contrast import (COMPACT_HEADER, METRIC_ES, NO_VALUE, Contrast, compact_cells, count_excluding,
+                                    interval, num)
 from dermssl.bench.ham_rows import COMPUTES
 from dermssl.bench.rows import DATASETS, FROZEN, OK, _load, dataset_rows
 from dermssl.bench.tables import Table
@@ -15,7 +16,7 @@ from dermssl.bench.tables import Table
 SCRIPT = "scripts/build_bench_contrasts.py"
 NAME = "CONTRASTES_SSL"
 CANON, BS32 = L.E3B_DIRS["canónico (batch 64)"], L.E3B_DIRS["batch 32 (ya commiteado)"]
-METRICS3 = ("macro_f1", "balanced_accuracy", "mel_recall")
+METRICS = ("macro_f1", "balanced_accuracy", "mel_recall", "mcc")
 INTRO = ("Todos los contrastes pareados del banco, con dirección y si el IC excluye 0. «Δ» es brazo − control; el "
          "signo ya está resuelto para las métricas donde menor es mejor (ECE) en la columna «Lectura». Los números "
          "salen de los JSON; nada se recalcula aquí.")
@@ -29,7 +30,8 @@ def ham_e3b(repo: Path) -> tuple[list[Table], list[Contrast]]:
     above, raised = L.e3b_contrasts(repo, CANON)
     note = (f"E3b, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap pareado por `lesion_id`. "
             f"Fuente: `{CANON}`. Solo baselines CONGELADOS re-evaluados sobre la partición v6/v7.")
-    return ([_table("HAM10000: B71 frente a los 8 baselines congelados (4 variantes × 3 métricas)", above, note,
+    n_metrics = len({c.metric for c in above})
+    return ([_table(f"HAM10000: B71 frente a los 8 baselines congelados (4 variantes × {n_metrics} métricas)", above, note,
                     "contrast-e3b-above"),
              _table("HAM10000: F4 sobre cada baseline congelado (exploratorio)", raised, note, "contrast-e3b-f4")],
             above + raised)
@@ -42,7 +44,7 @@ def _excluded(items: list[Contrast], arm: str, metric: str) -> int:
 def compute_table(repo: Path) -> Table:
     rows = []
     for label in L.B71_VARIANTS.values():
-        for metric in METRICS3:
+        for metric in METRICS:
             cells = [f"{_excluded(L.e3b_contrasts(repo, rel)[0], label, metric)}/8" for rel in (CANON, BS32)]
             rows.append([label, METRIC_ES[metric], *cells])
     return Table("E3b: baselines que quedan por debajo de B71 con IC que excluye 0, por versión",
@@ -50,17 +52,37 @@ def compute_table(repo: Path) -> Table:
                  "Resumen de 8 baselines por celda; el detalle del canónico está arriba.", "contrast-e3b-versions")
 
 
+def e3_mcc(repo: Path) -> list[Contrast]:
+    """The MCC contrasts (available or not) stored in the E3 final evaluations the bench reads."""
+    rels = dict.fromkeys([*(rel for _, _, rel in COMPUTES), *L.SEED_FILES.values()])
+    return [c for rel in rels for c in L.f4_vs_b71(repo, rel) if c.metric == "mcc"]
+
+
 def mcc_table(repo: Path) -> Table:
     models = _load(repo, CANON)["models"]
-    rows = [[name, num(m["rows"]["full"]["mcc"]), num(m["rows"]["F4"]["mcc"]),
-             num(m["rows"]["F4"]["mcc"] - m["rows"]["full"]["mcc"], True)] for name, m in
-            ((L.baseline_label(k), v) for k, v in models.items())]
-    note = ("MCC de E3b: solo cifras puntuales de cada fila. Los JSON commiteados de E3 y E3b no traen contrastes "
-            "pareados de MCC (se commitearon antes del commit 1d7e447, que agrega el MCC a esos contrastes): la última "
-            "columna es la resta de dos puntos, SIN IC y NO es un contraste. El contraste pareado de MCC exige "
-            "recomputar E3 y E3b con el código actual; ETA no declarada por el operador.")
-    return Table("HAM10000: MCC puntual de los baselines sin y con F4 (E3b)", ["Baseline", "MCC sin F4", "MCC con F4",
-                 "Diferencia puntual (sin IC)"], rows, note, "contrast-e3b-mcc")
+    above, raised = L.e3b_contrasts(repo, CANON)
+    paired = {c.arm: c for c in raised if c.metric == "mcc"}
+    rows = []
+    for key, m in models.items():
+        c = paired.get(L.baseline_label(f"{key}+F4"))
+        rows.append([L.baseline_label(key), num(m["rows"]["full"]["mcc"]), num(m["rows"]["F4"]["mcc"]),
+                     interval(c) if c else NO_VALUE, ("sí" if c.excludes_zero else "no") if c else NO_VALUE])
+    n_all = sum(c.metric == "mcc" for c in [*above, *raised])
+    n_same = _load(repo, CANON)["contrasts_rebuild"]["records_reproduced"]
+    e3 = e3_mcc(repo)
+    e3_text = (f"E3 final: {len(e3)} contrastes de MCC en los JSON, {sum(bool(c.unavailable) for c in e3)} no disponibles."
+               if e3 else "E3 final: sus JSON no traen MCC y sus probabilidades no se guardaron; se recomputan en el pod "
+               "con `scripts/e3_contrasts_rebuild.py` (refit del probe desde los features cacheados, verificado contra "
+               "los puntos registrados).")
+    note = (f"E3b, cómputo canónico (batch 64 + autocast): {n_all} contrastes pareados de MCC ({len(paired)} de F4 sobre "
+            f"cada baseline, {n_all - len(paired)} de B71 frente a los baselines), recomputados con el código actual "
+            "desde las probabilidades commiteadas (`e3b_probas.npz`), con el mismo bootstrap (1.000 remuestras, semilla "
+            f"20260923, por `lesion_id`); los {n_same} registros previos (F1 macro, exactitud balanceada, recall de "
+            "melanoma) se reprodujeron idénticos antes de escribir. La última columna es el contraste pareado de F4 sobre el baseline "
+            f"(Δ MCC [IC 95 %]). {e3_text}")
+    return Table("HAM10000: MCC puntual de los baselines sin y con F4 y su contraste pareado (E3b)",
+                 ["Baseline", "MCC sin F4", "MCC con F4", "Contraste pareado: Δ MCC [IC 95 %]", "El IC excluye 0"],
+                 rows, note, "contrast-e3b-mcc")
 
 
 def ham_f4(repo: Path) -> tuple[list[Table], list[Contrast]]:
@@ -141,11 +163,10 @@ def pending_table(repo: Path) -> Table:
             if not (repo / f"{isic_rows.CANONICAL_DIR}/{ds}/contrasts/{name}.json").is_file()]
     if not e2_tables.exists(repo):
         rows.append(["D3 − D2 y demás contrastes de E2", pending.missing(e2_tables.E2_JSON).reason, pending.NO_ETA])
-    above, _ = L.e3b_contrasts(repo, CANON)
-    if not any(c.metric == "mcc" for c in above):
-        rows.append(["Contrastes pareados de MCC en HAM10000 (E3 y E3b)",
-                     "los JSON de E3/E3b no traen MCC en sus contrastes; recomputarlos con el código actual (1d7e447)",
-                     pending.NO_ETA])
+    if not e3_mcc(repo):
+        rows.append(["Contrastes pareados de MCC en HAM10000 (E3 final)",
+                     "los JSON de E3 no traen MCC en sus contrastes y sus probabilidades no se guardaron; se recomputan "
+                     "en el pod con `scripts/e3_contrasts_rebuild.py` (E3b ya los tiene)", pending.NO_ETA])
     if not (repo / hc.RESULT_JSON).is_file():
         rows.append(["B71-limpio y A71-limpio contra el original en HAM10000", pending.HAM_CLEAN.reason, pending.NO_ETA])
     return Table("Contrastes pendientes", ["Contraste", "Motivo", "ETA"], rows, "", "contrast-pending")

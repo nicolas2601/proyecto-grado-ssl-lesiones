@@ -6,7 +6,7 @@ Generado por `scripts/build_bench_contrasts.py` desde los JSON del repositorio. 
 
 ## Advertencia de multiplicidad
 
-Este documento lista 404 contrastes (el IC excluye 0 en 241) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 20) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
+Este documento lista 444 contrastes (el IC excluye 0 en 278) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 22) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
 
 ## Glosario
 
@@ -43,7 +43,7 @@ Particiones de val de este banco (no son la misma partición):
 - **Pesos limpios en HAM10000: sensibilidad posterior, no es selección.** La fila registrada del propuesto (pesos originales, selección) no se reemplaza. Las filas del bloque «pesos limpios (sensibilidad)» usan la configuración y los umbrales de operación del holdout original, ajustados con los pesos originales y aplicados sin cambios a los limpios (supuesto declarado), con cómputo canónico; sus contrastes pareados (por `lesion_id`, con MCC) están en `CONTRASTES_SSL.md` y `TABLA_ABLACION.md`.
 - Las filas «pendiente» no tienen número: se listan con su motivo técnico (sin ETA inventada), para que nada parezca olvidado. No se inventa ninguna cifra.
 
-### HAM10000: B71 frente a los 8 baselines congelados (4 variantes × 3 métricas)
+### HAM10000: B71 frente a los 8 baselines congelados (4 variantes × 4 métricas)
 
 E3b, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap pareado por `lesion_id`. Fuente: `resultados/banco_completo/e3b_bs64/e3b_summary.json`. Solo baselines CONGELADOS re-evaluados sobre la partición v6/v7.
 
@@ -52,99 +52,131 @@ E3b, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap
 | B71 (1 vista, sin TTA) | AlexNet | F1 macro | +0,2067 [+0,1613; +0,2564] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | AlexNet | Exactitud balanceada | +0,1164 [+0,0698; +0,1695] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | AlexNet | Recall de melanoma | +0,0360 [-0,0573; +0,1302] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 (1 vista, sin TTA) | AlexNet | MCC | +0,1768 [+0,1384; +0,2181] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | AlexNet + F4 | F1 macro | +0,2059 [+0,1607; +0,2551] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | AlexNet + F4 | Exactitud balanceada | +0,1600 [+0,1135; +0,2115] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | AlexNet + F4 | Recall de melanoma | +0,0450 [-0,0280; +0,1233] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (1 vista) | AlexNet + F4 | MCC | +0,2030 [+0,1682; +0,2387] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | AlexNet | F1 macro | +0,2413 [+0,1942; +0,2898] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | AlexNet | Exactitud balanceada | +0,1510 [+0,1052; +0,2044] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | AlexNet | Recall de melanoma | +0,0135 [-0,0737; +0,0988] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 (TTA, canónico) | AlexNet | MCC | +0,2093 [+0,1709; +0,2473] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | AlexNet + F4 | F1 macro | +0,2504 [+0,2050; +0,3010] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | AlexNet + F4 | Exactitud balanceada | +0,1990 [+0,1543; +0,2490] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | AlexNet + F4 | Recall de melanoma | +0,0495 [-0,0376; +0,1275] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (TTA) | AlexNet + F4 | MCC | +0,2485 [+0,2124; +0,2852] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | VGG19 | F1 macro | +0,2985 [+0,2518; +0,3466] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | VGG19 | Exactitud balanceada | +0,2412 [+0,1909; +0,2954] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | VGG19 | Recall de melanoma | +0,1036 [+0,0088; +0,1950] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
+| B71 (1 vista, sin TTA) | VGG19 | MCC | +0,2601 [+0,2203; +0,3010] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | VGG19 + F4 | F1 macro | +0,2213 [+0,1751; +0,2688] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | VGG19 + F4 | Exactitud balanceada | +0,1921 [+0,1469; +0,2435] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | VGG19 + F4 | Recall de melanoma | +0,0991 [+0,0048; +0,1896] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
+| B71 + F4 (1 vista) | VGG19 + F4 | MCC | +0,2285 [+0,1932; +0,2664] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | VGG19 | F1 macro | +0,3331 [+0,2844; +0,3800] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | VGG19 | Exactitud balanceada | +0,2758 [+0,2200; +0,3309] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | VGG19 | Recall de melanoma | +0,0811 [-0,0052; +0,1606] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 (TTA, canónico) | VGG19 | MCC | +0,2926 [+0,2525; +0,3336] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | VGG19 + F4 | F1 macro | +0,2658 [+0,2212; +0,3180] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | VGG19 + F4 | Exactitud balanceada | +0,2311 [+0,1860; +0,2880] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | VGG19 + F4 | Recall de melanoma | +0,1036 [+0,0044; +0,2019] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
+| B71 + F4 (TTA) | VGG19 + F4 | MCC | +0,2740 [+0,2368; +0,3123] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | EfficientNet-B0 | F1 macro | +0,1754 [+0,1176; +0,2301] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | EfficientNet-B0 | Exactitud balanceada | +0,1494 [+0,0914; +0,2078] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | EfficientNet-B0 | Recall de melanoma | +0,1622 [+0,0805; +0,2398] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
+| B71 (1 vista, sin TTA) | EfficientNet-B0 | MCC | +0,1644 [+0,1243; +0,2012] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | EfficientNet-B0 + F4 | F1 macro | +0,1273 [+0,0780; +0,1807] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | EfficientNet-B0 + F4 | Exactitud balanceada | +0,1085 [+0,0605; +0,1617] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | EfficientNet-B0 + F4 | Recall de melanoma | +0,0811 [-0,0000; +0,1594] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (1 vista) | EfficientNet-B0 + F4 | MCC | +0,1309 [+0,0961; +0,1683] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | EfficientNet-B0 | F1 macro | +0,2100 [+0,1579; +0,2609] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | EfficientNet-B0 | Exactitud balanceada | +0,1840 [+0,1331; +0,2384] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | EfficientNet-B0 | Recall de melanoma | +0,1396 [+0,0577; +0,2121] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
+| B71 (TTA, canónico) | EfficientNet-B0 | MCC | +0,1969 [+0,1584; +0,2355] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | EfficientNet-B0 + F4 | F1 macro | +0,1718 [+0,1227; +0,2235] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | EfficientNet-B0 + F4 | Exactitud balanceada | +0,1475 [+0,0978; +0,1969] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | EfficientNet-B0 + F4 | Recall de melanoma | +0,0856 [-0,0040; +0,1732] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (TTA) | EfficientNet-B0 + F4 | MCC | +0,1764 [+0,1401; +0,2121] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | ResNet-50 | F1 macro | +0,2125 [+0,1587; +0,2653] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | ResNet-50 | Exactitud balanceada | +0,2100 [+0,1582; +0,2689] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | ResNet-50 | Recall de melanoma | +0,1532 [+0,0687; +0,2398] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
+| B71 (1 vista, sin TTA) | ResNet-50 | MCC | +0,1860 [+0,1481; +0,2236] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | ResNet-50 + F4 | F1 macro | +0,1635 [+0,1155; +0,2157] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | ResNet-50 + F4 | Exactitud balanceada | +0,1488 [+0,0991; +0,2033] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | ResNet-50 + F4 | Recall de melanoma | +0,0901 [+0,0222; +0,1627] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
+| B71 + F4 (1 vista) | ResNet-50 + F4 | MCC | +0,1472 [+0,1132; +0,1852] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | ResNet-50 | F1 macro | +0,2471 [+0,1969; +0,2943] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | ResNet-50 | Exactitud balanceada | +0,2446 [+0,1963; +0,2960] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | ResNet-50 | Recall de melanoma | +0,1306 [+0,0484; +0,2137] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
+| B71 (TTA, canónico) | ResNet-50 | MCC | +0,2185 [+0,1814; +0,2541] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | ResNet-50 + F4 | F1 macro | +0,2080 [+0,1569; +0,2640] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | ResNet-50 + F4 | Exactitud balanceada | +0,1878 [+0,1344; +0,2490] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | ResNet-50 + F4 | Recall de melanoma | +0,0946 [+0,0148; +0,1744] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
+| B71 + F4 (TTA) | ResNet-50 + F4 | MCC | +0,1927 [+0,1543; +0,2322] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | ViT-B/16 | F1 macro | +0,1163 [+0,0608; +0,1748] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | ViT-B/16 | Exactitud balanceada | +0,0875 [+0,0316; +0,1475] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | ViT-B/16 | Recall de melanoma | +0,0045 [-0,0796; +0,0995] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 (1 vista, sin TTA) | ViT-B/16 | MCC | +0,1018 [+0,0650; +0,1404] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | ViT-B/16 + F4 | F1 macro | +0,1072 [+0,0629; +0,1557] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | ViT-B/16 + F4 | Exactitud balanceada | +0,0968 [+0,0533; +0,1422] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | ViT-B/16 + F4 | Recall de melanoma | +0,0405 [-0,0430; +0,1263] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (1 vista) | ViT-B/16 + F4 | MCC | +0,1057 [+0,0707; +0,1411] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | ViT-B/16 | F1 macro | +0,1509 [+0,1005; +0,2068] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | ViT-B/16 | Exactitud balanceada | +0,1221 [+0,0699; +0,1776] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | ViT-B/16 | Recall de melanoma | -0,0180 [-0,1053; +0,0755] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 (TTA, canónico) | ViT-B/16 | MCC | +0,1343 [+0,0970; +0,1725] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | ViT-B/16 + F4 | F1 macro | +0,1517 [+0,1089; +0,2013] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | ViT-B/16 + F4 | Exactitud balanceada | +0,1358 [+0,0920; +0,1838] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | ViT-B/16 + F4 | Recall de melanoma | +0,0450 [-0,0407; +0,1300] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (TTA) | ViT-B/16 + F4 | MCC | +0,1512 [+0,1158; +0,1884] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | SimSiam ResNet-50 | F1 macro | +0,1426 [+0,0934; +0,1938] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | SimSiam ResNet-50 | Exactitud balanceada | +0,1208 [+0,0676; +0,1735] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | SimSiam ResNet-50 | Recall de melanoma | +0,1171 [+0,0440; +0,1923] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
+| B71 (1 vista, sin TTA) | SimSiam ResNet-50 | MCC | +0,1562 [+0,1191; +0,1928] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | SimSiam ResNet-50 + F4 | F1 macro | +0,1103 [+0,0609; +0,1645] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | SimSiam ResNet-50 + F4 | Exactitud balanceada | +0,0926 [+0,0384; +0,1477] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | SimSiam ResNet-50 + F4 | Recall de melanoma | +0,0856 [-0,0001; +0,1610] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (1 vista) | SimSiam ResNet-50 + F4 | MCC | +0,1348 [+0,0969; +0,1714] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | SimSiam ResNet-50 | F1 macro | +0,1772 [+0,1278; +0,2299] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | SimSiam ResNet-50 | Exactitud balanceada | +0,1554 [+0,1041; +0,2078] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | SimSiam ResNet-50 | Recall de melanoma | +0,0946 [+0,0128; +0,1673] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
+| B71 (TTA, canónico) | SimSiam ResNet-50 | MCC | +0,1887 [+0,1507; +0,2238] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | SimSiam ResNet-50 + F4 | F1 macro | +0,1548 [+0,1119; +0,2065] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | SimSiam ResNet-50 + F4 | Exactitud balanceada | +0,1316 [+0,0818; +0,1848] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | SimSiam ResNet-50 + F4 | Recall de melanoma | +0,0901 [-0,0001; +0,1741] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (TTA) | SimSiam ResNet-50 + F4 | MCC | +0,1803 [+0,1442; +0,2150] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | DINOv2 ViT-S/14 | F1 macro | +0,1287 [+0,0801; +0,1800] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | DINOv2 ViT-S/14 | Exactitud balanceada | +0,0775 [+0,0303; +0,1289] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | DINOv2 ViT-S/14 | Recall de melanoma | +0,0270 [-0,0608; +0,1081] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 (1 vista, sin TTA) | DINOv2 ViT-S/14 | MCC | +0,1326 [+0,0934; +0,1687] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | DINOv2 ViT-S/14 + F4 | F1 macro | +0,0607 [+0,0100; +0,1120] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | DINOv2 ViT-S/14 + F4 | Exactitud balanceada | +0,0426 [-0,0129; +0,0974] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71 + F4 (1 vista) | DINOv2 ViT-S/14 + F4 | Recall de melanoma | +0,0180 [-0,0637; +0,0921] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (1 vista) | DINOv2 ViT-S/14 + F4 | MCC | +0,1091 [+0,0738; +0,1443] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | DINOv2 ViT-S/14 | F1 macro | +0,1633 [+0,1198; +0,2066] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | DINOv2 ViT-S/14 | Exactitud balanceada | +0,1121 [+0,0703; +0,1574] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | DINOv2 ViT-S/14 | Recall de melanoma | +0,0045 [-0,0769; +0,0825] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 (TTA, canónico) | DINOv2 ViT-S/14 | MCC | +0,1651 [+0,1261; +0,2008] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | DINOv2 ViT-S/14 + F4 | F1 macro | +0,1052 [+0,0594; +0,1562] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | DINOv2 ViT-S/14 + F4 | Exactitud balanceada | +0,0815 [+0,0312; +0,1350] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | DINOv2 ViT-S/14 + F4 | Recall de melanoma | +0,0225 [-0,0675; +0,1035] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (TTA) | DINOv2 ViT-S/14 + F4 | MCC | +0,1546 [+0,1159; +0,1935] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | DINOv2 ViT-B/14 | F1 macro | +0,0793 [+0,0349; +0,1251] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 (1 vista, sin TTA) | DINOv2 ViT-B/14 | Exactitud balanceada | +0,0317 [-0,0148; +0,0774] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71 (1 vista, sin TTA) | DINOv2 ViT-B/14 | Recall de melanoma | +0,0090 [-0,0676; +0,0834] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 (1 vista, sin TTA) | DINOv2 ViT-B/14 | MCC | +0,0926 [+0,0559; +0,1316] | sí | B71 (1 vista, sin TTA) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | DINOv2 ViT-B/14 + F4 | F1 macro | +0,0829 [+0,0379; +0,1291] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | DINOv2 ViT-B/14 + F4 | Exactitud balanceada | +0,0752 [+0,0223; +0,1240] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 + F4 (1 vista) | DINOv2 ViT-B/14 + F4 | Recall de melanoma | +0,0766 [+0,0044; +0,1496] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
+| B71 + F4 (1 vista) | DINOv2 ViT-B/14 + F4 | MCC | +0,1159 [+0,0809; +0,1532] | sí | B71 + F4 (1 vista) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | DINOv2 ViT-B/14 | F1 macro | +0,1139 [+0,0728; +0,1585] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | DINOv2 ViT-B/14 | Exactitud balanceada | +0,0663 [+0,0226; +0,1151] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 (TTA, canónico) | DINOv2 ViT-B/14 | Recall de melanoma | -0,0135 [-0,0914; +0,0588] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 (TTA, canónico) | DINOv2 ViT-B/14 | MCC | +0,1251 [+0,0886; +0,1635] | sí | B71 (TTA, canónico) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | DINOv2 ViT-B/14 + F4 | F1 macro | +0,1274 [+0,0819; +0,1749] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | DINOv2 ViT-B/14 + F4 | Exactitud balanceada | +0,1141 [+0,0652; +0,1639] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 | B71 + F4 (TTA) | DINOv2 ViT-B/14 + F4 | Recall de melanoma | +0,0811 [-0,0001; +0,1641] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 + F4 (TTA) | DINOv2 ViT-B/14 + F4 | MCC | +0,1614 [+0,1254; +0,2005] | sí | B71 + F4 (TTA) mejor (el IC excluye 0) |
 
 ### HAM10000: F4 sobre cada baseline congelado (exploratorio)
 
@@ -155,27 +187,35 @@ E3b, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap
 | AlexNet + F4 | AlexNet | F1 macro | +0,0210 [-0,0121; +0,0536] | no | sin diferencia demostrable (el IC incluye 0) |
 | AlexNet + F4 | AlexNet | Exactitud balanceada | -0,0258 [-0,0608; +0,0080] | no | sin diferencia demostrable (el IC incluye 0) |
 | AlexNet + F4 | AlexNet | Recall de melanoma | -0,0225 [-0,0880; +0,0429] | no | sin diferencia demostrable (el IC incluye 0) |
+| AlexNet + F4 | AlexNet | MCC | +0,0062 [-0,0211; +0,0332] | no | sin diferencia demostrable (el IC incluye 0) |
 | VGG19 + F4 | VGG19 | F1 macro | +0,0973 [+0,0577; +0,1352] | sí | VGG19 + F4 mejor (el IC excluye 0) |
 | VGG19 + F4 | VGG19 | Exactitud balanceada | +0,0669 [+0,0274; +0,1094] | sí | VGG19 + F4 mejor (el IC excluye 0) |
 | VGG19 + F4 | VGG19 | Recall de melanoma | -0,0090 [-0,0866; +0,0692] | no | sin diferencia demostrable (el IC incluye 0) |
+| VGG19 + F4 | VGG19 | MCC | +0,0641 [+0,0295; +0,0986] | sí | VGG19 + F4 mejor (el IC excluye 0) |
 | EfficientNet-B0 + F4 | EfficientNet-B0 | F1 macro | +0,0683 [+0,0204; +0,1125] | sí | EfficientNet-B0 + F4 mejor (el IC excluye 0) |
 | EfficientNet-B0 + F4 | EfficientNet-B0 | Exactitud balanceada | +0,0587 [+0,0166; +0,1037] | sí | EfficientNet-B0 + F4 mejor (el IC excluye 0) |
 | EfficientNet-B0 + F4 | EfficientNet-B0 | Recall de melanoma | +0,0676 [+0,0099; +0,1285] | sí | EfficientNet-B0 + F4 mejor (el IC excluye 0) |
+| EfficientNet-B0 + F4 | EfficientNet-B0 | MCC | +0,0660 [+0,0355; +0,0976] | sí | EfficientNet-B0 + F4 mejor (el IC excluye 0) |
 | ResNet-50 + F4 | ResNet-50 | F1 macro | +0,0692 [+0,0344; +0,1046] | sí | ResNet-50 + F4 mejor (el IC excluye 0) |
 | ResNet-50 + F4 | ResNet-50 | Exactitud balanceada | +0,0790 [+0,0463; +0,1148] | sí | ResNet-50 + F4 mejor (el IC excluye 0) |
 | ResNet-50 + F4 | ResNet-50 | Recall de melanoma | +0,0495 [-0,0233; +0,1194] | no | sin diferencia demostrable (el IC incluye 0) |
+| ResNet-50 + F4 | ResNet-50 | MCC | +0,0713 [+0,0406; +0,1030] | sí | ResNet-50 + F4 mejor (el IC excluye 0) |
 | ViT-B/16 + F4 | ViT-B/16 | F1 macro | +0,0292 [-0,0164; +0,0724] | no | sin diferencia demostrable (el IC incluye 0) |
 | ViT-B/16 + F4 | ViT-B/16 | Exactitud balanceada | +0,0085 [-0,0362; +0,0549] | no | sin diferencia demostrable (el IC incluye 0) |
 | ViT-B/16 + F4 | ViT-B/16 | Recall de melanoma | -0,0495 [-0,1122; +0,0219] | no | sin diferencia demostrable (el IC incluye 0) |
+| ViT-B/16 + F4 | ViT-B/16 | MCC | +0,0285 [-0,0009; +0,0572] | no | sin diferencia demostrable (el IC incluye 0) |
 | SimSiam ResNet-50 + F4 | SimSiam ResNet-50 | F1 macro | +0,0524 [+0,0132; +0,0929] | sí | SimSiam ResNet-50 + F4 mejor (el IC excluye 0) |
 | SimSiam ResNet-50 + F4 | SimSiam ResNet-50 | Exactitud balanceada | +0,0459 [+0,0072; +0,0858] | sí | SimSiam ResNet-50 + F4 mejor (el IC excluye 0) |
 | SimSiam ResNet-50 + F4 | SimSiam ResNet-50 | Recall de melanoma | +0,0180 [-0,0471; +0,0816] | no | sin diferencia demostrable (el IC incluye 0) |
+| SimSiam ResNet-50 + F4 | SimSiam ResNet-50 | MCC | +0,0539 [+0,0210; +0,0856] | sí | SimSiam ResNet-50 + F4 mejor (el IC excluye 0) |
 | DINOv2 ViT-S/14 + F4 | DINOv2 ViT-S/14 | F1 macro | +0,0882 [+0,0477; +0,1330] | sí | DINOv2 ViT-S/14 + F4 mejor (el IC excluye 0) |
 | DINOv2 ViT-S/14 + F4 | DINOv2 ViT-S/14 | Exactitud balanceada | +0,0528 [+0,0109; +0,0994] | sí | DINOv2 ViT-S/14 + F4 mejor (el IC excluye 0) |
 | DINOv2 ViT-S/14 + F4 | DINOv2 ViT-S/14 | Recall de melanoma | -0,0045 [-0,0658; +0,0535] | no | sin diferencia demostrable (el IC incluye 0) |
+| DINOv2 ViT-S/14 + F4 | DINOv2 ViT-S/14 | MCC | +0,0559 [+0,0269; +0,0854] | sí | DINOv2 ViT-S/14 + F4 mejor (el IC excluye 0) |
 | DINOv2 ViT-B/14 + F4 | DINOv2 ViT-B/14 | F1 macro | +0,0166 [-0,0193; +0,0508] | no | sin diferencia demostrable (el IC incluye 0) |
 | DINOv2 ViT-B/14 + F4 | DINOv2 ViT-B/14 | Exactitud balanceada | -0,0257 [-0,0614; +0,0069] | no | sin diferencia demostrable (el IC incluye 0) |
 | DINOv2 ViT-B/14 + F4 | DINOv2 ViT-B/14 | Recall de melanoma | -0,0811 [-0,1449; -0,0189] | sí | DINOv2 ViT-B/14 mejor (el IC excluye 0) |
+| DINOv2 ViT-B/14 + F4 | DINOv2 ViT-B/14 | MCC | +0,0092 [-0,0204; +0,0380] | no | sin diferencia demostrable (el IC incluye 0) |
 
 ### E3b: baselines que quedan por debajo de B71 con IC que excluye 0, por versión
 
@@ -186,30 +226,34 @@ Resumen de 8 baselines por celda; el detalle del canónico está arriba.
 | B71 (1 vista, sin TTA) | F1 macro | 8/8 | 8/8 |
 | B71 (1 vista, sin TTA) | Exactitud balanceada | 7/8 | 7/8 |
 | B71 (1 vista, sin TTA) | Recall de melanoma | 4/8 | 4/8 |
+| B71 (1 vista, sin TTA) | MCC | 8/8 | 8/8 |
 | B71 (TTA, canónico) | F1 macro | 8/8 | 8/8 |
 | B71 (TTA, canónico) | Exactitud balanceada | 8/8 | 8/8 |
 | B71 (TTA, canónico) | Recall de melanoma | 3/8 | 2/8 |
+| B71 (TTA, canónico) | MCC | 8/8 | 8/8 |
 | B71 + F4 (1 vista) | F1 macro | 8/8 | 8/8 |
 | B71 + F4 (1 vista) | Exactitud balanceada | 7/8 | 7/8 |
 | B71 + F4 (1 vista) | Recall de melanoma | 3/8 | 5/8 |
+| B71 + F4 (1 vista) | MCC | 8/8 | 8/8 |
 | B71 + F4 (TTA) | F1 macro | 8/8 | 8/8 |
 | B71 + F4 (TTA) | Exactitud balanceada | 8/8 | 8/8 |
 | B71 + F4 (TTA) | Recall de melanoma | 2/8 | 4/8 |
+| B71 + F4 (TTA) | MCC | 8/8 | 8/8 |
 
-### HAM10000: MCC puntual de los baselines sin y con F4 (E3b)
+### HAM10000: MCC puntual de los baselines sin y con F4 y su contraste pareado (E3b)
 
-MCC de E3b: solo cifras puntuales de cada fila. Los JSON commiteados de E3 y E3b no traen contrastes pareados de MCC (se commitearon antes del commit 1d7e447, que agrega el MCC a esos contrastes): la última columna es la resta de dos puntos, SIN IC y NO es un contraste. El contraste pareado de MCC exige recomputar E3 y E3b con el código actual; ETA no declarada por el operador.
+E3b, cómputo canónico (batch 64 + autocast): 40 contrastes pareados de MCC (8 de F4 sobre cada baseline, 32 de B71 frente a los baselines), recomputados con el código actual desde las probabilidades commiteadas (`e3b_probas.npz`), con el mismo bootstrap (1.000 remuestras, semilla 20260923, por `lesion_id`); los 120 registros previos (F1 macro, exactitud balanceada, recall de melanoma) se reprodujeron idénticos antes de escribir. La última columna es el contraste pareado de F4 sobre el baseline (Δ MCC [IC 95 %]). E3 final: sus JSON no traen MCC y sus probabilidades no se guardaron; se recomputan en el pod con `scripts/e3_contrasts_rebuild.py` (refit del probe desde los features cacheados, verificado contra los puntos registrados).
 
-| Baseline | MCC sin F4 | MCC con F4 | Diferencia puntual (sin IC) |
-|---|---|---|---|
-| AlexNet | 0,4808 | 0,4870 | +0,0062 |
-| VGG19 | 0,3975 | 0,4615 | +0,0641 |
-| EfficientNet-B0 | 0,4932 | 0,5592 | +0,0660 |
-| ResNet-50 | 0,4716 | 0,5429 | +0,0713 |
-| ViT-B/16 | 0,5558 | 0,5843 | +0,0285 |
-| SimSiam ResNet-50 | 0,5014 | 0,5553 | +0,0539 |
-| DINOv2 ViT-S/14 | 0,5250 | 0,5810 | +0,0559 |
-| DINOv2 ViT-B/14 | 0,5649 | 0,5741 | +0,0092 |
+| Baseline | MCC sin F4 | MCC con F4 | Contraste pareado: Δ MCC [IC 95 %] | El IC excluye 0 |
+|---|---|---|---|---|
+| AlexNet | 0,4808 | 0,4870 | +0,0062 [-0,0211; +0,0332] | no |
+| VGG19 | 0,3975 | 0,4615 | +0,0641 [+0,0295; +0,0986] | sí |
+| EfficientNet-B0 | 0,4932 | 0,5592 | +0,0660 [+0,0355; +0,0976] | sí |
+| ResNet-50 | 0,4716 | 0,5429 | +0,0713 [+0,0406; +0,1030] | sí |
+| ViT-B/16 | 0,5558 | 0,5843 | +0,0285 [-0,0009; +0,0572] | no |
+| SimSiam ResNet-50 | 0,5014 | 0,5553 | +0,0539 [+0,0210; +0,0856] | sí |
+| DINOv2 ViT-S/14 | 0,5250 | 0,5810 | +0,0559 [+0,0269; +0,0854] | sí |
+| DINOv2 ViT-B/14 | 0,5649 | 0,5741 | +0,0092 [-0,0204; +0,0380] | no |
 
 ### HAM10000: F4 − B71, cómputo S0: batch 16 + autocast
 
@@ -620,5 +664,5 @@ B71-limpio: F1 macro 0,6229 [0,5865; 0,6602]. Los baselines no tienen probabilid
 
 | Contraste | Motivo | ETA |
 |---|---|---|
-| Contrastes pareados de MCC en HAM10000 (E3 y E3b) | los JSON de E3/E3b no traen MCC en sus contrastes; recomputarlos con el código actual (1d7e447) | sin ETA |
+| Contrastes pareados de MCC en HAM10000 (E3 final) | los JSON de E3 no traen MCC en sus contrastes y sus probabilidades no se guardaron; se recomputan en el pod con `scripts/e3_contrasts_rebuild.py` (E3b ya los tiene) | sin ETA |
 | B71-limpio y A71-limpio contra el original en HAM10000 | la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican | sin ETA |
