@@ -6,7 +6,7 @@ Generado por `scripts/build_bench_contrasts.py` desde los JSON del repositorio. 
 
 ## Advertencia de multiplicidad
 
-Este documento lista 252 contrastes (el IC excluye 0 en 155) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 13) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
+Este documento lista 300 contrastes (el IC excluye 0 en 178) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 15) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
 
 ## Glosario
 
@@ -344,16 +344,40 @@ v7.1 en HAM10000, bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resulta
 
 ### ISIC 2019: canónico (batch 64 + autocast)
 
-Bootstrap pareado por imagen (sin grupo real), 1.000 remuestras. Fuente: `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__PUBLIC_B71.json` y hermanos.
+Bootstrap pareado por imagen (sin grupo real), 1.000 remuestras. Fuente: `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__original__vs__PUBLIC_A71.json` y hermanos.
 
 | Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura |
 |---|---|---|---|---|---|
+| A71 original | DINOv2 público (prot. A71) | F1 macro | +0,0199 [-0,0051; +0,0438] | no | sin diferencia demostrable (el IC incluye 0) |
+| A71 original | DINOv2 público (prot. A71) | Exactitud balanceada | +0,0295 [+0,0005; +0,0551] | sí | A71 original mejor (el IC excluye 0) |
+| A71 original | DINOv2 público (prot. A71) | Accuracy | +0,0292 [+0,0168; +0,0409] | sí | A71 original mejor (el IC excluye 0) |
+| A71 original | DINOv2 público (prot. A71) | AUC OvR macro | +0,0158 [+0,0108; +0,0215] | sí | A71 original mejor (el IC excluye 0) |
+| A71 original | DINOv2 público (prot. A71) | ECE (menor es mejor) | -0,0303 [-0,0406; -0,0135] | sí | A71 original mejor (el IC excluye 0) |
+| A71 original | DINOv2 público (prot. A71) | MCC | +0,0415 [+0,0238; +0,0571] | sí | A71 original mejor (el IC excluye 0) |
+| B71-limpio | B71 original | F1 macro | -0,0055 [-0,0232; +0,0155] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | Exactitud balanceada | +0,0030 [-0,0161; +0,0245] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | Accuracy | -0,0022 [-0,0116; +0,0079] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | AUC OvR macro | -0,0002 [-0,0030; +0,0026] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | ECE (menor es mejor) | +0,0018 [-0,0092; +0,0113] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | MCC | -0,0024 [-0,0153; +0,0121] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | F1 macro | +0,0079 [-0,0143; +0,0284] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | Exactitud balanceada | +0,0165 [-0,0029; +0,0351] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | Accuracy | +0,0079 [-0,0047; +0,0193] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | AUC OvR macro | +0,0063 [+0,0021; +0,0108] | sí | B71-limpio mejor (el IC excluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | ECE (menor es mejor) | -0,0208 [-0,0326; -0,0079] | sí | B71-limpio mejor (el IC excluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | MCC | +0,0154 [-0,0023; +0,0317] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | A71 original | F1 macro | +0,0236 [-0,0002; +0,0477] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | A71 original | Exactitud balanceada | -0,0008 [-0,0263; +0,0265] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | A71 original | Accuracy | -0,0016 [-0,0126; +0,0097] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | A71 original | AUC OvR macro | +0,0012 [-0,0023; +0,0048] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | A71 original | ECE (menor es mejor) | +0,0300 [+0,0127; +0,0391] | sí | A71 original mejor (el IC excluye 0) |
+| B71 original | A71 original | MCC | +0,0003 [-0,0154; +0,0167] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | DINOv2 público (prot. B71) | F1 macro | +0,0134 [-0,0095; +0,0356] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | DINOv2 público (prot. B71) | Exactitud balanceada | +0,0135 [-0,0095; +0,0356] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | DINOv2 público (prot. B71) | Accuracy | +0,0101 [-0,0026; +0,0219] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | DINOv2 público (prot. B71) | AUC OvR macro | +0,0065 [+0,0024; +0,0111] | sí | B71 original mejor (el IC excluye 0) |
+| B71 original | DINOv2 público (prot. B71) | ECE (menor es mejor) | -0,0226 [-0,0331; -0,0101] | sí | B71 original mejor (el IC excluye 0) |
+| B71 original | DINOv2 público (prot. B71) | MCC | +0,0178 [+0,0003; +0,0353] | sí | B71 original mejor (el IC excluye 0) |
 
 ### ISIC 2019: sensibilidad (batch 16, transductivo)
 
@@ -382,16 +406,40 @@ Bootstrap pareado por imagen (sin grupo real), 1.000 remuestras. Fuente: `result
 
 ### ISIC 2020: canónico (batch 64 + autocast)
 
-Bootstrap pareado por `patient_id`, 1.000 remuestras. Fuente: `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/contrasts/B71__clean__vs__PUBLIC_B71.json` y hermanos.
+Bootstrap pareado por `patient_id`, 1.000 remuestras. Fuente: `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/contrasts/A71__original__vs__PUBLIC_A71.json` y hermanos.
 
 | Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura |
 |---|---|---|---|---|---|
+| A71 original | DINOv2 público (prot. A71) | F1 macro | +0,0573 [+0,0214; +0,0896] | sí | A71 original mejor (el IC excluye 0) |
+| A71 original | DINOv2 público (prot. A71) | Exactitud balanceada | +0,0711 [+0,0249; +0,1174] | sí | A71 original mejor (el IC excluye 0) |
+| A71 original | DINOv2 público (prot. A71) | Accuracy | +0,0054 [+0,0006; +0,0105] | sí | A71 original mejor (el IC excluye 0) |
+| A71 original | DINOv2 público (prot. A71) | AUC OvR macro | +0,0700 [+0,0371; +0,1054] | sí | A71 original mejor (el IC excluye 0) |
+| A71 original | DINOv2 público (prot. A71) | ECE (menor es mejor) | +0,0212 [+0,0143; +0,0264] | sí | DINOv2 público (prot. A71) mejor (el IC excluye 0) |
+| A71 original | DINOv2 público (prot. A71) | MCC | +0,1168 [+0,0451; +0,1828] | sí | A71 original mejor (el IC excluye 0) |
+| B71-limpio | B71 original | F1 macro | +0,0093 [-0,0224; +0,0409] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | Exactitud balanceada | +0,0052 [-0,0391; +0,0461] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | Accuracy | +0,0023 [-0,0016; +0,0064] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | AUC OvR macro | +0,0230 [-0,0079; +0,0574] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | ECE (menor es mejor) | -0,0011 [-0,0052; +0,0035] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71-limpio | B71 original | MCC | +0,0169 [-0,0494; +0,0805] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | F1 macro | +0,0387 [+0,0047; +0,0721] | sí | B71-limpio mejor (el IC excluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | Exactitud balanceada | +0,0666 [+0,0302; +0,1033] | sí | B71-limpio mejor (el IC excluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | Accuracy | -0,0035 [-0,0084; +0,0010] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | AUC OvR macro | -0,0032 [-0,0346; +0,0262] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | ECE (menor es mejor) | -0,0013 [-0,0054; +0,0026] | no | sin diferencia demostrable (el IC incluye 0) |
 | B71-limpio | DINOv2 público (prot. B71) | MCC | +0,0822 [+0,0162; +0,1486] | sí | B71-limpio mejor (el IC excluye 0) |
+| B71 original | A71 original | F1 macro | -0,0408 [-0,0704; -0,0080] | sí | A71 original mejor (el IC excluye 0) |
+| B71 original | A71 original | Exactitud balanceada | -0,0503 [-0,0919; -0,0054] | sí | A71 original mejor (el IC excluye 0) |
+| B71 original | A71 original | Accuracy | -0,0039 [-0,0088; +0,0009] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | A71 original | AUC OvR macro | -0,0494 [-0,0825; -0,0180] | sí | A71 original mejor (el IC excluye 0) |
+| B71 original | A71 original | ECE (menor es mejor) | -0,0209 [-0,0269; -0,0136] | sí | B71 original mejor (el IC excluye 0) |
+| B71 original | A71 original | MCC | -0,0830 [-0,1437; -0,0149] | sí | A71 original mejor (el IC excluye 0) |
+| B71 original | DINOv2 público (prot. B71) | F1 macro | +0,0294 [-0,0024; +0,0615] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | DINOv2 público (prot. B71) | Exactitud balanceada | +0,0614 [+0,0243; +0,1026] | sí | B71 original mejor (el IC excluye 0) |
+| B71 original | DINOv2 público (prot. B71) | Accuracy | -0,0057 [-0,0102; -0,0012] | sí | DINOv2 público (prot. B71) mejor (el IC excluye 0) |
+| B71 original | DINOv2 público (prot. B71) | AUC OvR macro | -0,0261 [-0,0636; +0,0065] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | DINOv2 público (prot. B71) | ECE (menor es mejor) | -0,0003 [-0,0048; +0,0034] | no | sin diferencia demostrable (el IC incluye 0) |
+| B71 original | DINOv2 público (prot. B71) | MCC | +0,0652 [+0,0015; +0,1315] | sí | B71 original mejor (el IC excluye 0) |
 
 ### ISIC 2020: sensibilidad (batch 16, transductivo)
 

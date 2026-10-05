@@ -9,8 +9,10 @@ Modelo & Preent. & FT & Seg. & Trans. & Acc. & Bal. acc. & Prec. & Rec. & F1 & A
 \midrule
 \multicolumn{14}{l}{\textit{congelados (sin fine-tuning)}} \\
 \midrule
+B71 original (canónico) & auto-supervisado propio & no & no & sí & 0,7681 & 0,6731 & 0,6733 & 0,6731 & 0,6717 & 0,9543 & 0,0480 & 0,6652 & [0,6436; 0,6951] \\
 B71-limpio (canónico) & auto-supervisado propio & no & no & no & 0,7659 & 0,6761 & 0,6586 & 0,6761 & 0,6662 & 0,9541 & 0,0498 & 0,6628 & [0,6401; 0,6911] \\
 DINOv2 público, protocolo de B71 (canónico) & auto-supervisado & no & no & no & 0,7580 & 0,6596 & 0,6609 & 0,6596 & 0,6583 & 0,9478 & 0,0706 & 0,6474 & [0,6311; 0,6825] \\
+A71 original (canónico) & auto-supervisado propio & no & no & sí & 0,7697 & 0,6739 & 0,6270 & 0,6739 & 0,6481 & 0,9531 & 0,0180 & 0,6649 & [0,6218; 0,6719] \\
 DINOv2 público, protocolo de A71 (canónico) & auto-supervisado & no & no & no & 0,7405 & 0,6444 & 0,6145 & 0,6444 & 0,6281 & 0,9373 & 0,0483 & 0,6234 & [0,6037; 0,6534] \\
 DINOv2 ViT-B/14 & auto-supervisado & no & no & no & 0,6811 & 0,6198 & 0,5283 & 0,6198 & 0,5625 & 0,9198 & 0,1056 & 0,5583 & [0,5383; 0,5872] \\
 ViT-B/16 & supervisado & no & no & no & 0,6538 & 0,5794 & 0,4980 & 0,5794 & 0,5277 & 0,9058 & 0,1157 & 0,5230 & [0,5024; 0,5500] \\
@@ -21,8 +23,6 @@ AlexNet & supervisado & no & no & no & 0,5739 & 0,5330 & 0,3975 & 0,5330 & 0,420
 VGG19 & supervisado & no & no & no & 0,5583 & 0,4966 & 0,3733 & 0,4966 & 0,3909 & 0,8599 & 0,0537 & 0,4172 & [0,3731; 0,4074] \\
 SimSiam ResNet-50 & auto-supervisado & no & no & no & 0,4784 & 0,4940 & 0,3359 & 0,4940 & 0,3286 & 0,8391 & 0,2215 & 0,3397 & [0,3126; 0,3434] \\
 A71-limpio (canónico) & auto-supervisado propio & no & no & no & \multicolumn{9}{l}{pendiente} \\
-B71 original (canónico) & auto-supervisado propio & no & no & sí & \multicolumn{9}{l}{pendiente} \\
-A71 original (canónico) & auto-supervisado propio & no & no & sí & \multicolumn{9}{l}{pendiente} \\
 \midrule
 \multicolumn{14}{l}{\textit{con fine-tuning}} \\
 \midrule

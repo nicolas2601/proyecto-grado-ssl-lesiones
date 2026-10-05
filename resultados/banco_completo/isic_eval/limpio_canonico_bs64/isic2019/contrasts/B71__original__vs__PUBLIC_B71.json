@@ -1,0 +1,114 @@
+{
+ "cell": "B71__original__vs__PUBLIC_B71",
+ "key": {
+  "arm": "B71__original",
+  "control": "PUBLIC_B71",
+  "arm_probas_sha256": "d5b193d9552a563e820c7aea3bdc1359bcdae9a5896d502362b58c7af6e61dc7",
+  "control_probas_sha256": "9896e3341402b2036281cfac3adc50eada7fa5f75d9b8ded7262b85bd02de97a",
+  "n_resamples": 1000,
+  "metrics": [
+   "macro_f1",
+   "balanced_accuracy",
+   "accuracy",
+   "auc",
+   "ece",
+   "mcc"
+  ]
+ },
+ "key_sha256": "6d66afe61dfa34bc0c57783785441dce8494fe5b5198bacad2534fdf4d99c7b2",
+ "result": {
+  "paired": [
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "macro_f1",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.6717064123274754,
+    "point_control": 0.6582977171515021,
+    "point_delta": 0.013408695175973318,
+    "ci95_low": -0.009538930023683273,
+    "ci95_high": 0.03560710305186123,
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   },
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "balanced_accuracy",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.6730853103506949,
+    "point_control": 0.6595857571402802,
+    "point_delta": 0.013499553210414628,
+    "ci95_low": -0.009469568596925064,
+    "ci95_high": 0.03559442033267704,
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   },
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "accuracy",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.7681073613578054,
+    "point_control": 0.7580422340635484,
+    "point_delta": 0.010065127294257015,
+    "ci95_low": -0.0025656206828497145,
+    "ci95_high": 0.021911387408723185,
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   },
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "auc",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.9543001986702595,
+    "point_control": 0.9477614779670751,
+    "point_delta": 0.0065387207031843975,
+    "ci95_low": 0.002366069731859194,
+    "ci95_high": 0.01105639317731824,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   },
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "ece",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.04801714451052036,
+    "point_control": 0.07064133799176017,
+    "point_delta": -0.022624193481239813,
+    "ci95_low": -0.03306911363051629,
+    "ci95_high": -0.010134727411710969,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   },
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "mcc",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.6652172647296124,
+    "point_control": 0.6474351303767671,
+    "point_delta": 0.017782134352845258,
+    "ci95_low": 0.0003209258721923681,
+    "ci95_high": 0.03532376199174675,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   }
+  ],
+  "unit": "image"
+ }
+}

@@ -9,7 +9,9 @@ Modelo & Preent. & FT & Seg. & Trans. & Acc. & Bal. acc. & Prec. & Rec. & F1 & A
 \midrule
 \multicolumn{14}{l}{\textit{congelados (sin fine-tuning)}} \\
 \midrule
+A71 original (canónico) & auto-supervisado propio & no & no & sí & 0,9688 & 0,6945 & 0,6288 & 0,6945 & 0,6543 & 0,9023 & 0,0332 & 0,3166 & [0,6164; 0,6896] \\
 B71-limpio (canónico) & auto-supervisado propio & no & no & no & 0,9671 & 0,6494 & 0,6050 & 0,6494 & 0,6229 & 0,8758 & 0,0111 & 0,2506 & [0,5865; 0,6602] \\
+B71 original (canónico) & auto-supervisado propio & no & no & sí & 0,9649 & 0,6443 & 0,5946 & 0,6443 & 0,6136 & 0,8529 & 0,0122 & 0,2336 & [0,5793; 0,6501] \\
 DINOv2 público, protocolo de A71 (canónico) & auto-supervisado & no & no & no & 0,9634 & 0,6234 & 0,5809 & 0,6234 & 0,5971 & 0,8323 & 0,0119 & 0,1998 & [0,5636; 0,6272] \\
 DINOv2 público, protocolo de B71 (canónico) & auto-supervisado & no & no & no & 0,9706 & 0,5828 & 0,5856 & 0,5828 & 0,5842 & 0,8790 & 0,0125 & 0,1684 & [0,5507; 0,6181] \\
 ResNet-50 & supervisado & no & no & no & 0,9161 & 0,6878 & 0,5448 & 0,6878 & 0,5601 & 0,8297 & 0,0275 & 0,1834 & [0,5396; 0,5790] \\
@@ -21,8 +23,6 @@ VGG19 & supervisado & no & no & no & 0,8233 & 0,7370 & 0,5286 & 0,7370 & 0,5101 
 AlexNet & supervisado & no & no & no & 0,7940 & 0,7744 & 0,5292 & 0,7744 & 0,5008 & 0,8574 & 0,0442 & 0,1791 & [0,4894; 0,5122] \\
 SimSiam ResNet-50 & auto-supervisado & no & no & no & 0,7518 & 0,7650 & 0,5249 & 0,7650 & 0,4795 & 0,8468 & 0,0851 & 0,1624 & [0,4693; 0,4906] \\
 A71-limpio (canónico) & auto-supervisado propio & no & no & no & \multicolumn{9}{l}{pendiente} \\
-B71 original (canónico) & auto-supervisado propio & no & no & sí & \multicolumn{9}{l}{pendiente} \\
-A71 original (canónico) & auto-supervisado propio & no & no & sí & \multicolumn{9}{l}{pendiente} \\
 \midrule
 \multicolumn{14}{l}{\textit{con fine-tuning}} \\
 \midrule

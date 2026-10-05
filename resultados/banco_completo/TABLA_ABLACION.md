@@ -62,16 +62,16 @@ Limpio = pesos re-preentrenados sin las imágenes de val de ISIC en el pool (doc
 | HAM10000 | B71 (propuesto) | no | 0,7141 [0,6703; 0,7547] | 0,6901 | probe logreg C1; precisión, recall y MCC desde las probabilidades; cómputo canónico = S1 (batch 64 + autocast, el de v7.1). F1 macro de B71 en S0/S1/S2: 0,7106 / 0,7141 / 0,7089 (el cómputo de extracción mueve la cifra) |
 | HAM10000 | B71-limpio (canónico) | no | pendiente | pendiente | E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio); ETA no declarada por el operador |
 | HAM10000 | A71-limpio (canónico) | no | pendiente | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC |
+| ISIC 2019 | B71 original (canónico) | sí | 0,6717 [0,6436; 0,6951] | 0,6652 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2019 | B71-limpio (canónico) | no | 0,6662 [0,6401; 0,6911] | 0,6628 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2019 | A71 original (canónico) | sí | 0,6481 [0,6218; 0,6719] | 0,6649 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2019 | A71-limpio (canónico) | no | pendiente | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC |
-| ISIC 2019 | B71 original (canónico) | sí | pendiente | pendiente | re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC |
-| ISIC 2019 | A71 original (canónico) | sí | pendiente | pendiente | re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC |
 | ISIC 2019 | B71 original (batch 16) | sí | 0,6756 [0,6482; 0,6977] | 0,6677 | sensibilidad: cómputo no canónico (batch 16); transductivo |
 | ISIC 2019 | A71 original (batch 16) | sí | 0,6522 [0,6256; 0,6759] | 0,6669 | sensibilidad: cómputo no canónico (batch 16); transductivo |
+| ISIC 2020 | A71 original (canónico) | sí | 0,6543 [0,6164; 0,6896] | 0,3166 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2020 | B71-limpio (canónico) | no | 0,6229 [0,5865; 0,6602] | 0,2506 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2020 | B71 original (canónico) | sí | 0,6136 [0,5793; 0,6501] | 0,2336 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2020 | A71-limpio (canónico) | no | pendiente | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC |
-| ISIC 2020 | B71 original (canónico) | sí | pendiente | pendiente | re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC |
-| ISIC 2020 | A71 original (canónico) | sí | pendiente | pendiente | re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC |
 | ISIC 2020 | A71 original (batch 16) | sí | 0,6554 [0,6197; 0,6910] | 0,3196 | sensibilidad: cómputo no canónico (batch 16); transductivo |
 | ISIC 2020 | B71 original (batch 16) | sí | 0,6123 [0,5781; 0,6486] | 0,2315 | sensibilidad: cómputo no canónico (batch 16); transductivo |
 
