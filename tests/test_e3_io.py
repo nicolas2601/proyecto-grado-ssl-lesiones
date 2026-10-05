@@ -59,3 +59,11 @@ def test_the_protocol_name_is_the_registered_b71_config():
     from dermssl import v71_protocol as vp
 
     assert e3_io.PROTOCOL == vp.config_id("B_s42_a1.0", 224, "cls4", "balanced", True)
+
+
+def test_only_student_r3_masks_are_accepted():
+    from types import SimpleNamespace
+
+    e3_io.require_student_r3(SimpleNamespace(producer="student_r3"))
+    with pytest.raises(SystemExit):
+        e3_io.require_student_r3(SimpleNamespace(producer="s4_unet_a2"))

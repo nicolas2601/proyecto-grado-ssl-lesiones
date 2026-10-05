@@ -17,6 +17,7 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[1]
 HAIR_DIR = REPO / "plan-segmentacion" / "comun" / "nucleo"
 B71_WEIGHTS = "B_s42_a1.0"
+REQUIRED_PRODUCER = "student_r3"
 PROTOCOL = "B_s42_a1.0@224|cls4|balanced|tta"
 PART = "cls4"
 LESION = 1  # c1_mask_export.LESION_LABEL: 255 (uncertain) counts as NOT lesion
@@ -82,6 +83,12 @@ def make_hair_fn() -> Callable[[np.ndarray], np.ndarray] | None:
     return lambda rgb: hair_removal.elongated_hair_mask(rgb).astype(bool)
 
 
+def require_student_r3(source) -> None:
+    """E3 is registered on the ``student_r3`` masks only (docs/33); the A2 arm of C1 is not allowed here."""
+    if source.producer != REQUIRED_PRODUCER:
+        raise SystemExit(f"ABORT: E3 usa solo mascaras de {REQUIRED_PRODUCER}, no de {source.producer!r}")
+
+
 def _lesion_ids(ham_root: Path, ids: dict) -> dict:
     from c1_build_val_index import rebuild_split  # noqa: PLC0415
 
@@ -102,6 +109,7 @@ def build_runtime(args) -> Runtime:
 
     ctx = v71_io.load_context(args)
     source = mp.MaskSource.from_manifest(v71_io.read_json(args.masks_manifest.expanduser()))
+    require_student_r3(source)
     mx.verify_artifact(args.masks.expanduser(), source.masks_sha256)
     masks = np.load(args.masks.expanduser(), mmap_mode="r")
     weights = v71_io.WeightBank(args.weights_dir.expanduser())

@@ -24,8 +24,8 @@ Pod (RUNBOOK_CLUSTER; same clone, venv and TORCH_HOME as ``v71_run.py``)::
     P=$HOME/work/proyectonp; C1=$P/salidas/c1; E3=$P/salidas/e3
     COMMON="--ham-root $HOME/work/datos/ham10000 --image-dir $P/eval_ham10000_images \
       --split-index $C1/c1_split_index.json --holdout $C1/selection/selection_holdout.json \
-      --weights-dir $P/salidas/v7 --masks $C1/<c1_pseudo_masks.npy> \
-      --masks-manifest $C1/<c1_pseudo_masks_manifest.json> \
+      --weights-dir $P/salidas/v7 --masks $C1/masks/c1_pseudo_masks.npy \
+      --masks-manifest $C1/masks/c1_pseudo_masks_manifest.json \
       --tone-manifest $P/salidas/final/fst/fst_pseudo_manifest.csv --out-dir $E3"
     python scripts/e3_run.py $COMMON --stage extract --splits fit holdout --limit 70   # smoke
     python scripts/e3_run.py $COMMON --stage extract --splits fit holdout --batch-size 16 --device cuda
