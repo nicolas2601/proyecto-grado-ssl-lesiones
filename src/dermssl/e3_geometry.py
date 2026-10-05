@@ -48,17 +48,23 @@ def shifted_boxes(mask: np.ndarray, margin: float = MARGIN,
     return out
 
 
+def _grow_axis(mask: np.ndarray, radius: int, axis: int) -> np.ndarray:
+    """True where any pixel within ``radius`` along ``axis`` is True (cumulative-sum window)."""
+    pad = [(0, 0), (0, 0)]
+    pad[axis] = (radius + 1, radius)
+    total = np.cumsum(np.pad(mask.astype(np.int32), pad), axis=axis)
+    size = mask.shape[axis]
+    upper = np.take(total, np.arange(2 * radius + 1, 2 * radius + 1 + size), axis=axis)
+    lower = np.take(total, np.arange(0, size), axis=axis)
+    return (upper - lower) > 0
+
+
 def dilate(mask: np.ndarray, radius: int) -> np.ndarray:
-    """Chebyshev dilation: ``radius`` rounds of 3x3 growth (a square, not a disc)."""
+    """Chebyshev dilation by ``radius`` pixels (a square window, not a disc), in O(pixels)."""
     out = np.asarray(mask, dtype=bool)
-    for _ in range(max(0, radius)):
-        padded = np.pad(out, 1)
-        h, w = out.shape
-        out = np.zeros_like(out)
-        for dy in range(3):
-            for dx in range(3):
-                out |= padded[dy:dy + h, dx:dx + w]
-    return out
+    if radius <= 0:
+        return out.copy()
+    return _grow_axis(_grow_axis(out, radius, 0), radius, 1)
 
 
 def erode(mask: np.ndarray) -> np.ndarray:

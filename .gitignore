@@ -12,6 +12,7 @@ datasets/
 *.png
 !docs/**/*.png
 !assets/figuras/*.png
+!resultados/banco_completo/**/*.png
 # CSV: ignorados salvo docs
 *.csv
 !docs/**/*.csv
