@@ -154,7 +154,7 @@ def test_mask_coverage_per_split_and_total_and_the_two_roi_estimators_are_in_the
     assert "### Cobertura de las máscaras" in section
     assert "| train | 0 | 5 | 2 | 1 | 8 |" in section and "| Total | 0 | 6 | 3 | 1 | 10 |" in section
     assert "perilesional_roi" in section and "no_mask_border" in section
-    assert "coincide con el manifiesto: 4; difiere: 2; sin hash: 6" in section
+    assert "coincide: 4; difiere: 2; no verificada (sin máscara elegible): 6" in section
 
 
 def test_the_header_names_the_automatic_pseudo_masks_and_the_fallback():
@@ -176,3 +176,13 @@ def test_the_table_shows_the_image_origin_per_state_and_declares_the_source_224_
     section = tab.render(tab.load_documents(root)).split("## ISIC 2020")[1]
     assert "Origen de la imagen del ROI" in section and "| quarantine | 1 | 2 | 3 |" in section
     assert "No es idéntica" in section and "source_224" in section
+
+
+def test_a_json_whose_run_hashed_png_bytes_does_not_publish_the_incomparable_hash_counts(tmp_path):
+    d = _pool_document()
+    d["report"]["estimators"]["roi"]["mask_coverage"].pop("sha256_definition")
+    root = tmp_path / "e5"
+    root.mkdir()
+    (root / "e5_fitzpatrick_isic2020.json").write_text(doc.dump_document(d), encoding="utf-8")
+    section = tab.render(tab.load_documents(root)).split("## ISIC 2020")[1]
+    assert "bytes del PNG" in section and "no es comparable" in section and "difiere: 2" not in section

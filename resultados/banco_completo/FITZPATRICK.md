@@ -84,7 +84,7 @@ Generado por `scripts/build_fitzpatrick_table.py` desde los JSON de `resultados/
 
 `source_224` = el archivo fuente redimensionado a 224 × 224 con la función que construyó el pool (`cache_io.load_resized_rgb`); se usa cuando el pool no exportó el original (cuarentena) o la imagen no está en el pool. **No es idéntica** a la imagen del pool: no se sabe si la caché del pool se construyó con quitar-pelo ni si leyó la misma versión del archivo, por eso se cuenta aparte.
 
-Estimador del ROI por imagen: perilesional_roi: 10.015 imágenes · no_mask_border: 0 imágenes. Hash del archivo de máscara: coincide con el manifiesto: 0; difiere: 0; sin hash: 10.015.
+Estimador del ROI por imagen: perilesional_roi: 10.015 imágenes · no_mask_border: 0 imágenes.
 
 ### Clase × bucket (ROI: anillo o borde)
 
@@ -201,7 +201,9 @@ Cortes de L\* propios de este dataset (n = 10.015 con L\*): oscuro L\* ≤ 66,02
 
 `source_224` = el archivo fuente redimensionado a 224 × 224 con la función que construyó el pool (`cache_io.load_resized_rgb`); se usa cuando el pool no exportó el original (cuarentena) o la imagen no está en el pool. **No es idéntica** a la imagen del pool: no se sabe si la caché del pool se construyó con quitar-pelo ni si leyó la misma versión del archivo, por eso se cuenta aparte.
 
-Estimador del ROI por imagen: perilesional_roi: 23.604 imágenes · no_mask_border: 1.727 imágenes. Hash del archivo de máscara: coincide con el manifiesto: 0; difiere: 23.604; sin hash: 1.727.
+Estimador del ROI por imagen: perilesional_roi: 23.604 imágenes · no_mask_border: 1.727 imágenes.
+
+Hash de la máscara: la corrida de este JSON comparó los bytes del PNG, una definición distinta de la del manifiesto (sha256 de la matriz booleana y su forma); ese conteo no es comparable y no se publica.
 
 ### Clase × bucket (ROI: anillo o borde)
 
@@ -314,7 +316,9 @@ Cortes de L\* propios de este dataset (n = 25.312 con L\*): oscuro L\* ≤ 65,92
 
 `source_224` = el archivo fuente redimensionado a 224 × 224 con la función que construyó el pool (`cache_io.load_resized_rgb`); se usa cuando el pool no exportó el original (cuarentena) o la imagen no está en el pool. **No es idéntica** a la imagen del pool: no se sabe si la caché del pool se construyó con quitar-pelo ni si leyó la misma versión del archivo, por eso se cuenta aparte.
 
-Estimador del ROI por imagen: perilesional_roi: 31.430 imágenes · no_mask_border: 1.696 imágenes. Hash del archivo de máscara: coincide con el manifiesto: 0; difiere: 31.430; sin hash: 1.696.
+Estimador del ROI por imagen: perilesional_roi: 31.430 imágenes · no_mask_border: 1.696 imágenes.
+
+Hash de la máscara: la corrida de este JSON comparó los bytes del PNG, una definición distinta de la del manifiesto (sha256 de la matriz booleana y su forma); ese conteo no es comparable y no se publica.
 
 ### Clase × bucket (ROI: anillo o borde)
 

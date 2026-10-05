@@ -170,10 +170,18 @@ def _mask_coverage(roi: dict) -> list[str]:
     header = ["Split", "nativa C1", "elegible", "en cuarentena", "ausente", "Total"]
     est = roi["by_estimator"]
     sha = cov["sha256_file"]
+    sha_text = (f"Hash de la máscara (el del manifiesto: sha256 de la matriz booleana y su forma, "
+                f"`mask_manifest.mask_sha256`): coincide: {num(sha['match'])}; difiere: {num(sha['mismatch'])}; "
+                f"no verificada (sin máscara elegible): {num(sha['not_checked'])}." if cov.get("sha256_definition") else
+                "Hash de la máscara: la corrida de este JSON comparó los bytes del PNG, una definición distinta de la "
+                "del manifiesto (sha256 de la matriz booleana y su forma); ese conteo no es comparable y no se publica.")
     line = " · ".join(f"{e}: {num(est[e]['n'])} imágenes" for e in ("perilesional_roi", "no_mask_border"))
     origin = cov["image_origin_by_state"]
     orows = [[st, *(num(origin[st][o]) for o in ("pool_224", "source_224")), num(sum(origin[st][o] for o in
              ("pool_224", "source_224", "canonical")))] for st in states if sum(origin[st].values())]
+    hashed = bool(cov.get("sha256_definition")) or sha["match"] + sha["mismatch"] > 0
+    pool_masks = est["perilesional_roi"]["n"] and cov["total"]["eligible"] > 0
+    sha_block = [sha_text, ""] if pool_masks or hashed else []
     return ["### Cobertura de las máscaras", "", *_table(header, rows),
             "**Origen de la imagen del ROI por estado de máscara**", "",
             *_table(["Estado", "pool 224 (`pool_224`)", "fuente a 224 (`source_224`)", "Total"], orows),
@@ -181,8 +189,7 @@ def _mask_coverage(roi: dict) -> list[str]:
             "(`cache_io.load_resized_rgb`); se usa cuando el pool no exportó el original (cuarentena) o la imagen no "
             "está en el pool. **No es idéntica** a la imagen del pool: no se sabe si la caché del pool se construyó con "
             "quitar-pelo ni si leyó la misma versión del archivo, por eso se cuenta aparte.", "",
-            f"Estimador del ROI por imagen: {line}. Hash del archivo de máscara: coincide con el manifiesto: "
-            f"{num(sha['match'])}; difiere: {num(sha['mismatch'])}; sin hash: {num(sha['not_checked'])}.", ""]
+            f"Estimador del ROI por imagen: {line}.", "", *sha_block]
 
 
 def _agreement(roi: dict) -> list[str]:
