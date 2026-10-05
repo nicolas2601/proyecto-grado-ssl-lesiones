@@ -34,7 +34,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 
 from dermssl.data_resolver import find_files, index_images
-from dermssl.finetune import protocol
+from dermssl.finetune import protocol, split_guard
 from dermssl.finetune.config import FinetuneConfig, weight_source
 from dermssl.finetune.tracking import CompositeTracker
 
@@ -129,6 +129,9 @@ def _load_isic2019(dataset_dir: Path, spec: protocol.DatasetSpec):
 
 def load_split(cfg: FinetuneConfig) -> SplitData:
     spec = cfg.dataset_spec
+    expected = split_guard.expectation_for(cfg.dataset)
+    if expected is not None:
+        split_guard.require_sklearn()
     if spec.name == "isic2019":
         classes, paths, id2label, ids, groups, desc = _load_isic2019(
             cfg.dataset_dir, spec)
@@ -145,6 +148,9 @@ def load_split(cfg: FinetuneConfig) -> SplitData:
     g = dict(zip(ids, groups))
     shared = {g[i] for i in tr_ids} & {g[i] for i in va_ids}
     assert not shared, f"LEAKAGE: {len(shared)} grupos compartidos"
+    if expected is not None:
+        split_guard.verify_split(expected, classes, ids, y, groups,
+                                 {i: paths[i] for i in ids}, tr_idx, va_idx)
 
     if cfg.smoke:
         frac, min_tr, min_va = protocol.SMOKE_FRACTION[cfg.dataset]
