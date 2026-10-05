@@ -7,7 +7,7 @@
  "caveat": "FST estimado por ITA, NO validado (22,9 % en PAD), pseudo-máscaras automáticas. Descriptivo y NO está validado: los buckets I-VI son la salida del estimador ITA con umbrales fijos, no el fototipo Fitzpatrick. Ese estimador acierta 22,9 % frente a 51,3 % de la baseline de mayoría en PAD-UFES-20 (Alipour et al., Skin Research and Technology 32(8):e70374, 2026, PMC13459198; docs/20, docs/30) y 28,5-30,8 % frente a 32,9 % en Fitzpatrick17k-C. Los terciles de L* son luminancia (mediana de L* de la piel), no es tono de piel, y son relativos a cada dataset: «oscuro» en uno no equivale a «oscuro» en otro. Ningún conteo de este archivo cambia el resultado primario del banco (docs/33, sección 5).",
  "dataset": "isic2019",
  "smoke_limit": null,
- "code_revision": "48d5f63bd6ef197d138bb44ebb7732294bef7243",
+ "code_revision": "7a029a8abcbb577fcc8d68c2f47bcb1897e6e8f3",
  "classes": [
   "MEL",
   "NV",
@@ -552,10 +552,11 @@
       "none": 0
      },
      "sha256_file": {
-      "match": 0,
-      "mismatch": 23604,
+      "match": 23604,
+      "mismatch": 0,
       "not_checked": 1727
      },
+     "sha256_definition": "mask_manifest.mask_sha256: sha256 of the boolean array and its shape, as the pool builder wrote it",
      "image_origin_by_state": {
       "c1_native": {
        "pool_224": 0,

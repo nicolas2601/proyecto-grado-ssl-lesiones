@@ -146,7 +146,7 @@ Cortes de L\* propios de este dataset (n = 10.015 con L\*): oscuro L\* ≤ 66,02
 
 - Imágenes: 25.331 (train 20.264, val 5.067); ilegibles: 0.
 - Máscaras: pseudo-máscaras automáticas (student_r3, sin etiquetas expertas) del pool de `salidas/tone/inputs`; manifiesto sha256 `fbbaa27e89c1` (58.457 entradas).
-- Revisión de código: `48d5f63bd6ef197d138bb44ebb7732294bef7243`.
+- Revisión de código: `7a029a8abcbb577fcc8d68c2f47bcb1897e6e8f3`.
 
 ### Cobertura de los estimadores
 
@@ -203,7 +203,7 @@ Cortes de L\* propios de este dataset (n = 10.015 con L\*): oscuro L\* ≤ 66,02
 
 Estimador del ROI por imagen: perilesional_roi: 23.604 imágenes · no_mask_border: 1.727 imágenes.
 
-Hash de la máscara: la corrida de este JSON comparó los bytes del PNG, una definición distinta de la del manifiesto (sha256 de la matriz booleana y su forma); ese conteo no es comparable y no se publica.
+Hash de la máscara (el del manifiesto: sha256 de la matriz booleana y su forma, `mask_manifest.mask_sha256`): coincide: 23.604; difiere: 0; no verificada (sin máscara elegible): 1.727.
 
 ### Clase × bucket (ROI: anillo o borde)
 
@@ -267,7 +267,7 @@ Cortes de L\* propios de este dataset (n = 25.312 con L\*): oscuro L\* ≤ 65,92
 
 - Imágenes: 33.126 (train 26.466, val 6.660); ilegibles: 0.
 - Máscaras: pseudo-máscaras automáticas (student_r3, sin etiquetas expertas) del pool de `salidas/tone/inputs`; manifiesto sha256 `fbbaa27e89c1` (58.457 entradas).
-- Revisión de código: `48d5f63bd6ef197d138bb44ebb7732294bef7243`.
+- Revisión de código: `7a029a8abcbb577fcc8d68c2f47bcb1897e6e8f3`.
 
 ### Cobertura de los estimadores
 
@@ -318,7 +318,7 @@ Cortes de L\* propios de este dataset (n = 25.312 con L\*): oscuro L\* ≤ 65,92
 
 Estimador del ROI por imagen: perilesional_roi: 31.430 imágenes · no_mask_border: 1.696 imágenes.
 
-Hash de la máscara: la corrida de este JSON comparó los bytes del PNG, una definición distinta de la del manifiesto (sha256 de la matriz booleana y su forma); ese conteo no es comparable y no se publica.
+Hash de la máscara (el del manifiesto: sha256 de la matriz booleana y su forma, `mask_manifest.mask_sha256`): coincide: 31.430; difiere: 0; no verificada (sin máscara elegible): 1.696.
 
 ### Clase × bucket (ROI: anillo o borde)
 

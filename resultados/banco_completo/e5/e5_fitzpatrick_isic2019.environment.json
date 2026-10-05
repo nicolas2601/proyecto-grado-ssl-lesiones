@@ -1,6 +1,6 @@
 {
  "describes": "e5_fitzpatrick_isic2019.json",
- "sha256": "ba16c9e191d924a0b5ed270d5a306f41fe9b59df0702cb02077a786c975ffb69",
+ "sha256": "5d2cc316ce1798693e65d2ad1b03e55f42295605e42110be266452587f7782e8",
  "environment": {
   "schema": 1,
   "python": "3.13.15",
