@@ -5,7 +5,6 @@ import pytest
 from PIL import Image
 
 from dermssl import e5_analyze as an
-from dermssl import e5_ita as ita
 
 SKIN = (178, 133, 102)  # sRGB 8-bit, ITA ~21 (type III)
 
