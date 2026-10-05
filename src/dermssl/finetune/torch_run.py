@@ -327,8 +327,7 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     out_dir = Path(cfg.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    job = next(j for j in protocol.manifest()
-               if j.model == cfg.model and j.dataset == cfg.dataset)
+    job = protocol.job_for(cfg.model, cfg.dataset)
     print(f"[{job.run_name}] device={device} smoke={cfg.smoke} "
           f"pesos={weight_source(cfg.model)}")
 
