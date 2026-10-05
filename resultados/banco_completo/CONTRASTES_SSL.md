@@ -6,7 +6,7 @@ Generado por `scripts/build_bench_contrasts.py` desde los JSON del repositorio. 
 
 ## Advertencia de multiplicidad
 
-Este documento lista 300 contrastes (el IC excluye 0 en 178) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 15) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
+Este documento lista 332 contrastes (el IC excluye 0 en 198) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 17) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
 
 ## Glosario
 
@@ -468,10 +468,42 @@ Bootstrap pareado por `patient_id`, 1.000 remuestras. Fuente: `resultados/banco_
 
 ### B71-limpio contra el fine-tuning (pareado por id, ISIC 2020)
 
-Sección: análisis posterior a la ejecución (post-hoc), no parte del registro original. Probas de val reconstruidas por inferencia desde el checkpoint de la mejor época; verificadas contra las métricas registradas. El fine-tuning usa la mejor época elegida en val (optimista); B71-limpio no tiene fine-tuning ni selección de época en val. Pareo por id de imagen, bootstrap por `patient_id`, 1.000 remuestras, semilla 20260923. p bootstrap aproximado = 2·min(P(Δ≤0), P(Δ≥0)) sobre las 1.000 remuestras pareadas, con piso 1/1000 (no es un p exacto). Holm sobre los 8 modelos de cada métrica; un modelo ausente cuenta como p = 1. AlexNet (fine-tuning): pendiente; faltan las probabilidades por imagen del fine-tuning (se reconstruyen por inferencia de los checkpoints, sin reentrenar, en `ft_isic2020/probas/`) o el fine-tuning no ha terminado; ETA no declarada por el operador. VGG19 (fine-tuning): pendiente; faltan las probabilidades por imagen del fine-tuning (se reconstruyen por inferencia de los checkpoints, sin reentrenar, en `ft_isic2020/probas/`) o el fine-tuning no ha terminado; ETA no declarada por el operador. ResNet-50 (fine-tuning): pendiente; faltan las probabilidades por imagen del fine-tuning (se reconstruyen por inferencia de los checkpoints, sin reentrenar, en `ft_isic2020/probas/`) o el fine-tuning no ha terminado; ETA no declarada por el operador. EfficientNet-B0 (fine-tuning): pendiente; faltan las probabilidades por imagen del fine-tuning (se reconstruyen por inferencia de los checkpoints, sin reentrenar, en `ft_isic2020/probas/`) o el fine-tuning no ha terminado; ETA no declarada por el operador. ViT-B/16 (fine-tuning): pendiente; faltan las probabilidades por imagen del fine-tuning (se reconstruyen por inferencia de los checkpoints, sin reentrenar, en `ft_isic2020/probas/`) o el fine-tuning no ha terminado; ETA no declarada por el operador. SimSiam ResNet-50 (fine-tuning): pendiente; faltan las probabilidades por imagen del fine-tuning (se reconstruyen por inferencia de los checkpoints, sin reentrenar, en `ft_isic2020/probas/`) o el fine-tuning no ha terminado; ETA no declarada por el operador. DINOv2 ViT-S/14 (fine-tuning): pendiente; faltan las probabilidades por imagen del fine-tuning (se reconstruyen por inferencia de los checkpoints, sin reentrenar, en `ft_isic2020/probas/`) o el fine-tuning no ha terminado; ETA no declarada por el operador. DINOv2 ViT-B/14 (fine-tuning): pendiente; faltan las probabilidades por imagen del fine-tuning (se reconstruyen por inferencia de los checkpoints, sin reentrenar, en `ft_isic2020/probas/`) o el fine-tuning no ha terminado; ETA no declarada por el operador.
+Sección: análisis posterior a la ejecución (post-hoc), no parte del registro original. Probas: probas de val reconstruidas por inferencia desde el checkpoint de la mejor epoca; verificadas contra las metricas registradas. checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de métricas. El fine-tuning usa la mejor época elegida en val (optimista); B71-limpio no tiene fine-tuning ni selección de época en val. La época se tomó de `mejor_epoca` del JSON del fine-tuning (el .pth no la trae); el sha256 del checkpoint está en el sidecar. Pareo por id de imagen, bootstrap por `patient_id`, 1.000 remuestras, semilla 20260923. p bootstrap aproximado = 2·min(P(Δ≤0), P(Δ≥0)) sobre las 1.000 remuestras pareadas, con piso 1/1000 (no es un p exacto). Holm sobre los 8 modelos de cada métrica; un modelo ausente cuenta como p = 1.
 
 | Control (fine-tuning) | Métrica | Δ (B71-limpio − FT) [IC 95 %] | El IC excluye 0 | Lectura | p bootstrap | p Holm |
 |---|---|---|---|---|---|---|
+| AlexNet (fine-tuning) | F1 macro | +0,0421 [+0,0071; +0,0750] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0180 | 0,0360 |
+| VGG19 (fine-tuning) | F1 macro | +0,0340 [-0,0016; +0,0671] | no | sin diferencia demostrable (el IC incluye 0) | 0,0660 | 0,0660 |
+| ResNet-50 (fine-tuning) | F1 macro | +0,0578 [+0,0256; +0,0912] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| EfficientNet-B0 (fine-tuning) | F1 macro | +0,0720 [+0,0381; +0,1037] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| ViT-B/16 (fine-tuning) | F1 macro | +0,0473 [+0,0123; +0,0788] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0040 | 0,0120 |
+| SimSiam ResNet-50 (fine-tuning) | F1 macro | +0,0729 [+0,0390; +0,1068] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| DINOv2 ViT-S/14 (fine-tuning) | F1 macro | +0,1184 [+0,0823; +0,1545] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| DINOv2 ViT-B/14 (fine-tuning) | F1 macro | +0,0818 [+0,0407; +0,1209] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| AlexNet (fine-tuning) | Exactitud balanceada | -0,1571 [-0,2134; -0,1015] | sí | AlexNet (fine-tuning) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| VGG19 (fine-tuning) | Exactitud balanceada | -0,0922 [-0,1526; -0,0392] | sí | VGG19 (fine-tuning) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| ResNet-50 (fine-tuning) | Exactitud balanceada | -0,1318 [-0,1795; -0,0852] | sí | ResNet-50 (fine-tuning) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| EfficientNet-B0 (fine-tuning) | Exactitud balanceada | -0,1628 [-0,2179; -0,1127] | sí | EfficientNet-B0 (fine-tuning) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| ViT-B/16 (fine-tuning) | Exactitud balanceada | -0,1297 [-0,1835; -0,0801] | sí | ViT-B/16 (fine-tuning) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| SimSiam ResNet-50 (fine-tuning) | Exactitud balanceada | -0,1552 [-0,2080; -0,1039] | sí | SimSiam ResNet-50 (fine-tuning) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| DINOv2 ViT-S/14 (fine-tuning) | Exactitud balanceada | -0,0898 [-0,1573; -0,0283] | sí | DINOv2 ViT-S/14 (fine-tuning) mejor (el IC excluye 0) | 0,0100 | 0,0200 |
+| DINOv2 ViT-B/14 (fine-tuning) | Exactitud balanceada | +0,0380 [-0,0328; +0,1066] | no | sin diferencia demostrable (el IC incluye 0) | 0,2920 | 0,2920 |
+| AlexNet (fine-tuning) | AUC OvR macro | -0,0330 [-0,0630; -0,0044] | sí | AlexNet (fine-tuning) mejor (el IC excluye 0) | 0,0220 | 0,1540 |
+| VGG19 (fine-tuning) | AUC OvR macro | -0,0171 [-0,0494; +0,0123] | no | sin diferencia demostrable (el IC incluye 0) | 0,2920 | 0,2960 |
+| ResNet-50 (fine-tuning) | AUC OvR macro | -0,0256 [-0,0545; +0,0024] | no | sin diferencia demostrable (el IC incluye 0) | 0,0880 | 0,2960 |
+| EfficientNet-B0 (fine-tuning) | AUC OvR macro | -0,0239 [-0,0547; +0,0028] | no | sin diferencia demostrable (el IC incluye 0) | 0,1120 | 0,2960 |
+| ViT-B/16 (fine-tuning) | AUC OvR macro | -0,0264 [-0,0583; -0,0003] | sí | ViT-B/16 (fine-tuning) mejor (el IC excluye 0) | 0,0480 | 0,2880 |
+| SimSiam ResNet-50 (fine-tuning) | AUC OvR macro | -0,0254 [-0,0588; +0,0018] | no | sin diferencia demostrable (el IC incluye 0) | 0,0740 | 0,2960 |
+| DINOv2 ViT-S/14 (fine-tuning) | AUC OvR macro | +0,0457 [+0,0006; +0,0865] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0480 | 0,2880 |
+| DINOv2 ViT-B/14 (fine-tuning) | AUC OvR macro | +0,0939 [+0,0390; +0,1506] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0010 | 0,0080 |
+| AlexNet (fine-tuning) | MCC | -0,0197 [-0,0949; +0,0491] | no | sin diferencia demostrable (el IC incluye 0) | 0,5400 | 1,0000 |
+| VGG19 (fine-tuning) | MCC | +0,0042 [-0,0707; +0,0738] | no | sin diferencia demostrable (el IC incluye 0) | 0,9180 | 1,0000 |
+| ResNet-50 (fine-tuning) | MCC | +0,0113 [-0,0531; +0,0781] | no | sin diferencia demostrable (el IC incluye 0) | 0,7700 | 1,0000 |
+| EfficientNet-B0 (fine-tuning) | MCC | +0,0099 [-0,0617; +0,0749] | no | sin diferencia demostrable (el IC incluye 0) | 0,7940 | 1,0000 |
+| ViT-B/16 (fine-tuning) | MCC | +0,0005 [-0,0687; +0,0614] | no | sin diferencia demostrable (el IC incluye 0) | 0,9400 | 1,0000 |
+| SimSiam ResNet-50 (fine-tuning) | MCC | +0,0149 [-0,0569; +0,0815] | no | sin diferencia demostrable (el IC incluye 0) | 0,6820 | 1,0000 |
+| DINOv2 ViT-S/14 (fine-tuning) | MCC | +0,0884 [+0,0099; +0,1647] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0280 | 0,1960 |
+| DINOv2 ViT-B/14 (fine-tuning) | MCC | +0,1318 [+0,0415; +0,2197] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0060 | 0,0480 |
 
 ### ISIC 2019: B71-limpio frente a los baselines (solo intervalos)
 

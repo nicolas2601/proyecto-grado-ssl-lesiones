@@ -1,0 +1,84 @@
+{
+  "arm": "B71__clean",
+  "control": "ft_vgg19",
+  "arm_probas_sha256": "9ac5f9e85442bc2e47b085dd96e08b1083e4986401259765c8a279a5aa1aa650",
+  "control_probas_sha256": "219c7439a3ec5dc42b8b2e31f4177964f20848a28a518ab8147d861ff5710a12",
+  "n_resamples": 1000,
+  "metrics": [
+    "macro_f1",
+    "balanced_accuracy",
+    "auc",
+    "mcc"
+  ],
+  "result": {
+    "paired": [
+      {
+        "arm": "B71__clean",
+        "control": "ft_vgg19",
+        "metric": "macro_f1",
+        "probe": "logreg",
+        "fraction": 1.0,
+        "seed": 0,
+        "point_arm": 0.622904930437757,
+        "point_control": 0.5889306578613157,
+        "point_delta": 0.033974272576441256,
+        "ci95_low": -0.0016050981751374149,
+        "ci95_high": 0.06710381931268028,
+        "excludes_zero": false,
+        "direction": "indistinguishable",
+        "p_boot": 0.066
+      },
+      {
+        "arm": "B71__clean",
+        "control": "ft_vgg19",
+        "metric": "balanced_accuracy",
+        "probe": "logreg",
+        "fraction": 1.0,
+        "seed": 0,
+        "point_arm": 0.6494353314042998,
+        "point_control": 0.7416290137355888,
+        "point_delta": -0.092193682331289,
+        "ci95_low": -0.15258751677822582,
+        "ci95_high": -0.03921771081475857,
+        "excludes_zero": true,
+        "direction": "control_better",
+        "p_boot": 0.001
+      },
+      {
+        "arm": "B71__clean",
+        "control": "ft_vgg19",
+        "metric": "auc",
+        "probe": "logreg",
+        "fraction": 1.0,
+        "seed": 0,
+        "point_arm": 0.8758305793620148,
+        "point_control": 0.8929461558906568,
+        "point_delta": -0.01711557652864204,
+        "ci95_low": -0.04940996705139697,
+        "ci95_high": 0.012295022690317178,
+        "excludes_zero": false,
+        "direction": "indistinguishable",
+        "p_boot": 0.292
+      },
+      {
+        "arm": "B71__clean",
+        "control": "ft_vgg19",
+        "metric": "mcc",
+        "probe": "logreg",
+        "fraction": 1.0,
+        "seed": 0,
+        "point_arm": 0.2505599453325243,
+        "point_control": 0.24638027293001377,
+        "point_delta": 0.00417967240251052,
+        "ci95_low": -0.07067916714420262,
+        "ci95_high": 0.07378424213373211,
+        "excludes_zero": false,
+        "direction": "indistinguishable",
+        "p_boot": 0.918
+      }
+    ],
+    "unit": "patient_id",
+    "n_images": 6660,
+    "p_definition": "p bootstrap aproximado = 2\u00b7min(P(\u0394\u22640), P(\u0394\u22650)) sobre las 1.000 remuestras pareadas, con piso 1/1000 (no es un p exacto). Holm sobre los 8 modelos de cada m\u00e9trica; un modelo ausente cuenta como p = 1."
+  }
+}

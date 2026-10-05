@@ -509,18 +509,47 @@ B71 original & DINOv2 público (prot. B71) & MCC & +0,0716 [+0,0066; +0,1375] & 
 \caption{ISIC 2020: sensibilidad (batch 16, transductivo)}\label{tab:contrast-isic2020-sens}
 \end{table}
 
-\begin{table}[ht]
-\centering
-\scriptsize
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}lllllll@{}}
+\begingroup\scriptsize
+\begin{longtable}{@{}lllllll@{}}
+\caption{B71-limpio contra el fine-tuning (pareado por id, ISIC 2020)}\label{tab:ft-contrasts} \\
 \toprule
 Control (fine-tuning) & Métrica & $\Delta$ (B71-limpio $-$ FT) [IC 95 \%] & El IC excluye 0 & Lectura & p bootstrap & p Holm \\
 \midrule
+AlexNet (fine-tuning) & F1 macro & +0,0421 [+0,0071; +0,0750] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0180 & 0,0360 \\
+VGG19 (fine-tuning) & F1 macro & +0,0340 [-0,0016; +0,0671] & no & sin diferencia demostrable (el IC incluye 0) & 0,0660 & 0,0660 \\
+ResNet-50 (fine-tuning) & F1 macro & +0,0578 [+0,0256; +0,0912] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+EfficientNet-B0 (fine-tuning) & F1 macro & +0,0720 [+0,0381; +0,1037] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+ViT-B/16 (fine-tuning) & F1 macro & +0,0473 [+0,0123; +0,0788] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0040 & 0,0120 \\
+SimSiam ResNet-50 (fine-tuning) & F1 macro & +0,0729 [+0,0390; +0,1068] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+DINOv2 ViT-S/14 (fine-tuning) & F1 macro & +0,1184 [+0,0823; +0,1545] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+DINOv2 ViT-B/14 (fine-tuning) & F1 macro & +0,0818 [+0,0407; +0,1209] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+AlexNet (fine-tuning) & Exactitud balanceada & -0,1571 [-0,2134; -0,1015] & sí & AlexNet (fine-tuning) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+VGG19 (fine-tuning) & Exactitud balanceada & -0,0922 [-0,1526; -0,0392] & sí & VGG19 (fine-tuning) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+ResNet-50 (fine-tuning) & Exactitud balanceada & -0,1318 [-0,1795; -0,0852] & sí & ResNet-50 (fine-tuning) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+EfficientNet-B0 (fine-tuning) & Exactitud balanceada & -0,1628 [-0,2179; -0,1127] & sí & EfficientNet-B0 (fine-tuning) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+ViT-B/16 (fine-tuning) & Exactitud balanceada & -0,1297 [-0,1835; -0,0801] & sí & ViT-B/16 (fine-tuning) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+SimSiam ResNet-50 (fine-tuning) & Exactitud balanceada & -0,1552 [-0,2080; -0,1039] & sí & SimSiam ResNet-50 (fine-tuning) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+DINOv2 ViT-S/14 (fine-tuning) & Exactitud balanceada & -0,0898 [-0,1573; -0,0283] & sí & DINOv2 ViT-S/14 (fine-tuning) mejor (el IC excluye 0) & 0,0100 & 0,0200 \\
+DINOv2 ViT-B/14 (fine-tuning) & Exactitud balanceada & +0,0380 [-0,0328; +0,1066] & no & sin diferencia demostrable (el IC incluye 0) & 0,2920 & 0,2920 \\
+AlexNet (fine-tuning) & AUC OvR macro & -0,0330 [-0,0630; -0,0044] & sí & AlexNet (fine-tuning) mejor (el IC excluye 0) & 0,0220 & 0,1540 \\
+VGG19 (fine-tuning) & AUC OvR macro & -0,0171 [-0,0494; +0,0123] & no & sin diferencia demostrable (el IC incluye 0) & 0,2920 & 0,2960 \\
+ResNet-50 (fine-tuning) & AUC OvR macro & -0,0256 [-0,0545; +0,0024] & no & sin diferencia demostrable (el IC incluye 0) & 0,0880 & 0,2960 \\
+EfficientNet-B0 (fine-tuning) & AUC OvR macro & -0,0239 [-0,0547; +0,0028] & no & sin diferencia demostrable (el IC incluye 0) & 0,1120 & 0,2960 \\
+ViT-B/16 (fine-tuning) & AUC OvR macro & -0,0264 [-0,0583; -0,0003] & sí & ViT-B/16 (fine-tuning) mejor (el IC excluye 0) & 0,0480 & 0,2880 \\
+SimSiam ResNet-50 (fine-tuning) & AUC OvR macro & -0,0254 [-0,0588; +0,0018] & no & sin diferencia demostrable (el IC incluye 0) & 0,0740 & 0,2960 \\
+DINOv2 ViT-S/14 (fine-tuning) & AUC OvR macro & +0,0457 [+0,0006; +0,0865] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0480 & 0,2880 \\
+DINOv2 ViT-B/14 (fine-tuning) & AUC OvR macro & +0,0939 [+0,0390; +0,1506] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0010 & 0,0080 \\
+AlexNet (fine-tuning) & MCC & -0,0197 [-0,0949; +0,0491] & no & sin diferencia demostrable (el IC incluye 0) & 0,5400 & 1,0000 \\
+VGG19 (fine-tuning) & MCC & +0,0042 [-0,0707; +0,0738] & no & sin diferencia demostrable (el IC incluye 0) & 0,9180 & 1,0000 \\
+ResNet-50 (fine-tuning) & MCC & +0,0113 [-0,0531; +0,0781] & no & sin diferencia demostrable (el IC incluye 0) & 0,7700 & 1,0000 \\
+EfficientNet-B0 (fine-tuning) & MCC & +0,0099 [-0,0617; +0,0749] & no & sin diferencia demostrable (el IC incluye 0) & 0,7940 & 1,0000 \\
+ViT-B/16 (fine-tuning) & MCC & +0,0005 [-0,0687; +0,0614] & no & sin diferencia demostrable (el IC incluye 0) & 0,9400 & 1,0000 \\
+SimSiam ResNet-50 (fine-tuning) & MCC & +0,0149 [-0,0569; +0,0815] & no & sin diferencia demostrable (el IC incluye 0) & 0,6820 & 1,0000 \\
+DINOv2 ViT-S/14 (fine-tuning) & MCC & +0,0884 [+0,0099; +0,1647] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0280 & 0,1960 \\
+DINOv2 ViT-B/14 (fine-tuning) & MCC & +0,1318 [+0,0415; +0,2197] & sí & B71-limpio (canónico) mejor (el IC excluye 0) & 0,0060 & 0,0480 \\
 \bottomrule
-\end{tabular}}
-\caption{B71-limpio contra el fine-tuning (pareado por id, ISIC 2020)}\label{tab:ft-contrasts}
-\end{table}
+\end{longtable}
+\endgroup
 
 \begin{table}[ht]
 \centering

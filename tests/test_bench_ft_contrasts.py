@@ -77,7 +77,7 @@ def test_holm_matches_the_textbook_and_treats_absent_models_as_p_one():
     assert F.holm([0.5, 0.9], family=8) == pytest.approx([1.0, 1.0])
 
 
-def _tmp_repo(tmp_path, models, unpaired=None):
+def _tmp_repo(tmp_path, models, unpaired=None, omit=None):
     arm = _arrays()
     cell = tmp_path / F.isic_rows.cell_path(F.isic_rows.CANONICAL_DIR, "isic2020", F.ARM_CELL)
     cell.parent.mkdir(parents=True)
@@ -87,8 +87,10 @@ def _tmp_repo(tmp_path, models, unpaired=None):
     pdir.mkdir(parents=True)
     for i, m in enumerate(models):
         np.savez(pdir / f"{m}.probas.npz", **_arrays(seed=i + 1, shuffle=True))
-    for m, why in (unpaired or {}).items():
-        (pdir / f"{m}.probas.json").write_text(json.dumps({"no_pareado": why}), encoding="utf-8")
+    status = [{"model": m, "status": "no pareado" if m in (unpaired or {}) else "pareado",
+               "motivo": (unpaired or {}).get(m)} for m in models if m not in (omit or ())]
+    (tmp_path / F.SIDECAR).write_text(json.dumps({"label": "etiqueta del sidecar", "checkpoint_identity_note": "nota de identidad", "models": status}),
+                                      encoding="utf-8")
     return tmp_path
 
 
@@ -99,6 +101,23 @@ def test_missing_npz_is_pending_with_reason_and_unpaired_model_is_labelled(tmp_p
     assert len(waiting) == 6 and all("ETA" in w[1] for w in waiting)
     assert unpaired == [("ResNet-50 (fine-tuning)", "ids no alineados")]
     assert "no pareado: ids no alineados" in F.table(repo).note
+
+
+def test_a_model_absent_from_the_sidecar_or_with_another_status_is_never_paired(tmp_path):
+    repo = _tmp_repo(tmp_path, ["dinov2_vitb14", "resnet50", "vgg19"], {"resnet50": "ids no alineados"},
+                     omit=["vgg19"])
+    assert F.write_all(repo) == ["dinov2_vitb14"] and F.stale_models(repo) == []
+    _, waiting, unpaired = F.entries(repo)
+    assert ("VGG19 (fine-tuning)", "el modelo no aparece en el sidecar de las probabilidades") in unpaired
+    assert ("ResNet-50 (fine-tuning)", "ids no alineados") in unpaired and len(waiting) == 5
+    assert F.unpaired_reason({}, "alexnet") and F.unpaired_reason({"models": [{"model": "alexnet"}]}, "alexnet")
+
+
+def test_the_table_uses_the_sidecar_label_and_the_epoch_note(tmp_path):
+    repo = _tmp_repo(tmp_path, ["dinov2_vitb14"])
+    note = F.table(repo).note
+    assert "Probas: etiqueta del sidecar. nota de identidad." in note
+    assert "época se tomó de `mejor_epoca` del JSON" in note and "sha256 del checkpoint está en el sidecar" in note
 
 
 def test_write_then_table_has_four_rows_per_paired_model_and_stale_detection(tmp_path):
@@ -115,9 +134,9 @@ def test_write_then_table_has_four_rows_per_paired_model_and_stale_detection(tmp
 def test_table_labels_post_hoc_optimism_reconstruction_and_p_definition():
     note = F.table(R.REPO).note
     for part in ("análisis posterior a la ejecución (post-hoc), no parte del registro original",
-                 "reconstruidas por inferencia desde el checkpoint de la mejor época; verificadas contra las métricas "
+                 "reconstruidas por inferencia desde el checkpoint de la mejor epoca; verificadas contra las metricas "
                  "registradas", "mejor época elegida en val (optimista)", "B71-limpio no tiene fine-tuning",
-                 "piso 1/1000", "Holm sobre los 8 modelos"):
+                 "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de métricas", "piso 1/1000", "Holm sobre los 8 modelos"):
         assert part in note, part
     md = "\n".join(tables.markdown(F.table(R.REPO)))
     assert "### B71-limpio contra el fine-tuning" in md

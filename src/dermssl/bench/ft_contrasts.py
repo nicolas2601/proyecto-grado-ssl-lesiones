@@ -28,13 +28,14 @@ ARM_LABEL = "B71-limpio (canónico)"
 METRICS = ("macro_f1", "balanced_accuracy", "auc", "mcc")
 N_RESAMPLES = 1000
 POST_HOC = "análisis posterior a la ejecución (post-hoc), no parte del registro original"
-LABEL_NOTE = ("Probas de val reconstruidas por inferencia desde el checkpoint de la mejor época; verificadas contra las "
-              "métricas registradas. El fine-tuning usa la mejor época elegida en val (optimista); B71-limpio no tiene "
-              "fine-tuning ni selección de época en val. Pareo por id de imagen, bootstrap por `patient_id`, 1.000 "
-              "remuestras, semilla 20260923.")
+LABEL_NOTE = ("El fine-tuning usa la mejor época elegida en val (optimista); B71-limpio no tiene fine-tuning ni "
+              "selección de época en val. La época se tomó de `mejor_epoca` del JSON del fine-tuning (el .pth no la "
+              "trae); el sha256 del checkpoint está en el sidecar. Pareo por id de imagen, bootstrap por `patient_id`, "
+              "1.000 remuestras, semilla 20260923.")
 P_DEFINITION = ("p bootstrap aproximado = 2·min(P(Δ≤0), P(Δ≥0)) sobre las 1.000 remuestras pareadas, con piso 1/1000 "
                 "(no es un p exacto). Holm sobre los 8 modelos de cada métrica; un modelo ausente cuenta como p = 1.")
-SIDECARS = ("{m}.probas.json", "{m}.sidecar.json", "{m}.probas.sidecar.json")
+SIDECAR = f"{PROBAS_DIR}/ft_isic2020_probas.sidecar.json"
+PAIRED = "pareado"
 
 
 class AlignmentError(ValueError):
@@ -112,18 +113,24 @@ def _file_sha(path: Path) -> str:
 
 
 def write_all(repo: Path, out_root: Path | None = None) -> list[str]:
-    """Compute and write the contrast JSON of every model whose npz exists; returns the models written."""
+    """Write the contrast JSON of every paired model whose npz exists (recompute only if missing or stale)."""
     arm, arm_sha = _arm(repo)
-    written = []
+    side, written = sidecar(repo), []
     for model in MODELS:
         npz = repo / probas_path(model)
-        if not npz.is_file() or unpaired_reason(sidecar(repo, model)):
+        if not npz.is_file() or unpaired_reason(side, model):
+            continue
+        target = (out_root or repo) / contrast_path(model)
+        if model not in stale_models(repo):  # committed JSON is fresh: reuse it, the bootstrap is slow
+            if target != repo / contrast_path(model):
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text((repo / contrast_path(model)).read_text(encoding="utf-8"), encoding="utf-8")
+            written.append(model)
             continue
         record = compute(arm, runner.load_probas(npz, ""), f"ft_{model}")
         doc = {"arm": ARM_CELL, "control": f"ft_{model}", "arm_probas_sha256": arm_sha,
                "control_probas_sha256": _file_sha(npz), "n_resamples": N_RESAMPLES, "metrics": list(METRICS),
                "result": record}
-        target = (out_root or repo) / contrast_path(model)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
         written.append(model)
@@ -132,31 +139,41 @@ def write_all(repo: Path, out_root: Path | None = None) -> list[str]:
 
 def stale_models(repo: Path, out_root: Path | None = None) -> list[str]:
     """Models whose npz exists but whose contrast JSON is missing or was built from other probabilities."""
-    out = []
+    out, side = [], sidecar(repo)
     for model in MODELS:
         npz, js = repo / probas_path(model), (out_root or repo) / contrast_path(model)
-        if not npz.is_file() or unpaired_reason(sidecar(repo, model)):
+        if not npz.is_file() or unpaired_reason(side, model):
             continue
         if not js.is_file() or json.loads(js.read_text(encoding="utf-8"))["control_probas_sha256"] != _file_sha(npz):
             out.append(model)
     return out
 
 
-def sidecar(repo: Path, model: str) -> dict:
-    """The JSON next to the npz (sha of the checkpoint, best epoch, paired / unpaired state), {} if none."""
-    for pattern in SIDECARS:
-        path = repo / PROBAS_DIR / pattern.format(m=model)
-        if path.is_file():
-            return json.loads(path.read_text(encoding="utf-8"))
-    return {}
+def sidecar(repo: Path) -> dict:
+    """The combined sidecar of the reconstructed probabilities ({} if the file does not exist yet)."""
+    path = repo / SIDECAR
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
 
 
-def unpaired_reason(side: dict) -> str | None:
-    """Reason the model must not enter the paired contrast, or None when it is paired."""
-    flag = side.get("no_pareado")
-    if flag:
-        return flag if isinstance(flag, str) else "ver el sidecar de las probabilidades"
-    return "ver el sidecar de las probabilidades" if str(side.get("estado", "")).startswith("no pareado") else None
+def unpaired_reason(side: dict, model: str) -> str | None:
+    """Why ``model`` must not enter the paired contrast; None only if the sidecar says ``pareado``.
+
+    A model missing from the sidecar, or with any other status, is never paired by default.
+    """
+    entry = next((m for m in side.get("models", []) if m.get("model") == model), None)
+    if entry is None:
+        return "el modelo no aparece en el sidecar de las probabilidades"
+    if entry.get("status") == PAIRED:
+        return None
+    return entry.get("motivo") or entry.get("reason") or str(entry.get("status", "sin estado"))
+
+
+def label_note(repo: Path) -> str:
+    """The sidecar's own label for the reconstructed probabilities, plus the optimism and epoch notes."""
+    side = sidecar(repo)
+    label = side.get("label", "probas de val reconstruidas por inferencia (sin sidecar todavía)")
+    identity = side.get("checkpoint_identity_note")
+    return f"Probas: {label}. " + (f"{identity}. " if identity else "") + LABEL_NOTE
 
 
 def _rows_for(repo: Path, model: str, label: str, by_metric: dict[str, list]) -> None:
@@ -171,15 +188,18 @@ def _rows_for(repo: Path, model: str, label: str, by_metric: dict[str, list]) ->
 def entries(repo: Path) -> tuple[dict[str, list], list[tuple[str, str]], list[tuple[str, str]]]:
     """(by metric: [(contrast, p) per model slot], pending [(label, why)], unpaired [(label, reason)])."""
     by_metric: dict[str, list] = {}
-    waiting, unpaired = [], []
+    waiting, unpaired, side = [], [], sidecar(repo)
     for model in MODELS:
         label = f"{MODEL_NAMES[model]} (fine-tuning)"
-        if reason := unpaired_reason(sidecar(repo, model)):
+        if not (repo / probas_path(model)).is_file():
+            waiting.append((label, pending.FT_PROBAS.note))
+        elif reason := unpaired_reason(side, model):
             unpaired.append((label, reason))
         elif (repo / contrast_path(model)).is_file():
             _rows_for(repo, model, label, by_metric)
         else:
-            waiting.append((label, pending.FT_PROBAS.note))
+            waiting.append((label, "las probabilidades existen pero el contraste no se ha calculado: "
+                            "ejecutar `scripts/build_ft_contrasts.py`"))
     return by_metric, waiting, unpaired
 
 
@@ -199,7 +219,7 @@ def table(repo: Path) -> Table:
                   reading(e[0]), num(e[1]), num(adj)] for e, adj in zip(slots, adjusted) if e]
     notes = [f"{label}: pendiente; {why}." for label, why in waiting]
     notes += [f"{label}: no pareado: {why}; solo comparación de intervalos." for label, why in unpaired]
-    note = " ".join([f"Sección: {POST_HOC}.", LABEL_NOTE, P_DEFINITION, *notes])
+    note = " ".join([f"Sección: {POST_HOC}.", label_note(repo), P_DEFINITION, *notes])
     return Table("B71-limpio contra el fine-tuning (pareado por id, ISIC 2020)",
                  ["Control (fine-tuning)", "Métrica", "Δ (B71-limpio − FT) [IC 95 %]", "El IC excluye 0", "Lectura",
                   "p bootstrap", "p Holm"], rows, note, "ft-contrasts")
