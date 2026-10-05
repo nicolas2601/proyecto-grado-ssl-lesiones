@@ -98,3 +98,40 @@ def test_unreadable_records_count_as_abstentions_with_their_own_status():
     est = _report([*RECORDS, rec])["estimators"]["otsu"]
     assert est["status_counts"]["unreadable"] == 1 and est["bucket_counts"]["abstain"] == 2
     assert _report([*RECORDS, rec])["n_unreadable"] == 1
+
+
+def _pool_rec(i, split, estimator, state, bucket, sha_ok=None, label="mel"):
+    roi = _roi(bucket, "ok" if bucket else "ring_too_small")
+    roi.update({"estimator": estimator, "mask_state": state, "roi_image": "pool_224", "mask_sha_ok": sha_ok})
+    return _rec(i, split, label, "II", roi=roi)
+
+
+POOL_RECORDS = [
+    _pool_rec(0, "train", "perilesional_roi", "eligible", "I", True), _pool_rec(1, "train", "perilesional_roi", "eligible", "II", False),
+    _pool_rec(2, "train", "no_mask_border", "quarantine", "II"), _pool_rec(3, "val", "no_mask_border", "absent", None),
+    _pool_rec(4, "val", "perilesional_roi", "eligible", "I", True, label="nv"),
+]
+
+
+def _pool_report():
+    return _report(POOL_RECORDS, masks=True)["estimators"]["roi"]
+
+
+def test_mask_coverage_is_reported_per_split_and_in_total_with_every_state():
+    cov = _pool_report()["mask_coverage"]
+    assert list(cov["total"]) == ["c1_native", "eligible", "quarantine", "absent", "none"]
+    assert cov["by_split"]["train"] == {"c1_native": 0, "eligible": 2, "quarantine": 1, "absent": 0, "none": 0}
+    assert cov["by_split"]["val"] == {"c1_native": 0, "eligible": 1, "quarantine": 0, "absent": 1, "none": 0}
+    assert cov["total"]["eligible"] == 3 and sum(cov["total"].values()) == 5
+
+
+def test_the_two_roi_estimators_are_counted_apart_by_bucket_and_split():
+    roi = _pool_report()
+    assert roi["by_estimator"]["perilesional_roi"]["n"] == 3 and roi["by_estimator"]["no_mask_border"]["n"] == 2
+    assert roi["by_estimator"]["no_mask_border"]["bucket_counts"]["abstain"] == 1
+    assert roi["by_estimator"]["perilesional_roi"]["bucket_counts"]["I"] == 2
+    assert roi["estimator_x_split"]["train"] == {"perilesional_roi": 2, "no_mask_border": 1, "none": 0}
+
+
+def test_the_mask_file_hash_check_is_counted_and_never_hidden():
+    assert _pool_report()["mask_coverage"]["sha256_file"] == {"match": 2, "mismatch": 1, "not_checked": 2}

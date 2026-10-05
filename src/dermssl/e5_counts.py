@@ -16,6 +16,8 @@ from dermssl import e5_ita as ita
 BUCKET_COLUMNS = (*ita.BUCKET_LABELS, ita.ABSTAIN)
 TERCILE_COLUMNS = (*ita.TERCILES, ita.UNAVAILABLE)
 UNREADABLE = "unreadable"
+MASK_STATES = ("c1_native", "eligible", "quarantine", "absent", "none")
+ROI_ESTIMATORS = ("perilesional_roi", "no_mask_border", "none")
 NO_ESTIMATE = {"bucket": None, "ita": None, "L_median": None, "b_median": None}
 
 
@@ -26,7 +28,8 @@ class UnknownKeyError(KeyError):
 def unreadable_record(image_id: str, split: str, label: str, error: str) -> dict:
     """A record for a file that could not be decoded: it abstains everywhere and says why."""
     est = {**NO_ESTIMATE, "status": UNREADABLE, "n_skin_px": 0}
-    roi = {**NO_ESTIMATE, "status": UNREADABLE, "n_px": 0, "ring_px": 0, "valid_fraction": None}
+    roi = {**NO_ESTIMATE, "status": UNREADABLE, "estimator": None, "mask_state": None, "mask_sha_ok": None,
+           "n_px": 0, "ring_px": 0, "valid_fraction": None}
     return {"image_id": image_id, "split": split, "label": label, "otsu": dict(est),
             "whole_image": dict(est), "roi": roi, "tercile": ita.UNAVAILABLE, "error": error}
 
@@ -71,12 +74,40 @@ def _agreement(records) -> dict:
             "both_estimated": len(both), "same_bucket": sum(a == b for a, b in both)}
 
 
+def _state(rec: dict) -> str:
+    return rec["roi"].get("mask_state") or "none"
+
+
+def _estimator(rec: dict) -> str:
+    return rec["roi"].get("estimator") or "none"
+
+
+def _sha_counts(records) -> dict:
+    checks = [r["roi"].get("mask_sha_ok") for r in records]
+    return {"match": checks.count(True), "mismatch": checks.count(False), "not_checked": checks.count(None)}
+
+
+def _mask_coverage(records, splits) -> dict:
+    by_split = _crosstab(((r["split"], _state(r)) for r in records), splits, MASK_STATES)
+    return {"by_split": by_split, "total": {s: sum(v[s] for v in by_split.values()) for s in MASK_STATES},
+            "sha256_file": _sha_counts(records)}
+
+
+def _by_estimator(records, splits) -> dict:
+    groups = {e: [r for r in records if _estimator(r) == e] for e in ROI_ESTIMATORS}
+    return {"by_estimator": {e: {"n": len(g), "bucket_counts": {b: sum(_bucket(r["roi"]) == b for r in g)
+                                                                 for b in BUCKET_COLUMNS}}
+                             for e, g in groups.items()},
+            "estimator_x_split": _crosstab(((r["split"], _estimator(r)) for r in records), splits, ROI_ESTIMATORS)}
+
+
 def _roi_report(records, classes, splits, applicable: bool, reason: str) -> dict:
     status_counts = dict(sorted(Counter(r["roi"]["status"] for r in records).items()))
     if not applicable:
         return {"applicable": False, "reason": reason, "status_counts": status_counts}
     return {"applicable": True, "reason": "", **_estimator_tables(records, "roi", classes, splits),
-            **_agreement(records)}
+            **_agreement(records), "mask_coverage": _mask_coverage(records, splits),
+            **_by_estimator(records, splits)}
 
 
 def _tercile_report(records, classes, splits, cuts: dict) -> dict:
