@@ -2,14 +2,19 @@
 
 Nothing here decodes an image. The ISIC datasets come from ``dermssl.isic_eval.splits`` (the rebuilt
 split is compared with the committed one and the run refuses on a difference); HAM10000 comes from the
-C1 split (``c1_build_val_index.rebuild_split``) and its student_r3 masks, verified against their manifest
-exactly as E3 does. A HAM image without a mask aborts the run (a silent drop would change the counts);
-ISIC has no masks, so asking for them is refused rather than invented.
+C1 split (``c1_build_val_index.rebuild_split``) and its native 450 x 600 student_r3 masks, verified against
+their manifest as E3 does. A HAM image without a mask aborts the run (a silent drop would change the counts).
+ISIC reads the 224 x 224 pool (``salidas/tone/inputs``: ``originals/``, ``masks/``, ``mask_manifest.json``): each
+image is ``eligible``, ``quarantine`` (the manifest rejected its mask) or ``absent`` (not in the pool); the last
+two fall back to the border estimator. Nothing is invented for an image without a mask.
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -24,6 +29,11 @@ from dermssl.isic_eval import splits as sp  # noqa: E402
 HAM = "ham10000"
 DATASETS = (HAM, *sorted(sp.LOADERS))
 SPLITS = ("train", "val")
+# Pool folders searched, in order, for the images of each evaluation dataset: the ISIC 2019 evaluation split also
+# holds HAM10000 images (same ISIC_xxxx ids), whose pool masks live in the two HAM passes.
+POOL_DATASETS = {"isic2019": ("isic2019", "ham10000_p1", "ham10000_p2"), "isic2020": ("isic2020",)}
+POOL_KIND = "pseudo-máscaras automáticas (student_r3, sin etiquetas expertas) del pool de `salidas/tone/inputs`"
+ABSENT = {"mask_state": "absent", "pool_image": None, "pool_mask": None, "mask_sha256": None}
 
 
 class MaskCoverageError(KeyError):
@@ -34,13 +44,58 @@ class MissingImageError(FileNotFoundError):
     """A declared image has no file under the image root."""
 
 
-def check_mask_args(dataset: str, *, masks, masks_manifest) -> None:
-    """HAM10000 needs both mask arguments; the ISIC datasets must not get any (they have no masks)."""
+def check_mask_args(dataset: str, *, masks, masks_manifest, pool_root) -> None:
+    """HAM10000 reads its native C1 masks; ISIC reads the pool masks. Each source is refused for the other."""
     if dataset == HAM:
         if masks is None or masks_manifest is None:
-            raise SystemExit("ABORT: ham10000 necesita --masks y --masks-manifest (el anillo perilesional usa la máscara)")
-    elif masks is not None or masks_manifest is not None:
-        raise SystemExit(f"ABORT: {dataset} no tiene máscaras; el estimador por anillo se abstiene, no se inventan")
+            raise SystemExit("ABORT: ham10000 necesita --masks y --masks-manifest (máscaras nativas 450 x 600 de C1)")
+        if pool_root is not None:
+            raise SystemExit("ABORT: --pool-root es solo para ISIC; HAM10000 usa sus máscaras nativas de C1")
+        return
+    if pool_root is None:
+        raise SystemExit(f"ABORT: {dataset} necesita --pool-root (salidas/tone/inputs: originals/, masks/, mask_manifest.json)")
+    if masks is not None or masks_manifest is not None:
+        raise SystemExit(f"ABORT: --masks / --masks-manifest son las máscaras nativas de HAM10000, no de {dataset}")
+
+
+@dataclass(frozen=True)
+class Pool:
+    """The 224 x 224 pool (``salidas/tone/inputs``): image and mask share a grid; the manifest says which masks are usable."""
+
+    root: Path
+    entries: dict  # (pool dataset, image_id) -> manifest entry
+    manifest_sha256: str
+
+    def _files(self, ds: str, image_id: str) -> tuple[str, str]:
+        return (str(self.root / "originals" / ds / f"{image_id}.png"), str(self.root / "masks" / ds / f"{image_id}.png"))
+
+    def fields(self, dataset: str, image_id: str) -> dict:
+        """Task fields of one image: its mask state (eligible / quarantine / absent) and the pool files to read."""
+        for ds in POOL_DATASETS[dataset]:
+            entry = self.entries.get((ds, image_id))
+            if entry is None:
+                continue
+            image, mask = self._files(ds, image_id)
+            eligible = bool(entry.get("eligible"))
+            return {"mask_state": "eligible" if eligible else "quarantine", "pool_image": image,
+                    "pool_mask": mask if eligible else None, "mask_sha256": entry.get("mask_sha256")}
+        return dict(ABSENT)
+
+    def found_in(self, dataset: str, image_ids) -> dict:
+        names = POOL_DATASETS[dataset]
+        found = [next((d for d in names if (d, i) in self.entries), None) for i in image_ids]
+        return {d: found.count(d) for d in names if d in found}
+
+
+def load_pool(root: Path) -> Pool:
+    """Read ``<root>/mask_manifest.json`` (a list of dicts keyed by dataset and image_id)."""
+    root = Path(root).expanduser()
+    path = root / "mask_manifest.json"
+    if not path.is_file():
+        raise SystemExit(f"ABORT: no {path}")
+    raw = path.read_bytes()
+    entries = {(e["dataset"], e["image_id"]): e for e in json.loads(raw)}
+    return Pool(root, entries, hashlib.sha256(raw).hexdigest())
 
 
 def limit_tasks(tasks: list[Task], n: int | None) -> list[Task]:
@@ -54,13 +109,19 @@ def limit_tasks(tasks: list[Task], n: int | None) -> list[Task]:
     return [t for t in tasks if t.image_id in keep]
 
 
-def spec_from_eval_dataset(ds: sp.EvalDataset, limit: int | None = None) -> DatasetSpec:
-    """An ISIC dataset as loaded and verified by ``dermssl.isic_eval.splits``; no masks."""
+def spec_from_eval_dataset(ds: sp.EvalDataset, limit: int | None = None, pool: Pool | None = None) -> DatasetSpec:
+    """An ISIC dataset as loaded and verified by ``dermssl.isic_eval.splits``; with ``pool``, each task gets its mask state."""
     split_of = {int(k): "train" for k in ds.train_idx} | {int(k): "val" for k in ds.val_idx}
+    extra = (lambda i: {}) if pool is None else (lambda i: pool.fields(ds.name, i))
     tasks = [Task(image_id=ds.ids[k], path=str(ds.paths[ds.ids[k]]), split=split_of[k],
-                  label=ds.classes[int(ds.labels[k])]) for k in sorted(split_of)]
-    return DatasetSpec(name=ds.name, classes=tuple(ds.classes), splits=SPLITS, tasks=limit_tasks(tasks, limit),
-                       provenance={"split": dict(ds.identity)}, masks=None)
+                  label=ds.classes[int(ds.labels[k])], **extra(ds.ids[k])) for k in sorted(split_of)]
+    tasks = limit_tasks(tasks, limit)
+    masks = None if pool is None else {
+        "kind": POOL_KIND, "manifest_sha256": pool.manifest_sha256, "n_entries": len(pool.entries),
+        "found_in": pool.found_in(ds.name, [t.image_id for t in tasks]),
+        "reading": "máscara PNG del pool (> 0 = lesión) e imagen del pool, ambas 224 x 224"}
+    return DatasetSpec(name=ds.name, classes=tuple(ds.classes), splits=SPLITS, tasks=tasks,
+                       provenance={"split": dict(ds.identity)}, masks=masks)
 
 
 def spec_from_ham(split: dict, paths: dict, positions: dict, *, masks_info: dict, provenance: dict,
@@ -76,7 +137,7 @@ def spec_from_ham(split: dict, paths: dict, positions: dict, *, masks_info: dict
                 no_mask.append(image_id)
             else:
                 tasks.append(Task(image_id, str(paths[image_id]), name, classes[split["id2label"][image_id]],
-                                  positions[image_id]))
+                                  positions[image_id], mask_state="c1_native"))
     if no_file:
         raise MissingImageError(f"{len(no_file)} images without a file, e.g. {no_file[:3]}")
     if no_mask:
@@ -127,10 +188,10 @@ def _isic_spec(args) -> DatasetSpec:
         ds = loader(csv, (args.image_dir or args.data_root).expanduser())
     except sp.SplitMismatchError as exc:
         raise SystemExit(f"ABORT: {exc}") from exc
-    return spec_from_eval_dataset(ds, args.limit)
+    return spec_from_eval_dataset(ds, args.limit, load_pool(args.pool_root))
 
 
 def load_spec(args) -> DatasetSpec:
     """The dataset named by ``args.dataset``, verified, with its tasks in a fixed order."""
-    check_mask_args(args.dataset, masks=args.masks, masks_manifest=args.masks_manifest)
+    check_mask_args(args.dataset, masks=args.masks, masks_manifest=args.masks_manifest, pool_root=args.pool_root)
     return _ham_spec(args) if args.dataset == HAM else _isic_spec(args)
