@@ -1,0 +1,43 @@
+Salida de tools/diag_ita_signo.py
+Ejecutado en el pod UNABIA el 2026-09-21 sobre salidas/final (estimador FST v1,
+antes del guard de b*). Las lineas de progreso "  N/9822" se omitieron.
+
+HAM con bucket numerico: 9822
+con piel suficiente: 9822
+
+L* y b* medianos por bucket (b_pos% = fraccion con b* > 0):
+bucket      n    L*_med    b*_med   |b*|_med   b_pos%   ITA_recalc
+     1   5729     69.55      6.60      6.60   100.0      71.35
+     2    473     61.13     17.25     17.25    99.6      32.84
+     3    121     55.92     17.99     17.99    99.2      18.22
+     4     42     52.37     18.24     18.24    97.6       7.40
+     5     26     50.64     -4.09      7.59    34.6     171.11
+     6   3431     68.81     -4.46      4.46     0.1     103.33
+
+Cruce bucket x signo de b*:
+bucket    b*>0    b*<=0
+     1    5728        1
+     2     471        2
+     3     120        1
+     4      41        1
+     5       9       17
+     6       2     3429
+
+Cuantos tienen |b*| pequeno (zona de saturacion del arcotangente):
+  |b*| < 1.0:   728 (7.4%)
+  |b*| < 2.0:  1565 (15.9%)
+  |b*| < 5.0:  3998 (40.7%)
+
+Prueba decisiva -- L* de bucket 1 vs bucket 6:
+  bucket 1: n= 5729 L*_med=69.55 (p25=65.48, p75=73.59)
+  bucket 6: n= 3431 L*_med=68.81 (p25=63.78, p75=74.42)
+  diferencia de L* medianas: +0.74
+  (si la diferencia es chica, el bucket 6 NO es piel mas oscura: es b* negativo)
+
+NOTA SOBRE LA COLUMNA ITA_recalc
+Esa columna se calculo con numpy.arctan2(L-50, b), que devuelve el angulo en el
+rango completo (-180, 180] y NO pliega a +-90 como la convencion ITA. Por eso los
+valores de los buckets 5 y 6 (171.11 y 103.33) no son comparables con el ITA que
+reporta el pipeline. Se deja por transparencia, pero la evidencia valida del
+diagnostico son las medianas de L* y b* y el cruce de signos, que no dependen de
+esa convencion.

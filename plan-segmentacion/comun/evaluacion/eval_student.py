@@ -1,0 +1,130 @@
+"""Running a trained student over an evaluation set.
+
+Kept apart from ``evaluate_segmentation`` so that file stays small and torch
+stays out of import time. Nothing here decodes a reference mask or defines a
+metric: the caller injects ``make_row``, which owns both. That inversion is
+what keeps this module free of the evaluation policy.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable, Sequence
+from pathlib import Path
+
+import numpy as np
+
+from eval_inputs import load_image
+
+
+def _load_s4(checkpoint: dict):
+    """S4-UNet (docs/27): rebuild the frozen DINOv2, refusing changed weights."""
+    from dermssl import run_provenance, torch_s4_unet as s4_unet
+
+    config = checkpoint["config"]
+    source, expected = config["backbone_source"], config["backbone_sha256"]
+    if source != "public" and run_provenance.file_sha256(Path(source)) != expected:
+        raise ValueError(f"backbone {source} sha256 differs from the one trained with")
+    return s4_unet.model_from_checkpoint(checkpoint, s4_unet.hub_backbone)
+
+
+def load_student(checkpoint_path: Path, device):
+    """Return ``(model in eval mode, training resolution)``.
+
+    The student U-Net by default; an S4-UNet when the checkpoint says so. Only
+    the model differs: thresholds, metrics and reports stay the caller's.
+    """
+    from ckpt_io import load_checkpoint
+    from dermssl.torch_s4_unet import ARCH as S4_ARCH
+    from dermssl.torch_unet import UNet
+
+    checkpoint = load_checkpoint(checkpoint_path)
+    config = checkpoint.get("config", {})
+    if config.get("arch") == S4_ARCH:
+        return _load_s4(checkpoint).to(device).eval(), int(config["resolution"])
+    model = UNet(base_channels=int(config.get("base_channels", 32)))
+    model.load_state_dict(checkpoint["model"])
+    return model.to(device).eval(), int(config.get("resolution", 224))
+
+
+# Flip axes of an (N, C, H, W) batch: identity, horizontal, vertical, both.
+TTA_FLIPS = ((), (3,), (2,), (2, 3))
+
+
+def _probabilities(model, batch, tta: bool):
+    """Sigmoid output, averaged over flipped views (undone in place) when ``tta``."""
+    import torch
+
+    if not tta:
+        return torch.sigmoid(model(batch))
+    total = None
+    for axes in TTA_FLIPS:
+        view = torch.flip(batch, axes) if axes else batch
+        prob = torch.sigmoid(model(view))
+        prob = torch.flip(prob, axes) if axes else prob
+        total = prob if total is None else total + prob
+    return total / len(TTA_FLIPS)
+
+
+def predict_masks(
+    model, images: np.ndarray, device, batch_size: int, tta: bool = False
+) -> np.ndarray:
+    """Probabilities ``(N, H, W)`` float32 for a uint8 image stack ``(N, H, W, 3)``.
+
+    ``tta`` averages the prediction over the four flip combinations; it never
+    touches training, thresholds or checkpoints, only the inference view.
+    """
+    import torch
+    from gpu_augment import normalize_batch, to_float_batch
+
+    outputs = []
+    with torch.no_grad():
+        for start in range(0, len(images), batch_size):
+            chunk = torch.from_numpy(images[start : start + batch_size]).to(device)
+            batch = normalize_batch(to_float_batch(chunk))
+            outputs.append(_probabilities(model, batch, tta).squeeze(1).float().cpu().numpy())
+    return np.concatenate(outputs)
+
+
+def score_pairs(
+    model,
+    device,
+    pairs: Sequence[tuple[str, Path, Path]],
+    resolution: int,
+    batch_size: int,
+    make_row: Callable[[str, np.ndarray, Path], dict],
+    tta: bool = False,
+) -> list[dict]:
+    """One row per image, running the student in batches of ``batch_size``."""
+    rows = []
+    for start in range(0, len(pairs), batch_size):
+        chunk = pairs[start : start + batch_size]
+        images = np.stack([load_image(image_path, resolution) for _, image_path, _ in chunk])
+        probabilities = predict_masks(model, images, device, len(chunk), tta=tta)
+        for (image_id, _, mask_path), probability in zip(chunk, probabilities, strict=True):
+            rows.append(make_row(image_id, probability, mask_path))
+    return rows
+
+
+class ProbabilityStore:
+    """The float32 maps the evaluator scored, kept for re-binarisation (T6, docs/27).
+
+    One ``(N, H, W)`` memmap in the order of ``image_ids`` plus the id list. It
+    stores; it never thresholds and never reads a reference mask.
+    """
+
+    def __init__(self, directory: Path, image_ids: Sequence[str], resolution: int,
+                 array_name: str, ids_name: str):
+        self.directory = Path(directory)
+        self.directory.mkdir(parents=True, exist_ok=False)
+        self.index = {image_id: k for k, image_id in enumerate(image_ids)}
+        self.ids_path = self.directory / ids_name
+        self.maps = np.lib.format.open_memmap(self.directory / array_name, mode="w+", dtype=np.float32,
+                                              shape=(len(image_ids), resolution, resolution))
+        self.ids = list(image_ids)
+
+    def put(self, image_id: str, probability: np.ndarray) -> None:
+        self.maps[self.index[image_id]] = probability
+
+    def close(self) -> None:
+        self.maps.flush()
+        self.ids_path.write_text("\n".join(self.ids) + "\n", encoding="utf-8")

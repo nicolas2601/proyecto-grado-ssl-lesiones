@@ -1,0 +1,115 @@
+{
+ "cell": "PUBLIC_A71",
+ "key": {
+  "dataset": "isic2020",
+  "cell": "PUBLIC_A71",
+  "config_id": "public@224|cls_attn|la0.5|tta",
+  "transductivo": false,
+  "weights_sha256": "torch.hub facebookresearch/dinov2 dinov2_vitb14 pretrained",
+  "val_ids_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e",
+  "train_ids_sha256": "0284b47c93a1d2aeaaac182e928269529578abecb6e1dd261c4383194cb42fbb",
+  "n_val": 6660,
+  "n_train": 26466,
+  "limit": null,
+  "n_resamples": 1000
+ },
+ "key_sha256": "f1061cce8bf703f0ca6af5389b2af344f998f62ffdcdd3cfaea140aafec773bc",
+ "result": {
+  "code_revision": "c3eb887a28101afb3a64d0f9747ae91d104a4845",
+  "pool_check": {},
+  "dataset": "isic2020",
+  "config_id": "public@224|cls_attn|la0.5|tta",
+  "transductivo": false,
+  "n_train": 26466,
+  "n_val": 6660,
+  "limit": null,
+  "cell": "PUBLIC_A71",
+  "pool_excludes_val": null,
+  "protocol": {
+   "weights": "public",
+   "resolution": 224,
+   "feature": "cls_attn",
+   "weighting": "la0.5",
+   "tta": true
+  },
+  "split_identity": {
+   "sklearn_version": "1.7.2",
+   "n_train": 26466,
+   "n_val": 6660,
+   "val_supports": [
+    6538,
+    122
+   ],
+   "val_ids_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e",
+   "val_sha_construction": "join_newline",
+   "train_ids_sha256": "0284b47c93a1d2aeaaac182e928269529578abecb6e1dd261c4383194cb42fbb"
+  },
+  "probe": "logreg C=1 standardised, fitted on the dataset TRAIN split; no selection on val",
+  "metrics": {
+   "macro_f1": 0.5970742109047631,
+   "balanced_accuracy": 0.6233921237256091,
+   "accuracy": 0.9633633633633634,
+   "auc": 0.8323006985642574,
+   "ece": 0.011948303222596808,
+   "mcc": 0.19981202868595377,
+   "per_class": {
+    "benign": {
+     "precision": 0.9862484548825711,
+     "recall": 0.9762924441725298,
+     "f1": 0.9812451960030746,
+     "support": 6538
+    },
+    "malignant": {
+     "precision": 0.17553191489361702,
+     "recall": 0.27049180327868855,
+     "f1": 0.2129032258064516,
+     "support": 122
+    }
+   },
+   "matriz_confusion": [
+    [
+     6383,
+     155
+    ],
+    [
+     89,
+     33
+    ]
+   ],
+   "macro_precision": 0.5808901848880941,
+   "macro_recall": 0.6233921237256091,
+   "ci95": {
+    "macro_f1": [
+     0.5635625252573119,
+     0.6272399930413398
+    ],
+    "balanced_accuracy": [
+     0.5828644915322844,
+     0.6630502728209259
+    ],
+    "accuracy": [
+     0.9563041075704549,
+     0.9693602215226448
+    ],
+    "auc": [
+     0.7904296612240049,
+     0.8719030024001158
+    ],
+    "ece": [
+     0.008634317669257197,
+     0.01701062773798847
+    ],
+    "mcc": [
+     0.1322532243343941,
+     0.2621740823916161
+    ]
+   },
+   "bootstrap": {
+    "n_resamples": 1000,
+    "seed": 20260923,
+    "unit": "patient_id"
+   }
+  },
+  "probas_sha256": "50f273cb916fb6708776949178fc440de20fede1e4049412e839669de201b702"
+ }
+}

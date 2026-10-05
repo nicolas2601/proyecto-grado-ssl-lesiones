@@ -1,0 +1,40 @@
+{
+  "count": 58457,
+  "resolution": 224,
+  "per_dataset": {
+    "ham10000_p1": 5000,
+    "ham10000_p2": 5015,
+    "isic2019": 15316,
+    "isic2020": 33126
+  },
+  "duplicates_dropped": 10015,
+  "holdout_fraction": 0.02,
+  "val_count": 1169,
+  "seed": 42,
+  "field": {
+    "images": 58457,
+    "circular_count": 7509,
+    "fallback_count": 0,
+    "full_frame_count": 50948,
+    "mean_field_fraction": 0.9656988903413597,
+    "mean_valid_fraction": 0.9514522514700776,
+    "black_threshold": 0.06,
+    "margin_fraction": 0.04
+  },
+  "reads_masks_or_labels": false,
+  "hair_removal": {
+    "shape_filter": {
+      "min_length": 15,
+      "max_mean_width": 5.0
+    },
+    "method": "black-hat + TELEA (docs/26 3.4)",
+    "kernel": 9,
+    "threshold": 10,
+    "inpaint_radius": 3,
+    "mean_fraction": 0.010315958043401343,
+    "images_with_hair": 48200,
+    "heavy_inpaint_threshold": 0.3,
+    "heavy_inpaint_count": 0,
+    "heavy_inpaint_indices": []
+  }
+}

@@ -1,0 +1,49 @@
+Histograma de ITA en HAM10000 -- diagnostico ad hoc
+Ejecutado en el pod UNABIA el 2026-09-21 sobre salidas/final (estimador FST v1).
+
+PROCEDENCIA: a diferencia de los otros dos, este no salio de un script
+versionado sino de un fragmento inline sobre salidas/final/fst/fst_pseudo_manifest.json.
+Se conserva porque las cifras se citaron en el analisis. El fragmento filtraba los
+registros de HAM con ITA numerico y calculaba el histograma en 12 bins de 15 grados.
+
+HAM con ITA numerico: 9822
+min -90.0  max 90.0  media 16.5  mediana 52.8  std 68.0
+
+Histograma de ITA (12 bins de 15 grados):
+  [ -90, -75)   1794  ################################################
+  [ -75, -60)   1182  ###############################
+  [ -60, -45)    381  ##########
+  [ -45, -30)     66  #
+  [ -30, -15)     22
+  [ -15,  +0)     12
+  [  +0, +15)     62  #
+  [ +15, +30)    244  ######
+  [ +30, +45)    586  ###############
+  [ +45, +60)   1261  ##################################
+  [ +60, +75)   1992  #####################################################
+  [ +75, +90)   2220  ############################################################
+
+  |ITA| > 85:  1360 (13.8%)  [+795 / -565]
+  |ITA| > 80:  2671 (27.2%)  [+1489 / -1182]
+  |ITA| > 70:  5265 (53.6%)  [+2936 / -2329]
+
+Mediana de ITA por bucket FST:
+  bucket 1: n= 5729  mediana ITA= +70.47  min= +40.03  max= +89.99
+  bucket 2: n=  473  mediana ITA= +33.15  min= +23.05  max= +40.00
+  bucket 3: n=  121  mediana ITA= +19.20  min= +12.10  max= +22.95
+  bucket 4: n=   42  mediana ITA=  +8.21  min=  +0.06  max= +11.82
+  bucket 5: n=   26  mediana ITA= -17.37  min= -25.00  max=  -0.46
+  bucket 6: n= 3431  mediana ITA= -75.73  min= -89.99  max= -25.97
+
+LECTURA
+La distribucion es una U con el valle EN CERO: entre -30 y +30 hay 96 imagenes de
+9822. Los maximos estan en los dos extremos y el minimo y el maximo son -90.0 y
++90.0 exactos. Es la firma de la singularidad del arcotangente: ITA =
+arctan((L*-50)/b*) satura en +-90 cuando b* tiende a cero, y el signo de b*
+decide a cual de los dos extremos cae. Una distribucion real de tonos de piel es
+unimodal; esta no lo es.
+
+Los buckets 2, 3 y 4 son los unicos con |b*| grande (17-18 segun
+diag_ita_signo.txt) y por lo tanto los unicos donde el ITA esta bien determinado.
+Son tambien los que casi no tienen datos (473, 121 y 42 imagenes). El estimador
+solo acierta donde b* es informativo.

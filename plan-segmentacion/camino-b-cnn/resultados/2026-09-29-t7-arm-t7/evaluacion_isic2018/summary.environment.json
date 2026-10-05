@@ -1,0 +1,62 @@
+{
+ "describes": "summary.json",
+ "sha256": "92f89eacff25fd69d4769b6faccc980f5f6b2ef29b73b9590da9aa7cdb59a3d5",
+ "environment": {
+  "schema": 1,
+  "python": "3.13.15",
+  "packages": {
+   "numpy": "2.5.3",
+   "scipy": "1.18.0",
+   "scikit-learn": "1.9.0",
+   "torch": "2.11.0+cu128",
+   "torchvision": "0.26.0+cu128",
+   "joblib": "1.6.0",
+   "threadpoolctl": "3.6.0"
+  },
+  "torch": {
+   "loaded": true,
+   "version": "2.11.0+cu128",
+   "cuda_runtime": "12.8",
+   "cudnn": 91900,
+   "cudnn_deterministic": false,
+   "cudnn_benchmark": false,
+   "deterministic_algorithms": false,
+   "num_threads": 24,
+   "cuda_available": true,
+   "cuda_initialized": true,
+   "gpus": [
+    {
+     "index": 0,
+     "name": "NVIDIA RTX PRO 4000 Blackwell"
+    }
+   ]
+  },
+  "env": {
+   "OMP_NUM_THREADS": null,
+   "MKL_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "NUMEXPR_NUM_THREADS": null,
+   "CUBLAS_WORKSPACE_CONFIG": null,
+   "CUDA_VISIBLE_DEVICES": "0",
+   "PYTHONHASHSEED": null
+  },
+  "threadpools": [
+   {
+    "user_api": "blas",
+    "internal_api": "openblas",
+    "num_threads": 48,
+    "version": "0.3.34"
+   },
+   {
+    "user_api": "openmp",
+    "internal_api": "openmp",
+    "num_threads": 24,
+    "version": null
+   }
+  ],
+  "cpu_count": 48,
+  "knobs": {
+   "batch_size": 32
+  }
+ }
+}

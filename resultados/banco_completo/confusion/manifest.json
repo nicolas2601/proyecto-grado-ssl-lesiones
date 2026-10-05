@@ -1,0 +1,384 @@
+{
+  "incluidas": [
+    {
+      "json": "confusion/ham10000/dinov2_vits14__congelado.json",
+      "png": "confusion/ham10000/dinov2_vits14__congelado.png",
+      "dataset": "HAM10000",
+      "modelo": "DINOv2 ViT-S/14",
+      "condicion": "congelado",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/baselines/results_dinov2_vits14.json"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/dinov2_vits14__finetuning.json",
+      "png": "confusion/ham10000/dinov2_vits14__finetuning.png",
+      "dataset": "HAM10000",
+      "modelo": "DINOv2 ViT-S/14",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/finetune/ham10000/results_dinov2_vits14_ft.json"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/dinov2_vitb14__congelado.json",
+      "png": "confusion/ham10000/dinov2_vitb14__congelado.png",
+      "dataset": "HAM10000",
+      "modelo": "DINOv2 ViT-B/14",
+      "condicion": "congelado",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/baselines/results_dinov2_vitb14.json"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/dinov2_vitb14__finetuning.json",
+      "png": "confusion/ham10000/dinov2_vitb14__finetuning.png",
+      "dataset": "HAM10000",
+      "modelo": "DINOv2 ViT-B/14",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/finetune/ham10000/results_dinov2_vitb14_ft.json"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/simsiam_resnet50__congelado.json",
+      "png": "confusion/ham10000/simsiam_resnet50__congelado.png",
+      "dataset": "HAM10000",
+      "modelo": "SimSiam ResNet-50",
+      "condicion": "congelado",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/baselines/results_simsiam_r50.json"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/simsiam_resnet50__finetuning.json",
+      "png": "confusion/ham10000/simsiam_resnet50__finetuning.png",
+      "dataset": "HAM10000",
+      "modelo": "SimSiam ResNet-50",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/finetune/ham10000/results_simsiam_r50_ft.json"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/b71__congelado.json",
+      "png": "confusion/ham10000/b71__congelado.png",
+      "dataset": "HAM10000",
+      "modelo": "B71 (propuesto)",
+      "condicion": "congelado",
+      "origen": "argmax de las probabilidades commiteadas (el JSON v7.1 no trae matriz_confusion)",
+      "fuente": [
+        "resultados/clasificacion/v71/v71_final_eval.json",
+        "resultados/clasificacion/v71/v71_final_eval.probas.npz"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/a71__congelado.json",
+      "png": "confusion/ham10000/a71__congelado.png",
+      "dataset": "HAM10000",
+      "modelo": "A71 (ablación sin término de tono)",
+      "condicion": "congelado",
+      "origen": "argmax de las probabilidades commiteadas (el JSON v7.1 no trae matriz_confusion)",
+      "fuente": [
+        "resultados/clasificacion/v71/v71_final_eval.json",
+        "resultados/clasificacion/v71/v71_final_eval.probas.npz"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/b71limpio__congelado.json",
+      "png": "confusion/ham10000/b71limpio__congelado.png",
+      "dataset": "HAM10000",
+      "modelo": "B71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "argmax de las probabilidades commiteadas de la sensibilidad de pesos limpios (cómputo canónico; análisis posterior, no es selección)",
+      "fuente": [
+        "resultados/banco_completo/ham_clean/ham_clean_val.json",
+        "resultados/banco_completo/ham_clean/ham_clean_val.probas.npz"
+      ]
+    },
+    {
+      "json": "confusion/ham10000/a71limpio__congelado.json",
+      "png": "confusion/ham10000/a71limpio__congelado.png",
+      "dataset": "HAM10000",
+      "modelo": "A71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "argmax de las probabilidades commiteadas de la sensibilidad de pesos limpios (cómputo canónico; análisis posterior, no es selección)",
+      "fuente": [
+        "resultados/banco_completo/ham_clean/ham_clean_val.json",
+        "resultados/banco_completo/ham_clean/ham_clean_val.probas.npz"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/dinov2_vits14__congelado.json",
+      "png": "confusion/isic2019/dinov2_vits14__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "DINOv2 ViT-S/14",
+      "condicion": "congelado",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/baselines_isic2019/results_dinov2_vits14_isic2019.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/dinov2_vits14__finetuning.json",
+      "png": "confusion/isic2019/dinov2_vits14__finetuning.png",
+      "dataset": "ISIC 2019",
+      "modelo": "DINOv2 ViT-S/14",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/finetune/isic2019/results_dinov2_vits14_ft_isic2019.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/dinov2_vitb14__congelado.json",
+      "png": "confusion/isic2019/dinov2_vitb14__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "DINOv2 ViT-B/14",
+      "condicion": "congelado",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/baselines_isic2019/results_dinov2_vitb14_isic2019.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/dinov2_vitb14__finetuning.json",
+      "png": "confusion/isic2019/dinov2_vitb14__finetuning.png",
+      "dataset": "ISIC 2019",
+      "modelo": "DINOv2 ViT-B/14",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/finetune/isic2019/results_dinov2_vitb14_ft_isic2019.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/simsiam_resnet50__congelado.json",
+      "png": "confusion/isic2019/simsiam_resnet50__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "SimSiam ResNet-50",
+      "condicion": "congelado",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/baselines_isic2019/results_simsiam_r50_isic2019.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/simsiam_resnet50__finetuning.json",
+      "png": "confusion/isic2019/simsiam_resnet50__finetuning.png",
+      "dataset": "ISIC 2019",
+      "modelo": "SimSiam ResNet-50",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/finetune/isic2019/results_simsiam_r50_ft_isic2019.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/b71limpio__congelado.json",
+      "png": "confusion/isic2019/b71limpio__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "B71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__clean.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/a71limpio__congelado.json",
+      "png": "confusion/isic2019/a71limpio__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "A71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__clean.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/b71_original__congelado.json",
+      "png": "confusion/isic2019/b71_original__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "B71 original (canónico, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/a71_original__congelado.json",
+      "png": "confusion/isic2019/a71_original__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "A71 original (canónico, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/b71_original_batch16__congelado.json",
+      "png": "confusion/isic2019/b71_original_batch16__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "B71 original (sensibilidad: batch 16, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2019/B71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/a71_original_batch16__congelado.json",
+      "png": "confusion/isic2019/a71_original_batch16__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "A71 original (sensibilidad: batch 16, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2019/A71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/dinov2_vits14__congelado.json",
+      "png": "confusion/isic2020/dinov2_vits14__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "DINOv2 ViT-S/14",
+      "condicion": "congelado",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/baselines_isic2020/results_dinov2_vits14_isic2020.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/dinov2_vits14__finetuning.json",
+      "png": "confusion/isic2020/dinov2_vits14__finetuning.png",
+      "dataset": "ISIC 2020",
+      "modelo": "DINOv2 ViT-S/14",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "resultados/banco_completo/ft_isic2020/json/results_dinov2_vits14_ft_isic2020.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/dinov2_vitb14__congelado.json",
+      "png": "confusion/isic2020/dinov2_vitb14__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "DINOv2 ViT-B/14",
+      "condicion": "congelado",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/baselines_isic2020/results_dinov2_vitb14_isic2020.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/dinov2_vitb14__finetuning.json",
+      "png": "confusion/isic2020/dinov2_vitb14__finetuning.png",
+      "dataset": "ISIC 2020",
+      "modelo": "DINOv2 ViT-B/14",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "resultados/banco_completo/ft_isic2020/json/results_dinov2_vitb14_ft_isic2020.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/simsiam_resnet50__congelado.json",
+      "png": "confusion/isic2020/simsiam_resnet50__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "SimSiam ResNet-50",
+      "condicion": "congelado",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "results/baselines_isic2020/results_simsiam_r50_isic2020.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/simsiam_resnet50__finetuning.json",
+      "png": "confusion/isic2020/simsiam_resnet50__finetuning.png",
+      "dataset": "ISIC 2020",
+      "modelo": "SimSiam ResNet-50",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "resultados/banco_completo/ft_isic2020/json/results_simsiam_r50_ft_isic2020.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/b71limpio__congelado.json",
+      "png": "confusion/isic2020/b71limpio__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "B71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__clean.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/a71limpio__congelado.json",
+      "png": "confusion/isic2020/a71limpio__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "A71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/A71__clean.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/b71_original__congelado.json",
+      "png": "confusion/isic2020/b71_original__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "B71 original (canónico, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/a71_original__congelado.json",
+      "png": "confusion/isic2020/a71_original__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "A71 original (canónico, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/A71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/b71_original_batch16__congelado.json",
+      "png": "confusion/isic2020/b71_original_batch16__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "B71 original (sensibilidad: batch 16, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2020/B71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/a71_original_batch16__congelado.json",
+      "png": "confusion/isic2020/a71_original_batch16__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "A71 original (sensibilidad: batch 16, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2020/A71__original.json"
+      ]
+    }
+  ],
+  "pendientes": [],
+  "figura_de_diferencias": "No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partición v6/v7 (n = 2.004) y los baselines sobre la de Kaggle (n = 2.014); no comparten partición ni imágenes, así que una resta celda a celda no tiene sentido. En ISIC 2019 e ISIC 2020 B71-limpio sí comparte partición con los baselines, pero tampoco se genera la figura de diferencias (decisión de alcance)."
+}

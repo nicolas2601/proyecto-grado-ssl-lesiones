@@ -1,0 +1,12 @@
+{
+  "epochs": 20,
+  "total_seconds": 1213.1326647801325,
+  "mean_seconds_per_epoch": 60.656633239006624,
+  "images_processed": 1048320,
+  "images_per_second": 864.1429172876134,
+  "selection": {
+    "mode": "best-val",
+    "best_epoch": 12,
+    "best_value": 0.10095115751028061
+  }
+}

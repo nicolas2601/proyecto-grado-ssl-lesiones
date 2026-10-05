@@ -1,0 +1,19 @@
+# Pinned environment for the v6 SSL pretraining runs on the cluster.
+# Python 3.11.x + CUDA 12.1 wheels. Install with:
+#   pip install -r cluster/requirements.txt --index-url https://download.pytorch.org/whl/cu121 \
+#       --extra-index-url https://pypi.org/simple
+# If the cluster has no PyPI access, ask the admins to build this exact list
+# (or provide a conda/module base env with torch>=2.2+cu12).
+torch==2.4.1
+torchvision==0.19.1
+numpy==1.26.4
+Pillow==10.4.0
+mlflow==2.16.2
+wandb==0.17.9
+# The dashboard that stays private: UNAB's MLflow server is shared by every
+# student, so the fine-tuning runs also write TensorBoard event files.
+tensorboard==2.17.1
+timm==1.0.9
+scikit-learn==1.5.2
+pandas==2.2.3
+huggingface_hub==0.25.2

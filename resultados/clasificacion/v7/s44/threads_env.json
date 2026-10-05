@@ -1,0 +1,16 @@
+{
+ "cpu_count": 48,
+ "env": {
+  "OMP_NUM_THREADS": null,
+  "OPENBLAS_NUM_THREADS": null,
+  "MKL_NUM_THREADS": null,
+  "CUDA_VISIBLE_DEVICES": null
+ },
+ "threadpools": [
+  {
+   "internal_api": "openblas",
+   "num_threads": 48,
+   "filepath": "/opt/conda/lib/libopenblasp-r0.3.34.so"
+  }
+ ]
+}

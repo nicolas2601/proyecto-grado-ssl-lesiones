@@ -1,0 +1,535 @@
+{
+  "labels": {
+    "a": "original",
+    "b": "s2a_hair_free"
+  },
+  "sources": {
+    "a": "/home/jovyan/work/proyectonp/salidas/v7_seg/fst_hair/original/fst_pseudo_manifest.json",
+    "b": "/home/jovyan/work/proyectonp/salidas/v7_seg/fst_hair/s2a/fst_pseudo_manifest.json"
+  },
+  "diff": "b - a",
+  "scopes": {
+    "pool": {
+      "n": {
+        "a": 58457,
+        "b": 58457
+      },
+      "tone_distribution": {
+        "total": {
+          "a": 54978,
+          "b": 54978
+        },
+        "bins": {
+          "dark": {
+            "a_count": 18326,
+            "b_count": 18326,
+            "a_prop": 0.3333333333333333,
+            "b_prop": 0.3333333333333333,
+            "diff_count": 0,
+            "diff_prop": 0.0
+          },
+          "medium": {
+            "a_count": 18327,
+            "b_count": 18326,
+            "a_prop": 0.33335152242715266,
+            "b_prop": 0.3333333333333333,
+            "diff_count": -1,
+            "diff_prop": -1.8189093819342972e-05
+          },
+          "light": {
+            "a_count": 18325,
+            "b_count": 18326,
+            "a_prop": 0.33331514423951397,
+            "b_prop": 0.3333333333333333,
+            "diff_count": 1,
+            "diff_prop": 1.8189093819342972e-05
+          }
+        }
+      },
+      "FST_distribution": {
+        "total": {
+          "a": 31397,
+          "b": 31282
+        },
+        "bins": {
+          "1": {
+            "a_count": 23333,
+            "b_count": 23404,
+            "a_prop": 0.7431601745389687,
+            "b_prop": 0.7481618822325938,
+            "diff_count": 71,
+            "diff_prop": 0.005001707693625179
+          },
+          "2": {
+            "a_count": 4324,
+            "b_count": 4311,
+            "a_prop": 0.13772016434691212,
+            "b_prop": 0.13781088165718305,
+            "diff_count": -13,
+            "diff_prop": 9.071731027093799e-05
+          },
+          "3": {
+            "a_count": 1706,
+            "b_count": 1640,
+            "a_prop": 0.054336401567028694,
+            "b_prop": 0.05242631545297615,
+            "diff_count": -66,
+            "diff_prop": -0.0019100861140525435
+          },
+          "4": {
+            "a_count": 1083,
+            "b_count": 1052,
+            "a_prop": 0.03449374144026499,
+            "b_prop": 0.03362956332715299,
+            "diff_count": -31,
+            "diff_prop": -0.0008641781131119991
+          },
+          "5": {
+            "a_count": 753,
+            "b_count": 697,
+            "a_prop": 0.023983183106666243,
+            "b_prop": 0.022281184067514864,
+            "diff_count": -56,
+            "diff_prop": -0.0017019990391513792
+          },
+          "6": {
+            "a_count": 198,
+            "b_count": 178,
+            "a_prop": 0.006306335000159251,
+            "b_prop": 0.005690173262579119,
+            "diff_count": -20,
+            "diff_prop": -0.000616161737580132
+          }
+        }
+      },
+      "flagged": {
+        "a": {
+          "n": 27992,
+          "n_artifact_detected": 2954,
+          "n_confidence_below_1": 27992
+        },
+        "b": {
+          "n": 28036,
+          "n_artifact_detected": 2868,
+          "n_confidence_below_1": 28036
+        }
+      }
+    },
+    "ham10000_p1": {
+      "n": {
+        "a": 5000,
+        "b": 5000
+      },
+      "tone_distribution": {
+        "total": {
+          "a": 4889,
+          "b": 4889
+        },
+        "bins": {
+          "dark": {
+            "a_count": 1963,
+            "b_count": 1982,
+            "a_prop": 0.40151360196359176,
+            "b_prop": 0.40539987727551646,
+            "diff_count": 19,
+            "diff_prop": 0.003886275311924703
+          },
+          "medium": {
+            "a_count": 2500,
+            "b_count": 2496,
+            "a_prop": 0.511352014726938,
+            "b_prop": 0.5105338515033749,
+            "diff_count": -4,
+            "diff_prop": -0.0008181632235630953
+          },
+          "light": {
+            "a_count": 426,
+            "b_count": 411,
+            "a_prop": 0.08713438330947024,
+            "b_prop": 0.08406627122110862,
+            "diff_count": -15,
+            "diff_prop": -0.0030681120883616214
+          }
+        }
+      },
+      "FST_distribution": {
+        "total": {
+          "a": 2547,
+          "b": 2530
+        },
+        "bins": {
+          "1": {
+            "a_count": 2165,
+            "b_count": 2159,
+            "a_prop": 0.8500196309383589,
+            "b_prop": 0.8533596837944664,
+            "diff_count": -6,
+            "diff_prop": 0.0033400528561075005
+          },
+          "2": {
+            "a_count": 281,
+            "b_count": 277,
+            "a_prop": 0.11032587357675697,
+            "b_prop": 0.10948616600790514,
+            "diff_count": -4,
+            "diff_prop": -0.0008397075688518219
+          },
+          "3": {
+            "a_count": 70,
+            "b_count": 66,
+            "a_prop": 0.027483313702394974,
+            "b_prop": 0.02608695652173913,
+            "diff_count": -4,
+            "diff_prop": -0.0013963571806558453
+          },
+          "4": {
+            "a_count": 26,
+            "b_count": 24,
+            "a_prop": 0.010208087946603848,
+            "b_prop": 0.009486166007905139,
+            "diff_count": -2,
+            "diff_prop": -0.0007219219386987094
+          },
+          "5": {
+            "a_count": 5,
+            "b_count": 4,
+            "a_prop": 0.0019630938358853552,
+            "b_prop": 0.0015810276679841897,
+            "diff_count": -1,
+            "diff_prop": -0.00038206616790116554
+          }
+        }
+      },
+      "flagged": {
+        "a": {
+          "n": 2453,
+          "n_artifact_detected": 2,
+          "n_confidence_below_1": 2453
+        },
+        "b": {
+          "n": 2470,
+          "n_artifact_detected": 2,
+          "n_confidence_below_1": 2470
+        }
+      }
+    },
+    "ham10000_p2": {
+      "n": {
+        "a": 5015,
+        "b": 5015
+      },
+      "tone_distribution": {
+        "total": {
+          "a": 4933,
+          "b": 4933
+        },
+        "bins": {
+          "dark": {
+            "a_count": 2119,
+            "b_count": 2150,
+            "a_prop": 0.42955605108453276,
+            "b_prop": 0.4358402594769917,
+            "diff_count": 31,
+            "diff_prop": 0.006284208392458912
+          },
+          "medium": {
+            "a_count": 2376,
+            "b_count": 2354,
+            "a_prop": 0.481654165822015,
+            "b_prop": 0.4771944050273667,
+            "diff_count": -22,
+            "diff_prop": -0.004459760794648271
+          },
+          "light": {
+            "a_count": 438,
+            "b_count": 429,
+            "a_prop": 0.08878978309345226,
+            "b_prop": 0.0869653354956416,
+            "diff_count": -9,
+            "diff_prop": -0.001824447597810655
+          }
+        }
+      },
+      "FST_distribution": {
+        "total": {
+          "a": 1730,
+          "b": 1719
+        },
+        "bins": {
+          "1": {
+            "a_count": 1477,
+            "b_count": 1475,
+            "a_prop": 0.8537572254335261,
+            "b_prop": 0.8580570098894706,
+            "diff_count": -2,
+            "diff_prop": 0.004299784455944589
+          },
+          "2": {
+            "a_count": 188,
+            "b_count": 181,
+            "a_prop": 0.10867052023121387,
+            "b_prop": 0.10529377545084351,
+            "diff_count": -7,
+            "diff_prop": -0.0033767447803703665
+          },
+          "3": {
+            "a_count": 47,
+            "b_count": 47,
+            "a_prop": 0.02716763005780347,
+            "b_prop": 0.027341477603257707,
+            "diff_count": 0,
+            "diff_prop": 0.0001738475454542386
+          },
+          "4": {
+            "a_count": 13,
+            "b_count": 12,
+            "a_prop": 0.007514450867052023,
+            "b_prop": 0.006980802792321117,
+            "diff_count": -1,
+            "diff_prop": -0.0005336480747309058
+          },
+          "5": {
+            "a_count": 4,
+            "b_count": 3,
+            "a_prop": 0.0023121387283236996,
+            "b_prop": 0.0017452006980802793,
+            "diff_count": -1,
+            "diff_prop": -0.0005669380302434203
+          },
+          "6": {
+            "a_count": 1,
+            "b_count": 1,
+            "a_prop": 0.0005780346820809249,
+            "b_prop": 0.0005817335660267597,
+            "diff_count": 0,
+            "diff_prop": 3.698883945834827e-06
+          }
+        }
+      },
+      "flagged": {
+        "a": {
+          "n": 3286,
+          "n_artifact_detected": 5,
+          "n_confidence_below_1": 3286
+        },
+        "b": {
+          "n": 3297,
+          "n_artifact_detected": 5,
+          "n_confidence_below_1": 3297
+        }
+      }
+    },
+    "isic2019": {
+      "n": {
+        "a": 15316,
+        "b": 15316
+      },
+      "tone_distribution": {
+        "total": {
+          "a": 13736,
+          "b": 13736
+        },
+        "bins": {
+          "dark": {
+            "a_count": 5274,
+            "b_count": 5239,
+            "a_prop": 0.38395457192778104,
+            "b_prop": 0.3814065230052417,
+            "diff_count": -35,
+            "diff_prop": -0.0025480489225393477
+          },
+          "medium": {
+            "a_count": 5755,
+            "b_count": 5764,
+            "a_prop": 0.41897204426324985,
+            "b_prop": 0.4196272568433314,
+            "diff_count": 9,
+            "diff_prop": 0.0006552125800815545
+          },
+          "light": {
+            "a_count": 2707,
+            "b_count": 2733,
+            "a_prop": 0.19707338380896913,
+            "b_prop": 0.1989662201514269,
+            "diff_count": 26,
+            "diff_prop": 0.0018928363424577654
+          }
+        }
+      },
+      "FST_distribution": {
+        "total": {
+          "a": 6287,
+          "b": 6252
+        },
+        "bins": {
+          "1": {
+            "a_count": 4543,
+            "b_count": 4570,
+            "a_prop": 0.722602195005567,
+            "b_prop": 0.7309660908509277,
+            "diff_count": 27,
+            "diff_prop": 0.00836389584536068
+          },
+          "2": {
+            "a_count": 993,
+            "b_count": 974,
+            "a_prop": 0.1579449658024495,
+            "b_prop": 0.15579014715291106,
+            "diff_count": -19,
+            "diff_prop": -0.002154818649538426
+          },
+          "3": {
+            "a_count": 386,
+            "b_count": 370,
+            "a_prop": 0.06139653252743757,
+            "b_prop": 0.05918106206014075,
+            "diff_count": -16,
+            "diff_prop": -0.0022154704672968165
+          },
+          "4": {
+            "a_count": 230,
+            "b_count": 219,
+            "a_prop": 0.03658342611738508,
+            "b_prop": 0.03502879078694818,
+            "diff_count": -11,
+            "diff_prop": -0.0015546353304369057
+          },
+          "5": {
+            "a_count": 106,
+            "b_count": 94,
+            "a_prop": 0.01686018768888182,
+            "b_prop": 0.015035188739603326,
+            "diff_count": -12,
+            "diff_prop": -0.0018249989492784922
+          },
+          "6": {
+            "a_count": 29,
+            "b_count": 25,
+            "a_prop": 0.0046126928582789885,
+            "b_prop": 0.00399872040946897,
+            "diff_count": -4,
+            "diff_prop": -0.0006139724488100186
+          }
+        }
+      },
+      "flagged": {
+        "a": {
+          "n": 9924,
+          "n_artifact_detected": 2907,
+          "n_confidence_below_1": 9924
+        },
+        "b": {
+          "n": 9923,
+          "n_artifact_detected": 2860,
+          "n_confidence_below_1": 9923
+        }
+      }
+    },
+    "isic2020": {
+      "n": {
+        "a": 33126,
+        "b": 33126
+      },
+      "tone_distribution": {
+        "total": {
+          "a": 31420,
+          "b": 31420
+        },
+        "bins": {
+          "dark": {
+            "a_count": 8970,
+            "b_count": 8955,
+            "a_prop": 0.28548695098663274,
+            "b_prop": 0.28500954805856143,
+            "diff_count": -15,
+            "diff_prop": -0.00047740292807130214
+          },
+          "medium": {
+            "a_count": 7696,
+            "b_count": 7712,
+            "a_prop": 0.2449395289624443,
+            "b_prop": 0.245448758752387,
+            "diff_count": 16,
+            "diff_prop": 0.0005092297899426945
+          },
+          "light": {
+            "a_count": 14754,
+            "b_count": 14753,
+            "a_prop": 0.46957352005092295,
+            "b_prop": 0.46954169318905153,
+            "diff_count": -1,
+            "diff_prop": -3.182686187142014e-05
+          }
+        }
+      },
+      "FST_distribution": {
+        "total": {
+          "a": 20833,
+          "b": 20781
+        },
+        "bins": {
+          "1": {
+            "a_count": 15148,
+            "b_count": 15200,
+            "a_prop": 0.7271156338501416,
+            "b_prop": 0.7314373706751359,
+            "diff_count": 52,
+            "diff_prop": 0.004321736824994371
+          },
+          "2": {
+            "a_count": 2862,
+            "b_count": 2879,
+            "a_prop": 0.13737819805116883,
+            "b_prop": 0.1385400125114287,
+            "diff_count": 17,
+            "diff_prop": 0.001161814460259869
+          },
+          "3": {
+            "a_count": 1203,
+            "b_count": 1157,
+            "a_prop": 0.0577449239187827,
+            "b_prop": 0.05567585775467976,
+            "diff_count": -46,
+            "diff_prop": -0.002069066164102941
+          },
+          "4": {
+            "a_count": 814,
+            "b_count": 797,
+            "a_prop": 0.03907262516200259,
+            "b_prop": 0.03835234108079496,
+            "diff_count": -17,
+            "diff_prop": -0.0007202840812076325
+          },
+          "5": {
+            "a_count": 638,
+            "b_count": 596,
+            "a_prop": 0.03062448999183987,
+            "b_prop": 0.02868004427120928,
+            "diff_count": -42,
+            "diff_prop": -0.0019444457206305894
+          },
+          "6": {
+            "a_count": 168,
+            "b_count": 152,
+            "a_prop": 0.008064129026064418,
+            "b_prop": 0.00731437370675136,
+            "diff_count": -16,
+            "diff_prop": -0.0007497553193130582
+          }
+        }
+      },
+      "flagged": {
+        "a": {
+          "n": 12329,
+          "n_artifact_detected": 40,
+          "n_confidence_below_1": 12329
+        },
+        "b": {
+          "n": 12346,
+          "n_artifact_detected": 1,
+          "n_confidence_below_1": 12346
+        }
+      }
+    }
+  }
+}

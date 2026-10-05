@@ -1,0 +1,101 @@
+{
+ "arm": "ssl_proposed_vitb14",
+ "backbone": "dinov2_vitb14",
+ "backbone_detail": {
+  "arch": "dinov2_vitb14",
+  "hub": "facebookresearch/dinov2",
+  "checkpoint": "simsiam_dinov2_backbone_final.pt",
+  "release": "proposed-cluster-v1",
+  "sha256": "a905d15046ba9282414208f848ecae7a80792d1f09d935c3bc35ef371447522e",
+  "frozen": true,
+  "load": "torch.hub.load('facebookresearch/dinov2', 'dinov2_vitb14', pretrained=False) then load_state_dict(torch.load(pt, weights_only=True)) with strict=True. The .pt is backbone weights only -- no probe, no head, no optimizer state."
+ },
+ "feature_extraction": {
+  "call": "features = model(tensor)",
+  "note": "Plain forward. The DINOv2 hub forward already returns the pooled global embedding, so do NOT call forward_features and do NOT slice tokens.",
+  "dim": 768,
+  "post_feature_transform": "none (no L2-norm, no pooling, no reshape)"
+ },
+ "preprocess": {
+  "color_space": "RGB (PIL Image.open(path).convert('RGB'))",
+  "resize_to": 255,
+  "resize_note": "int(224 * 1.14) = 255 -- NOT 256",
+  "interpolation": "BILINEAR",
+  "center_crop": 224,
+  "to_tensor": "torchvision ToTensor() -> [0,1], CHW",
+  "normalize_mean": [
+   0.485,
+   0.456,
+   0.406
+  ],
+  "normalize_std": [
+   0.229,
+   0.224,
+   0.225
+  ],
+  "order": [
+   "Resize",
+   "CenterCrop",
+   "ToTensor",
+   "Normalize"
+  ]
+ },
+ "probe": {
+  "file": "ssl_proposed_vitb14_probe.npz",
+  "format": "npz (allow_pickle=False)",
+  "formula": "softmax(coef @ ((feature - mean) / scale) + intercept)",
+  "verified_against_sklearn": {
+   "max_abs_diff_over_val": 0.0,
+   "n_val": 2004
+  },
+  "hyperparams": {
+   "max_iter": 2000,
+   "C": 1.0,
+   "random_state": 42,
+   "class_weight": null
+  },
+  "classes_present_in_fit": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "remap_needed": false,
+  "remap_note": "The fit covered all 7 classes, so coef rows are already in canonical class order and no column remap is required.",
+  "scaler_note": "mean/scale come from the fold-0 TRAIN features. Do not recompute them from demo inputs -- that would rescale with the wrong statistics."
+ },
+ "classes": [
+  "akiec",
+  "bcc",
+  "bkl",
+  "df",
+  "mel",
+  "nv",
+  "vasc"
+ ],
+ "provenance": {
+  "dataset": "HAM10000",
+  "split": "StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42) by lesion_id, fold 0",
+  "n_train": 8011,
+  "n_val": 2004,
+  "probe_used": "logreg",
+  "label_fraction": 1.0,
+  "val_metrics": {
+   "macro_f1": 0.5236626508306185,
+   "accuracy": 0.7914171656686627,
+   "balanced_accuracy": 0.4773501527043013,
+   "auc": 0.9433887906307457,
+   "ece": 0.029753685867536562
+  },
+  "reproduces_published_row": true,
+  "max_abs_delta_vs_published": 0.0
+ },
+ "caveats": {
+  "balanced_accuracy": "0.4774 -- this probe uses class_weight=None, the registered headline setting. It is accurate on nv (the majority class) and misses often on the rare ones. Show all 7 probabilities, not only top-1.",
+  "autocast": "The bank extracted features under torch.amp.autocast('cuda'). A float32 CPU consumer differs in the last decimals; golden.json ships a tolerance for that."
+ },
+ "disclaimer": "Trained on dermatoscopic images at 224px from HAM10000. This is NOT a diagnostic device and must not be used for medical decisions. Phone-camera photos are out of distribution: the model still outputs confident-looking probabilities that mean nothing. Display it only with this caveat visible."
+}

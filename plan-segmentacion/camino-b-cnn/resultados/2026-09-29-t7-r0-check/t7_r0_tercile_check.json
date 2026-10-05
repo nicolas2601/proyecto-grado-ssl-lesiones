@@ -1,0 +1,76 @@
+{
+ "experiment": "T7 teacher check (docs/27)",
+ "coverage": {
+  "evaluated": 9822,
+  "without_tercile": 193,
+  "not_in_pool": 0
+ },
+ "analysis": {
+  "terciles": {
+   "dark": {
+    "n": 4082,
+    "n_excluded": 299,
+    "excluded_fraction": 0.0732484076433121,
+    "dice_binary": 0.7376395521219503,
+    "dice_confident": 0.794903183446114,
+    "dice_a2_same_images": 0.7679644818541396
+   },
+   "medium": {
+    "n": 4876,
+    "n_excluded": 206,
+    "excluded_fraction": 0.04224774405250205,
+    "dice_binary": 0.7824989561230705,
+    "dice_confident": 0.8394852760909145,
+    "dice_a2_same_images": 0.8168413743449299
+   },
+   "light": {
+    "n": 864,
+    "n_excluded": 45,
+    "excluded_fraction": 0.052083333333333336,
+    "dice_binary": 0.8374475329528899,
+    "dice_confident": 0.883732866288414,
+    "dice_a2_same_images": 0.8644366343083515
+   }
+  },
+  "teacher_gap_binary": {
+   "delta": -0.053058144103802385,
+   "ci95_low": -0.06168410390037939,
+   "ci95_high": -0.044573255951868056,
+   "n_a": 3783,
+   "n_b": 5489
+  },
+  "teacher_gap_confident": {
+   "delta": -0.051184165221180966,
+   "ci95_low": -0.05992444359303857,
+   "ci95_high": -0.04278569006684106,
+   "n_a": 3783,
+   "n_b": 5489
+  },
+  "a2_gap_same_images": {
+   "delta": -0.055978462523590844,
+   "ci95_low": -0.06291607040048598,
+   "ci95_high": -0.04920260858776417,
+   "n_a": 3783,
+   "n_b": 5489
+  },
+  "reduction_a2_minus_teacher": {
+   "delta": 0.002920318419788459,
+   "ci95_low": -0.001038083399317255,
+   "ci95_high": 0.006914323233839256
+  },
+  "addendum_required": false,
+  "bootstrap": {
+   "n_resamples": 1000,
+   "seed": 20260923
+  }
+ },
+ "provenance": {
+  "registration_commit": "d24a0f252e6c06a6bce5c85cf01de52139a64ae5",
+  "code_revision": "2ba7f2d1e13436bb88c80e461d03cbd3ab29eded",
+  "manifest_sha256": "57df1e65e88d3b54ba530d6e026010bfc8ce25d1437e50b4ffe37cfd7d4f87da",
+  "pseudo_r0_sha256": "8c9e47978070baa7bfa9f0174a80eb4e4236d45737801abf690804ae1eb0fc87",
+  "cache_manifest_sha256": "a83f927ab798b6f7a0614c3923fda77d082f887d10fdbe73416e34e9574ba71a",
+  "rows_sha256": "4dc4875f1f2288f191bdfe3ffe79676e362154dee22461fdb641f41ddc528f4e",
+  "reference_masks_sha256": "fe4e2904c2721c989f7f697cb39cad8d9020d5ae2b51183ef9d4b41197b4bea9"
+ }
+}

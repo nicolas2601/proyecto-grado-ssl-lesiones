@@ -1,0 +1,74 @@
+{
+  "experiment": "S4-UNet (docs/27, registered 2026-09-28)",
+  "variant": "A2",
+  "code_revision": "842eddf17b57b6c62d12d17496043596a3e1d3e2",
+  "seed": 42,
+  "pool": {
+    "cache_dir": "/home/jovyan/work/proyectonp/salidas/final/cache",
+    "manifest_sha256": "a83f927ab798b6f7a0614c3923fda77d082f887d10fdbe73416e34e9574ba71a",
+    "n_images": 58457,
+    "image_shape": [
+      224,
+      224,
+      3
+    ],
+    "splits": {
+      "train": 57288,
+      "val": 1169
+    }
+  },
+  "pseudo_masks": {
+    "path": "/home/jovyan/work/proyectonp/salidas/final/pseudo_r0/pseudo_masks.npy",
+    "sha256": "8c9e47978070baa7bfa9f0174a80eb4e4236d45737801abf690804ae1eb0fc87"
+  },
+  "backbone": {
+    "arch": "dinov2_vitb14",
+    "source": "public",
+    "weights_sha256": "public",
+    "frozen": true,
+    "blocks": [
+      3,
+      6,
+      9,
+      12
+    ]
+  },
+  "schedule": {
+    "epochs": 20,
+    "batch_size": 32,
+    "lr": 0.0001,
+    "weight_decay": 0.0,
+    "optimizer": "adam",
+    "warmup_epochs": 1,
+    "dice_weight": 1.0,
+    "selection": "best-val",
+    "precision": "bf16",
+    "features": 128,
+    "max_steps_per_epoch": 0
+  },
+  "evaluation_regime": "transductive without labels: the pool is the student_r3 cache (HAM10000, ISIC 2019 and ISIC 2020, deduplicated by id), so evaluation images that are also in the pool (722 ISIC 2018, 9,822 HAM10000) were seen as unlabelled images; no reference mask and no label is read before the evaluation stage",
+  "prediction": {
+    "metric": "ISIC 2018 Dice",
+    "student_r3": 0.7177,
+    "threshold": 0.7077
+  },
+  "reads_masks_or_labels": false,
+  "training": {
+    "n_train_confident": 52453,
+    "n_val_confident": 1082,
+    "train_indices_sha256": "1135949ec26437c32981da1f47e56662554965213c033ffa66302e24cdbc5b58"
+  },
+  "result": {
+    "epochs": 20,
+    "total_seconds": 1317.8843684114981,
+    "mean_seconds_per_epoch": 65.8942184205749,
+    "images_processed": 1048320,
+    "images_per_second": 795.4567374249871,
+    "selection": {
+      "mode": "best-val",
+      "best_epoch": 16,
+      "best_value": 0.09630744159221649
+    }
+  },
+  "complete": true
+}

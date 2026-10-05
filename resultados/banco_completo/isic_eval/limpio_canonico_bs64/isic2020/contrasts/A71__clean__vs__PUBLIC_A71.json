@@ -1,0 +1,114 @@
+{
+ "cell": "A71__clean__vs__PUBLIC_A71",
+ "key": {
+  "arm": "A71__clean",
+  "control": "PUBLIC_A71",
+  "arm_probas_sha256": "40ac993d22afee661c96a6f9ab51968df6939bb28257b96ff9ab8402379bf109",
+  "control_probas_sha256": "50f273cb916fb6708776949178fc440de20fede1e4049412e839669de201b702",
+  "n_resamples": 1000,
+  "metrics": [
+   "macro_f1",
+   "balanced_accuracy",
+   "accuracy",
+   "auc",
+   "ece",
+   "mcc"
+  ]
+ },
+ "key_sha256": "ede7a479f482c955bfa90b74b9fcdbbeaec359fa3d9d74a0223b0cb080499355",
+ "result": {
+  "paired": [
+   {
+    "arm": "A71__clean",
+    "control": "PUBLIC_A71",
+    "metric": "macro_f1",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.6467397277555362,
+    "point_control": 0.5970742109047631,
+    "point_delta": 0.04966551685077314,
+    "ci95_low": 0.014471584243099368,
+    "ci95_high": 0.08369519660673837,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   },
+   {
+    "arm": "A71__clean",
+    "control": "PUBLIC_A71",
+    "metric": "balanced_accuracy",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.6934466348058512,
+    "point_control": 0.6233921237256091,
+    "point_delta": 0.07005451108024208,
+    "ci95_low": 0.022456681763760044,
+    "ci95_high": 0.12083470898671297,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   },
+   {
+    "arm": "A71__clean",
+    "control": "PUBLIC_A71",
+    "metric": "accuracy",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.9666666666666667,
+    "point_control": 0.9633633633633634,
+    "point_delta": 0.0033033033033033066,
+    "ci95_low": -0.0016151835619712589,
+    "ci95_high": 0.0077341033991052315,
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   },
+   {
+    "arm": "A71__clean",
+    "control": "PUBLIC_A71",
+    "metric": "auc",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.9084895867287835,
+    "point_control": 0.8323006985642574,
+    "point_delta": 0.07618888816452618,
+    "ci95_low": 0.04443298713768575,
+    "ci95_high": 0.10775645305165087,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   },
+   {
+    "arm": "A71__clean",
+    "control": "PUBLIC_A71",
+    "metric": "ece",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.033936819034387805,
+    "point_control": 0.011948303222596808,
+    "point_delta": 0.021988515811790996,
+    "ci95_low": 0.015319239168383321,
+    "ci95_high": 0.028149104340152536,
+    "excludes_zero": true,
+    "direction": "control_better"
+   },
+   {
+    "arm": "A71__clean",
+    "control": "PUBLIC_A71",
+    "metric": "mcc",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.3039920957428441,
+    "point_control": 0.19981202868595377,
+    "point_delta": 0.10418006705689031,
+    "ci95_low": 0.03244196463149314,
+    "ci95_high": 0.1757492685090675,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   }
+  ],
+  "unit": "patient_id"
+ }
+}

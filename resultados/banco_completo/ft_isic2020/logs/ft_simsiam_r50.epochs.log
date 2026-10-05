@@ -1,0 +1,13 @@
+[ft-simsiam_r50-isic2020-s42] device=cuda smoke=False pesos=https://dl.fbaipublicfiles.com/simsiam/models/100ep-256bs/pretrain/checkpoint_0099.pth.tar
+clases=['benign', 'malignant'] train=26466 val=6660 | StratifiedGroupKFold por patient_id (0 grupos compartidos)
+epoca 1/8 loss=0.5331 val_bal_acc=0.6057 mejor=0.6057 (44s)
+epoca 2/8 loss=0.4968 val_bal_acc=0.6931 mejor=0.6931 (84s)
+epoca 3/8 loss=0.4678 val_bal_acc=0.6784 mejor=0.6931 (124s)
+epoca 4/8 loss=0.4556 val_bal_acc=0.7322 mejor=0.7322 (163s)
+epoca 5/8 loss=0.4332 val_bal_acc=0.7181 mejor=0.7322 (203s)
+epoca 6/8 loss=0.4316 val_bal_acc=0.7879 mejor=0.7879 (243s)
+epoca 7/8 loss=0.4131 val_bal_acc=0.7868 mejor=0.7879 (283s)
+epoca 8/8 loss=0.3994 val_bal_acc=0.8046 mejor=0.8046 (323s)
+simsiam_r50 @ isic2020 | val n=6660 | mejor epoca 8
+bal_acc=0.8046 macro_f1=0.5500 auc=0.9012 acc=0.8691 ece=0.0279
+IC95 bootstrap: bal_acc 0.764-0.840 | F1 macro 0.534-0.565

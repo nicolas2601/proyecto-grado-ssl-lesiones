@@ -1,0 +1,34 @@
+{
+  "pool_n": 55034,
+  "excluded_v7_n": 3851,
+  "effective_pool_n": 51256,
+  "exclude_ids_sha256_run": "95d21013a42a5c99a6024ef6c8ae73aada8bdc1193ae512665035bb59b737d87",
+  "sklearn": "1.7.2",
+  "datasets": {
+    "isic2019": {
+      "n_ids": 25331,
+      "split_desc": "estratificado simple SIN grupo de paciente (el release no lo trae) - riesgo de fuga entre imagenes del mismo paciente y solape con HAM10000, metricas con sesgo optimista",
+      "val_finetune_sgkf_n": 5066,
+      "val_baseline_skf_n": 5067,
+      "val_finetune_sgkf_sha256": "996d5ed3418a6a7514ed7f3112cdd9aa7b7a0ad0fc0af83cb12b1c1e8e487157",
+      "val_baseline_skf_sha256": "8cde8a71ccf5bf2e477ffdab445e8f1afbc37a164ee0cd1aba93ef785cc0b57f",
+      "splits_identical": false,
+      "val_union_n": 5067,
+      "val_in_pool_n": 4741,
+      "val_in_effective_pool_n": 4039
+    },
+    "isic2020": {
+      "n_ids": 33126,
+      "split_desc": "StratifiedGroupKFold por patient_id (0 grupos compartidos)",
+      "val_finetune_sgkf_n": 6660,
+      "val_finetune_sgkf_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e",
+      "splits_identical": true,
+      "val_union_n": 6660,
+      "val_in_pool_n": 6335,
+      "val_in_effective_pool_n": 6311
+    }
+  },
+  "clean_exclusion_n": 14842,
+  "clean_effective_pool_n": 40906,
+  "clean_exclude_file_sha256": "3b7e883392ba5ae0cb290166fa2d4e2dfbb325d4bce0bca3e96562f8c39dfc1d"
+}

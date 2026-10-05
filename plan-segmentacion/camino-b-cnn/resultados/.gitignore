@@ -1,0 +1,5 @@
+# Light run artifacts are versioned on purpose: overlays, contact sheets,
+# per-image metrics and run logs. Heavy arrays and checkpoints stay ignored.
+!**/*.png
+!**/*.csv
+!**/*.log

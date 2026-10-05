@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#10191a" />
+    <meta
+      name="description"
+      content="Presentacion interactiva de los resultados versionados del pipeline DermSSL proposed-cluster."
+    />
+    <title>DermSSL / proposed-cluster</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/static/styles.css?v=6" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Saltar al contenido</a>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="DermSSL, volver al inicio">
+        <span class="brand-mark" aria-hidden="true">D/</span>
+        <span>DERMSSL <small>OBJ. 2</small></span>
+      </a>
+      <nav class="site-nav" aria-label="Navegacion principal">
+        <a href="#verdict">Lectura</a>
+        <a href="#method">Método</a>
+        <a href="#evidence">Evidencia</a>
+        <a href="#contrasts">Contrastes</a>
+        <a href="#lab">Probar</a>
+      </nav>
+      <span class="release-tag" id="release-tag">CARGANDO RELEASE</span>
+    </header>
+
+    <main id="main-content">
+      <section class="hero section-shell" id="top" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="signal-dot" aria-hidden="true"></span> Resultados sellados / 23 SEP 2026</p>
+          <h1 id="hero-title">No es una promesa.<br /><em>Es una lectura.</em></h1>
+          <p class="hero-lede">
+            El pipeline aprende de 58.457 dermatoscopias sin diagnostico. Esta pagina separa lo que gano,
+            lo que perdio y lo que todavia no puede afirmar.
+          </p>
+          <p class="hero-disclaimer" id="hero-disclaimer">No es un dispositivo de diagnostico. Una foto de celular esta fuera de distribucion: sus probabilidades son demostrativas, no clinicas.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#verdict">Leer el veredicto <span aria-hidden="true">↘</span></a>
+            <a class="text-link" href="#lab">Probar una imagen <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+        <aside class="hero-status" aria-label="Estado del modelo">
+          <div class="status-kicker">ESTADO DE ENTREGA</div>
+          <div class="status-led" id="status-led"><span aria-hidden="true"></span><strong id="status-title">Consultando</strong></div>
+          <p id="status-copy">Verificando pesos, manifiesto y probe.</p>
+          <dl class="status-list">
+            <div><dt>BACKBONE</dt><dd>ViT-B/14</dd></div>
+            <div><dt>ENTRENAMIENTO</dt><dd>12 h-GPU</dd></div>
+            <div><dt>ETIQUETAS SSL</dt><dd>0</dd></div>
+          </dl>
+        </aside>
+        <div class="hero-index" aria-hidden="true">01 <span>/</span> 06</div>
+      </section>
+
+      <section class="section-shell verdict-section" id="verdict" aria-labelledby="verdict-title">
+        <div class="section-intro">
+          <p class="eyebrow">01 / lectura ejecutiva</p>
+          <h2 id="verdict-title">La adaptacion no gano el ranking.<br /><span>Si dejo evidencia util.</span></h2>
+          <p>
+            La respuesta correcta no es “funciona” o “no funciona”. El brazo propuesto mejora separacion y
+            calibracion en algunos ejes, pero pierde macro-F1 frente a su control. Ese matiz es el resultado.
+          </p>
+        </div>
+        <div class="verdict-grid">
+          <article class="verdict-card verdict-win">
+            <div class="card-number">A /</div>
+            <p class="card-label">GANO</p>
+            <h3>AUC y calibracion</h3>
+            <p>En ViT-B, la adaptacion de dominio supera a DINOv2 publico en AUC y ECE con bootstrap pareado que excluye cero.</p>
+            <span class="card-mark" aria-label="Resultado favorable">+</span>
+          </article>
+          <article class="verdict-card verdict-loss">
+            <div class="card-number">B /</div>
+            <p class="card-label">PERDIO</p>
+            <h3>Macro-F1 global</h3>
+            <p>El propuesto ViT-B queda en 0,524 frente a 0,586 del control plain. La perdida es afirmable en ambos tamanos.</p>
+            <span class="card-mark" aria-label="Resultado desfavorable">−</span>
+          </article>
+          <article class="verdict-card verdict-open">
+            <div class="card-number">C /</div>
+            <p class="card-label">NO CONCLUYE</p>
+            <h3>Efecto de tono</h3>
+            <p>La brecha puntual baja de 0,108 a 0,034 en ViT-B, pero los intervalos por estrato se solapan.</p>
+            <span class="card-mark" aria-label="Resultado abierto">?</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-shell evidence-section" id="evidence" aria-labelledby="evidence-title">
+        <div class="section-heading-row">
+          <div>
+            <p class="eyebrow">02 / evidencia cuantitativa</p>
+            <h2 id="evidence-title">El numero siempre viene con su contexto.</h2>
+          </div>
+          <p class="section-note">Probe principal: <code>logreg</code> · 100 % · seed 0<br />Bootstrap pareado: 1.000 remuestras</p>
+        </div>
+        <div class="metric-layout">
+          <div class="metric-panel">
+            <div class="panel-topline"><span>MACRO-F1 / HAM10000</span><span>↑ MAYOR ES MEJOR</span></div>
+            <div class="bars" id="classification-bars" aria-label="Comparacion de macro-F1"></div>
+            <p class="chart-caption">Split por <code>lesion_id</code>. HAM10000 estuvo en el pool sin etiquetas, por eso esta cifra no es validacion externa.</p>
+          </div>
+          <div class="metric-stack">
+            <article class="stat-tile"><span class="stat-label">AUC / PROPUESTO ViT-B</span><strong id="proposed-auc">—</strong><small id="auc-delta">frente a DINOv2 publico</small></article>
+            <article class="stat-tile accent-tile"><span class="stat-label">ECE / PROPUESTO ViT-B</span><strong id="proposed-ece">—</strong><small>menor significa mejor calibracion</small></article>
+            <article class="stat-tile"><span class="stat-label">BRECHA L* / CLASIFICACION</span><strong id="tone-gap">—</strong><small>punto descriptivo, no efecto probado</small></article>
+          </div>
+        </div>
+        <div class="segmentation-strip">
+          <div class="strip-copy"><p class="eyebrow">SEGMENTACION SIN ETIQUETAS</p><h3>El paso previo es utilizable.</h3><p>La medicion honesta es ISIC 2018, fuera del pool. HAM10000 es en distribucion.</p></div>
+          <div class="seg-metric"><span>ISIC 2018 / externo</span><strong id="isic-dice">—</strong><small id="isic-ci">IC95 % —</small></div>
+          <div class="seg-metric"><span>HAM10000 / en distribucion</span><strong id="ham-dice">—</strong><small id="ham-ci">IC95 % —</small></div>
+        </div>
+      </section>
+
+      <section class="section-shell pipeline-section" id="method" aria-labelledby="pipeline-title">
+        <div class="section-intro narrow-intro">
+          <p class="eyebrow">03 / como se construyo</p>
+          <h2 id="pipeline-title">Una cadena de decisiones,<br /><span>no una caja negra.</span></h2>
+        </div>
+        <ol class="pipeline-list">
+          <li><span>01</span><div><strong>Pool sin etiquetas</strong><p>58.457 imagenes de HAM10000, ISIC 2019 sin HAM e ISIC 2020.</p></div></li>
+          <li><span>02</span><div><strong>Segmentacion label-free</strong><p>MoCo v2, CCAM, incertidumbre y U-Net para pseudo-mascaras.</p></div></li>
+          <li><span>03</span><div><strong>Medicion de tono</strong><p>Terciles relativos de mediana L* fuera de la pseudo-mascara.</p></div></li>
+          <li class="is-proposed"><span>04</span><div><strong>Pares de tono / CIRCLe</strong><p>La piel se desplaza; la lesion que la pseudo-mascara reconoce queda protegida.</p></div><b>METODO</b></li>
+          <li><span>05</span><div><strong>Probe congelado</strong><p>Clasificacion sobre HAM10000 con particion por lesion_id.</p></div></li>
+        </ol>
+        <div class="dataset-rail" id="dataset-rail" aria-label="Datos del pipeline"></div>
+      </section>
+
+      <section class="section-shell data-section" id="segmentation" aria-labelledby="segmentation-title">
+        <div class="section-heading-row">
+          <div><p class="eyebrow">05 / segmentacion sin mascaras</p><h2 id="segmentation-title">La generalizacion<br /><span>se mide afuera.</span></h2></div>
+          <p class="section-note" id="segmentation-note">Cargando fuente de datos.</p>
+        </div>
+        <div class="segmentation-grid" id="segmentation-grid"></div>
+        <div class="tone-band" id="segmentation-tone"></div>
+      </section>
+
+      <section class="section-shell data-section" id="training" aria-labelledby="training-title">
+        <div class="section-heading-row">
+          <div><p class="eyebrow">06 / presupuesto</p><h2 id="training-title">Cuatro brazos.<br /><span>Una misma regla.</span></h2></div>
+          <p class="section-note">DINOv2 publico + SimSiam de dominio.<br />No es SSL entrenado desde cero.</p>
+        </div>
+        <p class="callout-note" id="training-note"></p>
+        <div class="table-shell"><table class="data-table"><thead><tr><th>Brazo</th><th>Modo</th><th>Inicializacion</th><th>h-GPU</th><th>Pasos</th><th>Muestras</th></tr></thead><tbody id="training-table-body"></tbody></table></div>
+      </section>
+
+      <section class="section-shell data-section" id="classification" aria-labelledby="classification-title">
+        <div class="section-heading-row">
+          <div><p class="eyebrow">07 / banco congelado</p><h2 id="classification-title">Seis backbones.<br /><span>Un probe fijado.</span></h2></div>
+          <p class="section-note">Headline: <code>logreg</code><br />Split: por <code>lesion_id</code></p>
+        </div>
+        <div class="table-shell"><table class="data-table classification-table"><thead><tr><th>Backbone</th><th>macro-F1</th><th>bal. acc.</th><th>AUC</th><th>ECE ↓</th><th>Lectura</th></tr></thead><tbody id="classification-table-body"></tbody></table></div>
+      </section>
+
+      <section class="section-shell data-section" id="contrasts" aria-labelledby="contrasts-title">
+        <div class="section-heading-row">
+          <div><p class="eyebrow">08 / incertidumbre</p><h2 id="contrasts-title">Punto estimado no es<br /><span>veredicto.</span></h2></div>
+          <p class="section-note" id="contrast-note">Bootstrap pareado.</p>
+        </div>
+        <p class="callout-note">Si el intervalo toca cero, el resultado se muestra como <strong>no se distingue del ruido</strong>. La tabla no convierte una diferencia llamativa en una afirmacion.</p>
+        <div class="table-shell"><table class="data-table contrasts-table"><thead><tr><th>Contraste</th><th>Metrica</th><th>Δ</th><th>IC 95 %</th><th>Veredicto</th></tr></thead><tbody id="contrast-table-body"></tbody></table></div>
+      </section>
+
+      <section class="section-shell data-section" id="equity" aria-labelledby="equity-title">
+        <div class="section-heading-row">
+          <div><p class="eyebrow">09 / equidad por tono</p><h2 id="equity-title">La brecha cambia.<br /><span>La evidencia no alcanza.</span></h2></div>
+          <p class="section-note">Terciles de L* relativos al pool.<br />No son fototipos clinicos.</p>
+        </div>
+        <div class="equity-layout"><div class="equity-copy" id="equity-copy"></div><div class="table-shell"><table class="data-table"><thead><tr><th>Backbone</th><th>Gap macro-F1</th><th>Peor estrato</th><th>¿Separado?</th></tr></thead><tbody id="equity-table-body"></tbody></table></div></div>
+      </section>
+
+      <section class="section-shell lab-section" id="lab" aria-labelledby="lab-title">
+        <div class="section-heading-row lab-heading">
+          <div><p class="eyebrow">10 / laboratorio local</p><h2 id="lab-title">Ponemos el artefacto<br /><span>frente a una imagen.</span></h2></div>
+          <p class="section-note">La camara requiere permiso del navegador.<br />La imagen no se almacena por este demo.</p>
+        </div>
+        <div class="lab-grid">
+          <div class="capture-panel">
+            <div class="capture-topline"><span id="capture-mode">ARCHIVO / CAMARA</span><span class="capture-status" id="capture-status">LISTO</span></div>
+            <div class="camera-stage" id="camera-stage">
+              <video id="camera-video" autoplay playsinline muted aria-label="Vista previa de la camara"></video>
+              <img id="image-preview" alt="Vista previa de la imagen seleccionada" hidden />
+              <div class="stage-placeholder" id="stage-placeholder"><span class="crosshair" aria-hidden="true"></span><p>Selecciona una imagen<br />o activa la camara</p></div>
+              <div class="scan-line" aria-hidden="true"></div>
+            </div>
+            <div class="capture-controls">
+              <label class="button button-secondary file-button" for="image-input">Cargar imagen</label>
+              <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" />
+              <button class="button button-secondary" id="camera-button" type="button">Activar camara</button>
+              <button class="button button-primary" id="capture-button" type="button" disabled>Analizar captura</button>
+              <button class="button button-live" id="live-button" type="button" disabled aria-pressed="false">En vivo: requiere clasificador</button>
+            </div>
+            <p class="camera-help" id="camera-help">Usa una imagen dermatoscopica. El modelo no debe interpretarse como diagnostico.</p>
+          </div>
+          <aside class="result-panel" aria-live="polite" aria-atomic="true">
+            <div class="result-kicker">SALIDA DEL SERVICIO</div>
+            <div class="result-state" id="result-state">Esperando entrada</div>
+            <p id="result-copy">El panel indicara si hay backbone, probe y prediccion disponibles.</p>
+            <div class="result-detail" id="result-detail"></div>
+            <div class="benchmark-result" id="benchmark-result" hidden aria-live="polite"></div>
+            <div class="readiness-grid" aria-label="Contrato de inferencia">
+              <div><span>EXTRACTOR</span><strong id="probe-backbone">PENDIENTE</strong></div>
+              <div><span>CLASIFICADOR</span><strong id="probe-classifier">PENDIENTE</strong></div>
+              <div><span>INFERENCIA</span><strong id="probe-mode">EXTRACTOR</strong></div>
+            </div>
+            <div class="prob-list" id="prob-list"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section-shell roadmap-section" id="roadmap" aria-labelledby="roadmap-title">
+        <div class="section-intro">
+          <p class="eyebrow">05 / siguiente iteracion</p>
+          <h2 id="roadmap-title">La mejora no es<br /><span>otro model zoo.</span></h2>
+          <p>El resultado ya dice donde invertir el siguiente ciclo: separar objetivos, cerrar el split y validar fuera del pool antes de gastar mas GPU.</p>
+        </div>
+        <div><div class="roadmap-list" id="roadmap-list"></div><div class="download-rail" id="download-rail"></div><div class="caveat-list" id="caveat-list"></div></div>
+      </section>
+
+      <section class="section-shell closing-section" aria-labelledby="closing-title">
+        <div class="closing-mark" aria-hidden="true">06</div>
+        <p class="eyebrow">Cierre para Andres</p>
+        <h2 id="closing-title">La contribucion no es esconder<br />la perdida. Es saber <em>que significa.</em></h2>
+        <p>Resultado final: adaptacion de dominio que calibra mejor y separa mejor en AUC, pero que no supera al control en macro-F1. Siguiente paso: una prueba que permita atribuir el efecto sin ambiguedad.</p>
+        <a class="button button-primary" href="#top">Volver al inicio <span aria-hidden="true">↟</span></a>
+      </section>
+    </main>
+
+    <footer class="site-footer section-shell">
+      <div><strong>DERMSSL / OBJ. 2</strong><span>UNAB · 2026</span></div>
+      <p>Herramienta de investigacion y apoyo. No es un dispositivo de diagnostico ni sustituye evaluacion clinica.</p>
+      <a href="https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/proposed-cluster-v1" target="_blank" rel="noreferrer">Release proposed-cluster-v1 ↗</a>
+    </footer>
+
+    <script src="/static/app.js?v=7" type="module"></script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+% Generado por scripts/build_bench_tables.py. No editar a mano. Requiere el paquete booktabs.
+\begin{table}[ht]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lllllrrrrrrrrr@{}}
+\toprule
+Modelo & Preent. & FT & Seg. & Trans. & Acc. & Bal. acc. & Prec. & Rec. & F1 & AUC & ECE$\downarrow$ & MCC & IC 95\,\% F1 \\
+\midrule
+\multicolumn{14}{l}{\textit{congelados (sin fine-tuning)}} \\
+\midrule
+A71 original (canónico) & auto-supervisado propio & no & no & sí & 0,9688 & 0,6945 & 0,6288 & 0,6945 & 0,6543 & 0,9023 & 0,0332 & 0,3166 & [0,6164; 0,6896] \\
+A71-limpio (canónico) & auto-supervisado propio & no & no & no & 0,9667 & 0,6934 & 0,6194 & 0,6934 & 0,6467 & 0,9085 & 0,0339 & 0,3040 & [0,6095; 0,6837] \\
+B71-limpio (canónico) & auto-supervisado propio & no & no & no & 0,9671 & 0,6494 & 0,6050 & 0,6494 & 0,6229 & 0,8758 & 0,0111 & 0,2506 & [0,5865; 0,6602] \\
+B71 original (canónico) & auto-supervisado propio & no & no & sí & 0,9649 & 0,6443 & 0,5946 & 0,6443 & 0,6136 & 0,8529 & 0,0122 & 0,2336 & [0,5793; 0,6501] \\
+DINOv2 público, protocolo de A71 (canónico) & auto-supervisado & no & no & no & 0,9634 & 0,6234 & 0,5809 & 0,6234 & 0,5971 & 0,8323 & 0,0119 & 0,1998 & [0,5636; 0,6272] \\
+DINOv2 público, protocolo de B71 (canónico) & auto-supervisado & no & no & no & 0,9706 & 0,5828 & 0,5856 & 0,5828 & 0,5842 & 0,8790 & 0,0125 & 0,1684 & [0,5507; 0,6181] \\
+ResNet-50 & supervisado & no & no & no & 0,9161 & 0,6878 & 0,5448 & 0,6878 & 0,5601 & 0,8297 & 0,0275 & 0,1834 & [0,5396; 0,5790] \\
+ViT-B/16 & supervisado & no & no & no & 0,8883 & 0,7340 & 0,5415 & 0,7340 & 0,5493 & 0,8275 & 0,0598 & 0,1971 & [0,5319; 0,5668] \\
+EfficientNet-B0 & supervisado & no & no & no & 0,9186 & 0,6368 & 0,5352 & 0,6368 & 0,5457 & 0,7607 & 0,0378 & 0,1387 & [0,5264; 0,5640] \\
+DINOv2 ViT-B/14 & auto-supervisado & no & no & no & 0,8994 & 0,6753 & 0,5355 & 0,6753 & 0,5427 & 0,7999 & 0,0559 & 0,1578 & [0,5252; 0,5577] \\
+DINOv2 ViT-S/14 & auto-supervisado & no & no & no & 0,8470 & 0,7572 & 0,5346 & 0,7572 & 0,5266 & 0,8576 & 0,0561 & 0,1886 & [0,5119; 0,5393] \\
+VGG19 & supervisado & no & no & no & 0,8233 & 0,7370 & 0,5286 & 0,7370 & 0,5101 & 0,8128 & 0,0333 & 0,1647 & [0,4978; 0,5234] \\
+AlexNet & supervisado & no & no & no & 0,7940 & 0,7744 & 0,5292 & 0,7744 & 0,5008 & 0,8574 & 0,0442 & 0,1791 & [0,4894; 0,5122] \\
+SimSiam ResNet-50 & auto-supervisado & no & no & no & 0,7518 & 0,7650 & 0,5249 & 0,7650 & 0,4795 & 0,8468 & 0,0851 & 0,1624 & [0,4693; 0,4906] \\
+\midrule
+\multicolumn{14}{l}{\textit{con fine-tuning}} \\
+\midrule
+VGG19 & supervisado & sí & no & no & 0,9270 & 0,7416 & 0,5628 & 0,7416 & 0,5889 & 0,8929 & 0,0463 & 0,2464 & [0,5667; 0,6093] \\
+AlexNet & supervisado & sí & no & no & 0,9044 & 0,8065 & 0,5596 & 0,8065 & 0,5808 & 0,9089 & 0,0295 & 0,2703 & [0,5618; 0,5995] \\
+ViT-B/16 & supervisado & sí & no & no & 0,9059 & 0,7791 & 0,5560 & 0,7791 & 0,5756 & 0,9022 & 0,0231 & 0,2500 & [0,5553; 0,5938] \\
+ResNet-50 & supervisado & sí & no & no & 0,8941 & 0,7812 & 0,5509 & 0,7812 & 0,5651 & 0,9014 & 0,0192 & 0,2393 & [0,5471; 0,5824] \\
+EfficientNet-B0 & supervisado & sí & no & no & 0,8683 & 0,8123 & 0,5464 & 0,8123 & 0,5509 & 0,8997 & 0,0280 & 0,2407 & [0,5348; 0,5664] \\
+SimSiam ResNet-50 & auto-supervisado & sí & no & no & 0,8691 & 0,8046 & 0,5456 & 0,8046 & 0,5500 & 0,9012 & 0,0279 & 0,2357 & [0,5343; 0,5649] \\
+DINOv2 ViT-B/14 & auto-supervisado & sí & no & no & 0,9242 & 0,6115 & 0,5316 & 0,6115 & 0,5411 & 0,7820 & 0,2046 & 0,1187 & [0,5228; 0,5591] \\
+DINOv2 ViT-S/14 & auto-supervisado & sí & no & no & 0,8117 & 0,7392 & 0,5275 & 0,7392 & 0,5045 & 0,8301 & 0,0918 & 0,1621 & [0,4928; 0,5169] \\
+\midrule
+\multicolumn{14}{l}{\textit{sensibilidad (cómputo no canónico: batch 16, transductivo)}} \\
+\midrule
+A71 original (batch 16) & auto-supervisado propio & no & no & sí & 0,9685 & 0,6984 & 0,6287 & 0,6984 & 0,6554 & 0,9037 & 0,0356 & 0,3196 & [0,6197; 0,6910] \\
+B71 original (batch 16) & auto-supervisado propio & no & no & sí & 0,9644 & 0,6440 & 0,5930 & 0,6440 & 0,6123 & 0,8524 & 0,0112 & 0,2315 & [0,5781; 0,6486] \\
+DINOv2 público, protocolo de A71 (batch 16) & auto-supervisado & no & no & no & 0,9640 & 0,6277 & 0,5846 & 0,6277 & 0,6012 & 0,8326 & 0,0121 & 0,2079 & [0,5673; 0,6331] \\
+DINOv2 público, protocolo de B71 (batch 16) & auto-supervisado & no & no & no & 0,9703 & 0,5786 & 0,5813 & 0,5786 & 0,5799 & 0,8799 & 0,0128 & 0,1599 & [0,5458; 0,6126] \\
+\bottomrule
+\end{tabular}
+\caption{Banco completo en ISIC 2020: particiones de val distintas entre HAM10000 (v6/v7 y Kaggle), ISIC 2019 e ISIC 2020; la comparación entre particiones es solo de intervalos. El fine-tuning elige su época sobre val (optimista). Las filas de sensibilidad usan batch 16 (no canónico) las exploratorias no cambian el propuesto y las de pesos limpios son una sensibilidad posterior, no selección. IC solo donde la fuente lo publica.}
+\label{tab:bench-isic2020}
+\end{table}

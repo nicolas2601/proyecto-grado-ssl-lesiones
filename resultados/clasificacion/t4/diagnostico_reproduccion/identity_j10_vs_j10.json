@@ -1,0 +1,1098 @@
+{
+  "a_vs_b": {
+    "identical": true,
+    "units": {
+      "A_soup_a1.0@224": {
+        "features_equal": true,
+        "differing_parts": [],
+        "cells": {
+          "A_soup_a1.0@224|cls|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_mean|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls4|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_gem|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "A_soup_a1.0@224|cls_attn|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          }
+        },
+        "cells_bit_equal": true,
+        "max_argmax_flips": 0
+      },
+      "B_s42_a1.0@224": {
+        "features_equal": true,
+        "differing_parts": [],
+        "cells": {
+          "B_s42_a1.0@224|cls|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_mean|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls4|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_gem|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "B_s42_a1.0@224|cls_attn|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          }
+        },
+        "cells_bit_equal": true,
+        "max_argmax_flips": 0
+      },
+      "public@224": {
+        "features_equal": true,
+        "differing_parts": [],
+        "cells": {
+          "public@224|cls|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_mean|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls4|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_gem|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|none|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|none|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|balanced|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|balanced|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|la0.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|la0.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|la1.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|la1.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|la1.5|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|la1.5|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|la2.0|id": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          },
+          "public@224|cls_attn|la2.0|tta": {
+            "max_abs_proba_delta": 0.0,
+            "argmax_flips": 0,
+            "bit_equal": true
+          }
+        },
+        "cells_bit_equal": true,
+        "max_argmax_flips": 0
+      }
+    },
+    "n_cells": 180,
+    "max_abs_delta": {
+      "accuracy": 0.0,
+      "auc": 0.0,
+      "balanced_accuracy": 0.0,
+      "ece": 0.0,
+      "macro_f1": 0.0,
+      "mel_auc": 0.0,
+      "mel_recall": 0.0,
+      "mel_sens_at_spec80": 0.0,
+      "mel_sens_at_spec90": 0.0,
+      "mel_spec_at_sens95": 0.0
+    }
+  },
+  "a_vs_published": {
+    "n_cells": 180,
+    "max_abs_delta": {
+      "accuracy": 0.0,
+      "auc": 0.0,
+      "balanced_accuracy": 0.0,
+      "ece": 0.0,
+      "macro_f1": 0.0,
+      "mel_auc": 0.0,
+      "mel_recall": 0.0,
+      "mel_sens_at_spec80": 0.0,
+      "mel_sens_at_spec90": 0.0,
+      "mel_spec_at_sens95": 0.0
+    }
+  },
+  "a_environment": {
+    "schema": 1,
+    "python": "3.13.15",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.0",
+      "scikit-learn": "1.9.0",
+      "torch": "2.11.0+cu128",
+      "torchvision": "0.26.0+cu128",
+      "joblib": "1.6.0",
+      "threadpoolctl": "3.6.0"
+    },
+    "torch": {
+      "loaded": true,
+      "version": "2.11.0+cu128",
+      "cuda_runtime": "12.8",
+      "cudnn": 91900,
+      "cudnn_deterministic": true,
+      "cudnn_benchmark": false,
+      "deterministic_algorithms": false,
+      "num_threads": 4,
+      "cuda_available": true,
+      "cuda_initialized": true,
+      "gpus": [
+        {
+          "index": 0,
+          "name": "NVIDIA RTX PRO 4000 Blackwell"
+        }
+      ]
+    },
+    "env": {
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "NUMEXPR_NUM_THREADS": null,
+      "CUBLAS_WORKSPACE_CONFIG": null,
+      "CUDA_VISIBLE_DEVICES": "1",
+      "PYTHONHASHSEED": null
+    },
+    "threadpools": [
+      {
+        "user_api": "blas",
+        "internal_api": "openblas",
+        "num_threads": 4,
+        "version": "0.3.34"
+      },
+      {
+        "user_api": "openmp",
+        "internal_api": "openmp",
+        "num_threads": 4,
+        "version": null
+      }
+    ],
+    "cpu_count": 48,
+    "knobs": {
+      "probe_jobs": 10,
+      "boot_jobs": 24,
+      "decode_workers": 16,
+      "batch_size": 64,
+      "loky_inner_threads": 4
+    }
+  },
+  "b_vs_published": {
+    "n_cells": 180,
+    "max_abs_delta": {
+      "accuracy": 0.0,
+      "auc": 0.0,
+      "balanced_accuracy": 0.0,
+      "ece": 0.0,
+      "macro_f1": 0.0,
+      "mel_auc": 0.0,
+      "mel_recall": 0.0,
+      "mel_sens_at_spec80": 0.0,
+      "mel_sens_at_spec90": 0.0,
+      "mel_spec_at_sens95": 0.0
+    }
+  },
+  "b_environment": {
+    "schema": 1,
+    "python": "3.13.15",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.0",
+      "scikit-learn": "1.9.0",
+      "torch": "2.11.0+cu128",
+      "torchvision": "0.26.0+cu128",
+      "joblib": "1.6.0",
+      "threadpoolctl": "3.6.0"
+    },
+    "torch": {
+      "loaded": true,
+      "version": "2.11.0+cu128",
+      "cuda_runtime": "12.8",
+      "cudnn": 91900,
+      "cudnn_deterministic": true,
+      "cudnn_benchmark": false,
+      "deterministic_algorithms": false,
+      "num_threads": 4,
+      "cuda_available": true,
+      "cuda_initialized": true,
+      "gpus": [
+        {
+          "index": 0,
+          "name": "NVIDIA RTX PRO 4000 Blackwell"
+        }
+      ]
+    },
+    "env": {
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "NUMEXPR_NUM_THREADS": null,
+      "CUBLAS_WORKSPACE_CONFIG": null,
+      "CUDA_VISIBLE_DEVICES": "1",
+      "PYTHONHASHSEED": null
+    },
+    "threadpools": [
+      {
+        "user_api": "blas",
+        "internal_api": "openblas",
+        "num_threads": 4,
+        "version": "0.3.34"
+      },
+      {
+        "user_api": "openmp",
+        "internal_api": "openmp",
+        "num_threads": 4,
+        "version": null
+      }
+    ],
+    "cpu_count": 48,
+    "knobs": {
+      "probe_jobs": 10,
+      "boot_jobs": 24,
+      "decode_workers": 16,
+      "batch_size": 64,
+      "loky_inner_threads": 4
+    }
+  }
+}

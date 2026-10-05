@@ -1,0 +1,20 @@
+{
+  "_comment": "Piloto del clusterUNABIA (2x RTX PRO 4000 de 24 GB): 1 ronda, 5 epocas contrastivas y 5 epocas de estudiante. Sirve para medir segundos por epoca e imagenes por segundo antes de fijar el presupuesto final. Todos los valores estan completos: el driver corre sin editar nada.",
+  "pipeline": {"rounds": 1, "epochs_per_round": 5, "seed": 42},
+  "cache": {
+    "resolution": 224, "holdout_fraction": 0.02, "threads": 16,
+    "field_black_threshold": 0.06, "field_margin_fraction": 0.04
+  },
+  "contrastive": {
+    "epochs": 5, "batch_size": 128, "lr": 0.0005, "weight_decay": 0.0001, "warmup_epochs": 1,
+    "queue_size": 16384, "momentum": 0.99, "temperature": 0.2, "layer4_stride": 2,
+    "bn_splits": 4, "precision": "bf16"
+  },
+  "ccam": {"epochs": 2, "batch_size": 64, "lr": 0.001, "alpha": 0.25, "head_kernel": 3, "precision": "bf16"},
+  "pseudo": {"low": 0.35, "high": 0.65, "max_center_distance": 0.5, "max_area_fraction": 0.6},
+  "student": {
+    "batch_size": 32, "lr": 0.0001, "optimizer": "adam", "warmup_epochs": 1,
+    "dice_weight": 1.0, "base_channels": 32, "selection": "best-val", "precision": "bf16"
+  },
+  "evaluate": {"batch_size": 32, "strata_column": "tone_tercile"}
+}

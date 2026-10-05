@@ -1,0 +1,121 @@
+{
+ "cell": "B71__original",
+ "key": {
+  "dataset": "isic2020",
+  "cell": "B71__original",
+  "config_id": "B_s42_a1.0@224|cls4|balanced|tta",
+  "transductivo": true,
+  "weights_sha256": "a1d6a41623dae7b4e41701a5642746f4542286989ac035207e5485ba2966e0c7",
+  "val_ids_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e",
+  "train_ids_sha256": "0284b47c93a1d2aeaaac182e928269529578abecb6e1dd261c4383194cb42fbb",
+  "n_val": 6660,
+  "n_train": 26466,
+  "limit": null,
+  "n_resamples": 1000
+ },
+ "key_sha256": "01fa76447439a79570caefb2756176c1dfd91fe88500c1024d138439c2884062",
+ "result": {
+  "code_revision": "c3eb887a28101afb3a64d0f9747ae91d104a4845",
+  "pool_check": {
+   "variant": "original",
+   "exclude_ids_sha256": {
+    "B_s42": "95d21013a42a5c99a6024ef6c8ae73aada8bdc1193ae512665035bb59b737d87"
+   },
+   "verified": true
+  },
+  "dataset": "isic2020",
+  "config_id": "B_s42_a1.0@224|cls4|balanced|tta",
+  "transductivo": true,
+  "n_train": 26466,
+  "n_val": 6660,
+  "limit": null,
+  "cell": "B71__original",
+  "pool_excludes_val": false,
+  "protocol": {
+   "weights": "B_s42_a1.0",
+   "resolution": 224,
+   "feature": "cls4",
+   "weighting": "balanced",
+   "tta": true
+  },
+  "split_identity": {
+   "sklearn_version": "1.7.2",
+   "n_train": 26466,
+   "n_val": 6660,
+   "val_supports": [
+    6538,
+    122
+   ],
+   "val_ids_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e",
+   "val_sha_construction": "join_newline",
+   "train_ids_sha256": "0284b47c93a1d2aeaaac182e928269529578abecb6e1dd261c4383194cb42fbb"
+  },
+  "probe": "logreg C=1 standardised, fitted on the dataset TRAIN split; no selection on val",
+  "metrics": {
+   "macro_f1": 0.613587562916863,
+   "balanced_accuracy": 0.6442663069369988,
+   "accuracy": 0.9648648648648649,
+   "auc": 0.8528802611717625,
+   "ece": 0.01221336264378615,
+   "mcc": 0.23361412859878963,
+   "per_class": {
+    "benign": {
+     "precision": 0.9870210135970334,
+     "recall": 0.9770572040379321,
+     "f1": 0.9820138355111453,
+     "support": 6538
+    },
+    "malignant": {
+     "precision": 0.20212765957446807,
+     "recall": 0.3114754098360656,
+     "f1": 0.24516129032258063,
+     "support": 122
+    }
+   },
+   "matriz_confusion": [
+    [
+     6388,
+     150
+    ],
+    [
+     84,
+     38
+    ]
+   ],
+   "macro_precision": 0.5945743365857508,
+   "macro_recall": 0.6442663069369988,
+   "ci95": {
+    "macro_f1": [
+     0.5793137812119659,
+     0.6500505042359709
+    ],
+    "balanced_accuracy": [
+     0.5974045605900067,
+     0.6928208793113927
+    ],
+    "accuracy": [
+     0.9575652388175777,
+     0.9711643406758751
+    ],
+    "auc": [
+     0.808810396465566,
+     0.8945302888793953
+    ],
+    "ece": [
+     0.009389894443877554,
+     0.017400341252502397
+    ],
+    "mcc": [
+     0.1638151924169717,
+     0.30833362528433933
+    ]
+   },
+   "bootstrap": {
+    "n_resamples": 1000,
+    "seed": 20260923,
+    "unit": "patient_id"
+   }
+  },
+  "probas_sha256": "bfe2165f76e371f4a5408949eeba3d32d6409cc5285bcb50ff782b68f1843332"
+ }
+}

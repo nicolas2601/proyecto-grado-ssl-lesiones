@@ -1,0 +1,30 @@
+HAM con tercil y diagnostico: 9822
+
+=== L* de la piel por tercil (contexto de los cortes) ===
+tercil       n   L*_media  L*_mediana   L*_min   L*_max
+light      864      82.77       81.90    78.59    96.37
+medium    4876      71.99       71.58    67.25    78.58
+dark      4082      62.27       63.06    42.27    67.24
+
+=== Composicion por tercil (% de cada diagnostico) ===
+tercil       n        nv     mel     bkl     bcc   akiec    vasc      df
+light      864     64.9%   14.4%    8.1%    5.3%    3.2%    2.4%    1.6%
+medium    4876     69.4%    9.3%    7.9%    6.8%    3.6%    1.6%    1.3%
+dark      4082     65.1%   12.2%   14.9%    3.0%    2.8%    1.0%    0.9%
+
+=== Dice por tercil DENTRO de cada diagnostico ===
+(se omite una celda con menos de 30 imagenes)
+dx                     light              medium                dark      gap
+nv            0.8716 (n=561)     0.8395 (n=3386)     0.8014 (n=2659)  +0.0702
+mel           0.8918 (n=124)      0.8314 (n=454)      0.7405 (n=499)  +0.1513
+bkl            0.8859 (n=70)      0.7544 (n=386)      0.6368 (n=609)  +0.2491
+bcc            0.7162 (n=46)      0.6097 (n=334)      0.5169 (n=123)  +0.1992
+akiec              -- (n=28)      0.5476 (n=174)      0.4691 (n=114)  +0.0786
+vasc               -- (n=21)       0.7980 (n=80)       0.7752 (n=41)  +0.0228
+df                 -- (n=14)       0.6743 (n=62)       0.6889 (n=37)  +0.0146
+
+=== Global, para comparar ===
+  light    n=  864 Dice 0.8616
+  medium   n= 4876 Dice 0.8030
+  dark     n= 4082 Dice 0.7503
+  gap global (claro - oscuro): +0.1114

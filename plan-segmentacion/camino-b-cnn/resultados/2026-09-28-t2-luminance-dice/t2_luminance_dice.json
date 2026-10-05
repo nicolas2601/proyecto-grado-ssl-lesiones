@@ -1,0 +1,492 @@
+{
+ "analysis": "T2, exploratorio: Dice por tercil de luminancia (docs/27)",
+ "bins": "tone_tercile = tercil de la mediana de L* de la piel sobre el pool; no es tono de piel",
+ "params": {
+  "n_resamples": 1000,
+  "seed": 20260923,
+  "clear_margin": -0.02,
+  "min_n": 100
+ },
+ "inputs": {
+  "manifest_sha256": "57df1e65e88d3b54ba530d6e026010bfc8ce25d1437e50b4ffe37cfd7d4f87da",
+  "terciles": "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-t2-luminance-dice/terciles_eval_ids.csv",
+  "terciles_sha256": "352f530cc1717569b767c0ff818e1d80412a53106cf6f38be92a0ab6c93eeb9d",
+  "per_image": {
+   "A2": {
+    "isic2018": {
+     "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/evaluacion_isic2018/per_image.csv",
+     "sha256": "6127e34cba83ae42aded07de636c0112e42d656e8f201553e9cf473ae37e29df"
+    },
+    "ham10000": {
+     "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/evaluacion_ham10000/per_image.csv",
+     "sha256": "f464932812aa9e9f67a065f165f12cc3945e86b10228e9a045a89ff284eeef78"
+    }
+   },
+   "student_r3": {
+    "isic2018": {
+     "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/evaluacion_isic2018/per_image.csv",
+     "sha256": "8f01d5326d8330fc587a2d2a4f3db62611bc621c0014dfdf625fdfb4bf24d1b8"
+    },
+    "ham10000": {
+     "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/evaluacion_ham10000/per_image.csv",
+     "sha256": "953a9c3127996ff3b17974290c5cc4091132ee40745ecac1669a23603b6cde6f"
+    }
+   }
+  }
+ },
+ "datasets": {
+  "isic2018": {
+   "coverage": {
+    "dark": 158,
+    "medium": 304,
+    "light": 260,
+    "unavailable": 50,
+    "not_in_manifest": 1822,
+    "total": 2594
+   },
+   "segmenters": {
+    "A2": {
+     "bins": {
+      "dark": {
+       "n": 158,
+       "dice": {
+        "n": 158,
+        "n_dropped_non_finite": 0,
+        "mean": 0.7807582247496623,
+        "ci95_low": 0.7555864051199063,
+        "ci95_high": 0.8049940593157642
+       },
+       "hd95": {
+        "n": 158,
+        "n_dropped_non_finite": 0,
+        "mean": 24.578154314354954,
+        "ci95_low": 20.748019665903904,
+        "ci95_high": 28.33389841200703
+       }
+      },
+      "medium": {
+       "n": 304,
+       "dice": {
+        "n": 304,
+        "n_dropped_non_finite": 0,
+        "mean": 0.8153733780334259,
+        "ci95_low": 0.7977689410979606,
+        "ci95_high": 0.8309540242322369
+       },
+       "hd95": {
+        "n": 304,
+        "n_dropped_non_finite": 0,
+        "mean": 19.767105412595587,
+        "ci95_low": 17.91994516067587,
+        "ci95_high": 22.000299192590028
+       }
+      },
+      "light": {
+       "n": 260,
+       "dice": {
+        "n": 260,
+        "n_dropped_non_finite": 0,
+        "mean": 0.8366640331070587,
+        "ci95_low": 0.8194711459296387,
+        "ci95_high": 0.852421948875772
+       },
+       "hd95": {
+        "n": 260,
+        "n_dropped_non_finite": 0,
+        "mean": 17.80659286875726,
+        "ci95_low": 15.695728087826293,
+        "ci95_high": 20.034763530333674
+       }
+      }
+     },
+     "rest_n": 564,
+     "global_n": 722,
+     "global": {
+      "dice": {
+       "n": 722,
+       "n_dropped_non_finite": 0,
+       "mean": 0.8154653116903647,
+       "ci95_low": 0.805045151000738,
+       "ci95_high": 0.8252040760586522
+      },
+      "hd95": {
+       "n": 722,
+       "n_dropped_non_finite": 0,
+       "mean": 20.11393708168148,
+       "ci95_low": 18.8244507817788,
+       "ci95_high": 21.672829053893896
+      }
+     },
+     "dark_minus_rest": {
+      "dice": {
+       "delta": -0.044429994275154594,
+       "ci95_low": -0.07152495939655952,
+       "ci95_high": -0.01612230869959722,
+       "n_a": 158,
+       "n_b": 564,
+       "verdict": "distinguible pero no clara"
+      },
+      "hd95": {
+       "delta": 5.714831280124557,
+       "ci95_low": 1.623231811589977,
+       "ci95_high": 9.681799140408483,
+       "n_a": 158,
+       "n_b": 564
+      }
+     },
+     "dark_minus_global": {
+      "dice": {
+       "delta": -0.03470708694070246,
+       "ci95_low": -0.059906023455888455,
+       "ci95_high": -0.008200006543545172,
+       "n_a": 158,
+       "n_b": 722
+      },
+      "hd95": {
+       "delta": 4.464217232673473,
+       "ci95_low": 0.45490026376627096,
+       "ci95_high": 8.454763310712428,
+       "n_a": 158,
+       "n_b": 722
+      }
+     }
+    },
+    "student_r3": {
+     "bins": {
+      "dark": {
+       "n": 158,
+       "dice": {
+        "n": 158,
+        "n_dropped_non_finite": 0,
+        "mean": 0.7650939197825012,
+        "ci95_low": 0.737981318341305,
+        "ci95_high": 0.7921033726121208
+       },
+       "hd95": {
+        "n": 158,
+        "n_dropped_non_finite": 0,
+        "mean": 26.43223353270156,
+        "ci95_low": 22.72953240798809,
+        "ci95_high": 30.173093332304763
+       }
+      },
+      "medium": {
+       "n": 304,
+       "dice": {
+        "n": 304,
+        "n_dropped_non_finite": 0,
+        "mean": 0.802384459052751,
+        "ci95_low": 0.7834707095336453,
+        "ci95_high": 0.8192998462418069
+       },
+       "hd95": {
+        "n": 304,
+        "n_dropped_non_finite": 0,
+        "mean": 21.65424850620687,
+        "ci95_low": 19.375286831990383,
+        "ci95_high": 23.978878502987694
+       }
+      },
+      "light": {
+       "n": 260,
+       "dice": {
+        "n": 260,
+        "n_dropped_non_finite": 0,
+        "mean": 0.8204504349440994,
+        "ci95_low": 0.800901828856962,
+        "ci95_high": 0.8380311270316322
+       },
+       "hd95": {
+        "n": 260,
+        "n_dropped_non_finite": 0,
+        "mean": 19.215089826896964,
+        "ci95_low": 16.952310282556326,
+        "ci95_high": 21.828344034830618
+       }
+      }
+     },
+     "rest_n": 564,
+     "global_n": 722,
+     "global": {
+      "dice": {
+       "n": 722,
+       "n_dropped_non_finite": 0,
+       "mean": 0.8007296786193039,
+       "ci95_low": 0.7891732322253177,
+       "ci95_high": 0.8113412096870543
+      },
+      "hd95": {
+       "n": 722,
+       "n_dropped_non_finite": 0,
+       "mean": 21.821478946048398,
+       "ci95_low": 20.455990588638397,
+       "ci95_high": 23.44117839919432
+      }
+     },
+     "dark_minus_rest": {
+      "dice": {
+       "delta": -0.04561882602867273,
+       "ci95_low": -0.07618337882424454,
+       "ci95_high": -0.01403645766402112,
+       "n_a": 158,
+       "n_b": 564,
+       "verdict": "distinguible pero no clara"
+      },
+      "hd95": {
+       "delta": 5.902419878658829,
+       "ci95_low": 1.793360994320453,
+       "ci95_high": 9.884568826041216,
+       "n_a": 158,
+       "n_b": 564
+      }
+     },
+     "dark_minus_global": {
+      "dice": {
+       "delta": -0.0356357588368027,
+       "ci95_low": -0.06465062850128049,
+       "ci95_high": -0.00788786325342711,
+       "n_a": 158,
+       "n_b": 722
+      },
+      "hd95": {
+       "delta": 4.610754586653162,
+       "ci95_low": 0.5629162969880812,
+       "ci95_high": 8.693633539647434,
+       "n_a": 158,
+       "n_b": 722
+      }
+     }
+    }
+   }
+  },
+  "ham10000": {
+   "coverage": {
+    "dark": 4082,
+    "medium": 4876,
+    "light": 864,
+    "unavailable": 193,
+    "not_in_manifest": 0,
+    "total": 10015
+   },
+   "segmenters": {
+    "A2": {
+     "bins": {
+      "dark": {
+       "n": 4082,
+       "dice": {
+        "n": 4082,
+        "n_dropped_non_finite": 0,
+        "mean": 0.762303876848544,
+        "ci95_low": 0.7567664637996753,
+        "ci95_high": 0.7675192699806649
+       },
+       "hd95": {
+        "n": 4082,
+        "n_dropped_non_finite": 0,
+        "mean": 25.304346890843053,
+        "ci95_low": 24.643495872824825,
+        "ci95_high": 26.021997802572393
+       }
+      },
+      "medium": {
+       "n": 4876,
+       "dice": {
+        "n": 4876,
+        "n_dropped_non_finite": 0,
+        "mean": 0.8133733860623741,
+        "ci95_low": 0.8088122644114699,
+        "ci95_high": 0.8175568785515568
+       },
+       "hd95": {
+        "n": 4876,
+        "n_dropped_non_finite": 0,
+        "mean": 20.119370818886978,
+        "ci95_low": 19.569175506812456,
+        "ci95_high": 20.704830035813664
+       }
+      },
+      "light": {
+       "n": 864,
+       "dice": {
+        "n": 864,
+        "n_dropped_non_finite": 0,
+        "mean": 0.8615161186818389,
+        "ci95_low": 0.8532764552248299,
+        "ci95_high": 0.8702858643058553
+       },
+       "hd95": {
+        "n": 864,
+        "n_dropped_non_finite": 0,
+        "mean": 14.567693727380604,
+        "ci95_low": 13.62595957713367,
+        "ci95_high": 15.504330140284427
+       }
+      }
+     },
+     "rest_n": 5740,
+     "global_n": 9822,
+     "global": {
+      "dice": {
+       "n": 9822,
+       "n_dropped_non_finite": 0,
+       "mean": 0.7963839322212382,
+       "ci95_low": 0.7928708813795439,
+       "ci95_high": 0.7999054533084397
+      },
+      "hd95": {
+       "n": 9822,
+       "n_dropped_non_finite": 0,
+       "mean": 21.78587696006629,
+       "ci95_low": 21.346285443940122,
+       "ci95_high": 22.21323946484879
+      }
+     },
+     "dark_minus_rest": {
+      "dice": {
+       "delta": -0.05831608081369366,
+       "ci95_low": -0.06522513977336142,
+       "ci95_high": -0.05148350117606239,
+       "n_a": 4082,
+       "n_b": 5740,
+       "verdict": "cumplida"
+      },
+      "hd95": {
+       "delta": 6.020629209074809,
+       "ci95_low": 5.099316262335503,
+       "ci95_high": 6.916433173568861,
+       "n_a": 4082,
+       "n_b": 5740
+      }
+     },
+     "dark_minus_global": {
+      "dice": {
+       "delta": -0.03408005537269421,
+       "ci95_low": -0.04089051397006463,
+       "ci95_high": -0.027771578268459673,
+       "n_a": 4082,
+       "n_b": 9822
+      },
+      "hd95": {
+       "delta": 3.5184699307767637,
+       "ci95_low": 2.711191757109442,
+       "ci95_high": 4.329220270258663,
+       "n_a": 4082,
+       "n_b": 9822
+      }
+     }
+    },
+    "student_r3": {
+     "bins": {
+      "dark": {
+       "n": 4082,
+       "dice": {
+        "n": 4082,
+        "n_dropped_non_finite": 0,
+        "mean": 0.7502785450336802,
+        "ci95_low": 0.7442965476672815,
+        "ci95_high": 0.7555089097026068
+       },
+       "hd95": {
+        "n": 4082,
+        "n_dropped_non_finite": 0,
+        "mean": 25.832093225620735,
+        "ci95_low": 25.089880108197026,
+        "ci95_high": 26.57645492083976
+       }
+      },
+      "medium": {
+       "n": 4876,
+       "dice": {
+        "n": 4876,
+        "n_dropped_non_finite": 0,
+        "mean": 0.803037665441345,
+        "ci95_low": 0.7982964821234512,
+        "ci95_high": 0.807468565363065
+       },
+       "hd95": {
+        "n": 4876,
+        "n_dropped_non_finite": 0,
+        "mean": 20.605436740443306,
+        "ci95_low": 20.054141951130916,
+        "ci95_high": 21.179420350346845
+       }
+      },
+      "light": {
+       "n": 864,
+       "dice": {
+        "n": 864,
+        "n_dropped_non_finite": 0,
+        "mean": 0.8616433905745018,
+        "ci95_low": 0.8534778241174317,
+        "ci95_high": 0.8696462174169166
+       },
+       "hd95": {
+        "n": 864,
+        "n_dropped_non_finite": 0,
+        "mean": 14.340535596019196,
+        "ci95_low": 13.4129797592265,
+        "ci95_high": 15.212540233416089
+       }
+      }
+     },
+     "rest_n": 5740,
+     "global_n": 9822,
+     "global": {
+      "dice": {
+       "n": 9822,
+       "n_dropped_non_finite": 0,
+       "mean": 0.7862663985925321,
+       "ci95_low": 0.7824675418466652,
+       "ci95_high": 0.7900085783341606
+      },
+      "hd95": {
+       "n": 9822,
+       "n_dropped_non_finite": 0,
+       "mean": 22.226525844873347,
+       "ci95_low": 21.763632205030532,
+       "ci95_high": 22.695190963150957
+      }
+     },
+     "dark_minus_rest": {
+      "dice": {
+       "delta": -0.06158060934756859,
+       "ci95_low": -0.0688103606880044,
+       "ci95_high": -0.05417174329659754,
+       "n_a": 4082,
+       "n_b": 5740,
+       "verdict": "cumplida"
+      },
+      "hd95": {
+       "delta": 6.169665995418267,
+       "ci95_low": 5.224040253089739,
+       "ci95_high": 7.055695413375266,
+       "n_a": 4082,
+       "n_b": 5740
+      }
+     },
+     "dark_minus_global": {
+      "dice": {
+       "delta": -0.03598785355885192,
+       "ci95_low": -0.04302252355027185,
+       "ci95_high": -0.029290377064485725,
+       "n_a": 4082,
+       "n_b": 9822
+      },
+      "hd95": {
+       "delta": 3.605567380747388,
+       "ci95_low": 2.746244012872327,
+       "ci95_high": 4.455670398261145,
+       "n_a": 4082,
+       "n_b": 9822
+      }
+     }
+    }
+   }
+  }
+ },
+ "provenance": {
+  "registration_commit": "a899048803fec724dc50aebf6d0cf8efcb00dfa1",
+  "code_revision": "2fc6f5eb7e36269ce65f9af67f6f8be70f803607",
+  "manifest": "/home/nicolas/cc-uploads/final/strata_v2/fst_pseudo_manifest.csv"
+ }
+}

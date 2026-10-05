@@ -1,0 +1,84 @@
+"""Diagnostico: la U de la distribucion FST, es de tono o de signo de b*?
+
+ITA = arctan((L*-50)/b*) * 180/pi. Cuando b* -> 0 el arcotangente satura en
++-90 y el signo de b* decide el extremo, aunque L* sea identico. Si los buckets
+1 y 6 tienen L* parecida y solo difieren en el signo de b*, la U es un artefacto
+del estimador, no una diferencia real de tono de piel.
+
+Solo lee. No escribe nada ni toca las salidas.
+"""
+import csv
+import json
+
+import numpy as np
+from skimage.color import rgb2lab
+
+ROOT = "/home/jovyan/work/proyectonp"
+HAM_META = "/home/jovyan/work/datos/ham10000/HAM10000_metadata.csv"
+
+manifest = list(csv.DictReader(open(f"{ROOT}/salidas/final/cache/manifest.csv")))
+fst = {r["image_id"]: r for r in json.load(
+    open(f"{ROOT}/salidas/final/fst/fst_pseudo_manifest.json"))["records"]}
+ham_ids = {r["image_id"] for r in csv.DictReader(open(HAM_META))}
+
+images = np.load(f"{ROOT}/salidas/final/cache/images.npy", mmap_mode="r")
+field = np.load(f"{ROOT}/salidas/final/cache/field.npy", mmap_mode="r")
+masks = np.load(f"{ROOT}/salidas/final/pseudo_r2/pseudo_masks.npy", mmap_mode="r")
+
+# Indices de HAM con bucket FST numerico
+idx = [(int(r["index"]), r["image_id"]) for r in manifest
+       if r["image_id"] in ham_ids
+       and fst.get(r["image_id"], {}).get("FST_bucket") in (1, 2, 3, 4, 5, 6)]
+print(f"HAM con bucket numerico: {len(idx)}")
+
+out = []
+for i, (ix, iid) in enumerate(idx):
+    if i % 1000 == 0:
+        print(f"  {i}/{len(idx)}", flush=True)
+    # Piel sana = dentro del campo del dermatoscopio y fuera de la lesion
+    piel = (np.asarray(field[ix]) > 0) & (np.asarray(masks[ix]) == 0)
+    if piel.sum() < 200:
+        continue
+    lab = rgb2lab(np.asarray(images[ix]) / 255.0)
+    L = float(np.median(lab[..., 0][piel]))
+    b = float(np.median(lab[..., 2][piel]))
+    rec = fst[iid]
+    out.append({"bucket": rec["FST_bucket"], "ITA_pipeline": rec["ITA"], "L": L, "b": b})
+
+print(f"con piel suficiente: {len(out)}")
+print()
+
+print("L* y b* medianos por bucket (b_pos% = fraccion con b* > 0):")
+print("bucket      n    L*_med    b*_med   |b*|_med   b_pos%   ITA_recalc")
+for bk in [1, 2, 3, 4, 5, 6]:
+    g = [r for r in out if r["bucket"] == bk]
+    if not g:
+        continue
+    L = np.array([r["L"] for r in g]); b = np.array([r["b"] for r in g])
+    ita = np.degrees(np.arctan2(np.median(L) - 50, np.median(b)))
+    print(f"{bk:6d} {len(g):6d}  {np.median(L):8.2f}  {np.median(b):8.2f}  "
+          f"{np.median(np.abs(b)):8.2f}  {100*(b>0).mean():6.1f}  {ita:9.2f}")
+
+print()
+print("Cruce bucket x signo de b*:")
+print("bucket    b*>0    b*<=0")
+for bk in [1, 2, 3, 4, 5, 6]:
+    g = [r for r in out if r["bucket"] == bk]
+    if g:
+        pos = sum(1 for r in g if r["b"] > 0)
+        print(f"{bk:6d} {pos:7d} {len(g)-pos:8d}")
+
+print()
+print("Cuantos tienen |b*| pequeno (zona de saturacion del arcotangente):")
+b_all = np.array([r["b"] for r in out])
+for u in [1.0, 2.0, 5.0]:
+    print(f"  |b*| < {u}: {int((np.abs(b_all) < u).sum()):5d} ({100*(np.abs(b_all)<u).mean():.1f}%)")
+
+print()
+print("Prueba decisiva -- L* de bucket 1 vs bucket 6:")
+L1 = np.array([r["L"] for r in out if r["bucket"] == 1])
+L6 = np.array([r["L"] for r in out if r["bucket"] == 6])
+print(f"  bucket 1: n={len(L1):5d} L*_med={np.median(L1):.2f} (p25={np.percentile(L1,25):.2f}, p75={np.percentile(L1,75):.2f})")
+print(f"  bucket 6: n={len(L6):5d} L*_med={np.median(L6):.2f} (p25={np.percentile(L6,25):.2f}, p75={np.percentile(L6,75):.2f})")
+print(f"  diferencia de L* medianas: {np.median(L1)-np.median(L6):+.2f}")
+print("  (si la diferencia es chica, el bucket 6 NO es piel mas oscura: es b* negativo)")

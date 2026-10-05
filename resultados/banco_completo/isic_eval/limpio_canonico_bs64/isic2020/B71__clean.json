@@ -1,0 +1,121 @@
+{
+ "cell": "B71__clean",
+ "key": {
+  "dataset": "isic2020",
+  "cell": "B71__clean",
+  "config_id": "B_s42_a1.0@224|cls4|balanced|tta",
+  "transductivo": false,
+  "weights_sha256": "a392ebe8eedcc519a6131e3930bed5ea232d4be7084010f82740e55cadbe39c1",
+  "val_ids_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e",
+  "train_ids_sha256": "0284b47c93a1d2aeaaac182e928269529578abecb6e1dd261c4383194cb42fbb",
+  "n_val": 6660,
+  "n_train": 26466,
+  "limit": null,
+  "n_resamples": 1000
+ },
+ "key_sha256": "cb98f4034dac0a61283e8c799ceb3fb642dd2acf4f4f359fff780fc4777d766f",
+ "result": {
+  "code_revision": "c3eb887a28101afb3a64d0f9747ae91d104a4845",
+  "pool_check": {
+   "variant": "clean",
+   "exclude_ids_sha256": {
+    "B_s42": "3b7e883392ba5ae0cb290166fa2d4e2dfbb325d4bce0bca3e96562f8c39dfc1d"
+   },
+   "verified": true
+  },
+  "dataset": "isic2020",
+  "config_id": "B_s42_a1.0@224|cls4|balanced|tta",
+  "transductivo": false,
+  "n_train": 26466,
+  "n_val": 6660,
+  "limit": null,
+  "cell": "B71__clean",
+  "pool_excludes_val": true,
+  "protocol": {
+   "weights": "B_s42_a1.0",
+   "resolution": 224,
+   "feature": "cls4",
+   "weighting": "balanced",
+   "tta": true
+  },
+  "split_identity": {
+   "sklearn_version": "1.7.2",
+   "n_train": 26466,
+   "n_val": 6660,
+   "val_supports": [
+    6538,
+    122
+   ],
+   "val_ids_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e",
+   "val_sha_construction": "join_newline",
+   "train_ids_sha256": "0284b47c93a1d2aeaaac182e928269529578abecb6e1dd261c4383194cb42fbb"
+  },
+  "probe": "logreg C=1 standardised, fitted on the dataset TRAIN split; no selection on val",
+  "metrics": {
+   "macro_f1": 0.622904930437757,
+   "balanced_accuracy": 0.6494353314042998,
+   "accuracy": 0.9671171171171171,
+   "auc": 0.8758305793620148,
+   "ece": 0.011133408570747887,
+   "mcc": 0.2505599453325243,
+   "per_class": {
+    "benign": {
+     "precision": 0.987201233616037,
+     "recall": 0.9791985316610584,
+     "f1": 0.9831835982492513,
+     "support": 6538
+    },
+    "malignant": {
+     "precision": 0.22285714285714286,
+     "recall": 0.319672131147541,
+     "f1": 0.26262626262626265,
+     "support": 122
+    }
+   },
+   "matriz_confusion": [
+    [
+     6402,
+     136
+    ],
+    [
+     83,
+     39
+    ]
+   ],
+   "macro_precision": 0.6050291882365899,
+   "macro_recall": 0.6494353314042998,
+   "ci95": {
+    "macro_f1": [
+     0.5864888166443191,
+     0.6601927471535446
+    ],
+    "balanced_accuracy": [
+     0.6052431688721587,
+     0.6925741524937677
+    ],
+    "accuracy": [
+     0.9599619049767945,
+     0.9730732024356931
+    ],
+    "auc": [
+     0.8396646494886655,
+     0.9048682923547531
+    ],
+    "ece": [
+     0.00874672898303914,
+     0.01639688768724224
+    ],
+    "mcc": [
+     0.1765895312937121,
+     0.32694720012507683
+    ]
+   },
+   "bootstrap": {
+    "n_resamples": 1000,
+    "seed": 20260923,
+    "unit": "patient_id"
+   }
+  },
+  "probas_sha256": "9ac5f9e85442bc2e47b085dd96e08b1083e4986401259765c8a279a5aa1aa650"
+ }
+}

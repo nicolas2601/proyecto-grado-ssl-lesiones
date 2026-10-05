@@ -1,0 +1,55 @@
+# Dependencies for running the full test suite.
+#
+# Without scikit-learn, tests/test_probes.py and tests/test_notebook_metrics_binary.py
+# skip as one line each and take every test they hold with them - including the
+# coverage of the binary-AUC fix in the metric cell shared by both banks. The
+# run still reports green, which is the dangerous part.
+#
+#   pip install -r requirements-dev.txt
+#   CI_REQUIRE_FULL_DEPS=1 pytest -q -rs
+#
+# The env var turns those skips into a failure; CI sets it. No test count is
+# written here on purpose: a hard-coded number goes stale the moment a test is
+# added, and tests/test_ci_workflow.py fails if one reappears.
+pytest>=8.0
+# Runs each test FILE in its own worker process (--dist loadfile). The suite
+# loads torch, scikit-learn, scikit-image and scipy; accumulating all of them
+# in one interpreter segfaults the run (exit 139), which reads as a CI failure
+# with no failing test to point at.
+pytest-xdist>=3.5
+# A hung test is worse than a failing one: it burns the runner until the job
+# limit and names nothing. With a per-test deadline the hang becomes a normal
+# failure with a test id attached.
+pytest-timeout>=2.3
+numpy>=1.26
+pandas>=2.0
+scikit-learn>=1.5
+
+# LAB-conversion test oracle for dermssl/fitzpatrick.py (D2: never a runtime
+# import in src/dermssl - see openspec/changes/fitzpatrick-domain-adaptation).
+scikit-image>=0.22
+
+# Linter. Config in ruff.toml, deliberately narrow.
+ruff>=0.6
+
+# Segmentation S2 / S2-prime (hair removal) and the pHash near-duplicate check.
+# Without them tests/test_seg_hair_*.py and tests/test_near_duplicates.py are
+# skipped for a missing import, which CI_REQUIRE_FULL_DEPS turns into a failure.
+opencv-python-headless==4.10.0.84
+imagehash>=4.3
+
+# Demo backend API tests (tests/test_demo_api.py); same floors as demo/requirements.txt.
+fastapi>=0.115
+httpx>=0.27
+python-multipart>=0.0.9
+
+# Release package of the v7 classifier (tests/test_release_*.py): safetensors
+# for the weight files, transformers for the Dinov2Model form, onnx +
+# onnxruntime + onnxconverter-common for the ONNX export and its fp16 copy.
+# Ranges with wheels for Python 3.11-3.13. Without them those modules skip on
+# a missing import, which CI_REQUIRE_FULL_DEPS turns into a failure.
+safetensors>=0.4.5,<1
+transformers>=4.45,<6
+onnx>=1.17,<2
+onnxruntime>=1.20,<2
+onnxconverter-common>=1.16,<2

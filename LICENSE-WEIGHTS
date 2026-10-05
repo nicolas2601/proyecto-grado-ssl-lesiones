@@ -1,0 +1,38 @@
+Model weights license notice
+
+Scope: the trained model files of this project and of its releases - the
+backbone and head weights (hf/model.safetensors, hf/head.safetensors) and the
+exported classifiers (onnx/*.onnx) of the v7 skin-lesion models. The source
+code is licensed separately under the Apache License 2.0 (see LICENSE).
+
+The model weights are licensed under the Creative Commons
+Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0):
+https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+You may share and adapt them for non-commercial purposes, with attribution
+and an indication of any changes. Commercial use is not permitted. They are a
+research artifact: not a medical device, and not to be used for diagnosis or
+any clinical decision. Provided "as is", without warranty of any kind.
+
+Why non-commercial: the weights derive from data licensed CC BY-NC 4.0.
+
+Attribution
+
+- HAM10000 (probe training and self-supervised pretraining pool).
+  Tschandl P., Rosendahl C., Kittler H. "The HAM10000 dataset, a large
+  collection of multi-source dermatoscopic images of common pigmented skin
+  lesions." Scientific Data 5, 180161 (2018). Licensed CC BY-NC 4.0,
+  Harvard Dataverse, doi:10.7910/DVN/DBW86T.
+
+- ISIC 2019 challenge data (self-supervised pretraining pool, unlabelled).
+  International Skin Imaging Collaboration (ISIC). Licensed CC BY-NC 4.0,
+  https://challenge.isic-archive.com/data
+
+- ISIC 2020 challenge data (self-supervised pretraining pool, unlabelled).
+  International Skin Imaging Collaboration (ISIC). Licensed CC BY-NC 4.0,
+  https://challenge.isic-archive.com/data
+
+- DINOv2 ViT-B/14 (initial weights of the backbone).
+  Oquab M. et al. "DINOv2: Learning Robust Visual Features without
+  Supervision" (2023), Meta Platforms, Inc. Code and weights licensed under
+  the Apache License 2.0, https://github.com/facebookresearch/dinov2

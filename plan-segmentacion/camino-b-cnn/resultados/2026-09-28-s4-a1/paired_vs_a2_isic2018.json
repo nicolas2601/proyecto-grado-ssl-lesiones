@@ -1,0 +1,36 @@
+{
+  "label_a": "A1",
+  "label_b": "A2",
+  "per_image_a": "/home/jovyan/work/proyectonp/salidas/s4_unet/a1/evaluacion_isic2018/per_image.csv",
+  "per_image_b": "/home/jovyan/work/proyectonp/salidas/s4_unet/a2/evaluacion_isic2018/per_image.csv",
+  "rng_seed": 20260923,
+  "n_resamples": 1000,
+  "n_paired": 2594,
+  "metrics": {
+    "dice": {
+      "delta": -0.23799616336270576,
+      "ci95_low": -0.24950053590339083,
+      "ci95_high": -0.2257575641158493,
+      "mean_a": 0.48408652299865446,
+      "mean_b": 0.7220826863613602,
+      "excludes_zero": true,
+      "direction": "worse",
+      "higher_is_better": true,
+      "n": 2594,
+      "n_dropped_non_finite": 0
+    },
+    "hd95": {
+      "delta": 38.42427179818353,
+      "ci95_low": 36.651838984599316,
+      "ci95_high": 40.15107648608181,
+      "mean_a": 63.95421539565543,
+      "mean_b": 25.529943597471902,
+      "excludes_zero": true,
+      "direction": "worse",
+      "higher_is_better": false,
+      "n": 2590,
+      "n_dropped_non_finite": 4
+    }
+  },
+  "note": "secondary; delta = a - b, paired percentile 95 % interval"
+}

@@ -1,0 +1,28 @@
+{
+  "measured_utc": "2026-10-05T01:05Z",
+  "gpus": [
+    {"model": "NVIDIA RTX PRO 4000 Blackwell", "vram_mib": 24467},
+    {"model": "NVIDIA RTX PRO 4000 Blackwell", "vram_mib": 24467}
+  ],
+  "nvidia_driver": "580.178.04",
+  "cuda_torch_build": "12.8",
+  "cudnn": "9.19.0 (según torch: 91900)",
+  "nccl": "2.28.9",
+  "cpu": {"model": "Intel(R) Xeon(R) w7-2495X", "logical_cpus": 48, "threads_per_core": 2, "sockets": 1},
+  "ram_gib": 123,
+  "storage": [
+    {"mount": "work (volumen de red compartido)", "size": "40T", "used": "318G"},
+    {"mount": "/dev/shm", "size": "64M", "note": "los DataLoader deben usar 0 workers"}
+  ],
+  "os": "Ubuntu 24.04.4 LTS",
+  "kernel": "7.0.0-31-generic",
+  "container": "sesión JupyterHub de un solo usuario (no Docker; cgroup v2)",
+  "python": "3.13.15",
+  "torch": "2.11.0+cu128",
+  "sklearn_default": "1.9.0",
+  "sklearn_for_existing_splits": "1.7.2 (aislado; StratifiedGroupKFold(shuffle=True) cambió después de 1.7.2)",
+  "timm_installed": false,
+  "timm_for_finetune": "1.0.30 (instalado con --no-deps --target en un directorio aislado de work; PYTHONPATH solo para el job de fine-tuning; el venv no se modificó)",
+  "thread_env": {"PROBE_BLAS_THREADS": "4 (fijado por dermssl.probe_threads)", "pretrain_OMP_MKL_OPENBLAS": "12"},
+  "pretrain_revision": "f1c2053d7e9e3f3eae4e1665d6942243b02e3872"
+}

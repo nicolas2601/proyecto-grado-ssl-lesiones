@@ -1,0 +1,68 @@
+{
+  "modelo": "dinov2_vitb14",
+  "dataset": "isic2020",
+  "smoke": false,
+  "n_train": 26466,
+  "n_val": 6660,
+  "dim_features": 768,
+  "resolucion": 224,
+  "semilla": 42,
+  "split": "StratifiedGroupKFold por patient_id (0 grupos compartidos)",
+  "protocolo": {
+    "epocas": 8,
+    "batch": 16,
+    "lr_backbone": 5e-05,
+    "lr_head": 0.0005,
+    "weight_decay": 0.0001,
+    "precision": "fp16"
+  },
+  "fuente_pesos": "hf:timm/vit_base_patch14_dinov2.lvd142m",
+  "git_sha": "48d5f63",
+  "host": "jupyter-nmoreno534",
+  "gpu": "NVIDIA RTX PRO 4000 Blackwell",
+  "mejor_epoca": 3,
+  "tiempo_s": 960.3,
+  "probes": {
+    "finetune": {
+      "accuracy": 0.9241741741741741,
+      "balanced_accuracy": 0.6114756605770051,
+      "macro_f1": 0.5410578743582308,
+      "macro_precision": 0.5316231300486419,
+      "macro_recall": 0.6114756605770051,
+      "auc_ovr_macro": 0.781961947555025,
+      "ece": 0.2046264885245143,
+      "recall_por_clase": {
+        "benign": 0.9360660752523707,
+        "malignant": 0.28688524590163933
+      },
+      "precision_por_clase": {
+        "benign": 0.985983566940551,
+        "malignant": 0.0772626931567329
+      },
+      "f1_por_clase": {
+        "benign": 0.9603766182816791,
+        "malignant": 0.12173913043478261
+      },
+      "matriz_confusion": [
+        [
+          6120,
+          418
+        ],
+        [
+          87,
+          35
+        ]
+      ],
+      "ic95_bootstrap": {
+        "balanced_accuracy": [
+          0.5724733846750016,
+          0.652759504401381
+        ],
+        "macro_f1": [
+          0.5227656151914626,
+          0.5591108621551707
+        ]
+      }
+    }
+  }
+}

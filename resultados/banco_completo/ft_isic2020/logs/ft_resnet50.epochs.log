@@ -1,0 +1,13 @@
+[ft-resnet50-isic2020-s42] device=cuda smoke=False pesos=hf:timm/resnet50.tv2_in1k
+clases=['benign', 'malignant'] train=26466 val=6660 | StratifiedGroupKFold por patient_id (0 grupos compartidos)
+epoca 1/8 loss=0.4618 val_bal_acc=0.7489 mejor=0.7489 (40s)
+epoca 2/8 loss=0.3851 val_bal_acc=0.7657 mejor=0.7657 (81s)
+epoca 3/8 loss=0.3472 val_bal_acc=0.7811 mejor=0.7811 (121s)
+epoca 4/8 loss=0.3076 val_bal_acc=0.7692 mejor=0.7811 (161s)
+epoca 5/8 loss=0.2539 val_bal_acc=0.7384 mejor=0.7811 (202s)
+epoca 6/8 loss=0.2351 val_bal_acc=0.7599 mejor=0.7811 (243s)
+epoca 7/8 loss=0.1968 val_bal_acc=0.7505 mejor=0.7811 (284s)
+epoca 8/8 loss=0.1841 val_bal_acc=0.7357 mejor=0.7811 (324s)
+resnet50 @ isic2020 | val n=6660 | mejor epoca 3
+bal_acc=0.7812 macro_f1=0.5651 auc=0.9014 acc=0.8941 ece=0.0192
+IC95 bootstrap: bal_acc 0.738-0.823 | F1 macro 0.547-0.582

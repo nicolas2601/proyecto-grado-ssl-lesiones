@@ -1,0 +1,421 @@
+{
+ "split": "val",
+ "code_revision": "7fd6245c317ac6ea68ef4f32821ddc82c94ebeea",
+ "probe": "logreg",
+ "n_eval": 2004,
+ "eval_ids_sha256": "6ff4c17f04a9eae2f0d058aaa41084ea65b9aff91e4d5e5b05c924b4465a2fc6",
+ "exclude_ids_sha256": "95d21013a42a5c99a6024ef6c8ae73aada8bdc1193ae512665035bb59b737d87",
+ "runs": {
+  "plain": {
+   "code_revision": "f1c2053d7e9e3f3eae4e1665d6942243b02e3872",
+   "exclude_ids_sha256": "95d21013a42a5c99a6024ef6c8ae73aada8bdc1193ae512665035bb59b737d87",
+   "seed": 42
+  },
+  "proposed": {
+   "code_revision": "f1c2053d7e9e3f3eae4e1665d6942243b02e3872",
+   "exclude_ids_sha256": "95d21013a42a5c99a6024ef6c8ae73aada8bdc1193ae512665035bb59b737d87",
+   "seed": 42
+  }
+ },
+ "arms": {
+  "plain": "A*",
+  "proposed": "B*",
+  "public": "DINOv2 público"
+ },
+ "specs": {
+  "plain": "dinov2_vitb14:/home/jovyan/work/proyectonp/salidas/v7/final_A/simsiam_dinov2_backbone_final.pt",
+  "proposed": "dinov2_vitb14:/home/jovyan/work/proyectonp/salidas/v7/final_B/simsiam_dinov2_backbone_final.pt",
+  "public": "dinov2_vitb14:public"
+ },
+ "results": {
+  "plain": {
+   "spec": "dinov2_vitb14:/home/jovyan/work/proyectonp/salidas/v7/final_A/simsiam_dinov2_backbone_final.pt",
+   "macro_f1": 0.6464242791711585,
+   "balanced_accuracy": 0.6021186809704098,
+   "auc": 0.9619193176513854,
+   "ece": 0.013543423882382603,
+   "ci95": {
+    "macro_f1": [
+     0.5979845874644569,
+     0.689394175981895
+    ],
+    "balanced_accuracy": [
+     0.5565291931287935,
+     0.6487659887743332
+    ],
+    "auc": [
+     0.9563433549830639,
+     0.9670950475115124
+    ],
+    "ece": [
+     0.0137929201148406,
+     0.03361683229464076
+    ]
+   }
+  },
+  "proposed": {
+   "spec": "dinov2_vitb14:/home/jovyan/work/proyectonp/salidas/v7/final_B/simsiam_dinov2_backbone_final.pt",
+   "macro_f1": 0.6605592124681987,
+   "balanced_accuracy": 0.6326894120182252,
+   "auc": 0.9629210925339964,
+   "ece": 0.03250847741991221,
+   "ci95": {
+    "macro_f1": [
+     0.6157039669414626,
+     0.7039706284540084
+    ],
+    "balanced_accuracy": [
+     0.5871175677835112,
+     0.683788105616796
+    ],
+    "auc": [
+     0.9562979954291743,
+     0.9690395986482219
+    ],
+    "ece": [
+     0.025270854132974932,
+     0.04973818606542727
+    ]
+   }
+  },
+  "public": {
+   "spec": "dinov2_vitb14:public",
+   "macro_f1": 0.6158360775746725,
+   "balanced_accuracy": 0.592388105638433,
+   "auc": 0.9257103129149132,
+   "ece": 0.13074429867093912,
+   "ci95": {
+    "macro_f1": [
+     0.5689692862524681,
+     0.6549871256301373
+    ],
+    "balanced_accuracy": [
+     0.5458769529430408,
+     0.6375767201454223
+    ],
+    "auc": [
+     0.9123070828564463,
+     0.9370231232560015
+    ],
+    "ece": [
+     0.11587979344989432,
+     0.14764083442826598
+    ]
+   }
+  }
+ },
+ "paired": [
+  {
+   "arm": "plain",
+   "control": "public",
+   "metric": "macro_f1",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.6464242791711585,
+   "point_control": 0.6158360775746725,
+   "point_delta": 0.03058820159648601,
+   "ci95_low": -0.013694524627587261,
+   "ci95_high": 0.07444091200379917,
+   "excludes_zero": false,
+   "direction": "indistinguishable"
+  },
+  {
+   "arm": "plain",
+   "control": "public",
+   "metric": "balanced_accuracy",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.6021186809704098,
+   "point_control": 0.592388105638433,
+   "point_delta": 0.009730575331976743,
+   "ci95_low": -0.034620200206755304,
+   "ci95_high": 0.05488588699135147,
+   "excludes_zero": false,
+   "direction": "indistinguishable"
+  },
+  {
+   "arm": "plain",
+   "control": "public",
+   "metric": "auc",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.9619193176513854,
+   "point_control": 0.9257103129149132,
+   "point_delta": 0.03620900473647215,
+   "ci95_low": 0.025804515969536968,
+   "ci95_high": 0.04821435324580517,
+   "excludes_zero": true,
+   "direction": "arm_better"
+  },
+  {
+   "arm": "plain",
+   "control": "public",
+   "metric": "ece",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.013543423882382603,
+   "point_control": 0.13074429867093912,
+   "point_delta": -0.11720087478855651,
+   "ci95_low": -0.125991703436418,
+   "ci95_high": -0.09190006732806835,
+   "excludes_zero": true,
+   "direction": "arm_better"
+  },
+  {
+   "arm": "proposed",
+   "control": "public",
+   "metric": "macro_f1",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.6605592124681987,
+   "point_control": 0.6158360775746725,
+   "point_delta": 0.044723134893526195,
+   "ci95_low": 0.007964176106737709,
+   "ci95_high": 0.08366418595182082,
+   "excludes_zero": true,
+   "direction": "arm_better"
+  },
+  {
+   "arm": "proposed",
+   "control": "public",
+   "metric": "balanced_accuracy",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.6326894120182252,
+   "point_control": 0.592388105638433,
+   "point_delta": 0.04030130637979212,
+   "ci95_low": 0.0024475657186635645,
+   "ci95_high": 0.07774051123240532,
+   "excludes_zero": true,
+   "direction": "arm_better"
+  },
+  {
+   "arm": "proposed",
+   "control": "public",
+   "metric": "auc",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.9629210925339964,
+   "point_control": 0.9257103129149132,
+   "point_delta": 0.037210779619083145,
+   "ci95_low": 0.028946400377212654,
+   "ci95_high": 0.046932992400189964,
+   "excludes_zero": true,
+   "direction": "arm_better"
+  },
+  {
+   "arm": "proposed",
+   "control": "public",
+   "metric": "ece",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.03250847741991221,
+   "point_control": 0.13074429867093912,
+   "point_delta": -0.09823582125102691,
+   "ci95_low": -0.11187776956454425,
+   "ci95_high": -0.07707017395578455,
+   "excludes_zero": true,
+   "direction": "arm_better"
+  },
+  {
+   "arm": "proposed",
+   "control": "plain",
+   "metric": "macro_f1",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.6605592124681987,
+   "point_control": 0.6464242791711585,
+   "point_delta": 0.014134933297040186,
+   "ci95_low": -0.018970158886486718,
+   "ci95_high": 0.05391304885730785,
+   "excludes_zero": false,
+   "direction": "indistinguishable"
+  },
+  {
+   "arm": "proposed",
+   "control": "plain",
+   "metric": "balanced_accuracy",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.6326894120182252,
+   "point_control": 0.6021186809704098,
+   "point_delta": 0.03057073104781538,
+   "ci95_low": -0.005468218604297781,
+   "ci95_high": 0.06909332209719234,
+   "excludes_zero": false,
+   "direction": "indistinguishable"
+  },
+  {
+   "arm": "proposed",
+   "control": "plain",
+   "metric": "auc",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.9629210925339964,
+   "point_control": 0.9619193176513854,
+   "point_delta": 0.0010017748826109951,
+   "ci95_low": -0.004506086940822313,
+   "ci95_high": 0.00633557862294772,
+   "excludes_zero": false,
+   "direction": "indistinguishable"
+  },
+  {
+   "arm": "proposed",
+   "control": "plain",
+   "metric": "ece",
+   "probe": "logreg",
+   "fraction": 1.0,
+   "seed": 0,
+   "point_arm": 0.03250847741991221,
+   "point_control": 0.013543423882382603,
+   "point_delta": 0.018965053537529607,
+   "ci95_low": 0.000284982785701479,
+   "ci95_high": 0.026955058769566467,
+   "excludes_zero": true,
+   "direction": "control_better"
+  }
+ ],
+ "predictions": {
+  "P1": {
+   "reading": "primaria",
+   "verdict": "cumplida",
+   "criterion": "macro-F1 A* - público >= -0.01",
+   "improves_public": false,
+   "evidence": {
+    "macro_f1": {
+     "point_delta": 0.03058820159648601,
+     "ci95_low": -0.013694524627587261,
+     "ci95_high": 0.07444091200379917,
+     "excludes_zero": false
+    }
+   }
+  },
+  "P2": {
+   "reading": "primaria",
+   "verdict": "no cumplida",
+   "criterion": "ECE B* - A* < 0 con IC que excluye el cero y macro-F1 >= -0.01",
+   "evidence": {
+    "ece": {
+     "point_delta": 0.018965053537529607,
+     "ci95_low": 0.000284982785701479,
+     "ci95_high": 0.026955058769566467,
+     "excludes_zero": true
+    },
+    "macro_f1": {
+     "point_delta": 0.014134933297040186,
+     "ci95_low": -0.018970158886486718,
+     "ci95_high": 0.05391304885730785,
+     "excludes_zero": false
+    }
+   }
+  },
+  "P3": {
+   "reading": "primaria",
+   "verdict": "cumplida",
+   "criterion": "macro-F1 B* - público >= 0 y ECE B* - público < 0 con IC que excluye el cero",
+   "evidence": {
+    "macro_f1": {
+     "point_delta": 0.044723134893526195,
+     "ci95_low": 0.007964176106737709,
+     "ci95_high": 0.08366418595182082,
+     "excludes_zero": true
+    },
+    "ece": {
+     "point_delta": -0.09823582125102691,
+     "ci95_low": -0.11187776956454425,
+     "ci95_high": -0.07707017395578455,
+     "excludes_zero": true
+    }
+   }
+  },
+  "P1-NI": {
+   "reading": "secundaria",
+   "verdict": "no cumplida",
+   "criterion": "límite inferior IC macro-F1 A* - público >= -0.01",
+   "evidence": {
+    "macro_f1": {
+     "point_delta": 0.03058820159648601,
+     "ci95_low": -0.013694524627587261,
+     "ci95_high": 0.07444091200379917,
+     "excludes_zero": false
+    }
+   }
+  },
+  "P3-IC": {
+   "reading": "secundaria",
+   "verdict": "cumplida",
+   "criterion": "límite inferior IC macro-F1 B* - público > 0 (permite decir que le gana)",
+   "evidence": {
+    "macro_f1": {
+     "point_delta": 0.044723134893526195,
+     "ci95_low": 0.007964176106737709,
+     "ci95_high": 0.08366418595182082,
+     "excludes_zero": true
+    }
+   }
+  }
+ },
+ "secondary_ece_basic_ci": {
+  "reading": "secundaria",
+  "method": "basic (reverse-percentile)",
+  "note": "IC basic (reverse-percentile) de ECE, lectura secundaria. El ECE remuestreado tiene sesgo hacia arriba, así que el IC percentil puede dejar el punto afuera (A* en val v7). El basic refleja los cuantiles alrededor del punto y puede salir de [0, 1]. Los veredictos primarios usan el IC percentil registrado y no cambian.",
+  "arms": {
+   "plain": {
+    "point": 0.013543423882382603,
+    "ci95_low": -0.006529984529875556,
+    "ci95_high": 0.013293927649924606,
+    "excludes_zero": false,
+    "point_outside_percentile": true
+   },
+   "proposed": {
+    "point": 0.03250847741991221,
+    "ci95_low": 0.015278768774397149,
+    "ci95_high": 0.03974610070684949,
+    "excludes_zero": true,
+    "point_outside_percentile": false
+   },
+   "public": {
+    "point": 0.13074429867093912,
+    "ci95_low": 0.11384776291361226,
+    "ci95_high": 0.1456088038919839,
+    "excludes_zero": true,
+    "point_outside_percentile": false
+   }
+  },
+  "contrasts": {
+   "plain-public": {
+    "point_delta": -0.11720087478855651,
+    "ci95_low": -0.14250168224904466,
+    "ci95_high": -0.10841004614069502,
+    "excludes_zero": true,
+    "point_outside_percentile": false
+   },
+   "proposed-public": {
+    "point_delta": -0.09823582125102691,
+    "ci95_low": -0.11940146854626926,
+    "ci95_high": -0.08459387293750957,
+    "excludes_zero": true,
+    "point_outside_percentile": false
+   },
+   "proposed-plain": {
+    "point_delta": 0.018965053537529607,
+    "ci95_low": 0.010975048305492747,
+    "ci95_high": 0.037645124289357734,
+    "excludes_zero": true,
+    "point_outside_percentile": false
+   }
+  },
+  "P2_with_basic": "no cumplida"
+ }
+}

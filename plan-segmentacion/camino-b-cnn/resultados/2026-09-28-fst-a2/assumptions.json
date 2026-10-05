@@ -1,0 +1,16 @@
+{
+  "assumption": "region_mode missing in salidas/final/pseudo_r2/pseudo_masks_stats.json; taken as 'central'",
+  "reason": "make_pseudo_masks.py --region-mode was added on 2026-09-27 (f43b610) with default 'central', documented as the published behaviour; pseudo_r2 predates it",
+  "checked_flags_equal": [
+    "source",
+    "artifact_suppression",
+    "low",
+    "high",
+    "min_area_fraction",
+    "max_center_distance",
+    "max_area_fraction",
+    "region_mode"
+  ],
+  "recorded": "2026-09-28",
+  "see": "docs/27 (FST con las máscaras de A2)"
+}

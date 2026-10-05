@@ -1,80 +1,65 @@
 # Proyecto de Grado UNAB — Clasificación de Lesiones Cutáneas con Aprendizaje Autosupervisado (SSL)
 
-> Repositorio privado de trabajo. Documentación, investigación, decisiones técnicas, el pipeline
-> que estamos corriendo y las problemáticas abiertas del proyecto.
+Repositorio de trabajo para investigar la clasificación experimental de lesiones cutáneas (HAM10000) con aprendizaje autosupervisado sobre DINOv2. No es un dispositivo de diagnóstico.
 
-## Resumen en una línea
+## Resultado principal (v7)
 
-Sistema de **apoyo** al tamizaje de lesiones cutáneas basado en **aprendizaje autosupervisado
-(self-supervised learning)** sobre imágenes dermatoscópicas, con foco en fiabilidad clínica,
-control de sesgo y honestidad científica. Contexto: epidemiología de Santander (Colombia).
+La tabla principal es la [combinada de las tres semillas](resultados/clasificacion/v7/SEMILLAS.md): cada semilla por separado, la media y el rango (máx − mín). Detrás están las tablas de la [semilla 42](resultados/clasificacion/v7/README.md) y de las réplicas con [semilla 43](resultados/clasificacion/v7/s43/README.md) y [semilla 44](resultados/clasificacion/v7/s44/README.md). Todas se generan desde los `final_eval.json`, y un test falla si alguien edita un número a mano, así que acá no se copia ninguna cifra.
+
+Dos tablas generadas más, con el mismo test: la del [clasificador](resultados/clasificacion/TABLA_CLASIFICADOR.md) (v6, C1 y v7 lado a lado, y por clase: matriz de confusión, F1, recall y sensibilidad y AUC de melanoma) y la de [segmentación](resultados/segmentacion/TABLA_SEGMENTACION.md) (estudiante final contra las máscaras de referencia y pseudo-máscaras v7 contra los umbrales registrados en docs/27).
+
+Compara tres brazos sobre la validación del fold 0 de C1: DINOv2 público, SSL anclado sin tono (A\*) y SSL propuesto con tono (B\*). Usa un probe lineal, una sola evaluación e intervalos bootstrap del 95 %. Las predicciones se registraron antes de correrla ([docs/28 §5](docs/28-rediseno-brazo-propuesto-v7.md)).
+
+Lectura al 2026-09-29, con las tres semillas y sin elegir ninguna (regla en [docs/28 §4.1](docs/28-rediseno-brazo-propuesto-v7.md), extendida a tres semillas en [docs/29 §2.5](docs/29-plan-v7.1.md)):
+- B\* le gana al DINOv2 público en macro-F1 en las tres semillas, con intervalos que excluyen el cero.
+- A\* no pierde contra el público en ninguna (P1). La no inferioridad estricta (P1-NI) se cumple en s43 y s44 pero no en s42: no es robusta a la semilla.
+- B\* y A\* no se distinguen entre sí, y B\* no calibra mejor que A\*.
+- La variación entre semillas es del orden del efecto medido.
+
+## Objetivos específicos
+
+1. Caracterizar conjuntos de datos de imágenes dermatológicas representativos de lesiones cutáneas relevantes para el contexto clínico del departamento de Santander. Estado: completado. Ver [datasets](docs/02-datasets.md) y [contexto](docs/01-contexto-y-objetivos.md).
+2. Diseñar un algoritmo de clasificación de lesiones cutáneas basado en aprendizaje autosupervisado. Estado: completado; diseño vigente en [docs/28](docs/28-rediseno-brazo-propuesto-v7.md).
+3. Evaluar el desempeño del algoritmo con métricas de la literatura de análisis de imágenes médicas. Estado: evaluación única v7 hecha; réplica de semilla en curso ([plan v7](docs/27-plan-v7-mejoras-ssl.md)).
+
+## Mapa del repositorio
+
+| Carpeta | Qué contiene |
+|---|---|
+| [`src/dermssl/`](src/dermssl/) | Librería del proyecto: preentrenamiento SSL (`pretrain/`), probes, métricas, bootstrap pareado, evaluación final, procedencia de corridas. |
+| [`scripts/`](scripts/) | Puntos de entrada: preentrenamiento, selección de variantes, evaluación final y generadores de tablas (`build_*`). |
+| [`resultados/`](resultados/README.md) | Resultados versionados: C1, v7 y bancos congelados. Las tablas se generan desde JSON. |
+| [`docs/`](docs/README.md) | Documentación numerada 00-28, con índice y estado de cada documento. |
+| [`plan-segmentacion/`](plan-segmentacion/README.md) | Segmentación sin etiquetas (CCAM, pseudo-máscaras, remoción de pelo). |
+| [`tests/`](tests/) | Suite de pytest; corre sin GPU. |
+| [`openspec/`](openspec/) | Especificaciones de cambios (OpenSpec). |
+| [`cluster/`](cluster/README.md) | Operación del cluster UNABIA. |
+| [`demo/`](demo/README.md) | Demo del modelo. |
+| `results/` | Bancos de versiones anteriores (histórico). |
+
+## Cómo reproducir la evaluación v7
+
+Requiere HAM10000 en `~/work/datos/ham10000`, los backbones finales A\* y B\* con su `run.json`, y el holdout y la lista de exclusión de C1. El script se niega a correr sobre validación si el árbol de git está sucio, si los ids de train o de val no coinciden con C1 o si la salida ya existe.
+
+```bash
+PYTHONPATH=src python scripts/c1_final_eval.py --split val --single-evaluation \
+    --ham-root ~/work/datos/ham10000 --holdout "$S/selection/selection_holdout.json" \
+    --plain dinov2_vitb14:"$V/final_A/simsiam_dinov2_backbone_final.pt" \
+    --proposed dinov2_vitb14:"$V/final_B/simsiam_dinov2_backbone_final.pt" \
+    --exclude-ids-file "$S/selection/pretrain_exclude_ids_finals.txt" \
+    --out resultados/clasificacion/v7/final_eval.json
+python scripts/build_final_eval_table.py resultados/clasificacion/v7/final_eval.json \
+    --out resultados/clasificacion/v7/README.md
+```
+
+Tests y lint: `pytest -q` y `ruff check .`
 
 ## Equipo
 
-| Rol | Persona |
+| Nombre | Rol |
 |---|---|
-| Autor | Nicolás Santiago Moreno Monroy |
-| autora | María Paula Saavedra |
-| Director | Andrés Jerez |
-| Asesora | Karen Sánchez (KAUST) |
-| Institución | Universidad Autónoma de Bucaramanga (UNAB) — Ing. de Sistemas |
-
-## Estado actual (rápido)
-
-- **Objetivo 1 (EDA):** ✅ Completado (notebook + 13 figuras 300 DPI + Tabla I).
-- **Objetivo 2 (algoritmo SSL):** ✅ **Corrida definitiva v4 ejecutada** (Kaggle T4 x2). **El SSL
-  domain-adaptive SUPERA a ImageNet** en macro-F1 (0.6907 ± 0.006 vs 0.6614 ± 0.004, Δ +0.0294, fuera
-  del ruido) y en AUC → **valida la hipótesis del anteproyecto**. Modelo SSL entregable con **4/4 KPIs
-  clínicos cumplidos**. Ver [**Informe**](INFORME.md) y [11 — Resultados finales](docs/11-resultados-finales.md).
-- **Siguiente hito:** validación externa (ISIC 2019 multiclase, sobre el modelo exportado) + 3.ª
-  semilla → envío al director → acceso a GPUs de la UNAB.
-
-> ⚠️ **Resultados preliminares.** Obtenidos con los **recursos actuales** (GPU T4 de estudiante,
-> dataset acotado) — no el modelo final. El entrenamiento definitivo (más cómputo, DINOv2/ViT,
-> validación externa) se hará con las GPUs de la UNAB. Aun así, esta corrida **valida la hipótesis**.
-
-## Índice de documentación
-
-| Doc | Contenido |
-|---|---|
-| [01 — Contexto y objetivos](docs/01-contexto-y-objetivos.md) | Problema clínico, objetivos, alcance |
-| [02 — Datasets](docs/02-datasets.md) | HAM10000, BCN20000, CO2Wounds-V2, ISIC2019 |
-| [03 — Metodología CRISP-ML(Q)](docs/03-metodologia-crisp-mlq.md) | Marco metodológico y por qué |
-| [04 — Decisiones técnicas](docs/04-decisiones-tecnicas.md) | Núcleo SSL, SimSiam vs DINO, backbone |
-| [05 — Pipeline Objetivo 2](docs/05-pipeline-objetivo2.md) | El notebook que corre, paso a paso |
-| [06 — Problemáticas abiertas](docs/06-problematicas.md) | Contradicción linear probe, colapso, leakage, etc. |
-| [07 — Fiabilidad y sesgo](docs/07-fiabilidad-y-sesgo.md) | KPIs, calibración, fairness, abstención |
-| [08 — Estado actual y próximos pasos](docs/08-estado-actual-y-next-steps.md) | Resultados, roadmap |
-| [09 — Referencias](docs/09-referencias.md) | Papers, incl. evaluación de MambaMIM |
-| [10 — Glosario ELI5](docs/10-glosario-eli5.md) | Conceptos explicados sencillo |
-| [11 — Resultados finales](docs/11-resultados-finales.md) | **Informe técnico completo + figuras** |
-| [12 — Model card](docs/12-model-card.md) | Ficha del modelo + cómo servirlo |
-| [13 — ¿Por qué estas decisiones?](docs/13-por-que-estas-decisiones.md) | **Por qué ResNet-50, SimSiam, etc.** |
-| [14 — Mejoras del pipeline](docs/14-mejoras-pipeline.md) | **LP-FT + LLRD + más datos → que el SSL gane** |
-| [Informe](INFORME.md) | Resumen ejecutivo del avance |
-
-## Estructura
-
-```
-proyecto-grado-ssl-lesiones/
-├── README.md
-├── INFORME.md                   # Resumen ejecutivo del avance
-├── docs/                        # Documentación 01..13
-├── data/
-│   └── RESULTS_SUMMARY.json     # Datos crudos de la corrida
-├── assets/figuras/              # 8 figuras explicativas (PNG): ablación, linear probe, KPIs,
-│                                #   abstención, recall, calibración, Grad-CAM, reliability diagram
-├── results/
-│   └── generar_figuras.py       # Script reproducible de las figuras
-└── notebooks/
-    └── proyecto_ssl_lesiones_v4.ipynb   # Pipeline Objetivo 2 definitivo (Kaggle)
-```
-
-> El modelo entrenado (`best_resnet50_ssl.pth`, ~90 MB) no va en el repo (`.gitignore` no versiona
-> pesos): está publicado como asset en el
-> [**Release `modelo-v4-definitiva`**](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v4-definitiva).
-
-## Regla de oro del proyecto
-
-**Honestidad científica > número bonito.** Se reportan los límites, no se esconden.
-Es una herramienta de *apoyo*, nunca de diagnóstico final.
+| Nicolás Santiago Moreno Monroy | Autor |
+| María Paula Saavedra | Autora |
+| Andrés Jerez | Director |
+| Karen Sánchez — KAUST | Asesora |
+| UNAB — Ingeniería de Sistemas | Institución |

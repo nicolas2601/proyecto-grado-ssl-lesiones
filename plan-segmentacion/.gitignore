@@ -1,0 +1,13 @@
+# Artefactos pesados: pseudo-mascaras, cache de imagenes, checkpoints.
+# Los resultados livianos (JSON, CSV, figuras pequenas) si se versionan en resultados/.
+**/salidas/
+*.pt
+*.pth
+*.ckpt
+*.npy
+*.npz
+
+# Light run artifacts are versioned on purpose (overlays, per-image metrics, logs).
+!resultados/**/*.png
+!resultados/**/*.csv
+!resultados/**/*.log

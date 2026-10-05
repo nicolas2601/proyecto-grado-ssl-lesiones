@@ -1,0 +1,35 @@
+{
+  "dataset": "ISIC 2020",
+  "modelo": "DINOv2 ViT-S/14",
+  "condicion": "congelado",
+  "clases": [
+    "benigno",
+    "maligno"
+  ],
+  "n": 6660,
+  "conteos": [
+    [
+      5560,
+      978
+    ],
+    [
+      41,
+      81
+    ]
+  ],
+  "normalizada_por_fila": [
+    [
+      0.8504129703273172,
+      0.14958702967268278
+    ],
+    [
+      0.3360655737704918,
+      0.6639344262295082
+    ]
+  ],
+  "mcc": 0.18861583605832924,
+  "origen": "matriz_confusion del JSON",
+  "fuente": [
+    "results/baselines_isic2020/results_dinov2_vits14_isic2020.json"
+  ]
+}

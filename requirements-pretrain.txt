@@ -1,0 +1,14 @@
+# Dependencies for the v6 GPU pretraining runs (cluster / workstation).
+# The unit test suite needs none of this: it runs on numpy + pytest alone.
+#
+# Versions are lower bounds; pin exact versions once the lab shares the
+# environment of a real DINOv2 run (docs/16, pending item 3).
+torch>=2.2
+torchvision>=0.17
+mlflow>=2.14
+numpy>=1.26
+Pillow>=10.0
+# S2 hair removal (black-hat + TELEA). Pinned to what runs on the cluster.
+# Install with --no-deps so pip leaves numpy alone (the pod runs numpy 2.5.3):
+#   pip install --no-deps opencv-python-headless==4.10.0.84
+opencv-python-headless==4.10.0.84

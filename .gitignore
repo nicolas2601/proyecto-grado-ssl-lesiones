@@ -7,10 +7,12 @@
 # --- Datos (los datasets viven en Kaggle / UNAB, NO en el repo) ---
 datasets/
 *.jpg
+!demo/models/golden_images/*.jpg
 # Imágenes: ignoradas por defecto, salvo docs, figuras y model card
 *.png
 !docs/**/*.png
 !assets/figuras/*.png
+!resultados/banco_completo/**/*.png
 # CSV: ignorados salvo docs
 *.csv
 !docs/**/*.csv
@@ -24,9 +26,15 @@ data/*
 kaggle.json
 *credentials*
 
+# --- Salidas del pipeline v5 (regenerables, no versionar) ---
+out/
+features/
+*.npy
+
 # --- Python / Jupyter ---
 __pycache__/
 *.pyc
+.pytest_cache/
 .ipynb_checkpoints/
 .venv/
 .venv-charts/
@@ -37,3 +45,39 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+
+# --- estado local del driver de bancos Kaggle ---
+results/**/.run_state.json
+
+# --- artefactos de MLflow que bajan con `kaggle kernels output` ---
+results/**/mlruns/
+
+# --- resultados locales de diagnóstico FST y staging Kaggle ---
+/.kaggle-staging/
+/resultados_fst_*/
+/results/kaggle_v3_download/
+
+# --- bundles locales de transferencia; la fuente canónica permanece en Git ---
+/pretrain-v6-bundle.zip
+/fix-kaggle-fst-manifest-glob.zip
+
+# Tooling cache (skill registry), not a deliverable
+.atl/
+.round7.diff
+.round7_prompt.txt
+.round7_out.txt
+.review/
+
+# --- Pod and tracking outputs (never versioned) ---
+wandb/
+salidas/
+.secrets/
+*.netrc
+.levers.diff
+.levers_prompt.txt
+
+# --- Release packages built on the pod (binaries never versioned) ---
+/release/
+
+# The bench reads these epoch logs; a global *.log ignore once kept them out of the repo (see tests/test_bench_inputs_versioned.py)
+!resultados/banco_completo/ft_isic2020/logs/*.epochs.log

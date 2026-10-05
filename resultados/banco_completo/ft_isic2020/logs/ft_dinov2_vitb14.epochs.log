@@ -1,0 +1,13 @@
+[ft-dinov2_vitb14-isic2020-s42] device=cuda smoke=False pesos=hf:timm/vit_base_patch14_dinov2.lvd142m
+clases=['benign', 'malignant'] train=26466 val=6660 | StratifiedGroupKFold por patient_id (0 grupos compartidos)
+epoca 1/8 loss=0.5195 val_bal_acc=0.5000 mejor=0.5000 (117s)
+epoca 2/8 loss=0.4623 val_bal_acc=0.5000 mejor=0.5000 (234s)
+epoca 3/8 loss=0.4442 val_bal_acc=0.6114 mejor=0.6114 (349s)
+epoca 4/8 loss=0.4315 val_bal_acc=0.5431 mejor=0.6114 (465s)
+epoca 5/8 loss=0.4173 val_bal_acc=0.5077 mejor=0.6114 (580s)
+epoca 6/8 loss=0.4035 val_bal_acc=0.5369 mejor=0.6114 (696s)
+epoca 7/8 loss=0.3843 val_bal_acc=0.5431 mejor=0.6114 (813s)
+epoca 8/8 loss=0.3829 val_bal_acc=0.5315 mejor=0.6114 (931s)
+dinov2_vitb14 @ isic2020 | val n=6660 | mejor epoca 3
+bal_acc=0.6115 macro_f1=0.5411 auc=0.7820 acc=0.9242 ece=0.2046
+IC95 bootstrap: bal_acc 0.572-0.653 | F1 macro 0.523-0.559

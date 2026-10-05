@@ -1,0 +1,19 @@
+{
+  "records": 58457,
+  "schema_version": "1.0",
+  "field_used": true,
+  "buckets": {
+    "1": 36570,
+    "2": 4374,
+    "3": 1729,
+    "4": 1118,
+    "5": 846,
+    "6": 10341,
+    "unavailable": 3479
+  },
+  "status": {
+    "ok": 54978,
+    "quarantine": 3479
+  },
+  "note": "Counts only; the per-image manifest (115 MB) stays in the cluster NFS."
+}

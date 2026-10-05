@@ -1,0 +1,39 @@
+{
+ "describes": "t7_r0_tercile_check.json",
+ "sha256": "3f6e5443446c3c02d227181ff7e7d64b0e5b3730d6522731d8afded292e55163",
+ "environment": {
+  "schema": 1,
+  "python": "3.13.15",
+  "packages": {
+   "numpy": "2.5.3",
+   "scipy": "1.18.0",
+   "scikit-learn": "1.9.0",
+   "torch": "2.11.0+cu128",
+   "torchvision": "0.26.0+cu128",
+   "joblib": "1.6.0",
+   "threadpoolctl": "3.6.0"
+  },
+  "torch": {
+   "loaded": false
+  },
+  "env": {
+   "OMP_NUM_THREADS": "8",
+   "MKL_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "NUMEXPR_NUM_THREADS": null,
+   "CUBLAS_WORKSPACE_CONFIG": null,
+   "CUDA_VISIBLE_DEVICES": null,
+   "PYTHONHASHSEED": null
+  },
+  "threadpools": [
+   {
+    "user_api": "blas",
+    "internal_api": "openblas",
+    "num_threads": 8,
+    "version": "0.3.34"
+   }
+  ],
+  "cpu_count": 48,
+  "knobs": {}
+ }
+}

@@ -1,0 +1,53 @@
+{
+ "describes": "e5_fitzpatrick_isic2020.json",
+ "sha256": "d00e177db7d41e79dd059e1c796921160a29ecc15f74b37485b1366ea5137ea1",
+ "environment": {
+  "schema": 1,
+  "python": "3.13.15",
+  "packages": {
+   "numpy": "2.5.3",
+   "scipy": "1.18.0",
+   "scikit-learn": "1.7.2",
+   "torch": "2.11.0+cu128",
+   "torchvision": "0.26.0+cu128",
+   "joblib": "1.6.0",
+   "threadpoolctl": "3.6.0"
+  },
+  "torch": {
+   "loaded": false
+  },
+  "env": {
+   "OMP_NUM_THREADS": "2",
+   "MKL_NUM_THREADS": "4",
+   "OPENBLAS_NUM_THREADS": "1",
+   "NUMEXPR_NUM_THREADS": null,
+   "CUBLAS_WORKSPACE_CONFIG": null,
+   "CUDA_VISIBLE_DEVICES": "",
+   "PYTHONHASHSEED": null
+  },
+  "threadpools": [
+   {
+    "user_api": "blas",
+    "internal_api": "openblas",
+    "num_threads": 1,
+    "version": "0.3.34"
+   },
+   {
+    "user_api": "openmp",
+    "internal_api": "openmp",
+    "num_threads": 2,
+    "version": null
+   },
+   {
+    "user_api": "blas",
+    "internal_api": "openblas",
+    "num_threads": 1,
+    "version": null
+   }
+  ],
+  "cpu_count": 48,
+  "knobs": {
+   "workers": 16
+  }
+ }
+}

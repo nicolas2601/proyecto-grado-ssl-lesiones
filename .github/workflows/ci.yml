@@ -1,0 +1,168 @@
+name: CI
+
+# The suite only ever ran when someone remembered to type pytest. These jobs
+# encode the three failures this repo actually had: tests hidden behind a
+# missing optional dependency, generated notebooks drifting from their builder,
+# and documentation numbers typed by hand.
+
+# Every branch, not a list. `proposed-cluster` carried eleven commits with no
+# CI run at all because the name matched neither `main` nor `feature/**`, and
+# nothing said so: a branch CI ignores looks exactly like a branch CI passed.
+# Manual only since 2026-09-29: Actions billing blocked every run. To re-enable,
+# restore `push: {branches: ["**"]}` and `pull_request: {branches: [main]}`.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: check --output-format=github
+
+  tests:
+    name: pytest (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    # The per-test deadline does not cover collection, and a module that
+    # blocks while being imported hangs before any test owns the clock. This
+    # is the outer bound that holds whatever the cause: the job dies, the log
+    # becomes readable, and the runner stops burning.
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      # Full history: the finals characterization trains f1c2053's own src
+      # (git archive) next to HEAD on the same runner, and the registration
+      # tests check commit ancestry instead of skipping on a shallow clone.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      # torch and wandb are not in requirements-dev because a GPU wheel has no
+      # business in a test image, but fifteen tests import torch and one imports
+      # wandb. Without them CI_REQUIRE_FULL_DEPS turns those into failures - the
+      # check working as designed, on dependencies nobody had installed. The CPU
+      # wheel is ~200 MB instead of ~2.5 GB and runs the same assertions.
+      - name: Install the CPU-only torch and the tracking client
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          pip install wandb
+
+      # The release tests build tiny random DINOv2 models from the same source
+      # torch.hub loads on the pod (tests/release_helpers.py). Without it they
+      # fail under CI_REQUIRE_FULL_DEPS instead of skipping.
+      - name: Fetch the DINOv2 source for the release tests
+        run: |
+          git clone --depth 1 https://github.com/facebookresearch/dinov2 "$RUNNER_TEMP/dinov2"
+          git -C "$RUNNER_TEMP/dinov2" log -1 --format='dinov2 source at %H'
+          echo "DINOV2_REPO=$RUNNER_TEMP/dinov2" >> "$GITHUB_ENV"
+
+      # CI_REQUIRE_FULL_DEPS turns "module skipped, no scikit-learn" into a
+      # failure. Without it a bare pytest hides tests/test_probes.py and
+      # tests/test_notebook_metrics_binary.py - the binary-AUC fix among them -
+      # and still reports green.
+      # WANDB_MODE=disabled because the hang was wandb: the run reached 96 %,
+      # stopped, and the job cleanup reported an orphan `wandb-core`. A test
+      # reached the tracking client, which forked a helper and blocked trying
+      # to talk to the network. Tests must never call out.
+      - name: Run the suite with every optional dependency present
+        env:
+          CI_REQUIRE_FULL_DEPS: "1"
+          WANDB_MODE: disabled
+          WANDB_SILENT: "true"
+          # Names the crash. Today the log says "a worker died somewhere around
+          # 83 percent"; with the fault handler the SIGSEGV dumps the Python
+          # stack and the C frames, so it says which test and which extension.
+          PYTHONFAULTHANDLER: "1"
+        run: pytest -q -rs --strict-markers --strict-config -n 2 --dist loadfile --max-worker-restart 0 -p no:randomly
+
+      - name: Fail if any test was skipped for a missing dependency
+        env:
+          CI_REQUIRE_FULL_DEPS: "1"
+          WANDB_MODE: disabled
+          WANDB_SILENT: "true"
+        # Without pipefail the step took tee's exit code: a test failing in this
+        # second run (xdist hands the files to the workers in another order)
+        # never failed the job.
+        run: |
+          set -o pipefail
+          pytest -q -rs --strict-markers -n 2 --dist loadfile --max-worker-restart 0 2>&1 | tee /tmp/pytest.log
+          if grep -qi "could not import" /tmp/pytest.log; then
+            echo "::error::a test module was skipped for a missing import"
+            grep -i "could not import" /tmp/pytest.log
+            exit 1
+          fi
+
+  generated:
+    name: generated files are fresh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      # Both builders, always. The finetune builder reuses the baseline
+      # backbone cell, so fixing the baseline one and regenerating only its own
+      # notebooks leaves the sixteen finetune notebooks carrying the old bug -
+      # exactly what happened with the vgg19 extraction point on 2026-09-03.
+      - name: Regenerate the Kaggle notebooks
+        run: |
+          python scripts/build_baseline_tests.py
+          python scripts/build_finetune_tests.py
+
+      # `git diff` is blind to untracked paths, and a new bank makes the
+      # builders emit a whole new directory. Checking only the diff let eight
+      # uncommitted notebooks/finetune_isic2019/*.ipynb pass as clean.
+      - name: Fail if the committed notebooks drift from their builder
+        run: |
+          drift="$(git status --porcelain -- notebooks/)"
+          if [ -n "$drift" ]; then
+            echo "::error::notebooks differ from their builder - run both build_*_tests.py and commit"
+            echo "$drift"
+            exit 1
+          fi
+
+      # The published result and checkpoint tables are generated from
+      # results/*.json and protocol.TIMM_HF_TAGS. tests/test_readme_tables_fresh.py
+      # compares published against generated; this makes that failure explicit.
+      - name: Fail if the published tables drift from the data
+        run: pytest -q tests/test_readme_tables_fresh.py -rs
+
+      # Same guard for resultados/README.md, the document the committee reads:
+      # its tables come from resultados/clasificacion/bank.json. Skips while no
+      # bank is committed, and starts failing the moment the data lands and
+      # someone edits a number by hand.
+      - name: Fail if the results README drifts from the bank
+        run: pytest -q tests/test_resultados_readme_fresh.py -rs

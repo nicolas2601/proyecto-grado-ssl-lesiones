@@ -1,0 +1,229 @@
+{
+ "cell": "PUBLIC_A71",
+ "key": {
+  "dataset": "isic2019",
+  "cell": "PUBLIC_A71",
+  "config_id": "public@224|cls_attn|la0.5|tta",
+  "transductivo": false,
+  "weights_sha256": "torch.hub facebookresearch/dinov2 dinov2_vitb14 pretrained",
+  "val_ids_sha256": "8cde8a71ccf5bf2e477ffdab445e8f1afbc37a164ee0cd1aba93ef785cc0b57f",
+  "train_ids_sha256": "739966ec1d52c7e1aa5b4c7abdb7ff7acdb2697d615580b8b1656fdeb2f86a6f",
+  "n_val": 5067,
+  "n_train": 20264,
+  "limit": null,
+  "n_resamples": 1000
+ },
+ "key_sha256": "45403ab01dbfe0e17e36d70cb27bccb62853627d72d8dbd47d0cb31675f8a44b",
+ "result": {
+  "code_revision": "c3eb887a28101afb3a64d0f9747ae91d104a4845",
+  "pool_check": {},
+  "dataset": "isic2019",
+  "config_id": "public@224|cls_attn|la0.5|tta",
+  "transductivo": false,
+  "n_train": 20264,
+  "n_val": 5067,
+  "limit": null,
+  "cell": "PUBLIC_A71",
+  "pool_excludes_val": null,
+  "protocol": {
+   "weights": "public",
+   "resolution": 224,
+   "feature": "cls_attn",
+   "weighting": "la0.5",
+   "tta": true
+  },
+  "split_identity": {
+   "sklearn_version": "1.7.2",
+   "n_train": 20264,
+   "n_val": 5067,
+   "val_supports": [
+    905,
+    2575,
+    665,
+    174,
+    525,
+    47,
+    50,
+    126
+   ],
+   "val_ids_sha256": "8cde8a71ccf5bf2e477ffdab445e8f1afbc37a164ee0cd1aba93ef785cc0b57f",
+   "val_sha_construction": "join_newline",
+   "train_ids_sha256": "739966ec1d52c7e1aa5b4c7abdb7ff7acdb2697d615580b8b1656fdeb2f86a6f"
+  },
+  "probe": "logreg C=1 standardised, fitted on the dataset TRAIN split; no selection on val",
+  "metrics": {
+   "macro_f1": 0.6268960100323273,
+   "balanced_accuracy": 0.6427820792058409,
+   "accuracy": 0.7406749555950266,
+   "auc": 0.937194803506274,
+   "ece": 0.0490150345181956,
+   "mcc": 0.6237833367686141,
+   "per_class": {
+    "MEL": {
+     "precision": 0.6317530319735392,
+     "recall": 0.6331491712707182,
+     "f1": 0.6324503311258278,
+     "support": 905
+    },
+    "NV": {
+     "precision": 0.877979797979798,
+     "recall": 0.8438834951456311,
+     "f1": 0.8605940594059406,
+     "support": 2575
+    },
+    "BCC": {
+     "precision": 0.7234678624813154,
+     "recall": 0.7278195488721805,
+     "f1": 0.7256371814092953,
+     "support": 665
+    },
+    "AK": {
+     "precision": 0.39555555555555555,
+     "recall": 0.5114942528735632,
+     "f1": 0.44611528822055135,
+     "support": 174
+    },
+    "BKL": {
+     "precision": 0.5541516245487365,
+     "recall": 0.5847619047619048,
+     "f1": 0.5690454124189064,
+     "support": 525
+    },
+    "DF": {
+     "precision": 0.5686274509803921,
+     "recall": 0.6170212765957447,
+     "f1": 0.5918367346938775,
+     "support": 47
+    },
+    "VASC": {
+     "precision": 0.6981132075471698,
+     "recall": 0.74,
+     "f1": 0.7184466019417476,
+     "support": 50
+    },
+    "SCC": {
+     "precision": 0.45864661654135336,
+     "recall": 0.48412698412698413,
+     "f1": 0.47104247104247104,
+     "support": 126
+    }
+   },
+   "matriz_confusion": [
+    [
+     573,
+     182,
+     45,
+     17,
+     71,
+     2,
+     4,
+     11
+    ],
+    [
+     212,
+     2173,
+     40,
+     20,
+     105,
+     10,
+     8,
+     7
+    ],
+    [
+     38,
+     27,
+     484,
+     41,
+     34,
+     6,
+     3,
+     32
+    ],
+    [
+     14,
+     5,
+     31,
+     89,
+     23,
+     0,
+     0,
+     12
+    ],
+    [
+     60,
+     67,
+     38,
+     40,
+     307,
+     2,
+     1,
+     10
+    ],
+    [
+     4,
+     4,
+     6,
+     1,
+     3,
+     29,
+     0,
+     0
+    ],
+    [
+     1,
+     9,
+     1,
+     1,
+     1,
+     0,
+     37,
+     0
+    ],
+    [
+     5,
+     8,
+     24,
+     16,
+     10,
+     2,
+     0,
+     61
+    ]
+   ],
+   "macro_precision": 0.6135368934509825,
+   "macro_recall": 0.6427820792058409,
+   "ci95": {
+    "macro_f1": [
+     0.6012754768251142,
+     0.6512207076932636
+    ],
+    "balanced_accuracy": [
+     0.6151150937252466,
+     0.6715336607990046
+    ],
+    "accuracy": [
+     0.7288336293664891,
+     0.7527136372607065
+    ],
+    "auc": [
+     0.9305189524998229,
+     0.9431825571698753
+    ],
+    "ece": [
+     0.041554416706846065,
+     0.061352456712737605
+    ],
+    "mcc": [
+     0.6068460715717452,
+     0.6404987052765141
+    ]
+   },
+   "bootstrap": {
+    "n_resamples": 1000,
+    "seed": 20260923,
+    "unit": "image"
+   }
+  },
+  "probas_sha256": "3da0e26a4cc4d3f34c60c61e63940e4acd062297dce6c5a6ffd7ad019d68dc33"
+ }
+}
