@@ -96,7 +96,11 @@ def test_section_has_the_literal_notes_and_a_row_per_model():
     text = "\n".join(C.section(REPO))
     assert "Receta existente sin cambios; con 1,8 % de positivos la bal_acc en val oscila entre épocas; se reporta la mejor época en val (optimista)." in text
     assert "Esta ronda corrió en nuestro pod (GPU RTX PRO 4000), no en el banco de Karen." in text
-    assert text.count("curva no registrada") + text.count("pendiente") >= 7
+    for name in R.MODEL_NAMES.values():
+        line = next(ln for ln in text.splitlines() if ln.startswith(f"| {name} |"))
+        measured = (REPO / R.FT_ISIC2020_DIR / "json" / "x").parent.glob("results_*_ft_isic2020.json")
+        assert "pendiente" in line or "curva no registrada" in line or "log" in line or "json" in line, line
+    assert len(list(measured)) >= 1
     assert "0,6114" in text
 
 

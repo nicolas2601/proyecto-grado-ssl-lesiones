@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dermssl.bench import contrasts_load as L
+from dermssl.bench import contrasts_load as L, ft_contrasts
 from dermssl.bench import glossary, pending, tables
 from dermssl.bench.contrast import COMPACT_HEADER, METRIC_ES, Contrast, compact_cells, count_excluding, num
 from dermssl.bench.ham_rows import COMPUTES
@@ -95,6 +95,10 @@ def _overlap(a: tuple[float, float], b: tuple[float, float]) -> bool:
     return a[0] <= b[1] and b[0] <= a[1]
 
 
+def ft_table(repo: Path) -> tuple[Table, list[Contrast]]:
+    return ft_contrasts.table(repo), ft_contrasts.contrasts(repo)
+
+
 def interval_table(repo: Path, ds_key: str) -> Table:
     rows = dataset_rows(repo, DATASETS[ds_key])
     mine = next(r for r in rows if r.name == "B71-limpio (canónico)")
@@ -139,9 +143,10 @@ def build(repo: Path) -> tuple[list[Table], list[Contrast]]:
     f4, f4_items = ham_f4(repo)
     v71, v71_items = ham_v71(repo)
     isic_tables, isic_items = isic(repo)
-    tabs = [*e3b, compute_table(repo), mcc_table(repo), *f4, v71, *isic_tables,
+    ft_tab, ft_items = ft_table(repo)
+    tabs = [*e3b, compute_table(repo), mcc_table(repo), *f4, v71, *isic_tables, ft_tab,
             interval_table(repo, "isic2019"), interval_table(repo, "isic2020"), pending_table()]
-    return tabs, e3b_items + f4_items + v71_items + isic_items
+    return tabs, e3b_items + f4_items + v71_items + isic_items + ft_items
 
 
 def render_markdown(repo: Path) -> str:

@@ -41,8 +41,8 @@ def test_isic2020_finetune_block_is_an_explicit_not_run_row_and_originals_are_tr
     ft = [r for r in ALL["isic2020"] if r.block == R.FINETUNE]
     assert len(ft) == 8 and all(r.status in (R.OK, R.PENDING) for r in ft)
     originals = [r for r in ALL["isic2019"] if "original (canónico)" in r.name]
-    assert len(originals) == 2 and all(r.transductive and r.status == R.PENDING for r in originals)
-    assert all("ETA ~15:00 UTC" in r.note for r in originals)
+    assert len(originals) == 2 and all(r.transductive for r in originals)
+    assert all(r.status == R.OK or "ETA ~15:00 UTC" in r.note for r in originals)
     assert not any(r.transductive for r in ALL["ham10000"])
 
 

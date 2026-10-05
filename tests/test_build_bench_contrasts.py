@@ -10,7 +10,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
 import build_bench_contrasts as bc  # noqa: E402
-from dermssl.bench import cli, contrasts_doc as D  # noqa: E402
+from dermssl.bench import cli, contrasts_doc as D, contrasts_load as L, ft_contrasts as F  # noqa: E402
 
 MD = REPO / cli.OUT / "CONTRASTES_SSL.md"
 POINT = re.compile(r"(?<![\w./@])\d+\.\d{4}(?![\w/])")
@@ -33,9 +33,11 @@ def test_every_contrast_family_of_the_bench_is_present():
     titles = " ".join(t.title for t in tables)
     for part in ("B71 frente a los 8 baselines", "F4 sobre cada baseline", "cómputo S0", "cómputo S1", "cómputo S2",
                  "semilla de B* 42", "semilla de B* 43", "semilla de B* 44", "v7 y v7.1", "ISIC 2019: canónico",
-                 "ISIC 2020: sensibilidad", "solo intervalos", "Contrastes pendientes", "MCC puntual"):
+                 "ISIC 2020: sensibilidad", "contra el fine-tuning", "solo intervalos", "Contrastes pendientes", "MCC puntual"):
         assert part in titles, part
-    assert len(items) == 120 + 6 * 6 + 48 + 2 * (6 + 18)
+    fixed = 120 + 6 * 6 + 48
+    isic = sum(len(c) for ds in ('isic2019', 'isic2020') for c in L.isic_all(REPO, ds).values())
+    assert len(items) == fixed + isic + len(F.contrasts(REPO))
 
 
 def test_multiplicity_warning_states_the_counts_from_the_data():

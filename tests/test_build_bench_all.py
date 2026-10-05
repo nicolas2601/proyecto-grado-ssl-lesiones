@@ -17,7 +17,8 @@ EXPECTED = ("TABLA_HAM10000.md", "TABLA_ISIC2019.md", "TABLA_ISIC2020.md", "TABL
 
 def test_every_generator_is_wired():
     assert [n for n, _ in ba.GENERATORS] == ["build_bench_tables.py", "build_bench_ablation.py",
-                                             "build_bench_contrasts.py", "build_fitzpatrick_table.py"]
+                                             "build_bench_contrasts.py", "build_fitzpatrick_table.py",
+                                             "build_ft_contrasts.py"]
 
 
 def test_committed_bench_is_fresh(capsys):

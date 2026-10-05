@@ -513,6 +513,19 @@ B71 original & DINOv2 público (prot. B71) & MCC & +0,0716 [+0,0066; +0,1375] & 
 \centering
 \scriptsize
 \resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+Control (fine-tuning) & Métrica & $\Delta$ (B71-limpio $-$ FT) [IC 95 \%] & El IC excluye 0 & Lectura & p bootstrap & p Holm \\
+\midrule
+\bottomrule
+\end{tabular}}
+\caption{B71-limpio contra el fine-tuning (pareado por id, ISIC 2020)}\label{tab:ft-contrasts}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lll@{}}
 \toprule
 Baseline congelado & F1 macro [IC 95 \%] & Lectura \\

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from dermssl.bench.latex import escape
 
 LONG_ROWS = 30
 UNICODE_TEX = {"Δ": r"$\Delta$", "−": "$-$", "≥": r"$\ge$", "↓": r"$\downarrow$", "→": r"$\to$"}
@@ -28,6 +27,8 @@ def markdown(table: Table) -> list[str]:
 
 
 def tex_cell(text: str) -> str:
+    from dermssl.bench.latex import escape  # lazy: latex imports render, which imports table_extras
+
     out = escape(text.replace("`", "")).replace("|", r"\textbar{}")
     for char, tex in UNICODE_TEX.items():
         out = out.replace(char, tex)

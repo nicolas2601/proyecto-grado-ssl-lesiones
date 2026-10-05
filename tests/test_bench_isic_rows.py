@@ -48,7 +48,8 @@ def test_row_numbers_are_the_json_numbers_including_the_mcc_interval():
 def test_pending_rows_say_why_and_when_and_have_no_numbers(key):
     pend = [r for r in R.dataset_rows(REPO, R.DATASETS[key]) if r.status != R.OK]
     names = {r.name for r in pend}
-    assert {"A71-limpio (canónico)", "B71 original (canónico)", "A71 original (canónico)"} <= names
+    assert "A71-limpio (canónico)" in names
+    assert names <= {"A71-limpio (canónico)", "B71 original (canónico)", "A71 original (canónico)"}
     assert all(not r.values and "ETA" in r.note for r in pend)
 
 

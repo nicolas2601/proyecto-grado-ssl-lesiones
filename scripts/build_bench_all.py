@@ -20,11 +20,12 @@ sys.path.insert(0, str(REPO / "scripts"))
 import build_bench_ablation  # noqa: E402
 import build_bench_contrasts  # noqa: E402
 import build_bench_tables  # noqa: E402
+import build_ft_contrasts  # noqa: E402
 import build_fitzpatrick_table  # noqa: E402  (E5, owned by its own generator; only run and checked here)
 
 GENERATORS = (("build_bench_tables.py", build_bench_tables), ("build_bench_ablation.py", build_bench_ablation),
               ("build_bench_contrasts.py", build_bench_contrasts),
-              ("build_fitzpatrick_table.py", build_fitzpatrick_table))
+              ("build_fitzpatrick_table.py", build_fitzpatrick_table), ("build_ft_contrasts.py", build_ft_contrasts))
 
 
 def _argv(args: argparse.Namespace, module) -> list[str]:

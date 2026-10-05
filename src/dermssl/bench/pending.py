@@ -33,3 +33,6 @@ HAM_CLEAN = Pending("E1 de B71-limpio en HAM10000 todavía no se corrió (no hay
 CLEAN_VS_ORIGINAL = Pending("el contraste B71-limpio contra B71 original exige el original con el mismo cómputo "
                             "canónico; la corrida de batch 16 no es comparable (cambia el cómputo, no solo los "
                             "datos)", ORIGINAL_CANONICAL.eta)
+FT_PROBAS = Pending("faltan las probabilidades por imagen del fine-tuning (se reconstruyen por inferencia de los "
+                    "checkpoints, sin reentrenar, en `ft_isic2020/probas/`) o el fine-tuning no ha terminado",
+                    "no declarada por el operador")
