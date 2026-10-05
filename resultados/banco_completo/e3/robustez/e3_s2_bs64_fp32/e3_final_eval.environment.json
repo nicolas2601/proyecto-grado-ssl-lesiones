@@ -1,6 +1,6 @@
 {
  "describes": "e3_final_eval.json",
- "sha256": "e83eda8fb212942d82f5b8b3c4bf3508605b3eee1edb5bfd034a703de931d1e2",
+ "sha256": "aaa777e4d25258ef5f7184e85114e91ff7897763a048af57a49a6e40797722e1",
  "environment": {
   "schema": 1,
   "python": "3.13.15",
@@ -14,32 +14,22 @@
    "threadpoolctl": "3.6.0"
   },
   "torch": {
-   "loaded": true,
-   "version": "2.11.0+cu128",
-   "cuda_runtime": "12.8",
-   "cudnn": 91900,
-   "cudnn_deterministic": false,
-   "cudnn_benchmark": false,
-   "deterministic_algorithms": false,
-   "num_threads": 4,
-   "cuda_available": false,
-   "cuda_initialized": false,
-   "gpus": []
+   "loaded": false
   },
   "env": {
    "OMP_NUM_THREADS": "4",
    "MKL_NUM_THREADS": "4",
-   "OPENBLAS_NUM_THREADS": "4",
+   "OPENBLAS_NUM_THREADS": "1",
    "NUMEXPR_NUM_THREADS": null,
    "CUBLAS_WORKSPACE_CONFIG": null,
-   "CUDA_VISIBLE_DEVICES": "",
+   "CUDA_VISIBLE_DEVICES": "1",
    "PYTHONHASHSEED": null
   },
   "threadpools": [
    {
     "user_api": "blas",
     "internal_api": "openblas",
-    "num_threads": 4,
+    "num_threads": 1,
     "version": "0.3.34"
    },
    {
@@ -47,19 +37,9 @@
     "internal_api": "openmp",
     "num_threads": 4,
     "version": null
-   },
-   {
-    "user_api": "blas",
-    "internal_api": "openblas",
-    "num_threads": 1,
-    "version": null
    }
   ],
   "cpu_count": 48,
-  "knobs": {
-   "decode_workers": 4,
-   "batch_size": 16,
-   "probe_blas_threads": 4
-  }
+  "knobs": {}
  }
 }

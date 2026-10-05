@@ -146,6 +146,22 @@
   {
    "arm": "F4",
    "control": "B71",
+   "metric": "mcc",
+   "probe": "logreg_balanced",
+   "fraction": 1.0,
+   "seed": 42,
+   "point_arm": 0.7103189967195725,
+   "point_control": 0.6804191560730907,
+   "point_delta": 0.02989984064648188,
+   "ci95_low": 0.005387881655325534,
+   "ci95_high": 0.05346434906539883,
+   "excludes_zero": true,
+   "direction": "arm_better",
+   "subset": "all"
+  },
+  {
+   "arm": "F4",
+   "control": "B71",
    "metric": "macro_f1",
    "probe": "logreg_balanced",
    "fraction": 1.0,
@@ -190,8 +206,39 @@
    "excludes_zero": false,
    "direction": "indistinguishable",
    "subset": "dark_tercile"
+  },
+  {
+   "arm": "F4",
+   "control": "B71",
+   "metric": "mcc",
+   "probe": "logreg_balanced",
+   "fraction": 1.0,
+   "seed": 42,
+   "point_arm": 0.6929791442206928,
+   "point_control": 0.6650263544340153,
+   "point_delta": 0.02795278978667759,
+   "ci95_low": -0.00760367517900285,
+   "ci95_high": 0.06503670859479387,
+   "excludes_zero": false,
+   "direction": "indistinguishable",
+   "subset": "dark_tercile"
   }
  ],
  "code_revision": "3052b40dcdadfc80b175c77b6f5fdc095bec27be",
- "selection_committed": false
+ "selection_committed": false,
+ "contrasts_rebuild": {
+  "tolerance": 0.0001,
+  "cells": {
+   "B71": true,
+   "F4": true
+  },
+  "cell_max_abs_diff": {
+   "B71": 0.0,
+   "F4": 0.0
+  },
+  "n_resamples": 1000,
+  "records_compared": 6,
+  "mcc_available": 2,
+  "mcc_unavailable": 0
+ }
 }
