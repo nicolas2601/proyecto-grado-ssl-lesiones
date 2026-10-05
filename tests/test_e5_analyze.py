@@ -172,7 +172,7 @@ def test_a_quarantined_mask_falls_back_to_the_border_estimator_on_the_pool_image
 def test_an_absent_mask_and_pool_image_falls_back_to_the_border_of_the_source_image(tmp_path):
     src, _ = _write(tmp_path, "src.png", lesion=False)
     rec = an.analyze(_pool_task(src, None, None, "absent"), masks=None, hair_fn=None)
-    assert rec["roi"]["estimator"] == "no_mask_border" and rec["roi"]["roi_image"] == "canonical"
+    assert rec["roi"]["estimator"] == "no_mask_border" and rec["roi"]["roi_image"] == "source_224"
     assert rec["roi"]["mask_state"] == "absent" and rec["roi"]["bucket"] == "III"
 
 
@@ -198,3 +198,37 @@ def test_native_ham_masks_are_labelled_c1_native_and_perilesional(tmp_path):
     assert rec["roi"]["estimator"] == "perilesional_roi" and rec["roi"]["mask_state"] == "c1_native"
     plain = an.analyze(_task(path), masks=None, hair_fn=None)
     assert plain["roi"]["estimator"] is None and plain["roi"]["mask_state"] is None
+
+
+def test_a_quarantined_image_the_pool_never_exported_is_read_from_the_source_at_224(tmp_path):
+    src, _ = _write(tmp_path, "src.png", lesion=False)
+    rec = an.analyze(_pool_task(src, tmp_path / "originals_missing.png", None, "quarantine"), masks=None, hair_fn=None)
+    assert rec["roi"]["estimator"] == "no_mask_border" and rec["roi"]["mask_state"] == "quarantine"
+    assert rec["roi"]["roi_image"] == "source_224" and rec["roi"]["bucket"] == "III"
+
+
+def test_the_source_is_resized_with_the_pool_builders_own_function():
+
+    import inspect
+
+    assert an.SOURCE_RESOLUTION == 224
+
+    assert "cache_io.load_resized_rgb" in inspect.getsource(an._source_224)  # ... over the shared function
+
+
+def test_the_source_224_image_equals_what_the_pool_builder_would_have_written(tmp_path):
+    import sys
+
+    sys.path.insert(0, str(an._nucleo_dir()))
+    import cache_io
+
+    src, _ = _write(tmp_path, "src.png")
+    task = _pool_task(src, None, None, "absent")
+    expected = cache_io.load_resized_rgb(src, 224).astype(np.float32) / 255.0
+    assert np.array_equal(an._source_224(task), expected) and expected.shape == (224, 224, 3)
+
+
+def test_an_eligible_entry_whose_pool_png_is_missing_still_aborts(tmp_path):
+    src, _ = _write(tmp_path, "src.png")
+    with pytest.raises(an.PoolFileError):
+        an.analyze(_pool_task(src, tmp_path / "gone.png", tmp_path / "gone_mask.png", "eligible"), masks=None, hair_fn=None)

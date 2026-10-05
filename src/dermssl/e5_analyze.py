@@ -82,7 +82,8 @@ def hair_parameters() -> dict:
 
 
 PERILESIONAL, BORDER = "perilesional_roi", "no_mask_border"
-CANONICAL, POOL = "canonical", "pool_224"
+CANONICAL, POOL, SOURCE = "canonical", "pool_224", "source_224"
+SOURCE_RESOLUTION = 224  # the pool's own resolution
 
 
 def _roi_record(est: e5_roi.RoiEstimate, *, estimator: str | None, state: str | None, image: str | None,
@@ -116,6 +117,21 @@ def _pool_image(task: Task) -> np.ndarray:
     return _read_pool(task, task.pool_image, "RGB").astype(np.float32) / 255.0
 
 
+def _source_224(task: Task) -> np.ndarray:
+    """The source file at the pool's grid, with the function that built the pool cache (squash resize, draft)."""
+    sys.path.insert(0, str(_nucleo_dir()))
+    import cache_io  # noqa: PLC0415
+
+    return cache_io.load_resized_rgb(task.path, SOURCE_RESOLUTION).astype(np.float32) / 255.0
+
+
+def _fallback_image(task: Task) -> tuple[np.ndarray, str]:
+    """The pool's 224 original when it exists; else the source resized as the pool builder does (never skipped)."""
+    if task.pool_image is not None and Path(task.pool_image).is_file():
+        return _pool_image(task), POOL
+    return _source_224(task), SOURCE
+
+
 def _eligible_roi(task: Task, hair_fn) -> dict:
     img = _pool_image(task)
     mask = _read_pool(task, task.pool_mask, "L") > 0
@@ -136,10 +152,9 @@ def _roi(task: Task, canonical: np.ndarray, masks, hair_fn) -> dict:
         return _eligible_roi(task, hair_fn)
     if task.mask_state is None:
         return _roi_record(e5_roi.ring_estimate(canonical, None), estimator=None, state=None, image=None)
-    pooled = task.pool_image is not None
-    img = _pool_image(task) if pooled else canonical
+    img, origin = _fallback_image(task)
     return _roi_record(e5_roi.border_estimate(img, hair_fn=hair_fn), estimator=BORDER, state=task.mask_state,
-                       image=POOL if pooled else CANONICAL)
+                       image=origin)
 
 
 def analyze(task: Task, *, masks, hair_fn: e5_roi.HairFn | None) -> dict:
