@@ -18,6 +18,8 @@ argv = sys.argv[1:]
 arg = lambda flag: argv[argv.index(flag) + 1] if flag in argv else None
 out, stage = Path(arg("--out-dir")), arg("--stage")
 script = Path(argv[0]).name
+if os.environ.get("STUB_LOG"):
+    open(os.environ["STUB_LOG"], "a").write(f"{script}:{arg('--stage')}\\n")
 if os.environ.get("STUB_FAIL") == f"{script}:{stage}":
     sys.exit(3)
 out.mkdir(parents=True, exist_ok=True)
@@ -120,6 +122,30 @@ def test_rehearsal_builds_its_own_reference_and_never_creates_a_lock(pod):
     assert (out / "ham_clean_rehearsal" / "ham_clean_holdout_rehearsal.json").is_file()
     assert not list(out.rglob("val_read.lock"))
     assert (out / "ham_clean_rehearsal" / "ham_clean_rehearsal.marker").read_text().strip().endswith("rc=0")
+
+
+def test_rehearsal_can_be_rerun_on_the_same_out_root_without_redoing_the_reference(pod, tmp_path):
+    env, head, out = pod
+    env = {**env, "STUB_LOG": str(tmp_path / "calls.log")}
+    assert _run(env, "rehearsal", head).returncode == 0
+    again = _run(env, "rehearsal", head)
+    assert again.returncode == 0, again.stdout + again.stderr
+    calls = (tmp_path / "calls.log").read_text().split()
+    assert calls.count("v71_run.py:val") == 1 and calls.count("ham_clean_run.py:extract") == 2
+    assert list(out.glob("ham_clean_rehearsal.prev.*"))
+    assert (out / "ham_clean_rehearsal" / "ham_clean_rehearsal.marker").read_text().strip().endswith("rc=0")
+
+
+def test_val_mode_still_refuses_a_second_run_even_after_a_rehearsal(pod):
+    env, head, out = pod
+    assert _run(env, "rehearsal", head).returncode == 0
+    assert _run(env, "val", head).returncode == 0
+    assert _run(env, "val", head).returncode != 0
+
+
+def test_parallelism_comes_from_the_script_defaults_not_from_magic_numbers_in_the_launcher():
+    text = LAUNCHER.read_text(encoding="utf-8")
+    assert "--probe-jobs" not in text and "--decode-workers" not in text
 
 
 def test_the_launcher_is_executable_or_runs_with_bash():

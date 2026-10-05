@@ -7,6 +7,7 @@
 # <commit> is the commit that holds scripts/ham_clean_run.py: it must be an ancestor of HEAD and the clone must
 # be clean. Every step logs to $OUT/logs/<step>.log and its REAL exit code is kept (no pipe in the way);
 # the marker "<name>.marker" with "rc=0" is written only when every step exited 0 AND the artifacts exist.
+# Parallelism (probe jobs, decode workers) = the defaults of scripts/ham_clean_run.py (ham_clean.PROBE_JOBS/DECODE_WORKERS).
 # Env: P (default $HOME/work/proyectonp), REPO, PYTHON, OUT_ROOT (default $P/salidas/bench/ham_clean).
 # Copy afterwards (by hand, reviewed): ham_clean_val.json, .probas.npz and .environment.json to
 # resultados/banco_completo/ham_clean/ and run scripts/build_bench_all.py.
@@ -65,7 +66,7 @@ val)
     [ ! -e "$OUT/$f" ] || abort "$OUT/$f exists: the val is read once; use a new OUT_ROOT"
   done
   run_step extract "$OUT/logs" "$PY" "$REPO/scripts/ham_clean_run.py" "${COMMON[@]}" --weights-dir "$CLEAN_WEIGHTS" \
-    --out-dir "$OUT" --stage extract --single-evaluation --probe-jobs 10 --decode-workers 16
+    --out-dir "$OUT" --stage extract --single-evaluation
   run_step val "$OUT/logs" "$PY" "$REPO/scripts/ham_clean_run.py" "${COMMON[@]}" --weights-dir "$CLEAN_WEIGHTS" \
     --out-dir "$OUT" --stage val --single-evaluation
   finish "$OUT/ham_clean_val.marker" "$(need "$OUT/ham_clean_val.json" "$OUT/ham_clean_val.probas.npz" \
@@ -75,12 +76,19 @@ rehearsal)
   REF=$OUT_ROOT/rehearsal_reference
   OUT=$OUT_ROOT/ham_clean_rehearsal
   mkdir -p "$REF"
+  # re-runnable: a previous rehearsal out-dir is kept aside (never deleted); this only applies to the rehearsal
+  [ ! -e "$OUT" ] || mv "$OUT" "$OUT.prev.$(date -u +%Y%m%dT%H%M%S)"
   cp "$REPO/resultados/clasificacion/v71/selection.json" "$REPO/resultados/clasificacion/v71/holdout_grid.json" "$REF/"
-  # the controls of the rehearsal: the ORIGINAL v7.1 val stage run on the holdout (never on val), in a scratch dir
-  run_step reference "$OUT/logs" "$PY" "$REPO/scripts/v71_run.py" "${COMMON[@]}" --weights-dir "$P/salidas/v7" \
-    --out-dir "$REF" --stage val --split holdout --ci-resamples 20 --probe-jobs 10 --decode-workers 16
+  # the controls of the rehearsal: the ORIGINAL v7.1 val stage run on the holdout (never on val), in a scratch dir;
+  # they do not depend on the clean weights or this code, so an existing complete reference is reused
+  if [ -s "$REF/v71_final_eval_holdout_rehearsal.json" ] && [ -s "$REF/v71_final_eval_holdout_rehearsal.probas.npz" ]; then
+    echo "[reference] reused: $REF"
+  else
+    run_step reference "$OUT/logs" "$PY" "$REPO/scripts/v71_run.py" "${COMMON[@]}" --weights-dir "$P/salidas/v7" \
+      --out-dir "$REF" --stage val --split holdout --ci-resamples 20
+  fi
   run_step extract "$OUT/logs" "$PY" "$REPO/scripts/ham_clean_run.py" "${COMMON[@]}" --weights-dir "$CLEAN_WEIGHTS" \
-    --out-dir "$OUT" --reference-dir "$REF" --stage extract --rehearsal --probe-jobs 10 --decode-workers 16
+    --out-dir "$OUT" --reference-dir "$REF" --stage extract --rehearsal
   run_step val "$OUT/logs" "$PY" "$REPO/scripts/ham_clean_run.py" "${COMMON[@]}" --weights-dir "$CLEAN_WEIGHTS" \
     --out-dir "$OUT" --reference-dir "$REF" --stage val --rehearsal
   missing=$(need "$OUT/ham_clean_holdout_rehearsal.json" "$OUT/ham_clean_holdout_rehearsal.probas.npz" \
