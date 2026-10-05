@@ -48,7 +48,7 @@ def synthetic_result(repo: Path) -> None:
     folder = repo / hc.DIR
     folder.mkdir(parents=True)
     np.savez_compressed(repo / hc.RESULT_NPZ, y_true=y, **probas)
-    doc = {**hc.declarations(rehearsal=False), "split": "val", "n_eval": n, "results": results, "paired": paired,
+    doc = {**hc.declarations(rehearsal=False), "split": "val", "compute": {"canonical": True}, "n_eval": n, "results": results, "paired": paired,
            "bootstrap": {"n_resamples": 4, "rng_seed": 20260923, "paired": True, "grouped_by": "lesion_id"}}
     (repo / hc.RESULT_JSON).write_text(json.dumps(doc), encoding="utf-8")
 
@@ -158,3 +158,35 @@ def test_reading_rules_and_glossary_explain_the_clean_block():
     text = "\n".join(glossary.GLOSSARY + glossary.reading_rules(REPO, R.DATASETS))
     assert "Pesos limpios (sensibilidad)" in text and "pesos originales (selección)" in text
     assert "no es selección" in text and "umbrales" in text
+
+
+def _break(doc_changes=None, drop_npz=False):
+    def mutate(root: Path) -> None:
+        path = root / hc.RESULT_JSON
+        path.write_text(json.dumps({**json.loads(path.read_text()), **(doc_changes or {})}), encoding="utf-8")
+        if drop_npz:
+            (root / hc.RESULT_NPZ).unlink()
+    return mutate
+
+
+@pytest.mark.parametrize("mutate", [
+    _break(hc.declarations(rehearsal=True)),  # a copied rehearsal JSON
+    _break({"split": "holdout"}),
+    _break({"compute": {"canonical": False}}),
+    _break({"compute": {}}),
+    _break(drop_npz=True),
+], ids=["rehearsal", "holdout", "non-canonical", "no-compute", "no-npz"])
+def test_a_json_that_is_not_the_canonical_val_read_never_shows_as_measured(measured, tmp_path, mutate):
+    broken = tmp_path / "broken"
+    shutil.copytree(measured, broken)
+    mutate(broken)
+    assert not hc.measured(broken)
+    assert all(_by_name(broken)[n].status == R.PENDING for n in NAMES)
+    assert any(r[0].startswith("B71-limpio y A71-limpio") for r in contrasts_doc.pending_table(broken).rows)
+    assert not [a for a in confusion.artifacts(broken) if a["dataset"] == "HAM10000" and "limpio" in a["modelo"]]
+    assert contrasts_doc.ham_clean_table(broken) == ([], [])
+    assert "ablation-ham-clean" not in {t.label for t in ablation_data.tables(broken)}
+
+
+def test_the_canonical_json_counts_as_measured(measured):
+    assert hc.measured(measured) and not hc.measured(REPO)

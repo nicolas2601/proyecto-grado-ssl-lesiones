@@ -84,7 +84,7 @@ def f4_row(repo: Path) -> Row:
 
 def clean_rows(repo: Path) -> list[Row]:
     """Measured clean-weight rows when the result JSON exists, else the pending ones (derived from the file)."""
-    if not (repo / hc.RESULT_JSON).is_file():
+    if not hc.measured(repo):
         return [Row("ham10000", CLEAN_HAM, name, pre, False, False, PENDING, (PLAN_DOC,), note=pending.HAM_CLEAN.note)
                 for _, name, pre in CLEAN_ROWS]
     n_eval = _load(repo, hc.RESULT_JSON)["n_eval"]

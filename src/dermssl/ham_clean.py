@@ -8,6 +8,9 @@ nothing is selected here: configurations and operating thresholds come from the 
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 
 from dermssl import c1_split_identity as si
@@ -123,3 +126,13 @@ def contrast_probas(clean: dict, reference: dict) -> dict:
     if len(set(shapes.values())) != 1:
         raise HamCleanError(f"forma distinta entre probabilidades: {shapes}")
     return probas
+
+
+def measured(repo: Path) -> bool:
+    """True only for the real, canonical val read: not a rehearsal, split val, canonical compute, probabilities on disk."""
+    path = Path(repo) / RESULT_JSON
+    if not path.is_file() or not (Path(repo) / RESULT_NPZ).is_file():
+        return False
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    return (doc.get("rehearsal") is False and doc.get("split") == "val"
+            and (doc.get("compute") or {}).get("canonical") is True)

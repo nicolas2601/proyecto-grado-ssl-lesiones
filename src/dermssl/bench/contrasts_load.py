@@ -83,7 +83,7 @@ CLEAN_HAM_LABELS = {"B71_clean": "B71-limpio", "A71_clean": "A71-limpio", "B71":
 
 def ham_clean_contrasts(repo: Path) -> list[Contrast]:
     """The paired contrasts of the HAM10000 clean-weights sensitivity; empty until its result JSON exists."""
-    if not (repo / hc.RESULT_JSON).is_file():
+    if not hc.measured(repo):
         return []
     return [from_record(r, arm=CLEAN_HAM_LABELS[r["arm"]], control=CLEAN_HAM_LABELS[r["control"]], unit=UNIT_HAM,
                         source=hc.RESULT_JSON) for r in _load(repo, hc.RESULT_JSON)["paired"]]

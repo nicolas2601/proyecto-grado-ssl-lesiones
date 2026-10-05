@@ -77,7 +77,7 @@ HAM_CLEAN_ORIGIN = ("argmax de las probabilidades commiteadas de la sensibilidad
 
 def _ham_clean_cells(repo: Path) -> list[dict]:
     """Matrices of the clean-weight rows; none until the result JSON exists."""
-    if not (repo / hc.RESULT_JSON).is_file():
+    if not hc.measured(repo):
         return []
     out = []
     for key, model in HAM_CLEAN_CELLS:
@@ -136,7 +136,7 @@ def pending(repo: Path) -> list[dict]:
     out = [_pending(DATASETS["isic2020"].title, MODEL_NAMES[m], pend.missing(f"{ft}/results_{m}_ft_isic2020.json"),
                     CONDITIONS[1]) for m in SSL_MODELS if _baseline_cell(repo, "isic2020", m, CONDITIONS[1]) is None]
     ham = DATASETS["ham10000"].title
-    if not (repo / hc.RESULT_JSON).is_file():
+    if not hc.measured(repo):
         out += [_pending(ham, f"{key}-limpio (canónico)", pend.HAM_CLEAN) for key in V71_ARMS]
     for ds in (d for d in DATASETS.values() if d.key != "ham10000"):
         for cell, label in ((f"{key}__clean", f"{key}-limpio (canónico)") for key in V71_ARMS):
