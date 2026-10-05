@@ -150,15 +150,26 @@ def test_an_eligible_pool_mask_gives_a_perilesional_roi_on_the_224_pool_image(tm
     assert rec["roi"]["status"] == "ok" and rec["roi"]["bucket"] == "III" and rec["roi"]["roi_image"] == "pool_224"
 
 
-def test_the_mask_hash_is_checked_against_the_manifest_and_only_recorded(tmp_path):
-    import hashlib
+def test_the_mask_hash_uses_the_manifests_own_definition_and_is_only_recorded(tmp_path):
+    from dermssl import mask_manifest
 
     src, _ = _write(tmp_path, "src.png")
     img, mask = _pool(tmp_path)
-    good = hashlib.sha256(mask.read_bytes()).hexdigest()
+    boolean = np.asarray(Image.open(mask)) > 0
+    good = mask_manifest.mask_sha256(boolean)
     assert an.analyze(_pool_task(src, img, mask, "eligible", good), masks=None, hair_fn=None)["roi"]["mask_sha_ok"] is True
     assert an.analyze(_pool_task(src, img, mask, "eligible", "0" * 64), masks=None, hair_fn=None)["roi"]["mask_sha_ok"] is False
     assert an.analyze(_pool_task(src, img, mask, "eligible"), masks=None, hair_fn=None)["roi"]["mask_sha_ok"] is None
+
+
+def test_hashing_the_png_bytes_is_not_the_manifests_definition(tmp_path):
+    """The bug found in the pod run: sha256 of the file bytes never equals the manifest hash of the boolean array."""
+    import hashlib
+
+    from dermssl import mask_manifest
+
+    _, mask = _pool(tmp_path)
+    assert hashlib.sha256(mask.read_bytes()).hexdigest() != mask_manifest.mask_sha256(np.asarray(Image.open(mask)) > 0)
 
 
 def test_a_quarantined_mask_falls_back_to_the_border_estimator_on_the_pool_image(tmp_path):

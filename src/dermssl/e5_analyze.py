@@ -13,7 +13,6 @@ input order, so the result does not depend on ``workers`` or on the chunk size.
 
 from __future__ import annotations
 
-import hashlib
 import sys
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
@@ -22,7 +21,7 @@ from pathlib import Path
 
 import numpy as np
 
-from dermssl import e5_counts, e5_ita, e5_roi
+from dermssl import e5_counts, e5_ita, e5_roi, mask_manifest
 
 LESION = 1  # c1_mask_export.LESION_LABEL: 255 (uncertain) is NOT lesion
 DEFAULT_CHUNK = 32
@@ -53,7 +52,7 @@ class Task:
     pool_image: str | None = None  # 224 x 224 pool image (ISIC), the same grid as its mask
     pool_mask: str | None = None  # PNG, true (> 0) = lesion; only for an ``eligible`` pool mask
     mask_state: str | None = None  # c1_native | eligible | quarantine | absent | None (no masks at all)
-    mask_sha256: str | None = None  # the manifest's hash of the mask file, recorded against the bytes read
+    mask_sha256: str | None = None  # the manifest's mask_sha256 (hash of the boolean array), compared with the mask read
 
 
 def _nucleo_dir() -> Path:
@@ -137,7 +136,8 @@ def _eligible_roi(task: Task, hair_fn) -> dict:
     mask = _read_pool(task, task.pool_mask, "L") > 0
     if mask.shape != img.shape[:2]:
         raise MaskGridError(f"{task.image_id}: mask {mask.shape} and pool image {img.shape[:2]} are not on the same grid")
-    sha_ok = None if task.mask_sha256 is None else hashlib.sha256(Path(task.pool_mask).read_bytes()).hexdigest() == task.mask_sha256
+    # the manifest hashes the BOOLEAN array with its shape (mask_manifest.mask_sha256), not the PNG bytes
+    sha_ok = None if task.mask_sha256 is None else mask_manifest.mask_sha256(mask) == task.mask_sha256
     return _roi_record(e5_roi.ring_estimate(img, mask, hair_fn=hair_fn), estimator=PERILESIONAL,
                        state=task.mask_state, image=POOL, sha_ok=sha_ok)
 
