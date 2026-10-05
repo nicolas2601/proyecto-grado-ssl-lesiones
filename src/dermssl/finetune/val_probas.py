@@ -150,6 +150,8 @@ def write_probas(cfg: FinetuneConfig, ckpt: Path, json_path: Path, out: Path,
             "probas_sha256": sha256_file(out)}
 
 
+CHECKPOINT_IDENTITY_NOTE = ("checkpoint_epoch=null; identidad del checkpoint inferida por "
+                            "coincidencia de métricas")
 LABEL = ("probas de val reconstruidas por inferencia desde el checkpoint de la mejor epoca; "
          "verificadas contra las metricas registradas")
 
@@ -172,7 +174,9 @@ def pair_models(models, make_cfg, ckpt_root: Path, json_root: Path, out_dir: Pat
         except (ValProbasError, FileNotFoundError) as exc:
             records.append({"model": model, "status": "no pareado",
                             "reason": f"{type(exc).__name__}: {exc}"})
-    sidecar = {"label": LABEL, "tolerance": TOLERANCE, "models": records}
+    records = [{**rec, "checkpoint_identity_note": CHECKPOINT_IDENTITY_NOTE} for rec in records]
+    sidecar = {"label": LABEL, "checkpoint_identity_note": CHECKPOINT_IDENTITY_NOTE,
+               "tolerance": TOLERANCE, "models": records}
     Path(out_dir).mkdir(parents=True, exist_ok=True)
     (Path(out_dir) / f"ft_{suffix}_probas.sidecar.json").write_text(json.dumps(sidecar, indent=2))
     return sidecar

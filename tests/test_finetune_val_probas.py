@@ -117,3 +117,21 @@ def test_script_parses_defaults_and_points_at_the_committed_reference():
     assert len(args.models) == 8
     assert Path(args.reference).is_file(), args.reference
     assert args.out_dir.endswith("resultados/banco_completo/ft_isic2020/probas")
+
+
+def test_sidecar_states_the_checkpoint_identity_note_globally_and_per_model(trained, tmp_path):
+    cfg, json_path, ckpt = trained
+    root = ckpt.parent.parent
+    (root / "alexnet").mkdir(exist_ok=True)
+    for f in ckpt.parent.iterdir():
+        if f.is_file():
+            (root / "alexnet" / f.name).write_bytes(f.read_bytes())
+    sidecar = val_probas.pair_models(
+        ["vgg19", "alexnet"], lambda m: dataclasses.replace(cfg, model=m),
+        root, root, tmp_path / "probas", None)
+    note = "checkpoint_epoch=null; identidad del checkpoint inferida por coincidencia de métricas"
+    assert val_probas.CHECKPOINT_IDENTITY_NOTE == note
+    saved = json.loads((tmp_path / "probas" / "ft_isic2020_probas.sidecar.json").read_text())
+    assert saved["checkpoint_identity_note"] == note
+    assert [r["checkpoint_identity_note"] for r in saved["models"]] == [note, note]
+    assert sidecar == saved
