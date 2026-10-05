@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 from dermssl.bench import glossary, isic_rows, metrics, pending as pend
-from dermssl.bench.rows import (DATASETS, MODEL_NAMES, NOT_RUN, PENDING, PLAN_DOC, V71_JSON, V71_NPZ, V71_ROWS,
+from dermssl.bench.rows import (DATASETS, MODEL_NAMES, PENDING, PLAN_DOC, V71_JSON, V71_NPZ, V71_ROWS,
                                 _load, v71_derived)
 
 SSL_MODELS = ("dinov2_vits14", "dinov2_vitb14", "simsiam_r50")
@@ -49,6 +49,8 @@ def _baseline_cell(repo: Path, ds_key: str, model: str, condition: str) -> dict 
     if folder is None:
         return None
     rel = f"{folder}/results_{model}{'' if frozen else '_ft'}{ds.suffix}.json"
+    if not (repo / rel).is_file():
+        return None
     probe = _load(repo, rel)["probes"]["logreg" if frozen else "finetune"]
     return _artifact(repo, ds_key, MODEL_NAMES[model], condition, probe["matriz_confusion"], [rel],
                      "matriz_confusion del JSON")
@@ -105,9 +107,10 @@ def _missing(repo: Path, ds_key: str, cell: str) -> bool:
 
 def pending(repo: Path) -> list[dict]:
     """Cells the plan will add and are not on disk yet; listed so a missing matrix is never silent."""
-    ft = pend.FT_ISIC2020
-    out = [{"dataset": DATASETS["isic2020"].title, "modelo": MODEL_NAMES[m], "condicion": CONDITIONS[1],
-            "estado": NOT_RUN, "motivo": ft.reason, "eta": ft.eta, "fuente": PLAN_DOC} for m in SSL_MODELS]
+    ft, ds20 = pend.FT_ISIC2020, DATASETS["isic2020"]
+    out = [{"dataset": ds20.title, "modelo": MODEL_NAMES[m], "condicion": CONDITIONS[1], "estado": PENDING,
+            "motivo": ft.reason, "eta": ft.eta, "fuente": PLAN_DOC}
+           for m in SSL_MODELS if _baseline_cell(repo, "isic2020", m, CONDITIONS[1]) is None]
     ham = DATASETS["ham10000"].title
     out += [_pending(ham, "B71-limpio (canónico)", pend.HAM_CLEAN), _pending(ham, "A71-limpio (canónico)", pend.A71_CLEAN)]
     for ds in (d for d in DATASETS.values() if d.key != "ham10000"):

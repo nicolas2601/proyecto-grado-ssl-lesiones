@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dermssl.bench import contrast, contrasts_load as L, isic_rows, pending
+from dermssl.bench import contrast, ft_curve, contrasts_load as L, isic_rows, pending
 from dermssl.bench.contrast import Contrast, num
 from dermssl.bench.rows import MODELS, MODEL_NAMES, Dataset, _load
 
@@ -36,7 +36,8 @@ def isic_section(repo: Path, ds: Dataset) -> list[str]:
     for title, items in L.isic_all(repo, ds.key).items():
         out += [f"### {title[0].upper() + title[1:]}", "", *contrast.table(items), ""]
     pend = _isic_pending(repo, ds.key)
-    return out + ["### Pendientes", "", *pend, ""] if pend else out
+    out += ["### Pendientes", "", *pend, ""] if pend else []
+    return out + (ft_curve.section(repo) if ds.key == "isic2020" else [])
 
 
 def _ham_above_table(repo: Path, above: list[Contrast], rel: str) -> list[str]:

@@ -95,7 +95,7 @@ def reading_rules(repo: Path, datasets: dict[str, Dataset]) -> list[str]:
         "macro; B71/A71, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall "
         "macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en B71/A71 salen "
         "de las probabilidades commiteadas, también sin IC.",
-        "- Las filas «pendiente» y «no ejecutado todavia» no tienen número: se listan con su motivo técnico y la "
+        "- Las filas «pendiente» no tienen número: se listan con su motivo técnico y la "
         "ETA declarada por el operador, para que nada parezca olvidado. No se inventa ninguna cifra.",
     ]
 

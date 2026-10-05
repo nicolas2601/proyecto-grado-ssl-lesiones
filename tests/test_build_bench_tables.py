@@ -92,7 +92,7 @@ def test_metric_tables_are_sorted_by_macro_f1_inside_each_block(name):
 
 def test_isic2020_finetune_block_says_not_run_and_pending_rows_are_listed():
     text = _md("TABLA_ISIC2020")
-    assert "no ejecutado todavia" in text.split("## Con fine-tuning")[1]
+    assert "pendiente" in text.split("## Con fine-tuning")[1] and "Curva por época" in text
     for name in TABLES:
         assert "B71-limpio" in _md(name) and "pendiente" in _md(name)
     assert "B71 original" in _md("TABLA_ISIC2019") and "B71 original" not in _md("TABLA_HAM10000")

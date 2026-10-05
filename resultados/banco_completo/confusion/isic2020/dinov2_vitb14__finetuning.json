@@ -1,0 +1,35 @@
+{
+  "dataset": "ISIC 2020",
+  "modelo": "DINOv2 ViT-B/14",
+  "condicion": "fine-tuning",
+  "clases": [
+    "benigno",
+    "maligno"
+  ],
+  "n": 6660,
+  "conteos": [
+    [
+      6120,
+      418
+    ],
+    [
+      87,
+      35
+    ]
+  ],
+  "normalizada_por_fila": [
+    [
+      0.9360660752523707,
+      0.06393392474762924
+    ],
+    [
+      0.7131147540983607,
+      0.28688524590163933
+    ]
+  ],
+  "mcc": 0.11874694626279698,
+  "origen": "matriz_confusion del JSON",
+  "fuente": [
+    "resultados/banco_completo/ft_isic2020/json/results_dinov2_vitb14_ft_isic2020.json"
+  ]
+}

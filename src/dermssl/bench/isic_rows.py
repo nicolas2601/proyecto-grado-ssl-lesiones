@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from dermssl.bench import metrics, pending
-from dermssl.bench.rows import FINETUNE, FROZEN, NOT_RUN, OK, OWN_A, OWN_B, PENDING, PLAN_DOC, PUBLIC, SENSITIVITY, Row, Value, _load
+from dermssl.bench.rows import FROZEN, OK, OWN_A, OWN_B, PENDING, PLAN_DOC, PUBLIC, SENSITIVITY, Row, Value, _load
 
 ISIC_EVAL = "resultados/banco_completo/isic_eval"
 CANONICAL_DIR = f"{ISIC_EVAL}/limpio_canonico_bs64"
@@ -80,9 +80,3 @@ def sensitivity_rows(repo: Path, ds_key: str) -> list[Row]:
 
 def isic_rows(repo: Path, ds_key: str) -> list[Row]:
     return canonical_rows(repo, ds_key) + sensitivity_rows(repo, ds_key)
-
-
-def finetune_pending(ds_key: str) -> Row:
-    """The fine-tuning block of a dataset without fine-tuning yet (ISIC 2020, G1.3 of docs/33)."""
-    return Row(ds_key, FINETUNE, "8 baselines con fine-tuning", "varios", True, False, NOT_RUN, (PLAN_DOC,),
-               note=pending.FT_ISIC2020.note + "; optimista: época elegida en val (receta existente)")

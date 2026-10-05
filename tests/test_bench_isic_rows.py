@@ -52,11 +52,6 @@ def test_pending_rows_say_why_and_when_and_have_no_numbers(key):
     assert all(not r.values and "ETA" in r.note for r in pend)
 
 
-def test_isic2020_finetune_pending_row_names_the_gpu_and_e2():
-    row = _by_name("isic2020")["8 baselines con fine-tuning"]
-    assert row.status == R.NOT_RUN and "GPU1" in row.note and "E2" in row.note and "optimista" in row.note
-
-
 def test_a_pending_cell_becomes_a_measured_row_when_its_json_appears(tmp_path):
     src = REPO / I.CANONICAL_DIR / "isic2019"
     dst = tmp_path / I.CANONICAL_DIR / "isic2019"

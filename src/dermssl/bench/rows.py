@@ -25,7 +25,7 @@ FROZEN, FINETUNE = "congelados (sin fine-tuning)", "con fine-tuning"
 SENSITIVITY = "sensibilidad (cómputo no canónico: batch 16, transductivo)"
 EXPLORATORY = "exploratorio (segmentación, no cambia el propuesto)"
 BLOCKS = (FROZEN, FINETUNE, SENSITIVITY, EXPLORATORY)
-OK, PENDING, NOT_RUN = "ok", "pendiente", "no ejecutado todavia"
+OK, PENDING = "ok", "pendiente"
 MODELS = ("alexnet", "vgg19", "resnet50", "efficientnet_b0", "vit_b16", "simsiam_r50",
           "dinov2_vits14", "dinov2_vitb14")
 MODEL_NAMES = {"alexnet": "AlexNet", "vgg19": "VGG19", "resnet50": "ResNet-50",
@@ -61,11 +61,14 @@ class Dataset:
     finetune: str | None
 
 
+FT_ISIC2020_DIR = "resultados/banco_completo/ft_isic2020"
+
 DATASETS = {
     "ham10000": Dataset("ham10000", "HAM10000", "", "results/baselines", "results/finetune/ham10000"),
     "isic2019": Dataset("isic2019", "ISIC 2019", "_isic2019", "results/baselines_isic2019",
                         "results/finetune/isic2019"),
-    "isic2020": Dataset("isic2020", "ISIC 2020", "_isic2020", "results/baselines_isic2020", None),
+    "isic2020": Dataset("isic2020", "ISIC 2020", "_isic2020", "results/baselines_isic2020",
+                        FT_ISIC2020_DIR + "/json"),
 }
 
 
@@ -111,6 +114,20 @@ def _ft_note(data: dict) -> str:
     return f"{OPTIMISTIC}; mejor época = última ({data['mejor_epoca']}/{data['epocas_corridas']}), curva sin converger"
 
 
+def _finetune_row(repo: Path, ds: Dataset, model: str) -> Row:
+    """Measured row when the fine-tuning JSON exists, else a pending row with reason and ETA."""
+    from dermssl.bench import pending  # lazy: keeps the import graph acyclic
+
+    rel = f"{ds.finetune}/results_{model}_ft{ds.suffix}.json"
+    if not (repo / rel).is_file():
+        return Row(ds.key, FINETUNE, MODEL_NAMES[model], _pretraining(model), True, False, PENDING, (PLAN_DOC,),
+                   note=pending.FT_ISIC2020.note + "; optimista: época elegida en val (receta existente)")
+    data = _load(repo, rel)
+    note = _ft_note(data) + (f"; mejor época {data['mejor_epoca']}" if ds.key == "isic2020" else "")
+    return Row(ds.key, FINETUNE, MODEL_NAMES[model], _pretraining(model), True, False, OK, (rel,),
+               data["n_val"], probe_values(data["probes"]["finetune"]), note)
+
+
 def baseline_rows(repo: Path, ds: Dataset) -> list[Row]:
     """The 8 frozen baselines (probe ``logreg``) and, when they exist, their fine-tuned twins."""
     out = []
@@ -119,12 +136,8 @@ def baseline_rows(repo: Path, ds: Dataset) -> list[Row]:
         data = _load(repo, rel)
         out.append(Row(ds.key, FROZEN, MODEL_NAMES[model], _pretraining(model), False, False, OK, (rel,),
                        data["n_val"], probe_values(data["probes"]["logreg"])))
-        if ds.finetune is None:
-            continue
-        rel = f"{ds.finetune}/results_{model}_ft{ds.suffix}.json"
-        data = _load(repo, rel)
-        out.append(Row(ds.key, FINETUNE, MODEL_NAMES[model], _pretraining(model), True, False, OK, (rel,),
-                       data["n_val"], probe_values(data["probes"]["finetune"]), _ft_note(data)))
+        if ds.finetune is not None:
+            out.append(_finetune_row(repo, ds, model))
     return out
 
 
@@ -162,6 +175,4 @@ def dataset_rows(repo: Path, ds: Dataset) -> list[Row]:
 
     rows = baseline_rows(repo, ds)
     rows += ham_rows.ham_rows(repo) if ds.key == "ham10000" else isic_rows.isic_rows(repo, ds.key)
-    if ds.finetune is None:
-        rows.append(isic_rows.finetune_pending(ds.key))
     return sort_rows(rows)

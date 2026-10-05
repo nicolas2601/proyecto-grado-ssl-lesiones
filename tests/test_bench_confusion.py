@@ -28,11 +28,11 @@ def _expand(cm):
     return y_true, y_pred
 
 
-def test_scope_is_self_supervised_only_and_has_23_cells():
+def test_scope_is_self_supervised_only_and_has_24_cells():
     assert {a["modelo"].split(" (")[0] for a in ARTS} == {
         "DINOv2 ViT-S/14", "DINOv2 ViT-B/14", "SimSiam ResNet-50", "B71", "A71", "B71-limpio", "B71 original",
         "A71 original"}
-    assert len(ARTS) == 17 + 6
+    assert len(ARTS) == 17 + 6 + 1
 
 
 def test_isic_cells_come_from_the_e1_json_and_state_their_compute():
@@ -78,7 +78,8 @@ def test_v71_matrices_are_derived_and_reproduce_the_stored_accuracy():
 def test_manifest_lists_pending_cells_and_the_missing_diff_figure():
     manifest = json.loads((OUT / "confusion" / "manifest.json").read_text(encoding="utf-8"))
     pend = {(p["dataset"], p["modelo"], p["condicion"]): p["estado"] for p in manifest["pendientes"]}
-    assert pend[("ISIC 2020", "DINOv2 ViT-B/14", "fine-tuning")] == "no ejecutado todavia"
+    assert pend[("ISIC 2020", "DINOv2 ViT-S/14", "fine-tuning")] == "pendiente"
+    assert ("ISIC 2020", "DINOv2 ViT-B/14", "fine-tuning") not in pend
     assert any(m.startswith("A71-limpio") for _, m, _ in pend)
     assert all(p["eta"] and p["motivo"] for p in manifest["pendientes"])
     names = {(p["dataset"], p["modelo"]) for p in manifest["pendientes"]}

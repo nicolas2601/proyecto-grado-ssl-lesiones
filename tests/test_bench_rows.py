@@ -34,12 +34,12 @@ def test_rows_are_sorted_by_macro_f1_inside_each_block_and_pending_rows_come_las
 def test_counts_per_dataset():
     assert len(ALL["ham10000"]) == 8 + 8 + 5 + 1 + 2
     assert len(ALL["isic2019"]) == 8 + 8 + 6 + 4
-    assert len(ALL["isic2020"]) == 8 + 6 + 4 + 1
+    assert len(ALL["isic2020"]) == 8 + 6 + 4 + 8
 
 
 def test_isic2020_finetune_block_is_an_explicit_not_run_row_and_originals_are_transductive():
     ft = [r for r in ALL["isic2020"] if r.block == R.FINETUNE]
-    assert [r.status for r in ft] == [R.NOT_RUN] and not ft[0].values
+    assert len(ft) == 8 and all(r.status in (R.OK, R.PENDING) for r in ft)
     originals = [r for r in ALL["isic2019"] if "original (canónico)" in r.name]
     assert len(originals) == 2 and all(r.transductive and r.status == R.PENDING for r in originals)
     assert all("ETA ~15:00 UTC" in r.note for r in originals)
