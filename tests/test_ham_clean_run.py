@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -48,7 +49,7 @@ def _clean_weights(root: Path, exclude_sha: str) -> None:
         (root / name).mkdir(parents=True)
         torch.save(tiny_hub_model(seed=seed, depth=4).state_dict(), root / name / v71_io.WEIGHTS_FILE)
         (root / name / "run.json").write_text(json.dumps(
-            {"code_revision": "f1c2053", "exclude_ids_sha256": exclude_sha, "seed": 42}), encoding="utf-8")
+            {"code_revision": "f1c2053", "exclude_ids_sha256": exclude_sha, "seed": int(name[-2:])}), encoding="utf-8")
 
 
 def _reference(directory: Path, name: str, split: str, ids, y, entries: dict) -> None:
@@ -121,6 +122,7 @@ def _argv(world: Path, out: Path, stage: str, *extra: str, weights: str = "clean
 
 
 def _canonical(monkeypatch) -> None:
+    monkeypatch.setattr(run, "cuda_available", lambda: True)
     monkeypatch.setattr(hc, "compute_block", lambda d, b, rehearsal: {"device": "cuda", "batch_size": 64,
                                                                       "autocast": "cuda", "canonical": True})
     monkeypatch.setattr(fe, "check_val_protocol", lambda train, val: None)
@@ -253,3 +255,83 @@ def test_a_reference_on_other_ids_cannot_be_paired(world, tmp_path, monkeypatch)
     with pytest.raises(SystemExit, match="ids"):
         run.main(_argv(world, out, "val", "--single-evaluation", "--reference-dir", str(other)))
     assert not (out / "ham_clean_val.json").exists()
+
+
+# --- preflight: nothing that can be checked beforehand may burn the single val read -------------------------
+
+def _clone_weights(world: Path, tmp_path: Path) -> Path:
+    root = tmp_path / "w"
+    shutil.copytree(world / "clean", root)
+    return root
+
+
+def _real_val_argv(world: Path, tmp_path: Path, weights: Path, *extra: str) -> tuple[list[str], Path]:
+    out = tmp_path / "pre"
+    argv = _argv(world, out, "extract", "--single-evaluation", *extra)
+    argv[argv.index("--weights-dir") + 1] = str(weights)
+    return argv, out
+
+
+def _refused(world, tmp_path, monkeypatch, match, mutate=None, **patches):
+    _canonical(monkeypatch)
+    weights = _clone_weights(world, tmp_path)
+    if mutate:
+        mutate(weights)
+    for name, value in patches.items():
+        monkeypatch.setattr(run, name, value)
+    argv, out = _real_val_argv(world, tmp_path, weights)
+    with pytest.raises(SystemExit, match=match):
+        run.main(argv)
+    assert not (out / st.LOCK_NAME).exists() and not (out / "inputs").exists()
+
+
+def _edit_run(folder: str, **fields):
+    def mutate(root: Path) -> None:
+        path = root / folder / "run.json"
+        path.write_text(json.dumps({**json.loads(path.read_text()), **fields}), encoding="utf-8")
+    return mutate
+
+
+def test_a_missing_final_aborts_with_the_lock_untaken(world, tmp_path, monkeypatch):
+    _refused(world, tmp_path, monkeypatch, "final_A_s43", lambda r: (r / "final_A_s43" / v71_io.WEIGHTS_FILE).unlink())
+
+
+def test_a_final_that_does_not_load_strictly_aborts_with_the_lock_untaken(world, tmp_path, monkeypatch):
+    _refused(world, tmp_path, monkeypatch, "carga estricta",
+             lambda r: torch.save({}, r / "final_B_s42" / v71_io.WEIGHTS_FILE))
+
+
+def test_a_val_image_without_file_aborts_with_the_lock_untaken(world, tmp_path, monkeypatch):
+    real = run.io.load_context
+
+    def without_one(args):
+        ctx = real(args)
+        ctx["image_index"] = {k: v for k, v in ctx["image_index"].items() if k != ctx["ids"]["val"][0]}
+        return ctx
+
+    monkeypatch.setattr(run.io, "load_context", without_one)
+    _refused(world, tmp_path, monkeypatch, "sin archivo")
+
+
+def test_no_cuda_aborts_with_the_lock_untaken(world, tmp_path, monkeypatch):
+    _canonical(monkeypatch)
+    weights = _clone_weights(world, tmp_path)
+    monkeypatch.setattr(run, "cuda_available", lambda: False)
+    argv, out = _real_val_argv(world, tmp_path, weights)
+    with pytest.raises(SystemExit, match="CUDA"):
+        run.main(argv)
+    assert not (out / st.LOCK_NAME).exists()
+
+
+def test_a_final_with_the_wrong_seed_aborts(world, tmp_path, monkeypatch):
+    _refused(world, tmp_path, monkeypatch, "seed", _edit_run("final_A_s43", seed=42))
+
+
+def test_copied_folders_with_identical_weights_abort(world, tmp_path, monkeypatch):
+    def copy(root: Path) -> None:
+        shutil.copy(root / "final_A_s42" / v71_io.WEIGHTS_FILE, root / "final_A_s43" / v71_io.WEIGHTS_FILE)
+    _refused(world, tmp_path, monkeypatch, "identic", copy)
+
+
+def test_b_and_a_must_come_from_the_same_code_revision(world, tmp_path, monkeypatch):
+    _refused(world, tmp_path, monkeypatch, "code_revision", _edit_run("final_B_s42", code_revision="deadbee"))

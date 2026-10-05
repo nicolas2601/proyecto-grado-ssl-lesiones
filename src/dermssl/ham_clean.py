@@ -37,6 +37,45 @@ class HamCleanError(RuntimeError):
     """A precondition of the clean-weights run does not hold."""
 
 
+PROBE_JOBS, DECODE_WORKERS = 10, 16  # defaults shared by ham_clean_run.py and scripts/pod/ham_clean.sh
+
+
+def check_finals_exist(paths: dict) -> None:
+    """Every final .pt must be on disk before the lock is taken."""
+    missing = [f"{name}: {path}" for name, path in paths.items() if not path.is_file()]
+    if missing:
+        raise HamCleanError(f"faltan finales: {missing}")
+
+
+def check_run_identity(manifests: dict) -> None:
+    """``run.json`` seed of ``<arm>_s<seed>`` must be that seed: a swapped or copied folder does not pass."""
+    for name, run in manifests.items():
+        want = int(name.rsplit("_s", 1)[1])
+        if run.get("seed") != want:
+            raise HamCleanError(f"{name}: el run.json trae seed {run.get('seed')!r}, la carpeta es de la seed {want}")
+
+
+def check_distinct_weights(shas: dict) -> None:
+    """Two finals with the same bytes are a copied folder, not two seeds."""
+    seen: dict = {}
+    for name, sha in shas.items():
+        if sha in seen:
+            raise HamCleanError(f"{name} y {seen[sha]} tienen pesos identicos (sha256 {sha[:12]}): carpeta copiada")
+        seen[sha] = name
+
+
+def check_images(ids, index: dict) -> None:
+    """Every image to decode has a file (an undecodable surprise must not appear after the lock)."""
+    missing = [i for i in ids if i not in index]
+    if missing:
+        raise HamCleanError(f"{len(missing)} imagenes sin archivo, p.ej. {missing[:3]}")
+
+
+def require_cuda(available: bool) -> None:
+    if not available:
+        raise HamCleanError("CUDA no disponible: la val exige el cómputo canonico (autocast cuda)")
+
+
 def declarations(*, rehearsal: bool) -> dict:
     """What the result says about itself: label, declared assumption and rehearsal flag."""
     out = {"label": LABEL, "assumptions": [THRESHOLD_ASSUMPTION], "rehearsal": rehearsal}

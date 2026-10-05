@@ -74,3 +74,20 @@ def test_the_document_declares_what_it_is_and_what_it_assumes():
 def test_paths_live_under_the_committed_ham_clean_folder():
     assert hc.RESULT_JSON == "resultados/banco_completo/ham_clean/ham_clean_val.json"
     assert hc.RESULT_NPZ == "resultados/banco_completo/ham_clean/ham_clean_val.probas.npz"
+
+
+def test_preflight_rules_refuse_missing_swapped_copied_and_unreadable_inputs(tmp_path):
+    present = tmp_path / "a.pt"
+    present.write_text("x")
+    hc.check_finals_exist({"A_s42": present})
+    with pytest.raises(hc.HamCleanError, match="B_s42"):
+        hc.check_finals_exist({"A_s42": present, "B_s42": tmp_path / "none.pt"})
+    hc.check_run_identity({"A_s42": {"seed": 42}, "A_s43": {"seed": 43}})
+    with pytest.raises(hc.HamCleanError, match="A_s43"):
+        hc.check_run_identity({"A_s43": {"seed": 42}})
+    with pytest.raises(hc.HamCleanError, match="identicos"):
+        hc.check_distinct_weights({"A_s42": "ab" * 32, "A_s43": "ab" * 32})
+    with pytest.raises(hc.HamCleanError, match="sin archivo"):
+        hc.check_images(["a", "b"], {"a": 1})
+    with pytest.raises(hc.HamCleanError, match="CUDA"):
+        hc.require_cuda(False)

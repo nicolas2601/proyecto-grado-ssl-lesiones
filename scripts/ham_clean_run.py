@@ -109,18 +109,45 @@ def split_ids(args, ctx) -> tuple[list, list]:
     return (ids["fit"], ids["holdout"]) if args.rehearsal else (ids["train"], ids["val"])
 
 
+def cuda_available() -> bool:
+    import torch  # noqa: PLC0415
+
+    return bool(torch.cuda.is_available())
+
+
 def guard_weights(args, ctx, bank) -> dict:
-    """Pool label (shared with the ISIC bank), A-soup consistency and, for the real read, the C1 ids."""
+    """Pool label (shared with the ISIC bank), seeds, one code revision and, for the real read, the C1 ids."""
     manifests = bank.run_manifests(hc.NEEDED_FINALS)
     try:
         pool = wt.check_pool_label(manifests, pool_excludes_val=True)
-        fe.check_runs_consistent({k: v for k, v in manifests.items() if k.startswith("A_")})
+        hc.check_run_identity(manifests)
+        fe.check_runs_consistent(manifests)
         if not args.rehearsal:
             fe.check_val_protocol(ctx["ids"]["train"], ctx["ids"]["val"])
-    except (wt.PoolLabelError, ValueError) as exc:
+    except (wt.PoolLabelError, hc.HamCleanError, ValueError) as exc:
         raise SystemExit(f"ABORT: {exc}") from exc
     return {"pool_check": pool, "runs": {k: {f: r.get(f) for f in ("code_revision", "exclude_ids_sha256", "seed")}
                                          for k, r in manifests.items()}}
+
+
+def preflight(args, ctx, bank, device) -> tuple[dict, dict]:
+    """Everything that can fail BEFORE the lock: compute, CUDA, files, strict loads, images. -> (compute, sha256)."""
+    try:
+        compute = hc.compute_block(device.type, args.batch_size, rehearsal=args.rehearsal)
+        if not args.rehearsal:
+            hc.require_cuda(cuda_available())
+        hc.check_finals_exist({f"{a}_{s}": bank.final_path(a, s) for a, s in hc.NEEDED_FINALS})
+        shas = {f"{a}_{s}": rp.file_sha256(bank.final_path(a, s)) for a, s in hc.NEEDED_FINALS}
+        hc.check_distinct_weights(shas)
+        hc.check_images([*split_ids(args, ctx)[0], *split_ids(args, ctx)[1]], ctx["image_index"])
+    except hc.HamCleanError as exc:
+        raise SystemExit(f"ABORT: {exc}") from exc
+    for weights in ("B_s42_a1.0", "A_soup_a1.0"):
+        try:
+            bank.model(bank.state(weights))  # strict load; no label and no val image is read
+        except Exception as exc:  # noqa: BLE001 - any failure here is a refusal, not a crash after the lock
+            raise SystemExit(f"ABORT: carga estricta de {weights} fallo: {type(exc).__name__}: {exc}") from exc
+    return compute, shas
 
 
 def stage_extract(args, ctx, device) -> None:
@@ -130,10 +157,7 @@ def stage_extract(args, ctx, device) -> None:
     selection = load_selection(args, ctx)
     bank = io.WeightBank(args.weights_dir.expanduser(), clean=True)
     guards = guard_weights(args, ctx, bank)
-    try:
-        compute = hc.compute_block(device.type, args.batch_size, rehearsal=args.rehearsal)
-    except hc.HamCleanError as exc:
-        raise SystemExit(f"ABORT: {exc}") from exc
+    compute, weights = preflight(args, ctx, bank, device)
     rev = revision(args)
     if not args.rehearsal:
         try:
@@ -144,7 +168,6 @@ def stage_extract(args, ctx, device) -> None:
     probas, probas80 = v71_val._score_entries(args, ctx, selection["clean"], fit_ids, eval_ids, device, bank=bank)
     npz = args.out_dir / "clean_probas.npz"
     np.savez_compressed(npz, **probas, **{f"{k}__fit80": v for k, v in probas80.items()})
-    weights = {f"{arm}_{seed}": rp.file_sha256(bank.final_path(arm, seed)) for arm, seed in hc.NEEDED_FINALS}
     io.write_json(out, {"split": args.split, "code_revision": rev, "eval_ids_sha256": si.ids_sha256(eval_ids),
                         "selection_sources": selection["sources"], "weights_sha256": weights, "compute": compute,
                         "probas_sha256": rp.file_sha256(npz), **guards})
