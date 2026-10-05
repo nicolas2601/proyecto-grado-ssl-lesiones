@@ -31,18 +31,19 @@ def _expand(cm):
 def test_scope_is_self_supervised_only_and_has_25_cells():
     assert {a["modelo"].split(" (")[0] for a in ARTS} == {
         "DINOv2 ViT-S/14", "DINOv2 ViT-B/14", "SimSiam ResNet-50", "B71", "A71", "B71-limpio", "B71 original",
-        "A71 original"}
+        "A71 original", "A71-limpio"}
     assert len(ARTS) >= 17 + 6 + 2  # grows as cells land; the model set above is the contract
 
 
 def test_isic_cells_come_from_the_e1_json_and_state_their_compute():
     isic = [a for a in ARTS if a["dataset"] != "HAM10000" and a["modelo"].startswith(("B71", "A71"))]
-    assert len(isic) == 6
+    assert len(isic) == 12  # per dataset: 4 canonical + 2 batch-16 cells
     for art in isic:
         cell = json.loads((REPO / art["fuente"][0]).read_text(encoding="utf-8"))["result"]
         assert art["conteos"] == cell["metrics"]["matriz_confusion"]
         assert art["verificacion"] == {"n_val_json": cell["n_val"], "n_desde_matriz": art["n"]}
-        assert ("canónico" in art["origen"]) == (art["modelo"] == "B71-limpio (canónico)")
+        assert ("canónico" in art["origen"]) == ("canónico" in art["modelo"])
+        assert ("batch 16" in art["origen"]) == ("batch 16" in art["modelo"])
         assert ("transductivo" in art["modelo"]) == art["modelo"].endswith("transductivo)")
 
 
@@ -82,11 +83,10 @@ def test_manifest_lists_pending_cells_and_the_missing_diff_figure():
     assert not set(pend) & done, "a cell with a matrix must not also be pending"
     for done in ("DINOv2 ViT-B/14", "DINOv2 ViT-S/14"):
         assert ("ISIC 2020", done, "fine-tuning") not in pend
-    assert any(m.startswith("A71-limpio") for _, m, _ in pend)
     assert all(p["eta"] and p["motivo"] for p in manifest["pendientes"])
     names = {(p["dataset"], p["modelo"]) for p in manifest["pendientes"]}
-    assert ("ISIC 2019", "B71 original (canónico, transductivo)") in names
-    assert ("ISIC 2019", "B71-limpio (canónico)") not in names
+    assert names == {("HAM10000", "B71-limpio (canónico)"), ("HAM10000", "A71-limpio (canónico)")}
+    assert all("no hay transductividad que corregir" in p["motivo"] for p in manifest["pendientes"])
     assert "no comparten partición" in manifest["figura_de_diferencias"]
     readme = (OUT / "confusion" / "README.md").read_text(encoding="utf-8")
     assert "No se genera figura de diferencias frente a B71" in readme
@@ -104,7 +104,7 @@ def test_png_figure_is_drawn_with_two_panels(tmp_path):
 
 SUPERVISED = ("alexnet", "vgg19", "resnet50", "efficientnet_b0", "vit_b16")
 ALLOWED = {"dinov2_vits14", "dinov2_vitb14", "simsiam_resnet50", "b71", "a71", "b71limpio", "b71_original",
-           "a71_original"}
+           "a71_original", "a71limpio", "b71_original_batch16", "a71_original_batch16"}
 
 
 def test_allowed_models_are_exactly_the_self_supervised_ones_and_supervised_are_the_rest():

@@ -22,14 +22,18 @@ NO_DIFF = ("No se genera figura de diferencias frente a B71: B71 se evalúa sobr
            "los baselines sobre la de Kaggle (n = 2.014); no comparten partición ni imágenes, así que una resta "
            "celda a celda no tiene sentido. En ISIC 2019 e ISIC 2020 B71-limpio sí comparte partición con los "
            "baselines, pero tampoco se genera la figura de diferencias (decisión de alcance).")
-# (cell, model label, condition label, origin) of the ISIC E1 cells that get a matrix
+# (folder, cell, model label, condition, origin) of the ISIC E1 cells that get a matrix
+CANON_ORIGIN = "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)"
+SENS_ORIGIN = "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)"
 ISIC_CELLS = (
-    (isic_rows.CANONICAL_DIR, "B71__clean", "B71-limpio (canónico)", CONDITIONS[0],
-     "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)"),
+    (isic_rows.CANONICAL_DIR, "B71__clean", "B71-limpio (canónico)", CONDITIONS[0], CANON_ORIGIN),
+    (isic_rows.CANONICAL_DIR, "A71__clean", "A71-limpio (canónico)", CONDITIONS[0], CANON_ORIGIN),
+    (isic_rows.CANONICAL_DIR, "B71__original", "B71 original (canónico, transductivo)", CONDITIONS[0], CANON_ORIGIN),
+    (isic_rows.CANONICAL_DIR, "A71__original", "A71 original (canónico, transductivo)", CONDITIONS[0], CANON_ORIGIN),
     (isic_rows.SENSITIVITY_DIR, "B71__original", "B71 original (sensibilidad: batch 16, transductivo)", CONDITIONS[0],
-     "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)"),
+     SENS_ORIGIN),
     (isic_rows.SENSITIVITY_DIR, "A71__original", "A71 original (sensibilidad: batch 16, transductivo)", CONDITIONS[0],
-     "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)"),
+     SENS_ORIGIN),
 )
 
 
@@ -77,7 +81,8 @@ def _isic_cell(repo: Path, ds_key: str, folder: str, cell: str, model: str, orig
 
 def slug(art: dict) -> str:
     base = art["modelo"].split(" (")[0].lower().replace(" ", "_").replace("/", "").replace("-", "")
-    return f"{base}__{art['condicion'].replace('-', '')}"
+    variant = "_batch16" if "batch 16" in art["modelo"] else ""
+    return f"{base}{variant}__{art['condicion'].replace('-', '')}"
 
 
 def rel_json(art: dict) -> Path:
@@ -102,22 +107,24 @@ def _pending(dataset: str, model: str, why: pend.Pending, condition: str = CONDI
 
 
 def _missing(repo: Path, ds_key: str, cell: str) -> bool:
-    return not (repo / isic_rows.cell_path(isic_rows.CANONICAL_DIR, ds_key, f"{cell}.json")).is_file()
+    return not (repo / isic_rows.cell_path(isic_rows.CANONICAL_DIR, ds_key, cell)).is_file()
 
 
 def pending(repo: Path) -> list[dict]:
-    """Cells the plan will add and are not on disk yet; listed so a missing matrix is never silent."""
-    ft, ds20 = pend.FT_ISIC2020, DATASETS["isic2020"]
-    out = [{"dataset": ds20.title, "modelo": MODEL_NAMES[m], "condicion": CONDITIONS[1], "estado": PENDING,
-            "motivo": ft.reason, "eta": ft.eta, "fuente": PLAN_DOC}
-           for m in SSL_MODELS if _baseline_cell(repo, "isic2020", m, CONDITIONS[1]) is None]
+    """Cells without a JSON on disk; derived from the files, so nothing stale can stay listed."""
+    ft = DATASETS["isic2020"].finetune
+    out = [_pending(DATASETS["isic2020"].title, MODEL_NAMES[m], pend.missing(f"{ft}/results_{m}_ft_isic2020.json"),
+                    CONDITIONS[1]) for m in SSL_MODELS if _baseline_cell(repo, "isic2020", m, CONDITIONS[1]) is None]
     ham = DATASETS["ham10000"].title
-    out += [_pending(ham, "B71-limpio (canónico)", pend.HAM_CLEAN), _pending(ham, "A71-limpio (canónico)", pend.A71_CLEAN)]
+    out += [_pending(ham, f"{key}-limpio (canónico)", pend.HAM_CLEAN) for key in V71_ARMS]
     for ds in (d for d in DATASETS.values() if d.key != "ham10000"):
-        if _missing(repo, ds.key, "A71__clean"):
-            out.append(_pending(ds.title, "A71-limpio (canónico)", pend.A71_CLEAN))
-        out += [_pending(ds.title, f"{key} original (canónico, transductivo)", pend.ORIGINAL_CANONICAL)
-                for key in V71_ARMS if _missing(repo, ds.key, f"{key}__original")]
+        for cell, label in ((f"{key}__clean", f"{key}-limpio (canónico)") for key in V71_ARMS):
+            if _missing(repo, ds.key, cell):
+                out.append(_pending(ds.title, label, pend.missing(isic_rows.cell_path(isic_rows.CANONICAL_DIR, ds.key, cell))))
+        for key in V71_ARMS:
+            if _missing(repo, ds.key, f"{key}__original"):
+                rel = isic_rows.cell_path(isic_rows.CANONICAL_DIR, ds.key, f"{key}__original")
+                out.append(_pending(ds.title, f"{key} original (canónico, transductivo)", pend.missing(rel)))
     return out
 
 

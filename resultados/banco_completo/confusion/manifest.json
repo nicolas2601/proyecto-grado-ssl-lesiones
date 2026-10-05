@@ -168,8 +168,41 @@
       ]
     },
     {
+      "json": "confusion/isic2019/a71limpio__congelado.json",
+      "png": "confusion/isic2019/a71limpio__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "A71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__clean.json"
+      ]
+    },
+    {
       "json": "confusion/isic2019/b71_original__congelado.json",
       "png": "confusion/isic2019/b71_original__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "B71 original (canónico, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/a71_original__congelado.json",
+      "png": "confusion/isic2019/a71_original__congelado.png",
+      "dataset": "ISIC 2019",
+      "modelo": "A71 original (canónico, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2019/b71_original_batch16__congelado.json",
+      "png": "confusion/isic2019/b71_original_batch16__congelado.png",
       "dataset": "ISIC 2019",
       "modelo": "B71 original (sensibilidad: batch 16, transductivo)",
       "condicion": "congelado",
@@ -179,8 +212,8 @@
       ]
     },
     {
-      "json": "confusion/isic2019/a71_original__congelado.json",
-      "png": "confusion/isic2019/a71_original__congelado.png",
+      "json": "confusion/isic2019/a71_original_batch16__congelado.json",
+      "png": "confusion/isic2019/a71_original_batch16__congelado.png",
       "dataset": "ISIC 2019",
       "modelo": "A71 original (sensibilidad: batch 16, transductivo)",
       "condicion": "congelado",
@@ -267,8 +300,41 @@
       ]
     },
     {
+      "json": "confusion/isic2020/a71limpio__congelado.json",
+      "png": "confusion/isic2020/a71limpio__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "A71-limpio (canónico)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/A71__clean.json"
+      ]
+    },
+    {
       "json": "confusion/isic2020/b71_original__congelado.json",
       "png": "confusion/isic2020/b71_original__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "B71 original (canónico, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/a71_original__congelado.json",
+      "png": "confusion/isic2020/a71_original__congelado.png",
+      "dataset": "ISIC 2020",
+      "modelo": "A71 original (canónico, transductivo)",
+      "condicion": "congelado",
+      "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "fuente": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/A71__original.json"
+      ]
+    },
+    {
+      "json": "confusion/isic2020/b71_original_batch16__congelado.json",
+      "png": "confusion/isic2020/b71_original_batch16__congelado.png",
       "dataset": "ISIC 2020",
       "modelo": "B71 original (sensibilidad: batch 16, transductivo)",
       "condicion": "congelado",
@@ -278,8 +344,8 @@
       ]
     },
     {
-      "json": "confusion/isic2020/a71_original__congelado.json",
-      "png": "confusion/isic2020/a71_original__congelado.png",
+      "json": "confusion/isic2020/a71_original_batch16__congelado.json",
+      "png": "confusion/isic2020/a71_original_batch16__congelado.png",
       "dataset": "ISIC 2020",
       "modelo": "A71 original (sensibilidad: batch 16, transductivo)",
       "condicion": "congelado",
@@ -295,8 +361,8 @@
       "modelo": "B71-limpio (canónico)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio)",
-      "eta": "no declarada por el operador",
+      "motivo": "no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte",
+      "eta": "sin ETA",
       "fuente": "docs/33-banco-completo-multidataset.md"
     },
     {
@@ -304,62 +370,8 @@
       "modelo": "A71-limpio (canónico)",
       "condicion": "congelado",
       "estado": "pendiente",
-      "motivo": "falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios",
-      "eta": "~15:00 UTC",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
-    {
-      "dataset": "ISIC 2019",
-      "modelo": "A71-limpio (canónico)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios",
-      "eta": "~15:00 UTC",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
-    {
-      "dataset": "ISIC 2019",
-      "modelo": "B71 original (canónico, transductivo)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16",
-      "eta": "~15:00 UTC",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
-    {
-      "dataset": "ISIC 2019",
-      "modelo": "A71 original (canónico, transductivo)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16",
-      "eta": "~15:00 UTC",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
-    {
-      "dataset": "ISIC 2020",
-      "modelo": "A71-limpio (canónico)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios",
-      "eta": "~15:00 UTC",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
-    {
-      "dataset": "ISIC 2020",
-      "modelo": "B71 original (canónico, transductivo)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16",
-      "eta": "~15:00 UTC",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
-    {
-      "dataset": "ISIC 2020",
-      "modelo": "A71 original (canónico, transductivo)",
-      "condicion": "congelado",
-      "estado": "pendiente",
-      "motivo": "re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16",
-      "eta": "~15:00 UTC",
+      "motivo": "no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte",
+      "eta": "sin ETA",
       "fuente": "docs/33-banco-completo-multidataset.md"
     }
   ],

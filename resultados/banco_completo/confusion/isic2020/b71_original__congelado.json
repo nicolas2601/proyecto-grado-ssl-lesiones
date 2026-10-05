@@ -1,6 +1,6 @@
 {
   "dataset": "ISIC 2020",
-  "modelo": "B71 original (sensibilidad: batch 16, transductivo)",
+  "modelo": "B71 original (canónico, transductivo)",
   "condicion": "congelado",
   "clases": [
     "benigno",
@@ -9,8 +9,8 @@
   "n": 6660,
   "conteos": [
     [
-      6385,
-      153
+      6388,
+      150
     ],
     [
       84,
@@ -19,18 +19,18 @@
   ],
   "normalizada_por_fila": [
     [
-      0.9765983481186907,
-      0.023401651881309268
+      0.9770572040379321,
+      0.02294279596206791
     ],
     [
       0.6885245901639344,
       0.3114754098360656
     ]
   ],
-  "mcc": 0.2314572625156106,
-  "origen": "matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo)",
+  "mcc": 0.23361412859878963,
+  "origen": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
   "fuente": [
-    "resultados/banco_completo/isic_eval/originals_bs16_transductivo/isic2020/B71__original.json"
+    "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.json"
   ],
   "verificacion": {
     "n_val_json": 6660,

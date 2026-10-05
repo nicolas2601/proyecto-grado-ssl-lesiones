@@ -31,8 +31,11 @@ No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partici
 - `confusion/isic2019/simsiam_resnet50__congelado.json` (+ `.png`): ISIC 2019, SimSiam ResNet-50, congelado; origen: matriz_confusion del JSON.
 - `confusion/isic2019/simsiam_resnet50__finetuning.json` (+ `.png`): ISIC 2019, SimSiam ResNet-50, fine-tuning; origen: matriz_confusion del JSON.
 - `confusion/isic2019/b71limpio__congelado.json` (+ `.png`): ISIC 2019, B71-limpio (canónico), congelado; origen: matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast).
-- `confusion/isic2019/b71_original__congelado.json` (+ `.png`): ISIC 2019, B71 original (sensibilidad: batch 16, transductivo), congelado; origen: matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo).
-- `confusion/isic2019/a71_original__congelado.json` (+ `.png`): ISIC 2019, A71 original (sensibilidad: batch 16, transductivo), congelado; origen: matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo).
+- `confusion/isic2019/a71limpio__congelado.json` (+ `.png`): ISIC 2019, A71-limpio (canónico), congelado; origen: matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast).
+- `confusion/isic2019/b71_original__congelado.json` (+ `.png`): ISIC 2019, B71 original (canónico, transductivo), congelado; origen: matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast).
+- `confusion/isic2019/a71_original__congelado.json` (+ `.png`): ISIC 2019, A71 original (canónico, transductivo), congelado; origen: matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast).
+- `confusion/isic2019/b71_original_batch16__congelado.json` (+ `.png`): ISIC 2019, B71 original (sensibilidad: batch 16, transductivo), congelado; origen: matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo).
+- `confusion/isic2019/a71_original_batch16__congelado.json` (+ `.png`): ISIC 2019, A71 original (sensibilidad: batch 16, transductivo), congelado; origen: matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo).
 - `confusion/isic2020/dinov2_vits14__congelado.json` (+ `.png`): ISIC 2020, DINOv2 ViT-S/14, congelado; origen: matriz_confusion del JSON.
 - `confusion/isic2020/dinov2_vits14__finetuning.json` (+ `.png`): ISIC 2020, DINOv2 ViT-S/14, fine-tuning; origen: matriz_confusion del JSON.
 - `confusion/isic2020/dinov2_vitb14__congelado.json` (+ `.png`): ISIC 2020, DINOv2 ViT-B/14, congelado; origen: matriz_confusion del JSON.
@@ -40,18 +43,15 @@ No se genera figura de diferencias frente a B71: B71 se evalúa sobre la partici
 - `confusion/isic2020/simsiam_resnet50__congelado.json` (+ `.png`): ISIC 2020, SimSiam ResNet-50, congelado; origen: matriz_confusion del JSON.
 - `confusion/isic2020/simsiam_resnet50__finetuning.json` (+ `.png`): ISIC 2020, SimSiam ResNet-50, fine-tuning; origen: matriz_confusion del JSON.
 - `confusion/isic2020/b71limpio__congelado.json` (+ `.png`): ISIC 2020, B71-limpio (canónico), congelado; origen: matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast).
-- `confusion/isic2020/b71_original__congelado.json` (+ `.png`): ISIC 2020, B71 original (sensibilidad: batch 16, transductivo), congelado; origen: matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo).
-- `confusion/isic2020/a71_original__congelado.json` (+ `.png`): ISIC 2020, A71 original (sensibilidad: batch 16, transductivo), congelado; origen: matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo).
+- `confusion/isic2020/a71limpio__congelado.json` (+ `.png`): ISIC 2020, A71-limpio (canónico), congelado; origen: matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast).
+- `confusion/isic2020/b71_original__congelado.json` (+ `.png`): ISIC 2020, B71 original (canónico, transductivo), congelado; origen: matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast).
+- `confusion/isic2020/a71_original__congelado.json` (+ `.png`): ISIC 2020, A71 original (canónico, transductivo), congelado; origen: matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast).
+- `confusion/isic2020/b71_original_batch16__congelado.json` (+ `.png`): ISIC 2020, B71 original (sensibilidad: batch 16, transductivo), congelado; origen: matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo).
+- `confusion/isic2020/a71_original_batch16__congelado.json` (+ `.png`): ISIC 2020, A71 original (sensibilidad: batch 16, transductivo), congelado; origen: matriz_confusion de la celda E1 (sensibilidad: batch 16, transductivo).
 
 ## Pendientes (sin matriz, no se inventa)
 
-- HAM10000, B71-limpio (canónico) (congelado): pendiente; E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio); ETA no declarada por el operador.
-- HAM10000, A71-limpio (canónico) (congelado): pendiente; falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC.
-- ISIC 2019, A71-limpio (canónico) (congelado): pendiente; falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC.
-- ISIC 2019, B71 original (canónico, transductivo) (congelado): pendiente; re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC.
-- ISIC 2019, A71 original (canónico, transductivo) (congelado): pendiente; re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC.
-- ISIC 2020, A71-limpio (canónico) (congelado): pendiente; falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC.
-- ISIC 2020, B71 original (canónico, transductivo) (congelado): pendiente; re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC.
-- ISIC 2020, A71 original (canónico, transductivo) (congelado): pendiente; re-extracción de B71/A71 originales con el cómputo canónico (batch 64 + autocast) en GPU0 después de A* s43; hoy solo existe la corrida de batch 16; ETA ~15:00 UTC.
+- HAM10000, B71-limpio (canónico) (congelado): pendiente; no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; ETA sin ETA.
+- HAM10000, A71-limpio (canónico) (congelado): pendiente; no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; ETA sin ETA.
 
 Modelos incluidos: dinov2_vits14, dinov2_vitb14, simsiam_r50; condiciones: congelado, fine-tuning.
