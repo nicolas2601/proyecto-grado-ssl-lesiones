@@ -34,6 +34,7 @@ PRODUCES = {
     "scripts/c1_select_variant.py": ("*/selection/wave*.json",),
     "scripts/e3_run.py": ("*/e3_selection.json", "*/e3_final_eval.json", "*/cells/extract__*.json",
                           "*/cells/select__*.json"),
+    "scripts/ham_clean_run.py": ("resultados/banco_completo/ham_clean/*.json",),
     "scripts/e5_fitzpatrick.py": ("resultados/banco_completo/e5/e5_fitzpatrick_*.json",),
     "scripts/e3b_run.py": ("*/e3b_summary.json", "*/e3b_probas.json", "*/cells/e3b__*.json"),
     "scripts/c1_verify_bank_reproduction.py": ("*/bank_reproduction*.json",),
