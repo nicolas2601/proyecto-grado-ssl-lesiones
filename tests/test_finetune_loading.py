@@ -78,3 +78,27 @@ def test_collate_never_builds_a_torch_tensor(dataset_parts, monkeypatch):
     monkeypatch.setattr(torch, "as_tensor", boom)
     monkeypatch.setattr(torch, "from_numpy", boom)
     loading.collate_uint8(samples)
+
+
+def _sha(batches) -> str:
+    import hashlib
+    h = hashlib.sha256()
+    for x, y in batches:
+        h.update(x.numpy().tobytes() + y.numpy().tobytes())
+    return h.hexdigest()
+
+
+def test_eval_batches_have_the_same_sha256_for_the_default_collate_without_workers(dataset_parts):
+    """Default collate, num_workers=0 (no shm) vs numpy collate, num_workers=2."""
+    ref = _sha(_reference_batches(dataset_parts, train=False, workers=0, seed=42))
+    assert _sha(_new_batches(dataset_parts, train=False, workers=2, seed=42)) == ref
+
+
+def test_train_augmentation_draws_depend_on_the_worker_count_in_the_original_pipeline_too(
+        dataset_parts):
+    """Evidence for the limit of 'bit a bit': PyTorch seeds each worker, so random augmentations
+    differ between num_workers=0 and >0 for BOTH pipelines. The new one matches the original at
+    equal worker count (test above), which is the claim that can be made."""
+    w0 = _sha(_reference_batches(dataset_parts, train=True, workers=0, seed=42))
+    w2 = _sha(_reference_batches(dataset_parts, train=True, workers=2, seed=42))
+    assert w0 != w2
