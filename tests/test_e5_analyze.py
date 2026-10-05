@@ -103,3 +103,9 @@ def test_the_pool_builds_the_real_hair_detector_once_per_worker_when_asked(tmp_p
     np.save(tmp_path / "masks.npy", inside.astype(np.uint8)[None])
     recs = an.run_tasks([_task(path, mask_pos=0)], workers=2, masks_path=tmp_path / "masks.npy", use_hair=True)
     assert recs[0]["roi"]["status"] == "ok" and recs[0]["roi"]["bucket"] == "III"
+
+
+def test_the_hair_detector_parameters_are_read_from_the_module_that_runs():
+    pytest.importorskip("cv2")
+    params = an.hair_parameters()
+    assert params["module"].endswith("hair_removal.py") and params["KERNEL"] == 9 and "MIN_HAIR_LENGTH" in params

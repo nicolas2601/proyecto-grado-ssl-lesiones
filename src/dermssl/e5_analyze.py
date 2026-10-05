@@ -60,6 +60,16 @@ def load_hair_fn() -> e5_roi.HairFn:
     return lambda rgb: hair_removal.elongated_hair_mask(rgb).astype(bool)
 
 
+def hair_parameters() -> dict:
+    """The constants of the detector that runs, read from its module (for the result document)."""
+    load_hair_fn()
+    import hair_removal  # noqa: PLC0415
+
+    names = ("KERNEL", "THRESHOLD", "MIN_HAIR_LENGTH", "MAX_MEAN_WIDTH")
+    return {"module": "plan-segmentacion/comun/nucleo/hair_removal.py", "function": "elongated_hair_mask",
+            **{n: getattr(hair_removal, n) for n in names}}
+
+
 def _roi_record(est: e5_roi.RoiEstimate) -> dict:
     return {"status": est.status, "bucket": None if est.bucket is None else e5_ita.bucket_label(est.bucket),
             "ita": est.ita, "L_median": est.L_median, "b_median": est.b_median, "n_px": est.n_px,
