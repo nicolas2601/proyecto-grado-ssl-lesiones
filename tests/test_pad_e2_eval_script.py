@@ -47,9 +47,11 @@ def test_a_dirty_tree_refuses(tmp_path, monkeypatch):
         script.main(_argv(tmp_path, "--single-evaluation"))
 
 
-def test_every_d_arm_but_d0_is_required(tmp_path):
+def test_d1_is_required_in_both_modes(tmp_path):
+    argv = _argv(tmp_path)
+    del argv[argv.index("--d1"):argv.index("--d1") + 2]
     with pytest.raises(SystemExit):
-        script.parse_args(_argv(tmp_path)[:-2])
+        script.parse_args(argv)
 
 
 def test_the_lock_is_created_next_to_the_split_and_never_by_preflight(tmp_path, monkeypatch):
@@ -112,6 +114,13 @@ class TestWiring:
         out = tmp / "res" / "pad_e2_eval.json"
         doc = json.loads(out.read_text())
         assert doc["primary_contrast"]["arm"] == "D3" and doc["compute"]["batch_size"] == 64
+        assert list(doc) == [  # the real-mode document, key for key and in order (regression of the rehearsal change)
+            "code_revision", "protocol", "probe", "specs", "backbone_sha256", "runs", "split_sha256",
+            "split_manifest_sha256", "manifest_sha256", "n_fit", "compute", "dataset_doi", "license",
+            "target_test_sha256", "n_target_test_images", "probas_sha256", "reading", "classes", "n_images",
+            "n_patients", "bootstrap", "arms", "paired", "primary_contrast", "prediction_d3_minus_d2_met",
+            "outside_rate"]
+        assert set(doc["split_sha256"]) == {"target_adapt", "target_test"}
         assert set(doc["backbone_sha256"]) == {"D1", "D2", "D3"}
         assert out.with_suffix(".probas.npz").is_file() and (tmp / ts.LOCK_NAME).is_file()
         assert (tmp / "res" / "pad_e2_eval.environment.json").is_file()
@@ -122,3 +131,60 @@ class TestWiring:
         argv[argv.index("--out") + 1] += ".again.json"
         with pytest.raises(SystemExit, match="target_test ya se leyo"):
             script.main(argv)
+
+    def test_rehearsal_end_to_end_uses_only_d0_d1_and_leaves_target_test_alone(self, wired, monkeypatch):
+        import json
+
+        argv, tmp = wired
+        built = []
+        monkeypatch.setattr(script.bank, "build_frozen_backbone", lambda *a: built.append(a) or {"model": object()})
+        argv = [a for a in argv if a != "--single-evaluation"]
+        argv = argv[:argv.index("--d2")] + ["--rehearsal"]
+        argv[argv.index("--out") + 1] = str(tmp / "pad_rehearsal" / "e2_rehearsal.json")
+        assert script.main(argv) == 0
+        out = tmp / "pad_rehearsal" / "e2_rehearsal.json"
+        doc = json.loads(out.read_text())
+        assert doc["rehearsal"] is True and doc["split"] == "target_adapt" and doc["discard"] is True
+        assert list(doc["arms"]) == ["D0", "D1"] and len(built) == 2
+        assert (tmp / "pad_rehearsal" / "e2_rehearsal.environment.json").is_file()
+        assert not (tmp / ts.LOCK_NAME).exists()
+
+
+class TestRehearsalMode:
+    def _argv(self, tmp_path, *extra, out="pad_rehearsal/e2_rehearsal.json"):
+        return ["--split", str(tmp_path / "split.json"), "--manifest", str(tmp_path / "m.json"),
+                "--pad-root", str(tmp_path), "--ham-root", str(tmp_path / "ham"), "--out", str(tmp_path / out),
+                "--d1", "dinov2_vitb14:a.pt", *extra]
+
+    def test_the_two_modes_exclude_each_other(self, tmp_path):
+        with pytest.raises(SystemExit):
+            script.parse_args(self._argv(tmp_path, "--rehearsal", "--single-evaluation"))
+
+    def test_one_of_the_two_modes_is_required(self, tmp_path):
+        with pytest.raises(SystemExit, match="single-evaluation o --rehearsal"):
+            script.main(self._argv(tmp_path))
+
+    def test_the_real_mode_still_requires_d2_and_d3(self, tmp_path):
+        with pytest.raises(SystemExit, match="--d2 y --d3"):
+            script.main(self._argv(tmp_path, "--single-evaluation"))
+
+    def test_rehearsal_needs_only_d1_and_never_consults_the_lock(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(rp, "clean_revision", lambda repo: "a" * 40)
+        lock = tmp_path / ts.LOCK_NAME
+        lock.write_text("untouched")
+        args = script.parse_args(self._argv(tmp_path, "--rehearsal"))
+        assert script.preflight(args) == "a" * 40
+        assert lock.read_text() == "untouched"
+
+    @pytest.mark.parametrize("out", ["pad_da/e2_rehearsal.json", "pad_rehearsal/pad_e2_eval.json",
+                                     "resultados/pad_rehearsal/e2_rehearsal.json"])
+    def test_rehearsal_refuses_an_output_outside_a_rehearsal_directory(self, tmp_path, out):
+        with pytest.raises(SystemExit, match="rehearsal"):
+            script.main(self._argv(tmp_path, "--rehearsal", out=out))
+
+    def test_rehearsal_still_refuses_a_dirty_tree(self, tmp_path, monkeypatch):
+        def dirty(repo):
+            raise rp.DirtyTreeError("arbol sucio")
+        monkeypatch.setattr(rp, "clean_revision", dirty)
+        with pytest.raises(SystemExit, match="arbol sucio"):
+            script.main(self._argv(tmp_path, "--rehearsal"))
