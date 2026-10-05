@@ -6,7 +6,7 @@ Generado por `scripts/build_bench_contrasts.py` desde los JSON del repositorio. 
 
 ## Advertencia de multiplicidad
 
-Este documento lista 444 contrastes (el IC excluye 0 en 278) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 22) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
+Este documento lista 456 contrastes (el IC excluye 0 en 289) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 23) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
 
 ## Glosario
 
@@ -242,7 +242,7 @@ Resumen de 8 baselines por celda; el detalle del canónico está arriba.
 
 ### HAM10000: MCC puntual de los baselines sin y con F4 y su contraste pareado (E3b)
 
-E3b, cómputo canónico (batch 64 + autocast): 40 contrastes pareados de MCC (8 de F4 sobre cada baseline, 32 de B71 frente a los baselines), recomputados con el código actual desde las probabilidades commiteadas (`e3b_probas.npz`), con el mismo bootstrap (1.000 remuestras, semilla 20260923, por `lesion_id`); los 120 registros previos (F1 macro, exactitud balanceada, recall de melanoma) se reprodujeron idénticos antes de escribir. La última columna es el contraste pareado de F4 sobre el baseline (Δ MCC [IC 95 %]). E3 final: sus JSON no traen MCC y sus probabilidades no se guardaron; se recomputan en el pod con `scripts/e3_contrasts_rebuild.py` (refit del probe desde los features cacheados, verificado contra los puntos registrados).
+E3b, cómputo canónico (batch 64 + autocast): 40 contrastes pareados de MCC (8 de F4 sobre cada baseline, 32 de B71 frente a los baselines), recomputados con el código actual desde las probabilidades commiteadas (`e3b_probas.npz`), con el mismo bootstrap (1.000 remuestras, semilla 20260923, por `lesion_id`); los 120 registros previos (F1 macro, exactitud balanceada, recall de melanoma) se reprodujeron idénticos antes de escribir. La última columna es el contraste pareado de F4 sobre el baseline (Δ MCC [IC 95 %]). E3 final: 10 contrastes de MCC en los JSON, 0 no disponibles.
 
 | Baseline | MCC sin F4 | MCC con F4 | Contraste pareado: Δ MCC [IC 95 %] | El IC excluye 0 |
 |---|---|---|---|---|
@@ -264,9 +264,11 @@ Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo
 | F4 (todas las lesiones) | B71 | F1 macro | +0,0360 [+0,0020; +0,0778] | sí | F4 (todas las lesiones) mejor (el IC excluye 0) |
 | F4 (todas las lesiones) | B71 | Exactitud balanceada | +0,0276 [-0,0102; +0,0688] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Recall de melanoma | +0,0360 [-0,0154; +0,0876] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (todas las lesiones) | B71 | MCC | +0,0536 [+0,0319; +0,0781] | sí | F4 (todas las lesiones) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | F1 macro | +0,0730 [+0,0052; +0,1482] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Exactitud balanceada | +0,0805 [+0,0095; +0,1617] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Recall de melanoma | +0,0303 [-0,0617; +0,1081] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (tercil L* más oscuro) | B71 | MCC | +0,0593 [+0,0259; +0,0939] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 
 ### HAM10000: F4 − B71, cómputo S1: batch 64 + autocast (canónico, el de v7.1)
 
@@ -277,9 +279,11 @@ Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo
 | F4 (todas las lesiones) | B71 | F1 macro | +0,0300 [-0,0046; +0,0715] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Exactitud balanceada | +0,0222 [-0,0159; +0,0624] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Recall de melanoma | +0,0135 [-0,0446; +0,0714] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (todas las lesiones) | B71 | MCC | +0,0455 [+0,0219; +0,0708] | sí | F4 (todas las lesiones) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | F1 macro | +0,0625 [-0,0070; +0,1382] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Exactitud balanceada | +0,0738 [+0,0022; +0,1544] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Recall de melanoma | -0,0101 [-0,1068; +0,0714] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (tercil L* más oscuro) | B71 | MCC | +0,0494 [+0,0146; +0,0849] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 
 ### HAM10000: F4 − B71, cómputo S2: batch 64, fp32
 
@@ -290,9 +294,11 @@ Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo
 | F4 (todas las lesiones) | B71 | F1 macro | +0,0393 [+0,0039; +0,0824] | sí | F4 (todas las lesiones) mejor (el IC excluye 0) |
 | F4 (todas las lesiones) | B71 | Exactitud balanceada | +0,0318 [-0,0069; +0,0749] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Recall de melanoma | +0,0360 [-0,0154; +0,0876] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (todas las lesiones) | B71 | MCC | +0,0498 [+0,0267; +0,0752] | sí | F4 (todas las lesiones) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | F1 macro | +0,0705 [-0,0004; +0,1490] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Exactitud balanceada | +0,0839 [+0,0009; +0,1713] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Recall de melanoma | +0,0303 [-0,0617; +0,1081] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (tercil L* más oscuro) | B71 | MCC | +0,0550 [+0,0205; +0,0920] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 
 ### HAM10000: F4 − B71, semilla de B* 42 (= cómputo canónico S1)
 
@@ -303,9 +309,11 @@ Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo
 | F4 (todas las lesiones) | B71 | F1 macro | +0,0300 [-0,0046; +0,0715] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Exactitud balanceada | +0,0222 [-0,0159; +0,0624] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Recall de melanoma | +0,0135 [-0,0446; +0,0714] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (todas las lesiones) | B71 | MCC | +0,0455 [+0,0219; +0,0708] | sí | F4 (todas las lesiones) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | F1 macro | +0,0625 [-0,0070; +0,1382] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Exactitud balanceada | +0,0738 [+0,0022; +0,1544] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Recall de melanoma | -0,0101 [-0,1068; +0,0714] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (tercil L* más oscuro) | B71 | MCC | +0,0494 [+0,0146; +0,0849] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 
 ### HAM10000: F4 − B71, semilla de B* 43
 
@@ -316,9 +324,11 @@ Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo
 | F4 (todas las lesiones) | B71 | F1 macro | +0,0092 [-0,0339; +0,0499] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Exactitud balanceada | -0,0041 [-0,0473; +0,0354] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Recall de melanoma | +0,0000 [-0,0467; +0,0455] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (todas las lesiones) | B71 | MCC | +0,0299 [+0,0054; +0,0535] | sí | F4 (todas las lesiones) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | F1 macro | +0,0005 [-0,0648; +0,0611] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Exactitud balanceada | -0,0028 [-0,0750; +0,0506] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Recall de melanoma | +0,0404 [-0,0220; +0,1009] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (tercil L* más oscuro) | B71 | MCC | +0,0280 [-0,0076; +0,0650] | no | sin diferencia demostrable (el IC incluye 0) |
 
 ### HAM10000: F4 − B71, semilla de B* 44
 
@@ -329,9 +339,11 @@ Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo
 | F4 (todas las lesiones) | B71 | F1 macro | +0,0261 [-0,0039; +0,0577] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Exactitud balanceada | +0,0128 [-0,0168; +0,0440] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (todas las lesiones) | B71 | Recall de melanoma | +0,0180 [-0,0346; +0,0696] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (todas las lesiones) | B71 | MCC | +0,0247 [+0,0018; +0,0476] | sí | F4 (todas las lesiones) mejor (el IC excluye 0) |
 | F4 (tercil L* más oscuro) | B71 | F1 macro | +0,0425 [-0,0065; +0,0924] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Exactitud balanceada | +0,0227 [-0,0300; +0,0720] | no | sin diferencia demostrable (el IC incluye 0) |
 | F4 (tercil L* más oscuro) | B71 | Recall de melanoma | +0,0707 [-0,0208; +0,1609] | no | sin diferencia demostrable (el IC incluye 0) |
+| F4 (tercil L* más oscuro) | B71 | MCC | +0,0381 [+0,0003; +0,0754] | sí | F4 (tercil L* más oscuro) mejor (el IC excluye 0) |
 
 ### HAM10000: v7 y v7.1 (48 contrastes)
 
@@ -664,5 +676,4 @@ B71-limpio: F1 macro 0,6229 [0,5865; 0,6602]. Los baselines no tienen probabilid
 
 | Contraste | Motivo | ETA |
 |---|---|---|
-| Contrastes pareados de MCC en HAM10000 (E3 final) | los JSON de E3 no traen MCC en sus contrastes y sus probabilidades no se guardaron; se recomputan en el pod con `scripts/e3_contrasts_rebuild.py` (E3b ya los tiene) | sin ETA |
 | B71-limpio y A71-limpio contra el original en HAM10000 | la sensibilidad de pesos limpios sobre la val de HAM10000 (`scripts/ham_clean_run.py`) no se ha ejecutado: todavía no existe `resultados/banco_completo/ham_clean/ham_clean_val.json`; el val de HAM ya estaba excluido del pool original, así que no es una corrección de transductividad sino la medida de cuánto cambian las cifras con los pesos que se publican | sin ETA |
