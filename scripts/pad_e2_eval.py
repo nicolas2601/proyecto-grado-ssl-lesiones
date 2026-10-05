@@ -49,6 +49,9 @@ from dermssl import run_environment  # noqa: E402
 from dermssl import run_provenance as rp  # noqa: E402
 
 PUBLIC_SPEC = "dinov2_vitb14:public"
+#: What must be identical for an earlier freeze of the predictions to be reused after a relaunch.
+FINGERPRINT = ("code_revision", "specs", "backbone_sha256", "split_sha256", "split_manifest_sha256",
+               "manifest_sha256", "n_fit", "compute")
 PROTOCOL = ("logreg on CLS @224 fitted on the whole C1 train (source labels), frozen on PAD target_test "
             "BCC/MEL/NV; batch 64 + CUDA autocast; patient-grouped paired bootstrap")
 
@@ -181,8 +184,9 @@ def main(argv: list[str] | None = None) -> int:
     out = args.out.expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
     run = e2.run_rehearsal if args.rehearsal else e2.run_single_evaluation
+    extra = {} if args.rehearsal else {"fingerprint": {k: meta[k] for k in FINGERPRINT}}
     document = run(args.split.expanduser(), rows, args.pad_root.expanduser(),
-                   make_predict(specs, split, ham_index, device, args), out, provenance=meta)
+                   make_predict(specs, split, ham_index, device, args), out, provenance=meta, **extra)
     out.write_text(json.dumps(document, indent=1, ensure_ascii=False), encoding="utf-8")
     run_environment.write_sidecar(out, args, loky_inner_threads=probe_threads.PROBE_BLAS_THREADS)
     print("ensayo terminado: metricas descartadas, no se reportan" if args.rehearsal

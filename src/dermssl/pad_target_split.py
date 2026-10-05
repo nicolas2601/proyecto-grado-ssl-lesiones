@@ -176,8 +176,17 @@ class TargetTestLock:
             json.dump({"target_test_sha256": target_test_sha256, "read_at": self._clock()}, handle)
 
 
+def target_test_image_ids(split_path: Path) -> list[str]:
+    """The target_test ids, pinned, WITHOUT the lock: enough to read images, never labels.
+
+    The lock covers the label read and the metrics (``read_target_test_ids``); the images are
+    read earlier so that a crash while extracting features cannot burn it.
+    """
+    return _load_pinned(split_path, "target_test")[0]
+
+
 def read_target_test_ids(split_path: Path, lock: TargetTestLock) -> list[str]:
-    """The locked ids. Verifies the pin first (a corrupt file does not burn the lock), then locks."""
+    """The ids, taking the lock. Verifies the pin first (a corrupt file does not burn the lock), then locks."""
     ids, digest = _load_pinned(split_path, "target_test")
     lock.acquire(digest)
     return ids

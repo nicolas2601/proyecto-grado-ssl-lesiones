@@ -5,14 +5,17 @@ Arms D0 (public DINOv2), D1 (A* s42 clean), D2 (D1 + 2000 steps on the pool) and
 grouped; "mejora" only if its interval excludes 0. The model-facing step (features and
 probe) is injected as ``predict`` so the protocol around it is testable without a GPU:
 
-1. every manifest image is re-hashed, then target_test is read through the lock (once);
-2. predictions are computed from images alone and frozen with their sha256;
-3. only then are the labels read and the metrics computed.
+1. every manifest image is re-hashed (no lock);
+2. predictions are computed from images alone and frozen atomically with their sha256 (no lock);
+3. only then is target_test read through the lock (once, ``target_test_read.lock``);
+4. the labels are read and the metrics computed. The lock covers 3-4 only.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
+import os
 from collections.abc import Callable
 from pathlib import Path
 
@@ -136,11 +139,53 @@ def _verified_paths(rows: list[dict], pad_root: Path, only: set[str] | None = No
     return paths
 
 
-def _freeze(out: Path, ids: list[str], probas7: dict) -> str:
-    """``<out>.probas.npz`` and its sha256, written before any label is read."""
+def _atomic_write(path: Path, write: Callable) -> None:
+    """``write(handle)`` into ``<path>.tmp``, then rename: a death never leaves a half file."""
+    tmp = path.with_name(path.name + ".tmp")
+    with tmp.open("wb") as handle:
+        write(handle)
+    os.replace(tmp, path)
+
+
+def _freeze(out: Path, ids: list[str], probas7: dict, fingerprint: dict | None = None) -> str:
+    """``<out>.probas.npz`` (atomic) and its sha256; with a fingerprint also ``<out>.frozen.json``.
+
+    Written before any label is read. The record lets a relaunch reuse the predictions only when
+    the weights, split, manifest and code are the ones that produced them.
+    """
     path = out.with_suffix(".probas.npz")
-    np.savez_compressed(path, ids=np.array(ids), **probas7)
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    _atomic_write(path, lambda h: np.savez_compressed(h, ids=np.array(ids), **probas7))
+    sha = hashlib.sha256(path.read_bytes()).hexdigest()
+    if fingerprint is not None:
+        record = {"probas_sha256": sha, "fingerprint": fingerprint}
+        _atomic_write(out.with_suffix(".frozen.json"), lambda h: h.write(json.dumps(record, sort_keys=True).encode()))
+    return sha
+
+
+def _load_frozen(out: Path, ids: list[str], fingerprint: dict) -> tuple[dict, str] | None:
+    """Earlier frozen predictions, only if their sha256 and fingerprint match; otherwise None (recompute)."""
+    npz, record_path = out.with_suffix(".probas.npz"), out.with_suffix(".frozen.json")
+    try:
+        record = json.loads(record_path.read_text(encoding="utf-8"))
+        sha = hashlib.sha256(npz.read_bytes()).hexdigest()
+        if record["probas_sha256"] != sha or record["fingerprint"] != json.loads(json.dumps(fingerprint)):
+            return None
+        saved = dict(np.load(npz))
+        if list(saved.pop("ids")) != list(ids):
+            return None
+        _check_shapes(saved, len(ids))
+    except (OSError, ValueError, KeyError, E2Error):
+        return None
+    return saved, sha
+
+
+def _frozen_predictions(out: Path, ids: list[str], paths: dict, predict: Predict, fingerprint: dict):
+    reused = _load_frozen(out, ids, fingerprint)
+    if reused is not None:
+        return reused
+    probas7 = predict(ids, paths)
+    _check_shapes(probas7, len(ids))
+    return probas7, _freeze(out, ids, probas7, fingerprint)
 
 
 def _check_shapes(probas7: dict, n: int, arms: tuple = ARMS) -> None:
@@ -150,15 +195,25 @@ def _check_shapes(probas7: dict, n: int, arms: tuple = ARMS) -> None:
 
 
 def run_single_evaluation(split_path: Path, rows: list[dict], pad_root: Path, predict: Predict, out: Path, *,
-                          n_resamples: int = N_RESAMPLES, provenance: dict | None = None) -> dict:
-    """Verify, lock, predict, freeze, then read labels and score. Returns the document; writes only the npz."""
+                          n_resamples: int = N_RESAMPLES, provenance: dict | None = None,
+                          fingerprint: dict | None = None) -> dict:
+    """The real E2, with the lock as late as possible. Returns the document; writes only the frozen files.
+
+    1. every manifest image is re-hashed (no lock);
+    2. predictions come from images alone and are frozen atomically with their sha256 (no lock),
+       or reused when an earlier freeze has the same fingerprint and sha256;
+    3. only then ``target_test_read.lock`` is taken (``O_EXCL``);
+    4. labels are read and the metrics computed. The lock covers 3-4: seconds, not the GPU time.
+    """
     split_path, out = Path(split_path), Path(out)
+    lock = ts.TargetTestLock(split_path.parent)
+    if lock.path.exists():
+        raise ts.TargetTestAlreadyReadError(f"target_test ya se leyo ({lock.path}); la evaluacion unica no se repite")
     verified = _verified_paths(rows, pad_root)
-    ids = ts.read_target_test_ids(split_path, ts.TargetTestLock(split_path.parent))
-    paths = {i: verified[i] for i in ids}
-    probas7 = predict(ids, paths)
-    _check_shapes(probas7, len(ids))
-    probas_sha = _freeze(out, ids, probas7)
+    ids = ts.target_test_image_ids(split_path)
+    fingerprint = {**(fingerprint or {}), "target_test_sha256": ts.ids_sha256(ids)}
+    probas7, probas_sha = _frozen_predictions(out, ids, {i: verified[i] for i in ids}, predict, fingerprint)
+    ts.read_target_test_ids(split_path, lock)
     by_id = {row["img_id"]: row for row in rows}
     labels = np.array([by_id[i]["ham_label"] for i in ids])
     groups = np.array([by_id[i]["patient_id"] for i in ids])
