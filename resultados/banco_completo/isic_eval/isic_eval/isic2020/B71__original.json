@@ -1,0 +1,121 @@
+{
+ "cell": "B71__original",
+ "key": {
+  "dataset": "isic2020",
+  "cell": "B71__original",
+  "config_id": "B_s42_a1.0@224|cls4|balanced|tta",
+  "transductivo": true,
+  "weights_sha256": "a1d6a41623dae7b4e41701a5642746f4542286989ac035207e5485ba2966e0c7",
+  "val_ids_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e",
+  "train_ids_sha256": "0284b47c93a1d2aeaaac182e928269529578abecb6e1dd261c4383194cb42fbb",
+  "n_val": 6660,
+  "n_train": 26466,
+  "limit": null,
+  "n_resamples": 1000
+ },
+ "key_sha256": "01fa76447439a79570caefb2756176c1dfd91fe88500c1024d138439c2884062",
+ "result": {
+  "code_revision": "c3eb887a28101afb3a64d0f9747ae91d104a4845",
+  "pool_check": {
+   "variant": "original",
+   "exclude_ids_sha256": {
+    "B_s42": "95d21013a42a5c99a6024ef6c8ae73aada8bdc1193ae512665035bb59b737d87"
+   },
+   "verified": true
+  },
+  "dataset": "isic2020",
+  "config_id": "B_s42_a1.0@224|cls4|balanced|tta",
+  "transductivo": true,
+  "n_train": 26466,
+  "n_val": 6660,
+  "limit": null,
+  "cell": "B71__original",
+  "pool_excludes_val": false,
+  "protocol": {
+   "weights": "B_s42_a1.0",
+   "resolution": 224,
+   "feature": "cls4",
+   "weighting": "balanced",
+   "tta": true
+  },
+  "split_identity": {
+   "sklearn_version": "1.7.2",
+   "n_train": 26466,
+   "n_val": 6660,
+   "val_supports": [
+    6538,
+    122
+   ],
+   "val_ids_sha256": "ec3f5408881aa4623493e95e2840f360bab3de300c6fc022a4b88e55d5a0567e",
+   "val_sha_construction": "join_newline",
+   "train_ids_sha256": "0284b47c93a1d2aeaaac182e928269529578abecb6e1dd261c4383194cb42fbb"
+  },
+  "probe": "logreg C=1 standardised, fitted on the dataset TRAIN split; no selection on val",
+  "metrics": {
+   "macro_f1": 0.6122952718258613,
+   "balanced_accuracy": 0.6440368789773782,
+   "accuracy": 0.9644144144144144,
+   "auc": 0.852423912661916,
+   "ece": 0.011169334183277528,
+   "mcc": 0.2314572625156106,
+   "per_class": {
+    "benign": {
+     "precision": 0.9870149945895811,
+     "recall": 0.9765983481186907,
+     "f1": 0.9817790420542785,
+     "support": 6538
+    },
+    "malignant": {
+     "precision": 0.19895287958115182,
+     "recall": 0.3114754098360656,
+     "f1": 0.24281150159744408,
+     "support": 122
+    }
+   },
+   "matriz_confusion": [
+    [
+     6385,
+     153
+    ],
+    [
+     84,
+     38
+    ]
+   ],
+   "macro_precision": 0.5929839370853665,
+   "macro_recall": 0.6440368789773782,
+   "ci95": {
+    "macro_f1": [
+     0.578093597321388,
+     0.648609986927223
+    ],
+    "balanced_accuracy": [
+     0.5970499824416353,
+     0.6926037941974066
+    ],
+    "accuracy": [
+     0.9569415831638195,
+     0.970723637132769
+    ],
+    "auc": [
+     0.8080214148371769,
+     0.8947474414190413
+    ],
+    "ece": [
+     0.008740385806748898,
+     0.016708171476210728
+    ],
+    "mcc": [
+     0.16243922009530828,
+     0.30431779321981733
+    ]
+   },
+   "bootstrap": {
+    "n_resamples": 1000,
+    "seed": 20260923,
+    "unit": "patient_id"
+   }
+  },
+  "probas_sha256": "b248b69f464a329d5ab4677ab1ee378d56159d0c0823791a04669c3dadfacdbd"
+ }
+}

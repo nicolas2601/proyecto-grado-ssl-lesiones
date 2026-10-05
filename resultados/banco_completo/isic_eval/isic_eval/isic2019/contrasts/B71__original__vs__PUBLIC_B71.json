@@ -1,0 +1,91 @@
+{
+ "cell": "B71__original__vs__PUBLIC_B71",
+ "key": {
+  "arm": "B71__original",
+  "control": "PUBLIC_B71",
+  "arm_probas_sha256": "beb0d07da044df52c456dca58346ad6dd4f6ab25dffe7972ba104260c88e1954",
+  "control_probas_sha256": "6c57dbf3177390af5fc745706787da29c6f31bc873c323f5d5561bf52cc36da1",
+  "n_resamples": 1000
+ },
+ "key_sha256": "cbc0f96dbd17172fa0fb85c529b78bd1afbb0c83967023e1c86d241a4f7561be",
+ "result": {
+  "paired": [
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "macro_f1",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.6756172555734773,
+    "point_control": 0.6589858621235717,
+    "point_delta": 0.016631393449905607,
+    "ci95_low": -0.007274229039633484,
+    "ci95_high": 0.03858151725664305,
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   },
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "balanced_accuracy",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.6791346927710051,
+    "point_control": 0.6605718927353067,
+    "point_delta": 0.018562800035698435,
+    "ci95_low": -0.004654619061277052,
+    "ci95_high": 0.040832849607955066,
+    "excludes_zero": false,
+    "direction": "indistinguishable"
+   },
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "accuracy",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.769883560292086,
+    "point_control": 0.7576475231892639,
+    "point_delta": 0.012236037102822173,
+    "ci95_low": 0.000197355437142277,
+    "ci95_high": 0.024274718768502068,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   },
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "auc",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.9544596522145912,
+    "point_control": 0.9476284998381773,
+    "point_delta": 0.0068311523764138515,
+    "ci95_low": 0.00258488621311771,
+    "ci95_high": 0.011389861580914989,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   },
+   {
+    "arm": "B71__original",
+    "control": "PUBLIC_B71",
+    "metric": "ece",
+    "probe": "logreg",
+    "fraction": 1.0,
+    "seed": 0,
+    "point_arm": 0.048200910090025625,
+    "point_control": 0.07110061127684168,
+    "point_delta": -0.022899701186816057,
+    "ci95_low": -0.03215932544582527,
+    "ci95_high": -0.010208185229177952,
+    "excludes_zero": true,
+    "direction": "arm_better"
+   }
+  ],
+  "unit": "image"
+ }
+}

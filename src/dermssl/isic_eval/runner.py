@@ -21,8 +21,39 @@ from dermssl.isic_eval import scoring
 from dermssl.isic_eval.splits import EvalDataset
 
 
+class ProbasIntegrityError(ValueError):
+    """A legacy ``.probas.npz`` (object arrays) does not match the sha256 its cell registered."""
+
+
 def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _read(path: Path, *, allow_pickle: bool) -> dict:
+    with np.load(path, allow_pickle=allow_pickle) as saved:
+        return {name: saved[name] for name in saved.files}
+
+
+def load_probas(path: Path, expected_sha: str) -> dict:
+    """The arrays of a cell's ``.probas.npz``, groups as strings.
+
+    Files written now need no pickle. The first pod run saved the patient groups of ISIC 2020 as an
+    object array, which only loads with ``allow_pickle=True``: that is enabled for such a file ONLY after
+    its sha256 equals the one its cell registered, and the groups are converted to ``str`` at once.
+    """
+    path = Path(path)
+    try:
+        loaded = _read(path, allow_pickle=False)
+    except ValueError as exc:
+        if "Object arrays" not in str(exc):
+            raise
+        if _sha(path) != expected_sha:
+            raise ProbasIntegrityError(
+                f"{path.name}: sha256 distinto del registrado ({expected_sha[:12]}); no se carga con pickle") from exc
+        loaded = _read(path, allow_pickle=True)
+    if "groups" in loaded:
+        loaded["groups"] = loaded["groups"].astype(str)
+    return loaded
 
 
 def cell_key(ds: EvalDataset, config: str, pool_excludes_val: bool, weights_sha: str, limit, n_resamples) -> dict:
@@ -35,7 +66,7 @@ def cell_key(ds: EvalDataset, config: str, pool_excludes_val: bool, weights_sha:
 def _save_probas(path: Path, ds: EvalDataset, proba: np.ndarray) -> None:
     tmp = path.with_name(path.stem + ".tmp.npz")
     np.savez_compressed(tmp, y=ds.y_val, proba=proba, val_ids=np.array(ds.val_ids),
-                        groups=np.array([]) if ds.val_groups is None else ds.val_groups)
+                        groups=np.array([]) if ds.val_groups is None else np.asarray(ds.val_groups).astype(str))
     tmp.replace(path)
 
 
@@ -62,7 +93,8 @@ def run_cell(store, ds: EvalDataset, config: str, extract: ev.Extractor, *, pool
 
 def _contrast_inputs(store, arm: str, control: str):
     docs = [store.read(c)["result"] for c in (arm, control)]
-    loaded = [np.load(store.root / f"{c}.probas.npz") for c in (arm, control)]
+    loaded = [load_probas(store.root / f"{c}.probas.npz", doc["probas_sha256"])
+              for c, doc in zip((arm, control), docs)]
     if not np.array_equal(loaded[0]["val_ids"], loaded[1]["val_ids"]):
         raise ValueError(f"{arm} and {control} were scored on different val images")
     return docs, loaded
