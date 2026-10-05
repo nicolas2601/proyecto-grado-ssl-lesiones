@@ -28,11 +28,11 @@ def _expand(cm):
     return y_true, y_pred
 
 
-def test_scope_is_self_supervised_only_and_has_24_cells():
+def test_scope_is_self_supervised_only_and_has_25_cells():
     assert {a["modelo"].split(" (")[0] for a in ARTS} == {
         "DINOv2 ViT-S/14", "DINOv2 ViT-B/14", "SimSiam ResNet-50", "B71", "A71", "B71-limpio", "B71 original",
         "A71 original"}
-    assert len(ARTS) == 17 + 6 + 1
+    assert len(ARTS) == 17 + 6 + 2
 
 
 def test_isic_cells_come_from_the_e1_json_and_state_their_compute():
@@ -78,8 +78,9 @@ def test_v71_matrices_are_derived_and_reproduce_the_stored_accuracy():
 def test_manifest_lists_pending_cells_and_the_missing_diff_figure():
     manifest = json.loads((OUT / "confusion" / "manifest.json").read_text(encoding="utf-8"))
     pend = {(p["dataset"], p["modelo"], p["condicion"]): p["estado"] for p in manifest["pendientes"]}
-    assert pend[("ISIC 2020", "DINOv2 ViT-S/14", "fine-tuning")] == "pendiente"
-    assert ("ISIC 2020", "DINOv2 ViT-B/14", "fine-tuning") not in pend
+    assert pend[("ISIC 2020", "SimSiam ResNet-50", "fine-tuning")] == "pendiente"
+    for done in ("DINOv2 ViT-B/14", "DINOv2 ViT-S/14"):
+        assert ("ISIC 2020", done, "fine-tuning") not in pend
     assert any(m.startswith("A71-limpio") for _, m, _ in pend)
     assert all(p["eta"] and p["motivo"] for p in manifest["pendientes"])
     names = {(p["dataset"], p["modelo"]) for p in manifest["pendientes"]}
@@ -98,3 +99,36 @@ def test_png_figure_is_drawn_with_two_panels(tmp_path):
     target = tmp_path / "x.png"
     write_png(ARTS[0], target)
     assert target.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+SUPERVISED = ("alexnet", "vgg19", "resnet50", "efficientnet_b0", "vit_b16")
+ALLOWED = {"dinov2_vits14", "dinov2_vitb14", "simsiam_resnet50", "b71", "a71", "b71limpio", "b71_original",
+           "a71_original"}
+
+
+def test_allowed_models_are_exactly_the_self_supervised_ones_and_supervised_are_the_rest():
+    from dermssl.bench.rows import MODELS
+
+    assert set(C.SSL_MODELS) == {"dinov2_vits14", "dinov2_vitb14", "simsiam_r50"}
+    assert set(MODELS) - set(C.SSL_MODELS) == set(SUPERVISED)
+
+
+def test_no_committed_matrix_belongs_to_a_supervised_model():
+    stems = {p.name.split("__")[0] for p in (OUT / "confusion").rglob("*.json") if p.name != "manifest.json"}
+    assert stems <= ALLOWED, stems - ALLOWED
+    assert not {p.name for p in (OUT / "confusion").rglob("*") if p.name.startswith(SUPERVISED)}
+
+
+def test_supervised_finetune_results_never_get_a_matrix_nor_a_pending_cell(tmp_path):
+    import shutil
+
+    for sub in ("results/baselines_isic2020", "results/baselines", "results/baselines_isic2019",
+                "results/finetune/ham10000", "results/finetune/isic2019", "resultados/banco_completo/ft_isic2020/json", "resultados/clasificacion/v71",
+                "resultados/banco_completo/isic_eval"):
+        shutil.copytree(REPO / sub, tmp_path / sub, dirs_exist_ok=True)
+    src = REPO / "resultados/banco_completo/ft_isic2020/json/results_dinov2_vitb14_ft_isic2020.json"
+    for model in SUPERVISED:  # the supervised fine-tuning results arrive as these files
+        shutil.copy(src, tmp_path / f"resultados/banco_completo/ft_isic2020/json/results_{model}_ft_isic2020.json")
+    models = {a["modelo"] for a in C.artifacts(tmp_path)}
+    assert not models & {"AlexNet", "VGG19", "ResNet-50", "EfficientNet-B0", "ViT-B/16"}
+    assert not {p["modelo"] for p in C.pending(tmp_path)} & {"AlexNet", "VGG19", "ResNet-50", "EfficientNet-B0", "ViT-B/16"}
