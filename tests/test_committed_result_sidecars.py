@@ -37,6 +37,7 @@ PRODUCES = {
     "scripts/c1_verify_bank_reproduction.py": ("*/bank_reproduction*.json",),
     "scripts/cluster_frozen_bank.py": ("resultados/clasificacion/bank.json", "*/bank.json"),
     "scripts/diagnostico_fst_comparativa.py": ("*diagnostico_fst*.json",),
+    "scripts/isic_eval_run.py": ("resultados/banco_completo/isic_eval/*.json",),
     "scripts/kaggle_circle_stage2.py": ("*circle_stage2_results*.json",),
     "scripts/kaggle_fst_manifest.py": ("*/fst_manifest.json",),
     "scripts/pad_ufes_addendum.py": ("*/pad_ufes_addendum_a71_s44.json",),

@@ -37,8 +37,8 @@ class FakeExtractor:
             raise RuntimeError("extractor down")
         out = {}
         for part in parts:
-            views = [np.stack([np.eye(3, 4)[self.label[i]] * 4 + np.random.RandomState(
-                zlib.crc32(f"{i}{v}{part}".encode())).randn(4) for i in ids]) for v in range(n_views)]
+            views = [np.stack([np.eye(8)[self.label[i]] * 4 + np.random.RandomState(
+                zlib.crc32(f"{i}{v}{part}".encode())).randn(8) for i in ids]) for v in range(n_views)]
             out[part] = np.stack(views)
         return out
 

@@ -41,7 +41,7 @@ def _save_probas(path: Path, ds: EvalDataset, proba: np.ndarray) -> None:
 
 def run_cell(store, ds: EvalDataset, config: str, extract: ev.Extractor, *, pool_excludes_val: bool,
              weights_sha: str, limit=None, n_resamples: int = scoring.N_RESAMPLES,
-             keep_features: bool = False) -> str:
+             keep_features: bool = False, provenance: dict | None = None) -> str:
     key = cell_key(ds, config, pool_excludes_val, weights_sha, limit, n_resamples)
     name = key["cell"]
 
@@ -51,7 +51,7 @@ def run_cell(store, ds: EvalDataset, config: str, extract: ev.Extractor, *, pool
         _save_probas(store.root / f"{name}.probas.npz", ds, proba)
         if not keep_features:
             cache.unlink(missing_ok=True)
-        return {**{k: key[k] for k in ("dataset", "config_id", "transductivo", "n_train", "n_val", "limit")},
+        return {**(provenance or {}), **{k: key[k] for k in ("dataset", "config_id", "transductivo", "n_train", "n_val", "limit")},
                 "cell": name, "pool_excludes_val": None if pr.is_public(config) else pool_excludes_val,
                 "protocol": pr.parse(config), "split_identity": ds.identity,
                 "probe": "logreg C=1 standardised, fitted on the dataset TRAIN split; no selection on val",
