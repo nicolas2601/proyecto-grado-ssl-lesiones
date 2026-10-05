@@ -26,6 +26,12 @@ CLEAN, ORIGINAL, PUBLIC = ("B71_clean", "A71_clean"), ("B71", "A71"), ("public_B
 CONTRASTS = (("B71_clean", "public_B71"), ("B71_clean", "B71"), ("A71_clean", "public_A71"), ("A71_clean", "A71"),
              ("B71_clean", "A71_clean"))
 CONTRAST_METRICS = (*fe.METRICS, "mel_recall", "mel_auc", "mcc")  # mcc appended LAST: other draws unchanged
+# sha256 of the released clean finals (file simsiam_dinov2_backbone_final.pt, 346388719 bytes each).
+RELEASE_SHA256 = {
+    "B_s42": "a392ebe8eedcc519a6131e3930bed5ea232d4be7084010f82740e55cadbe39c1",  # v7clean/final_B_s42
+    "A_s42": "9a4b88f415da66349646fb68a2b3ad3ac50845f04b1179f1aa871639c0c5e2c8",  # v7clean/final_A_s42
+    "A_s43": "7994ffa54ad08b7aedfbe0a3e0bcda02d125e6903aea75a862238c3d39b9bcfc",  # v7clean/final_A_s43
+}
 GROUPED_BY = "lesion_id"
 CANONICAL_BATCH = 64
 NEEDED_FINALS = (("B", "s42"), ("A", "s42"), ("A", "s43"))  # B71-limpio = B s42; A71-limpio = soup A s42 + s43
@@ -65,6 +71,15 @@ def check_distinct_weights(shas: dict) -> None:
         if sha in seen:
             raise HamCleanError(f"{name} y {seen[sha]} tienen pesos identicos (sha256 {sha[:12]}): carpeta copiada")
         seen[sha] = name
+
+
+def check_release_hashes(shas: dict, pins: dict | None = None) -> None:
+    """Each final must be byte-identical to the released file; names which one differs from which hash."""
+    pins = RELEASE_SHA256 if pins is None else pins
+    wrong = [f"v7clean/final_{name}: sha256 {shas[name]} != release {pins[name]}"
+             for name in pins if shas.get(name) != pins[name]]
+    if wrong:
+        raise HamCleanError("la final no es la publicada (release): " + "; ".join(wrong))
 
 
 def check_images(ids, index: dict) -> None:

@@ -142,6 +142,7 @@ def preflight(args, ctx, bank, device) -> tuple[dict, dict]:
         hc.check_finals_exist({f"{a}_{s}": bank.final_path(a, s) for a, s in hc.NEEDED_FINALS})
         shas = {f"{a}_{s}": rp.file_sha256(bank.final_path(a, s)) for a, s in hc.NEEDED_FINALS}
         hc.check_distinct_weights(shas)
+        hc.check_release_hashes(shas)
         hc.check_images([*split_ids(args, ctx)[0], *split_ids(args, ctx)[1]], ctx["image_index"])
     except hc.HamCleanError as exc:
         raise SystemExit(f"ABORT: {exc}") from exc

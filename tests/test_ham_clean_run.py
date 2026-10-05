@@ -95,6 +95,22 @@ def world(tmp_path_factory):
     return root
 
 
+def _pins(root: Path, base: dict) -> dict:
+    """Release hashes for a weights folder; a final that is not there keeps its previous pin."""
+    out = dict(base)
+    for key, folder in (("B_s42", "final_B_s42"), ("A_s42", "final_A_s42"), ("A_s43", "final_A_s43")):
+        path = root / folder / v71_io.WEIGHTS_FILE
+        if path.is_file():
+            out[key] = _sha(path)
+    return out
+
+
+@pytest.fixture(autouse=True)
+def _release_pins(world, monkeypatch):
+    """The tiny fixture weights stand in for the release files: their hashes are injected as the pins."""
+    monkeypatch.setattr(hc, "RELEASE_SHA256", _pins(world / "clean", {}))
+
+
 @pytest.fixture(autouse=True)
 def _tiny_hub(monkeypatch):
     monkeypatch.setattr(v71_io, "hub_model", lambda arch, pretrained: tiny_hub_model(seed=0 if pretrained else 5, depth=4))
@@ -136,6 +152,7 @@ def rehearsed(world, tmp_path_factory):
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(v71_io, "hub_model", lambda arch, pretrained: tiny_hub_model(seed=0 if pretrained else 5, depth=4))
         mp.setattr(run, "revision", lambda args: "test")
+        mp.setattr(hc, "RELEASE_SHA256", _pins(world / "clean", {}), raising=False)
         for stage in ("extract", "val"):
             assert run.main(_argv(world, out, stage, "--rehearsal")) == 0
     assert before == {p.name: _sha(p) for p in (world / "v71").iterdir()}  # the original artifacts are read only
@@ -306,11 +323,13 @@ def _real_val_argv(world: Path, tmp_path: Path, weights: Path, *extra: str) -> t
     return argv, out
 
 
-def _refused(world, tmp_path, monkeypatch, match, mutate=None, **patches):
+def _refused(world, tmp_path, monkeypatch, match, mutate=None, repin=True, **patches):
     _canonical(monkeypatch)
     weights = _clone_weights(world, tmp_path)
     if mutate:
         mutate(weights)
+    if repin:  # these cases test their own check, not the release pin
+        monkeypatch.setattr(hc, "RELEASE_SHA256", _pins(weights, hc.RELEASE_SHA256))
     for name, value in patches.items():
         monkeypatch.setattr(run, name, value)
     argv, out = _real_val_argv(world, tmp_path, weights)
@@ -369,3 +388,47 @@ def test_copied_folders_with_identical_weights_abort(world, tmp_path, monkeypatc
 
 def test_b_and_a_must_come_from_the_same_code_revision(world, tmp_path, monkeypatch):
     _refused(world, tmp_path, monkeypatch, "code_revision", _edit_run("final_B_s42", code_revision="deadbee"))
+
+
+# --- release pins and the lock of this analysis ---------------------------------------------------------------
+
+def test_a_final_that_differs_from_the_release_aborts_naming_file_and_hashes(world, tmp_path, monkeypatch):
+    def tamper(root: Path) -> None:
+        (root / "final_A_s42" / v71_io.WEIGHTS_FILE).write_bytes(b"not the release")
+    _refused(world, tmp_path, monkeypatch, "final_A_s42.*release", tamper, repin=False)
+
+
+def test_each_final_is_checked_against_its_own_release_hash(world, tmp_path, monkeypatch):
+    pins = dict(hc.RELEASE_SHA256)
+    pins["B_s42"], pins["A_s42"] = pins["A_s42"], pins["B_s42"]  # swapped folders carry the other file's hash
+    monkeypatch.setattr(hc, "RELEASE_SHA256", pins)
+    _refused(world, tmp_path, monkeypatch, "final_B_s42.*release", repin=False)
+
+
+def test_the_real_release_pins_are_registered_in_the_module():
+    import importlib
+
+    real = importlib.reload(hc).RELEASE_SHA256
+    assert real == {"B_s42": "a392ebe8eedcc519a6131e3930bed5ea232d4be7084010f82740e55cadbe39c1",
+                    "A_s42": "9a4b88f415da66349646fb68a2b3ad3ac50845f04b1179f1aa871639c0c5e2c8",
+                    "A_s43": "7994ffa54ad08b7aedfbe0a3e0bcda02d125e6903aea75a862238c3d39b9bcfc"}
+    assert set(real) == {f"{a}_{s}" for a, s in hc.NEEDED_FINALS}
+
+
+def test_the_flow_only_touches_its_own_lock_never_the_e3_one(world, tmp_path, monkeypatch):
+    touched = []
+    original = st.ValLock.__init__
+
+    def spy(self, root):
+        touched.append(Path(root).resolve())
+        original(self, root)
+
+    monkeypatch.setattr(st.ValLock, "__init__", spy)
+    _canonical(monkeypatch)
+    out = tmp_path / "ownlock"
+    assert run.main(_argv(world, out, "extract", "--single-evaluation")) == 0
+    assert run.main(_argv(world, out, "val", "--single-evaluation")) == 0
+    assert touched and set(touched) == {out.resolve()}
+    for path in (REPO / "scripts/ham_clean_run.py", REPO / "scripts/pod/ham_clean.sh", REPO / "src/dermssl/ham_clean.py"):
+        text = path.read_text(encoding="utf-8")
+        assert "salidas/e3" not in text and "e3_run" not in text, path
