@@ -26,7 +26,6 @@ from dermssl import e3_selection as sel
 from dermssl import e3_store as st
 from dermssl import e3_variants as var
 from dermssl import paired_bootstrap as pb
-from dermssl import selection_holdout as sh
 from dermssl import v71_metrics as vm
 
 BOOTSTRAP_SEED = 20260923
@@ -104,7 +103,7 @@ def _selection_doc(run: Run, rows: dict, failed: list, extra_nomask: dict, n_res
     nomask = [var.REFERENCE, *extra_nomask]
     verdict = sel.adoption({**rows, **extra_nomask}, nomask=nomask)
     candidates = [n for n in rows if n != var.REFERENCE]
-    report = sh.select_winner(rows, candidates=candidates) if candidates else var.REFERENCE
+    report = sel.strict_winner(rows, candidates) if candidates else var.REFERENCE
     doc = {"stage": "select", "split": "holdout", "rule": sel.RULE, "manifest_sha256": sel.MANIFEST_SHA256,
            "n_resamples": n_resamples, "fingerprint": run.fingerprint, "rows": rows, "nomask_extra": extra_nomask,
            "adoption": verdict, "decision": verdict["decision"], "winner": verdict["winner"],

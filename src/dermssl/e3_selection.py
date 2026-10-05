@@ -8,8 +8,10 @@ Rule, verbatim from the registered plan: a variant is adopted when
 
 The best no-mask row is the maximum over ``nomask`` (default: B71 alone; the v7.1 grid rows
 can be added by the caller). The delta is always against ``reference`` (B71, the proposed
-model). Among adopted variants the winner is the docs/28 4.1 rule (macro-F1, ECE inside a
-0.005 tie). A NaN never counts as a gain. Nothing here can read validation: it receives the
+model). Among adopted variants the winner is the one with the highest holdout macro-F1, as
+registered, with NO ECE tie-break (the docs/28 4.1 tie-break was applied by mistake at first and
+is corrected in the docs/33 errata); an exact tie goes to the first candidate. A NaN never
+counts as a gain. Nothing here can read validation: it receives the
 holdout labels and probabilities only.
 """
 
@@ -22,7 +24,6 @@ import numpy as np
 
 from dermssl import c1_luminance as lum
 from dermssl import luminance_sampling as ls
-from dermssl import selection_holdout as sh
 from dermssl import t4_sog
 from dermssl import v71_grid as vg
 
@@ -79,6 +80,13 @@ def _judge(row: dict, ref: dict, bar: float) -> dict:
             "adopted": bool(passes_f1 and passes_delta)}
 
 
+def strict_winner(rows: Mapping[str, dict], candidates: Sequence[str]) -> str:
+    """Highest holdout macro-F1 among ``candidates``; an exact tie keeps the earliest candidate."""
+    if not candidates:
+        raise SelectionError("no hay variantes candidatas: elegir entre nada no es una seleccion")
+    return max(candidates, key=lambda n: float(rows[n]["macro_f1"]))
+
+
 def adoption(rows: Mapping[str, dict], *, reference: str = REFERENCE,
              nomask: Sequence[str] = (REFERENCE,), margin: float = MACRO_F1_MARGIN) -> dict:
     """The registered rule over holdout ``rows``; the winner is ``None`` when nothing is adopted."""
@@ -90,7 +98,7 @@ def adoption(rows: Mapping[str, dict], *, reference: str = REFERENCE,
     candidates = [n for n in rows if n not in set(nomask) | {reference}]
     judged = {n: _judge(rows[n], rows[reference], bar) for n in candidates}
     adopted = [n for n in candidates if judged[n]["adopted"]]
-    winner = sh.select_winner(dict(rows), candidates=adopted) if adopted else None
+    winner = strict_winner(rows, adopted) if adopted else None
     return {"rule": RULE, "reference": reference, "nomask": list(nomask), "best_nomask": best,
             "macro_f1_bar": bar, "variants": judged, "adopted": adopted, "winner": winner,
             "decision": "adopt" if winner else "no_adoption"}

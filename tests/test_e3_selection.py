@@ -52,11 +52,16 @@ def test_the_bar_is_the_best_no_mask_row_and_the_delta_is_against_the_reference(
     assert "v71:B_soup" not in out["variants"]  # no-mask rows are references, not candidates
 
 
-def test_among_adopted_variants_the_winner_is_the_docs28_rule_with_ece_tie_break():
+def test_among_adopted_variants_the_winner_is_the_highest_holdout_macro_f1_with_no_ece_tie_break():
     rows = {"B71": row(0.80), "F1": row(0.81, mel=0.6, ece=0.2), "F2": row(0.809, mel=0.6, ece=0.05),
             "F3": row(0.70, mel=0.9)}
     out = decide(rows)
-    assert out["adopted"] == ["F1", "F2"] and out["winner"] == "F2"
+    assert out["adopted"] == ["F1", "F2"] and out["winner"] == "F1"
+
+
+def test_an_exact_macro_f1_tie_goes_to_the_first_candidate_in_registration_order():
+    rows = {"B71": row(0.80), "F1": row(0.81, mel=0.6, ece=0.2), "F2": row(0.81, mel=0.6, ece=0.05)}
+    assert decide(rows)["winner"] == "F1"
 
 
 def test_the_reference_must_be_present():
