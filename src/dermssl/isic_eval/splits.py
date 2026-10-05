@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 
 from dermssl import c1_split_identity as si
+from dermssl import v71_plan as plan
 
 N_SPLITS = 5
 SEED = 42
@@ -170,3 +171,14 @@ def load_isic2020(csv_path: Path, image_dir: Path, expected: SplitExpectation = 
 LOADERS = {"isic2019": (load_isic2019, "ISIC_2019_Training_GroundTruth.csv"),
            "isic2020": (load_isic2020, "train-metadata.csv")}
 EXPECTED = {"isic2019": ISIC2019_EXPECTED, "isic2020": ISIC2020_EXPECTED}
+
+
+def limited(ds: EvalDataset, n: int | None) -> EvalDataset:
+    """Smoke subset: ``n`` train and ``n`` val rows taken round-robin over the classes (after verification)."""
+    if n is None:
+        return ds
+    picked = []
+    for idx in (ds.train_idx, ds.val_idx):
+        keep = set(plan.limited_ids(idx.tolist(), ds.labels[idx].tolist(), n))
+        picked.append(np.array([i for i in idx if i in keep], dtype=np.int64))
+    return replace(ds, train_idx=picked[0], val_idx=picked[1])
