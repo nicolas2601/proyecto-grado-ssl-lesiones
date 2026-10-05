@@ -81,6 +81,7 @@ EXEMPT = {
     "scripts/c1_finals_exclude.py": _DATA_PREP,
     "scripts/c1_selection_holdout.py": _DATA_PREP,
     "scripts/pad_ufes_manifest.py": _DATA_PREP,
+    "scripts/pad_target_split.py": _DATA_PREP,
     "scripts/kaggle_circle_bundle.py": _DATA_PREP,
     "scripts/c1_near_dup_check.py": "leak audit by integer pHash: no float, BLAS or thread dependence",
     "scripts/c1_pool_leak_check.py": "leak audit by lesion id: set arithmetic, nothing to drift",
