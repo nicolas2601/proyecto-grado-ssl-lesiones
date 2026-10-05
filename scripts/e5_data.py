@@ -94,8 +94,19 @@ def load_pool(root: Path) -> Pool:
     if not path.is_file():
         raise SystemExit(f"ABORT: no {path}")
     raw = path.read_bytes()
-    entries = {(e["dataset"], e["image_id"]): e for e in json.loads(raw)}
+    entries = {(e["dataset"], e["image_id"]): e for e in _manifest_entries(json.loads(raw))}
     return Pool(root, entries, hashlib.sha256(raw).hexdigest())
+
+
+def _manifest_entries(payload) -> list[dict]:
+    """The entry list of ``mask_manifest.json``: a dict with the list under ``masks`` (real), or a bare list (legacy)."""
+    entries = payload.get("masks") if isinstance(payload, dict) else payload
+    if not isinstance(entries, list):
+        raise SystemExit("ABORT: mask_manifest.json debe ser una lista de entradas o un dict con la lista en 'masks'")
+    for entry in entries:
+        if not isinstance(entry, dict) or "dataset" not in entry or "image_id" not in entry:
+            raise SystemExit(f"ABORT: mask_manifest.json: entrada sin 'dataset' / 'image_id': {str(entry)[:80]}")
+    return entries
 
 
 def limit_tasks(tasks: list[Task], n: int | None) -> list[Task]:

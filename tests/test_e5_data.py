@@ -121,3 +121,33 @@ def test_an_isic_spec_with_a_pool_carries_states_and_the_pool_provenance(tmp_pat
     assert states[:2] == ["eligible", "quarantine"] and set(states[2:]) == {"absent"}
     assert spec.masks["n_entries"] == 2 and len(spec.masks["manifest_sha256"]) == 64
     assert "automáticas" in spec.masks["kind"] and spec.masks["found_in"] == {"isic2020": 2}
+
+
+def _write_manifest(tmp_path, payload):
+    import json
+
+    (tmp_path / "mask_manifest.json").write_text(json.dumps(payload), encoding="utf-8")
+    return data.load_pool(tmp_path)
+
+
+_ENTRY = {"dataset": "isic2020", "image_id": "ISIC_1", "eligible": True, "mask_sha256": "ab" * 32}
+
+
+def test_the_real_manifest_is_a_dict_with_the_entries_under_masks(tmp_path):
+    pool = _write_manifest(tmp_path, {"schema_version": "1.1", "summary": {"total": 1}, "masks": [_ENTRY]})
+    assert pool.fields("isic2020", "ISIC_1")["mask_state"] == "eligible" and len(pool.entries) == 1
+
+
+def test_a_legacy_manifest_that_is_a_plain_list_is_still_accepted(tmp_path):
+    assert len(_write_manifest(tmp_path, [_ENTRY]).entries) == 1
+
+
+@pytest.mark.parametrize("payload", [{"schema_version": "1.1", "summary": {}}, {"masks": "nope"}, 7, "text"])
+def test_a_manifest_of_any_other_shape_is_a_clear_abort(tmp_path, payload):
+    with pytest.raises(SystemExit, match="mask_manifest"):
+        _write_manifest(tmp_path, payload)
+
+
+def test_an_entry_without_dataset_or_image_id_is_a_clear_abort(tmp_path):
+    with pytest.raises(SystemExit, match="dataset"):
+        _write_manifest(tmp_path, {"masks": [{"image_id": "x"}]})
