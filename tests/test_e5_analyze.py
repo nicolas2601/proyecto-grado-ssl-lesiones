@@ -119,3 +119,82 @@ def test_progress_is_reported_every_interval_and_at_the_end(tmp_path, workers):
     seen = []
     an.run_tasks(tasks, workers=workers, progress=lambda done, total: seen.append((done, total)), progress_every=2)
     assert seen == [(2, 5), (4, 5), (5, 5)]
+
+
+def _pool(tmp_path, name="p", with_mask=True):
+    """A 224 x 224 pool image (skin + dark disc) and its PNG mask (255 = lesion); returns paths and the disc."""
+    size = 224
+    arr = np.empty((size, size, 3), dtype=np.uint8)
+    arr[:] = SKIN
+    yy, xx = np.mgrid[:size, :size]
+    disc = (yy - 112) ** 2 + (xx - 112) ** 2 <= 40**2
+    arr[disc] = (70, 40, 30)
+    arr = np.clip(arr + np.random.RandomState(5).randint(-2, 3, arr.shape), 0, 255).astype(np.uint8)
+    img_path, mask_path = tmp_path / f"{name}_img.png", tmp_path / f"{name}_mask.png"
+    Image.fromarray(arr).save(img_path)
+    if with_mask:
+        Image.fromarray((disc * 255).astype(np.uint8)).save(mask_path)
+    return img_path, mask_path
+
+
+def _pool_task(src, img, mask, state, sha=None):
+    return an.Task(image_id="i0", path=str(src), split="val", label="mel", pool_image=str(img) if img else None,
+                   pool_mask=str(mask) if mask else None, mask_state=state, mask_sha256=sha)
+
+
+def test_an_eligible_pool_mask_gives_a_perilesional_roi_on_the_224_pool_image(tmp_path):
+    src, _ = _write(tmp_path, "src.png")  # a different source image: the ring must read the POOL image
+    img, mask = _pool(tmp_path)
+    rec = an.analyze(_pool_task(src, img, mask, "eligible"), masks=None, hair_fn=None)
+    assert rec["roi"]["estimator"] == "perilesional_roi" and rec["roi"]["mask_state"] == "eligible"
+    assert rec["roi"]["status"] == "ok" and rec["roi"]["bucket"] == "III" and rec["roi"]["roi_image"] == "pool_224"
+
+
+def test_the_mask_hash_is_checked_against_the_manifest_and_only_recorded(tmp_path):
+    import hashlib
+
+    src, _ = _write(tmp_path, "src.png")
+    img, mask = _pool(tmp_path)
+    good = hashlib.sha256(mask.read_bytes()).hexdigest()
+    assert an.analyze(_pool_task(src, img, mask, "eligible", good), masks=None, hair_fn=None)["roi"]["mask_sha_ok"] is True
+    assert an.analyze(_pool_task(src, img, mask, "eligible", "0" * 64), masks=None, hair_fn=None)["roi"]["mask_sha_ok"] is False
+    assert an.analyze(_pool_task(src, img, mask, "eligible"), masks=None, hair_fn=None)["roi"]["mask_sha_ok"] is None
+
+
+def test_a_quarantined_mask_falls_back_to_the_border_estimator_on_the_pool_image(tmp_path):
+    src, _ = _write(tmp_path, "src.png")
+    img, _ = _pool(tmp_path, with_mask=False)
+    rec = an.analyze(_pool_task(src, img, None, "quarantine"), masks=None, hair_fn=None)
+    assert rec["roi"]["estimator"] == "no_mask_border" and rec["roi"]["mask_state"] == "quarantine"
+    assert rec["roi"]["status"] == "ok" and rec["roi"]["bucket"] == "III" and rec["roi"]["roi_image"] == "pool_224"
+
+
+def test_an_absent_mask_and_pool_image_falls_back_to_the_border_of_the_source_image(tmp_path):
+    src, _ = _write(tmp_path, "src.png", lesion=False)
+    rec = an.analyze(_pool_task(src, None, None, "absent"), masks=None, hair_fn=None)
+    assert rec["roi"]["estimator"] == "no_mask_border" and rec["roi"]["roi_image"] == "canonical"
+    assert rec["roi"]["mask_state"] == "absent" and rec["roi"]["bucket"] == "III"
+
+
+def test_a_pool_mask_on_another_grid_than_its_pool_image_aborts(tmp_path):
+    src, _ = _write(tmp_path, "src.png")
+    img, mask = _pool(tmp_path)
+    Image.fromarray(np.zeros((100, 100), np.uint8) + 255).save(mask)
+    with pytest.raises(an.MaskGridError, match="i0"):
+        an.analyze(_pool_task(src, img, mask, "eligible"), masks=None, hair_fn=None)
+
+
+def test_a_missing_pool_file_the_manifest_promised_is_a_typed_error(tmp_path):
+    src, _ = _write(tmp_path, "src.png")
+    with pytest.raises(an.PoolFileError, match="i0"):
+        an.analyze(_pool_task(src, tmp_path / "nope.png", tmp_path / "nope_mask.png", "eligible"),
+                   masks=None, hair_fn=None)
+
+
+def test_native_ham_masks_are_labelled_c1_native_and_perilesional(tmp_path):
+    path, inside = _write(tmp_path, "n.png")
+    masks = inside.astype(np.uint8)[None]
+    rec = an.analyze(an.Task("i0", str(path), "train", "mel", mask_pos=0), masks=masks, hair_fn=None)
+    assert rec["roi"]["estimator"] == "perilesional_roi" and rec["roi"]["mask_state"] == "c1_native"
+    plain = an.analyze(_task(path), masks=None, hair_fn=None)
+    assert plain["roi"]["estimator"] is None and plain["roi"]["mask_state"] is None

@@ -13,6 +13,7 @@ input order, so the result does not depend on ``workers`` or on the chunk size.
 
 from __future__ import annotations
 
+import hashlib
 import sys
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
@@ -32,6 +33,10 @@ class MaskGridError(ValueError):
     """The mask is missing or is not on the grid of its image."""
 
 
+class PoolFileError(FileNotFoundError):
+    """A pool image or mask the manifest says exists could not be read."""
+
+
 class HairDetectorUnavailable(RuntimeError):
     """E5 excludes hair from the ring; without the detector the estimator would be a different one."""
 
@@ -44,7 +49,11 @@ class Task:
     path: str
     split: str
     label: str
-    mask_pos: int | None = None
+    mask_pos: int | None = None  # row in the native mask array (HAM10000)
+    pool_image: str | None = None  # 224 x 224 pool image (ISIC), the same grid as its mask
+    pool_mask: str | None = None  # PNG, true (> 0) = lesion; only for an ``eligible`` pool mask
+    mask_state: str | None = None  # c1_native | eligible | quarantine | absent | None (no masks at all)
+    mask_sha256: str | None = None  # the manifest's hash of the mask file, recorded against the bytes read
 
 
 def _nucleo_dir() -> Path:
@@ -72,15 +81,19 @@ def hair_parameters() -> dict:
             **{n: getattr(hair_removal, n) for n in names}}
 
 
-def _roi_record(est: e5_roi.RoiEstimate) -> dict:
-    return {"status": est.status, "bucket": None if est.bucket is None else e5_ita.bucket_label(est.bucket),
+PERILESIONAL, BORDER = "perilesional_roi", "no_mask_border"
+CANONICAL, POOL = "canonical", "pool_224"
+
+
+def _roi_record(est: e5_roi.RoiEstimate, *, estimator: str | None, state: str | None, image: str | None,
+                sha_ok: bool | None = None) -> dict:
+    return {"estimator": estimator, "mask_state": state, "roi_image": image, "mask_sha_ok": sha_ok,
+            "status": est.status, "bucket": None if est.bucket is None else e5_ita.bucket_label(est.bucket),
             "ita": est.ita, "L_median": est.L_median, "b_median": est.b_median, "n_px": est.n_px,
             "ring_px": est.ring_px, "valid_fraction": est.valid_fraction}
 
 
-def _lesion(task: Task, masks, shape: tuple[int, int]) -> np.ndarray | None:
-    if task.mask_pos is None:
-        return None
+def _lesion(task: Task, masks, shape: tuple[int, int]) -> np.ndarray:
     if masks is None:
         raise MaskGridError(f"{task.image_id}: has mask position {task.mask_pos} but no mask array was given")
     mask = np.asarray(masks[task.mask_pos]) == LESION
@@ -89,15 +102,54 @@ def _lesion(task: Task, masks, shape: tuple[int, int]) -> np.ndarray | None:
     return mask
 
 
+def _read_pool(task: Task, path: str, mode: str) -> np.ndarray:
+    from PIL import Image  # noqa: PLC0415
+
+    try:
+        with Image.open(path) as image:
+            return np.asarray(image.convert(mode))
+    except (OSError, ValueError) as exc:
+        raise PoolFileError(f"{task.image_id}: cannot read pool file {path}: {exc}") from exc
+
+
+def _pool_image(task: Task) -> np.ndarray:
+    return _read_pool(task, task.pool_image, "RGB").astype(np.float32) / 255.0
+
+
+def _eligible_roi(task: Task, hair_fn) -> dict:
+    img = _pool_image(task)
+    mask = _read_pool(task, task.pool_mask, "L") > 0
+    if mask.shape != img.shape[:2]:
+        raise MaskGridError(f"{task.image_id}: mask {mask.shape} and pool image {img.shape[:2]} are not on the same grid")
+    sha_ok = None if task.mask_sha256 is None else hashlib.sha256(Path(task.pool_mask).read_bytes()).hexdigest() == task.mask_sha256
+    return _roi_record(e5_roi.ring_estimate(img, mask, hair_fn=hair_fn), estimator=PERILESIONAL,
+                       state=task.mask_state, image=POOL, sha_ok=sha_ok)
+
+
+def _roi(task: Task, canonical: np.ndarray, masks, hair_fn) -> dict:
+    """The ring where an eligible mask exists, the border fallback where it does not, no_mask where nothing was declared."""
+    if task.mask_pos is not None:
+        lesion = _lesion(task, masks, canonical.shape[:2])
+        return _roi_record(e5_roi.ring_estimate(canonical, lesion, hair_fn=hair_fn), estimator=PERILESIONAL,
+                           state="c1_native", image=CANONICAL)
+    if task.pool_mask is not None:
+        return _eligible_roi(task, hair_fn)
+    if task.mask_state is None:
+        return _roi_record(e5_roi.ring_estimate(canonical, None), estimator=None, state=None, image=None)
+    pooled = task.pool_image is not None
+    img = _pool_image(task) if pooled else canonical
+    return _roi_record(e5_roi.border_estimate(img, hair_fn=hair_fn), estimator=BORDER, state=task.mask_state,
+                       image=POOL if pooled else CANONICAL)
+
+
 def analyze(task: Task, *, masks, hair_fn: e5_roi.HairFn | None) -> dict:
     """The record of one image (see the module docstring)."""
     try:
         img = e5_ita.decode_canonical(Path(task.path))
     except e5_ita.ImageDecodeError as exc:
         return e5_counts.unreadable_record(task.image_id, task.split, task.label, str(exc))
-    lesion = _lesion(task, masks, img.shape[:2])
     return {"image_id": task.image_id, "split": task.split, "label": task.label,
-            **e5_ita.global_estimates(img), "roi": _roi_record(e5_roi.ring_estimate(img, lesion, hair_fn=hair_fn))}
+            **e5_ita.global_estimates(img), "roi": _roi(task, img, masks, hair_fn)}
 
 
 _WORKER: dict = {}
