@@ -21,6 +21,7 @@ from dermssl import t4_sog
 from dermssl import v71_plan as plan
 from dermssl import v71_protocol as vp
 from dermssl import v7_seeds as seeds
+from dermssl.isic_eval import weights as pool_weights
 
 ARCH = "dinov2_vitb14"
 WEIGHTS_FILE = "simsiam_dinov2_backbone_final.pt"
@@ -119,19 +120,25 @@ def hub_model(arch: str, pretrained: bool):
 
 
 class WeightBank:
-    """public, the four finals, the soups, and every WiSE point, built on demand on CPU."""
+    """public, the finals, the soups, and every WiSE point, built on demand on CPU.
 
-    def __init__(self, weights_dir: Path, arch: str = ARCH):
-        self.weights_dir, self.arch = weights_dir, arch
+    ``clean`` selects the clean layout ``final_{A,B}_s{seed}`` (docs/33 section 2); the default is the
+    original v7 layout of ``FINAL_DIRS``, unchanged.
+    """
+
+    def __init__(self, weights_dir: Path, arch: str = ARCH, clean: bool = False):
+        self.weights_dir, self.arch, self.clean = weights_dir, arch, clean
         self._cache: dict = {}
         self._model = None
 
     def final_path(self, arm: str, seed: str) -> Path:
-        return self.weights_dir / FINAL_DIRS[(arm, seed)] / WEIGHTS_FILE
+        folder = pool_weights.final_dir_name(arm, int(seed[1:]), self.clean) if self.clean else FINAL_DIRS[(arm, seed)]
+        return self.weights_dir / folder / WEIGHTS_FILE
 
-    def run_manifests(self) -> dict:
+    def run_manifests(self, finals=None) -> dict:
+        """``run.json`` of each ``(arm, seed)`` in ``finals`` (default: the four originals)."""
         return {f"{arm}_{seed}": read_json(self.final_path(arm, seed).parent / "run.json")
-                for arm, seed in FINAL_DIRS}
+                for arm, seed in (FINAL_DIRS if finals is None else finals)}
 
     def _state(self, key: str) -> dict:
         import torch  # noqa: PLC0415

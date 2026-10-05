@@ -92,11 +92,7 @@ class LayoutBank(io.WeightBank):
     """``WeightBank`` over the original or the clean folder layout."""
 
     def __init__(self, root: Path, pool_excludes_val: bool):
-        super().__init__(root)
-        self.clean = pool_excludes_val
-
-    def final_path(self, arm: str, seed: str) -> Path:
-        return self.weights_dir / wt.final_dir_name(arm, int(seed[1:]), self.clean) / io.WEIGHTS_FILE
+        super().__init__(root, clean=pool_excludes_val)
 
 
 def needed_finals(configs) -> list[tuple[str, str]]:
