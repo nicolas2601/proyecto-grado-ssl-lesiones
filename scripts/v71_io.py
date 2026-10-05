@@ -68,7 +68,7 @@ def load_context(args) -> dict:
             ids[key] = plan.limited_ids(ids[key], [id2label[i] for i in ids[key]], args.limit)
     run_fingerprint = t4_sog.run_fingerprint(ids["fit"], ids["holdout"], t4_sog.IDENTITY)  # changes with --limit
     return {"split": split, "ids": ids, "id2label": id2label, "holdout_sha": holdout_sha,
-            "run_fingerprint": run_fingerprint,
+            "run_fingerprint": run_fingerprint, "lesion_of": rows["lesion_id"].to_dict(),
             "classes": split["classes"], "mel": split["classes"].index("mel"),
             "image_index": bank.index_images([args.image_dir.expanduser()])}
 

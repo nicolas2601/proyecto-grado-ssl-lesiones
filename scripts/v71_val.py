@@ -39,13 +39,16 @@ def _unit_probas(args, cid: str) -> tuple[np.ndarray, np.ndarray]:
 def _metric_fn(metric: str, mel: int):
     if metric in pb.METRIC_FUNCTIONS:
         return pb.METRIC_FUNCTIONS[metric]
+    if metric == "mcc":
+        return pb.metric_mcc
     return lambda y, p: vm.metric_bundle(y, p, mel=mel)[metric]
 
 
-def _contrast(arm, control, y, probas, mel, n_resamples, metrics=CONTRAST_METRICS) -> list[dict]:
+def _contrast(arm, control, y, probas, mel, n_resamples, metrics=CONTRAST_METRICS, groups=None) -> list[dict]:
+    """Paired rows; ``groups`` (default none: by row, as v7.1 published) resamples whole groups."""
     return [pb.contrast_record(arm=arm, control=control, metric=m, probe="logreg", fraction=1.0, seed=0,
                                y_true=y, arm_proba=probas[arm], control_proba=probas[control],
-                               n_resamples=n_resamples, metric_fn=_metric_fn(m, mel))
+                               n_resamples=n_resamples, metric_fn=_metric_fn(m, mel), groups=groups)
             for m in metrics]
 
 
@@ -122,15 +125,16 @@ def _fit_subset(parts: dict, ids, subset) -> dict:
     return {name: value[:, picks] for name, value in parts.items()}
 
 
-def _score_entries(args, ctx, entries, fit_ids, eval_ids, device, store=None) -> tuple[dict, dict]:
+def _score_entries(args, ctx, entries, fit_ids, eval_ids, device, store=None, bank=None) -> tuple[dict, dict]:
     """``(full, fit80)``: each entry's val probas from the full-train probe and from the 80 % probe.
 
-    ``store`` defaults to identity input; docs/31 passes a Shades of Gray one."""
+    ``store`` defaults to identity input; docs/31 passes a Shades of Gray one. ``bank`` defaults to the
+    original-layout ``WeightBank`` of ``args.weights_dir``; the clean-weights run injects its own."""
     from dermssl import torch_v71 as tv  # noqa: PLC0415
 
     if store is None:
         store = io.ImageStore(args.out_dir / "inputs", ctx["image_index"], args.decode_workers)
-    weights = io.WeightBank(args.weights_dir.expanduser())
+    weights = bank or io.WeightBank(args.weights_dir.expanduser())
     tags = ("fit", "holdout") if args.split == "holdout" else ("train", "val")
     fit80_ids = ctx["ids"]["fit"]
     y_fit, y_fit80 = io.labels_of(ctx, fit_ids), io.labels_of(ctx, fit80_ids)
