@@ -20,7 +20,7 @@ TERCILE_ES = {"dark": "oscuro", "medium": "medio", "light": "claro", "unavailabl
 BUCKET_ES = {"abstain": "abstención"}
 NA = "n/d"
 ESTIMATOR_ES = {"otsu": "ITA, lesión por Otsu (referencia)", "whole_image": "ITA, imagen completa",
-                "roi": "ITA, anillo perilesional (máscara)"}
+                "roi": "ITA, ROI (anillo perilesional o borde sin máscara)"}
 PENDING = ("pendiente: este dataset todavía no se ha corrido (`scripts/e5_fitzpatrick.py` en el pod); "
            "no hay ningún número hasta que exista su JSON.")
 GLOSSARY = [
@@ -34,9 +34,14 @@ GLOSSARY = [
     "- **Estimador de Otsu (referencia):** quita la lesión con un umbral de Otsu y lee la piel del resto; es el "
     "mismo en los tres datasets, así que es el comparable.",
     "- **Estimador de imagen completa:** todos los píxeles cuentan, sin quitar la lesión.",
-    "- **Anillo perilesional (ROI de Pau):** banda justo fuera de la máscara de la lesión, sin pelo, reflejos, "
-    "píxeles saturados ni borde negro, con abstención. Solo existe donde hay máscaras (HAM10000, `student_r3`); "
-    "en ISIC 2019 e ISIC 2020 **no aplica** y no se inventan máscaras.",
+    "- **Anillo perilesional (ROI de Pau, `perilesional_roi`):** banda justo fuera de la máscara de la lesión, "
+    "sin pelo, reflejos, píxeles saturados ni borde negro, con abstención. Las máscaras son **pseudo-máscaras "
+    "automáticas** de `student_r3`: nativas 450 × 600 en HAM10000 y del pool 224 × 224 en ISIC.",
+    "- **Estado de la máscara:** `c1_native` (HAM10000), `eligible` (máscara del pool usable), `quarantine` (el "
+    "manifiesto la rechazó, p. ej. área degenerada) o `absent` (la imagen no está en el pool).",
+    "- **Borde sin máscara (`no_mask_border`):** las imágenes sin máscara elegible usan el marco de la imagen "
+    "como muestra de piel, con las mismas exclusiones y abstención. Se cuenta aparte: asume que el borde es "
+    "piel, lo que una lesión en el margen o una viñeta rompen.",
     "- **L\\*:** luminosidad CIELAB (0 negro, 100 blanco). **Tercil de L\\*:** el dataset se divide en tres "
     "tercios por la mediana de L\\* de su piel; es luminancia, **no es tono de piel**, y sus cortes son "
     "propios de cada dataset.",
@@ -50,7 +55,7 @@ READING = [
     "PAD-UFES-20 (PMC13459198; docs/20, docs/30).",
     "- Los terciles son relativos a cada dataset: «oscuro» en HAM10000 y «oscuro» en ISIC 2020 no son la misma "
     "luminancia, y ninguno es piel oscura.",
-    "- Que dos estimadores coincidan (cuadro Otsu × anillo) no los valida: dos estimadores no validados pueden "
+    "- Que dos estimadores coincidan (cuadro Otsu × ROI) no los valida: dos estimadores no validados pueden "
     "coincidir y equivocarse juntos. Es acuerdo, no exactitud.",
     "- Los splits son los que ya existen en cada dataset (no se unifican, docs/33, sección 1): HAM10000 la "
     "partición de C1 agrupada por `lesion_id`, ISIC 2019 `StratifiedKFold` y ISIC 2020 agrupada por "
@@ -110,11 +115,17 @@ def load_documents(root: Path) -> dict[str, dict]:
     return found
 
 
+def _mask_source(masks: dict) -> str:
+    if "producer" in masks:
+        return f"{masks['producer']} nativas, sha256 `{masks['masks_sha256'][:12]}`"
+    return f"{masks['kind']}; manifiesto sha256 `{masks['manifest_sha256'][:12]}` ({num(masks['n_entries'])} entradas)"
+
+
 def _facts(d: dict) -> list[str]:
     report, split = d["report"], d["report"]["estimators"]["otsu"]["bucket_x_split"]
     parts = ", ".join(f"{s} {num(sum(split[s].values()))}" for s in d["splits"])
     masks = d["masks"]
-    mask_text = ("sin máscaras" if masks is None else f"`{masks['producer']}`, sha256 `{masks['masks_sha256'][:12]}`")
+    mask_text = "sin máscaras" if masks is None else _mask_source(masks)
     return [f"- Imágenes: {num(report['n_images'])} ({parts}); ilegibles: {num(report['n_unreadable'])}.",
             f"- Máscaras: {mask_text}.", f"- Revisión de código: `{d['code_revision']}`.", ""]
 
@@ -150,11 +161,25 @@ def _estimator_tables(est: dict, title: str) -> list[str]:
             f"### Bucket × split ({title})", "", *_cross(est["bucket_x_split"], "Split", cols, BUCKET_ES)]
 
 
+def _mask_coverage(roi: dict) -> list[str]:
+    cov = roi["mask_coverage"]
+    states = ("c1_native", "eligible", "quarantine", "absent")
+    rows = [[s, *(num(v[k]) for k in states), num(sum(v[k] for k in states))] for s, v in cov["by_split"].items()]
+    rows.append(["Total", *(num(cov["total"][k]) for k in states), num(sum(cov["total"][k] for k in states))])
+    header = ["Split", "nativa C1", "elegible", "en cuarentena", "ausente", "Total"]
+    est = roi["by_estimator"]
+    sha = cov["sha256_file"]
+    line = " · ".join(f"{e}: {num(est[e]['n'])} imágenes" for e in ("perilesional_roi", "no_mask_border"))
+    return ["### Cobertura de las máscaras", "", *_table(header, rows),
+            f"Estimador del ROI por imagen: {line}. Hash del archivo de máscara: coincide con el manifiesto: "
+            f"{num(sha['match'])}; difiere: {num(sha['mismatch'])}; sin hash: {num(sha['not_checked'])}.", ""]
+
+
 def _agreement(roi: dict) -> list[str]:
     cols = (*ita.BUCKET_LABELS, ita.ABSTAIN)
     both, same = roi["both_estimated"], roi["same_bucket"]
-    return ["### Otsu × anillo (conteos; filas = Otsu, columnas = anillo)", "",
-            *_cross(roi["agreement_with_otsu"], "Otsu \\ anillo", cols, BUCKET_ES),
+    return ["### Otsu × ROI (conteos; filas = Otsu, columnas = ROI)", "",
+            *_cross(roi["agreement_with_otsu"], "Otsu \\ ROI", cols, BUCKET_ES),
             f"Con bucket en ambos estimadores: {num(both)} imágenes; mismo bucket en {num(same)} "
             f"({pct(same, both)}). Es acuerdo entre dos estimadores no validados, no exactitud.", ""]
 
@@ -182,7 +207,8 @@ def _dataset(key: str, d: dict | None) -> list[str]:
            "### Distribución de buckets por estimador (conteo y % del total)", "", *_distribution(est),
            *_estimator_tables(est["otsu"], "Otsu")]
     if est["roi"]["applicable"]:
-        out += [*_estimator_tables(est["roi"], "anillo perilesional"), *_agreement(est["roi"])]
+        out += [*_mask_coverage(est["roi"]), *_estimator_tables(est["roi"], "ROI: anillo o borde"),
+                *_agreement(est["roi"])]
     else:
         out += ["### Anillo perilesional", "", f"No aplica: {d['estimators']['roi']['reason']}.", ""]
     return [*out, *_terciles(d["report"]["terciles"])]

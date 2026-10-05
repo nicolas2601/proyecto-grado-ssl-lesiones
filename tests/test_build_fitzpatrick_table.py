@@ -87,8 +87,8 @@ def test_changing_a_count_in_the_json_changes_the_table(inputs):
 def test_a_dataset_without_masks_says_the_ring_does_not_apply_and_shows_no_ring_table(inputs):
     text = tab.render(tab.load_documents(inputs))
     isic = text.split("## ISIC 2019")[1].split("## ISIC 2020")[0]
-    assert "no aplica" in isic and "Otsu × anillo" not in isic
-    assert "Otsu × anillo" in text.split("## ISIC 2019")[0]
+    assert "no aplica" in isic and "Otsu × ROI" not in isic
+    assert "Otsu × ROI" in text.split("## ISIC 2019")[0]
 
 
 def test_terciles_are_shown_with_their_own_cuts_and_the_relative_warning(inputs):
@@ -132,3 +132,32 @@ def test_check_detects_missing_stale_and_fresh(inputs, tmp_path):
 
 def test_the_committed_table_is_fresh():
     assert bt.main(["--check"]) == 0
+
+
+def _pool_document():
+    d = _document("isic2020", masks=True)
+    cov = d["report"]["estimators"]["roi"]["mask_coverage"]
+    cov["by_split"] = {"train": {"c1_native": 0, "eligible": 5, "quarantine": 2, "absent": 1, "none": 0},
+                       "val": {"c1_native": 0, "eligible": 1, "quarantine": 1, "absent": 0, "none": 0}}
+    cov["total"] = {"c1_native": 0, "eligible": 6, "quarantine": 3, "absent": 1, "none": 0}
+    cov["sha256_file"] = {"match": 4, "mismatch": 2, "not_checked": 6}
+    d["masks"] = {"kind": "pseudo-máscaras automáticas", "manifest_sha256": "cd" * 32, "n_entries": 99}
+    return d
+
+
+def test_mask_coverage_per_split_and_total_and_the_two_roi_estimators_are_in_the_table(tmp_path):
+    root = tmp_path / "e5"
+    root.mkdir()
+    (root / "e5_fitzpatrick_isic2020.json").write_text(doc.dump_document(_pool_document()), encoding="utf-8")
+    text = tab.render(tab.load_documents(root))
+    section = text.split("## ISIC 2020")[1]
+    assert "### Cobertura de las máscaras" in section
+    assert "| train | 0 | 5 | 2 | 1 | 8 |" in section and "| Total | 0 | 6 | 3 | 1 | 10 |" in section
+    assert "perilesional_roi" in section and "no_mask_border" in section
+    assert "coincide con el manifiesto: 4; difiere: 2; sin hash: 6" in section
+
+
+def test_the_header_names_the_automatic_pseudo_masks_and_the_fallback():
+    head = tab.render({}).split("## HAM10000")[0]
+    assert "FST estimado por ITA, NO validado (22,9 % en PAD), pseudo-máscaras automáticas" in head
+    assert "no_mask_border" in head

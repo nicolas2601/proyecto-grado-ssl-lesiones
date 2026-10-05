@@ -2,7 +2,7 @@
 
 Generado por `scripts/build_fitzpatrick_table.py` desde los JSON de `resultados/banco_completo/e5/`. No editar a mano. Plan y reglas: `docs/33-banco-completo-multidataset.md` (E5).
 
-> **Aviso.** Descriptivo y NO está validado: los buckets I-VI son la salida del estimador ITA con umbrales fijos, no el fototipo Fitzpatrick. Ese estimador acierta 22,9 % frente a 51,3 % de la baseline de mayoría en PAD-UFES-20 (Alipour et al., Skin Research and Technology 32(8):e70374, 2026, PMC13459198; docs/20, docs/30) y 28,5-30,8 % frente a 32,9 % en Fitzpatrick17k-C. Los terciles de L* son luminancia (mediana de L* de la piel), no es tono de piel, y son relativos a cada dataset: «oscuro» en uno no equivale a «oscuro» en otro. Ningún conteo de este archivo cambia el resultado primario del banco (docs/33, sección 5).
+> **Aviso.** FST estimado por ITA, NO validado (22,9 % en PAD), pseudo-máscaras automáticas. Descriptivo y NO está validado: los buckets I-VI son la salida del estimador ITA con umbrales fijos, no el fototipo Fitzpatrick. Ese estimador acierta 22,9 % frente a 51,3 % de la baseline de mayoría en PAD-UFES-20 (Alipour et al., Skin Research and Technology 32(8):e70374, 2026, PMC13459198; docs/20, docs/30) y 28,5-30,8 % frente a 32,9 % en Fitzpatrick17k-C. Los terciles de L* son luminancia (mediana de L* de la piel), no es tono de piel, y son relativos a cada dataset: «oscuro» en uno no equivale a «oscuro» en otro. Ningún conteo de este archivo cambia el resultado primario del banco (docs/33, sección 5).
 
 ## Glosario
 
@@ -11,7 +11,9 @@ Generado por `scripts/build_fitzpatrick_table.py` desde los JSON de `resultados/
 - **Abstención:** la imagen no recibe bucket (columna «abstención») cuando no hay piel suficiente, la máscara es degenerada, b\* queda bajo el mínimo o el archivo no se pudo leer. Nunca se fuerza un bucket.
 - **Estimador de Otsu (referencia):** quita la lesión con un umbral de Otsu y lee la piel del resto; es el mismo en los tres datasets, así que es el comparable.
 - **Estimador de imagen completa:** todos los píxeles cuentan, sin quitar la lesión.
-- **Anillo perilesional (ROI de Pau):** banda justo fuera de la máscara de la lesión, sin pelo, reflejos, píxeles saturados ni borde negro, con abstención. Solo existe donde hay máscaras (HAM10000, `student_r3`); en ISIC 2019 e ISIC 2020 **no aplica** y no se inventan máscaras.
+- **Anillo perilesional (ROI de Pau, `perilesional_roi`):** banda justo fuera de la máscara de la lesión, sin pelo, reflejos, píxeles saturados ni borde negro, con abstención. Las máscaras son **pseudo-máscaras automáticas** de `student_r3`: nativas 450 × 600 en HAM10000 y del pool 224 × 224 en ISIC.
+- **Estado de la máscara:** `c1_native` (HAM10000), `eligible` (máscara del pool usable), `quarantine` (el manifiesto la rechazó, p. ej. área degenerada) o `absent` (la imagen no está en el pool).
+- **Borde sin máscara (`no_mask_border`):** las imágenes sin máscara elegible usan el marco de la imagen como muestra de piel, con las mismas exclusiones y abstención. Se cuenta aparte: asume que el borde es piel, lo que una lesión en el margen o una viñeta rompen.
 - **L\*:** luminosidad CIELAB (0 negro, 100 blanco). **Tercil de L\*:** el dataset se divide en tres tercios por la mediana de L\* de su piel; es luminancia, **no es tono de piel**, y sus cortes son propios de cada dataset.
 - **Descriptivo:** solo conteos. No hay exactitud, ni intervalos, ni contrastes: no se compara contra ningún fototipo real.
 - **n/d:** no disponible o no aplicable.
@@ -20,7 +22,7 @@ Generado por `scripts/build_fitzpatrick_table.py` desde los JSON de `resultados/
 
 - Los conteos por bucket describen lo que el estimador ve, no la composición de fototipos del dataset: contra fototipos asignados por dermatólogos acierta 22,9 % frente a 51,3 % de la baseline de mayoría en PAD-UFES-20 (PMC13459198; docs/20, docs/30).
 - Los terciles son relativos a cada dataset: «oscuro» en HAM10000 y «oscuro» en ISIC 2020 no son la misma luminancia, y ninguno es piel oscura.
-- Que dos estimadores coincidan (cuadro Otsu × anillo) no los valida: dos estimadores no validados pueden coincidir y equivocarse juntos. Es acuerdo, no exactitud.
+- Que dos estimadores coincidan (cuadro Otsu × ROI) no los valida: dos estimadores no validados pueden coincidir y equivocarse juntos. Es acuerdo, no exactitud.
 - Los splits son los que ya existen en cada dataset (no se unifican, docs/33, sección 1): HAM10000 la partición de C1 agrupada por `lesion_id`, ISIC 2019 `StratifiedKFold` y ISIC 2020 agrupada por `patient_id`; «val» es el primer fold de cada una.
 - E5 no cambia el resultado primario del banco (docs/33, sección 5).
 
