@@ -1,0 +1,13 @@
+[ft-vit_b16-isic2020-s42] device=cuda smoke=False pesos=hf:timm/vit_base_patch16_224.augreg_in1k
+clases=['benign', 'malignant'] train=26466 val=6660 | StratifiedGroupKFold por patient_id (0 grupos compartidos)
+epoca 1/8 loss=0.4486 val_bal_acc=0.6542 mejor=0.6542 (95s)
+epoca 2/8 loss=0.4079 val_bal_acc=0.6495 mejor=0.6542 (190s)
+epoca 3/8 loss=0.3708 val_bal_acc=0.7791 mejor=0.7791 (285s)
+epoca 4/8 loss=0.3265 val_bal_acc=0.7367 mejor=0.7791 (381s)
+epoca 5/8 loss=0.3034 val_bal_acc=0.6904 mejor=0.7791 (475s)
+epoca 6/8 loss=0.2440 val_bal_acc=0.7454 mejor=0.7791 (570s)
+epoca 7/8 loss=0.1841 val_bal_acc=0.7001 mejor=0.7791 (665s)
+epoca 8/8 loss=0.1545 val_bal_acc=0.6822 mejor=0.7791 (760s)
+vit_b16 @ isic2020 | val n=6660 | mejor epoca 3
+bal_acc=0.7791 macro_f1=0.5756 auc=0.9022 acc=0.9059 ece=0.0231
+IC95 bootstrap: bal_acc 0.734-0.817 | F1 macro 0.555-0.594

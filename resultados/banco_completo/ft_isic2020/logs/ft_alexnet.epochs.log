@@ -1,0 +1,13 @@
+[ft-alexnet-isic2020-s42] device=cuda smoke=False pesos=torchvision:IMAGENET1K_V1
+clases=['benign', 'malignant'] train=26466 val=6660 | StratifiedGroupKFold por patient_id (0 grupos compartidos)
+epoca 1/8 loss=0.5030 val_bal_acc=0.7757 mejor=0.7757 (10s)
+epoca 2/8 loss=0.4440 val_bal_acc=0.7456 mejor=0.7757 (19s)
+epoca 3/8 loss=0.4146 val_bal_acc=0.7825 mejor=0.7825 (28s)
+epoca 4/8 loss=0.3881 val_bal_acc=0.7801 mejor=0.7825 (37s)
+epoca 5/8 loss=0.3586 val_bal_acc=0.8057 mejor=0.8057 (46s)
+epoca 6/8 loss=0.3216 val_bal_acc=0.7868 mejor=0.8057 (55s)
+epoca 7/8 loss=0.3041 val_bal_acc=0.8065 mejor=0.8065 (64s)
+epoca 8/8 loss=0.2962 val_bal_acc=0.7942 mejor=0.8065 (73s)
+alexnet @ isic2020 | val n=6660 | mejor epoca 7
+bal_acc=0.8065 macro_f1=0.5808 auc=0.9089 acc=0.9044 ece=0.0295
+IC95 bootstrap: bal_acc 0.766-0.846 | F1 macro 0.562-0.599

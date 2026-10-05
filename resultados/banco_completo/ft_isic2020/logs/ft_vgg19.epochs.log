@@ -1,0 +1,13 @@
+[ft-vgg19-isic2020-s42] device=cuda smoke=False pesos=hf:timm/vgg19.tv_in1k
+clases=['benign', 'malignant'] train=26466 val=6660 | StratifiedGroupKFold por patient_id (0 grupos compartidos)
+epoca 1/8 loss=0.6923 val_bal_acc=0.5000 mejor=0.5000 (80s)
+epoca 2/8 loss=0.4523 val_bal_acc=0.5000 mejor=0.5000 (160s)
+epoca 3/8 loss=0.4108 val_bal_acc=0.5115 mejor=0.5115 (241s)
+epoca 4/8 loss=0.3919 val_bal_acc=0.5620 mejor=0.5620 (321s)
+epoca 5/8 loss=0.3661 val_bal_acc=0.6196 mejor=0.6196 (401s)
+epoca 6/8 loss=0.3443 val_bal_acc=0.7334 mejor=0.7334 (482s)
+epoca 7/8 loss=0.3337 val_bal_acc=0.7397 mejor=0.7397 (562s)
+epoca 8/8 loss=0.3233 val_bal_acc=0.7416 mejor=0.7416 (643s)
+vgg19 @ isic2020 | val n=6660 | mejor epoca 8
+bal_acc=0.7416 macro_f1=0.5889 auc=0.8929 acc=0.9270 ece=0.0463
+IC95 bootstrap: bal_acc 0.698-0.783 | F1 macro 0.567-0.609
