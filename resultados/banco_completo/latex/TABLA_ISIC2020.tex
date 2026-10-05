@@ -1,0 +1,32 @@
+% Generado por scripts/build_bench_tables.py. No editar a mano. Requiere el paquete booktabs.
+\begin{table}[ht]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lllllrrrrrrrrr@{}}
+\toprule
+Modelo & Preent. & FT & Seg. & Trans. & Acc. & Bal. acc. & Prec. & Rec. & F1 & AUC & ECE$\downarrow$ & MCC & IC 95\,\% F1 \\
+\midrule
+\multicolumn{14}{l}{\textit{congelados (sin fine-tuning)}} \\
+\midrule
+ResNet-50 & supervisado & no & no & no & 0,9161 & 0,6878 & 0,5448 & 0,6878 & 0,5601 & 0,8297 & 0,0275 & 0,1834 & [0,5396; 0,5790] \\
+ViT-B/16 & supervisado & no & no & no & 0,8883 & 0,7340 & 0,5415 & 0,7340 & 0,5493 & 0,8275 & 0,0598 & 0,1971 & [0,5319; 0,5668] \\
+EfficientNet-B0 & supervisado & no & no & no & 0,9186 & 0,6368 & 0,5352 & 0,6368 & 0,5457 & 0,7607 & 0,0378 & 0,1387 & [0,5264; 0,5640] \\
+DINOv2 ViT-B/14 & auto-supervisado & no & no & no & 0,8994 & 0,6753 & 0,5355 & 0,6753 & 0,5427 & 0,7999 & 0,0559 & 0,1578 & [0,5252; 0,5577] \\
+DINOv2 ViT-S/14 & auto-supervisado & no & no & no & 0,8470 & 0,7572 & 0,5346 & 0,7572 & 0,5266 & 0,8576 & 0,0561 & 0,1886 & [0,5119; 0,5393] \\
+VGG19 & supervisado & no & no & no & 0,8233 & 0,7370 & 0,5286 & 0,7370 & 0,5101 & 0,8128 & 0,0333 & 0,1647 & [0,4978; 0,5234] \\
+AlexNet & supervisado & no & no & no & 0,7940 & 0,7744 & 0,5292 & 0,7744 & 0,5008 & 0,8574 & 0,0442 & 0,1791 & [0,4894; 0,5122] \\
+SimSiam ResNet-50 & auto-supervisado & no & no & no & 0,7518 & 0,7650 & 0,5249 & 0,7650 & 0,4795 & 0,8468 & 0,0851 & 0,1624 & [0,4693; 0,4906] \\
+B71-limpio (B* s42 limpio, config fija) & auto-supervisado propio & no & no & no & \multicolumn{9}{l}{pendiente} \\
+A71-limpio (sopa A* s42+s43 limpios) & auto-supervisado propio & no & no & no & \multicolumn{9}{l}{pendiente} \\
+B71 original & auto-supervisado propio & no & no & sí & \multicolumn{9}{l}{pendiente} \\
+A71 original & auto-supervisado propio & no & no & sí & \multicolumn{9}{l}{pendiente} \\
+\midrule
+\multicolumn{14}{l}{\textit{con fine-tuning}} \\
+\midrule
+8 baselines con fine-tuning & varios & sí & no & no & \multicolumn{9}{l}{no ejecutado todavia} \\
+\bottomrule
+\end{tabular}
+\caption{Banco completo en ISIC 2020: particiones de val distintas entre HAM10000 (v6/v7 y Kaggle), ISIC 2019 e ISIC 2020; la comparación entre particiones es solo de intervalos. El fine-tuning elige su época sobre val (optimista). IC solo donde la fuente lo publica.}
+\label{tab:bench-isic2020}
+\end{table}
