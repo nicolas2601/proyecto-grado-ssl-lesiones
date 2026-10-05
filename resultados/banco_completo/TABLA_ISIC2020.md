@@ -29,7 +29,7 @@ Particiones de val de este banco (no son la misma partición):
 - ISIC 2020, baselines (Kaggle): val n = 6.660; StratifiedGroupKFold por patient_id (0 pacientes compartidos).
 
 - **Entre particiones distintas la comparación es solo de intervalos (IC 95 %)**, no un test pareado: HAM10000 usa la partición v6/v7 (n = 2.004) para el propuesto y la de Kaggle (n = 2.014) para los baselines; ISIC 2019 e ISIC 2020 tienen la suya. Los contrastes pareados se harán solo donde dos modelos comparten partición e imágenes (docs/33, sección 5).
-- **El fine-tuning elige su mejor época sobre val** en las filas ya commiteadas (HAM10000 e ISIC 2019): su número es optimista. La corrida de ISIC 2020 (pendiente) elige en el holdout interno (20 % del train).
+- **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 y la corrida pendiente de ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). El propuesto no tiene fine-tuning y no se ve afectado.
 - Los IC solo existen donde la fuente los publica: los baselines, para exactitud balanceada y F1 macro; B71/A71, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en B71/A71 salen de las probabilidades commiteadas, también sin IC.
 - Las filas «pendiente» y «no ejecutado todavia» no tienen número: se listan para que nada parezca olvidado. No se inventa ninguna cifra.
 
@@ -79,7 +79,7 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 
 | # | Modelo | Preentrenamiento | Fine-tuning | Segmentación | Transductivo | Val n | Estado | Nota | Fuente |
 |---|---|---|---|---|---|---|---|---|---|
-| — | 8 baselines con fine-tuning | varios | sí | no | no | — | no ejecutado todavia | G1.3 de docs/33; época elegida en el holdout interno | `docs/33-banco-completo-multidataset.md` |
+| — | 8 baselines con fine-tuning | varios | sí | no | no | — | no ejecutado todavia | G1.3 de docs/33; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
 
 ### Métricas [IC 95 % donde la fuente lo publica]
 

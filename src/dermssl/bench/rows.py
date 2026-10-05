@@ -161,7 +161,7 @@ def pending_rows(ds: Dataset) -> list[Row]:
                 for name, pre in (("B71", OWN_B), ("A71", OWN_A))]
     if ds.finetune is None:
         out.append(Row(ds.key, FINETUNE, "8 baselines con fine-tuning", "varios", True, False, NOT_RUN,
-                       (PLAN_DOC,), note="G1.3 de docs/33; época elegida en el holdout interno"))
+                       (PLAN_DOC,), note="G1.3 de docs/33; optimista: época elegida en val (receta existente)"))
     return out
 
 

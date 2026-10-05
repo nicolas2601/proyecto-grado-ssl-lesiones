@@ -59,7 +59,7 @@ def test_glossary_comes_before_any_table_and_splits_are_stated(name):
     assert text.index("## Glosario") < text.index("|")
     assert "MCC (coeficiente de correlación de Matthews)" in text
     assert "solo de intervalos" in text and "n = 2.004" in text and "n = 2.014" in text
-    assert "elige su mejor época sobre val" in text and "optimista" in text
+    assert "época elegida en val" in text and "optimista" in text
 
 
 def _section(text: str, title: str) -> list[str]:
