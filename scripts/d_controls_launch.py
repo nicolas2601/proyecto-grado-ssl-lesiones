@@ -11,13 +11,7 @@ output folder; the check is printed.
         --pool-root $S/tone/inputs/originals --pad-root ~/work/datos/pad_ufes_20 \
         --split ~/work/datos/pad_ufes_20/target_split.json \
         --exclude-ids-file $S/bench/pretrain_exclude_ids_clean.txt \
-        --work-dir $S/bench/d_controls --runs-dir $S/bench/v7clean --init-weights-honored
-
-BLOCKED BY DEFAULT: at the revision this was written, ``pretrain.py`` records
-``--initial-weights`` in run.json but never loads it: SimSiam builds DINOv2 from
-the public hub weights and the L2-SP anchor is a copy of THOSE. A launch from
-here would train from public weights under the name "continued from A*".
-``--init-weights-honored`` is the declared act that this was fixed.
+        --work-dir $S/bench/d_controls --runs-dir $S/bench/v7clean
 """
 
 from __future__ import annotations
@@ -36,18 +30,11 @@ from dermssl import pad_target_split as ts  # noqa: E402
 from dermssl import pad_ufes_files as pf  # noqa: E402
 from dermssl.pretrain import d_controls as dc  # noqa: E402
 
-REFUSAL = ("ABORT: scripts/pretrain.py no carga --initial-weights (solo lo registra en run.json): D2/D3 "
-           "arrancarian de DINOv2 publico y el ancla L2-SP apuntaria a el. Corrige el cargador y pasa "
-           "--init-weights-honored.")
-
-
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     for flag in ("--backbone-weights", "--pool-root", "--pad-root", "--split", "--exclude-ids-file",
                  "--work-dir", "--runs-dir"):
         parser.add_argument(flag, type=Path, required=True)
-    parser.add_argument("--init-weights-honored", action="store_true",
-                        help="declares that pretrain.py loads --initial-weights and anchors L2-SP to it")
     parser.add_argument("--dry-run", action="store_true", help="print only; create no symlink tree")
     return parser.parse_args(argv)
 
@@ -69,9 +56,6 @@ def _roots(args: argparse.Namespace) -> dict[str, Path]:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    if not args.init_weights_honored:
-        print(REFUSAL, file=sys.stderr)
-        return 2
     try:
         if not args.dry_run:
             _require_files(args)

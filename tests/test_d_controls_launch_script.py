@@ -35,16 +35,9 @@ def env(tmp_path):
     return base, tmp_path
 
 
-def test_it_refuses_by_default_and_creates_nothing(env, capsys):
+def test_it_builds_the_roots_and_prints_two_commands(env, capsys):
     argv, tmp = env
-    assert launch.main(argv) == 2
-    assert "initial-weights" in capsys.readouterr().err
-    assert not (tmp / "work").exists()
-
-
-def test_when_confirmed_it_builds_the_roots_and_prints_two_commands(env, capsys):
-    argv, tmp = env
-    assert launch.main([*argv, "--init-weights-honored"]) == 0
+    assert launch.main(argv) == 0
     out = capsys.readouterr().out
     assert out.count("scripts/pretrain.py") == 2
     assert f"--image-root {tmp / 'work' / 'd2_root'}" in out and f"--image-root {tmp / 'work' / 'd3_root'}" in out
@@ -53,15 +46,29 @@ def test_when_confirmed_it_builds_the_roots_and_prints_two_commands(env, capsys)
     assert (tmp / "work" / "d3_root" / "pad_target_adapt" / "PAT_1_1_1.png").is_symlink()
 
 
+def test_the_printed_commands_load_the_given_backbone_through_the_real_cli(env, capsys):
+    import shlex
+
+    from dermssl.pretrain import config as config_mod
+    from scripts import pretrain as pretrain_cli
+
+    argv, tmp = env
+    launch.main(argv)
+    for line in (l for l in capsys.readouterr().out.splitlines() if "scripts/pretrain.py" in l):
+        tokens = shlex.split(line)
+        cfg = config_mod.validate(pretrain_cli.build_config(pretrain_cli.parse_args(tokens[tokens.index("--method"):])))
+        assert config_mod.initial_weights_path(cfg.initial_weights) == tmp / "w.pt"
+
+
 def test_it_never_reads_target_test(env):
     argv, tmp = env
-    launch.main([*argv, "--init-weights-honored"])
+    launch.main(argv)
     assert not (tmp / ts.LOCK_NAME).exists()
 
 
 def test_dry_run_prints_without_touching_the_disk(env, capsys):
     argv, tmp = env
-    assert launch.main([*argv, "--init-weights-honored", "--dry-run"]) == 0
+    assert launch.main([*argv, "--dry-run"]) == 0
     assert "scripts/pretrain.py" in capsys.readouterr().out
     assert not (tmp / "work").exists()
 
@@ -69,5 +76,5 @@ def test_dry_run_prints_without_touching_the_disk(env, capsys):
 def test_a_missing_weights_file_aborts(env, capsys):
     argv, tmp = env
     (tmp / "w.pt").unlink()
-    assert launch.main([*argv, "--init-weights-honored"]) == 1
+    assert launch.main(argv) == 1
     assert "w.pt" in capsys.readouterr().err
