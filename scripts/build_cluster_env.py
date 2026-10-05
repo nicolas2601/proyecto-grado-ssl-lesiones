@@ -50,7 +50,7 @@ def render_doc(env: dict) -> str:
         f"- SO: {hw['os']}, kernel {hw['kernel']}. Contenedor: {hw['container']}.", "",
         "## Software", "",
         f"- Python {hw['python']}, torch {hw['torch']}. scikit-learn por defecto {hw['sklearn_default']}; para reconstruir splits existentes se usa {hw['sklearn_for_existing_splits']}.",
-        f"- `timm` instalado: {'sí' if hw['timm_installed'] else 'no'}. Revisión de los re-preentrenamientos: `{hw['pretrain_revision']}`.",
+        f"- `timm` en el venv: {'sí' if hw['timm_installed'] else 'no'}; para el fine-tuning: {hw['timm_for_finetune']}. Revisión de los re-preentrenamientos: `{hw['pretrain_revision']}`.",
         f"- Hilos: probe `PROBE_BLAS_THREADS` = {hw['thread_env']['PROBE_BLAS_THREADS']}; pretrain OMP/MKL/OPENBLAS = {hw['thread_env']['pretrain_OMP_MKL_OPENBLAS']}.",
         f"- `pip freeze` completo: `{env['pip_freeze_file']}` ({env['pip_freeze_lines']} líneas).", "",
         "## Datos", "",

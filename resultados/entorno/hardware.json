@@ -22,6 +22,7 @@
   "sklearn_default": "1.9.0",
   "sklearn_for_existing_splits": "1.7.2 (aislado; StratifiedGroupKFold(shuffle=True) cambió después de 1.7.2)",
   "timm_installed": false,
+  "timm_for_finetune": "1.0.30 (instalado con --no-deps --target en un directorio aislado de work; PYTHONPATH solo para el job de fine-tuning; el venv no se modificó)",
   "thread_env": {"PROBE_BLAS_THREADS": "4 (fijado por dermssl.probe_threads)", "pretrain_OMP_MKL_OPENBLAS": "12"},
   "pretrain_revision": "f1c2053d7e9e3f3eae4e1665d6942243b02e3872"
 }

@@ -13,7 +13,7 @@ Generado por `scripts/build_cluster_env.py` desde `resultados/entorno/`; no edit
 ## Software
 
 - Python 3.13.15, torch 2.11.0+cu128. scikit-learn por defecto 1.9.0; para reconstruir splits existentes se usa 1.7.2 (aislado; StratifiedGroupKFold(shuffle=True) cambió después de 1.7.2).
-- `timm` instalado: no. Revisión de los re-preentrenamientos: `f1c2053d7e9e3f3eae4e1665d6942243b02e3872`.
+- `timm` en el venv: no; para el fine-tuning: 1.0.30 (instalado con --no-deps --target en un directorio aislado de work; PYTHONPATH solo para el job de fine-tuning; el venv no se modificó). Revisión de los re-preentrenamientos: `f1c2053d7e9e3f3eae4e1665d6942243b02e3872`.
 - Hilos: probe `PROBE_BLAS_THREADS` = 4 (fijado por dermssl.probe_threads); pretrain OMP/MKL/OPENBLAS = 12.
 - `pip freeze` completo: `resultados/entorno/pip_freeze.txt` (284 líneas).
 
