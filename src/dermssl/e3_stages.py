@@ -22,6 +22,7 @@ import numpy as np
 
 from dermssl import c1_luminance as lum
 from dermssl import e3_descriptors as desc
+from dermssl import e3_seed as seed_map
 from dermssl import e3_selection as sel
 from dermssl import e3_store as st
 from dermssl import e3_variants as var
@@ -33,6 +34,7 @@ BOOTSTRAP_RESAMPLES = 1000
 CONTRAST_METRICS = ("macro_f1", "balanced_accuracy", "mel_recall")
 PROBE_NAME = "logreg_balanced"
 INVARIANT_KEYS = ("protocol", "masks_sha256", "weights_sha256", "manifest_sha256", "holdout_sha256")
+SEED_BOUND_KEYS = ("protocol", "weights_sha256")  # the only ones a declared B* seed may change (e3_seed)
 
 
 @dataclass(frozen=True)
@@ -166,7 +168,10 @@ def final_stage(run: Run, *, selection_path, pinned_sha256: str, lock: st.ValLoc
 
 
 def _check_fingerprint(selection: dict, run: Run) -> None:
+    other_seed = run.fingerprint.get("b71_seed", seed_map.BASE_SEED) != seed_map.BASE_SEED
     for key in INVARIANT_KEYS:
+        if other_seed and key in SEED_BOUND_KEYS:
+            continue
         if selection.get("fingerprint", {}).get(key) != run.fingerprint.get(key):
             raise st.SelectionPinError(f"la corrida de final no coincide con la seleccion en {key!r}")
 

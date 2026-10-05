@@ -35,6 +35,14 @@ Pod (RUNBOOK_CLUSTER; same clone, venv and TORCH_HOME as ``v71_run.py``)::
       --selection $E3/e3_selection.json --selection-sha256 <sha printed by select>
     python scripts/e3_run.py $COMMON --stage final \
       --selection $E3/e3_selection.json --selection-sha256 <sha printed by select>
+
+Post-hoc robustness (docs/33 errata): the SAME pinned comparison on the B* seed 43 or 44 weights,
+in its own out-dir (own cells and ``val_read.lock``); the selection is never redone::
+
+    python scripts/e3_run.py $COMMON --out-dir $P/salidas/e3_rob_s43 --b71-seed 43 --stage extract \
+      --splits train val --selection $E3/e3_selection.json --selection-sha256 <pinned sha>
+    python scripts/e3_run.py $COMMON --out-dir $P/salidas/e3_rob_s43 --b71-seed 43 --stage final \
+      --selection $E3/e3_selection.json --selection-sha256 <pinned sha>
 """
 
 from __future__ import annotations
@@ -51,6 +59,7 @@ sys.path.insert(0, str(REPO / "scripts"))
 
 from dermssl import e3_extract as xt  # noqa: E402
 from dermssl import e3_render as render  # noqa: E402
+from dermssl import e3_seed as seed_map  # noqa: E402
 from dermssl import e3_stages as sg  # noqa: E402
 from dermssl import e3_store as st  # noqa: E402
 from dermssl import e3_variants as var  # noqa: E402
@@ -78,6 +87,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--selection", type=Path, default=None, help="default: <out-dir>/e3_selection.json")
     p.add_argument("--selection-sha256", default="")
     p.add_argument("--nomask-grid", type=Path, default=None, help="v7.1 holdout_grid.json: its B-arm 224 rows join the no-mask bar")
+    p.add_argument("--b71-seed", type=int, choices=seed_map.SEEDS, default=seed_map.BASE_SEED,
+                   help="B* seed of the B71 feature; != 42 is the post-hoc robustness run (extract train/val + final only)")
     p.add_argument("--ci-resamples", type=int, default=1000)
     p.add_argument("--batch-size", type=int, default=16)
     p.add_argument("--decode-workers", type=int, default=4)
@@ -94,6 +105,15 @@ def _revision(args, *, strict: bool) -> str:
         if args.allow_dirty and not strict:
             return "dirty"
         raise st.E3Error(str(exc)) from exc
+
+
+def _check_seed_scope(args, rt=None) -> None:
+    """Another seed only re-reads the pinned comparison: no select, no fit/holdout, and the runtime must be its own."""
+    if args.b71_seed != seed_map.BASE_SEED and (
+            args.stage == "select" or (args.stage == "extract" and not set(args.splits) <= GATED_SPLITS)):
+        raise st.E3Error(f"--b71-seed {args.b71_seed} solo aplica a `extract --splits train val` y `final`: la seleccion no se rehace")
+    if rt is not None and rt.fingerprint.get("b71_seed", seed_map.BASE_SEED) != args.b71_seed:
+        raise st.E3Error(f"el runtime no es el de --b71-seed {args.b71_seed}")
 
 
 def _is_committed(path: Path) -> bool:
@@ -200,6 +220,7 @@ def main(argv=None, *, runtime=None, revision: str | None = None) -> int:
     args = parse_args(argv)
     args.out_dir = args.out_dir.expanduser()
     try:
+        _check_seed_scope(args)
         if args.stage == "final":  # the cheap refusals come before any weight or image is loaded
             st.require_selection(args.selection or args.out_dir / SELECTION_FILE, args.selection_sha256)
         strict = args.stage == "final" or bool(GATED_SPLITS & set(args.splits))
@@ -208,6 +229,7 @@ def main(argv=None, *, runtime=None, revision: str | None = None) -> int:
             import e3_io  # noqa: PLC0415
 
             runtime = e3_io.build_runtime(args)
+        _check_seed_scope(args, runtime)
         stage = {"extract": stage_extract, "select": stage_select, "final": stage_final}[args.stage]
         return stage(args, runtime, revision)
     except st.E3Error as exc:

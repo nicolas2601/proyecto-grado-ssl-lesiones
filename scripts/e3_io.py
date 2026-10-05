@@ -97,6 +97,17 @@ def _lesion_ids(ham_root: Path, ids: dict) -> dict:
     return {split: np.array([lesion[i] for i in members]) for split, members in ids.items()}
 
 
+def _b71_model(weights, weights_dir: Path, seed: int):
+    """Seed 42 through the bank exactly as the registered run; another seed straight from its final (alpha 1.0)."""
+    from dermssl import e3_seed as seed_map  # noqa: PLC0415
+
+    if seed == seed_map.BASE_SEED:
+        return weights.model(weights.state(B71_WEIGHTS))
+    import v71_io  # noqa: PLC0415
+
+    return v71_io.direct_final_model(seed_map.weights_path(weights_dir, seed), weights.arch)
+
+
 def build_runtime(args) -> Runtime:
     """Context from the C1 split and docs/28 holdout, masks verified against their manifest."""
     import torch  # noqa: PLC0415
@@ -104,8 +115,8 @@ def build_runtime(args) -> Runtime:
     import v71_io  # noqa: PLC0415
     from dermssl import c1_mask_export as mx  # noqa: PLC0415
     from dermssl import c1_mask_provenance as mp  # noqa: PLC0415
+    from dermssl import e3_seed as seed_map  # noqa: PLC0415
     from dermssl import e3_selection as sel  # noqa: PLC0415
-    from dermssl import run_provenance as rp  # noqa: PLC0415
 
     ctx = v71_io.load_context(args)
     source = mp.MaskSource.from_manifest(v71_io.read_json(args.masks_manifest.expanduser()))
@@ -114,7 +125,8 @@ def build_runtime(args) -> Runtime:
     masks = np.load(args.masks.expanduser(), mmap_mode="r")
     weights = v71_io.WeightBank(args.weights_dir.expanduser())
     device = torch.device(args.device or ("cuda" if torch.cuda.is_available() else "cpu"))
-    model = weights.model(weights.state(B71_WEIGHTS))
+    seed_fp = seed_map.fingerprint(args.weights_dir.expanduser(), args.b71_seed)  # typed refusal if absent
+    model = _b71_model(weights, args.weights_dir.expanduser(), args.b71_seed)
     ids = ctx["ids"]
     groups = _lesion_ids(args.ham_root, ids)
     hair_fn = make_hair_fn()
@@ -125,7 +137,6 @@ def build_runtime(args) -> Runtime:
         load_item=make_load_item(ctx["image_index"], masks, {i: k for k, i in enumerate(source.image_ids)}),
         extract_fn=make_extract_fn(model, device, args.batch_size), resize_crop=make_resize_crop(),
         hair_fn=hair_fn,
-        fingerprint={"protocol": PROTOCOL, "masks_sha256": source.masks_sha256,
-                     "weights_sha256": rp.file_sha256(weights.final_path("B", "s42")),
+        fingerprint={**seed_fp, "masks_sha256": source.masks_sha256,
                      "manifest_sha256": sel.MANIFEST_SHA256, "holdout_sha256": ctx["holdout_sha"],
                      "limit": args.limit, "hair_flag": hair_fn is not None})
