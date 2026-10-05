@@ -6,10 +6,11 @@ import pytest
 from dermssl import c1_extraction as ex
 from dermssl import e3_geometry as geo
 from dermssl import e3_render as r
+from dermssl.mask_conditions import IMAGENET_MEAN
 
 SKIN = np.array([200, 150, 130], dtype=np.uint8)
 DARK = np.array([60, 30, 20], dtype=np.uint8)
-GREY = np.round(np.array(r.IMAGENET_MEAN) * 255).astype(np.uint8)
+GREY = np.round(np.array(IMAGENET_MEAN) * 255).astype(np.uint8)
 
 
 def resize_crop(image, resolution):

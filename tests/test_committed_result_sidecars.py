@@ -32,6 +32,8 @@ PRODUCES = {
     "scripts/c1_reevaluate_crop_gate.py": ("*/crop_regate_report.json",),
     "scripts/c1_run_grid.py": ("*/c1_bootstrap.json", "*/c1_cells.json"),
     "scripts/c1_select_variant.py": ("*/selection/wave*.json",),
+    "scripts/e3_run.py": ("*/e3_selection.json", "*/e3_final_eval.json", "*/cells/extract__*.json",
+                          "*/cells/select__*.json"),
     "scripts/c1_verify_bank_reproduction.py": ("*/bank_reproduction*.json",),
     "scripts/cluster_frozen_bank.py": ("resultados/clasificacion/bank.json", "*/bank.json"),
     "scripts/diagnostico_fst_comparativa.py": ("*diagnostico_fst*.json",),

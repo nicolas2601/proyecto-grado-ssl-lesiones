@@ -32,7 +32,7 @@ import numpy as np
 from dermssl import c1_extraction as ex
 from dermssl import e3_descriptors as desc
 from dermssl import e3_geometry as geo
-from dermssl.mask_conditions import IMAGENET_MEAN, apply_neutral_background
+from dermssl.mask_conditions import apply_neutral_background
 
 SHIFT_CONDITIONS = tuple(f"shift{k}" for k in range(geo.N_SHIFTS))
 CONDITIONS = ("full", "crop_view", "crop_orig224", "crop_orig448", *SHIFT_CONDITIONS, "ring")

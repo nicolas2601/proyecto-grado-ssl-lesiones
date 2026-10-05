@@ -30,6 +30,7 @@ WIRED = {
     "scripts/c1_run_grid.py": "c1_bootstrap.json and c1_cells.json",
     "scripts/c1_cross_backbone.py": "c1_cross_backbone.json",
     "scripts/c1_select_variant.py": "the selection JSON",
+    "scripts/e3_run.py": "e3_selection.json, e3_final_eval.json and the extract/select cells (docs/33 E3)",
     "scripts/c1_reevaluate_crop_gate.py": "crop_regate_report.json",
     "scripts/c1_verify_bank_reproduction.py": "the --report JSON",
     "scripts/c1_near_dup_embed.py": "the embedding near-duplicate JSON (floating point, GPU)",
