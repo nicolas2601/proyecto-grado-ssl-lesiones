@@ -24,6 +24,7 @@ Generado por `scripts/build_fitzpatrick_table.py` desde los JSON de `resultados/
 - Los terciles son relativos a cada dataset: «oscuro» en HAM10000 y «oscuro» en ISIC 2020 no son la misma luminancia, y ninguno es piel oscura.
 - Que dos estimadores coincidan (cuadro Otsu × ROI) no los valida: dos estimadores no validados pueden coincidir y equivocarse juntos. Es acuerdo, no exactitud.
 - Los splits son los que ya existen en cada dataset (no se unifican, docs/33, sección 1): HAM10000 la partición de C1 agrupada por `lesion_id`, ISIC 2019 `StratifiedKFold` y ISIC 2020 agrupada por `patient_id`; «val» es el primer fold de cada una.
+- ISIC 2020: split reproducible solo con scikit-learn 1.7.2 (guard en el loader).
 - E5 no cambia el resultado primario del banco (docs/33, sección 5).
 
 ## HAM10000

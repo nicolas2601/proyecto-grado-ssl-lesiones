@@ -146,3 +146,10 @@ def test_the_roi_definition_states_the_fallback_and_the_pool_mask_reading():
     r = _build(masks=True)["estimators"]["roi"]
     assert r["fallback"]["estimator"] == "no_mask_border" and r["fallback"]["band_fraction"] == roi.BORDER_BAND_FRACTION
     assert "cuarentena" in r["fallback"]["applies_to"] and "> 0" in r["pool_mask_reading"]
+
+
+def test_the_reading_rules_say_the_isic_2020_split_only_reproduces_with_scikit_learn_1_7_2():
+    from dermssl import e5_table
+
+    assert any("split reproducible solo con scikit-learn 1.7.2 (guard en el loader)" in line
+               for line in e5_table.READING)

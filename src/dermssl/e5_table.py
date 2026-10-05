@@ -60,6 +60,7 @@ READING = [
     "- Los splits son los que ya existen en cada dataset (no se unifican, docs/33, sección 1): HAM10000 la "
     "partición de C1 agrupada por `lesion_id`, ISIC 2019 `StratifiedKFold` y ISIC 2020 agrupada por "
     "`patient_id`; «val» es el primer fold de cada una.",
+    "- ISIC 2020: split reproducible solo con scikit-learn 1.7.2 (guard en el loader).",
     "- E5 no cambia el resultado primario del banco (docs/33, sección 5).",
 ]
 
