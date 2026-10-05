@@ -154,3 +154,34 @@ def test_the_real_hair_detector_removes_a_thin_dark_line_crossing_the_ring():
     est = roi.ring_estimate(img, _lesion(), hair_fn=lambda r: hair_removal.elongated_hair_mask(r).astype(bool))
     assert est.ring_px - est.n_px >= crossing  # the detector may take a pixel of margin, never less than the hair
     assert est.bucket == 3
+
+
+def _frame(width: int = 12) -> np.ndarray:
+    frame = np.ones((H, W), bool)
+    frame[width:-width, width:-width] = False
+    return frame
+
+
+def test_the_border_estimator_reads_only_the_frame_of_the_image():
+    img = _paint(_image(), ~_frame(), OTHER_SKIN)  # the centre is another tone: it must not count
+    est = roi.border_estimate(img)
+    assert est.status == roi.OK and est.bucket == 3 and est.ita == pytest.approx(_ita(SKIN), abs=1e-3)
+    assert est.ring_px == est.n_px == int(_frame(round(roi.BORDER_BAND_FRACTION * min(H, W))).sum())
+
+
+def test_the_border_estimator_excludes_highlights_and_hair_like_the_ring():
+    chunk = _frame(round(roi.BORDER_BAND_FRACTION * min(H, W))) & (np.arange(H)[:, None] < H // 2)
+    img = _paint(_image(), chunk, (0.97, 0.97, 0.97))
+    assert roi.border_estimate(img).n_px == int(_frame(round(roi.BORDER_BAND_FRACTION * min(H, W))).sum()) - int(chunk.sum())
+    dark = _paint(_image(), chunk, (0.12, 0.10, 0.09))
+    assert roi.border_estimate(dark, hair_fn=lambda rgb: chunk).bucket == 3
+
+
+def test_the_border_estimator_abstains_when_the_frame_is_all_highlight():
+    est = roi.border_estimate(_paint(_image(), _frame(), (0.97, 0.97, 0.97)))
+    assert est.status == roi.RING_TOO_SMALL and est.bucket is None and est.n_px == 0
+
+
+def test_the_border_estimator_abstains_on_a_grey_frame_with_no_bucket():
+    est = roi.border_estimate(_image((0.6, 0.6, 0.6)))
+    assert est.status == fz.ITA_INDETERMINATE and est.bucket is None

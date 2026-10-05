@@ -27,6 +27,7 @@ from dermssl import fitzpatrick as fz
 SATURATION_LEVEL = 0.98  # any channel at or above this share of full scale is a clipped pixel
 SPECULAR_MIN_L = 90.0  # CIELAB L* at or above this ...
 SPECULAR_MAX_CHROMA = 20.0  # ... with chroma (sqrt(a*^2 + b*^2)) at or below this is a specular highlight
+BORDER_BAND_FRACTION = 0.10  # no-mask fallback: frame width as a share of the shorter image side
 MIN_RING_VALID_PX = 300  # fewer valid ring pixels than this: abstain
 MIN_RING_VALID_FRACTION = 0.25  # a ring that is mostly excluded is not a skin sample: abstain
 
@@ -87,11 +88,24 @@ def _valid_ring(img: np.ndarray, lab: np.ndarray, ring: np.ndarray, hair_fn: Hai
     return ring & ~exclusion_mask(img, lab, hair)
 
 
+def _read_skin(lab: np.ndarray, valid: np.ndarray, region_px: int) -> RoiEstimate:
+    """ITA of the valid pixels of a region, or an explicit abstention (shared by ring and border)."""
+    n_px = int(valid.sum())
+    fraction = n_px / region_px if region_px else 0.0
+    if n_px < MIN_RING_VALID_PX or fraction < MIN_RING_VALID_FRACTION:
+        return _abstain(RING_TOO_SMALL, region_px, n_px, fraction)
+    L_med, b_med, ita, status = fz._skin_ita(lab[valid])  # noqa: SLF001 - the shared ITA path, not a copy
+    common = {"L_median": L_med, "b_median": b_med, "n_px": n_px, "ring_px": region_px, "valid_fraction": fraction}
+    if status != "ok":
+        return RoiEstimate(status=status, ita=None if np.isnan(ita) else ita, **common)
+    return RoiEstimate(status=OK, bucket=fz.fst_bucket(ita), ita=ita, **common)
+
+
 def ring_estimate(img: np.ndarray, lesion: np.ndarray | None, *, hair_fn: HairFn | None = None) -> RoiEstimate:
     """ITA bucket of the perilesional ring of ``lesion`` in ``img`` (float sRGB in [0, 1], (H, W, 3)).
 
-    ``lesion`` is a bool mask (True = lesion) on the same grid; ``None`` means the dataset has no
-    mask and the estimator is not applicable (status ``no_mask``, nothing is invented).
+    ``lesion`` is a bool mask (True = lesion) on the same grid; ``None`` means there is no mask and the
+    estimator is not applicable (status ``no_mask``, nothing is invented).
     """
     if lesion is None:
         return _abstain(NO_MASK)
@@ -103,12 +117,20 @@ def ring_estimate(img: np.ndarray, lesion: np.ndarray | None, *, hair_fn: HairFn
     ring = geo.ring_mask(lesion)
     rgb_u8 = np.rint(img * 255.0).astype(np.uint8) if hair_fn is not None else None
     valid = _valid_ring(img, lab, ring, hair_fn, rgb_u8)
-    ring_px, n_px = int(ring.sum()), int(valid.sum())
-    fraction = n_px / ring_px if ring_px else 0.0
-    if n_px < MIN_RING_VALID_PX or fraction < MIN_RING_VALID_FRACTION:
-        return _abstain(RING_TOO_SMALL, ring_px, n_px, fraction)
-    L_med, b_med, ita, status = fz._skin_ita(lab[valid])  # noqa: SLF001 - the shared ITA path, not a copy
-    common = {"L_median": L_med, "b_median": b_med, "n_px": n_px, "ring_px": ring_px, "valid_fraction": fraction}
-    if status != "ok":
-        return RoiEstimate(status=status, ita=None if np.isnan(ita) else ita, **common)
-    return RoiEstimate(status=OK, bucket=fz.fst_bucket(ita), ita=ita, **common)
+    return _read_skin(lab, valid, int(ring.sum()))
+
+
+def border_estimate(img: np.ndarray, *, hair_fn: HairFn | None = None) -> RoiEstimate:
+    """No-mask fallback: the frame of the image (``BORDER_BAND_FRACTION`` of the shorter side) is the skin sample.
+
+    Same exclusions, abstention and ITA path as the ring. It assumes the border is skin, which a lesion
+    touching the edge or a vignette breaks: it is an estimator of last resort, reported apart.
+    """
+    height, width = img.shape[:2]
+    band = max(1, round(BORDER_BAND_FRACTION * min(height, width)))
+    frame = np.ones((height, width), dtype=bool)
+    frame[band:-band, band:-band] = False
+    lab = fz.srgb_to_lab(img)
+    rgb_u8 = np.rint(img * 255.0).astype(np.uint8) if hair_fn is not None else None
+    valid = _valid_ring(img, lab, frame, hair_fn, rgb_u8)
+    return _read_skin(lab, valid, int(frame.sum()))
