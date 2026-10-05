@@ -122,6 +122,7 @@ def _argv(world: Path, out: Path, stage: str, *extra: str, weights: str = "clean
 
 
 def _canonical(monkeypatch) -> None:
+    monkeypatch.setattr(run.vm, "BOOTSTRAP_RESAMPLES", 3)  # the real read demands 1000; the fixture is tiny
     monkeypatch.setattr(run, "cuda_available", lambda: True)
     monkeypatch.setattr(hc, "compute_block", lambda d, b, rehearsal: {"device": "cuda", "batch_size": 64,
                                                                       "autocast": "cuda", "canonical": True})
@@ -194,7 +195,39 @@ def test_flags_demand_exactly_one_mode_and_a_rehearsal_out_dir(world, tmp_path):
         run.main(_argv(world, tmp_path / "plain", "extract", "--rehearsal"))
 
 
+def test_the_real_read_refuses_a_non_registered_number_of_resamples(world, tmp_path):
+    with pytest.raises(SystemExit, match="ci-resamples"):
+        run.main(_argv(world, tmp_path / "r", "extract", "--single-evaluation"))
+    assert not (tmp_path / "r").exists()
+
+
+def _extracted(world, tmp_path, monkeypatch, name):
+    _canonical(monkeypatch)
+    out = tmp_path / name
+    assert run.main(_argv(world, out, "extract", "--single-evaluation")) == 0
+    return out
+
+
+def test_val_stage_refuses_probabilities_that_changed_after_extract(world, tmp_path, monkeypatch):
+    out = _extracted(world, tmp_path, monkeypatch, "tampered")
+    saved = dict(np.load(out / "clean_probas.npz"))
+    saved["B71_clean"] = saved["B71_clean"][::-1].copy()
+    np.savez_compressed(out / "clean_probas.npz", **saved)
+    with pytest.raises(SystemExit, match="probas_sha256"):
+        run.main(_argv(world, out, "val", "--single-evaluation"))
+    assert not (out / "ham_clean_val.json").exists()
+
+
+def test_val_stage_refuses_a_lock_taken_for_another_selection(world, tmp_path, monkeypatch):
+    out = _extracted(world, tmp_path, monkeypatch, "otherlock")
+    (out / st.LOCK_NAME).write_text(json.dumps({"selection_sha256": "0" * 64, "pid": 1}), encoding="utf-8")
+    with pytest.raises(SystemExit, match="selection"):
+        run.main(_argv(world, out, "val", "--single-evaluation"))
+    assert not (out / "ham_clean_val.json").exists()
+
+
 def test_real_val_refuses_non_canonical_compute_before_lock_and_images(world, tmp_path, monkeypatch):
+    monkeypatch.setattr(run.vm, "BOOTSTRAP_RESAMPLES", 3)
     monkeypatch.setattr(fe, "check_val_protocol", lambda train, val: None)
     out = tmp_path / "real"
     with pytest.raises(SystemExit, match="canonico"):
@@ -221,7 +254,8 @@ def test_an_existing_lock_aborts_before_any_val_image(world, tmp_path, monkeypat
     assert not (out / "inputs").exists()
 
 
-def test_val_stage_without_the_lock_is_refused(world, tmp_path):
+def test_val_stage_without_the_lock_is_refused(world, tmp_path, monkeypatch):
+    monkeypatch.setattr(run.vm, "BOOTSTRAP_RESAMPLES", 3)
     with pytest.raises(SystemExit, match="extract"):
         run.main(_argv(world, tmp_path / "none", "val", "--single-evaluation"))
 

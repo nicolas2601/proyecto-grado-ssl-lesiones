@@ -26,6 +26,7 @@ Pod: see ``scripts/pod/ham_clean.sh`` (clone must be clean; TORCH_HOME with the 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -63,8 +64,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--single-evaluation", action="store_true", help="required for the real val read")
     p.add_argument("--allow-dirty", action="store_true", help="rehearsal only")
     p.add_argument("--ci-resamples", type=int, default=vm.BOOTSTRAP_RESAMPLES)
-    p.add_argument("--probe-jobs", type=int, default=10)
-    p.add_argument("--decode-workers", type=int, default=8)
+    p.add_argument("--probe-jobs", type=int, default=hc.PROBE_JOBS)
+    p.add_argument("--decode-workers", type=int, default=hc.DECODE_WORKERS)
     p.add_argument("--batch-size", type=int, default=hc.CANONICAL_BATCH)
     p.add_argument("--device", default=None)
     args = p.parse_args(argv)
@@ -77,6 +78,8 @@ def parse_args(argv=None) -> argparse.Namespace:
 def check_flags(args) -> None:
     if args.rehearsal == args.single_evaluation:
         raise SystemExit("ABORT: exactamente uno de --rehearsal o --single-evaluation (la val se toca una vez)")
+    if args.single_evaluation and args.ci_resamples != vm.BOOTSTRAP_RESAMPLES:
+        raise SystemExit(f"ABORT: la lectura real fija --ci-resamples {vm.BOOTSTRAP_RESAMPLES} (protocolo registrado)")
     if args.rehearsal and ("rehearsal" not in args.out_dir.name or (REPO / "resultados") in args.out_dir.resolve().parents):
         raise SystemExit("ABORT: el ensayo escribe solo en un --out-dir '*rehearsal*' fuera de resultados/")
 
@@ -186,6 +189,41 @@ def load_reference(args, eval_ids, y, entries) -> tuple[dict, dict]:
     return doc, {label: saved[label].astype(np.float64) for label in (*hc.ORIGINAL, *hc.PUBLIC)}
 
 
+def check_extract(args, ctx, selection, extracted) -> None:
+    """The extract on disk is this run's: same split and ids, untouched probabilities, lock of this selection."""
+    _, eval_ids = split_ids(args, ctx)
+    if extracted["split"] != args.split or extracted["eval_ids_sha256"] != si.ids_sha256(eval_ids):
+        raise SystemExit("ABORT: el extract es de otro split o de otros ids")
+    if rp.file_sha256(args.out_dir / "clean_probas.npz") != extracted["probas_sha256"]:
+        raise SystemExit("ABORT: clean_probas.npz cambio despues del extract (probas_sha256 no coincide)")
+    if args.rehearsal:
+        return
+    lock = st.ValLock(args.out_dir)
+    if not lock.taken():
+        raise SystemExit("ABORT: no existe val_read.lock: la val solo se lee a traves de `extract`")
+    locked = json.loads(lock.path.read_text(encoding="utf-8")).get("selection_sha256")
+    if locked != selection["sources"]["selection.json"]:
+        raise SystemExit("ABORT: el val_read.lock se tomo para otra selection.json")
+
+
+def build_result_doc(args, ctx, extracted, selection, ref_doc, results, paired, npz) -> dict:
+    _, eval_ids = split_ids(args, ctx)
+    return {
+        **hc.declarations(rehearsal=args.rehearsal), "split": args.split, "code_revision": extracted["code_revision"],
+        "probe": "logreg (C1, C=1)", "n_eval": len(eval_ids), "eval_ids_sha256": si.ids_sha256(eval_ids),
+        "holdout_ids_sha256": ctx["holdout_sha"], "entries": selection["clean"],
+        "controls": {k: selection["entries"][k] for k in (*hc.ORIGINAL, *hc.PUBLIC)},
+        "selection_sources": selection["sources"], "reference": {"dir": str(args.reference_dir),
+                                                                  "code_revision": ref_doc.get("code_revision")},
+        "results": results, "paired": paired, "probas_sha256": rp.file_sha256(npz),
+        **{k: extracted[k] for k in ("pool_check", "runs", "weights_sha256", "compute")},
+        "bootstrap": {"n_resamples": args.ci_resamples, "rng_seed": vm.BOOTSTRAP_SEED, "paired": True,
+                      "grouped_by": hc.GROUPED_BY,
+                      "note": "contrastes por lesion_id; los IC de cada entrada (results.ci95) son por fila, como en "
+                              "v7.1, y los contrastes de v7.1 contra el publico tambien son por fila"},
+        "note_operating_points": plan.OPERATING_POINT_PROTOCOL}
+
+
 def stage_val(args, ctx) -> None:
     out = args.out_dir / (hc.REHEARSAL_JSON if args.rehearsal else Path(hc.RESULT_JSON).name)
     extract_path = args.out_dir / hc.EXTRACT_JSON
@@ -193,13 +231,9 @@ def stage_val(args, ctx) -> None:
         raise SystemExit(f"ABORT: {out} ya existe; la evaluacion no se repite")
     if not extract_path.is_file() or not (args.out_dir / "clean_probas.npz").is_file():
         raise SystemExit("ABORT: falta la etapa extract en este --out-dir")
-    if not args.rehearsal and not st.ValLock(args.out_dir).taken():
-        raise SystemExit("ABORT: no existe val_read.lock: la val solo se lee a traves de `extract`")
-    extracted = io.read_json(extract_path)
-    selection = load_selection(args, ctx)
+    extracted, selection = io.read_json(extract_path), load_selection(args, ctx)
+    check_extract(args, ctx, selection, extracted)
     _, eval_ids = split_ids(args, ctx)
-    if extracted["split"] != args.split or extracted["eval_ids_sha256"] != si.ids_sha256(eval_ids):
-        raise SystemExit("ABORT: el extract es de otro split o de otros ids")
     y = io.labels_of(ctx, eval_ids)
     ref_doc, ref = load_reference(args, eval_ids, y, selection["entries"])
     saved = np.load(args.out_dir / "clean_probas.npz")
@@ -216,19 +250,7 @@ def stage_val(args, ctx) -> None:
               for row in v71_val._contrast(a, c, y, probas, mel, n, metrics=hc.CONTRAST_METRICS, groups=groups)]
     npz = out.with_suffix(".probas.npz")
     np.savez_compressed(npz, y_true=y, **probas, **{f"{k}__fit80": saved[f"{k}__fit80"] for k in clean})
-    io.write_json(out, {
-        **hc.declarations(rehearsal=args.rehearsal), "split": args.split, "code_revision": extracted["code_revision"],
-        "probe": "logreg (C1, C=1)", "n_eval": len(eval_ids), "eval_ids_sha256": si.ids_sha256(eval_ids),
-        "holdout_ids_sha256": ctx["holdout_sha"], "entries": selection["clean"],
-        "controls": {k: selection["entries"][k] for k in (*hc.ORIGINAL, *hc.PUBLIC)},
-        "selection_sources": selection["sources"], "reference": {"dir": str(args.reference_dir),
-                                                                  "code_revision": ref_doc.get("code_revision")},
-        "results": results, "paired": paired, "probas_sha256": rp.file_sha256(npz),
-        **{k: extracted[k] for k in ("pool_check", "runs", "weights_sha256", "compute")},
-        "bootstrap": {"n_resamples": n, "rng_seed": vm.BOOTSTRAP_SEED, "paired": True, "grouped_by": hc.GROUPED_BY,
-                      "note": "contrastes por lesion_id; los IC de cada entrada (results.ci95) son por fila, como en "
-                              "v7.1, y los contrastes de v7.1 contra el publico tambien son por fila"},
-        "note_operating_points": plan.OPERATING_POINT_PROTOCOL})
+    io.write_json(out, build_result_doc(args, ctx, extracted, selection, ref_doc, results, paired, npz))
     run_environment.write_sidecar(out, args, loky_inner_threads=probe_threads.PROBE_BLAS_THREADS)
     for label, r in results.items():
         print(f"{label}: macro-F1 {r['macro_f1']:.4f}")
