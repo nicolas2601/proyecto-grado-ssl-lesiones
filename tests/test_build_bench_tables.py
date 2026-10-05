@@ -27,11 +27,18 @@ def test_committed_tables_are_fresh():
 
 
 def test_check_detects_a_stale_table(tmp_path):
-    assert bb.main(["--check", "--out-root", str(tmp_path)]) == 1
-    assert bb.main(["--out-root", str(tmp_path)]) == 0
-    assert bb.main(["--check", "--out-root", str(tmp_path)]) == 0
+    flags = ["--out-root", str(tmp_path), "--skip-png"]
+    assert bb.main(["--check", *flags]) == 1
+    assert bb.main(flags) == 0
+    assert bb.main(["--check", *flags]) == 0
     (tmp_path / "TABLA_HAM10000.md").write_text("edited by hand", encoding="utf-8")
+    assert bb.main(["--check", *flags]) == 1
+
+
+def test_check_requires_the_figures_unless_skipped(tmp_path):
+    assert bb.main(["--out-root", str(tmp_path), "--skip-png"]) == 0
     assert bb.main(["--check", "--out-root", str(tmp_path)]) == 1
+    assert bb.main(["--check", "--out-root", str(tmp_path), "--skip-png"]) == 0
 
 
 def test_every_expected_file_exists():

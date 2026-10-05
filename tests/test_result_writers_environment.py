@@ -64,6 +64,8 @@ _GENERATED = "generates notebooks, tables or site data from committed files; mus
 _DATA_PREP = "data preparation (split, index, exclusion or manifest of inputs), no evaluated number"
 # script -> why it writes JSON without the block.
 EXEMPT = {
+    "scripts/build_bench_tables.py": ("derived tables and per-model confusion JSON generated from committed result "
+                                      "JSON; no new evaluation, must stay byte-identical (docs/33 section 6)"),
     "scripts/build_baseline_tests.py": _GENERATED,
     "scripts/build_finetune_tests.py": _GENERATED,
     "scripts/build_kaggle_diagnostico_fst.py": _GENERATED,
