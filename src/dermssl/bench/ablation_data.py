@@ -1,14 +1,14 @@
 """Tables of the ablation document (docs/33): every number read from a committed JSON.
 
 v7 and v7.1 on HAM10000, clean vs original, F1-F5 (E3 holdout), F4 sensitivity S0/S1/S2, seed
-robustness, and the D0-D3 cells that are still pending. F1-F5 and F4 are exploratory.
+robustness, and D0-D3 (E2) read from its result JSON. F1-F5 and F4 are exploratory.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from dermssl.bench import pending
+from dermssl.bench import e2_tables, isic_rows
 from dermssl.bench.contrast import num
 from dermssl.bench.ham_rows import COMPUTES, E3_DIR
 from dermssl.bench.contrasts_load import ROBUSTNESS
@@ -63,8 +63,7 @@ def clean_table(repo: Path) -> Table:
             rows.append([ds.title, r.name, YES_NO[r.transductive], cell(r.values["macro_f1"]) if ok else r.status,
                          num(r.values["mcc"].point) if ok else r.status, r.note])
     note = ("Limpio = pesos re-preentrenados sin las imágenes de val de ISIC en el pool (docs/33, sección 2). "
-            f"Lectura de la predicción registrada (B71-limpio frente a B71 original): pendiente; "
-            f"{pending.CLEAN_VS_ORIGINAL.note}.")
+            + registered_prediction(repo))
     return Table("Limpios (E1) frente a originales", ["Dataset", "Método", "Transductivo", "F1 macro [IC 95 %]",
                                                       "MCC", "Nota"], rows, note, "ablation-clean")
 
@@ -77,6 +76,26 @@ def _selection_row(doc: dict, key: str, label: str) -> list[str]:
         return cells + [num(rec["mel_recall"]), "—", "—"]
     return cells + [num(rec["mel_recall"]), YES_NO[adopt["passes_macro_f1"] and adopt["passes_delta"]],
                     YES_NO[adopt["adopted"]]]
+
+
+def registered_prediction(repo: Path) -> str:
+    """Reading of the registered prediction (B71-limpio vs B71 original, F1 macro) from the paired JSON."""
+    parts = []
+    for ds in ("isic2019", "isic2020"):
+        rel = f"{isic_rows.CANONICAL_DIR}/{ds}/contrasts/B71__clean__vs__B71__original.json"
+        if not (repo / rel).is_file():
+            parts.append(f"{DATASETS[ds].title}: pendiente, no existe `{rel}`")
+            continue
+        rec = next(r for r in _load(repo, rel)["result"]["paired"] if r["metric"] == "macro_f1")
+        if not rec["excludes_zero"]:
+            verdict = "el IC incluye 0: se cumple la predicción (igual dentro del IC)"
+        elif rec["point_delta"] < 0:
+            verdict = "cae con IC que excluye 0: la ventaja dependía en parte de haber visto las imágenes de val"
+        else:
+            verdict = "sube con IC que excluye 0 (caso que la predicción no contemplaba)"
+        parts.append(f"{DATASETS[ds].title}: Δ F1 macro {_delta(rec)}, {verdict}")
+    return ("Predicción registrada (B71-limpio frente a B71 original, mismo cómputo canónico): " + "; ".join(parts)
+            + ".")
 
 
 def selection_table(repo: Path) -> Table:
@@ -154,19 +173,7 @@ def robustness_table(repo: Path) -> Table:
                  rows, note, "ablation-f4-seeds")
 
 
-def d_table(repo: Path) -> Table:
-    split = _load(repo, "resultados/banco_completo/pad_da/target_split.json")
-    arms = (("D0", "DINOv2 público"), ("D1", "A* s42 limpio"),
-            ("D2", "D1 continuado con el pool limpio (control de cómputo)"),
-            ("D3", "D2 más las imágenes de `target_adapt` de PAD, sin etiquetas"))
-    rows = [[k, d, "pendiente", pending.E2.reason, pending.E2.eta] for k, d in arms]
-    note = (f"E2: probe ajustado en HAM train y aplicado congelado a PAD `target_test` (BCC/MEL/NEV), bootstrap por "
-            f"paciente. Primario: D3 − D2. Split de PAD ya generado: `target_adapt` {thousands(split['target_adapt']['n_images'])} "
-            f"imágenes, `target_test` {thousands(split['target_test']['n_images'])} imágenes. {pending.ETA_SOURCE}.")
-    return Table("D0-D3 (E2): pendientes", ["Brazo", "Descripción", "Estado", "Motivo", "ETA"], rows, note,
-                 "ablation-d")
-
-
 def tables(repo: Path) -> list[Table]:
-    return [version_table(repo), clean_table(repo), selection_table(repo), val_table(repo),
-            sensitivity_table(repo), robustness_table(repo), d_table(repo)]
+    out = [version_table(repo), clean_table(repo), selection_table(repo), val_table(repo),
+           sensitivity_table(repo), robustness_table(repo)]
+    return out + ([e2_tables.arms_table(repo), e2_tables.contrasts_table(repo)] if e2_tables.exists(repo) else [])

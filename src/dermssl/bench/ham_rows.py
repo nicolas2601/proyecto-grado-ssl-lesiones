@@ -78,7 +78,7 @@ def pending_rows() -> list[Row]:
     return [Row("ham10000", FROZEN, "B71-limpio (canónico)", OWN_B, False, False, PENDING, (PLAN_DOC,),
                 note=pending.HAM_CLEAN.note),
             Row("ham10000", FROZEN, "A71-limpio (canónico)", OWN_A, False, False, PENDING, (PLAN_DOC,),
-                note=pending.A71_CLEAN.note)]
+                note=pending.HAM_CLEAN.note)]
 
 
 def ham_rows(repo: Path) -> list[Row]:

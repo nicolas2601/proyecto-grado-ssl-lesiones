@@ -63,15 +63,27 @@ def test_e3_holdout_table_lists_f1_to_f5_and_val_only_b71_and_f4():
     assert "por diseño" in text
 
 
-def test_pending_cells_state_reason_and_eta():
+def test_e2_results_replace_the_pending_section_and_come_from_the_json():
+    import json
+
     text = _text()
-    d_block = text.split("### D0-D3")[1]
-    assert all(f"| {d} |" in d_block for d in ("D0", "D1", "D2", "D3"))
-    assert d_block.count("~10:30 UTC") == 4 and "pendiente" in d_block
-    assert "ETA ~15:00 UTC" in text and "no es comparable" in text
+    assert "pendiente" not in text.split("### D0-D3")[1].split("###")[0] and "~10:30" not in text
+    doc = json.loads((REPO / "resultados/banco_completo/pad_da/pad_e2_eval.json").read_text(encoding="utf-8"))
+    block = text.split("### D0-D3 en PAD")[1]
+    for arm in ("D0", "D1", "D2", "D3"):
+        row = next(ln for ln in block.splitlines() if ln.startswith(f"| {arm} |"))
+        for metric in ("macro_f1", "balanced_accuracy", "accuracy", "auc", "ece", "mcc"):
+            assert f"{doc['arms'][arm][metric]:.4f}".replace(".", ",") in row
+        assert f"{doc['outside_rate'][arm]:.4f}".replace(".", ",") in row
+    assert "leído una sola vez (lock)" in block and "batch 64 + autocast" in block and "semilla 20260923" in block
+    assert f"cumplida = {'sí' if doc['prediction_d3_minus_d2_met'] else 'no'}" in block
+    p = doc["primary_contrast"]
+    assert f"{p['point_delta']:+.4f}".replace(".", ",") in block
+    assert f"{doc['n_images']}".replace(",", ".") in block.replace(".", "") or str(doc["n_patients"]) in block
 
 
 def test_clean_table_does_not_compare_clean_with_the_batch16_original():
     clean = A.clean_table(REPO)
-    assert "pendiente" in clean.note and "no es comparable" in clean.note
+    assert "Predicción registrada" in clean.note and "mismo cómputo canónico" in clean.note
+    assert "pendiente" not in clean.note
     assert not any(r[1].startswith("B71-limpio") and "batch 16" in r[-1] for r in clean.rows)

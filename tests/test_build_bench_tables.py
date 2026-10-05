@@ -92,9 +92,10 @@ def test_metric_tables_are_sorted_by_macro_f1_inside_each_block(name):
 
 def test_isic2020_finetune_block_says_not_run_and_pending_rows_are_listed():
     text = _md("TABLA_ISIC2020")
-    assert "pendiente" in text.split("## Con fine-tuning")[1] and "Curva por época" in text
+    assert "Curva por época" in text and "ETA ~" not in text
     for name in TABLES:
-        assert "B71-limpio" in _md(name) and "pendiente" in _md(name)
+        assert "B71-limpio" in _md(name)
+    assert "pendiente" in _md("TABLA_HAM10000") and "pendiente; " not in _md("TABLA_ISIC2019")
     assert "B71 original" in _md("TABLA_ISIC2019") and "B71 original" not in _md("TABLA_HAM10000")
 
 
@@ -112,3 +113,24 @@ def test_latex_is_booktabs_and_escapes_percent():
     tex = (OUT / "latex" / "TABLA_HAM10000.tex").read_text(encoding="utf-8")
     assert r"\toprule" in tex and r"\bottomrule" in tex and r"\midrule" in tex
     assert not re.search(r"(?<!\\)%(?! Generado)", tex.replace("% Generado", "")), "unescaped percent"
+
+
+STALE_PHRASES = ("GPU0 en curso", "~10:30 UTC", "~15:00 UTC", "ETA declarada", "corrida pendiente de ISIC 2020",
+                 "no ejecutado todavia", "falta A* s43")
+
+
+@pytest.mark.parametrize("name", [*TABLES, "TABLA_ABLACION", "CONTRASTES_SSL"])
+def test_no_obsolete_waiting_text_is_published(name):
+    text = _md(name)
+    assert not [p for p in STALE_PHRASES if p in text]
+
+
+def test_shared_reading_rule_says_isic2020_finetune_ran_in_our_pod():
+    text = _md("TABLA_ISIC2020")
+    assert "Las de ISIC 2020 corrieron en nuestro pod (GPU RTX PRO 4000), no en el banco de Karen" in text
+
+
+def test_ham_clean_rows_stay_pending_with_the_current_reason_and_no_eta():
+    rows = [ln for ln in _md("TABLA_HAM10000").splitlines() if ln.startswith("| — | ") and "limpio" in ln]
+    with_reason = [r for r in rows if "no hay transductividad que corregir" in r and "sin ETA" in r]
+    assert len(with_reason) == 2 and len(rows) == 4  # condition table + metrics table

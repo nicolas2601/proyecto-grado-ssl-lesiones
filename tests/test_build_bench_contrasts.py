@@ -10,7 +10,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
 import build_bench_contrasts as bc  # noqa: E402
-from dermssl.bench import cli, contrasts_doc as D, contrasts_load as L, ft_contrasts as F  # noqa: E402
+from dermssl.bench import cli, contrasts_doc as D, contrasts_load as L, e2_tables as E2, ft_contrasts as F  # noqa: E402
 
 MD = REPO / cli.OUT / "CONTRASTES_SSL.md"
 POINT = re.compile(r"(?<![\w./@])\d+\.\d{4}(?![\w/])")
@@ -37,7 +37,7 @@ def test_every_contrast_family_of_the_bench_is_present():
         assert part in titles, part
     fixed = 120 + 6 * 6 + 48
     isic = sum(len(c) for ds in ('isic2019', 'isic2020') for c in L.isic_all(REPO, ds).values())
-    assert len(items) == fixed + isic + len(F.contrasts(REPO))
+    assert len(items) == fixed + isic + len(F.contrasts(REPO)) + len(E2.contrasts(REPO))
 
 
 def test_multiplicity_warning_states_the_counts_from_the_data():
@@ -59,11 +59,16 @@ def test_ham_mcc_pairs_are_declared_unavailable_not_invented():
     assert "NO es un contraste" in text and "SIN IC" in text and "1d7e447" in text
 
 
-def test_pending_contrasts_carry_reason_and_eta():
+def test_pending_contrasts_are_only_the_ones_without_data():
     block = _text().split("### Contrastes pendientes")[1]
-    for part in ("D3 − D2", "A71-limpio", "B71-limpio contra B71 original", "MCC en HAM10000"):
-        assert part in block
-    assert "~10:30 UTC" in block and "~15:00 UTC" in block
+    assert "D3 − D2" not in block and "~10:30" not in block and "~15:00" not in block
+    assert "MCC en HAM10000" in block and "no hay transductividad que corregir" in block
+    assert block.count("sin ETA") == 2
+
+
+def test_e2_contrasts_are_listed_with_the_primary_one_first():
+    text = _text().split("### D0-D3 (E2): contrastes pareados")[1]
+    assert "predicción primaria registrada" in text and "| D3 | D2 | F1 macro |" in text
 
 
 def test_interval_only_table_never_claims_a_pairwise_win():

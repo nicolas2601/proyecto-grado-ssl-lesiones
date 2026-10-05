@@ -192,7 +192,7 @@ def entries(repo: Path) -> tuple[dict[str, list], list[tuple[str, str]], list[tu
     for model in MODELS:
         label = f"{MODEL_NAMES[model]} (fine-tuning)"
         if not (repo / probas_path(model)).is_file():
-            waiting.append((label, pending.FT_PROBAS.note))
+            waiting.append((label, pending.missing(probas_path(model)).note))
         elif reason := unpaired_reason(side, model):
             unpaired.append((label, reason))
         elif (repo / contrast_path(model)).is_file():

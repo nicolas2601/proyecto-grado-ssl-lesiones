@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dermssl.bench import contrasts_load as L, ft_contrasts
+from dermssl.bench import contrasts_load as L, e2_tables, ft_contrasts, isic_rows
 from dermssl.bench import glossary, pending, tables
 from dermssl.bench.contrast import COMPACT_HEADER, METRIC_ES, Contrast, compact_cells, count_excluding, num
 from dermssl.bench.ham_rows import COMPUTES
@@ -117,16 +117,20 @@ def interval_table(repo: Path, ds_key: str) -> Table:
                  ["Baseline congelado", "F1 macro [IC 95 %]", "Lectura"], out, note, f"contrast-interval-{ds_key}")
 
 
-def pending_table() -> Table:
-    rows = [["D3 − D2 en PAD `target_test` (primario)", pending.E2.reason, pending.E2.eta],
-            ["Demás contrastes pareados entre D0, D1, D2 y D3 (descriptivos)", pending.E2.reason, pending.E2.eta],
-            ["A71-limpio contra A71, y B71-limpio contra A71-limpio", pending.A71_CLEAN.reason, pending.A71_CLEAN.eta],
-            ["B71-limpio contra B71 original (predicción registrada)", pending.CLEAN_VS_ORIGINAL.reason,
-             pending.CLEAN_VS_ORIGINAL.eta],
-            ["Contrastes pareados de MCC en HAM10000 (E3 y E3b)", "recomputar E3 y E3b con el código actual (1d7e447)",
-             "no declarada por el operador"]]
-    return Table("Contrastes pendientes", ["Contraste", "Motivo", "ETA"], rows, pending.ETA_SOURCE + ".",
-                 "contrast-pending")
+def pending_table(repo: Path) -> Table:
+    """Contrasts whose data is missing, derived from the files."""
+    rows = [[f"{DATASETS[ds].title}: {name}", pending.missing(f"{isic_rows.CANONICAL_DIR}/{ds}/contrasts/{name}.json").reason,
+             pending.NO_ETA] for ds in ("isic2019", "isic2020") for name in isic_rows.CANONICAL_CONTRASTS
+            if not (repo / f"{isic_rows.CANONICAL_DIR}/{ds}/contrasts/{name}.json").is_file()]
+    if not e2_tables.exists(repo):
+        rows.append(["D3 − D2 y demás contrastes de E2", pending.missing(e2_tables.E2_JSON).reason, pending.NO_ETA])
+    above, _ = L.e3b_contrasts(repo, CANON)
+    if not any(c.metric == "mcc" for c in above):
+        rows.append(["Contrastes pareados de MCC en HAM10000 (E3 y E3b)",
+                     "los JSON de E3/E3b no traen MCC en sus contrastes; recomputarlos con el código actual (1d7e447)",
+                     pending.NO_ETA])
+    rows.append(["B71-limpio y A71-limpio contra el original en HAM10000", pending.HAM_CLEAN.reason, pending.NO_ETA])
+    return Table("Contrastes pendientes", ["Contraste", "Motivo", "ETA"], rows, "", "contrast-pending")
 
 
 def warning(items: list[Contrast]) -> list[str]:
@@ -144,9 +148,11 @@ def build(repo: Path) -> tuple[list[Table], list[Contrast]]:
     v71, v71_items = ham_v71(repo)
     isic_tables, isic_items = isic(repo)
     ft_tab, ft_items = ft_table(repo)
-    tabs = [*e3b, compute_table(repo), mcc_table(repo), *f4, v71, *isic_tables, ft_tab,
-            interval_table(repo, "isic2019"), interval_table(repo, "isic2020"), pending_table()]
-    return tabs, e3b_items + f4_items + v71_items + isic_items + ft_items
+    e2 = [e2_tables.contrasts_table(repo)] if e2_tables.exists(repo) else []
+    e2_items = e2_tables.contrasts(repo) if e2 else []
+    tabs = [*e3b, compute_table(repo), mcc_table(repo), *f4, v71, *isic_tables, ft_tab, *e2,
+            interval_table(repo, "isic2019"), interval_table(repo, "isic2020"), pending_table(repo)]
+    return tabs, e3b_items + f4_items + v71_items + isic_items + ft_items + e2_items
 
 
 def render_markdown(repo: Path) -> str:

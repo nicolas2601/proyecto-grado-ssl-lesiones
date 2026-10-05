@@ -121,7 +121,7 @@ def _finetune_row(repo: Path, ds: Dataset, model: str) -> Row:
     rel = f"{ds.finetune}/results_{model}_ft{ds.suffix}.json"
     if not (repo / rel).is_file():
         return Row(ds.key, FINETUNE, MODEL_NAMES[model], _pretraining(model), True, False, PENDING, (PLAN_DOC,),
-                   note=pending.FT_ISIC2020.note + "; optimista: época elegida en val (receta existente)")
+                   note=pending.missing(rel).note + "; optimista: época elegida en val (receta existente)")
     data = _load(repo, rel)
     note = _ft_note(data) + (f"; mejor época {data['mejor_epoca']}" if ds.key == "isic2020" else "")
     return Row(ds.key, FINETUNE, MODEL_NAMES[model], _pretraining(model), True, False, OK, (rel,),

@@ -6,7 +6,7 @@ Generado por `scripts/build_bench_contrasts.py` desde los JSON del repositorio. 
 
 ## Advertencia de multiplicidad
 
-Este documento lista 368 contrastes (el IC excluye 0 en 213) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 18) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
+Este documento lista 404 contrastes (el IC excluye 0 en 241) **sin corrección por multiplicidad**: cada IC es de 95 %, así que aun sin ningún efecto real se esperaría que cerca del 5 % (≈ 20) excluyera 0. Además comparten imágenes y no son independientes, así que esa cifra es solo orientativa. Se leen por familia y con la pregunta registrada de cada una, nunca escogiendo los que salen bien.
 
 ## Glosario
 
@@ -36,10 +36,10 @@ Particiones de val de este banco (no son la misma partición):
 - ISIC 2020, baselines (Kaggle): val n = 6.660; StratifiedGroupKFold por patient_id (0 pacientes compartidos).
 
 - **Entre particiones distintas la comparación es solo de intervalos (IC 95 %)**, no un test pareado: HAM10000 usa la partición v6/v7 (n = 2.004) para el propuesto y la de Kaggle (n = 2.014) para los baselines; ISIC 2019 e ISIC 2020 tienen la suya. Los contrastes pareados solo existen donde dos modelos comparten partición e imágenes y hay probabilidades por imagen (docs/33, sección 5); están al final de cada tabla y, todos juntos, en `CONTRASTES_SSL.md` (sin corrección por multiplicidad).
-- **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 y la corrida pendiente de ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). El propuesto no tiene fine-tuning y no se ve afectado.
+- **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 e ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). Las de ISIC 2020 corrieron en nuestro pod (GPU RTX PRO 4000), no en el banco de Karen. El propuesto no tiene fine-tuning y no se ve afectado.
 - **Modelo y protocolo no son lo mismo.** El propuesto usa el protocolo de B71 (features cls4, TTA, probe balanceado); la fila «DINOv2 público, protocolo de B71» es el control con el mismo protocolo y pesos públicos. Los 8 baselines siguen el protocolo de su propio banco (probe logreg).
 - Los IC solo existen donde la fuente los publica: los baselines, para exactitud balanceada y F1 macro; B71/A71, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en B71/A71 salen de las probabilidades commiteadas, también sin IC.
-- Las filas «pendiente» no tienen número: se listan con su motivo técnico y la ETA declarada por el operador, para que nada parezca olvidado. No se inventa ninguna cifra.
+- Las filas «pendiente» no tienen número: se listan con su motivo técnico (sin ETA inventada), para que nada parezca olvidado. No se inventa ninguna cifra.
 
 ### HAM10000: B71 frente a los 8 baselines congelados (4 variantes × 3 métricas)
 
@@ -541,6 +541,49 @@ Sección: análisis posterior a la ejecución (post-hoc), no parte del registro 
 | DINOv2 ViT-S/14 (fine-tuning) | MCC | +0,0884 [+0,0099; +0,1647] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0280 | 0,1960 |
 | DINOv2 ViT-B/14 (fine-tuning) | MCC | +0,1318 [+0,0415; +0,2197] | sí | B71-limpio (canónico) mejor (el IC excluye 0) | 0,0060 | 0,0480 |
 
+### D0-D3 (E2): contrastes pareados
+
+D3 − D2 es la predicción primaria registrada; los demás son descriptivos. Predicción primaria registrada (D3 − D2, F1 macro > 0 con IC que excluye 0): cumplida = sí (`prediction_d3_minus_d2_met` del JSON); Δ +0,0816 [+0,0525; +0,1085].
+
+| Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura |
+|---|---|---|---|---|---|
+| D3 | D2 | F1 macro | +0,0816 [+0,0525; +0,1085] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D2 | Exactitud balanceada | +0,0375 [-0,0161; +0,0875] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D2 | Accuracy | +0,1111 [+0,0755; +0,1468] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D2 | AUC OvR macro | +0,0162 [-0,0065; +0,0393] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D2 | ECE (menor es mejor) | -0,1570 [-0,1943; -0,1199] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D2 | MCC | +0,0730 [+0,0419; +0,1034] | sí | D3 mejor (el IC excluye 0) |
+| D2 | D1 | F1 macro | +0,0434 [+0,0196; +0,0682] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | Exactitud balanceada | +0,0653 [+0,0297; +0,1112] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | Accuracy | +0,0635 [+0,0366; +0,0914] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | AUC OvR macro | +0,0321 [+0,0068; +0,0593] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | ECE (menor es mejor) | -0,0838 [-0,1114; -0,0510] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | MCC | +0,0438 [+0,0127; +0,0752] | sí | D2 mejor (el IC excluye 0) |
+| D3 | D1 | F1 macro | +0,1250 [+0,0970; +0,1561] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | Exactitud balanceada | +0,1027 [+0,0427; +0,1740] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | Accuracy | +0,1746 [+0,1413; +0,2131] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | AUC OvR macro | +0,0483 [+0,0212; +0,0828] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | ECE (menor es mejor) | -0,2408 [-0,2812; -0,1993] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | MCC | +0,1168 [+0,0788; +0,1617] | sí | D3 mejor (el IC excluye 0) |
+| D1 | D0 | F1 macro | -0,1967 [-0,2304; -0,1638] | sí | D0 mejor (el IC excluye 0) |
+| D1 | D0 | Exactitud balanceada | -0,1040 [-0,1670; -0,0421] | sí | D0 mejor (el IC excluye 0) |
+| D1 | D0 | Accuracy | -0,3104 [-0,3556; -0,2643] | sí | D0 mejor (el IC excluye 0) |
+| D1 | D0 | AUC OvR macro | -0,0343 [-0,0834; +0,0051] | no | sin diferencia demostrable (el IC incluye 0) |
+| D1 | D0 | ECE (menor es mejor) | +0,2179 [+0,1684; +0,2611] | sí | D0 mejor (el IC excluye 0) |
+| D1 | D0 | MCC | -0,1869 [-0,2366; -0,1380] | sí | D0 mejor (el IC excluye 0) |
+| D2 | D0 | F1 macro | -0,1533 [-0,1893; -0,1150] | sí | D0 mejor (el IC excluye 0) |
+| D2 | D0 | Exactitud balanceada | -0,0387 [-0,1074; +0,0342] | no | sin diferencia demostrable (el IC incluye 0) |
+| D2 | D0 | Accuracy | -0,2469 [-0,2931; -0,1996] | sí | D0 mejor (el IC excluye 0) |
+| D2 | D0 | AUC OvR macro | -0,0022 [-0,0565; +0,0447] | no | sin diferencia demostrable (el IC incluye 0) |
+| D2 | D0 | ECE (menor es mejor) | +0,1341 [+0,0851; +0,1782] | sí | D0 mejor (el IC excluye 0) |
+| D2 | D0 | MCC | -0,1431 [-0,1876; -0,0941] | sí | D0 mejor (el IC excluye 0) |
+| D3 | D0 | F1 macro | -0,0717 [-0,1100; -0,0332] | sí | D0 mejor (el IC excluye 0) |
+| D3 | D0 | Exactitud balanceada | -0,0013 [-0,0671; +0,0666] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D0 | Accuracy | -0,1358 [-0,1838; -0,0874] | sí | D0 mejor (el IC excluye 0) |
+| D3 | D0 | AUC OvR macro | +0,0140 [-0,0397; +0,0579] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D0 | ECE (menor es mejor) | -0,0229 [-0,0727; +0,0265] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D0 | MCC | -0,0701 [-0,1188; -0,0200] | sí | D0 mejor (el IC excluye 0) |
+
 ### ISIC 2019: B71-limpio frente a los baselines (solo intervalos)
 
 B71-limpio: F1 macro 0,6662 [0,6401; 0,6911]. Los baselines no tienen probabilidades por imagen commiteadas: solo se comparan intervalos. La comparación mezcla modelo y protocolo (ver «Cómo leer este documento»).
@@ -573,12 +616,7 @@ B71-limpio: F1 macro 0,6229 [0,5865; 0,6602]. Los baselines no tienen probabilid
 
 ### Contrastes pendientes
 
-ETA declarada por el operador el 2026-10-05; no se mide desde el repositorio.
-
 | Contraste | Motivo | ETA |
 |---|---|---|
-| D3 − D2 en PAD `target_test` (primario) | los pesos de D2 y D3 (GPU) y la única lectura de `target_test` de PAD no han terminado; el split de PAD ya existe (`resultados/banco_completo/pad_da/target_split.json`) | ~10:30 UTC |
-| Demás contrastes pareados entre D0, D1, D2 y D3 (descriptivos) | los pesos de D2 y D3 (GPU) y la única lectura de `target_test` de PAD no han terminado; el split de PAD ya existe (`resultados/banco_completo/pad_da/target_split.json`) | ~10:30 UTC |
-| A71-limpio contra A71, y B71-limpio contra A71-limpio | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios | ~15:00 UTC |
-| B71-limpio contra B71 original (predicción registrada) | el contraste B71-limpio contra B71 original exige el original con el mismo cómputo canónico; la corrida de batch 16 no es comparable (cambia el cómputo, no solo los datos) | ~15:00 UTC |
-| Contrastes pareados de MCC en HAM10000 (E3 y E3b) | recomputar E3 y E3b con el código actual (1d7e447) | no declarada por el operador |
+| Contrastes pareados de MCC en HAM10000 (E3 y E3b) | los JSON de E3/E3b no traen MCC en sus contrastes; recomputarlos con el código actual (1d7e447) | sin ETA |
+| B71-limpio y A71-limpio contra el original en HAM10000 | no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte | sin ETA |

@@ -20,14 +20,10 @@ def _cell(c: Contrast) -> str:
 
 
 def _isic_pending(repo: Path, ds_key: str) -> list[str]:
-    canon = isic_rows.CANONICAL_DIR
-    lines = []
-    if not (repo / isic_rows.cell_path(canon, ds_key, "B71__original.json")).is_file():
-        lines.append(f"- B71-limpio contra B71 original: pendiente; {pending.CLEAN_VS_ORIGINAL.note}.")
-    if not (repo / isic_rows.cell_path(canon, ds_key, "A71__clean.json")).is_file():
-        lines.append(f"- A71-limpio contra A71 original y B71-limpio contra A71-limpio: pendiente; "
-                     f"{pending.A71_CLEAN.note}.")
-    return lines
+    """Expected canonical contrast files that are not on disk (empty when everything exists)."""
+    return [f"- {name.replace('__', ' ').replace(' vs ', ' contra ')}: pendiente; {pending.missing(rel).note}."
+            for name in isic_rows.CANONICAL_CONTRASTS
+            if not (repo / (rel := f"{isic_rows.CANONICAL_DIR}/{ds_key}/contrasts/{name}.json")).is_file()]
 
 
 def isic_section(repo: Path, ds: Dataset) -> list[str]:

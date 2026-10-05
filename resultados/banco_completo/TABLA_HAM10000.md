@@ -32,10 +32,10 @@ Particiones de val de este banco (no son la misma partición):
 - ISIC 2020, baselines (Kaggle): val n = 6.660; StratifiedGroupKFold por patient_id (0 pacientes compartidos).
 
 - **Entre particiones distintas la comparación es solo de intervalos (IC 95 %)**, no un test pareado: HAM10000 usa la partición v6/v7 (n = 2.004) para el propuesto y la de Kaggle (n = 2.014) para los baselines; ISIC 2019 e ISIC 2020 tienen la suya. Los contrastes pareados solo existen donde dos modelos comparten partición e imágenes y hay probabilidades por imagen (docs/33, sección 5); están al final de cada tabla y, todos juntos, en `CONTRASTES_SSL.md` (sin corrección por multiplicidad).
-- **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 y la corrida pendiente de ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). El propuesto no tiene fine-tuning y no se ve afectado.
+- **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 e ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). Las de ISIC 2020 corrieron en nuestro pod (GPU RTX PRO 4000), no en el banco de Karen. El propuesto no tiene fine-tuning y no se ve afectado.
 - **Modelo y protocolo no son lo mismo.** El propuesto usa el protocolo de B71 (features cls4, TTA, probe balanceado); la fila «DINOv2 público, protocolo de B71» es el control con el mismo protocolo y pesos públicos. Los 8 baselines siguen el protocolo de su propio banco (probe logreg).
 - Los IC solo existen donde la fuente los publica: los baselines, para exactitud balanceada y F1 macro; B71/A71, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en B71/A71 salen de las probabilidades commiteadas, también sin IC.
-- Las filas «pendiente» no tienen número: se listan con su motivo técnico y la ETA declarada por el operador, para que nada parezca olvidado. No se inventa ninguna cifra.
+- Las filas «pendiente» no tienen número: se listan con su motivo técnico (sin ETA inventada), para que nada parezca olvidado. No se inventa ninguna cifra.
 
 ## Congelados (sin fine-tuning)
 
@@ -58,8 +58,8 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | 11 | AlexNet | supervisado (ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_alexnet.json` |
 | 12 | VGG19 | supervisado (ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_vgg19.json` |
 | 13 | SimSiam ResNet-50 | auto-supervisado (SimSiam, ImageNet) | no | no | no | 2.014 | ok | — | `results/baselines/results_simsiam_r50.json` |
-| — | B71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | — | pendiente | E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio); ETA no declarada por el operador | `docs/33-banco-completo-multidataset.md` |
-| — | A71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | — | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC | `docs/33-banco-completo-multidataset.md` |
+| — | B71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | — | pendiente | no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; sin ETA | `docs/33-banco-completo-multidataset.md` |
+| — | A71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | — | pendiente | no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; sin ETA | `docs/33-banco-completo-multidataset.md` |
 
 ### Métricas [IC 95 % donde la fuente lo publica]
 

@@ -32,10 +32,10 @@ Particiones de val de este banco (no son la misma partición):
 - ISIC 2020, baselines (Kaggle): val n = 6.660; StratifiedGroupKFold por patient_id (0 pacientes compartidos).
 
 - **Entre particiones distintas la comparación es solo de intervalos (IC 95 %)**, no un test pareado: HAM10000 usa la partición v6/v7 (n = 2.004) para el propuesto y la de Kaggle (n = 2.014) para los baselines; ISIC 2019 e ISIC 2020 tienen la suya. Los contrastes pareados solo existen donde dos modelos comparten partición e imágenes y hay probabilidades por imagen (docs/33, sección 5); están al final de cada tabla y, todos juntos, en `CONTRASTES_SSL.md` (sin corrección por multiplicidad).
-- **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 y la corrida pendiente de ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). El propuesto no tiene fine-tuning y no se ve afectado.
+- **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 e ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). Las de ISIC 2020 corrieron en nuestro pod (GPU RTX PRO 4000), no en el banco de Karen. El propuesto no tiene fine-tuning y no se ve afectado.
 - **Modelo y protocolo no son lo mismo.** El propuesto usa el protocolo de B71 (features cls4, TTA, probe balanceado); la fila «DINOv2 público, protocolo de B71» es el control con el mismo protocolo y pesos públicos. Los 8 baselines siguen el protocolo de su propio banco (probe logreg).
 - Los IC solo existen donde la fuente los publica: los baselines, para exactitud balanceada y F1 macro; B71/A71, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en B71/A71 salen de las probabilidades commiteadas, también sin IC.
-- Las filas «pendiente» no tienen número: se listan con su motivo técnico y la ETA declarada por el operador, para que nada parezca olvidado. No se inventa ninguna cifra.
+- Las filas «pendiente» no tienen número: se listan con su motivo técnico (sin ETA inventada), para que nada parezca olvidado. No se inventa ninguna cifra.
 
 ### v7 y v7.1 en HAM10000
 
@@ -54,14 +54,14 @@ HAM10000, val n = 2.004 (partición v6/v7), probe logreg, fuente `resultados/cla
 
 ### Limpios (E1) frente a originales
 
-Limpio = pesos re-preentrenados sin las imágenes de val de ISIC en el pool (docs/33, sección 2). Lectura de la predicción registrada (B71-limpio frente a B71 original): pendiente; el contraste B71-limpio contra B71 original exige el original con el mismo cómputo canónico; la corrida de batch 16 no es comparable (cambia el cómputo, no solo los datos); ETA ~15:00 UTC.
+Limpio = pesos re-preentrenados sin las imágenes de val de ISIC en el pool (docs/33, sección 2). Predicción registrada (B71-limpio frente a B71 original, mismo cómputo canónico): ISIC 2019: Δ F1 macro -0,0055 [-0,0232; +0,0155], el IC incluye 0: se cumple la predicción (igual dentro del IC); ISIC 2020: Δ F1 macro +0,0093 [-0,0224; +0,0409], el IC incluye 0: se cumple la predicción (igual dentro del IC).
 
 | Dataset | Método | Transductivo | F1 macro [IC 95 %] | MCC | Nota |
 |---|---|---|---|---|---|
 | HAM10000 | A71 (ablación sin término de tono) | no | 0,7229 [0,6795; 0,7592] | 0,6996 | probe logreg C1; precisión, recall y MCC desde las probabilidades |
 | HAM10000 | B71 (propuesto) | no | 0,7141 [0,6703; 0,7547] | 0,6901 | probe logreg C1; precisión, recall y MCC desde las probabilidades; cómputo canónico = S1 (batch 64 + autocast, el de v7.1). F1 macro de B71 en S0/S1/S2: 0,7106 / 0,7141 / 0,7089 (el cómputo de extracción mueve la cifra) |
-| HAM10000 | B71-limpio (canónico) | no | pendiente | pendiente | E1 de B71-limpio en HAM10000 todavía no se corrió (no hay JSON en el repositorio); ETA no declarada por el operador |
-| HAM10000 | A71-limpio (canónico) | no | pendiente | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC |
+| HAM10000 | B71-limpio (canónico) | no | pendiente | pendiente | no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; sin ETA |
+| HAM10000 | A71-limpio (canónico) | no | pendiente | pendiente | no se evaluaron los pesos limpios sobre la val/holdout de HAM10000: el val de HAM ya estaba excluido del pool, por lo que no hay transductividad que corregir; el costo/beneficio no justificó una corrida más antes del corte; sin ETA |
 | ISIC 2019 | B71 original (canónico) | sí | 0,6717 [0,6436; 0,6951] | 0,6652 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2019 | B71-limpio (canónico) | no | 0,6662 [0,6401; 0,6911] | 0,6628 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2019 | A71-limpio (canónico) | no | 0,6549 [0,6278; 0,6771] | 0,6698 | cómputo canónico (batch 64 + autocast) |
@@ -118,13 +118,56 @@ Robustez de F4 − B71 a la semilla de B* (post-hoc, cómputo canónico). El IC 
 | 43 | 0,7026 | 0,7118 | +0,0092 [-0,0339; +0,0499] | no | -0,0041 [-0,0473; +0,0354] | no |
 | 44 | 0,7041 | 0,7301 | +0,0261 [-0,0039; +0,0577] | no | +0,0128 [-0,0168; +0,0440] | no |
 
-### D0-D3 (E2): pendientes
+### D0-D3 en PAD `target_test` (E2)
 
-E2: probe ajustado en HAM train y aplicado congelado a PAD `target_test` (BCC/MEL/NEV), bootstrap por paciente. Primario: D3 − D2. Split de PAD ya generado: `target_adapt` 1.141 imágenes, `target_test` 1.142 imágenes. ETA declarada por el operador el 2026-10-05; no se mide desde el repositorio.
+`target_test` de PAD leído una sola vez (lock) (con lock presente). Probe `logreg` ajustado en HAM10000 (n = 8.011) y aplicado congelado; el backbone nunca ve etiquetas. Cómputo canónico: batch 64 + autocast cuda. Bootstrap pareado de 1.000 remuestras, semilla 20260923, agrupado por `patient_id`. Lectura «primary» (BCC/MEL/NV): 567 imágenes de 363 pacientes (de 1.142 imágenes de `target_test`), solo 25 melanomas: los IC son anchos. «Fuera de rango» = proporción de imágenes cuyo argmax de 7 clases cae fuera de las clases de la lectura (descriptivo). Fuente: `resultados/banco_completo/pad_da/pad_e2_eval.json`.
 
-| Brazo | Descripción | Estado | Motivo | ETA |
-|---|---|---|---|---|
-| D0 | DINOv2 público | pendiente | los pesos de D2 y D3 (GPU) y la única lectura de `target_test` de PAD no han terminado; el split de PAD ya existe (`resultados/banco_completo/pad_da/target_split.json`) | ~10:30 UTC |
-| D1 | A* s42 limpio | pendiente | los pesos de D2 y D3 (GPU) y la única lectura de `target_test` de PAD no han terminado; el split de PAD ya existe (`resultados/banco_completo/pad_da/target_split.json`) | ~10:30 UTC |
-| D2 | D1 continuado con el pool limpio (control de cómputo) | pendiente | los pesos de D2 y D3 (GPU) y la única lectura de `target_test` de PAD no han terminado; el split de PAD ya existe (`resultados/banco_completo/pad_da/target_split.json`) | ~10:30 UTC |
-| D3 | D2 más las imágenes de `target_adapt` de PAD, sin etiquetas | pendiente | los pesos de D2 y D3 (GPU) y la única lectura de `target_test` de PAD no han terminado; el split de PAD ya existe (`resultados/banco_completo/pad_da/target_split.json`) | ~10:30 UTC |
+| Brazo | Descripción | F1 macro | Exactitud balanceada | Accuracy | AUC | ECE ↓ | MCC | Fuera de rango |
+|---|---|---|---|---|---|---|---|---|
+| D0 | DINOv2 público | 0,4410 [0,3970; 0,4827] | 0,5284 [0,4750; 0,5853] | 0,5802 [0,5352; 0,6259] | 0,7599 [0,7061; 0,8146] | 0,3413 [0,3017; 0,3890] | 0,3740 [0,3144; 0,4306] | 0,3210 |
+| D1 | A* s42 limpio | 0,2443 [0,2053; 0,2824] | 0,4244 [0,3519; 0,5012] | 0,2698 [0,2230; 0,3170] | 0,7257 [0,6749; 0,7783] | 0,5592 [0,5125; 0,6034] | 0,1871 [0,1407; 0,2341] | 0,4039 |
+| D2 | D1 continuado con el pool limpio (control de cómputo) | 0,2877 [0,2458; 0,3326] | 0,4897 [0,4132; 0,5674] | 0,3333 [0,2850; 0,3811] | 0,7577 [0,7026; 0,8136] | 0,4753 [0,4316; 0,5236] | 0,2309 [0,1894; 0,2731] | 0,3422 |
+| D3 | D2 más las imágenes de `target_adapt` de PAD, sin etiquetas | 0,3693 [0,3240; 0,4173] | 0,5271 [0,4529; 0,6087] | 0,4444 [0,3941; 0,4949] | 0,7740 [0,7136; 0,8370] | 0,3183 [0,2788; 0,3670] | 0,3039 [0,2564; 0,3521] | 0,4780 |
+
+### D0-D3 (E2): contrastes pareados
+
+D3 − D2 es la predicción primaria registrada; los demás son descriptivos. Predicción primaria registrada (D3 − D2, F1 macro > 0 con IC que excluye 0): cumplida = sí (`prediction_d3_minus_d2_met` del JSON); Δ +0,0816 [+0,0525; +0,1085].
+
+| Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura |
+|---|---|---|---|---|---|
+| D3 | D2 | F1 macro | +0,0816 [+0,0525; +0,1085] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D2 | Exactitud balanceada | +0,0375 [-0,0161; +0,0875] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D2 | Accuracy | +0,1111 [+0,0755; +0,1468] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D2 | AUC OvR macro | +0,0162 [-0,0065; +0,0393] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D2 | ECE (menor es mejor) | -0,1570 [-0,1943; -0,1199] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D2 | MCC | +0,0730 [+0,0419; +0,1034] | sí | D3 mejor (el IC excluye 0) |
+| D2 | D1 | F1 macro | +0,0434 [+0,0196; +0,0682] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | Exactitud balanceada | +0,0653 [+0,0297; +0,1112] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | Accuracy | +0,0635 [+0,0366; +0,0914] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | AUC OvR macro | +0,0321 [+0,0068; +0,0593] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | ECE (menor es mejor) | -0,0838 [-0,1114; -0,0510] | sí | D2 mejor (el IC excluye 0) |
+| D2 | D1 | MCC | +0,0438 [+0,0127; +0,0752] | sí | D2 mejor (el IC excluye 0) |
+| D3 | D1 | F1 macro | +0,1250 [+0,0970; +0,1561] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | Exactitud balanceada | +0,1027 [+0,0427; +0,1740] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | Accuracy | +0,1746 [+0,1413; +0,2131] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | AUC OvR macro | +0,0483 [+0,0212; +0,0828] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | ECE (menor es mejor) | -0,2408 [-0,2812; -0,1993] | sí | D3 mejor (el IC excluye 0) |
+| D3 | D1 | MCC | +0,1168 [+0,0788; +0,1617] | sí | D3 mejor (el IC excluye 0) |
+| D1 | D0 | F1 macro | -0,1967 [-0,2304; -0,1638] | sí | D0 mejor (el IC excluye 0) |
+| D1 | D0 | Exactitud balanceada | -0,1040 [-0,1670; -0,0421] | sí | D0 mejor (el IC excluye 0) |
+| D1 | D0 | Accuracy | -0,3104 [-0,3556; -0,2643] | sí | D0 mejor (el IC excluye 0) |
+| D1 | D0 | AUC OvR macro | -0,0343 [-0,0834; +0,0051] | no | sin diferencia demostrable (el IC incluye 0) |
+| D1 | D0 | ECE (menor es mejor) | +0,2179 [+0,1684; +0,2611] | sí | D0 mejor (el IC excluye 0) |
+| D1 | D0 | MCC | -0,1869 [-0,2366; -0,1380] | sí | D0 mejor (el IC excluye 0) |
+| D2 | D0 | F1 macro | -0,1533 [-0,1893; -0,1150] | sí | D0 mejor (el IC excluye 0) |
+| D2 | D0 | Exactitud balanceada | -0,0387 [-0,1074; +0,0342] | no | sin diferencia demostrable (el IC incluye 0) |
+| D2 | D0 | Accuracy | -0,2469 [-0,2931; -0,1996] | sí | D0 mejor (el IC excluye 0) |
+| D2 | D0 | AUC OvR macro | -0,0022 [-0,0565; +0,0447] | no | sin diferencia demostrable (el IC incluye 0) |
+| D2 | D0 | ECE (menor es mejor) | +0,1341 [+0,0851; +0,1782] | sí | D0 mejor (el IC excluye 0) |
+| D2 | D0 | MCC | -0,1431 [-0,1876; -0,0941] | sí | D0 mejor (el IC excluye 0) |
+| D3 | D0 | F1 macro | -0,0717 [-0,1100; -0,0332] | sí | D0 mejor (el IC excluye 0) |
+| D3 | D0 | Exactitud balanceada | -0,0013 [-0,0671; +0,0666] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D0 | Accuracy | -0,1358 [-0,1838; -0,0874] | sí | D0 mejor (el IC excluye 0) |
+| D3 | D0 | AUC OvR macro | +0,0140 [-0,0397; +0,0579] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D0 | ECE (menor es mejor) | -0,0229 [-0,0727; +0,0265] | no | sin diferencia demostrable (el IC incluye 0) |
+| D3 | D0 | MCC | -0,0701 [-0,1188; -0,0200] | sí | D0 mejor (el IC excluye 0) |

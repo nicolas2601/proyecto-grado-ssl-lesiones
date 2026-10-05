@@ -17,16 +17,18 @@ ISIC_EVAL = "resultados/banco_completo/isic_eval"
 CANONICAL_DIR = f"{ISIC_EVAL}/limpio_canonico_bs64"
 SENSITIVITY_DIR = f"{ISIC_EVAL}/originals_bs16_transductivo"
 CANONICAL_NOTE = "cómputo canónico (batch 64 + autocast)"
+CANONICAL_CONTRASTS = ("B71__clean__vs__B71__original", "A71__clean__vs__A71__original", "B71__clean__vs__A71__clean",
+                       "B71__clean__vs__PUBLIC_B71", "A71__clean__vs__PUBLIC_A71")
 SENSITIVITY_NOTE = "sensibilidad: cómputo no canónico (batch 16)"
 VALUE_KEYS = ("accuracy", "balanced_accuracy", "macro_precision", "macro_recall", "macro_f1", "auc", "ece", "mcc")
-# (cell, label, pretraining, transductive, pending reason when the JSON is missing)
+# (cell, label, pretraining, transductive)
 CANONICAL_CELLS = (
-    ("B71__clean", "B71-limpio (canónico)", OWN_B, False, None),
-    ("A71__clean", "A71-limpio (canónico)", OWN_A, False, pending.A71_CLEAN),
-    ("PUBLIC_B71", "DINOv2 público, protocolo de B71 (canónico)", PUBLIC, False, None),
-    ("PUBLIC_A71", "DINOv2 público, protocolo de A71 (canónico)", PUBLIC, False, None),
-    ("B71__original", "B71 original (canónico)", OWN_B, True, pending.ORIGINAL_CANONICAL),
-    ("A71__original", "A71 original (canónico)", OWN_A, True, pending.ORIGINAL_CANONICAL),
+    ("B71__clean", "B71-limpio (canónico)", OWN_B, False),
+    ("A71__clean", "A71-limpio (canónico)", OWN_A, False),
+    ("PUBLIC_B71", "DINOv2 público, protocolo de B71 (canónico)", PUBLIC, False),
+    ("PUBLIC_A71", "DINOv2 público, protocolo de A71 (canónico)", PUBLIC, False),
+    ("B71__original", "B71 original (canónico)", OWN_B, True),
+    ("A71__original", "A71 original (canónico)", OWN_A, True),
 )
 SENSITIVITY_CELLS = (
     ("B71__original", "B71 original (batch 16)", OWN_B, True),
@@ -63,12 +65,12 @@ def _pending_row(ds_key: str, block: str, name: str, pre: str, trans: bool, why:
 
 def canonical_rows(repo: Path, ds_key: str) -> list[Row]:
     out = []
-    for cell, name, pre, trans, why in CANONICAL_CELLS:
+    for cell, name, pre, trans in CANONICAL_CELLS:
         rel = cell_path(CANONICAL_DIR, ds_key, cell)
         if (repo / rel).is_file():
             out.append(_measured(repo, rel, FROZEN, name, pre, trans, CANONICAL_NOTE))
         else:
-            out.append(_pending_row(ds_key, FROZEN, name, pre, trans, why))
+            out.append(_pending_row(ds_key, FROZEN, name, pre, trans, pending.missing(rel)))
     return out
 
 
