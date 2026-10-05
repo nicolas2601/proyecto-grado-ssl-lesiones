@@ -88,26 +88,26 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | # | Modelo | Preentrenamiento | Fine-tuning | Segmentación | Transductivo | Val n | Estado | Nota | Fuente |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | DINOv2 ViT-B/14 | auto-supervisado (DINOv2 público) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 3 | `resultados/banco_completo/ft_isic2020/json/results_dinov2_vitb14_ft_isic2020.json` |
+| 2 | DINOv2 ViT-S/14 | auto-supervisado (DINOv2 público) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 5 | `resultados/banco_completo/ft_isic2020/json/results_dinov2_vits14_ft_isic2020.json` |
 | — | AlexNet | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
 | — | VGG19 | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
 | — | ResNet-50 | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
 | — | EfficientNet-B0 | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
 | — | ViT-B/16 | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
 | — | SimSiam ResNet-50 | auto-supervisado (SimSiam, ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
-| — | DINOv2 ViT-S/14 | auto-supervisado (DINOv2 público) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
 
 ### Métricas [IC 95 % donde la fuente lo publica]
 
 | # | Modelo | Accuracy | Exactitud balanceada | Precisión macro | Recall macro | F1 macro | AUC OvR macro | ECE ↓ | MCC |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | DINOv2 ViT-B/14 | 0,9242 | 0,6115 [0,5725; 0,6528] | 0,5316 | 0,6115 | 0,5411 [0,5228; 0,5591] | 0,7820 | 0,2046 | 0,1187 |
+| 2 | DINOv2 ViT-S/14 | 0,8117 | 0,7392 [0,6980; 0,7804] | 0,5275 | 0,7392 | 0,5045 [0,4928; 0,5169] | 0,8301 | 0,0918 | 0,1621 |
 | — | AlexNet | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
 | — | VGG19 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
 | — | ResNet-50 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
 | — | EfficientNet-B0 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
 | — | ViT-B/16 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
 | — | SimSiam ResNet-50 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
-| — | DINOv2 ViT-S/14 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
 
 ## Sensibilidad (cómputo no canónico: batch 16, transductivo)
 
@@ -190,5 +190,5 @@ Formato: época: bal_acc en val / pérdida de entrenamiento. La curva sale de `c
 | EfficientNet-B0 | — | pendiente: el fine-tuning no ha terminado |
 | ViT-B/16 | — | pendiente: el fine-tuning no ha terminado |
 | SimSiam ResNet-50 | — | pendiente: el fine-tuning no ha terminado |
-| DINOv2 ViT-S/14 | — | pendiente: el fine-tuning no ha terminado |
+| DINOv2 ViT-S/14 | json | 1: 0,5000 / 0,6907; 2: 0,5037 / 0,5506; 3: 0,5645 / 0,5280; 4: 0,5097 / 0,5123; 5: 0,7392 / 0,4704; 6: 0,5528 / 0,4656; 7: 0,6929 / 0,4615; 8: 0,7232 / 0,4528 |
 | DINOv2 ViT-B/14 | log | 1: 0,5000 / 0,5195; 2: 0,5000 / 0,4623; 3: 0,6114 / 0,4442; 4: 0,5431 / 0,4315; 5: 0,5077 / 0,4173; 6: 0,5369 / 0,4035; 7: 0,5431 / 0,3843; 8: 0,5315 / 0,3829 |

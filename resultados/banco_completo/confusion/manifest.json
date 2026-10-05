@@ -201,6 +201,17 @@
       ]
     },
     {
+      "json": "confusion/isic2020/dinov2_vits14__finetuning.json",
+      "png": "confusion/isic2020/dinov2_vits14__finetuning.png",
+      "dataset": "ISIC 2020",
+      "modelo": "DINOv2 ViT-S/14",
+      "condicion": "fine-tuning",
+      "origen": "matriz_confusion del JSON",
+      "fuente": [
+        "resultados/banco_completo/ft_isic2020/json/results_dinov2_vits14_ft_isic2020.json"
+      ]
+    },
+    {
       "json": "confusion/isic2020/dinov2_vitb14__congelado.json",
       "png": "confusion/isic2020/dinov2_vitb14__congelado.png",
       "dataset": "ISIC 2020",
@@ -268,15 +279,6 @@
     }
   ],
   "pendientes": [
-    {
-      "dataset": "ISIC 2020",
-      "modelo": "DINOv2 ViT-S/14",
-      "condicion": "fine-tuning",
-      "estado": "pendiente",
-      "motivo": "el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2",
-      "eta": "inicio al terminar E2 (~10:30 UTC); duración no medida",
-      "fuente": "docs/33-banco-completo-multidataset.md"
-    },
     {
       "dataset": "ISIC 2020",
       "modelo": "SimSiam ResNet-50",
