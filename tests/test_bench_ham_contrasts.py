@@ -35,10 +35,12 @@ def test_f4_is_a_separate_exploratory_row_never_ranked_with_the_proposed_one():
     assert not any(r.block == R.FROZEN and "F4" in r.name for r in _rows().values())
 
 
-def test_ham_clean_cells_are_pending_with_reason_and_eta():
+def test_ham_clean_cells_are_measured_from_the_committed_val_read():
     rows = _rows()
     for name in ("B71-limpio (canónico)", "A71-limpio (canónico)"):
-        assert rows[name].status == R.PENDING and "ETA" in rows[name].note and not rows[name].values
+        r = rows[name]
+        assert r.status == R.OK and r.block == R.CLEAN_HAM and r.n_val == 2004 and set(r.values) == set(R.METRICS)
+        assert "ham_clean_val.json" in r.sources[0] and "sensibilidad posterior" in r.note
 
 
 def test_b71_is_above_every_frozen_baseline_in_the_four_variants_and_f4_in_five_of_eight():

@@ -46,9 +46,18 @@ def test_isic2020_finetune_block_is_an_explicit_not_run_row_and_originals_are_tr
     assert not any(r.transductive for r in ALL["ham10000"])
 
 
-def test_pending_rows_carry_no_numbers():
-    pending = [r for rs in ALL.values() for r in rs if r.status != R.OK]
+def test_pending_rows_carry_no_numbers(tmp_path):
+    """Nothing is pending in the committed repository; the property is checked on a copy without the HAM clean result."""
+    import shutil
+
+    from dermssl import ham_clean as hc
+
+    for folder in ("resultados", "results"):
+        shutil.copytree(REPO / folder, tmp_path / folder)
+    shutil.rmtree(tmp_path / hc.DIR)
+    pending = [r for ds in R.DATASETS.values() for r in R.dataset_rows(tmp_path, ds) if r.status != R.OK]
     assert pending and all(not r.values for r in pending)
+    assert not [r for rs in ALL.values() for r in rs if r.status != R.OK]  # and none is left in the repository itself
 
 
 def test_measured_rows_have_every_metric_and_the_source_ci():
