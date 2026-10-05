@@ -45,6 +45,14 @@ FALLBACK_RULE = (
     "Sin máscara elegible, el borde de la imagen (marco de 10 % del lado corto) es la muestra de piel, con las "
     "mismas exclusiones, abstención y ITA que el anillo; se cuenta y se reporta aparte (`no_mask_border`)."
 )
+SOURCE_224 = {
+    "resize": "cache_io.load_resized_rgb(archivo fuente, 224): PIL draft + resize bilineal a 224 x 224 sin "
+              "conservar la proporción, la misma función que construyó la caché del pool",
+    "applies_to": "imágenes sin máscara elegible cuyo original el pool no exportó (cuarentena) o que no están en el pool",
+    "limit": "no es idéntica a la imagen que habría en el pool: no se sabe si la caché del pool se construyó con "
+             "quitar-pelo (--hair-removal) ni si leyó la misma versión del archivo (p. ej. ISIC 2019 `_downsampled`); "
+             "por eso llevan el origen `source_224`, aparte de `pool_224`",
+}
 COLUMNS = ("image_id", "split", "label", "tercile", "otsu_bucket", "otsu_status", "otsu_ita", "otsu_L",
            "otsu_b", "whole_bucket", "whole_status", "whole_ita", "roi_bucket", "roi_status", "roi_ita",
            "roi_L", "roi_n_px", "roi_valid_fraction", "roi_estimator", "mask_state", "roi_image")
@@ -103,7 +111,7 @@ def _roi_definition(spec: DatasetSpec, hair_detector: dict | None) -> dict:
             "abstains_on": list(roi.STATUSES[1:]), "hair_detector": hair_detector,
             "fallback": {"estimator": "no_mask_border", "band_fraction": roi.BORDER_BAND_FRACTION,
                          "applies_to": "imágenes con máscara en cuarentena o ausente (sin máscara elegible)",
-                         "rule": FALLBACK_RULE},
+                         "rule": FALLBACK_RULE, "source_224": SOURCE_224},
             "pool_mask_reading": "PNG de la máscara del pool: píxel > 0 = lesión; misma grilla 224 × 224 que la "
                                  "imagen del pool (la imagen y la máscara se leen juntas)",
             "choices_not_registered": "ancho del anillo, umbrales de reflejo/saturación y mínimos de píxeles"}

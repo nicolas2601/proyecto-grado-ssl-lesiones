@@ -153,3 +153,8 @@ def test_the_reading_rules_say_the_isic_2020_split_only_reproduces_with_scikit_l
 
     assert any("split reproducible solo con scikit-learn 1.7.2 (guard en el loader)" in line
                for line in e5_table.READING)
+
+
+def test_the_fallback_definition_declares_that_the_source_224_is_not_the_pools_exact_image():
+    f = _build(masks=True)["estimators"]["roi"]["fallback"]
+    assert f["source_224"]["resize"].startswith("cache_io.load_resized_rgb") and "no es idéntica" in f["source_224"]["limit"]

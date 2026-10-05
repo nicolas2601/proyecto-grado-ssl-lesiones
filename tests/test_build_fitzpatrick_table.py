@@ -161,3 +161,18 @@ def test_the_header_names_the_automatic_pseudo_masks_and_the_fallback():
     head = tab.render({}).split("## HAM10000")[0]
     assert "FST estimado por ITA, NO validado (22,9 % en PAD), pseudo-máscaras automáticas" in head
     assert "no_mask_border" in head
+
+
+def test_the_table_shows_the_image_origin_per_state_and_declares_the_source_224_limit(tmp_path):
+    d = _pool_document()
+    d["report"]["estimators"]["roi"]["mask_coverage"]["image_origin_by_state"] = {
+        "c1_native": {"pool_224": 0, "source_224": 0, "canonical": 0, "none": 0},
+        "eligible": {"pool_224": 6, "source_224": 0, "canonical": 0, "none": 0},
+        "quarantine": {"pool_224": 1, "source_224": 2, "canonical": 0, "none": 0},
+        "absent": {"pool_224": 0, "source_224": 1, "canonical": 0, "none": 0}, "none": {"pool_224": 0, "source_224": 0, "canonical": 0, "none": 0}}
+    root = tmp_path / "e5"
+    root.mkdir()
+    (root / "e5_fitzpatrick_isic2020.json").write_text(doc.dump_document(d), encoding="utf-8")
+    section = tab.render(tab.load_documents(root)).split("## ISIC 2020")[1]
+    assert "Origen de la imagen del ROI" in section and "| quarantine | 1 | 2 | 3 |" in section
+    assert "No es idéntica" in section and "source_224" in section

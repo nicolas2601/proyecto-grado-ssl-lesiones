@@ -171,7 +171,16 @@ def _mask_coverage(roi: dict) -> list[str]:
     est = roi["by_estimator"]
     sha = cov["sha256_file"]
     line = " · ".join(f"{e}: {num(est[e]['n'])} imágenes" for e in ("perilesional_roi", "no_mask_border"))
+    origin = cov["image_origin_by_state"]
+    orows = [[st, *(num(origin[st][o]) for o in ("pool_224", "source_224")), num(sum(origin[st][o] for o in
+             ("pool_224", "source_224", "canonical")))] for st in states if sum(origin[st].values())]
     return ["### Cobertura de las máscaras", "", *_table(header, rows),
+            "**Origen de la imagen del ROI por estado de máscara**", "",
+            *_table(["Estado", "pool 224 (`pool_224`)", "fuente a 224 (`source_224`)", "Total"], orows),
+            "`source_224` = el archivo fuente redimensionado a 224 × 224 con la función que construyó el pool "
+            "(`cache_io.load_resized_rgb`); se usa cuando el pool no exportó el original (cuarentena) o la imagen no "
+            "está en el pool. **No es idéntica** a la imagen del pool: no se sabe si la caché del pool se construyó con "
+            "quitar-pelo ni si leyó la misma versión del archivo, por eso se cuenta aparte.", "",
             f"Estimador del ROI por imagen: {line}. Hash del archivo de máscara: coincide con el manifiesto: "
             f"{num(sha['match'])}; difiere: {num(sha['mismatch'])}; sin hash: {num(sha['not_checked'])}.", ""]
 
