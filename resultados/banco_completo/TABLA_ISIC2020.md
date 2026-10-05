@@ -87,27 +87,27 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 
 | # | Modelo | Preentrenamiento | Fine-tuning | Segmentación | Transductivo | Val n | Estado | Nota | Fuente |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | DINOv2 ViT-B/14 | auto-supervisado (DINOv2 público) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 3 | `resultados/banco_completo/ft_isic2020/json/results_dinov2_vitb14_ft_isic2020.json` |
-| 2 | DINOv2 ViT-S/14 | auto-supervisado (DINOv2 público) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 5 | `resultados/banco_completo/ft_isic2020/json/results_dinov2_vits14_ft_isic2020.json` |
-| — | AlexNet | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
-| — | VGG19 | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
-| — | ResNet-50 | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
-| — | EfficientNet-B0 | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
-| — | ViT-B/16 | supervisado (ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
-| — | SimSiam ResNet-50 | auto-supervisado (SimSiam, ImageNet) | sí | no | no | — | pendiente | el fine-tuning de los 8 baselines en ISIC 2020 corre en GPU1 después de E2; ETA inicio al terminar E2 (~10:30 UTC); duración no medida; optimista: época elegida en val (receta existente) | `docs/33-banco-completo-multidataset.md` |
+| 1 | VGG19 | supervisado (ImageNet) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 8 | `resultados/banco_completo/ft_isic2020/json/results_vgg19_ft_isic2020.json` |
+| 2 | AlexNet | supervisado (ImageNet) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 7 | `resultados/banco_completo/ft_isic2020/json/results_alexnet_ft_isic2020.json` |
+| 3 | ViT-B/16 | supervisado (ImageNet) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 3 | `resultados/banco_completo/ft_isic2020/json/results_vit_b16_ft_isic2020.json` |
+| 4 | ResNet-50 | supervisado (ImageNet) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 3 | `resultados/banco_completo/ft_isic2020/json/results_resnet50_ft_isic2020.json` |
+| 5 | EfficientNet-B0 | supervisado (ImageNet) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 2 | `resultados/banco_completo/ft_isic2020/json/results_efficientnet_b0_ft_isic2020.json` |
+| 6 | SimSiam ResNet-50 | auto-supervisado (SimSiam, ImageNet) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 8 | `resultados/banco_completo/ft_isic2020/json/results_simsiam_r50_ft_isic2020.json` |
+| 7 | DINOv2 ViT-B/14 | auto-supervisado (DINOv2 público) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 3 | `resultados/banco_completo/ft_isic2020/json/results_dinov2_vitb14_ft_isic2020.json` |
+| 8 | DINOv2 ViT-S/14 | auto-supervisado (DINOv2 público) | sí | no | no | 6.660 | ok | época elegida en val (sesgo optimista); mejor época 5 | `resultados/banco_completo/ft_isic2020/json/results_dinov2_vits14_ft_isic2020.json` |
 
 ### Métricas [IC 95 % donde la fuente lo publica]
 
 | # | Modelo | Accuracy | Exactitud balanceada | Precisión macro | Recall macro | F1 macro | AUC OvR macro | ECE ↓ | MCC |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | DINOv2 ViT-B/14 | 0,9242 | 0,6115 [0,5725; 0,6528] | 0,5316 | 0,6115 | 0,5411 [0,5228; 0,5591] | 0,7820 | 0,2046 | 0,1187 |
-| 2 | DINOv2 ViT-S/14 | 0,8117 | 0,7392 [0,6980; 0,7804] | 0,5275 | 0,7392 | 0,5045 [0,4928; 0,5169] | 0,8301 | 0,0918 | 0,1621 |
-| — | AlexNet | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
-| — | VGG19 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
-| — | ResNet-50 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
-| — | EfficientNet-B0 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
-| — | ViT-B/16 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
-| — | SimSiam ResNet-50 | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
+| 1 | VGG19 | 0,9270 | 0,7416 [0,6977; 0,7826] | 0,5628 | 0,7416 | 0,5889 [0,5667; 0,6093] | 0,8929 | 0,0463 | 0,2464 |
+| 2 | AlexNet | 0,9044 | 0,8065 [0,7661; 0,8455] | 0,5596 | 0,8065 | 0,5808 [0,5618; 0,5995] | 0,9089 | 0,0295 | 0,2703 |
+| 3 | ViT-B/16 | 0,9059 | 0,7791 [0,7343; 0,8174] | 0,5560 | 0,7791 | 0,5756 [0,5553; 0,5938] | 0,9022 | 0,0231 | 0,2500 |
+| 4 | ResNet-50 | 0,8941 | 0,7812 [0,7378; 0,8229] | 0,5509 | 0,7812 | 0,5651 [0,5471; 0,5824] | 0,9014 | 0,0192 | 0,2393 |
+| 5 | EfficientNet-B0 | 0,8683 | 0,8123 [0,7727; 0,8474] | 0,5464 | 0,8123 | 0,5509 [0,5348; 0,5664] | 0,8997 | 0,0280 | 0,2407 |
+| 6 | SimSiam ResNet-50 | 0,8691 | 0,8046 [0,7637; 0,8401] | 0,5456 | 0,8046 | 0,5500 [0,5343; 0,5649] | 0,9012 | 0,0279 | 0,2357 |
+| 7 | DINOv2 ViT-B/14 | 0,9242 | 0,6115 [0,5725; 0,6528] | 0,5316 | 0,6115 | 0,5411 [0,5228; 0,5591] | 0,7820 | 0,2046 | 0,1187 |
+| 8 | DINOv2 ViT-S/14 | 0,8117 | 0,7392 [0,6980; 0,7804] | 0,5275 | 0,7392 | 0,5045 [0,4928; 0,5169] | 0,8301 | 0,0918 | 0,1621 |
 
 ## Sensibilidad (cómputo no canónico: batch 16, transductivo)
 
@@ -184,11 +184,11 @@ Formato: época: bal_acc en val / pérdida de entrenamiento. La curva sale de `c
 
 | Modelo | Fuente de la curva | Curva |
 |---|---|---|
-| AlexNet | — | pendiente: el fine-tuning no ha terminado |
-| VGG19 | — | pendiente: el fine-tuning no ha terminado |
-| ResNet-50 | — | pendiente: el fine-tuning no ha terminado |
-| EfficientNet-B0 | — | pendiente: el fine-tuning no ha terminado |
-| ViT-B/16 | — | pendiente: el fine-tuning no ha terminado |
-| SimSiam ResNet-50 | — | pendiente: el fine-tuning no ha terminado |
+| AlexNet | json | 1: 0,7757 / 0,5030; 2: 0,7456 / 0,4440; 3: 0,7825 / 0,4146; 4: 0,7801 / 0,3881; 5: 0,8057 / 0,3586; 6: 0,7868 / 0,3216; 7: 0,8065 / 0,3041; 8: 0,7942 / 0,2962 |
+| VGG19 | json | 1: 0,5000 / 0,6923; 2: 0,5000 / 0,4523; 3: 0,5115 / 0,4108; 4: 0,5620 / 0,3919; 5: 0,6196 / 0,3661; 6: 0,7334 / 0,3443; 7: 0,7397 / 0,3337; 8: 0,7416 / 0,3233 |
+| ResNet-50 | json | 1: 0,7489 / 0,4618; 2: 0,7657 / 0,3851; 3: 0,7811 / 0,3472; 4: 0,7692 / 0,3076; 5: 0,7384 / 0,2539; 6: 0,7599 / 0,2351; 7: 0,7505 / 0,1968; 8: 0,7357 / 0,1841 |
+| EfficientNet-B0 | json | 1: 0,7466 / 0,4860; 2: 0,8123 / 0,3568; 3: 0,8009 / 0,3058; 4: 0,7690 / 0,2470; 5: 0,7260 / 0,1914; 6: 0,7161 / 0,1539; 7: 0,7268 / 0,1352; 8: 0,7249 / 0,1229 |
+| ViT-B/16 | json | 1: 0,6542 / 0,4486; 2: 0,6495 / 0,4079; 3: 0,7791 / 0,3708; 4: 0,7367 / 0,3265; 5: 0,6904 / 0,3034; 6: 0,7454 / 0,2440; 7: 0,7001 / 0,1841; 8: 0,6822 / 0,1545 |
+| SimSiam ResNet-50 | json | 1: 0,6057 / 0,5331; 2: 0,6931 / 0,4968; 3: 0,6784 / 0,4678; 4: 0,7322 / 0,4556; 5: 0,7181 / 0,4332; 6: 0,7879 / 0,4316; 7: 0,7868 / 0,4131; 8: 0,8046 / 0,3994 |
 | DINOv2 ViT-S/14 | json | 1: 0,5000 / 0,6907; 2: 0,5037 / 0,5506; 3: 0,5645 / 0,5280; 4: 0,5097 / 0,5123; 5: 0,7392 / 0,4704; 6: 0,5528 / 0,4656; 7: 0,6929 / 0,4615; 8: 0,7232 / 0,4528 |
 | DINOv2 ViT-B/14 | log | 1: 0,5000 / 0,5195; 2: 0,5000 / 0,4623; 3: 0,6114 / 0,4442; 4: 0,5431 / 0,4315; 5: 0,5077 / 0,4173; 6: 0,5369 / 0,4035; 7: 0,5431 / 0,3843; 8: 0,5315 / 0,3829 |

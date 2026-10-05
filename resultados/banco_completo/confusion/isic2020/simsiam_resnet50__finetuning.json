@@ -1,0 +1,35 @@
+{
+  "dataset": "ISIC 2020",
+  "modelo": "SimSiam ResNet-50",
+  "condicion": "fine-tuning",
+  "clases": [
+    "benigno",
+    "maligno"
+  ],
+  "n": 6660,
+  "conteos": [
+    [
+      5698,
+      840
+    ],
+    [
+      32,
+      90
+    ]
+  ],
+  "normalizada_por_fila": [
+    [
+      0.8715203426124197,
+      0.1284796573875803
+    ],
+    [
+      0.26229508196721313,
+      0.7377049180327869
+    ]
+  ],
+  "mcc": 0.23570103556775923,
+  "origen": "matriz_confusion del JSON",
+  "fuente": [
+    "resultados/banco_completo/ft_isic2020/json/results_simsiam_r50_ft_isic2020.json"
+  ]
+}
