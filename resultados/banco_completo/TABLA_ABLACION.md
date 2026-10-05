@@ -64,14 +64,14 @@ Limpio = pesos re-preentrenados sin las imágenes de val de ISIC en el pool (doc
 | HAM10000 | A71-limpio (canónico) | no | pendiente | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC |
 | ISIC 2019 | B71 original (canónico) | sí | 0,6717 [0,6436; 0,6951] | 0,6652 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2019 | B71-limpio (canónico) | no | 0,6662 [0,6401; 0,6911] | 0,6628 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2019 | A71-limpio (canónico) | no | 0,6549 [0,6278; 0,6771] | 0,6698 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2019 | A71 original (canónico) | sí | 0,6481 [0,6218; 0,6719] | 0,6649 | cómputo canónico (batch 64 + autocast) |
-| ISIC 2019 | A71-limpio (canónico) | no | pendiente | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC |
 | ISIC 2019 | B71 original (batch 16) | sí | 0,6756 [0,6482; 0,6977] | 0,6677 | sensibilidad: cómputo no canónico (batch 16); transductivo |
 | ISIC 2019 | A71 original (batch 16) | sí | 0,6522 [0,6256; 0,6759] | 0,6669 | sensibilidad: cómputo no canónico (batch 16); transductivo |
 | ISIC 2020 | A71 original (canónico) | sí | 0,6543 [0,6164; 0,6896] | 0,3166 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2020 | A71-limpio (canónico) | no | 0,6467 [0,6095; 0,6837] | 0,3040 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2020 | B71-limpio (canónico) | no | 0,6229 [0,5865; 0,6602] | 0,2506 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2020 | B71 original (canónico) | sí | 0,6136 [0,5793; 0,6501] | 0,2336 | cómputo canónico (batch 64 + autocast) |
-| ISIC 2020 | A71-limpio (canónico) | no | pendiente | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC |
 | ISIC 2020 | A71 original (batch 16) | sí | 0,6554 [0,6197; 0,6910] | 0,3196 | sensibilidad: cómputo no canónico (batch 16); transductivo |
 | ISIC 2020 | B71 original (batch 16) | sí | 0,6123 [0,5781; 0,6486] | 0,2315 | sensibilidad: cómputo no canónico (batch 16); transductivo |
 

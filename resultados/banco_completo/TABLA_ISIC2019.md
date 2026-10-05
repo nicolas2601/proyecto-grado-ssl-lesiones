@@ -48,17 +48,17 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | 1 | B71 original (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | sí | 5.067 | ok | cómputo canónico (batch 64 + autocast) | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__original.json` · `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__original.probas.npz` |
 | 2 | B71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado + término de tono, B*) | no | no | no | 5.067 | ok | cómputo canónico (batch 64 + autocast) | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__clean.json` · `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__clean.probas.npz` |
 | 3 | DINOv2 público, protocolo de B71 (canónico) | auto-supervisado (DINOv2 público) | no | no | no | 5.067 | ok | cómputo canónico (batch 64 + autocast) | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/PUBLIC_B71.json` · `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/PUBLIC_B71.probas.npz` |
-| 4 | A71 original (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | sí | 5.067 | ok | cómputo canónico (batch 64 + autocast) | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__original.json` · `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__original.probas.npz` |
-| 5 | DINOv2 público, protocolo de A71 (canónico) | auto-supervisado (DINOv2 público) | no | no | no | 5.067 | ok | cómputo canónico (batch 64 + autocast) | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/PUBLIC_A71.json` · `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/PUBLIC_A71.probas.npz` |
-| 6 | DINOv2 ViT-B/14 | auto-supervisado (DINOv2 público) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_dinov2_vitb14_isic2019.json` |
-| 7 | ViT-B/16 | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_vit_b16_isic2019.json` |
-| 8 | EfficientNet-B0 | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_efficientnet_b0_isic2019.json` |
-| 9 | DINOv2 ViT-S/14 | auto-supervisado (DINOv2 público) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_dinov2_vits14_isic2019.json` |
-| 10 | ResNet-50 | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_resnet50_isic2019.json` |
-| 11 | AlexNet | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_alexnet_isic2019.json` |
-| 12 | VGG19 | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_vgg19_isic2019.json` |
-| 13 | SimSiam ResNet-50 | auto-supervisado (SimSiam, ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_simsiam_r50_isic2019.json` |
-| — | A71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | — | pendiente | falta A* s43 limpio (GPU0 en curso); A71-limpio es la sopa de A* s42 + s43 limpios; ETA ~15:00 UTC | `docs/33-banco-completo-multidataset.md` |
+| 4 | A71-limpio (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | no | 5.067 | ok | cómputo canónico (batch 64 + autocast) | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__clean.json` · `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__clean.probas.npz` |
+| 5 | A71 original (canónico) | auto-supervisado propio (DINOv2 + SimSiam anclado sin término de tono, A*) | no | no | sí | 5.067 | ok | cómputo canónico (batch 64 + autocast) | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__original.json` · `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__original.probas.npz` |
+| 6 | DINOv2 público, protocolo de A71 (canónico) | auto-supervisado (DINOv2 público) | no | no | no | 5.067 | ok | cómputo canónico (batch 64 + autocast) | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/PUBLIC_A71.json` · `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/PUBLIC_A71.probas.npz` |
+| 7 | DINOv2 ViT-B/14 | auto-supervisado (DINOv2 público) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_dinov2_vitb14_isic2019.json` |
+| 8 | ViT-B/16 | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_vit_b16_isic2019.json` |
+| 9 | EfficientNet-B0 | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_efficientnet_b0_isic2019.json` |
+| 10 | DINOv2 ViT-S/14 | auto-supervisado (DINOv2 público) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_dinov2_vits14_isic2019.json` |
+| 11 | ResNet-50 | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_resnet50_isic2019.json` |
+| 12 | AlexNet | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_alexnet_isic2019.json` |
+| 13 | VGG19 | supervisado (ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_vgg19_isic2019.json` |
+| 14 | SimSiam ResNet-50 | auto-supervisado (SimSiam, ImageNet) | no | no | no | 5.067 | ok | — | `results/baselines_isic2019/results_simsiam_r50_isic2019.json` |
 
 ### Métricas [IC 95 % donde la fuente lo publica]
 
@@ -67,17 +67,17 @@ Orden: F1 macro de mayor a menor; las filas sin número van al final.
 | 1 | B71 original (canónico) | 0,7681 [0,7569; 0,7799] | 0,6731 [0,6429; 0,7005] | 0,6733 | 0,6731 | 0,6717 [0,6436; 0,6951] | 0,9543 [0,9499; 0,9584] | 0,0480 [0,0394; 0,0593] | 0,6652 [0,6493; 0,6817] |
 | 2 | B71-limpio (canónico) | 0,7659 [0,7543; 0,7776] | 0,6761 [0,6493; 0,7055] | 0,6586 | 0,6761 | 0,6662 [0,6401; 0,6911] | 0,9541 [0,9495; 0,9583] | 0,0498 [0,0408; 0,0609] | 0,6628 [0,6465; 0,6791] |
 | 3 | DINOv2 público, protocolo de B71 (canónico) | 0,7580 [0,7464; 0,7703] | 0,6596 [0,6308; 0,6865] | 0,6609 | 0,6596 | 0,6583 [0,6311; 0,6825] | 0,9478 [0,9421; 0,9534] | 0,0706 [0,0610; 0,0818] | 0,6474 [0,6311; 0,6641] |
-| 4 | A71 original (canónico) | 0,7697 [0,7584; 0,7805] | 0,6739 [0,6455; 0,7000] | 0,6270 | 0,6739 | 0,6481 [0,6218; 0,6719] | 0,9531 [0,9491; 0,9569] | 0,0180 [0,0166; 0,0314] | 0,6649 [0,6496; 0,6801] |
-| 5 | DINOv2 público, protocolo de A71 (canónico) | 0,7405 [0,7288; 0,7525] | 0,6444 [0,6178; 0,6732] | 0,6145 | 0,6444 | 0,6281 [0,6037; 0,6534] | 0,9373 [0,9307; 0,9433] | 0,0483 [0,0415; 0,0612] | 0,6234 [0,6068; 0,6400] |
-| 6 | DINOv2 ViT-B/14 | 0,6811 | 0,6198 [0,5906; 0,6491] | 0,5283 | 0,6198 | 0,5625 [0,5383; 0,5872] | 0,9198 | 0,1056 | 0,5583 |
-| 7 | ViT-B/16 | 0,6538 | 0,5794 [0,5512; 0,6062] | 0,4980 | 0,5794 | 0,5277 [0,5024; 0,5500] | 0,9058 | 0,1157 | 0,5230 |
-| 8 | EfficientNet-B0 | 0,6609 | 0,5754 [0,5462; 0,6031] | 0,4947 | 0,5754 | 0,5250 [0,5003; 0,5480] | 0,9106 | 0,1062 | 0,5335 |
-| 9 | DINOv2 ViT-S/14 | 0,6529 | 0,5972 [0,5678; 0,6262] | 0,4807 | 0,5972 | 0,5178 [0,4938; 0,5401] | 0,9100 | 0,0675 | 0,5236 |
-| 10 | ResNet-50 | 0,6377 | 0,5685 [0,5388; 0,5984] | 0,4635 | 0,5685 | 0,4988 [0,4736; 0,5227] | 0,9058 | 0,0956 | 0,5045 |
-| 11 | AlexNet | 0,5739 | 0,5330 [0,5034; 0,5622] | 0,3975 | 0,5330 | 0,4208 [0,4012; 0,4403] | 0,8733 | 0,0500 | 0,4357 |
-| 12 | VGG19 | 0,5583 | 0,4966 [0,4676; 0,5246] | 0,3733 | 0,4966 | 0,3909 [0,3731; 0,4074] | 0,8599 | 0,0537 | 0,4172 |
-| 13 | SimSiam ResNet-50 | 0,4784 | 0,4940 [0,4663; 0,5221] | 0,3359 | 0,4940 | 0,3286 [0,3126; 0,3434] | 0,8391 | 0,2215 | 0,3397 |
-| — | A71-limpio (canónico) | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente | pendiente |
+| 4 | A71-limpio (canónico) | 0,7730 [0,7612; 0,7839] | 0,6829 [0,6529; 0,7084] | 0,6322 | 0,6829 | 0,6549 [0,6278; 0,6771] | 0,9548 [0,9506; 0,9586] | 0,0198 [0,0155; 0,0322] | 0,6698 [0,6529; 0,6849] |
+| 5 | A71 original (canónico) | 0,7697 [0,7584; 0,7805] | 0,6739 [0,6455; 0,7000] | 0,6270 | 0,6739 | 0,6481 [0,6218; 0,6719] | 0,9531 [0,9491; 0,9569] | 0,0180 [0,0166; 0,0314] | 0,6649 [0,6496; 0,6801] |
+| 6 | DINOv2 público, protocolo de A71 (canónico) | 0,7405 [0,7288; 0,7525] | 0,6444 [0,6178; 0,6732] | 0,6145 | 0,6444 | 0,6281 [0,6037; 0,6534] | 0,9373 [0,9307; 0,9433] | 0,0483 [0,0415; 0,0612] | 0,6234 [0,6068; 0,6400] |
+| 7 | DINOv2 ViT-B/14 | 0,6811 | 0,6198 [0,5906; 0,6491] | 0,5283 | 0,6198 | 0,5625 [0,5383; 0,5872] | 0,9198 | 0,1056 | 0,5583 |
+| 8 | ViT-B/16 | 0,6538 | 0,5794 [0,5512; 0,6062] | 0,4980 | 0,5794 | 0,5277 [0,5024; 0,5500] | 0,9058 | 0,1157 | 0,5230 |
+| 9 | EfficientNet-B0 | 0,6609 | 0,5754 [0,5462; 0,6031] | 0,4947 | 0,5754 | 0,5250 [0,5003; 0,5480] | 0,9106 | 0,1062 | 0,5335 |
+| 10 | DINOv2 ViT-S/14 | 0,6529 | 0,5972 [0,5678; 0,6262] | 0,4807 | 0,5972 | 0,5178 [0,4938; 0,5401] | 0,9100 | 0,0675 | 0,5236 |
+| 11 | ResNet-50 | 0,6377 | 0,5685 [0,5388; 0,5984] | 0,4635 | 0,5685 | 0,4988 [0,4736; 0,5227] | 0,9058 | 0,0956 | 0,5045 |
+| 12 | AlexNet | 0,5739 | 0,5330 [0,5034; 0,5622] | 0,3975 | 0,5330 | 0,4208 [0,4012; 0,4403] | 0,8733 | 0,0500 | 0,4357 |
+| 13 | VGG19 | 0,5583 | 0,4966 [0,4676; 0,5246] | 0,3733 | 0,4966 | 0,3909 [0,3731; 0,4074] | 0,8599 | 0,0537 | 0,4172 |
+| 14 | SimSiam ResNet-50 | 0,4784 | 0,4940 [0,4663; 0,5221] | 0,3359 | 0,4940 | 0,3286 [0,3126; 0,3434] | 0,8391 | 0,2215 | 0,3397 |
 
 ## Con fine-tuning
 
@@ -139,12 +139,30 @@ Bootstrap pareado de 1.000 remuestras, unidad: imagen (sin grupo real). Los base
 
 | Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura | Unidad | Fuente |
 |---|---|---|---|---|---|---|---|
+| A71-limpio | A71 original | F1 macro | +0,0069 [-0,0151; +0,0280] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__A71__original.json` |
+| A71-limpio | A71 original | Exactitud balanceada | +0,0090 [-0,0127; +0,0324] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__A71__original.json` |
+| A71-limpio | A71 original | Accuracy | +0,0034 [-0,0057; +0,0122] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__A71__original.json` |
+| A71-limpio | A71 original | AUC OvR macro | +0,0017 [-0,0008; +0,0042] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__A71__original.json` |
+| A71-limpio | A71 original | ECE (menor es mejor) | +0,0018 [-0,0090; +0,0094] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__A71__original.json` |
+| A71-limpio | A71 original | MCC | +0,0049 [-0,0079; +0,0176] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__A71__original.json` |
+| A71-limpio | DINOv2 público (prot. A71) | F1 macro | +0,0268 [+0,0011; +0,0506] | sí | A71-limpio mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__PUBLIC_A71.json` |
+| A71-limpio | DINOv2 público (prot. A71) | Exactitud balanceada | +0,0385 [+0,0112; +0,0647] | sí | A71-limpio mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__PUBLIC_A71.json` |
+| A71-limpio | DINOv2 público (prot. A71) | Accuracy | +0,0326 [+0,0197; +0,0452] | sí | A71-limpio mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__PUBLIC_A71.json` |
+| A71-limpio | DINOv2 público (prot. A71) | AUC OvR macro | +0,0175 [+0,0120; +0,0235] | sí | A71-limpio mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__PUBLIC_A71.json` |
+| A71-limpio | DINOv2 público (prot. A71) | ECE (menor es mejor) | -0,0285 [-0,0414; -0,0134] | sí | A71-limpio mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__PUBLIC_A71.json` |
+| A71-limpio | DINOv2 público (prot. A71) | MCC | +0,0464 [+0,0280; +0,0636] | sí | A71-limpio mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__clean__vs__PUBLIC_A71.json` |
 | A71 original | DINOv2 público (prot. A71) | F1 macro | +0,0199 [-0,0051; +0,0438] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__original__vs__PUBLIC_A71.json` |
 | A71 original | DINOv2 público (prot. A71) | Exactitud balanceada | +0,0295 [+0,0005; +0,0551] | sí | A71 original mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__original__vs__PUBLIC_A71.json` |
 | A71 original | DINOv2 público (prot. A71) | Accuracy | +0,0292 [+0,0168; +0,0409] | sí | A71 original mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__original__vs__PUBLIC_A71.json` |
 | A71 original | DINOv2 público (prot. A71) | AUC OvR macro | +0,0158 [+0,0108; +0,0215] | sí | A71 original mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__original__vs__PUBLIC_A71.json` |
 | A71 original | DINOv2 público (prot. A71) | ECE (menor es mejor) | -0,0303 [-0,0406; -0,0135] | sí | A71 original mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__original__vs__PUBLIC_A71.json` |
 | A71 original | DINOv2 público (prot. A71) | MCC | +0,0415 [+0,0238; +0,0571] | sí | A71 original mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/A71__original__vs__PUBLIC_A71.json` |
+| B71-limpio | A71-limpio | F1 macro | +0,0112 [-0,0131; +0,0369] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__A71__clean.json` |
+| B71-limpio | A71-limpio | Exactitud balanceada | -0,0068 [-0,0338; +0,0187] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__A71__clean.json` |
+| B71-limpio | A71-limpio | Accuracy | -0,0071 [-0,0180; +0,0039] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__A71__clean.json` |
+| B71-limpio | A71-limpio | AUC OvR macro | -0,0007 [-0,0042; +0,0030] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__A71__clean.json` |
+| B71-limpio | A71-limpio | ECE (menor es mejor) | +0,0301 [+0,0132; +0,0414] | sí | A71-limpio mejor (el IC excluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__A71__clean.json` |
+| B71-limpio | A71-limpio | MCC | -0,0070 [-0,0219; +0,0084] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__A71__clean.json` |
 | B71-limpio | B71 original | F1 macro | -0,0055 [-0,0232; +0,0155] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__B71__original.json` |
 | B71-limpio | B71 original | Exactitud balanceada | +0,0030 [-0,0161; +0,0245] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__B71__original.json` |
 | B71-limpio | B71 original | Accuracy | -0,0022 [-0,0116; +0,0079] | no | sin diferencia demostrable (el IC incluye 0) | image | `resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__clean__vs__B71__original.json` |

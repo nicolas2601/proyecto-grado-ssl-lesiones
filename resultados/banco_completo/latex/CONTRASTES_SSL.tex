@@ -361,20 +361,36 @@ DINOv2 público (mejor prot. v7.1) & DINOv2 público (v7) & AUC de melanoma & +0
 \end{longtable}
 \endgroup
 
-\begin{table}[ht]
-\centering
-\scriptsize
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}llllll@{}}
+\begingroup\scriptsize
+\begin{longtable}{@{}llllll@{}}
+\caption{ISIC 2019: canónico (batch 64 + autocast)}\label{tab:contrast-isic2019-canon} \\
 \toprule
 Brazo & Control & Métrica & $\Delta$ (brazo $-$ control) [IC 95 \%] & El IC excluye 0 & Lectura \\
 \midrule
+A71-limpio & A71 original & F1 macro & +0,0069 [-0,0151; +0,0280] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & Exactitud balanceada & +0,0090 [-0,0127; +0,0324] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & Accuracy & +0,0034 [-0,0057; +0,0122] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & AUC OvR macro & +0,0017 [-0,0008; +0,0042] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & ECE (menor es mejor) & +0,0018 [-0,0090; +0,0094] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & MCC & +0,0049 [-0,0079; +0,0176] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & F1 macro & +0,0268 [+0,0011; +0,0506] & sí & A71-limpio mejor (el IC excluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & Exactitud balanceada & +0,0385 [+0,0112; +0,0647] & sí & A71-limpio mejor (el IC excluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & Accuracy & +0,0326 [+0,0197; +0,0452] & sí & A71-limpio mejor (el IC excluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & AUC OvR macro & +0,0175 [+0,0120; +0,0235] & sí & A71-limpio mejor (el IC excluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & ECE (menor es mejor) & -0,0285 [-0,0414; -0,0134] & sí & A71-limpio mejor (el IC excluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & MCC & +0,0464 [+0,0280; +0,0636] & sí & A71-limpio mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & F1 macro & +0,0199 [-0,0051; +0,0438] & no & sin diferencia demostrable (el IC incluye 0) \\
 A71 original & DINOv2 público (prot. A71) & Exactitud balanceada & +0,0295 [+0,0005; +0,0551] & sí & A71 original mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & Accuracy & +0,0292 [+0,0168; +0,0409] & sí & A71 original mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & AUC OvR macro & +0,0158 [+0,0108; +0,0215] & sí & A71 original mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & ECE (menor es mejor) & -0,0303 [-0,0406; -0,0135] & sí & A71 original mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & MCC & +0,0415 [+0,0238; +0,0571] & sí & A71 original mejor (el IC excluye 0) \\
+B71-limpio & A71-limpio & F1 macro & +0,0112 [-0,0131; +0,0369] & no & sin diferencia demostrable (el IC incluye 0) \\
+B71-limpio & A71-limpio & Exactitud balanceada & -0,0068 [-0,0338; +0,0187] & no & sin diferencia demostrable (el IC incluye 0) \\
+B71-limpio & A71-limpio & Accuracy & -0,0071 [-0,0180; +0,0039] & no & sin diferencia demostrable (el IC incluye 0) \\
+B71-limpio & A71-limpio & AUC OvR macro & -0,0007 [-0,0042; +0,0030] & no & sin diferencia demostrable (el IC incluye 0) \\
+B71-limpio & A71-limpio & ECE (menor es mejor) & +0,0301 [+0,0132; +0,0414] & sí & A71-limpio mejor (el IC excluye 0) \\
+B71-limpio & A71-limpio & MCC & -0,0070 [-0,0219; +0,0084] & no & sin diferencia demostrable (el IC incluye 0) \\
 B71-limpio & B71 original & F1 macro & -0,0055 [-0,0232; +0,0155] & no & sin diferencia demostrable (el IC incluye 0) \\
 B71-limpio & B71 original & Exactitud balanceada & +0,0030 [-0,0161; +0,0245] & no & sin diferencia demostrable (el IC incluye 0) \\
 B71-limpio & B71 original & Accuracy & -0,0022 [-0,0116; +0,0079] & no & sin diferencia demostrable (el IC incluye 0) \\
@@ -400,9 +416,8 @@ B71 original & DINOv2 público (prot. B71) & AUC OvR macro & +0,0065 [+0,0024; +
 B71 original & DINOv2 público (prot. B71) & ECE (menor es mejor) & -0,0226 [-0,0331; -0,0101] & sí & B71 original mejor (el IC excluye 0) \\
 B71 original & DINOv2 público (prot. B71) & MCC & +0,0178 [+0,0003; +0,0353] & sí & B71 original mejor (el IC excluye 0) \\
 \bottomrule
-\end{tabular}}
-\caption{ISIC 2019: canónico (batch 64 + autocast)}\label{tab:contrast-isic2019-canon}
-\end{table}
+\end{longtable}
+\endgroup
 
 \begin{table}[ht]
 \centering
@@ -435,20 +450,36 @@ B71 original & DINOv2 público (prot. B71) & MCC & +0,0206 [+0,0036; +0,0376] & 
 \caption{ISIC 2019: sensibilidad (batch 16, transductivo)}\label{tab:contrast-isic2019-sens}
 \end{table}
 
-\begin{table}[ht]
-\centering
-\scriptsize
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}llllll@{}}
+\begingroup\scriptsize
+\begin{longtable}{@{}llllll@{}}
+\caption{ISIC 2020: canónico (batch 64 + autocast)}\label{tab:contrast-isic2020-canon} \\
 \toprule
 Brazo & Control & Métrica & $\Delta$ (brazo $-$ control) [IC 95 \%] & El IC excluye 0 & Lectura \\
 \midrule
+A71-limpio & A71 original & F1 macro & -0,0076 [-0,0311; +0,0161] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & Exactitud balanceada & -0,0011 [-0,0295; +0,0291] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & Accuracy & -0,0021 [-0,0058; +0,0016] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & AUC OvR macro & +0,0062 [-0,0072; +0,0219] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & ECE (menor es mejor) & +0,0008 [-0,0023; +0,0048] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & A71 original & MCC & -0,0126 [-0,0581; +0,0337] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & F1 macro & +0,0497 [+0,0145; +0,0837] & sí & A71-limpio mejor (el IC excluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & Exactitud balanceada & +0,0701 [+0,0225; +0,1208] & sí & A71-limpio mejor (el IC excluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & Accuracy & +0,0033 [-0,0016; +0,0077] & no & sin diferencia demostrable (el IC incluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & AUC OvR macro & +0,0762 [+0,0444; +0,1078] & sí & A71-limpio mejor (el IC excluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & ECE (menor es mejor) & +0,0220 [+0,0153; +0,0281] & sí & DINOv2 público (prot. A71) mejor (el IC excluye 0) \\
+A71-limpio & DINOv2 público (prot. A71) & MCC & +0,1042 [+0,0324; +0,1757] & sí & A71-limpio mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & F1 macro & +0,0573 [+0,0214; +0,0896] & sí & A71 original mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & Exactitud balanceada & +0,0711 [+0,0249; +0,1174] & sí & A71 original mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & Accuracy & +0,0054 [+0,0006; +0,0105] & sí & A71 original mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & AUC OvR macro & +0,0700 [+0,0371; +0,1054] & sí & A71 original mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & ECE (menor es mejor) & +0,0212 [+0,0143; +0,0264] & sí & DINOv2 público (prot. A71) mejor (el IC excluye 0) \\
 A71 original & DINOv2 público (prot. A71) & MCC & +0,1168 [+0,0451; +0,1828] & sí & A71 original mejor (el IC excluye 0) \\
+B71-limpio & A71-limpio & F1 macro & -0,0238 [-0,0597; +0,0091] & no & sin diferencia demostrable (el IC incluye 0) \\
+B71-limpio & A71-limpio & Exactitud balanceada & -0,0440 [-0,0929; -0,0008] & sí & A71-limpio mejor (el IC excluye 0) \\
+B71-limpio & A71-limpio & Accuracy & +0,0005 [-0,0043; +0,0052] & no & sin diferencia demostrable (el IC incluye 0) \\
+B71-limpio & A71-limpio & AUC OvR macro & -0,0327 [-0,0595; -0,0102] & sí & A71-limpio mejor (el IC excluye 0) \\
+B71-limpio & A71-limpio & ECE (menor es mejor) & -0,0228 [-0,0293; -0,0154] & sí & B71-limpio mejor (el IC excluye 0) \\
+B71-limpio & A71-limpio & MCC & -0,0534 [-0,1272; +0,0139] & no & sin diferencia demostrable (el IC incluye 0) \\
 B71-limpio & B71 original & F1 macro & +0,0093 [-0,0224; +0,0409] & no & sin diferencia demostrable (el IC incluye 0) \\
 B71-limpio & B71 original & Exactitud balanceada & +0,0052 [-0,0391; +0,0461] & no & sin diferencia demostrable (el IC incluye 0) \\
 B71-limpio & B71 original & Accuracy & +0,0023 [-0,0016; +0,0064] & no & sin diferencia demostrable (el IC incluye 0) \\
@@ -474,9 +505,8 @@ B71 original & DINOv2 público (prot. B71) & AUC OvR macro & -0,0261 [-0,0636; +
 B71 original & DINOv2 público (prot. B71) & ECE (menor es mejor) & -0,0003 [-0,0048; +0,0034] & no & sin diferencia demostrable (el IC incluye 0) \\
 B71 original & DINOv2 público (prot. B71) & MCC & +0,0652 [+0,0015; +0,1315] & sí & B71 original mejor (el IC excluye 0) \\
 \bottomrule
-\end{tabular}}
-\caption{ISIC 2020: canónico (batch 64 + autocast)}\label{tab:contrast-isic2020-canon}
-\end{table}
+\end{longtable}
+\endgroup
 
 \begin{table}[ht]
 \centering
