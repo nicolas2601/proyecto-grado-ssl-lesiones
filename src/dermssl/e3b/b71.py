@@ -77,3 +77,19 @@ def check_against_e3_final(probas: dict, final: dict, y_val, *, mel: int) -> dic
         theirs = final["rows"][row]["macro_f1"]
         compared[arm] = {"e3b": ours, "e3_final": theirs, "delta": ours - theirs}
     return {"matches": all(abs(c["delta"]) <= TOLERANCE for c in compared.values()), "compared": compared}
+
+
+def check_descriptors(e3_dir: Path, split: str, mine: np.ndarray) -> None:
+    """E3's stored descriptors of ``split`` must equal the ones this run computed (NaN = empty mask)."""
+    theirs = st.FeatureReader(Path(e3_dir) / "features").load(split, "descriptors")
+    if theirs.shape != mine.shape or not np.allclose(theirs, mine, rtol=1e-7, atol=1e-9, equal_nan=True):
+        raise E3FeaturesMismatchError(f"{split}: los descriptores de esta corrida no son los que E3 guardo")
+
+
+def check_fallbacks(e3_dir: Path, split: str, flags: np.ndarray) -> None:
+    """The crop-view fallback flags must equal the ``crop_view`` column E3 stored for the same masks."""
+    from dermssl.e3b import views  # noqa: PLC0415
+
+    theirs = np.asarray(st.FeatureReader(Path(e3_dir) / "features").load(split, "fallbacks"))[:, views.FALLBACK_COLUMN]
+    if theirs.shape != flags.shape or not np.array_equal(theirs, flags):
+        raise E3FeaturesMismatchError(f"{split}: los recortes que caen al full no son los de E3 (otras masks o ids)")

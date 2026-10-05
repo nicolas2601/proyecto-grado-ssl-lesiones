@@ -20,6 +20,11 @@ ADOPTED_VARIANT = "F4"
 SELECTION_FILE = "resultados/banco_completo/e3/e3_selection.json"
 MODELS = bank.MODELS
 FEATURE_DIMS = bank.FEATURE_DIMS
+WEIGHTS_SOURCE = {
+    **bank.TIMM_HF_TAGS,
+    "alexnet": "torchvision AlexNet_Weights.IMAGENET1K_V1",
+    "simsiam_r50": bank.SIMSIAM_CHECKPOINT_URL,  # FAIR SimSiam, ImageNet-1k, 100 epochs, no labels
+}
 CONDITIONS = ("full", "crop_view")  # the parts of F4 (e3_variants.PARTS["F4"])
 ARMS = ("full", ADOPTED_VARIANT)
 RESOLUTION = bank.RESOLUTION

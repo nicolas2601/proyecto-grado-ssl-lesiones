@@ -170,7 +170,6 @@ def load_isic2020(csv_path: Path, image_dir: Path, expected: SplitExpectation = 
 
 LOADERS = {"isic2019": (load_isic2019, "ISIC_2019_Training_GroundTruth.csv"),
            "isic2020": (load_isic2020, "train-metadata.csv")}
-EXPECTED = {"isic2019": ISIC2019_EXPECTED, "isic2020": ISIC2020_EXPECTED}
 
 
 def limited(ds: EvalDataset, n: int | None) -> EvalDataset:
