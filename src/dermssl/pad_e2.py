@@ -29,6 +29,10 @@ from dermssl.isic_eval import scoring
 ARMS = ("D0", "D1", "D2", "D3")
 PRIMARY = ("D3", "D2")
 CONTRASTS = (PRIMARY, ("D2", "D1"), ("D1", "D0"), ("D3", "D1"), ("D3", "D0"), ("D2", "D0"))
+REHEARSAL_ARMS = ("D0", "D1")
+REHEARSAL_CONTRASTS = (("D1", "D0"),)
+REHEARSAL_WARNING = ("ENSAYO DE PLOMERIA sobre target_adapt: la metrica NO se reporta ni se usa para elegir ni "
+                     "decidir nada; se descarta. El E2 real corre despues sobre target_test con el lock.")
 READING = "primary"
 BATCH_SIZE = 64
 N_RESAMPLES, RNG_SEED = scoring.N_RESAMPLES, scoring.SEED
@@ -48,6 +52,10 @@ class NonCanonicalComputeError(E2Error):
 
 class RunMismatchError(E2Error):
     """The D runs do not share the recipe the contrast assumes."""
+
+
+class RehearsalOutputError(E2Error):
+    """A rehearsal result may only be written under a ``*rehearsal*`` directory, never under ``resultados/``."""
 
 
 class ImageChangedError(E2Error):
@@ -92,29 +100,35 @@ def _arm(y, proba, groups, classes, n_resamples: int) -> dict:
             "bootstrap": {"n_resamples": n_resamples, "seed": RNG_SEED, "unit": "patient_id"}}
 
 
-def evaluate(ham_labels, groups, probas7: dict, *, n_resamples: int = N_RESAMPLES) -> dict:
-    """Arms and paired contrasts on the primary reading; ``probas7`` are the probe's seven HAM columns."""
+def evaluate(ham_labels, groups, probas7: dict, *, n_resamples: int = N_RESAMPLES, arms: tuple = ARMS,
+             contrasts: tuple = CONTRASTS) -> dict:
+    """Arms and paired contrasts on the primary reading; ``probas7`` are the probe's seven HAM columns.
+
+    The defaults are the real E2 (D0..D3, D3 - D2 primary); the rehearsal passes two arms and no D3 - D2.
+    """
     mask, y = pr.targets(ham_labels, READING)
     g, classes = np.asarray(groups)[mask], list(pu.READINGS[READING])
-    raw = {arm: np.asarray(probas7[arm])[mask] for arm in ARMS}
+    raw = {arm: np.asarray(probas7[arm])[mask] for arm in arms}
     probas = {arm: pr.restrict(p, READING) for arm, p in raw.items()}
-    arms = {arm: _arm(y, probas[arm], g, classes, n_resamples) for arm in ARMS}  # before the contrasts: typed abort
-    paired = [row for arm, control in CONTRASTS
+    scored = {arm: _arm(y, probas[arm], g, classes, n_resamples) for arm in arms}  # before the contrasts: typed abort
+    paired = [row for arm, control in contrasts
               for row in scoring.contrasts(arm, control, y, probas[arm], probas[control], groups=g,
                                            n_resamples=n_resamples)]
-    primary = next(r for r in paired if (r["arm"], r["control"], r["metric"]) == (*PRIMARY, "macro_f1"))
-    return {"reading": READING, "classes": classes, "n_images": int(len(y)), "n_patients": int(len(set(g))),
-            "bootstrap": {"n_resamples": n_resamples, "rng_seed": RNG_SEED, "paired": True, "unit": "patient_id"},
-            "arms": arms,
-            "paired": paired, "primary_contrast": primary,
-            "prediction_d3_minus_d2_met": primary["direction"] == "arm_better",
-            "outside_rate": {arm: pr.outside_rate(raw[arm], READING) for arm in ARMS}}
+    result = {"reading": READING, "classes": classes, "n_images": int(len(y)), "n_patients": int(len(set(g))),
+              "bootstrap": {"n_resamples": n_resamples, "rng_seed": RNG_SEED, "paired": True, "unit": "patient_id"},
+              "arms": scored, "paired": paired}
+    if PRIMARY in contrasts:
+        primary = next(r for r in paired if (r["arm"], r["control"], r["metric"]) == (*PRIMARY, "macro_f1"))
+        result |= {"primary_contrast": primary, "prediction_d3_minus_d2_met": primary["direction"] == "arm_better"}
+    return result | {"outside_rate": {arm: pr.outside_rate(raw[arm], READING) for arm in arms}}
 
 
-def _verified_paths(rows: list[dict], pad_root: Path) -> dict[str, Path]:
-    """Every manifest image re-hashed; a changed file aborts before the lock is taken."""
+def _verified_paths(rows: list[dict], pad_root: Path, only: set[str] | None = None) -> dict[str, Path]:
+    """Manifest images re-hashed (``only`` restricts them); a changed file aborts before the lock is taken."""
     paths = {}
     for row in rows:
+        if only is not None and row["img_id"] not in only:
+            continue
         path = Path(pad_root) / row["path"]
         if pf.sha256_of(path) != row["sha256"]:
             raise ImageChangedError(f"{row['img_id']}: el archivo cambio desde el manifiesto")
@@ -129,8 +143,8 @@ def _freeze(out: Path, ids: list[str], probas7: dict) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _check_shapes(probas7: dict, n: int) -> None:
-    bad = {arm: np.shape(probas7.get(arm)) for arm in ARMS if np.shape(probas7.get(arm)) != (n, len(pr.HAM_CLASSES))}
+def _check_shapes(probas7: dict, n: int, arms: tuple = ARMS) -> None:
+    bad = {arm: np.shape(probas7.get(arm)) for arm in arms if np.shape(probas7.get(arm)) != (n, len(pr.HAM_CLASSES))}
     if bad:
         raise E2Error(f"probabilidades con forma distinta de ({n}, {len(pr.HAM_CLASSES)}): {bad}")
 
@@ -150,3 +164,32 @@ def run_single_evaluation(split_path: Path, rows: list[dict], pad_root: Path, pr
     groups = np.array([by_id[i]["patient_id"] for i in ids])
     return {**(provenance or {}), "target_test_sha256": ts.ids_sha256(ids), "n_target_test_images": len(ids),
             "probas_sha256": probas_sha, **evaluate(labels, groups, probas7, n_resamples=n_resamples)}
+
+
+def check_rehearsal_output(out) -> None:
+    """The result goes under a ``*rehearsal*`` directory with ``rehearsal`` in its name, never under ``resultados``."""
+    path = Path(out)
+    if "rehearsal" not in path.name or "rehearsal" not in path.parent.name or "resultados" in path.parts:
+        raise RehearsalOutputError(
+            f"{out}: un ensayo solo se escribe en un directorio *rehearsal* con 'rehearsal' en el nombre, "
+            "y nunca dentro de resultados/")
+
+
+def run_rehearsal(split_path: Path, rows: list[dict], pad_root: Path, predict: Predict, out: Path, *,
+                  n_resamples: int = N_RESAMPLES, provenance: dict | None = None) -> dict:
+    """Plumbing rehearsal on ``target_adapt``: D0 and D1, same pipeline, no lock, ``target_test`` untouched."""
+    out = Path(out)
+    check_rehearsal_output(out)
+    ids = ts.read_target_adapt_ids(split_path)
+    paths = _verified_paths(rows, pad_root, only=set(ids))
+    probas7 = predict(ids, {i: paths[i] for i in ids})
+    _check_shapes(probas7, len(ids), REHEARSAL_ARMS)
+    probas_sha = _freeze(out, ids, probas7)
+    by_id = {row["img_id"]: row for row in rows}
+    labels = np.array([by_id[i]["ham_label"] for i in ids])
+    groups = np.array([by_id[i]["patient_id"] for i in ids])
+    marks = {"rehearsal": True, "split": "target_adapt", "discard": True, "warning": REHEARSAL_WARNING}
+    return {**(provenance or {}), **marks, "target_adapt_sha256": ts.ids_sha256(ids),
+            "n_target_adapt_images": len(ids), "probas_sha256": probas_sha,
+            **evaluate(labels, groups, probas7, n_resamples=n_resamples, arms=REHEARSAL_ARMS,
+                       contrasts=REHEARSAL_CONTRASTS)}
