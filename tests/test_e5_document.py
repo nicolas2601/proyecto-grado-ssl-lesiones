@@ -127,3 +127,22 @@ def test_dump_refuses_nan_instead_of_writing_invalid_json():
     d["report"]["x"] = float("nan")
     with pytest.raises(ValueError):
         doc.dump_document(d)
+
+
+def test_the_caveat_names_the_estimator_the_validation_and_the_automatic_masks():
+    assert "FST estimado por ITA, NO validado (22,9 % en PAD), pseudo-máscaras automáticas" in _build()["caveat"]
+
+
+def test_the_per_image_table_says_which_roi_estimator_and_mask_state_each_image_got():
+    rec = _record(0, "train", "mel", "II", 40.0)
+    rec["roi"].update({"estimator": "no_mask_border", "mask_state": "quarantine", "roi_image": "pool_224"})
+    rec["tercile"] = "dark"
+    columns, rows = doc.per_image_rows([rec])
+    row = dict(zip(columns, rows[0], strict=True))
+    assert (row["roi_estimator"], row["mask_state"], row["roi_image"]) == ("no_mask_border", "quarantine", "pool_224")
+
+
+def test_the_roi_definition_states_the_fallback_and_the_pool_mask_reading():
+    r = _build(masks=True)["estimators"]["roi"]
+    assert r["fallback"]["estimator"] == "no_mask_border" and r["fallback"]["band_fraction"] == roi.BORDER_BAND_FRACTION
+    assert "cuarentena" in r["fallback"]["applies_to"] and "> 0" in r["pool_mask_reading"]

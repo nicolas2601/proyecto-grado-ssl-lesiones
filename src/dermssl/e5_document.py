@@ -23,6 +23,7 @@ ROUND_DIGITS = 4
 SCHEMA = "e5_fitzpatrick/1"
 PLAN_DOC = "docs/33-banco-completo-multidataset.md"
 CAVEAT = (
+    "FST estimado por ITA, NO validado (22,9 % en PAD), pseudo-máscaras automáticas. "
     "Descriptivo y NO está validado: los buckets I-VI son la salida del estimador ITA con umbrales fijos, no "
     "el fototipo Fitzpatrick. Ese estimador acierta 22,9 % frente a 51,3 % de la baseline de mayoría en "
     "PAD-UFES-20 (Alipour et al., Skin Research and Technology 32(8):e70374, 2026, PMC13459198; docs/20, "
@@ -40,9 +41,13 @@ ROI_RULE = (
     "mínimo 3 px, el mismo anillo de la variante F5 de E3) sin los píxeles de pelo, reflejos, saturados o del "
     "borde negro; mediana de L* y b* de lo que queda y el mismo ITA y umbrales que el estimador de Otsu."
 )
+FALLBACK_RULE = (
+    "Sin máscara elegible, el borde de la imagen (marco de 10 % del lado corto) es la muestra de piel, con las "
+    "mismas exclusiones, abstención y ITA que el anillo; se cuenta y se reporta aparte (`no_mask_border`)."
+)
 COLUMNS = ("image_id", "split", "label", "tercile", "otsu_bucket", "otsu_status", "otsu_ita", "otsu_L",
            "otsu_b", "whole_bucket", "whole_status", "whole_ita", "roi_bucket", "roi_status", "roi_ita",
-           "roi_L", "roi_n_px", "roi_valid_fraction")
+           "roi_L", "roi_n_px", "roi_valid_fraction", "roi_estimator", "mask_state", "roi_image")
 
 
 class MissingHairDetector(ValueError):
@@ -69,7 +74,8 @@ def _row(rec: dict) -> list:
     o, w, r = rec["otsu"], rec["whole_image"], rec["roi"]
     values = (rec["image_id"], rec["split"], rec["label"], rec["tercile"], o["bucket"], o["status"], o["ita"],
               o["L_median"], o["b_median"], w["bucket"], w["status"], w["ita"], r["bucket"], r["status"],
-              r["ita"], r["L_median"], r["n_px"], r["valid_fraction"])
+              r["ita"], r["L_median"], r["n_px"], r["valid_fraction"], r.get("estimator"), r.get("mask_state"),
+              r.get("roi_image"))
     return [_round(v) for v in values]
 
 
@@ -95,6 +101,11 @@ def _roi_definition(spec: DatasetSpec, hair_detector: dict | None) -> dict:
             "specular_min_L": roi.SPECULAR_MIN_L, "specular_max_chroma": roi.SPECULAR_MAX_CHROMA,
             "min_valid_px": roi.MIN_RING_VALID_PX, "min_valid_fraction": roi.MIN_RING_VALID_FRACTION,
             "abstains_on": list(roi.STATUSES[1:]), "hair_detector": hair_detector,
+            "fallback": {"estimator": "no_mask_border", "band_fraction": roi.BORDER_BAND_FRACTION,
+                         "applies_to": "imágenes con máscara en cuarentena o ausente (sin máscara elegible)",
+                         "rule": FALLBACK_RULE},
+            "pool_mask_reading": "PNG de la máscara del pool: píxel > 0 = lesión; misma grilla 224 × 224 que la "
+                                 "imagen del pool (la imagen y la máscara se leen juntas)",
             "choices_not_registered": "ancho del anillo, umbrales de reflejo/saturación y mínimos de píxeles"}
 
 
