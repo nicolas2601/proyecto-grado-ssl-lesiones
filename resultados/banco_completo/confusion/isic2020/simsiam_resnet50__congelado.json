@@ -1,0 +1,35 @@
+{
+  "dataset": "ISIC 2020",
+  "modelo": "SimSiam ResNet-50",
+  "condicion": "congelado",
+  "clases": [
+    "benigno",
+    "maligno"
+  ],
+  "n": 6660,
+  "conteos": [
+    [
+      4912,
+      1626
+    ],
+    [
+      27,
+      95
+    ]
+  ],
+  "normalizada_por_fila": [
+    [
+      0.7513000917711838,
+      0.24869990822881616
+    ],
+    [
+      0.22131147540983606,
+      0.7786885245901639
+    ]
+  ],
+  "mcc": 0.16235249482495667,
+  "origen": "matriz_confusion del JSON",
+  "fuente": [
+    "results/baselines_isic2020/results_simsiam_r50_isic2020.json"
+  ]
+}
