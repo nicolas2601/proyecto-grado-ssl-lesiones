@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dermssl.bench import metrics
 from dermssl.bench.rows import V71_JSON, Dataset, _load
 
 CLASSES_ES = {"benign": "benigno", "malignant": "maligno"}

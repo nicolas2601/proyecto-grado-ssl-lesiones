@@ -9,11 +9,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from dermssl.bench import pending
-from dermssl.bench.contrast import interval, num
+from dermssl.bench.contrast import num
 from dermssl.bench.ham_rows import COMPUTES, E3_DIR
-from dermssl.bench.contrasts_load import ROBUSTNESS, SEED_FILES
+from dermssl.bench.contrasts_load import ROBUSTNESS
 from dermssl.bench.render import cell
-from dermssl.bench.rows import (DATASETS, FROZEN, METRICS, OK, SENSITIVITY, V71_JSON, V71_NPZ, Value, _load,
+from dermssl.bench.rows import (DATASETS, FROZEN, OK, SENSITIVITY, V71_JSON, V71_NPZ, Value, _load,
                                 dataset_rows, v71_derived)
 from dermssl.bench.tables import Table
 
