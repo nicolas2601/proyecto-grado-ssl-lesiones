@@ -34,7 +34,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 
 from dermssl.data_resolver import find_files, index_images
-from dermssl.finetune import jobs, protocol, split_guard
+from dermssl.finetune import jobs, loading, protocol, split_guard
 from dermssl.finetune.config import FinetuneConfig, weight_source
 from dermssl.finetune.tracking import CompositeTracker
 
@@ -230,23 +230,12 @@ class FTDataset(Dataset):
 
 
 def build_transforms(interp):
+    """Reference (tensor) pipeline; the runner uses loading.build_worker_transforms,
+    which is pinned bit-identical to this one by tests/test_finetune_loading.py."""
     res, mean, std = protocol.RESOLUTION, protocol.IMAGENET_MEAN, protocol.IMAGENET_STD
-    train = transforms.Compose([
-        transforms.Resize(int(res * 1.14), interpolation=interp),
-        transforms.RandomCrop(res),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
-        transforms.ColorJitter(0.1, 0.1, 0.05),
-        transforms.ToTensor(),
-        transforms.Normalize(mean, std),
-    ])
-    evaluate = transforms.Compose([
-        transforms.Resize(int(res * 1.14), interpolation=interp),
-        transforms.CenterCrop(res),
-        transforms.ToTensor(),
-        transforms.Normalize(mean, std),
-    ])
-    return train, evaluate
+    tail = [transforms.ToTensor(), transforms.Normalize(mean, std)]
+    return (transforms.Compose([*loading.pil_ops(True, interp), *tail]),
+            transforms.Compose([*loading.pil_ops(False, interp), *tail]))
 
 
 # --------------------------------------------------------------------------
@@ -355,14 +344,14 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
         p.requires_grad = True
     net = FTNet(backbone, dim, n).to(device)
 
-    tf_train, tf_eval = build_transforms(interp)
+    tf_train, tf_eval = loading.build_worker_transforms(interp)
     batch = cfg.effective_batch
     dl_tr = DataLoader(FTDataset(data.tr_ids, data.paths, data.id2label, tf_train),
                        batch_size=batch, shuffle=True, num_workers=cfg.num_workers,
-                       pin_memory=True, drop_last=True)
+                       collate_fn=loading.collate_uint8, drop_last=True)
     dl_va = DataLoader(FTDataset(data.va_ids, data.paths, data.id2label, tf_eval),
                        batch_size=batch, shuffle=False, num_workers=cfg.num_workers,
-                       pin_memory=True)
+                       collate_fn=loading.collate_uint8)
 
     counts = np.bincount(data.y_tr, minlength=n).astype(float)
     class_w = torch.tensor(counts.sum() / (n * counts), dtype=torch.float32, device=device)
@@ -389,8 +378,8 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
         net.train()
         running, seen = 0.0, 0
         for xb, yb in dl_tr:
-            xb = xb.to(device, non_blocking=True)
-            yb = yb.to(device, non_blocking=True)
+            xb = loading.to_model_input(xb, device)
+            yb = loading.to_labels(yb, device)
             optimizer.zero_grad(set_to_none=True)
             with torch.autocast(device_type=device.type, dtype=amp_dtype,
                                 enabled=amp_dtype is not None):
@@ -407,7 +396,7 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
             for xb, _ in dl_va:
                 with torch.autocast(device_type=device.type, dtype=amp_dtype,
                                     enabled=amp_dtype is not None):
-                    out = net(xb.to(device, non_blocking=True))
+                    out = net(loading.to_model_input(xb, device))
                 preds.append(out.float().argmax(1).cpu().numpy())
         ba = balanced_accuracy_score(data.y_va, np.concatenate(preds))
         if ba > best_ba:
@@ -425,7 +414,7 @@ def run(cfg: FinetuneConfig, tracker: CompositeTracker) -> Path:
     probs = []
     with torch.no_grad():
         for xb, _ in dl_va:
-            out = net(xb.to(device, non_blocking=True))
+            out = net(loading.to_model_input(xb, device))
             probs.append(torch.softmax(out.float(), 1).cpu().numpy())
     proba_va = np.concatenate(probs)
     metrics = all_metrics(data.y_va, proba_va, data.classes, cfg.seed)
