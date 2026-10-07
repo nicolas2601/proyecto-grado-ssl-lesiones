@@ -81,3 +81,7 @@ salidas/
 
 # The bench reads these epoch logs; a global *.log ignore once kept them out of the repo (see tests/test_bench_inputs_versioned.py)
 !resultados/banco_completo/ft_isic2020/logs/*.epochs.log
+
+# Thesis figures: the PNG exports (and the pod-side cases of figure 3) are deliverables, not build noise (see tests/test_figures_outputs_versioned.py)
+!resultados/figuras/*.png
+!resultados/figuras/fuentes/*.npz
