@@ -101,3 +101,10 @@ def test_a_cases_file_that_misses_a_case_is_refused(tmp_path):
     np.savez_compressed(npz, **kept)
     with pytest.raises(f3.CasesMismatchError):
         f3.build(REPO, tmp_path, cases_npz=npz)
+
+
+def test_figure_3_keeps_the_width_and_text_size_of_figure_1_so_the_typography_matches_on_the_page():
+    import fig1_ita as f1  # noqa: PLC0415
+
+    assert f3.WIDTH == f1.WIDTH_IN and f3.TEXT_PT == f1.TEXT_PT
+    assert f3.NOTE_PT < f3.TEXT_PT  # annotations stay one step below ticks, labels and legend
