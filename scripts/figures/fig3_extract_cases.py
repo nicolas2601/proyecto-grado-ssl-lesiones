@@ -35,7 +35,7 @@ INPUTS = {
     "ham10000": (POD / "eval_ham10000_images", POD / "masks_eval/ham10000/HAM10000_segmentations_lesion_tschandl"),
     "isic2018": (POD / "datos_isic2018/ISIC2018_Task1-2_Training_Input", POD / "masks_eval/isic2018/ground_truth"),
 }
-DICE_TOLERANCE = 1e-3  # GPU bf16 inference is not bit-reproducible across runs; the committed Dice must still match
+DICE_TOLERANCE = 1e-4  # the re-inferred Dice of every case must match the committed CSV (lead's requirement)
 NPZ_NAME, PROVENANCE_NAME = "fig3_casos.npz", "fig3_casos.provenance.json"
 
 

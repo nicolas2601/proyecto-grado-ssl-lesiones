@@ -66,3 +66,38 @@ def test_distribution_summary_matches_the_csv_and_ids_are_shared_between_segment
         assert row["median"] == pytest.approx(np.median(values)) and row["p10"] == pytest.approx(np.percentile(values, 10))
     for dataset in ("ham10000", "isic2018"):
         assert set(_dice(EXPECTED_CSV[("student_r3", dataset)])) == set(_dice(EXPECTED_CSV[("A2", dataset)]))
+
+
+def _synthetic_npz(path: Path) -> None:
+    """Six fake cases (test only, never committed): a disc as the lesion and shifted discs as the predictions."""
+    yy, xx = np.mgrid[:224, :224]
+    disc = lambda dx: ((yy - 112) ** 2 + (xx - 112 - dx) ** 2 < 50**2).astype(np.uint8)  # noqa: E731
+    arrays = {}
+    for case in f3.select_cases(REPO):
+        base = f"{case['dataset']}__{case['image_id']}"
+        arrays[f"{base}__image"] = np.full((224, 224, 3), 200, dtype=np.uint8)
+        arrays[f"{base}__reference"] = disc(0)
+        arrays[f"{base}__student_r3"], arrays[f"{base}__A2"] = disc(8), disc(-8)
+    np.savez_compressed(path, **arrays)
+
+
+def test_build_without_the_pod_cases_draws_panel_a_only_and_says_so(tmp_path):
+    result = f3.build(REPO, tmp_path, cases_npz=tmp_path / "missing.npz")
+    assert result["panel_b"] is False
+    assert {p.suffix for p in result["paths"]} == {".pdf", ".svg", ".png"} and all(p.is_file() for p in result["paths"])
+
+
+def test_build_with_the_pod_cases_adds_the_qualitative_panel(tmp_path):
+    npz = tmp_path / "casos.npz"
+    _synthetic_npz(npz)
+    result = f3.build(REPO, tmp_path, cases_npz=npz)
+    assert result["panel_b"] is True and all(p.is_file() for p in result["paths"])
+
+
+def test_a_cases_file_that_misses_a_case_is_refused(tmp_path):
+    npz = tmp_path / "casos.npz"
+    _synthetic_npz(npz)
+    kept = {k: v for k, v in np.load(npz).items() if "isic2018" not in k}
+    np.savez_compressed(npz, **kept)
+    with pytest.raises(f3.CasesMismatchError):
+        f3.build(REPO, tmp_path, cases_npz=npz)
