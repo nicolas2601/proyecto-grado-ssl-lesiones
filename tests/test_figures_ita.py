@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import json
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
+from PIL import Image
+from matplotlib import colors as mcolors
 
 mpl = pytest.importorskip("matplotlib")
 mpl.use("Agg")
@@ -81,8 +86,83 @@ def test_bucket_on_a_threshold_goes_to_the_darker_one():
     assert [fig1.bucket_of(v, th) for v in (41, 40, 23, 12, 0, -25, -26)] == ["I", "II", "III", "IV", "V", "VI", "VI"]
 
 
+def test_bucket_colours_are_stable_sequential_cream_to_dark_brown():
+    fills, edges = fig1.bucket_palette()
+    assert dict(zip(fig1.BUCKETS, map(mcolors.to_hex, fills))) == {
+        "I": "#f5ead5", "II": "#e2caaa", "III": "#cb9e73",
+        "IV": "#ad7854", "V": "#784c34", "VI": "#3b2924",
+    }
+    assert len(set(map(mcolors.to_hex, fills))) == len(fig1.BUCKETS)
+    assert all(mcolors.to_hex(edge) != mcolors.to_hex(fill) for edge, fill in zip(edges, fills))
+    assert all(_luminance(a) > _luminance(b) for a, b in zip(fills, fills[1:]))
+    assert fig1.ABSTENTION_FILL == "#7e7e7e" and fig1.ABSTENTION_EDGE == "#4e4e4e"
+
+
+def _luminance(value):
+    channels = mcolors.to_rgb(value)
+    linear = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in channels]
+    return sum(weight * channel for weight, channel in zip((0.2126, 0.7152, 0.0722), linear))
+
+
+def test_direct_labels_remain_readable_on_every_bucket_and_abstention():
+    fills, _ = fig1.bucket_palette()
+    for fill in [*fills, fig1.ABSTENTION_FILL]:
+        text = fig1._text_color(fill)
+        lights = sorted((_luminance(fill), _luminance(text)))
+        assert (lights[1] + 0.05) / (lights[0] + 0.05) >= 4.5
+
+
+def test_ita_bands_are_subtle_and_labels_do_not_treat_a_dataset_as_one_bucket():
+    import matplotlib.pyplot as plt
+
+    data = fig1.figure_data(REPO)
+    fig, ax = plt.subplots()
+    fills, _ = fig1.bucket_palette()
+    fig1._panel_distribution(ax, data, fills)
+    assert len(ax.patches[:6]) == 6
+    assert all(patch.get_alpha() <= 0.18 for patch in ax.patches[:6])
+    assert all(label.get_text() not in fig1.DATASET_LABELS.values() for label in ax.texts)
+    assert [label.get_text() for label in ax.texts] == list(fig1.BUCKETS)
+    assert all((1.0 + 0.05) / (_luminance(label.get_color()) + 0.05) >= 4.5 for label in ax.texts)
+    assert "no validada" in fig1.NOTE and "convención visual" in fig1.NOTE
+    plt.close(fig)
+
+
+def test_abstention_uses_gray_not_a_skin_tone_and_legend_names_all_buckets():
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    fig1._panel_buckets(ax, fig1.figure_data(REPO), *fig1.bucket_palette())
+    legend = [text.get_text() for text in ax.get_legend().get_texts()]
+    assert legend == [*fig1.BUCKETS, fig1.ABSTENTION]
+    assert mcolors.to_hex(ax.patches[-1].get_facecolor()) == fig1.ABSTENTION_FILL
+    plt.close(fig)
+
+
 def test_build_writes_pdf_svg_and_png(tmp_path):
     paths = fig1.build(REPO, tmp_path)
     assert sorted(p.name for p in paths) == ["fig1_ita.pdf", "fig1_ita.png", "fig1_ita.svg"]
     assert all(p.is_file() and p.stat().st_size > 0 for p in paths)
     assert "no validada de fototipo" in next(p for p in paths if p.suffix == ".svg").read_text()
+    assert all(line == line.rstrip() for line in next(p for p in paths if p.suffix == ".svg").read_text().splitlines())
+
+
+def test_pdf_svg_and_png_show_the_same_seven_legend_colours_and_plot(tmp_path):
+    assert shutil.which("pdftoppm") and shutil.which("rsvg-convert"), "vector rasterizers are needed for cross-format comparison"
+    fig1.build(REPO, tmp_path)
+    subprocess.run(["pdftoppm", "-f", "1", "-singlefile", "-scale-to-x", "1200", "-scale-to-y", "-1",
+                    "-png", str(tmp_path / "fig1_ita.pdf"), str(tmp_path / "pdf")], check=True)
+    subprocess.run(["rsvg-convert", "-w", "1200", "-o", str(tmp_path / "svg.png"),
+                    str(tmp_path / "fig1_ita.svg")], check=True)
+    formats = [tmp_path / "fig1_ita.png", tmp_path / "pdf.png", tmp_path / "svg.png"]
+    height = Image.open(formats[1]).height
+    assert Image.open(formats[2]).size == (1200, height)
+    images = [np.asarray(Image.open(path).convert("RGB").resize((1200, height), Image.Resampling.LANCZOS),
+                         dtype=np.int16) for path in formats]
+    swatches = [*fig1.BUCKET_FILLS, fig1.ABSTENTION_FILL]
+    for image in images:
+        for hex_color in swatches:
+            rgb = np.array(mcolors.to_rgb(hex_color)) * 255
+            assert np.count_nonzero(np.max(np.abs(image - rgb), axis=2) < 15) >= 300, hex_color
+    for one, two in ((0, 1), (0, 2), (1, 2)):
+        assert np.abs(images[one] - images[two]).mean() < 12, (formats[one], formats[two])

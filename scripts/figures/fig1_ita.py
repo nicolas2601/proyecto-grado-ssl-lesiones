@@ -33,15 +33,19 @@ BUCKETS = ("I", "II", "III", "IV", "V", "VI")
 E5_DIR = Path("resultados") / "banco_completo" / "e5"
 STEM = "fig1_ita"
 OUTDIR = Path("resultados") / "figuras"
-NOTE = "ITA: estimación no validada de fototipo"
+NOTE = "ITA: estimación no validada de fototipo; colores: convención visual, no diagnóstico clínico"
 ABSTENTION = "abstención"
 
 WIDTH_IN, HEIGHT_IN = 16, 8
 TEXT_PT = 17  # apply_style(16) gives 32 pt, too large for a 2-panel 16 x 8 in figure; sizes are lowered after it
 MIN_LABEL_PCT = 11.0
 GAP_PCT = 0.35  # white gap between stacked segments, about 2 px at 300 dpi on this layout
-RAMP_LIGHT_MIX = 0.22  # share of the palette dark purple in the lightest bucket (rest is white); VI is the full edge purple
+# Visual convention for ordinal ITA estimates only, NOT validated Fitzpatrick phenotypes.
+# Drawn without any reference photograph or racial descriptor. The violins stay dataset-coloured.
+BUCKET_FILLS = ("#f5ead5", "#e2caaa", "#cb9e73", "#ad7854", "#784c34", "#3b2924")
+ABSTENTION_FILL, ABSTENTION_EDGE = "#7e7e7e", "#4e4e4e"
 EDGE_DARKEN = 0.72
+BAND_ALPHA = 0.14
 
 
 def source_files(repo: Path) -> list[Path]:
@@ -101,17 +105,25 @@ def _mix(color: str, other: str, share: float) -> tuple[float, float, float]:
 
 
 def bucket_palette() -> tuple[list, list]:
-    """One-hue ramp (Purple Teal purple), light to dark in bucket order, with darker edges of the same hue."""
-    edge = bf.EDGES[0]
-    n = len(BUCKETS) - 1
-    fills = [_mix(edge, "white", RAMP_LIGHT_MIX + (1 - RAMP_LIGHT_MIX) * i / n) for i in range(len(BUCKETS))]
-    edges = [_mix(f, "black", EDGE_DARKEN) for f in fills]
+    """Stable ordinal cream-to-dark-brown ramp for visual ITA buckets I–VI; these are not clinical skin types."""
+    fills = [mcolors.to_rgb(color) for color in BUCKET_FILLS]
+    edges = [_mix(color, "black", EDGE_DARKEN) for color in BUCKET_FILLS]
     return fills, edges
 
 
+def _relative_luminance(color) -> float:
+    """WCAG relative luminance; select ink for readable direct labels, not based on an eyeballed threshold."""
+    rgb = mcolors.to_rgb(color)
+    linear = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in rgb]
+    return sum(weight * value for weight, value in zip((0.2126, 0.7152, 0.0722), linear))
+
+
 def _text_color(fill) -> str:
-    r, g, b = mcolors.to_rgb(fill)
-    return "white" if 0.299 * r + 0.587 * g + 0.114 * b < 0.55 else "#222222"
+    luminance = _relative_luminance(fill)
+    dark = _relative_luminance("#111111")
+    white_contrast = 1.05 / (luminance + 0.05)
+    dark_contrast = (luminance + 0.05) / (dark + 0.05)
+    return "white" if white_contrast >= dark_contrast else "#111111"
 
 
 def _band_edges(thresholds: list[float], lo: float, hi: float) -> list[tuple[str, float, float]]:
@@ -120,15 +132,15 @@ def _band_edges(thresholds: list[float], lo: float, hi: float) -> list[tuple[str
     return [(b, low, up) for b, low, up in zip(BUCKETS, lowers, uppers)]
 
 
-def _panel_distribution(ax, data: dict, fills, edges) -> None:
+def _panel_distribution(ax, data: dict, fills) -> None:
     thresholds = data["thresholds"]
     values = [data[d]["itas"] for d in DATASETS]
     lo = min(min(v) for v in values) - 5
     hi = max(max(v) for v in values) + 5
-    for (bucket, low, up), fill, i in zip(_band_edges(thresholds, lo, hi), fills, range(len(BUCKETS))):
-        ax.axhspan(low, up, color=fill, alpha=0.28, linewidth=0, zorder=0)
+    for (bucket, low, up), fill in zip(_band_edges(thresholds, lo, hi), fills):
+        ax.axhspan(low, up, color=fill, alpha=BAND_ALPHA, linewidth=0, zorder=0)
         ax.text(1.01, (max(low, lo) + min(up, hi)) / 2, bucket, transform=ax.get_yaxis_transform(),
-                va="center", ha="left", fontsize=TEXT_PT, color=edges[i])
+                va="center", ha="left", fontsize=TEXT_PT, color="#333333")
     positions = range(1, len(DATASETS) + 1)
     parts = ax.violinplot(values, positions=positions, widths=0.8, showextrema=False)
     for body in parts["bodies"]:
@@ -154,7 +166,7 @@ def _panel_distribution(ax, data: dict, fills, edges) -> None:
 
 def _panel_buckets(ax, data: dict, fills, edges) -> None:
     ypos = list(range(len(DATASETS)))[::-1]
-    colors = [*zip(fills, edges), (bf.FILLS[1], bf.EDGES[1])]
+    colors = [*zip(fills, edges), (ABSTENTION_FILL, ABSTENTION_EDGE)]
     names = [*BUCKETS, "abstention"]
     for y, dataset in zip(ypos, DATASETS):
         left = 0.0
@@ -186,11 +198,14 @@ def build(repo: Path, outdir: Path | None = None) -> list[Path]:
     plt.rcParams.update({k: TEXT_PT for k in ("font.size", "axes.labelsize", "xtick.labelsize", "ytick.labelsize", "legend.fontsize")})
     fills, edges = bucket_palette()
     fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(WIDTH_IN, HEIGHT_IN), gridspec_kw={"width_ratios": [1.15, 1.2], "wspace": 0.5})
-    _panel_distribution(ax_a, data, fills, edges)
+    _panel_distribution(ax_a, data, fills)
     _panel_buckets(ax_b, data, fills, edges)
     for ax, letter in ((ax_a, "(a)"), (ax_b, "(b)")):
         ax.text(-0.02, 1.10, letter, transform=ax.transAxes, fontsize=TEXT_PT + 2, fontweight="bold", va="bottom", ha="right")
     paths = bf.save_all(fig, STEM, Path(outdir) if outdir else repo / OUTDIR)
+    svg = next(path for path in paths if path.suffix == ".svg")
+    svg.write_text("\n".join(line.rstrip() for line in svg.read_text(encoding="utf-8").splitlines()) + "\n",
+                   encoding="utf-8")
     bf.close(fig)
     return paths
 
