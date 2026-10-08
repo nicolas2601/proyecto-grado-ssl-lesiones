@@ -128,6 +128,7 @@ def test_ita_bands_are_subtle_and_labels_do_not_treat_a_dataset_as_one_bucket():
     assert all(np.ptp(fill[:3]) < 1e-6 for fill in violin_fills)  # monochrome gray; ITA classes are encoded by the bands
     assert all(label.get_text() not in fig1.DATASET_LABELS.values() for label in ax.texts)
     assert [label.get_text() for label in ax.texts] == list(fig1.BUCKETS)
+    assert all(label.get_position()[0] == pytest.approx(0.03) and label.get_ha() == "left" for label in ax.texts)
     assert all((1.0 + 0.05) / (_luminance(label.get_color()) + 0.05) >= 4.5 for label in ax.texts)
     assert "no validada" in fig1.NOTE and "convención visual" in fig1.NOTE
     plt.close(fig)
@@ -144,6 +145,12 @@ def test_abstention_uses_gray_not_a_skin_tone_and_legend_names_all_buckets():
     assert all(ax.patches[index].get_hatch() == fig1.ABSTENTION_HATCH for index in (6, 13, 20))
     assert ax.get_legend().legend_handles[-1].get_hatch() == fig1.ABSTENTION_HATCH
     plt.close(fig)
+
+
+def test_figure_compacts_inter_panel_space_and_wraps_the_caveat():
+    assert fig1.WSPACE <= 0.2
+    assert len(fig1.NOTE.splitlines()) == 2
+    assert max(map(len, fig1.NOTE.splitlines())) <= 50
 
 
 def test_build_writes_pdf_svg_and_png(tmp_path):

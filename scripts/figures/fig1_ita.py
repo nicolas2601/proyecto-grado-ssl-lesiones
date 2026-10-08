@@ -33,11 +33,12 @@ BUCKETS = ("I", "II", "III", "IV", "V", "VI")
 E5_DIR = Path("resultados") / "banco_completo" / "e5"
 STEM = "fig1_ita"
 OUTDIR = Path("resultados") / "figuras"
-NOTE = "ITA: estimación no validada de fototipo; colores: convención visual, no diagnóstico clínico"
+NOTE = "ITA: estimación no validada de fototipo.\nI–VI = convención visual, no diagnóstico clínico"
 ABSTENTION = "abstención"
 ABSTENTION_KEY = "abstention"
 
 WIDTH_IN, HEIGHT_IN = 16, 8
+WSPACE = 0.16  # tighter panel gap; the band labels sit just outside panel (a)
 TEXT_PT = 17  # apply_style(16) gives 32 pt, too large for a 2-panel 16 x 8 in figure; sizes are lowered after it
 MIN_LABEL_PCT = 11.0
 GAP_PCT = 0.35  # white gap between stacked segments, about 2 px at 300 dpi on this layout
@@ -144,7 +145,7 @@ def _panel_distribution(ax, data: dict, fills) -> None:
     hi = max(max(v) for v in values) + 5
     for (bucket, low, up), fill in zip(_band_edges(thresholds, lo, hi), fills):
         ax.axhspan(low, up, color=fill, alpha=BAND_ALPHA, linewidth=0, zorder=0)
-        ax.text(1.01, (max(low, lo) + min(up, hi)) / 2, bucket, transform=ax.get_yaxis_transform(),
+        ax.text(0.03, (max(low, lo) + min(up, hi)) / 2, bucket, transform=ax.get_yaxis_transform(),
                 va="center", ha="left", fontsize=TEXT_PT, color="#333333")
     positions = range(1, len(DATASETS) + 1)
     parts = ax.violinplot(values, positions=positions, widths=0.8, showextrema=False)
@@ -203,7 +204,7 @@ def build(repo: Path, outdir: Path | None = None) -> list[Path]:
     bf.apply_style(width=WIDTH_IN)
     plt.rcParams.update({k: TEXT_PT for k in ("font.size", "axes.labelsize", "xtick.labelsize", "ytick.labelsize", "legend.fontsize")})
     fills, edges = bucket_palette()
-    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(WIDTH_IN, HEIGHT_IN), gridspec_kw={"width_ratios": [1.15, 1.2], "wspace": 0.5})
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(WIDTH_IN, HEIGHT_IN), gridspec_kw={"width_ratios": [1.15, 1.2], "wspace": WSPACE})
     _panel_distribution(ax_a, data, fills)
     _panel_buckets(ax_b, data, fills, edges)
     for ax, letter in ((ax_a, "(a)"), (ax_b, "(b)")):
