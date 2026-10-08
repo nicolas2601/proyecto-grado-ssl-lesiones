@@ -29,7 +29,11 @@ import beautiful as bf  # noqa: E402
 
 DATASETS = ("ham10000", "isic2019", "isic2020")
 DATASET_LABELS = {"ham10000": "HAM10000", "isic2019": "ISIC 2019", "isic2020": "ISIC 2020"}
+DATASET_COLORS = {"ham10000": "#B77E71", "isic2019": "#9B8060", "isic2020": "#79563F"}
 BUCKETS = ("I", "II", "III", "IV", "V", "VI")
+BUCKET_FILLS = ("#F4EDE6", "#F0E8DF", "#E6D8CB", "#D5BDAB", "#C4AA95", "#B6967E")
+# Digitized from the representative swatches in the user-provided skin-color-volume figure; not published HEX standards.
+BUCKET_BAR_FILLS = ("#E4D3B4", "#D6BFA8", "#A48E72", "#836E50", "#573E30", "#392D24")
 E5_DIR = Path("resultados") / "banco_completo" / "e5"
 STEM = "fig1_ita"
 OUTDIR = Path("resultados") / "figuras"
@@ -38,20 +42,16 @@ ABSTENTION = "abstención"
 ABSTENTION_KEY = "abstention"
 
 WIDTH_IN, HEIGHT_IN = 16, 8
-WSPACE = 0.16  # tighter panel gap; the band labels sit just outside panel (a)
+WSPACE = 0.36  # reserve a real gutter for panel (b)'s multi-line dataset labels
 TEXT_PT = 17  # apply_style(16) gives 32 pt, too large for a 2-panel 16 x 8 in figure; sizes are lowered after it
 MIN_LABEL_PCT = 11.0
 GAP_PCT = 0.35  # white gap between stacked segments, about 2 px at 300 dpi on this layout
 # Visual convention for ordinal ITA estimates only, NOT validated Fitzpatrick phenotypes.
-# Drawn without any reference photograph or racial descriptor. The violins stay dataset-coloured.
-BUCKET_FILLS = ("#c2a68e", "#b88a64", "#ad713b", "#89562f", "#664126", "#3b2819")
-ABSTENTION_FILL, ABSTENTION_EDGE = "#7e7e7e", "#4e4e4e"
-ABSTENTION_HATCH = "///"  # print/achromatopsia channel; gray alone can match the ITA-III ramp step
-NEUTRAL_VIOLIN_FILL = "#d8d8d8"  # the mark is a dataset distribution, not a Fitzpatrick class
-NEUTRAL_VIOLIN_EDGE = "#666666"
-NEUTRAL_BOX_FILL = "#777777"
-EDGE_DARKEN = 0.72
-BAND_ALPHA = 0.14
+# Dataset colors identify distributions; bucket colors encode ITA bands only.
+ABSTENTION_FILL, ABSTENTION_EDGE = "#faf9f7", "#aaa39e"
+EDGE_DARKEN = 0.28
+BAND_ALPHA = 1.0
+FIGURE_BACKGROUND = "#faf9f7"
 
 
 def source_files(repo: Path) -> list[Path]:
@@ -110,10 +110,24 @@ def _mix(color: str, other: str, share: float) -> tuple[float, float, float]:
     return tuple(share * x + (1 - share) * y for x, y in zip(a, b))
 
 
-def bucket_palette() -> tuple[list, list]:
-    """Stable ordinal cream-to-dark-brown ramp for visual ITA buckets I–VI; these are not clinical skin types."""
+def dataset_palette() -> tuple[list, list]:
+    """Stable, color-vision-safe identity colors for the three datasets."""
+    fills = [mcolors.to_rgb(DATASET_COLORS[dataset]) for dataset in DATASETS]
+    edges = [_mix(color, "black", EDGE_DARKEN) for color in (DATASET_COLORS[d] for d in DATASETS)]
+    return fills, edges
+
+
+def band_palette() -> tuple[list, list]:
+    """Paula's pale ITA-band backgrounds for panel (a)."""
     fills = [mcolors.to_rgb(color) for color in BUCKET_FILLS]
     edges = [_mix(color, "black", EDGE_DARKEN) for color in BUCKET_FILLS]
+    return fills, edges
+
+
+def bucket_palette() -> tuple[list, list]:
+    """Original cream-to-brown bar ramp for panel (b)."""
+    fills = [mcolors.to_rgb(color) for color in BUCKET_BAR_FILLS]
+    edges = [_mix(color, "black", 0.72) for color in BUCKET_BAR_FILLS]
     return fills, edges
 
 
@@ -143,22 +157,25 @@ def _panel_distribution(ax, data: dict, fills) -> None:
     values = [data[d]["itas"] for d in DATASETS]
     lo = min(min(v) for v in values) - 5
     hi = max(max(v) for v in values) + 5
+    ax.set_facecolor(FIGURE_BACKGROUND)
     for (bucket, low, up), fill in zip(_band_edges(thresholds, lo, hi), fills):
         ax.axhspan(low, up, color=fill, alpha=BAND_ALPHA, linewidth=0, zorder=0)
-        ax.text(0.03, (max(low, lo) + min(up, hi)) / 2, bucket, transform=ax.get_yaxis_transform(),
-                va="center", ha="left", fontsize=TEXT_PT, color="#333333")
+        ax.text(1 / 3, (max(low, lo) + min(up, hi)) / 2, bucket, transform=ax.get_yaxis_transform(),
+                va="center", ha="center", fontsize=TEXT_PT - 3, color="#333333")
     positions = range(1, len(DATASETS) + 1)
+    dataset_fills, dataset_edges = dataset_palette()
     parts = ax.violinplot(values, positions=positions, widths=0.8, showextrema=False)
-    for body in parts["bodies"]:
-        body.set_facecolor(NEUTRAL_VIOLIN_FILL)
-        body.set_edgecolor(NEUTRAL_VIOLIN_EDGE)
-        body.set_alpha(0.42)
-        body.set_linewidth(1.0)
+    for body, fill, edge in zip(parts["bodies"], dataset_fills, dataset_edges):
+        body.set_facecolor(fill)
+        body.set_edgecolor(edge)
+        body.set_alpha(0.76)
+        body.set_linewidth(1.2)
     box = ax.boxplot(values, positions=list(positions), widths=0.14, showfliers=False, patch_artist=True,
-                     medianprops={"color": "white", "linewidth": 1.6}, whiskerprops={"color": NEUTRAL_VIOLIN_EDGE, "linewidth": 1.0},
-                     capprops={"color": NEUTRAL_VIOLIN_EDGE, "linewidth": 1.0}, boxprops={"linewidth": 1.0})
-    for patch in box["boxes"]:
-        patch.set(facecolor=NEUTRAL_BOX_FILL, edgecolor=NEUTRAL_VIOLIN_EDGE)
+                     medianprops={"color": "#111111", "linewidth": 1.6},
+                     whiskerprops={"color": "#655444", "linewidth": 1.0},
+                     capprops={"color": "#655444", "linewidth": 1.0}, boxprops={"linewidth": 1.0})
+    for patch, fill, edge in zip(box["boxes"], dataset_fills, dataset_edges):
+        patch.set(facecolor=fill, edgecolor=edge)
     ax.set_xticks(list(positions))
     ax.set_xticklabels([f"{DATASET_LABELS[d].replace(' ', chr(10))}\nn = {bf.fmt_es(data[d]['n_ita'], 0)}" for d in DATASETS])
     ax.set_ylim(lo, hi)
@@ -168,9 +185,14 @@ def _panel_distribution(ax, data: dict, fills) -> None:
     bf.style_axes(ax)
     ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
     ax.grid(False, axis="x")
+    handles = [mpatches.Patch(facecolor=fill, edgecolor=edge, linewidth=1.0)
+               for fill, edge in zip(dataset_fills, dataset_edges)]
+    bf.top_legend(ax, handles, [DATASET_LABELS[d] for d in DATASETS], ncol=3,
+                  handlelength=1.0, handletextpad=0.4, columnspacing=0.8, fontsize=TEXT_PT - 4)
 
 
 def _panel_buckets(ax, data: dict, fills, edges) -> None:
+    ax.set_facecolor(FIGURE_BACKGROUND)
     ypos = list(range(len(DATASETS)))[::-1]
     colors = [*zip(fills, edges), (ABSTENTION_FILL, ABSTENTION_EDGE)]
     names = [*BUCKETS, ABSTENTION_KEY]
@@ -178,22 +200,23 @@ def _panel_buckets(ax, data: dict, fills, edges) -> None:
         left = 0.0
         for name, (fill, edge) in zip(names, colors):
             pct = data[dataset]["fractions"][name] * 100
-            ax.barh(y, max(pct - GAP_PCT, 0), left=left + GAP_PCT / 2, height=0.6, color=fill, edgecolor=edge,
-                    linewidth=1.0, zorder=3, hatch=ABSTENTION_HATCH if name == ABSTENTION_KEY else None)
+            ax.barh(y, max(pct - GAP_PCT, 0), left=left + GAP_PCT / 2, height=0.6, color=fill,
+                    edgecolor=edge, linewidth=1.0, zorder=3)
             if pct >= MIN_LABEL_PCT:
                 ax.text(left + pct / 2, y, f"{bf.fmt_es(pct, 0)} %", ha="center", va="center", zorder=4,
                         fontsize=TEXT_PT - 2, color=_text_color(fill))
             left += pct
     ax.set_yticks(ypos)
     ax.set_yticklabels([f"{DATASET_LABELS[d]}\nN = {bf.fmt_es(data[d]['n_total'], 0)}" for d in DATASETS])
+    ax.tick_params(axis="y", labelsize=TEXT_PT - 3, pad=8)
     ax.set_xlim(0, 100)
     ax.set_xlabel("% de todas las imágenes")
     ax.xaxis.set_major_formatter(lambda v, _: bf.fmt_es(v, 0))
     bf.style_axes(ax)
     ax.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
     ax.grid(False, axis="y")
-    handles = [mpatches.Patch(facecolor=f, edgecolor=e, linewidth=1.0,
-                              hatch=ABSTENTION_HATCH if name == ABSTENTION_KEY else None) for name, (f, e) in zip(names, colors)]
+    handles = [mpatches.Patch(facecolor=fill, edgecolor=edge, linewidth=1.0)
+               for fill, edge in colors]
     bf.top_legend(ax, handles, [*BUCKETS, ABSTENTION], ncol=7, handlelength=1.0, handletextpad=0.4, columnspacing=0.9)
     ax.text(0.0, -0.2, NOTE, transform=ax.transAxes, fontsize=TEXT_PT - 2, style="italic", va="top")
 
@@ -203,10 +226,13 @@ def build(repo: Path, outdir: Path | None = None) -> list[Path]:
     data = figure_data(repo)
     bf.apply_style(width=WIDTH_IN)
     plt.rcParams.update({k: TEXT_PT for k in ("font.size", "axes.labelsize", "xtick.labelsize", "ytick.labelsize", "legend.fontsize")})
-    fills, edges = bucket_palette()
-    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(WIDTH_IN, HEIGHT_IN), gridspec_kw={"width_ratios": [1.15, 1.2], "wspace": WSPACE})
-    _panel_distribution(ax_a, data, fills)
-    _panel_buckets(ax_b, data, fills, edges)
+    band_fills, _ = band_palette()
+    bar_fills, bar_edges = bucket_palette()
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(WIDTH_IN, HEIGHT_IN),
+                                    gridspec_kw={"width_ratios": [1.15, 1.2], "wspace": WSPACE},
+                                    facecolor=FIGURE_BACKGROUND)
+    _panel_distribution(ax_a, data, band_fills)
+    _panel_buckets(ax_b, data, bar_fills, bar_edges)
     for ax, letter in ((ax_a, "(a)"), (ax_b, "(b)")):
         ax.text(-0.02, 1.10, letter, transform=ax.transAxes, fontsize=TEXT_PT + 2, fontweight="bold", va="bottom", ha="right")
     paths = bf.save_all(fig, STEM, Path(outdir) if outdir else repo / OUTDIR)

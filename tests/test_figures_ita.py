@@ -89,13 +89,13 @@ def test_bucket_on_a_threshold_goes_to_the_darker_one():
 def test_bucket_colours_are_stable_sequential_cream_to_dark_brown():
     fills, edges = fig1.bucket_palette()
     assert dict(zip(fig1.BUCKETS, map(mcolors.to_hex, fills))) == {
-        "I": "#c2a68e", "II": "#b88a64", "III": "#ad713b",
-        "IV": "#89562f", "V": "#664126", "VI": "#3b2819",
+        "I": "#e4d3b4", "II": "#d6bfa8", "III": "#a48e72",
+        "IV": "#836e50", "V": "#573e30", "VI": "#392d24",
     }
     assert len(set(map(mcolors.to_hex, fills))) == len(fig1.BUCKETS)
     assert all(mcolors.to_hex(edge) != mcolors.to_hex(fill) for edge, fill in zip(edges, fills))
     assert all(_luminance(a) > _luminance(b) for a, b in zip(fills, fills[1:]))
-    assert fig1.ABSTENTION_FILL == "#7e7e7e" and fig1.ABSTENTION_EDGE == "#4e4e4e"
+    assert fig1.ABSTENTION_FILL == "#faf9f7" and fig1.ABSTENTION_EDGE == "#aaa39e"
 
 
 def _luminance(value):
@@ -117,24 +117,35 @@ def test_ita_bands_are_subtle_and_labels_do_not_treat_a_dataset_as_one_bucket():
 
     data = fig1.figure_data(REPO)
     fig, ax = plt.subplots()
-    fills, _ = fig1.bucket_palette()
+    fills, _ = fig1.band_palette()
     fig1._panel_distribution(ax, data, fills)
     bands = ax.patches[:6]
     assert len(bands) == 6
-    assert all(patch.get_alpha() <= 0.18 for patch in bands)
+    assert all(patch.get_alpha() == pytest.approx(1.0) for patch in bands)
     violin_edges = [collection.get_edgecolor()[0] for collection in ax.collections]
     violin_fills = [collection.get_facecolor()[0] for collection in ax.collections]
-    assert violin_edges and all(np.allclose(edge[:3], mcolors.to_rgb(fig1.NEUTRAL_VIOLIN_EDGE)) for edge in violin_edges)
-    assert all(np.ptp(fill[:3]) < 1e-6 for fill in violin_fills)  # monochrome gray; ITA classes are encoded by the bands
+    expected_fills, expected_edges = fig1.dataset_palette()
+    assert len(violin_edges) == len(DATASETS) == len(violin_fills)
+    assert all(np.allclose(edge[:3], expected) for edge, expected in zip(violin_edges, expected_edges))
+    assert all(np.allclose(fill[:3], expected) for fill, expected in zip(violin_fills, expected_fills))
+    assert all(fill[3] == pytest.approx(0.76) for fill in violin_fills)
     assert all(label.get_text() not in fig1.DATASET_LABELS.values() for label in ax.texts)
     assert [label.get_text() for label in ax.texts] == list(fig1.BUCKETS)
-    assert all(label.get_position()[0] == pytest.approx(0.03) and label.get_ha() == "left" for label in ax.texts)
+    assert [text.get_text() for text in ax.get_legend().get_texts()] == [fig1.DATASET_LABELS[d] for d in DATASETS]
+    assert all(label.get_position()[0] == pytest.approx(1 / 3) and label.get_ha() == "center" for label in ax.texts)
     assert all((1.0 + 0.05) / (_luminance(label.get_color()) + 0.05) >= 4.5 for label in ax.texts)
     assert "no validada" in fig1.NOTE and "convención visual" in fig1.NOTE
     plt.close(fig)
 
 
-def test_abstention_uses_gray_not_a_skin_tone_and_legend_names_all_buckets():
+def test_dataset_colours_are_stable_and_distinct():
+    assert fig1.DATASET_COLORS == {
+        "ham10000": "#B77E71", "isic2019": "#9B8060", "isic2020": "#79563F",
+    }
+    assert len(set(fig1.DATASET_COLORS.values())) == len(DATASETS)
+
+
+def test_abstention_uses_the_requested_light_neutral_and_legend_names_all_buckets():
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots()
@@ -142,13 +153,13 @@ def test_abstention_uses_gray_not_a_skin_tone_and_legend_names_all_buckets():
     legend = [text.get_text() for text in ax.get_legend().get_texts()]
     assert legend == [*fig1.BUCKETS, fig1.ABSTENTION]
     assert mcolors.to_hex(ax.patches[-1].get_facecolor()) == fig1.ABSTENTION_FILL
-    assert all(ax.patches[index].get_hatch() == fig1.ABSTENTION_HATCH for index in (6, 13, 20))
-    assert ax.get_legend().legend_handles[-1].get_hatch() == fig1.ABSTENTION_HATCH
+    assert all(ax.patches[index].get_hatch() is None for index in (6, 13, 20))
+    assert ax.get_legend().legend_handles[-1].get_hatch() is None
     plt.close(fig)
 
 
 def test_figure_compacts_inter_panel_space_and_wraps_the_caveat():
-    assert fig1.WSPACE <= 0.2
+    assert fig1.WSPACE >= 0.3
     assert len(fig1.NOTE.splitlines()) == 2
     assert max(map(len, fig1.NOTE.splitlines())) <= 50
 
