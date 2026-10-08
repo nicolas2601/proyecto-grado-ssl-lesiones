@@ -35,6 +35,7 @@ STEM = "fig1_ita"
 OUTDIR = Path("resultados") / "figuras"
 NOTE = "ITA: estimación no validada de fototipo; colores: convención visual, no diagnóstico clínico"
 ABSTENTION = "abstención"
+ABSTENTION_KEY = "abstention"
 
 WIDTH_IN, HEIGHT_IN = 16, 8
 TEXT_PT = 17  # apply_style(16) gives 32 pt, too large for a 2-panel 16 x 8 in figure; sizes are lowered after it
@@ -44,6 +45,7 @@ GAP_PCT = 0.35  # white gap between stacked segments, about 2 px at 300 dpi on t
 # Drawn without any reference photograph or racial descriptor. The violins stay dataset-coloured.
 BUCKET_FILLS = ("#c2a68e", "#b88a64", "#ad713b", "#89562f", "#664126", "#3b2819")
 ABSTENTION_FILL, ABSTENTION_EDGE = "#7e7e7e", "#4e4e4e"
+ABSTENTION_HATCH = "///"  # print/achromatopsia channel; gray alone can match the ITA-III ramp step
 EDGE_DARKEN = 0.72
 BAND_ALPHA = 0.14
 
@@ -167,13 +169,13 @@ def _panel_distribution(ax, data: dict, fills) -> None:
 def _panel_buckets(ax, data: dict, fills, edges) -> None:
     ypos = list(range(len(DATASETS)))[::-1]
     colors = [*zip(fills, edges), (ABSTENTION_FILL, ABSTENTION_EDGE)]
-    names = [*BUCKETS, "abstention"]
+    names = [*BUCKETS, ABSTENTION_KEY]
     for y, dataset in zip(ypos, DATASETS):
         left = 0.0
         for name, (fill, edge) in zip(names, colors):
             pct = data[dataset]["fractions"][name] * 100
             ax.barh(y, max(pct - GAP_PCT, 0), left=left + GAP_PCT / 2, height=0.6, color=fill, edgecolor=edge,
-                    linewidth=1.0, zorder=3)
+                    linewidth=1.0, zorder=3, hatch=ABSTENTION_HATCH if name == ABSTENTION_KEY else None)
             if pct >= MIN_LABEL_PCT:
                 ax.text(left + pct / 2, y, f"{bf.fmt_es(pct, 0)} %", ha="center", va="center", zorder=4,
                         fontsize=TEXT_PT - 2, color=_text_color(fill))
@@ -186,7 +188,8 @@ def _panel_buckets(ax, data: dict, fills, edges) -> None:
     bf.style_axes(ax)
     ax.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
     ax.grid(False, axis="y")
-    handles = [mpatches.Patch(facecolor=f, edgecolor=e, linewidth=1.0) for f, e in colors]
+    handles = [mpatches.Patch(facecolor=f, edgecolor=e, linewidth=1.0,
+                              hatch=ABSTENTION_HATCH if name == ABSTENTION_KEY else None) for name, (f, e) in zip(names, colors)]
     bf.top_legend(ax, handles, [*BUCKETS, ABSTENTION], ncol=7, handlelength=1.0, handletextpad=0.4, columnspacing=0.9)
     ax.text(0.0, -0.2, NOTE, transform=ax.transAxes, fontsize=TEXT_PT - 2, style="italic", va="top")
 

@@ -136,6 +136,8 @@ def test_abstention_uses_gray_not_a_skin_tone_and_legend_names_all_buckets():
     legend = [text.get_text() for text in ax.get_legend().get_texts()]
     assert legend == [*fig1.BUCKETS, fig1.ABSTENTION]
     assert mcolors.to_hex(ax.patches[-1].get_facecolor()) == fig1.ABSTENTION_FILL
+    assert all(ax.patches[index].get_hatch() == fig1.ABSTENTION_HATCH for index in (6, 13, 20))
+    assert ax.get_legend().legend_handles[-1].get_hatch() == fig1.ABSTENTION_HATCH
     plt.close(fig)
 
 
