@@ -119,8 +119,13 @@ def test_ita_bands_are_subtle_and_labels_do_not_treat_a_dataset_as_one_bucket():
     fig, ax = plt.subplots()
     fills, _ = fig1.bucket_palette()
     fig1._panel_distribution(ax, data, fills)
-    assert len(ax.patches[:6]) == 6
-    assert all(patch.get_alpha() <= 0.18 for patch in ax.patches[:6])
+    bands = ax.patches[:6]
+    assert len(bands) == 6
+    assert all(patch.get_alpha() <= 0.18 for patch in bands)
+    violin_edges = [collection.get_edgecolor()[0] for collection in ax.collections]
+    violin_fills = [collection.get_facecolor()[0] for collection in ax.collections]
+    assert violin_edges and all(np.allclose(edge[:3], mcolors.to_rgb(fig1.NEUTRAL_VIOLIN_EDGE)) for edge in violin_edges)
+    assert all(np.ptp(fill[:3]) < 1e-6 for fill in violin_fills)  # monochrome gray; ITA classes are encoded by the bands
     assert all(label.get_text() not in fig1.DATASET_LABELS.values() for label in ax.texts)
     assert [label.get_text() for label in ax.texts] == list(fig1.BUCKETS)
     assert all((1.0 + 0.05) / (_luminance(label.get_color()) + 0.05) >= 4.5 for label in ax.texts)

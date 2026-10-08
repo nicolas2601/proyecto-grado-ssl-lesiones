@@ -46,6 +46,9 @@ GAP_PCT = 0.35  # white gap between stacked segments, about 2 px at 300 dpi on t
 BUCKET_FILLS = ("#c2a68e", "#b88a64", "#ad713b", "#89562f", "#664126", "#3b2819")
 ABSTENTION_FILL, ABSTENTION_EDGE = "#7e7e7e", "#4e4e4e"
 ABSTENTION_HATCH = "///"  # print/achromatopsia channel; gray alone can match the ITA-III ramp step
+NEUTRAL_VIOLIN_FILL = "#d8d8d8"  # the mark is a dataset distribution, not a Fitzpatrick class
+NEUTRAL_VIOLIN_EDGE = "#666666"
+NEUTRAL_BOX_FILL = "#777777"
 EDGE_DARKEN = 0.72
 BAND_ALPHA = 0.14
 
@@ -146,15 +149,15 @@ def _panel_distribution(ax, data: dict, fills) -> None:
     positions = range(1, len(DATASETS) + 1)
     parts = ax.violinplot(values, positions=positions, widths=0.8, showextrema=False)
     for body in parts["bodies"]:
-        body.set_facecolor(bf.FILLS[2])
-        body.set_edgecolor(bf.EDGES[2])
-        body.set_alpha(0.85)
+        body.set_facecolor(NEUTRAL_VIOLIN_FILL)
+        body.set_edgecolor(NEUTRAL_VIOLIN_EDGE)
+        body.set_alpha(0.42)
         body.set_linewidth(1.0)
     box = ax.boxplot(values, positions=list(positions), widths=0.14, showfliers=False, patch_artist=True,
-                     medianprops={"color": "white", "linewidth": 1.6}, whiskerprops={"color": bf.EDGES[2], "linewidth": 1.0},
-                     capprops={"color": bf.EDGES[2], "linewidth": 1.0}, boxprops={"linewidth": 1.0})
+                     medianprops={"color": "white", "linewidth": 1.6}, whiskerprops={"color": NEUTRAL_VIOLIN_EDGE, "linewidth": 1.0},
+                     capprops={"color": NEUTRAL_VIOLIN_EDGE, "linewidth": 1.0}, boxprops={"linewidth": 1.0})
     for patch in box["boxes"]:
-        patch.set(facecolor=bf.EDGES[2], edgecolor=bf.EDGES[2])
+        patch.set(facecolor=NEUTRAL_BOX_FILL, edgecolor=NEUTRAL_VIOLIN_EDGE)
     ax.set_xticks(list(positions))
     ax.set_xticklabels([f"{DATASET_LABELS[d].replace(' ', chr(10))}\nn = {bf.fmt_es(data[d]['n_ita'], 0)}" for d in DATASETS])
     ax.set_ylim(lo, hi)
