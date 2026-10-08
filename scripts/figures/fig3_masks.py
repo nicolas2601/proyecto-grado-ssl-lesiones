@@ -193,8 +193,9 @@ def _cases_panel(fig, cell, arrays, cases: list[dict]) -> None:
 SEGMENT_COLOR = {name: style[1] for name, style in SEGMENTER_STYLE.items()}
 
 
-def build(repo: Path = REPO, outdir: Path | None = None, cases_npz: Path | None = None) -> dict:
-    """Draw figure 3. Panel (b) needs the pod-side cases file; without it only panel (a) is drawn."""
+def build(repo: Path = REPO, outdir: Path | None = None, cases_npz: Path | None = None,
+          *, panel_a_only: bool = False) -> dict:
+    """Draw figure 3; the qualitative panel is mandatory unless panel_a_only is explicitly selected."""
     outdir = outdir or repo / "resultados" / "figuras"
     npz_path = cases_npz if cases_npz is not None else repo / CASES_NPZ
     cases = select_cases(repo)
@@ -202,6 +203,8 @@ def build(repo: Path = REPO, outdir: Path | None = None, cases_npz: Path | None 
     if npz_path.is_file():
         arrays = dict(np.load(npz_path))
         _check_cases(arrays, cases)
+    elif not panel_a_only:
+        raise FileNotFoundError(f"panel b requires verified pod cases: {npz_path}; pass panel_a_only=True only for an explicitly partial figure")
     bf.apply_style(WIDTH)
     plt.rcParams.update({k: TEXT_PT for k in ("font.size", "axes.labelsize", "xtick.labelsize", "ytick.labelsize", "legend.fontsize")})
     fig = plt.figure(figsize=(WIDTH, 15.5 if arrays is not None else 7.5))
@@ -217,6 +220,11 @@ def build(repo: Path = REPO, outdir: Path | None = None, cases_npz: Path | None 
     return {"paths": paths, "panel_b": arrays is not None}
 
 
-if __name__ == "__main__":
-    write_cases()
-    print(build()["paths"])
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--panel-a-only", action="store_true", help="emit an explicitly partial figure without the pod-side panel (b)")
+    args = parser.parse_args()
+    if args.panel_a_only:
+        print(build(panel_a_only=True)["paths"])
+    else:
+        print(write_cases())
+        print(build()["paths"])

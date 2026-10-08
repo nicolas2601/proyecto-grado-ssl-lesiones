@@ -89,8 +89,8 @@ def test_bucket_on_a_threshold_goes_to_the_darker_one():
 def test_bucket_colours_are_stable_sequential_cream_to_dark_brown():
     fills, edges = fig1.bucket_palette()
     assert dict(zip(fig1.BUCKETS, map(mcolors.to_hex, fills))) == {
-        "I": "#f5ead5", "II": "#e2caaa", "III": "#cb9e73",
-        "IV": "#ad7854", "V": "#784c34", "VI": "#3b2924",
+        "I": "#c2a68e", "II": "#b88a64", "III": "#ad713b",
+        "IV": "#89562f", "V": "#664126", "VI": "#3b2819",
     }
     assert len(set(map(mcolors.to_hex, fills))) == len(fig1.BUCKETS)
     assert all(mcolors.to_hex(edge) != mcolors.to_hex(fill) for edge, fill in zip(edges, fills))
@@ -148,12 +148,23 @@ def test_build_writes_pdf_svg_and_png(tmp_path):
 
 
 def test_pdf_svg_and_png_show_the_same_seven_legend_colours_and_plot(tmp_path):
-    assert shutil.which("pdftoppm") and shutil.which("rsvg-convert"), "vector rasterizers are needed for cross-format comparison"
     fig1.build(REPO, tmp_path)
-    subprocess.run(["pdftoppm", "-f", "1", "-singlefile", "-scale-to-x", "1200", "-scale-to-y", "-1",
-                    "-png", str(tmp_path / "fig1_ita.pdf"), str(tmp_path / "pdf")], check=True)
-    subprocess.run(["rsvg-convert", "-w", "1200", "-o", str(tmp_path / "svg.png"),
-                    str(tmp_path / "fig1_ita.svg")], check=True)
+    if shutil.which("pdftoppm") and shutil.which("rsvg-convert"):
+        subprocess.run(["pdftoppm", "-f", "1", "-singlefile", "-scale-to-x", "1200", "-scale-to-y", "-1",
+                        "-png", str(tmp_path / "fig1_ita.pdf"), str(tmp_path / "pdf")], check=True)
+        subprocess.run(["rsvg-convert", "-w", "1200", "-o", str(tmp_path / "svg.png"),
+                        str(tmp_path / "fig1_ita.svg")], check=True)
+    else:
+        try:
+            import cairosvg
+            import fitz
+        except ImportError as exc:
+            pytest.fail(f"Cross-format parity needs pdftoppm+rsvg-convert OR PyMuPDF+CairoSVG: {exc}")
+        with fitz.open(tmp_path / "fig1_ita.pdf") as pdf:
+            page = pdf[0]
+            scale = 1200 / page.rect.width
+            (tmp_path / "pdf.png").write_bytes(page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False).tobytes("png"))
+        cairosvg.svg2png(url=str(tmp_path / "fig1_ita.svg"), write_to=str(tmp_path / "svg.png"), output_width=1200)
     formats = [tmp_path / "fig1_ita.png", tmp_path / "pdf.png", tmp_path / "svg.png"]
     height = Image.open(formats[1]).height
     assert Image.open(formats[2]).size == (1200, height)

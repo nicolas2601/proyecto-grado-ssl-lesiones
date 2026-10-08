@@ -42,7 +42,7 @@ MIN_LABEL_PCT = 11.0
 GAP_PCT = 0.35  # white gap between stacked segments, about 2 px at 300 dpi on this layout
 # Visual convention for ordinal ITA estimates only, NOT validated Fitzpatrick phenotypes.
 # Drawn without any reference photograph or racial descriptor. The violins stay dataset-coloured.
-BUCKET_FILLS = ("#f5ead5", "#e2caaa", "#cb9e73", "#ad7854", "#784c34", "#3b2924")
+BUCKET_FILLS = ("#c2a68e", "#b88a64", "#ad713b", "#89562f", "#664126", "#3b2819")
 ABSTENTION_FILL, ABSTENTION_EDGE = "#7e7e7e", "#4e4e4e"
 EDGE_DARKEN = 0.72
 BAND_ALPHA = 0.14

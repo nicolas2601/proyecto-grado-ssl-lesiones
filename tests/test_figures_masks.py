@@ -81,8 +81,10 @@ def _synthetic_npz(path: Path) -> None:
     np.savez_compressed(path, **arrays)
 
 
-def test_build_without_the_pod_cases_draws_panel_a_only_and_says_so(tmp_path):
-    result = f3.build(REPO, tmp_path, cases_npz=tmp_path / "missing.npz")
+def test_build_requires_real_pod_cases_unless_panel_a_only_is_explicit(tmp_path):
+    with pytest.raises(FileNotFoundError, match="panel b requires verified pod cases"):
+        f3.build(REPO, tmp_path, cases_npz=tmp_path / "missing.npz")
+    result = f3.build(REPO, tmp_path, cases_npz=tmp_path / "missing.npz", panel_a_only=True)
     assert result["panel_b"] is False
     assert {p.suffix for p in result["paths"]} == {".pdf", ".svg", ".png"} and all(p.is_file() for p in result["paths"])
 
