@@ -30,8 +30,9 @@ from dermssl.bench import contrasts_doc, rows as R  # noqa: E402
 STEM = "fig2_models"
 FIG_WIDTH, FIG_HEIGHT, FONT_WIDTH = 18.0, 14.0, 7.0  # FONT_WIDTH 7 -> 14 pt text, readable with 12 rows per panel
 ARMS = ("A71", "B71")
-ARM_COLOR = {"A71": 0, "B71": 2}  # index into bf.FILLS / bf.EDGES; everything else is gray (index 1)
-GRAY = 1
+ARM_STYLE = {"A71": ("#3F68A5", "#2E4A73"), "B71": ("#B6783E", "#835021")}
+NEUTRAL_STYLE = ("#7E7E7E", "#4E4E4E")
+INK = "#302C29"
 METRICS = ("macro_f1", "mcc")
 METRIC_LABEL = {"macro_f1": "F1 macro", "mcc": "MCC"}
 FT_OFFSET, GROUP_GAP = 0.17, 0.6
@@ -101,8 +102,7 @@ def _ypos(n_models: int) -> list[float]:
 
 
 def _color(name: str) -> tuple[str, str]:
-    idx = ARM_COLOR.get(name[:3], GRAY) if name.endswith("-limpio") else GRAY
-    return bf.FILLS[idx], bf.EDGES[idx]
+    return ARM_STYLE.get(name[:3], NEUTRAL_STYLE) if name.endswith("-limpio") else NEUTRAL_STYLE
 
 
 def _draw(ax, y: float, triple, fill: str, edge: str, hollow: bool = False, marker: str = "o") -> None:
@@ -125,18 +125,18 @@ def _model_panel(ax, entry: dict, order: list[str], metric: str) -> None:
         if name.endswith("-limpio"):
             point = entry[metric][name][0]
             ax.annotate(bf.fmt_es(point, 2), (entry[metric][name][2] or point, y - shift), xytext=(6, 0),
-                        textcoords="offset points", va="center", color=edge, fontsize=11)
+                        textcoords="offset points", va="center", color=INK, fontsize=11)
 
 
 def _delta_panel(ax, entry: dict) -> None:
-    ax.axvline(0, color=bf.EDGES[GRAY], linewidth=1.0, linestyle="--", zorder=1)
+    ax.axvline(0, color=NEUTRAL_STYLE[1], linewidth=1.0, linestyle="--", zorder=1)
     slots = [(arm, metric) for arm in ARMS for metric in METRICS]
     for y, (arm, metric) in zip((0, 1, 2 + GROUP_GAP, 3 + GROUP_GAP), slots):
-        idx = ARM_COLOR[arm]
+        fill, edge = ARM_STYLE[arm]
         triple = entry["deltas"][(arm, metric)]
-        _draw(ax, y, triple, bf.FILLS[idx], bf.EDGES[idx], marker="o" if metric == "macro_f1" else "D")
+        _draw(ax, y, triple, fill, edge, marker="o" if metric == "macro_f1" else "D")
         ax.annotate("+" + bf.fmt_es(triple[0], 2) if triple[0] >= 0 else bf.fmt_es(triple[0], 2), (triple[2], y),
-                    xytext=(6, 0), textcoords="offset points", va="center", color=bf.EDGES[idx], fontsize=11)
+                    xytext=(6, 0), textcoords="offset points", va="center", color=INK, fontsize=11)
 
 
 def _delta_labels() -> list[tuple[float, str]]:
@@ -148,8 +148,8 @@ def _legend_handles() -> list[Line2D]:
     def dot(fill, edge, hollow=False):
         return Line2D([], [], marker="o", linestyle="", markersize=9, markeredgecolor=edge,
                       markerfacecolor="white" if hollow else fill)
-    return [dot(bf.FILLS[0], bf.EDGES[0]), dot(bf.FILLS[2], bf.EDGES[2]), dot(bf.FILLS[1], bf.EDGES[1]),
-            dot(bf.FILLS[1], bf.EDGES[1], hollow=True)]
+    return [dot(*ARM_STYLE["A71"]), dot(*ARM_STYLE["B71"]), dot(*NEUTRAL_STYLE),
+            dot(*NEUTRAL_STYLE, hollow=True)]
 
 
 LEGEND_LABELS = ["A71 limpio", "B71 limpio", "congelado (controles y baselines)", "con fine-tuning (solo ISIC 2020)"]

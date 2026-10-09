@@ -89,8 +89,8 @@ def test_bucket_on_a_threshold_goes_to_the_darker_one():
 def test_bucket_colours_are_stable_sequential_cream_to_dark_brown():
     fills, edges = fig1.bucket_palette()
     assert dict(zip(fig1.BUCKETS, map(mcolors.to_hex, fills))) == {
-        "I": "#e4d3b4", "II": "#d6bfa8", "III": "#a48e72",
-        "IV": "#836e50", "V": "#573e30", "VI": "#392d24",
+        "I": "#fef3e0", "II": "#f2c598", "III": "#ce8b51",
+        "IV": "#b6723f", "V": "#91552d", "VI": "#53311b",
     }
     assert len(set(map(mcolors.to_hex, fills))) == len(fig1.BUCKETS)
     assert all(mcolors.to_hex(edge) != mcolors.to_hex(fill) for edge, fill in zip(edges, fills))
@@ -117,32 +117,43 @@ def test_ita_bands_are_subtle_and_labels_do_not_treat_a_dataset_as_one_bucket():
 
     data = fig1.figure_data(REPO)
     fig, ax = plt.subplots()
-    fills, _ = fig1.band_palette()
+    fills, _ = fig1.bucket_palette()
     fig1._panel_distribution(ax, data, fills)
     bands = ax.patches[:6]
     assert len(bands) == 6
     assert all(patch.get_alpha() == pytest.approx(1.0) for patch in bands)
     violin_edges = [collection.get_edgecolor()[0] for collection in ax.collections]
     violin_fills = [collection.get_facecolor()[0] for collection in ax.collections]
-    expected_fills, expected_edges = fig1.dataset_palette()
-    assert len(violin_edges) == len(DATASETS) == len(violin_fills)
-    assert all(np.allclose(edge[:3], expected) for edge, expected in zip(violin_edges, expected_edges))
-    assert all(np.allclose(fill[:3], expected) for fill, expected in zip(violin_fills, expected_fills))
-    assert all(fill[3] == pytest.approx(0.76) for fill in violin_fills)
+    assert violin_edges and all(np.allclose(edge[:3], mcolors.to_rgb(fig1.VIOLIN_EDGE)) for edge in violin_edges)
+    assert all(np.allclose(fill[:3], mcolors.to_rgb(fig1.VIOLIN_FILL)) for fill in violin_fills)
+    assert all(fill[3] == pytest.approx(1.0) for fill in violin_fills)
+    assert all(mcolors.to_hex(patch.get_facecolor()) == fig1.BOX_FILL.lower() for patch in ax.patches[6:9])
     assert all(label.get_text() not in fig1.DATASET_LABELS.values() for label in ax.texts)
     assert [label.get_text() for label in ax.texts] == list(fig1.BUCKETS)
-    assert [text.get_text() for text in ax.get_legend().get_texts()] == [fig1.DATASET_LABELS[d] for d in DATASETS]
     assert all(label.get_position()[0] == pytest.approx(1 / 3) and label.get_ha() == "center" for label in ax.texts)
-    assert all((1.0 + 0.05) / (_luminance(label.get_color()) + 0.05) >= 4.5 for label in ax.texts)
+    assert [label.get_color() for label in ax.texts[-2:]] == [fig1.ABSTENTION_FILL] * 2
+    for label, fill in zip(ax.texts, fills):
+        lights = sorted((_luminance(fill), _luminance(label.get_color())))
+        assert (lights[1] + 0.05) / (lights[0] + 0.05) >= 4.5
     assert "no validada" in fig1.NOTE and "convención visual" in fig1.NOTE
     plt.close(fig)
 
 
-def test_dataset_colours_are_stable_and_distinct():
-    assert fig1.DATASET_COLORS == {
-        "ham10000": "#B77E71", "isic2019": "#9B8060", "isic2020": "#79563F",
-    }
-    assert len(set(fig1.DATASET_COLORS.values())) == len(DATASETS)
+def test_neutral_marks_and_background_match_the_requested_palette():
+    assert fig1.VIOLIN_FILL == "#F4EDE6"
+    assert fig1.VIOLIN_EDGE == "#AAA39E"
+    assert fig1.BOX_FILL == "#F6F3EF"
+    assert fig1.FIGURE_BACKGROUND == "#FFFFFF"
+
+
+def test_figure_and_plot_panels_use_pure_white_background():
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(facecolor=fig1.FIGURE_BACKGROUND)
+    fig1._panel_distribution(ax, fig1.figure_data(REPO), fig1.bucket_palette()[0])
+    assert mcolors.to_hex(fig.get_facecolor()) == "#ffffff"
+    assert mcolors.to_hex(ax.get_facecolor()) == "#ffffff"
+    plt.close(fig)
 
 
 def test_abstention_uses_the_requested_light_neutral_and_legend_names_all_buckets():

@@ -95,6 +95,24 @@ def test_only_isic2020_has_finetuned_markers_and_they_match_their_json(data):
         assert ft[name]["macro_f1"][1:] == tuple(probe["ic95_bootstrap"]["macro_f1"])
 
 
+def test_model_palette_replaces_purple_teal_without_changing_metric_values(data):
+    import matplotlib.colors as mcolors
+    import matplotlib.pyplot as plt
+
+    assert fig._color("A71-limpio") == ("#3F68A5", "#2E4A73")
+    assert fig._color("B71-limpio") == ("#B6783E", "#835021")
+    assert fig._color("DINOv2 público · prot. A71") == ("#7E7E7E", "#4E4E4E")
+    assert [mcolors.to_hex(h.get_markerfacecolor()).upper() for h in fig._legend_handles()[:3]] == [
+        "#3F68A5", "#B6783E", "#7E7E7E",
+    ]
+    canvas, ax = plt.subplots()
+    fig._delta_panel(ax, data["datasets"]["ham10000"])
+    assert [mcolors.to_hex(line.get_markerfacecolor()).upper() for line in ax.lines[1:]] == [
+        "#3F68A5", "#3F68A5", "#B6783E", "#B6783E",
+    ]
+    plt.close(canvas)
+
+
 def test_build_writes_pdf_svg_and_png(tmp_path):
     paths = fig.build(REPO, tmp_path)
     assert {p.suffix for p in paths} == {".pdf", ".svg", ".png"}
