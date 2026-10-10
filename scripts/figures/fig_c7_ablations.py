@@ -29,7 +29,8 @@ SEED_SOURCES = {
     44: ("resultados/banco_completo/e3/robustez/e3_rob_s44/e3_final_eval.json", "5a27f44^"),
 }
 A71_NOTE = ("B71−A71 es una comparación pareada de protocolos agrupados, no un efecto aislado del tono: "
-           "A71 usa cls_attn y la0.5; B71 usa cls4 y ponderación balanced. Ambos usan TTA. "
+           "A71 usa una sopa de pesos de semillas 42 y 43; B71 usa pesos de semilla 42. "
+           "También difieren en extracción (cls_attn vs cls4) y sonda (la0.5 vs balanced); ambos usan TTA. "
            "Bootstrap pareado por imagen (fila), 1.000 remuestras, semilla 20260923.")
 F4_NOTE = ("F4 combina recorte de bbox y descriptores de máscara; no equivale solo a segmentación. "
            "El contraste E3 registrado es positivo, pero el IC excluye cero solo en ese cómputo. "
@@ -164,7 +165,7 @@ def _a71_figure(data: dict):
         ax_delta.set_yticks([])
         ax_delta.set_ylim(-0.6, 0.6)
         ax_delta.set_xlabel("Δ F1 macro (B71 − A71)")
-        ax_delta.set_title("(b) Contraste pareado e IC 95 %", loc="left", fontsize=style.PANEL_TITLE_PT)
+        ax_delta.set_title("(b) Δ F1 pareada", loc="left", fontsize=style.PANEL_TITLE_PT)
         for ax in (ax_f1, ax_delta):
             style.style_axes(ax, "x")
         fig.suptitle(f"A71 y B71 · validación HAM10000 (n = {style.fmt_es(data['support'], 0)})",
@@ -200,7 +201,7 @@ def _f4_figure(data: dict):
         ax.set_xlabel("Δ F1 macro (B71+F4 − B71)")
         ax.set_title("E3 · F4 (recorte + descriptores)", loc="left", fontsize=style.PANEL_TITLE_PT)
         style.style_axes(ax, "x")
-        fig.subplots_adjust(left=0.19, right=0.98, top=0.9, bottom=0.23)
+        fig.subplots_adjust(left=0.30, right=0.98, top=0.9, bottom=0.23)
     return fig
 
 

@@ -29,6 +29,30 @@ def test_a71_b71_uses_verified_paired_macro_f1_and_discloses_protocol_bundle():
     assert data["bootstrap"]["n_resamples"] == 1000
 
 
+def test_a71_b71_note_discloses_seed_pool_difference():
+    assert "semillas 42 y 43" in figure.A71_NOTE
+    assert "semilla 42" in figure.A71_NOTE
+    assert "cls_attn" in figure.A71_NOTE and "cls4" in figure.A71_NOTE
+    assert "la0.5" in figure.A71_NOTE and "balanced" in figure.A71_NOTE
+
+
+def test_c7_panel_titles_and_f4_registered_label_keep_page_margins():
+    import matplotlib.pyplot as plt
+
+    a71 = figure._a71_figure(figure.a71_b71_data(REPO))
+    f4 = figure._f4_figure(figure.f4_robustness_data(REPO))
+    a71.canvas.draw()
+    f4.canvas.draw()
+    a71_renderer = a71.canvas.get_renderer()
+    f4_renderer = f4.canvas.get_renderer()
+    delta_title = a71.axes[1].title.get_window_extent(a71_renderer)
+    registered_label = f4.axes[0].get_yticklabels()[0].get_window_extent(f4_renderer)
+    assert delta_title.x1 < a71.bbox.x1 - 8
+    assert registered_label.x0 > 8
+    plt.close(a71)
+    plt.close(f4)
+
+
 def test_f4_contrast_reports_registered_interval_and_all_seed_variability():
     data = figure.f4_robustness_data(REPO)
 
