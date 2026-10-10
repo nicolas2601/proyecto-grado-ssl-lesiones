@@ -12,9 +12,9 @@
 - [x] 2.4 Re-export C6 with aligned support histograms, omit empty bins, and mark bins with `n < 10` hollow; inspect all PNGs and validate vector/font/dimension metadata.
 
 ## 3. C7 ablations
-- [ ] 3.1 Locate verified A71/B71 protocol comparison and stored paired B71/B71+F4 contrasts.
-- [ ] 3.2 Add tests for source values, intervals, and seed coverage.
-- [ ] 3.3 Build two separate figures; explicitly bound claims to bundled A71/B71 and combined F4 effects.
+- [x] 3.1 Locate verified A71/B71 protocol comparison and stored paired B71/B71+F4 contrasts; reconcile robustness seed hashes with historical snapshots and validate current F1/CI parity.
+- [x] 3.2 Add tests for source values, intervals, and seed coverage.
+- [x] 3.3 Build two separate figures; explicitly bound claims to bundled A71/B71 and combined F4 effects.
 - [ ] 3.4 Export figures and sidecars; inspect all PNGs and validate vector/font/dimension metadata.
 
 ## 4. Verification and delivery
