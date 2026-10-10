@@ -12,7 +12,7 @@ The system SHALL build C5 precision–recall and ROC curves from aligned per-ima
 - **THEN** the model is omitted and the inventory marks its curve Pending
 
 ### Requirement: Confidence reliability diagrams
-C6 SHALL define confidence as the maximum class probability and correctness as argmax matching the true class. It SHALL use 15 equal-width bins with intervals `(lo, hi]` and first interval `[0, hi]`, show accuracy, mean confidence, and support for nonempty bins, and draw the perfect-calibration diagonal. It SHALL recompute ECE using those same bins and include ECE only when the recomputed value matches the source JSON within stated numerical tolerance. It SHALL NOT reconstruct a reliability curve from an aggregate ECE.
+C6 SHALL define confidence as the maximum class probability and correctness as argmax matching the true class. It SHALL use 15 equal-width bins with intervals `(lo, hi]` and first interval `[0, hi]`, show mean confidence and accuracy for each nonempty bin, and draw the perfect-calibration diagonal. It SHALL include an aligned per-bin support histogram on the same confidence axis, omit empty bins, and use hollow markers for bins with `n < 10` (threshold declared in the note). It SHALL recompute ECE using those same bins and include ECE only when the recomputed value matches the source JSON within stated numerical tolerance. It SHALL NOT reconstruct a reliability curve from an aggregate ECE.
 
 #### Scenario: Confidence bins are plotted
 - **WHEN** C6 receives aligned per-image labels and probabilities

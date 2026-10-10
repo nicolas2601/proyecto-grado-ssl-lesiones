@@ -20,83 +20,36 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import fig_c5_pr_roc as c5  # noqa: E402
 import thesis_style as style  # noqa: E402
+from fig_c6_metrics import ECE_TOLERANCE, LOW_SUPPORT_THRESHOLD, N_BINS, reliability_data  # noqa: E402
 
-N_BINS = 15
-ECE_TOLERANCE = 1e-6
+ISIC_ARMS = (("B71__original", "B71 original", "result"), ("B71__clean", "B71 limpio", "result"),
+             ("PUBLIC_B71", "B71 público", "result"))
 SOURCES = {
     "ham10000": {
         "title": "HAM10000 · E3b canónico", "kind": "e3b",
         "archive": "resultados/banco_completo/e3b_bs64/e3b_probas.npz",
-        "metadata": ("resultados/banco_completo/e3b_bs64/e3b_probas.json",
-                     "resultados/banco_completo/e3b_bs64/e3b_summary.json"),
-        "arms": (("B71_tta", "B71 (TTA)", "proposed"),
-                 ("dinov2_vitb14", "DINOv2 ViT-B/14", "baseline")),
+        "metadata": ("resultados/banco_completo/e3b_bs64/e3b_probas.json", "resultados/banco_completo/e3b_bs64/e3b_summary.json"),
+        "arms": (("B71_tta", "B71 (TTA)", "proposed"), ("dinov2_vitb14", "DINOv2 ViT-B/14", "baseline")),
     },
-    "ham10000_v71": {
-        "title": "HAM10000 · validación v7.1", "kind": "v71",
-        "archive": "resultados/clasificacion/v71/v71_final_eval.probas.npz",
-        "metadata": ("resultados/clasificacion/v71/v71_final_eval.json",),
-        "arms": (("B71", "B71", "results"), ("public_B71", "B71 público", "results")),
-    },
-    "isic2019": {
-        "title": "ISIC 2019 · E1 canónico", "kind": "isic",
-        "archive_dir": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019",
-        "metadata": (),
-        "arms": (("B71__original", "B71 original", "result"),
-                 ("B71__clean", "B71 limpio", "result"),
-                 ("PUBLIC_B71", "B71 público", "result")),
-    },
-    "isic2020": {
-        "title": "ISIC 2020 · E1 canónico", "kind": "isic",
-        "archive_dir": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020",
-        "metadata": (),
-        "arms": (("B71__original", "B71 original", "result"),
-                 ("B71__clean", "B71 limpio", "result"),
-                 ("PUBLIC_B71", "B71 público", "result")),
-    },
+    "ham10000_v71": {"title": "HAM10000 · validación v7.1", "kind": "v71",
+                      "archive": "resultados/clasificacion/v71/v71_final_eval.probas.npz",
+                      "metadata": ("resultados/clasificacion/v71/v71_final_eval.json",),
+                      "arms": (("B71", "B71", "results"), ("public_B71", "B71 público", "results"))},
+    "isic2019": {"title": "ISIC 2019 · E1 canónico", "kind": "isic",
+                 "archive_dir": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019", "arms": ISIC_ARMS},
+    "isic2020": {"title": "ISIC 2020 · E1 canónico", "kind": "isic",
+                 "archive_dir": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020", "arms": ISIC_ARMS},
     "isic2020_ft": {
         "title": "ISIC 2020 · ajuste supervisado", "kind": "ft",
         "archive_dir": "resultados/banco_completo/ft_isic2020/probas",
-        "metadata": ("resultados/banco_completo/ft_isic2020/probas/ft_isic2020_probas.sidecar.json",
-                     "resultados/banco_completo/ft_isic2020/json/results_dinov2_vitb14_ft_isic2020.json"),
+        "metadata": ("resultados/banco_completo/ft_isic2020/probas/ft_isic2020_probas.sidecar.json", "resultados/banco_completo/ft_isic2020/json/results_dinov2_vitb14_ft_isic2020.json"),
         "arms": (("dinov2_vitb14", "DINOv2-B/14", "finetune"),),
     },
 }
-MARKERS = ("o", "s", "^")
 NOTE = ("Confianza = probabilidad máxima entre clases; acierto = argmax coincide con etiqueta real. "
         "Se usan 15 bins equidistantes: (lo, hi], salvo el primero [0, hi]. La línea diagonal indica calibración perfecta. "
-        "El soporte (n) exacto por bin y el ECE recalculado constan en el sidecar de trazabilidad.")
-
-
-def reliability_data(labels: np.ndarray, probabilities: np.ndarray, published_ece: float,
-                     bins: int = N_BINS) -> dict:
-    y = np.asarray(labels, dtype=int)
-    proba = np.asarray(probabilities, dtype=float)
-    if (y.ndim != 1 or proba.ndim != 2 or len(y) != len(proba) or bins < 1
-            or proba.shape[1] < 2 or not np.isfinite(proba).all()
-            or np.any(proba < 0) or np.any(proba > 1)
-            or not np.allclose(proba.sum(axis=1), 1, atol=1e-6)
-            or np.any(y < 0) or np.any(y >= proba.shape[1])):
-        raise ValueError("C6 requires aligned labels and valid class probabilities")
-    confidence = proba.max(axis=1)
-    correct = (proba.argmax(axis=1) == y)
-    edges = np.linspace(0.0, 1.0, bins + 1)
-    rows = []
-    ece = 0.0
-    for index, (low, high) in enumerate(zip(edges[:-1], edges[1:], strict=True)):
-        mask = (confidence > low) & (confidence <= high) if index else (confidence >= low) & (confidence <= high)
-        support = int(mask.sum())
-        mean_confidence = float(confidence[mask].mean()) if support else None
-        accuracy = float(correct[mask].mean()) if support else None
-        if support:
-            ece += support / len(y) * abs(mean_confidence - accuracy)
-        rows.append({"index": index, "low": float(low), "high": float(high),
-                     "confidence": mean_confidence, "accuracy": accuracy, "n": support})
-    matches = abs(ece - float(published_ece)) <= ECE_TOLERANCE
-    return {"confidence_definition": "maximum class probability", "correctness": "argmax equals true class",
-            "bin_count": bins, "bins": rows, "ece_recomputed": ece,
-            "published_ece": float(published_ece), "ece_matches_published": matches,
-            "ece": ece if matches else None}
+        "La franja inferior muestra n por bin en la misma escala de confianza; bins con n < 10 usan marcador hueco. "
+        "Los soportes exactos constan en el sidecar de trazabilidad.")
 
 
 def _read_json(path: Path) -> dict:
@@ -207,30 +160,60 @@ def load_panel(repo: Path, dataset: str) -> dict:
 
 
 def _draw(panel: dict):
+    arm_rows = list(panel["arms"].values())
+    colors = [style.COLORS["accent"], style.COLORS["frame"], style.COLORS["frame"]]
+    line_styles = ("-", "--", ":")
+    markers = ("o", "s", "^")
     with style.context():
-        fig, ax = plt.subplots(figsize=(style.FIGURE_WIDTH_IN, 5.0))
+        fig, (ax, support_ax) = plt.subplots(
+            2, 1, figsize=(style.FIGURE_WIDTH_IN, 6.0), sharex=True,
+            gridspec_kw={"height_ratios": (4, 1.15), "hspace": 0.08})
         ax.plot([0, 1], [0, 1], color=style.COLORS["frame"], linestyle=":",
                 linewidth=style.LINE_WIDTHS["bar"], label="Calibración perfecta")
-        for index, arm in enumerate(panel["arms"].values()):
+        bin_width = 1 / N_BINS
+        bar_width = bin_width / (len(arm_rows) + 0.5)
+        for index, arm in enumerate(arm_rows):
             bins = [row for row in arm["bins"] if row["n"]]
-            label = f"{arm['label']} · ECE {style.fmt_es(arm['ece'], 3)}" if arm["ece"] is not None else f"{arm['label']} · ECE n/d"
-            ax.plot([row["confidence"] for row in bins], [row["accuracy"] for row in bins],
-                    color=style.COLORS["accent"] if index == 0 else style.COLORS["frame"],
-                    linestyle="-" if index == 0 else "--" if index == 1 else ":",
-                    marker=("o", "s", "^")[index], markersize=5, linewidth=style.LINE_WIDTHS["curve"], label=label)
+            color = colors[index]
+            marker = markers[index]
+            label = (f"{arm['label']} · ECE {style.fmt_es(arm['ece'], 3)}"
+                     if arm["ece"] is not None else f"{arm['label']} · ECE n/d")
+            confidence = [row["confidence"] for row in bins]
+            accuracy = [row["accuracy"] for row in bins]
+            ax.plot(confidence, accuracy, color=color, linestyle=line_styles[index],
+                    linewidth=style.LINE_WIDTHS["curve"], label=label)
+            for low_support, facecolor in ((True, style.COLORS["background"]),
+                                           (False, color)):
+                selected = [row for row in bins if row["low_support"] is low_support]
+                ax.scatter([row["confidence"] for row in selected], [row["accuracy"] for row in selected],
+                           marker=marker, s=36, facecolors=facecolor, edgecolors=color,
+                           linewidths=style.LINE_WIDTHS["bar"], zorder=3)
+            occupied = [row for row in arm["bins"] if row["n"]]
+            offset = (index - (len(arm_rows) - 1) / 2) * bar_width
+            centers = [(row["low"] + row["high"]) / 2 + offset for row in occupied]
+            counts = [row["n"] for row in occupied]
+            support_color = color if index == 0 else style.COLORS["bar_light"]
+            edge_color = color if index < 2 else style.COLORS["frame"]
+            support_ax.bar(centers, counts, width=bar_width * 0.9, color=support_color,
+                           edgecolor=edge_color, linewidth=style.LINE_WIDTHS["bar"],
+                           hatch="//" if index == 2 else None, align="center")
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
-        ax.set_xticks((0, 0.5, 1), ("0", "0,5", "1"))
         ax.set_yticks((0, 0.5, 1), ("0", "0,5", "1"))
-        ax.set_xlabel("Confianza media por bin")
         ax.set_ylabel("Exactitud por bin")
+        ax.tick_params(axis="x", labelbottom=False)
+        support_ax.set_xlim(0, 1)
+        support_ax.set_xticks((0, 0.5, 1), ("0", "0,5", "1"))
+        support_ax.set_xlabel("Confianza media por bin")
+        support_ax.set_ylabel("n por bin")
         handles, labels = ax.get_legend_handles_labels()
         style.style_axes(ax, "both")
+        style.style_axes(support_ax, "y")
         fig.suptitle(f"{panel['title']} · n = {style.fmt_es(panel['n'], 0)}; bins = {N_BINS}",
                      x=0.08, ha="left", fontsize=style.PANEL_TITLE_PT, fontweight="normal")
         fig.legend(handles, labels, frameon=False, loc="lower center", ncol=2,
-                   bbox_to_anchor=(0.55, 0.05), handlelength=1.6, columnspacing=1.5)
-        fig.subplots_adjust(left=0.13, right=0.97, top=0.84, bottom=0.27)
+                   bbox_to_anchor=(0.55, 0.025), handlelength=1.6, columnspacing=1.5)
+        fig.subplots_adjust(left=0.13, right=0.97, top=0.88, bottom=0.22)
     return fig
 
 
@@ -243,6 +226,8 @@ def _write_panel(repo: Path, target: Path, panel: dict) -> list[Path]:
         plt.close(fig)
     trace = {"figure_id": "C6", "dataset": panel["dataset"], "status": "Cálculo adicional desde probabilidades por imagen",
              "evaluation_unit": "image", "support": panel["n"], "bins": N_BINS,
+             "low_support_threshold_n": LOW_SUPPORT_THRESHOLD,
+             "support_visualization": "grouped histogram on shared confidence scale; zero-support bins omitted",
              "bin_edges": "15 equal-width bins: (lo, hi], first bin [0, hi]",
              "ece_tolerance": ECE_TOLERANCE,
              "confidence_definition": "maximum class probability", "correctness": "argmax equals true class",
