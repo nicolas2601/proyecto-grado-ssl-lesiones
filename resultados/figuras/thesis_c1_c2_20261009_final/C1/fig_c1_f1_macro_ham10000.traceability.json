@@ -1,0 +1,132 @@
+{
+  "figure_id": "C1",
+  "dataset": "ham10000",
+  "metric": "macro_f1",
+  "support": 2004,
+  "evaluation_unit": "image",
+  "resampling_unit": "lesion_id",
+  "protocol": "E3b canónico, batch 64 + autocast; B71 con TTA; bootstrap por lesion_id",
+  "source_code_revision": "3052b40dcdadfc80b175c77b6f5fdc095bec27be",
+  "figure_script": {
+    "path": "scripts/figures/fig_c1_macro_f1.py",
+    "sha256": "4a6845638af113986e9155a9b8e5688e9c5cc9adedc7853866521fc80985bf50"
+  },
+  "sources": [
+    {
+      "path": "resultados/banco_completo/e3b_bs64/e3b_summary.json",
+      "sha256": "8575fb005fc319bf4d5b7b0147b2bd94f5866f047d4b99db6931e2a582a76562",
+      "last_changed_commit": "5e3eccaaeeff83afa95b44a8e6463cf6427ce004"
+    }
+  ],
+  "rows": [
+    {
+      "name": "B71 (TTA, canónico)",
+      "f1": 0.7141070341743633,
+      "ci": [
+        0.6618438988453109,
+        0.7573367175576825
+      ],
+      "n": 2004,
+      "sources": [
+        "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+      ]
+    },
+    {
+      "name": "AlexNet",
+      "f1": 0.4727852172761593,
+      "ci": [
+        0.4328895169153504,
+        0.5094101474648418
+      ],
+      "n": 2004,
+      "sources": [
+        "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+      ]
+    },
+    {
+      "name": "VGG19",
+      "f1": 0.38101861977787665,
+      "ci": [
+        0.3415656384267014,
+        0.4179719672238522
+      ],
+      "n": 2004,
+      "sources": [
+        "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+      ]
+    },
+    {
+      "name": "ResNet-50",
+      "f1": 0.4670033203768447,
+      "ci": [
+        0.4217935267900278,
+        0.5099944537033517
+      ],
+      "n": 2004,
+      "sources": [
+        "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+      ]
+    },
+    {
+      "name": "EfficientNet-B0",
+      "f1": 0.5040620827742951,
+      "ci": [
+        0.46314138875476885,
+        0.5440252091477981
+      ],
+      "n": 2004,
+      "sources": [
+        "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+      ]
+    },
+    {
+      "name": "ViT-B/16",
+      "f1": 0.563251301358927,
+      "ci": [
+        0.5055651321330454,
+        0.611901188329215
+      ],
+      "n": 2004,
+      "sources": [
+        "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+      ]
+    },
+    {
+      "name": "SimSiam ResNet-50",
+      "f1": 0.5368676099121524,
+      "ci": [
+        0.4849716909496666,
+        0.581282916135702
+      ],
+      "n": 2004,
+      "sources": [
+        "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+      ]
+    },
+    {
+      "name": "DINOv2 ViT-S/14",
+      "f1": 0.5508036576021494,
+      "ci": [
+        0.4938134729433519,
+        0.5939717663589396
+      ],
+      "n": 2004,
+      "sources": [
+        "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+      ]
+    },
+    {
+      "name": "DINOv2 ViT-B/14",
+      "f1": 0.6001950210559398,
+      "ci": [
+        0.5479486746440557,
+        0.6405226835779241
+      ],
+      "n": 2004,
+      "sources": [
+        "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+      ]
+    }
+  ],
+  "interval_semantics": "individual model intervals; not paired difference intervals"
+}
