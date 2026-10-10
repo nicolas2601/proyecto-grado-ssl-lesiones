@@ -9,9 +9,9 @@
 - [x] 2.3 Verify T1 against the domain source; inspect PNG and PDF/SVG output.
 
 ## 3. T2 ITA intervals
-- [ ] 3.1 Add RED tests for threshold intervals, boundary assignment, and LaTeX output.
-- [ ] 3.2 Generate a LaTeX table from `FST_THRESHOLDS` and `fst_bucket` with provenance.
-- [ ] 3.3 Validate the table and inspect the rendered artifact.
+- [x] 3.1 Add RED tests for threshold intervals, boundary assignment, and LaTeX output.
+- [x] 3.2 Generate a LaTeX table from `FST_THRESHOLDS` and `fst_bucket` with provenance.
+- [x] 3.3 Validate OpenSpec, source hashes, and LaTeX fragment; no local TeX compiler is available for a rendered preview.
 
 ## 4. T4 ITA violins
 - [ ] 4.1 Add RED tests for E5 row filtering, valid/abstention counts, and threshold consistency.

@@ -1,0 +1,58 @@
+{
+  "figure_id": "T2",
+  "artifact_type": "latex_table",
+  "source": {
+    "path": "src/dermssl/fitzpatrick.py",
+    "sha256": "cfffc7130eb00889acfa5f301a156981338d394c8846fb7968159e7121e513e5",
+    "last_changed_commit": "8fc76f3ca81a3afec01279c2de72075b914eb559"
+  },
+  "thresholds": [
+    40.0,
+    23.0,
+    12.0,
+    0.0,
+    -25.0
+  ],
+  "reporting_guard": {
+    "median_b_star_minimum": 5.0,
+    "comparison": ">="
+  },
+  "boundary_rule": "ITA equals a cut point maps to the darker group, per fst_bucket's strict > comparisons",
+  "groups": [
+    {
+      "group": "I",
+      "condition": "ITA > 40°",
+      "latex": "$\\mathrm{ITA} > 40^\\circ$"
+    },
+    {
+      "group": "II",
+      "condition": "23° < ITA ≤ 40°",
+      "latex": "$23^\\circ < \\mathrm{ITA} \\le 40^\\circ$"
+    },
+    {
+      "group": "III",
+      "condition": "12° < ITA ≤ 23°",
+      "latex": "$12^\\circ < \\mathrm{ITA} \\le 23^\\circ$"
+    },
+    {
+      "group": "IV",
+      "condition": "0° < ITA ≤ 12°",
+      "latex": "$0^\\circ < \\mathrm{ITA} \\le 12^\\circ$"
+    },
+    {
+      "group": "V",
+      "condition": "−25° < ITA ≤ 0°",
+      "latex": "$-25^\\circ < \\mathrm{ITA} \\le 0^\\circ$"
+    },
+    {
+      "group": "VI",
+      "condition": "ITA ≤ −25°",
+      "latex": "$\\mathrm{ITA} \\le -25^\\circ$"
+    }
+  ],
+  "script": {
+    "path": "scripts/figures/fig_t2_ita_intervals.py",
+    "sha256": "57b8097289b2d17654ec41ece582a7a564d8db8b98f184effb84105f2cc06462"
+  },
+  "status": "ITA estimator categories; not validated clinical Fitzpatrick phototypes"
+}
