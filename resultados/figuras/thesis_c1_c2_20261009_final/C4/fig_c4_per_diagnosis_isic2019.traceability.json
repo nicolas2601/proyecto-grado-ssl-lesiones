@@ -11,7 +11,7 @@
   },
   "figure_script": {
     "path": "scripts/figures/fig_c4_per_class.py",
-    "sha256": "c679becf2c90c9aebd5be69c7f0880ef7c2bcea1f08e1cd45ef574223465d8a2"
+    "sha256": "f353be0f3c39735ff038625010647e699263f6ae9fc5b55e08ec20e571c9e9ad"
   },
   "models": [
     {
@@ -197,6 +197,6 @@
   ],
   "limitations": [
     "Point metrics derived from confusion counts; no per-class confidence intervals.",
-    "HAM10000 frozen DINOv2 ViT-B/14 omitted because n=2,014 differs from B71/A71 n=2,004."
+    "ISIC 2019: B71/A71 son originales transductivos del E1 canónico; no son evaluación independiente."
   ]
 }
