@@ -15,9 +15,9 @@
 - [x] 3.1 Locate verified A71/B71 protocol comparison and stored paired B71/B71+F4 contrasts; reconcile robustness seed hashes with historical snapshots and validate current F1/CI parity.
 - [x] 3.2 Add tests for source values, intervals, and seed coverage.
 - [x] 3.3 Build two separate figures; explicitly bound claims to bundled A71/B71 and combined F4 effects.
-- [ ] 3.4 Export figures and sidecars; inspect all PNGs and validate vector/font/dimension metadata.
+- [x] 3.4 Export figures and sidecars; inspect all PNGs and validate vector/font/dimension metadata.
 
 ## 4. Verification and delivery
-- [ ] 4.1 Run focused C5–C7 tests and relevant figure tests; record pre-existing failures separately.
-- [ ] 4.2 Validate source hashes, SVG/PDF/PNG metadata, and inspect every final PNG.
+- [x] 4.1 Run focused C5–C7 tests and relevant figure tests; record pre-existing failures separately.
+- [x] 4.2 Validate source hashes, SVG/PDF/PNG metadata, and inspect every final PNG.
 - [ ] 4.3 Commit each script/test set and each export batch atomically; report hashes and verification to Paula.

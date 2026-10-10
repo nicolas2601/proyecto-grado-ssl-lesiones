@@ -1,0 +1,1 @@
+B71−A71 es una comparación pareada de protocolos agrupados, no un efecto aislado del tono: A71 usa cls_attn y la0.5; B71 usa cls4 y ponderación balanced. Ambos usan TTA. Bootstrap pareado por imagen (fila), 1.000 remuestras, semilla 20260923.

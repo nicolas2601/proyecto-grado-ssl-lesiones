@@ -1,0 +1,1 @@
+Contraste pareado de F1 macro B71+F4 frente a B71 y sensibilidad del resultado por semilla.
