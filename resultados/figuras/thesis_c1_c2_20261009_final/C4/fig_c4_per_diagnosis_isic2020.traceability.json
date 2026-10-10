@@ -1,0 +1,94 @@
+{
+  "figure_id": "C4",
+  "dataset": "isic2020",
+  "evaluation_unit": "image",
+  "n": 6660,
+  "protocol": "B71 y A71 originales transductivos, E1 canónico.",
+  "metric_definitions": {
+    "precision": "TP/(TP+FP), zero when predicted support is zero",
+    "sensitivity": "TP/(TP+FN)",
+    "f1": "2TP/(2TP+FP+FN)"
+  },
+  "figure_script": {
+    "path": "scripts/figures/fig_c4_per_class.py",
+    "sha256": "c679becf2c90c9aebd5be69c7f0880ef7c2bcea1f08e1cd45ef574223465d8a2"
+  },
+  "models": [
+    {
+      "path": "resultados/banco_completo/confusion/isic2020/b71_original__congelado.json",
+      "sha256": "e5eb491f06c0ceba53752bf7b598f082ab2fd377627c539a0785d90f2422750a",
+      "last_changed_commit": "77839ccfd35815ad2d3db952b90a0929e9fe8bba",
+      "model": "B71 original (canónico, transductivo)",
+      "condition": "congelado",
+      "n": 6660,
+      "classes": [
+        "benigno",
+        "maligno"
+      ],
+      "support": [
+        6538,
+        122
+      ],
+      "metrics": [
+        {
+          "class": "benigno",
+          "support": 6538,
+          "precision": 0.9870210135970334,
+          "sensitivity": 0.9770572040379321,
+          "f1": 0.9820138355111453
+        },
+        {
+          "class": "maligno",
+          "support": 122,
+          "precision": 0.20212765957446807,
+          "sensitivity": 0.3114754098360656,
+          "f1": 0.24516129032258063
+        }
+      ],
+      "origin": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "upstream": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.json"
+      ]
+    },
+    {
+      "path": "resultados/banco_completo/confusion/isic2020/a71_original__congelado.json",
+      "sha256": "d69b5541fd55ece368bb18ab879d2540435e8d04fb056e3bfe5544837bfbf334",
+      "last_changed_commit": "77839ccfd35815ad2d3db952b90a0929e9fe8bba",
+      "model": "A71 original (canónico, transductivo)",
+      "condition": "congelado",
+      "n": 6660,
+      "classes": [
+        "benigno",
+        "maligno"
+      ],
+      "support": [
+        6538,
+        122
+      ],
+      "metrics": [
+        {
+          "class": "benigno",
+          "support": 6538,
+          "precision": 0.9888785912882299,
+          "sensitivity": 0.9791985316610584,
+          "f1": 0.984014755610206
+        },
+        {
+          "class": "maligno",
+          "support": 122,
+          "precision": 0.26881720430107525,
+          "sensitivity": 0.4098360655737705,
+          "f1": 0.3246753246753247
+        }
+      ],
+      "origin": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "upstream": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/A71__original.json"
+      ]
+    }
+  ],
+  "limitations": [
+    "Point metrics derived from confusion counts; no per-class confidence intervals.",
+    "HAM10000 frozen DINOv2 ViT-B/14 omitted because n=2,014 differs from B71/A71 n=2,004."
+  ]
+}
