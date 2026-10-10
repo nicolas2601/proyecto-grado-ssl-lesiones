@@ -13,6 +13,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+from matplotlib.ticker import FuncFormatter  # noqa: E402
 from matplotlib.colors import LinearSegmentedColormap, LogNorm  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
@@ -59,6 +60,10 @@ def load(repo: Path, dataset: str, expected_images: int) -> dict:
     return {"doc": doc, "path": path, "L": l_counts, "ab": ab}
 
 
+def tick_range(low: float, high: float, step: int) -> list[int]:
+    return [int(v) for v in range(int(np.ceil(low / step) * step), int(high) + 1, step)]
+
+
 def build(repo: Path, outdir: Path, only: tuple[str, ...] | None = None) -> list[Path]:
     chosen = tuple(item for item in DATASETS if only is None or item[0] in only)
     if not chosen:
@@ -81,6 +86,7 @@ def build(repo: Path, outdir: Path, only: tuple[str, ...] | None = None) -> list
         ax_l.set_xlim(0, 100)
         ax_l.set_xlabel("L* del anillo perilesional")
         ax_l.set_ylabel("% de los píxeles")
+        ax_l.yaxis.set_major_formatter(FuncFormatter(lambda value, _: style.fmt_es(value, 1)))
         ax_l.set_title("(a) Luminosidad", loc="left")
         ax_l.legend(frameon=False, loc="upper left")
         style.style_axes(ax_l, grid_axis="y")
@@ -88,21 +94,27 @@ def build(repo: Path, outdir: Path, only: tuple[str, ...] | None = None) -> list
         vmax = max(float(s.max()) for s in shares.values())
         norm = LogNorm(vmin=DENSITY_FLOOR_PERCENT, vmax=vmax)
         image = None
+        limits: list[tuple[float, float, float, float]] = []
         for column, (name, label, _) in enumerate(chosen):
             ax = fig.add_subplot(grid[1, column])
             a_edges, b_edges = np.asarray(data[name]["doc"]["a_edges"]), np.asarray(data[name]["doc"]["b_edges"])
             masked = np.ma.masked_less(shares[name], DENSITY_FLOOR_PERCENT)
             image = ax.pcolormesh(b_edges, a_edges, masked, cmap=CMAP, norm=norm, shading="flat")
-            ax.set_xlim(-10, 60)
-            ax.set_ylim(-10, 50)
-            ax.set_xticks((0, 25, 50))
-            ax.set_yticks((0, 20, 40))
+            occupied = np.argwhere(shares[name] >= DENSITY_FLOOR_PERCENT)
+            a_lo, a_hi = a_edges[occupied[:, 0].min()] - 4, a_edges[occupied[:, 0].max() + 1] + 4
+            b_lo, b_hi = b_edges[occupied[:, 1].min()] - 4, b_edges[occupied[:, 1].max() + 1] + 4
+            limits.append((a_lo, a_hi, b_lo, b_hi))
+            ax.set_xlim(b_lo, b_hi)
+            ax.set_ylim(a_lo, a_hi)
+            ax.set_xticks(tick_range(b_lo, b_hi, 20))
+            ax.set_yticks(tick_range(a_lo, a_hi, 20))
             ax.set_xlabel("b*")
             if column == 0:
                 ax.set_ylabel("a*")
             ax.set_title(f"{'(b) ' if column == 0 else ''}{label}", loc="left")
             style.style_axes(ax, grid_axis="both")
         bar = fig.colorbar(image, ax=fig.axes[1:], location="bottom", pad=0.18, fraction=0.04, aspect=45)
+        bar.ax.xaxis.set_major_formatter(FuncFormatter(lambda value, _: style.fmt_es(value, 3).rstrip("0").rstrip(",")))
         bar.set_label(f"% de los píxeles por celda (escala log, {style.fmt_es(DENSITY_FLOOR_PERCENT, 3)}–{style.fmt_es(vmax, 1)})")
         bar.outline.set_edgecolor(style.COLORS["frame"])
         bar.outline.set_linewidth(style.LINE_WIDTHS["frame"])
