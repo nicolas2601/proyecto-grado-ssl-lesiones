@@ -23,11 +23,19 @@ T1 SHALL explain the ITA formula and its CIELAB axes as a conceptual schematic w
 - **THEN** the formula, `b* ≥ 5` reporting guard, and conceptual-only status are visible and traceable to source code
 
 ### Requirement: Continuous ITA distribution
-T4 SHALL plot only finite `roi_ita` values whose source `roi_status` is `ok` for HAM10000, ISIC 2019, and ISIC 2020. It SHALL report valid, total, and abstained counts, use the shared verified threshold intervals, and identify the perilesional ROI and dataset for each violin.
+T4 SHALL plot only finite `roi_ita` values whose source `roi_status` is `ok` for HAM10000, ISIC 2019, and ISIC 2020. It SHALL report valid, total, and abstained counts, and valid `no_mask_border` fallback counts separately. It SHALL use the shared verified threshold intervals, identify the perilesional ROI estimator and dataset for each violin, and state that I–VI are ITA estimator categories, not validated clinical phototypes. It SHALL exclude PAD-UFES-20 because that figure set uses Otsu and registered FST, covered separately by `fig_char_ita_distribution` and T3.
 
 #### Scenario: Invalid ROI estimates are present
 - **WHEN** an E5 row has a non-`ok` ROI status
 - **THEN** its ITA value is excluded from the violin and counted as an abstention
+
+#### Scenario: Valid border fallback is present
+- **WHEN** an E5 row uses the valid `no_mask_border` fallback
+- **THEN** its ITA is included as in `fig1_ita.py` and its count is reported separately from perilesional ROI estimates and abstentions
+
+#### Scenario: PAD uses a different estimator
+- **WHEN** a dataset uses Otsu and registered FST rather than the E5 ROI estimator
+- **THEN** T4 excludes it and points to its separate distribution and T3 comparison
 
 #### Scenario: Threshold metadata differs
 - **WHEN** source E5 files use different thresholds or invalid row/value combinations

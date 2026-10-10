@@ -14,11 +14,11 @@
 - [x] 3.3 Validate OpenSpec, source hashes, and LaTeX fragment; no local TeX compiler is available for a rendered preview.
 
 ## 4. T4 ITA violins
-- [ ] 4.1 Add RED tests for E5 row filtering, valid/abstention counts, and threshold consistency.
-- [ ] 4.2 Build perilesional ITA violins with source hashes and Spanish sidecars.
-- [ ] 4.3 Inspect all PNGs and verify SVG/PDF dimensions and font metadata.
+- [x] 4.1 Add RED tests for E5 row filtering, valid/abstention counts, and threshold consistency.
+- [x] 4.2 Build perilesional ITA violins with source hashes and Spanish sidecars.
+- [x] 4.3 Inspect all PNGs and verify SVG/PDF dimensions and font metadata.
 
 ## 5. Verification and delivery
-- [ ] 5.1 Run focused and related tests; report skips/warnings exactly.
-- [ ] 5.2 Validate `openspec validate c4-t1-t2-t4-figures` and review the diff.
-- [ ] 5.3 Commit each figure/table batch atomically; report hashes to Paula.
+- [x] 5.1 Run focused tests and all figure suites; 167 passed with strict dependency checks.
+- [x] 5.2 Validate `openspec validate c4-t1-t2-t4-figures`; review source/hash and output metadata.
+- [x] 5.3 Commit each figure/table batch atomically; report hashes to Paula.
