@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="490.393701pt" height="450pt" viewBox="0 0 490.393701 450" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-09T20:55:32.306358</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 450
+L 490.393701 450
+L 490.393701 0
+L 0 0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 56.395276 338.355
+L 419.286614 338.355
+L 419.286614 54
+L 56.395276 54
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g clip-path="url(#p6c6052f98c)">
+    <image xlink:href="data:image/png;base64,
+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AAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQ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9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAA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BHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACAg0AMAAAAAQECgBwAAAACAgEAPAAAAAAABgR4AAAAAAAICPQAAAAAABAR6AAAAAAAICPQAAAAAABAQ6AEAAAAAICDQAwAAAABAQKAHAAAAAICAQA8AAAAAAAGBHgAAAAAAAgI9AAAAAAAEBHoAAAAAAAgI9AAAAAAAEBDoAQAAAAAgINADAAAAAEBAoAcAAAAAgIBADwAAAAAAAYEeAAAAAAACAj0AAAAAAAQEegAAAAAACAj0AAAAAAAQEOgBAAAAACDwP/DXaQOPdaR3AAAAAElFTkSuQmCC" id="image701d353e04" transform="scale(1 -1) translate(0 -284.4)" x="56.4" y="-54" width="362.88" height="284.4"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="79.075984" y="44.633" transform="rotate(-0 79.075984 44.633)">MEL</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="124.437402" y="44.633" transform="rotate(-0 124.437402 44.633)">NV</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3"/>
+     <g id="text_3">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="169.798819" y="44.633" transform="rotate(-0 169.798819 44.633)">BCC</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4"/>
+     <g id="text_4">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="215.160236" y="44.633" transform="rotate(-0 215.160236 44.633)">AK</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_5"/>
+     <g id="text_5">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="260.521654" y="44.633" transform="rotate(-0 260.521654 44.633)">BKL</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_6"/>
+     <g id="text_6">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="305.883071" y="44.633" transform="rotate(-0 305.883071 44.633)">DF</text>
+     </g>
+    </g>
+    <g id="xtick_7">
+     <g id="line2d_7"/>
+     <g id="text_7">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="351.244488" y="44.633" transform="rotate(-0 351.244488 44.633)">VASC</text>
+     </g>
+    </g>
+    <g id="xtick_8">
+     <g id="line2d_8"/>
+     <g id="text_8">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="396.605906" y="44.633" transform="rotate(-0 396.605906 44.633)">SCC</text>
+     </g>
+    </g>
+    <g id="xtick_9">
+     <g id="line2d_9">
+      <path d="M 56.395276 338.355
+L 56.395276 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10"/>
+    </g>
+    <g id="xtick_10">
+     <g id="line2d_11">
+      <path d="M 101.756693 338.355
+L 101.756693 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_12"/>
+    </g>
+    <g id="xtick_11">
+     <g id="line2d_13">
+      <path d="M 147.11811 338.355
+L 147.11811 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_14"/>
+    </g>
+    <g id="xtick_12">
+     <g id="line2d_15">
+      <path d="M 192.479528 338.355
+L 192.479528 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_16"/>
+    </g>
+    <g id="xtick_13">
+     <g id="line2d_17">
+      <path d="M 237.840945 338.355
+L 237.840945 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_18"/>
+    </g>
+    <g id="xtick_14">
+     <g id="line2d_19">
+      <path d="M 283.202362 338.355
+L 283.202362 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_20"/>
+    </g>
+    <g id="xtick_15">
+     <g id="line2d_21">
+      <path d="M 328.56378 338.355
+L 328.56378 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_22"/>
+    </g>
+    <g id="xtick_16">
+     <g id="line2d_23">
+      <path d="M 373.925197 338.355
+L 373.925197 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_24"/>
+    </g>
+    <g id="xtick_17">
+     <g id="line2d_25">
+      <path d="M 419.286614 338.355
+L 419.286614 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_26"/>
+    </g>
+    <g id="text_9">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="237.840945" y="34" transform="rotate(-0 237.840945 34)">Predicción</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_27"/>
+     <g id="text_10">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="51.395276" y="75.088687" transform="rotate(-0 51.395276 75.088687)">MEL</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_28"/>
+     <g id="text_11">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="51.395276" y="110.633062" transform="rotate(-0 51.395276 110.633062)">NV</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_29"/>
+     <g id="text_12">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="51.395276" y="146.177437" transform="rotate(-0 51.395276 146.177437)">BCC</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_30"/>
+     <g id="text_13">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="51.395276" y="181.721812" transform="rotate(-0 51.395276 181.721812)">AK</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_31"/>
+     <g id="text_14">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="51.395276" y="217.266187" transform="rotate(-0 51.395276 217.266187)">BKL</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_32"/>
+     <g id="text_15">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="51.395276" y="252.810562" transform="rotate(-0 51.395276 252.810562)">DF</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_33"/>
+     <g id="text_16">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="51.395276" y="288.354938" transform="rotate(-0 51.395276 288.354938)">VASC</text>
+     </g>
+    </g>
+    <g id="ytick_8">
+     <g id="line2d_34"/>
+     <g id="text_17">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="51.395276" y="323.899313" transform="rotate(-0 51.395276 323.899313)">SCC</text>
+     </g>
+    </g>
+    <g id="ytick_9">
+     <g id="line2d_35">
+      <path d="M 56.395276 54
+L 419.286614 54
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_36"/>
+    </g>
+    <g id="ytick_10">
+     <g id="line2d_37">
+      <path d="M 56.395276 89.544375
+L 419.286614 89.544375
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_38"/>
+    </g>
+    <g id="ytick_11">
+     <g id="line2d_39">
+      <path d="M 56.395276 125.08875
+L 419.286614 125.08875
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_40"/>
+    </g>
+    <g id="ytick_12">
+     <g id="line2d_41">
+      <path d="M 56.395276 160.633125
+L 419.286614 160.633125
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_42"/>
+    </g>
+    <g id="ytick_13">
+     <g id="line2d_43">
+      <path d="M 56.395276 196.1775
+L 419.286614 196.1775
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_44"/>
+    </g>
+    <g id="ytick_14">
+     <g id="line2d_45">
+      <path d="M 56.395276 231.721875
+L 419.286614 231.721875
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_46"/>
+    </g>
+    <g id="ytick_15">
+     <g id="line2d_47">
+      <path d="M 56.395276 267.26625
+L 419.286614 267.26625
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_48"/>
+    </g>
+    <g id="ytick_16">
+     <g id="line2d_49">
+      <path d="M 56.395276 302.810625
+L 419.286614 302.810625
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_50"/>
+    </g>
+    <g id="ytick_17">
+     <g id="line2d_51">
+      <path d="M 56.395276 338.355
+L 419.286614 338.355
+" clip-path="url(#p6c6052f98c)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_52"/>
+    </g>
+    <g id="text_18">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="16.628276" y="196.1775" transform="rotate(-90 16.628276 196.1775)">Etiqueta real</text>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 56.395276 338.355
+L 56.395276 54
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 419.286614 338.355
+L 419.286614 54
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 56.395276 338.355
+L 419.286614 338.355
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 56.395276 54
+L 419.286614 54
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(65.875984 68.328672)">68,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(62.575984 80.538672)">(615)</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(111.237402 68.312344)">17,7</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(107.937402 80.538672)">(160)</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(159.898819 68.328672)">3,1</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(156.598819 80.538672)">(28)</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 68.312344)">1,5</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(201.960236 80.522344)">(14)</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(250.621654 68.328672)">9,1</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(247.321654 80.538672)">(82)</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 68.328672)">0,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 80.538672)">(0)</text>
+   </g>
+   <g id="text_25">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 68.328672)">0,1</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 80.522344)">(1)</text>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 68.328672)">0,6</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 80.467344)">(5)</text>
+   </g>
+   <g id="text_27">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 103.873047)">9,2</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(62.575984 116.083047)">(236)</text>
+   </g>
+   <g id="text_28">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #ffffff" transform="translate(111.237402 103.873047)">84,3</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #ffffff" transform="translate(101.337402 116.083047)">(2.171)</text>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(159.898819 103.873047)">1,9</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(156.598819 116.083047)">(48)</text>
+   </g>
+   <g id="text_30">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 103.873047)">0,3</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 116.011719)">(7)</text>
+   </g>
+   <g id="text_31">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(250.621654 103.873047)">3,8</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(247.321654 116.083047)">(97)</text>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 103.873047)">0,2</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 116.011719)">(5)</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 103.873047)">0,2</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 116.011719)">(5)</text>
+   </g>
+   <g id="text_34">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 103.873047)">0,2</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 116.083047)">(6)</text>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 139.417422)">3,6</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(65.875984 151.627422)">(24)</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(114.537402 139.417422)">3,3</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(111.237402 151.627422)">(22)</text>
+   </g>
+   <g id="text_37">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #ffffff" transform="translate(156.598819 139.417422)">78,9</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #ffffff" transform="translate(153.298819 151.627422)">(525)</text>
+   </g>
+   <g id="text_38">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 139.401094)">5,1</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(201.960236 151.627422)">(34)</text>
+   </g>
+   <g id="text_39">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(250.621654 139.417422)">4,2</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(247.321654 151.627422)">(28)</text>
+   </g>
+   <g id="text_40">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 139.417422)">0,6</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 151.556094)">(4)</text>
+   </g>
+   <g id="text_41">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 139.417422)">0,2</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 151.611094)">(1)</text>
+   </g>
+   <g id="text_42">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 139.401094)">4,1</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(383.405906 151.627422)">(27)</text>
+   </g>
+   <g id="text_43">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 174.961797)">6,9</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(65.875984 187.171797)">(12)</text>
+   </g>
+   <g id="text_44">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(114.537402 174.961797)">2,3</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(114.537402 187.100469)">(4)</text>
+   </g>
+   <g id="text_45">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(156.598819 174.961797)">16,7</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(156.598819 187.171797)">(29)</text>
+   </g>
+   <g id="text_46">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(201.960236 174.961797)">49,4</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(201.960236 187.171797)">(86)</text>
+   </g>
+   <g id="text_47">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(247.321654 174.961797)">12,6</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(247.321654 187.171797)">(22)</text>
+   </g>
+   <g id="text_48">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 174.961797)">0,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 187.171797)">(0)</text>
+   </g>
+   <g id="text_49">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 174.961797)">0,6</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 187.155469)">(1)</text>
+   </g>
+   <g id="text_50">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(383.405906 174.945469)">11,5</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(383.405906 187.171797)">(20)</text>
+   </g>
+   <g id="text_51">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 210.506172)">5,9</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(65.875984 222.716172)">(31)</text>
+   </g>
+   <g id="text_52">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(111.237402 210.506172)">10,5</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(111.237402 222.644844)">(55)</text>
+   </g>
+   <g id="text_53">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(159.898819 210.506172)">6,9</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(156.598819 222.716172)">(36)</text>
+   </g>
+   <g id="text_54">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 210.506172)">5,3</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(201.960236 222.716172)">(28)</text>
+   </g>
+   <g id="text_55">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(247.321654 210.506172)">69,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(244.021654 222.716172)">(362)</text>
+   </g>
+   <g id="text_56">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 210.506172)">0,2</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 222.699844)">(1)</text>
+   </g>
+   <g id="text_57">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 210.506172)">0,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 222.716172)">(0)</text>
+   </g>
+   <g id="text_58">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 210.506172)">2,3</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(383.405906 222.716172)">(12)</text>
+   </g>
+   <g id="text_59">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 246.050547)">4,3</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 258.260547)">(2)</text>
+   </g>
+   <g id="text_60">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(114.537402 246.050547)">8,5</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(114.537402 258.189219)">(4)</text>
+   </g>
+   <g id="text_61">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(159.898819 246.050547)">2,1</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(159.898819 258.244219)">(1)</text>
+   </g>
+   <g id="text_62">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 246.050547)">4,3</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 258.260547)">(2)</text>
+   </g>
+   <g id="text_63">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(247.321654 246.050547)">10,6</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(250.621654 258.189219)">(5)</text>
+   </g>
+   <g id="text_64">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(292.683071 246.050547)">61,7</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(292.683071 258.260547)">(29)</text>
+   </g>
+   <g id="text_65">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 246.050547)">0,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 258.260547)">(0)</text>
+   </g>
+   <g id="text_66">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 246.050547)">8,5</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 258.189219)">(4)</text>
+   </g>
+   <g id="text_67">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 281.594922)">4,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 293.804922)">(2)</text>
+   </g>
+   <g id="text_68">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(111.237402 281.594922)">16,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(114.537402 293.804922)">(8)</text>
+   </g>
+   <g id="text_69">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(159.898819 281.594922)">6,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(159.898819 293.804922)">(3)</text>
+   </g>
+   <g id="text_70">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 281.594922)">0,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 293.804922)">(0)</text>
+   </g>
+   <g id="text_71">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(250.621654 281.594922)">0,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(250.621654 293.804922)">(0)</text>
+   </g>
+   <g id="text_72">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 281.594922)">0,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 293.804922)">(0)</text>
+   </g>
+   <g id="text_73">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(338.044488 281.594922)">74,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(338.044488 293.804922)">(37)</text>
+   </g>
+   <g id="text_74">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 281.594922)">0,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(386.705906 293.804922)">(0)</text>
+   </g>
+   <g id="text_75">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 317.139297)">4,8</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(69.175984 329.349297)">(6)</text>
+   </g>
+   <g id="text_76">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(114.537402 317.139297)">3,2</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(114.537402 329.277969)">(4)</text>
+   </g>
+   <g id="text_77">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(156.598819 317.122969)">15,1</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(156.598819 329.349297)">(19)</text>
+   </g>
+   <g id="text_78">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(205.260236 317.139297)">8,7</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(201.960236 329.332969)">(11)</text>
+   </g>
+   <g id="text_79">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(247.321654 317.139297)">13,5</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(247.321654 329.332969)">(17)</text>
+   </g>
+   <g id="text_80">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 317.139297)">1,6</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(295.983071 329.349297)">(2)</text>
+   </g>
+   <g id="text_81">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 317.139297)">0,0</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(341.344488 329.349297)">(0)</text>
+   </g>
+   <g id="text_82">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(383.405906 317.139297)">53,2</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(383.405906 329.349297)">(67)</text>
+   </g>
+   <g id="text_83">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="426.544441" y="46.78945" transform="rotate(-0 426.544441 46.78945)">soporte</text>
+   </g>
+   <g id="text_84">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="426.544441" y="72.976344" transform="rotate(-0 426.544441 72.976344)">n = 905</text>
+   </g>
+   <g id="text_85">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="426.544441" y="108.520719" transform="rotate(-0 426.544441 108.520719)">n = 2.575</text>
+   </g>
+   <g id="text_86">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="426.544441" y="144.065094" transform="rotate(-0 426.544441 144.065094)">n = 665</text>
+   </g>
+   <g id="text_87">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="426.544441" y="179.593141" transform="rotate(-0 426.544441 179.593141)">n = 174</text>
+   </g>
+   <g id="text_88">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="426.544441" y="215.153844" transform="rotate(-0 426.544441 215.153844)">n = 525</text>
+   </g>
+   <g id="text_89">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="426.544441" y="250.627062" transform="rotate(-0 426.544441 250.627062)">n = 47</text>
+   </g>
+   <g id="text_90">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="426.544441" y="286.242594" transform="rotate(-0 426.544441 286.242594)">n = 50</text>
+   </g>
+   <g id="text_91">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="426.544441" y="321.786969" transform="rotate(-0 426.544441 321.786969)">n = 126</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_7">
+    <path d="M 56.395276 366.597283
+L 419.286614 366.597283
+L 419.286614 357.525
+L 56.395276 357.525
+z
+" style="fill: #ffffff"/>
+   </g>
+   <image xlink:href="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAABegAAAAlCAYAAAA5iAlQAAACN0lEQVR4nO3YwU6FQAwF0Kf//79GN7hwSyeMtl5IzlmODYNlHjT37evz43idOYrl09We+qOqLperP3Rdp2ff09XqHotr1+Vdz2m496el12uX9U092O59Q339P1XLf+/7ct/t+o0eNJ29vuc0e/5G9wz1oHyGHWe+3HK2B/VPqmPf4b7v1kfeE8Pf1+H3RGS2Gf6NjM42Rf30WZ2fbTbqh7/rk3P4+n6uXyfS9+JeVibnyvG+j8821fL1M3+7OXyw95nv66ux95v7nvagvMretR8x//ecvb09f7Hv9Hti42YeM/9vfF9u1ffFDfXMoc+dw3+WA2f+RnP4YnlxQ/8/23TMoG37hubw96oeAAAAAACYI6AHAAAAAIAAAT0AAAAAAAQI6AEAAAAAIEBADwAAAAAAAQJ6AAAAAAAIENADAAAAAECAgB4AAAAAAAIE9AAAAAAAECCgBwAAAACAAAE9AAAAAAAECOgBAAAAACBAQA8AAAAAAAECegAAAAAACBDQAwAAAABAgIAeAAAAAAACBPQAAAAAABAgoAcAAAAAgAABPQAAAAAABAjoAQAAAAAgQEAPAAAAAAABAnoAAAAAAAgQ0AMAAAAAQICAHgAAAAAAAgT0AAAAAAAQIKAHAAAAAIAAAT0AAAAAAAQI6AEAAAAAIEBADwAAAAAAAQJ6AAAAAAAIENADAAAAAECAgB4AAAAAAAIE9AAAAAAAECCgBwAAAACAAAE9AAAAAAAECOgBAAAAACDgG/e/nqYneqpuAAAAAElFTkSuQmCC" id="image800cace29d" transform="scale(1 -1) translate(0 -8.88)" x="56.4" y="-357.6" width="362.88" height="8.88"/>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_18">
+     <g id="line2d_53"/>
+     <g id="text_92">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="56.395276" y="376.872596" transform="rotate(-0 56.395276 376.872596)">0</text>
+     </g>
+    </g>
+    <g id="xtick_19">
+     <g id="line2d_54"/>
+     <g id="text_93">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="147.11811" y="376.872596" transform="rotate(-0 147.11811 376.872596)">25</text>
+     </g>
+    </g>
+    <g id="xtick_20">
+     <g id="line2d_55"/>
+     <g id="text_94">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="237.840945" y="376.872596" transform="rotate(-0 237.840945 376.872596)">50</text>
+     </g>
+    </g>
+    <g id="xtick_21">
+     <g id="line2d_56"/>
+     <g id="text_95">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="328.56378" y="376.730283" transform="rotate(-0 328.56378 376.730283)">75</text>
+     </g>
+    </g>
+    <g id="xtick_22">
+     <g id="line2d_57"/>
+     <g id="text_96">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="419.286614" y="376.872596" transform="rotate(-0 419.286614 376.872596)">100</text>
+     </g>
+    </g>
+    <g id="text_97">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="237.840945" y="392.24694" transform="rotate(-0 237.840945 392.24694)">Porcentaje de la clase real (%); entre paréntesis, imágenes</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4"/>
+   <g id="LineCollection_1"/>
+   <g id="patch_8">
+    <path d="M 56.395276 366.597283
+L 56.395276 362.061142
+L 56.395276 357.525
+L 419.286614 357.525
+L 419.286614 362.061142
+L 419.286614 366.597283
+L 56.395276 366.597283
+z
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p6c6052f98c">
+   <rect x="56.395276" y="54" width="362.891339" height="284.355"/>
+  </clipPath>
+ </defs>
+</svg>

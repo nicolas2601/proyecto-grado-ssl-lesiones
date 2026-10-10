@@ -1,0 +1,29 @@
+{
+  "figure": "fig_c3_confusion_isic2020",
+  "question": "Qué clases confunde B71 y con qué frecuencia, normalizado por clase real.",
+  "dataset": "ISIC 2020",
+  "model": "B71 original (canónico, transductivo)",
+  "condition": "congelado",
+  "n": 6660,
+  "classes": [
+    "benigno",
+    "maligno"
+  ],
+  "support": [
+    6538,
+    122
+  ],
+  "mcc": 0.23361412859878963,
+  "source": "resultados/banco_completo/confusion/isic2020/b71_original__congelado.json",
+  "source_sha256": "e5eb491f06c0ceba53752bf7b598f082ab2fd377627c539a0785d90f2422750a",
+  "upstream": [
+    "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.json"
+  ],
+  "origin": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+  "status": "Artefactos verificados",
+  "checks": [
+    "counts sum == n",
+    "rows recomputed from counts match normalizada_por_fila"
+  ],
+  "script": "scripts/figures/fig_c3_confusion.py"
+}

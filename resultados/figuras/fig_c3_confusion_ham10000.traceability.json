@@ -1,0 +1,40 @@
+{
+  "figure": "fig_c3_confusion_ham10000",
+  "question": "Qué clases confunde B71 y con qué frecuencia, normalizado por clase real.",
+  "dataset": "HAM10000",
+  "model": "B71 (propuesto)",
+  "condition": "congelado",
+  "n": 2004,
+  "classes": [
+    "akiec",
+    "bcc",
+    "bkl",
+    "df",
+    "mel",
+    "nv",
+    "vasc"
+  ],
+  "support": [
+    66,
+    103,
+    220,
+    23,
+    222,
+    1341,
+    29
+  ],
+  "mcc": 0.6900740187743996,
+  "source": "resultados/banco_completo/confusion/ham10000/b71__congelado.json",
+  "source_sha256": "fc858c72fc0636645f5aef17ec341d9c827e457a417fdb859b7700c9d0ed34ad",
+  "upstream": [
+    "resultados/clasificacion/v71/v71_final_eval.json",
+    "resultados/clasificacion/v71/v71_final_eval.probas.npz"
+  ],
+  "origin": "argmax de las probabilidades commiteadas (el JSON v7.1 no trae matriz_confusion)",
+  "status": "Artefactos verificados",
+  "checks": [
+    "counts sum == n",
+    "rows recomputed from counts match normalizada_por_fila"
+  ],
+  "script": "scripts/figures/fig_c3_confusion.py"
+}

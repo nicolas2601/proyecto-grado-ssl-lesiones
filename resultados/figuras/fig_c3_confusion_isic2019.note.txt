@@ -1,0 +1,1 @@
+Filas: etiqueta real; columnas: predicción. Cada fila suma 100 %. Predicciones por argmax de las probabilidades publicadas; los conteos entre paréntesis son imágenes; el color y el primer número de cada celda son el porcentaje de la fila.
