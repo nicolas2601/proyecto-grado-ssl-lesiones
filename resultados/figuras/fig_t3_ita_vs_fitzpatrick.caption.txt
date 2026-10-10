@@ -1,0 +1,1 @@
+Exactitud exacta del estimador ITA frente al fototipo Fitzpatrick registrado en PAD-UFES-20, con la línea base de predecir siempre el fototipo mayoritario.

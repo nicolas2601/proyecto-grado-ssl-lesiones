@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="490.393701pt" height="223.2pt" viewBox="0 0 490.393701 223.2" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-09T21:09:50.976089</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 223.2
+L 490.393701 223.2
+L 490.393701 0
+L 0 0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 127.502362 147.312
+L 353.083465 147.312
+L 353.083465 11.16
+L 127.502362 11.16
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 127.502362 147.312
+L 127.502362 11.16
+" clip-path="url(#pc1b704edf9)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="127.502362" y="159.087312" transform="rotate(-0 127.502362 159.087312)">0,0</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 240.292913 147.312
+L 240.292913 11.16
+" clip-path="url(#pc1b704edf9)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4"/>
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="240.292913" y="159.087312" transform="rotate(-0 240.292913 159.087312)">0,5</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 353.083465 147.312
+L 353.083465 11.16
+" clip-path="url(#pc1b704edf9)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6"/>
+     <g id="text_3">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="353.083465" y="159.087312" transform="rotate(-0 353.083465 159.087312)">1,0</text>
+     </g>
+    </g>
+    <g id="text_4">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="240.292913" y="174.296656" transform="rotate(-0 240.292913 174.296656)">Exactitud exacta frente al fototipo registrado</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_7"/>
+     <g id="text_5">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="122.502362" y="51.608864" transform="rotate(-0 122.502362 51.608864)">Imagen completa</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_8"/>
+     <g id="text_6">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="122.502362" y="113.496136" transform="rotate(-0 122.502362 113.496136)">Fondo por Otsu</text>
+     </g>
+    </g>
+   </g>
+   <g id="LineCollection_1">
+    <path d="M 170.760271 40.865891
+L 182.719168 40.865891
+" clip-path="url(#pc1b704edf9)" style="fill: none; stroke: #8a6c58; stroke-width: 1.1"/>
+   </g>
+   <g id="line2d_9">
+    <defs>
+     <path id="mfe4d953225" d="M 0 3
+L 0 -3
+" style="stroke: #8a6c58; stroke-width: 1.1"/>
+    </defs>
+    <g clip-path="url(#pc1b704edf9)">
+     <use xlink:href="#mfe4d953225" x="170.760271" y="40.865891" style="fill: #8a6c58; stroke: #8a6c58; stroke-width: 1.1"/>
+    </g>
+   </g>
+   <g id="line2d_10">
+    <g clip-path="url(#pc1b704edf9)">
+     <use xlink:href="#mfe4d953225" x="182.719168" y="40.865891" style="fill: #8a6c58; stroke: #8a6c58; stroke-width: 1.1"/>
+    </g>
+   </g>
+   <g id="line2d_11">
+    <defs>
+     <path id="meff0659957" d="M 0 3.5
+C 0.928211 3.5 1.81853 3.131218 2.474874 2.474874
+C 3.131218 1.81853 3.5 0.928211 3.5 0
+C 3.5 -0.928211 3.131218 -1.81853 2.474874 -2.474874
+C 1.81853 -3.131218 0.928211 -3.5 0 -3.5
+C -0.928211 -3.5 -1.81853 -3.131218 -2.474874 -2.474874
+C -3.131218 -1.81853 -3.5 -0.928211 -3.5 0
+C -3.5 0.928211 -3.131218 1.81853 -2.474874 2.474874
+C -1.81853 3.131218 -0.928211 3.5 0 3.5
+z
+" style="stroke: #8a6c58; stroke-width: 0.7"/>
+    </defs>
+    <g clip-path="url(#pc1b704edf9)">
+     <use xlink:href="#meff0659957" x="261.424424" y="55.718836" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7"/>
+    </g>
+   </g>
+   <g id="LineCollection_2">
+    <path d="M 172.891446 102.753164
+L 185.892471 102.753164
+" clip-path="url(#pc1b704edf9)" style="fill: none; stroke: #8a6c58; stroke-width: 1.1"/>
+   </g>
+   <g id="line2d_12">
+    <g clip-path="url(#pc1b704edf9)">
+     <use xlink:href="#mfe4d953225" x="172.891446" y="102.753164" style="fill: #8a6c58; stroke: #8a6c58; stroke-width: 1.1"/>
+    </g>
+   </g>
+   <g id="line2d_13">
+    <g clip-path="url(#pc1b704edf9)">
+     <use xlink:href="#mfe4d953225" x="185.892471" y="102.753164" style="fill: #8a6c58; stroke: #8a6c58; stroke-width: 1.1"/>
+    </g>
+   </g>
+   <g id="line2d_14">
+    <g clip-path="url(#pc1b704edf9)">
+     <use xlink:href="#meff0659957" x="262.395688" y="117.606109" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7"/>
+    </g>
+   </g>
+   <g id="line2d_15">
+    <defs>
+     <path id="m6798316301" d="M -3.5 3.5
+L 3.5 3.5
+L 3.5 -3.5
+L -3.5 -3.5
+z
+" style="stroke: #8a6c58; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#pc1b704edf9)">
+     <use xlink:href="#m6798316301" x="176.541732" y="40.865891" style="fill: #8a6c58; stroke: #8a6c58; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_16">
+    <g clip-path="url(#pc1b704edf9)">
+     <use xlink:href="#m6798316301" x="179.107122" y="102.753164" style="fill: #8a6c58; stroke: #8a6c58; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 127.502362 147.312
+L 127.502362 11.16
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 353.083465 147.312
+L 353.083465 11.16
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 127.502362 147.312
+L 353.083465 147.312
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 127.502362 11.16
+L 353.083465 11.16
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="176.541732" y="27.498891" transform="rotate(-0 176.541732 27.498891)">0,217</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="261.424424" y="71.494149" transform="rotate(-0 261.424424 71.494149)">0,594</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(357.595087 42.791848)">n = 1.265</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(357.595087 56.201192)">sin est. = 229</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="179.107122" y="89.386164" transform="rotate(-0 179.107122 89.386164)">0,229</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="262.395688" y="133.381422" transform="rotate(-0 262.395688 133.381422)">0,598</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(357.595087 104.679121)">n = 1.189</text>
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(357.595087 118.088464)">sin est. = 305</text>
+   </g>
+  </g>
+  <g id="legend_1">
+   <g id="line2d_17">
+    <g>
+     <use xlink:href="#m6798316301" x="102.19685" y="205.083" style="fill: #8a6c58; stroke: #8a6c58; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="121.99685" y="208.933" transform="rotate(-0 121.99685 208.933)">ITA (IC 95 %)</text>
+   </g>
+   <g id="line2d_18">
+    <defs>
+     <path id="mc03351a7ff" d="M 0 3.5
+C 0.928211 3.5 1.81853 3.131218 2.474874 2.474874
+C 3.131218 1.81853 3.5 0.928211 3.5 0
+C 3.5 -0.928211 3.131218 -1.81853 2.474874 -2.474874
+C 1.81853 -3.131218 0.928211 -3.5 0 -3.5
+C -0.928211 -3.5 -1.81853 -3.131218 -2.474874 -2.474874
+C -3.131218 -1.81853 -3.5 -0.928211 -3.5 0
+C -3.5 0.928211 -3.131218 1.81853 -2.474874 2.474874
+C -1.81853 3.131218 -0.928211 3.5 0 3.5
+z
+" style="stroke: #8a6c58"/>
+    </defs>
+    <g>
+     <use xlink:href="#mc03351a7ff" x="240.79685" y="205.083" style="fill: #f4ede6; stroke: #8a6c58"/>
+    </g>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="260.59685" y="208.933" transform="rotate(-0 260.59685 208.933)">Mayoría (fototipo II)</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pc1b704edf9">
+   <rect x="127.502362" y="11.16" width="225.581102" height="136.152"/>
+  </clipPath>
+ </defs>
+</svg>
