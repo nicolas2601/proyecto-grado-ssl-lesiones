@@ -21,11 +21,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import thesis_style as style  # noqa: E402
 
 INPUT_DIR = "resultados/insumos_pod/A"
-DATASETS = (("ham10000", "HAM10000", 4539), ("isic2019", "ISIC 2019", 12558), ("isic2020", "ISIC 2020", 21973))
+DATASETS = (("ham10000", "HAM10000", 4539), ("isic2019", "ISIC 2019", 11805), ("isic2020", "ISIC 2020", 20704))
 LINESTYLES = {"ham10000": ("-", "o"), "isic2019": ("--", "s"), "isic2020": (":", "^")}
 CMAP = LinearSegmentedColormap.from_list("thesis_sequential", [style.COLORS["abstention"], style.COLORS["accent"]])
 DENSITY_FLOOR_PERCENT = 0.001
-NOTE = ("Población: píxeles del anillo perilesional de las imágenes con ITA válido (misma población de la figura de distribución de ITA): "
+NOTE = ("Población: píxeles del anillo perilesional de las imágenes cuya estimación ITA por anillo es válida (4.539 HAM10000; 11.805 ISIC 2019 y 20.704 ISIC 2020, sin las que usaron el borde de la imagen como alternativa): "
         "fuera de la máscara de lesión, dilatación de Chebyshev del 25 % del diámetro equivalente (mínimo 3 px), sin pelo, reflejos, "
         "píxeles saturados ni borde negro. Se usan todos los píxeles, sin submuestreo. (a) porcentaje de los píxeles de cada conjunto por "
         "intervalo de 2 unidades de L*; (b) porcentaje de los píxeles por celda de 4 × 4 unidades en a*–b*, escala logarítmica común.")
