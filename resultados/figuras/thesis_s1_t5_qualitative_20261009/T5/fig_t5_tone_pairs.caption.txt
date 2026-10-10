@@ -1,0 +1,1 @@
+Pares original/transformada CIRCLe con la misma máscara de lesión y el tercil de luminancia registrado.
