@@ -17,6 +17,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 import fig_t5_tone_pairs as figure  # noqa: E402
 from dermssl.circle import FST_SHIFT_L_STEP  # noqa: E402
+from dermssl.mask_manifest import mask_sha256 as canonical_mask_sha256  # noqa: E402
 from qualitative_figure_inputs import sha256_file  # noqa: E402
 
 
@@ -49,7 +50,7 @@ def _write_fixture(root: Path, *, shift: int = 2, include_l_shift: bool = False)
         "rutas": routes,
         "source_sha256": sha256_file(paths["original.png"]),
         "transformed_sha256": sha256_file(paths["transformed.png"]),
-        "mask_sha256": sha256_file(paths["mask.png"]),
+        "mask_sha256": canonical_mask_sha256(mask > 0),
     }
     if include_l_shift:
         entry["L_shift"] = -FST_SHIFT_L_STEP * shift
@@ -126,7 +127,7 @@ def test_t5_fails_closed_without_manifest_and_draws_only_in_memory(tmp_path):
     assert len(fig.axes) == 3
     labels = [text.get_text() for text in fig.texts]
     labels.extend(text.get_text() for legend in fig.legends for text in legend.get_texts())
-    assert any("L_shift = −16" in label for label in labels)
+    assert any("ΔL* = −16" in label for label in labels)
     assert any("Lesión protegida" in label for label in labels)
     plt.close(fig)
     assert not output.exists()

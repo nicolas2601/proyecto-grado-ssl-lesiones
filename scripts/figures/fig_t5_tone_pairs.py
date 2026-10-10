@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import thesis_style as style  # noqa: E402
 from dermssl.circle import FST_SHIFT_L_STEP, MAX_FST_SHIFT  # noqa: E402
+from dermssl.mask_manifest import mask_sha256 as canonical_mask_sha256  # noqa: E402
 from dermssl.fitzpatrick import MAX_MASK_AREA_FRACTION, MIN_MASK_AREA_FRACTION  # noqa: E402
 from qualitative_figure_inputs import (  # noqa: E402
     read_binary_mask,
@@ -35,13 +36,15 @@ STEM = "fig_t5_tone_pairs"
 DEFAULT_MANIFEST = REPO / "resultados/insumos_pod/T5/manifest.json"
 DEFAULT_OUTDIR = REPO / "resultados/figuras/thesis_s1_t5_qualitative_20261009/T5"
 FILES = ("original.png", "transformed.png", "mask.png")
-COLUMNS = ("Original", "Transformada", "Máscara: lesión protegida")
+COLUMNS = ("Original", "Transformada", "Máscara")
 CAPTION = "Pares original/transformada CIRCLe con la misma máscara de lesión y el tercil de luminancia registrado."
 NOTE = (
     "El campo shift_buckets es s. El cambio L_shift = −8s se deriva con FST_SHIFT_L_STEP=8 L* por nivel "
     "y se muestra antes del clipping L*′=clip(L*−8s,0,100); no es un delta medido de píxeles. "
     "La máscara usa semántica true=lesion: la transformación actúa fuera de la lesión, que queda protegida. "
-    "Los hashes source_sha256, transformed_sha256 y mask_sha256 se verifican contra los archivos."
+    "Los hashes source_sha256, transformed_sha256 y mask_sha256 se verifican contra los archivos. "
+    "El tercil se calculó con la media de L del original sobre una muestra de 605 imágenes candidatas del servidor; "
+    "no es el tercil de luminancia del manifiesto de tono del conjunto completo."
 )
 
 
@@ -57,6 +60,14 @@ def _text(value, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"T5 case requires non-empty {field}")
     return value.strip()
+
+
+def _verify_canonical_mask(mask: np.ndarray, expected: str) -> str:
+    """The manifest carries the project's canonical mask hash (shape + true=lesion + boolean bytes), not the PNG file hash."""
+    actual = canonical_mask_sha256(mask == 1)
+    if expected != actual:
+        raise ValueError(f"mask canonical SHA-256 mismatch: expected {expected}, got {actual}")
+    return actual
 
 
 def _load_pair(root: Path, entry: dict) -> dict:
@@ -93,7 +104,7 @@ def _load_pair(root: Path, entry: dict) -> dict:
     hashes = {
         "source_sha256": verify_sha256(paths["original.png"], entry.get("source_sha256"), "source"),
         "transformed_sha256": verify_sha256(paths["transformed.png"], entry.get("transformed_sha256"), "transformed"),
-        "mask_sha256": verify_sha256(paths["mask.png"], entry.get("mask_sha256"), "mask"),
+        "mask_sha256": _verify_canonical_mask(mask, entry.get("mask_sha256")),
     }
     return {
         "image_id": image_id,
@@ -147,8 +158,8 @@ def draw(pairs: list[dict]):
             mask_axis.imshow(pair["mask"], cmap="gray", vmin=0, vmax=1, interpolation="nearest")
             dataset = f"{pair['dataset']} · " if pair["dataset"] else ""
             row_labels.append((row,
-                f"{dataset}{pair['image_id']} · {pair['tercil']}\n"
-                f"s={pair['shift_buckets']:+d}; L_shift = {style.fmt_es(pair['L_shift'], 0, signed=True)} L* (derivado)"
+                f"{dataset}{pair['image_id']}\n{pair['tercil'].replace('_extra', ' (adicional)')}\n"
+                f"s = {pair['shift_buckets']:+d}\nΔL* = {style.fmt_es(pair['L_shift'], 0, signed=True)} (derivado)"
             ))
             for axis in axes[row]:
                 axis.set_xticks([])
@@ -158,23 +169,25 @@ def draw(pairs: list[dict]):
                     spine.set_color(style.COLORS["frame"])
                     spine.set_linewidth(style.LINE_WIDTHS["frame"])
         handles = [Line2D([], [], color=style.COLORS["accent"], linewidth=1.2, label="Lesión protegida")]
-        fig.text(0.24, 0.97, "Pares de tono CIRCLe · L_shift derivado antes del clipping",
+        fig.text(0.3, 0.97, "Pares de tono CIRCLe",
                  ha="left", va="top", fontsize=style.PANEL_TITLE_PT, color=style.COLORS["text"])
-        fig.text(0.24, 0.925, "L*′ = clip(L* − 8s, 0, 100); la misma máscara alinea ambos paneles.",
+        fig.text(0.3, 0.925, "L*′ = clip(L* − 8s, 0, 100)",
                  ha="left", va="top", fontsize=style.LABEL_PT, color=style.COLORS["text"])
         fig.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.67, 0.035),
-                   frameon=False, fontsize=8.5)
-        fig.subplots_adjust(left=0.24, right=0.99, top=0.88, bottom=0.13, wspace=0.04, hspace=0.22)
+                   frameon=False, fontsize=style.LABEL_PT)
+        fig.subplots_adjust(left=0.3, right=0.99, top=0.88, bottom=0.13, wspace=0.04, hspace=0.22)
         for row, label in row_labels:
             position = axes[row, 0].get_position()
             fig.text(0.012, position.y0 + position.height / 2, label,
-                     ha="left", va="center", fontsize=8, color=style.COLORS["text"])
+                     ha="left", va="center", fontsize=style.LABEL_PT, color=style.COLORS["text"])
     return fig
 
 
 def _traceability(manifest_path: Path, pairs: list[dict]) -> dict:
     return {
         "figure_id": "T5",
+        "question": "Cómo se ve la transformación de tono (s = +2) sobre casos reales, con la lesión protegida.",
+        "status": "Cálculo adicional (transformación aplicada a imágenes del servidor)",
         "manifest": {"path": manifest_path.name, "sha256": sha256_file(manifest_path)},
         "formula": "L*' = clip(L* - 8s, 0, 100)",
         "L_shift_semantics": "derived signed request before clipping: -FST_SHIFT_L_STEP * shift_buckets",
