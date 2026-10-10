@@ -59,13 +59,17 @@ def load(repo: Path, dataset: str, expected_images: int) -> dict:
     return {"doc": doc, "path": path, "L": l_counts, "ab": ab}
 
 
-def build(repo: Path, outdir: Path) -> list[Path]:
-    data = {name: load(repo, name, n) for name, _, n in DATASETS}
+def build(repo: Path, outdir: Path, only: tuple[str, ...] | None = None) -> list[Path]:
+    chosen = tuple(item for item in DATASETS if only is None or item[0] in only)
+    if not chosen:
+        raise ValueError(f"no known dataset in {only}")
+    partial = len(chosen) < len(DATASETS)
+    data = {name: load(repo, name, n) for name, _, n in chosen}
     with style.context():
         fig = plt.figure(figsize=(style.FIGURE_WIDTH_IN, 7.4))
-        grid = fig.add_gridspec(2, 3, height_ratios=(1, 1.15), hspace=0.52, wspace=0.42)
+        grid = fig.add_gridspec(2, len(chosen), height_ratios=(1, 1.15), hspace=0.52, wspace=0.42)
         ax_l = fig.add_subplot(grid[0, :])
-        for name, label, _ in DATASETS:
+        for name, label, _ in chosen:
             item = data[name]
             edges = np.asarray(item["doc"]["L_edges"], dtype=float)
             centres = (edges[:-1] + edges[1:]) / 2
@@ -80,11 +84,11 @@ def build(repo: Path, outdir: Path) -> list[Path]:
         ax_l.set_title("(a) Luminosidad", loc="left")
         ax_l.legend(frameon=False, loc="upper left")
         style.style_axes(ax_l, grid_axis="y")
-        shares = {n: 100 * data[n]["ab"] / data[n]["doc"]["n_pixels"] for n, _, _ in DATASETS}
+        shares = {n: 100 * data[n]["ab"] / data[n]["doc"]["n_pixels"] for n, _, _ in chosen}
         vmax = max(float(s.max()) for s in shares.values())
         norm = LogNorm(vmin=DENSITY_FLOOR_PERCENT, vmax=vmax)
         image = None
-        for column, (name, label, _) in enumerate(DATASETS):
+        for column, (name, label, _) in enumerate(chosen):
             ax = fig.add_subplot(grid[1, column])
             a_edges, b_edges = np.asarray(data[name]["doc"]["a_edges"]), np.asarray(data[name]["doc"]["b_edges"])
             masked = np.ma.masked_less(shares[name], DENSITY_FLOOR_PERCENT)
@@ -109,20 +113,23 @@ def build(repo: Path, outdir: Path) -> list[Path]:
     out = Path(outdir)
     trace = {"figure": stem, "question": "Cómo se distribuyen L*, a* y b* en el anillo perilesional que alimenta la estimación ITA.",
              "status": "Cálculo adicional (histogramas calculados en el pod)", "population": "píxeles del anillo, imágenes con ITA válido",
+             "partial": partial, "pending_datasets": [n for n, _, _ in DATASETS if n not in data],
              "datasets": {n: {"n_images": data[n]["doc"]["n_images"], "n_pixels": data[n]["doc"]["n_pixels"],
-                              "code_revision": data[n]["doc"]["code_revision"]} for n, _, _ in DATASETS},
+                              "code_revision": data[n]["doc"]["code_revision"]} for n, _, _ in chosen},
              "sources": [{"path": str(data[n]["path"].relative_to(repo)), "sha256": hashlib.sha256(data[n]["path"].read_bytes()).hexdigest()}
-                         for n, _, _ in DATASETS],
+                         for n, _, _ in chosen],
              "script": "scripts/figures/fig_a_cielab_ring.py"}
     (out / f"{stem}.traceability.json").write_text(json.dumps(trace, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (out / f"{stem}.caption.txt").write_text("Distribución CIELAB de los píxeles del anillo perilesional en HAM10000, ISIC 2019 e ISIC 2020.\n", encoding="utf-8")
-    (out / f"{stem}.note.txt").write_text(NOTE + "\n", encoding="utf-8")
+    extra = " FIGURA PARCIAL: faltan " + ", ".join(label for n, label, _ in DATASETS if n not in data) + "." if partial else ""
+    (out / f"{stem}.note.txt").write_text(NOTE + extra + "\n", encoding="utf-8")
     return paths
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--outdir", type=Path, default=REPO / "resultados" / "figuras")
+    parser.add_argument("--only", nargs="+", default=None, help="render only these datasets (marks the figure partial)")
     args = parser.parse_args()
-    for path in build(REPO, args.outdir):
+    for path in build(REPO, args.outdir, tuple(args.only) if args.only else None):
         print(path)
