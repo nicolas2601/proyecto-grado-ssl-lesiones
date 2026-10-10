@@ -81,6 +81,24 @@ def test_c2_separates_comparison_families_and_omits_caption_notes_from_plot():
     plt.close(fig)
 
 
+def test_c2_keeps_ticks_visible_and_half_slot_margin_in_both_panels():
+    import matplotlib.pyplot as plt
+
+    fig = figure._draw(figure.figure_data(REPO))
+    ham, isic = fig.axes
+    for axis in (ham, isic):
+        labels = axis.xaxis.get_ticklabels()
+        assert labels
+        assert all(label.get_visible() and label.get_text() for label in labels)
+        lower, upper = sorted(axis.get_ylim())
+        assert lower <= -0.5
+        assert upper >= len(axis.get_yticks()) - 0.5
+    assert [label.get_text() for label in ham.xaxis.get_ticklabels()] == [
+        label.get_text() for label in isic.xaxis.get_ticklabels()
+    ]
+    plt.close(fig)
+
+
 def test_c2_build_exports_vector_and_preview_with_traceability(tmp_path):
     paths = figure.build(REPO, tmp_path)
     assert {path.suffix for path in paths} == {".pdf", ".svg", ".png"}

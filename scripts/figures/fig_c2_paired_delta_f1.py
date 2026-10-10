@@ -151,6 +151,7 @@ def _draw_forest_axis(ax, comparisons: list[dict], labels: list[str], limits: tu
                     color=style.COLORS["text"])
     ax.set_yticks(positions, labels)
     ax.invert_yaxis()
+    ax.set_ylim(len(positions) - 0.5, -0.5)
     ax.set_xlim(*limits)
     ax.xaxis.set_major_formatter(_delta_tick)
     style.style_axes(ax, "x")
@@ -172,7 +173,7 @@ def _draw(data: dict):
         isic_labels = [f"ISIC 2019 · n = {style.fmt_es(isic[0]['n_val'], 0)}",
                        f"ISIC 2020 · n = {style.fmt_es(isic[1]['n_val'], 0)}"]
         _draw_forest_axis(ax_isic, [group["comparisons"][0] for group in isic], isic_labels, limits)
-        ax_ham.tick_params(axis="x", labelbottom=False)
+        ax_ham.tick_params(axis="x", labelbottom=True)
         ax_ham.set_xlabel("")
         ax_isic.set_xlabel("Δ F1 macro · B71 − control")
         fig.subplots_adjust(left=0.46, right=0.96, top=0.88, bottom=0.12, hspace=0.48)

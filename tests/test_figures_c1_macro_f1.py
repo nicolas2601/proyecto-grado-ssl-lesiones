@@ -76,3 +76,14 @@ def test_build_all_exports_each_dataset_without_overwriting(tmp_path):
             assert "+0,3331" in note
     with pytest.raises(FileExistsError):
         figure.build_all(REPO, tmp_path)
+
+
+def test_c1_b71_interval_stays_visible_on_dark_bar():
+    from matplotlib.colors import to_rgba
+
+    panel = figure.figure_data(REPO)["datasets"]["ham10000"]
+    fig = figure._draw(panel)
+    errorbars = [container for container in fig.axes[0].containers if hasattr(container, "lines")]
+    assert len(errorbars) == len(panel["rows"])
+    b71_barline = errorbars[0].lines[2][0]
+    assert to_rgba(b71_barline.get_colors()[0]) == to_rgba(figure.style.COLORS["text"])

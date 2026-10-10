@@ -136,10 +136,11 @@ def _draw(panel: dict):
         ax.barh(positions, [row["f1"] for row in rows], height=0.62,
                 color=[style.COLORS["accent"], *([style.COLORS["bar_light"]] * 8)],
                 edgecolor=style.COLORS["accent"], linewidth=style.LINE_WIDTHS["bar"])
-        for y, row in zip(positions, rows, strict=True):
+        for index, (y, row) in enumerate(zip(positions, rows, strict=True)):
             low, high = row["ci"]
             ax.errorbar(row["f1"], y, xerr=[[row["f1"] - low], [high - row["f1"]]],
-                        fmt="none", ecolor=style.COLORS["accent"], elinewidth=style.LINE_WIDTHS["curve"],
+                        fmt="none", ecolor=style.COLORS["text"] if index == 0 else style.COLORS["accent"],
+                        elinewidth=style.LINE_WIDTHS["curve"],
                         capsize=2, zorder=3)
             ax.annotate(style.fmt_es(row["f1"], 3), (high, y), xytext=(5, 0),
                         textcoords="offset points", va="center", fontsize=style.LABEL_PT,
