@@ -34,10 +34,10 @@
 | 5_dominio | fig_d1_pad_d0_d3 | Cómo se comportan D0–D3 en PAD-UFES-20 (fotos clínicas): F1 macro y sensibilidad por diagnóstico. | Artefactos verificados | fig_d1_pad_d0_d3.svg |
 | 5_dominio | fig_d2_pad_contrasts | Si la adaptación mejora frente a su control (D3 − D2) y si supera al público (D3 − D0). | Artefactos verificados | fig_d2_pad_contrasts.svg |
 | 3_tono | fig_a_cielab_ring | Cómo se distribuyen L*, a* y b* en el anillo perilesional que alimenta la estimación ITA. | Cálculo adicional (histogramas calculados en el pod) | fig_a_cielab_ring.svg |
+| 3_tono | fig_t5_tone_pairs | Cómo se ve la transformación de tono (s = +2) sobre casos reales, con la lesión protegida. | Cálculo adicional (transformación aplicada a imágenes del servidor) | fig_t5_tone_pairs.svg |
 
 ## Pendientes (dependen del servidor de la UNAB)
 
-- T5 antes/después de la transformación de tono: faltan las imágenes originales/transformadas del servidor.
 - S1 comparación cualitativa de máscaras: faltan imágenes y máscaras por caso del servidor.
 
 ## Requieren experimentos nuevos (sin gráfica)

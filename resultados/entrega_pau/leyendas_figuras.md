@@ -94,19 +94,19 @@ Nota. Filas: etiqueta real; columnas: predicción. Cada fila suma 100 %. Predicc
 
 Precisión, sensibilidad y F1 por diagnóstico para B71 y A71 en la partición indicada. Con n = 2.004 en HAM10000
 
-Nota. B71 y A71 congelados, partición común v6/v7. Filas = clase real; columnas = clase predicha. Precisión = TP/(TP+FP), sensibilidad = TP/(TP+FN) y F1 = 2TP/(2TP+FP+FN); precisión se fija en 0 si no hubo predicciones de una clase. Son estimaciones puntuales derivadas de conteos; no se muestran intervalos por clase. HAM10000 excluye DINOv2 ViT-B/14 porque su matriz usa n=2.014, distinto de B71/A71 (n=2.004). Las matrices ISIC de B71/A71 son originales y transductivas; no interpretar como validación independiente.
+Nota. B71 y A71 congelados, partición común v6/v7. Filas = clase real; columnas = clase predicha. Precisión = TP/(TP+FP), sensibilidad = TP/(TP+FN) y F1 = 2TP/(2TP+FP+FN); precisión se fija en 0 si no hubo predicciones de una clase. Son estimaciones puntuales derivadas de conteos; no se muestran intervalos por clase. HAM10000 excluye DINOv2 ViT-B/14: su matriz usa n=2.014, distinto del split B71/A71 (n=2.004).
 
 ## fig_c4_per_diagnosis_isic2019
 
 Precisión, sensibilidad y F1 por diagnóstico para B71 y A71 en la partición indicada. Con n = 5.067 en ISIC 2019
 
-Nota. B71 y A71 originales transductivos, E1 canónico. Filas = clase real; columnas = clase predicha. Precisión = TP/(TP+FP), sensibilidad = TP/(TP+FN) y F1 = 2TP/(2TP+FP+FN); precisión se fija en 0 si no hubo predicciones de una clase. Son estimaciones puntuales derivadas de conteos; no se muestran intervalos por clase. HAM10000 excluye DINOv2 ViT-B/14 porque su matriz usa n=2.014, distinto de B71/A71 (n=2.004). Las matrices ISIC de B71/A71 son originales y transductivas; no interpretar como validación independiente.
+Nota. B71 y A71 originales transductivos, E1 canónico. Filas = clase real; columnas = clase predicha. Precisión = TP/(TP+FP), sensibilidad = TP/(TP+FN) y F1 = 2TP/(2TP+FP+FN); precisión se fija en 0 si no hubo predicciones de una clase. Son estimaciones puntuales derivadas de conteos; no se muestran intervalos por clase. ISIC 2019: B71/A71 son originales transductivos del E1 canónico; no son evaluación independiente.
 
 ## fig_c4_per_diagnosis_isic2020
 
 Precisión, sensibilidad y F1 por diagnóstico para B71 y A71 en la partición indicada. Con n = 6.660 en ISIC 2020
 
-Nota. B71 y A71 originales transductivos, E1 canónico. Filas = clase real; columnas = clase predicha. Precisión = TP/(TP+FP), sensibilidad = TP/(TP+FN) y F1 = 2TP/(2TP+FP+FN); precisión se fija en 0 si no hubo predicciones de una clase. Son estimaciones puntuales derivadas de conteos; no se muestran intervalos por clase. HAM10000 excluye DINOv2 ViT-B/14 porque su matriz usa n=2.014, distinto de B71/A71 (n=2.004). Las matrices ISIC de B71/A71 son originales y transductivas; no interpretar como validación independiente.
+Nota. B71 y A71 originales transductivos, E1 canónico. Filas = clase real; columnas = clase predicha. Precisión = TP/(TP+FP), sensibilidad = TP/(TP+FN) y F1 = 2TP/(2TP+FP+FN); precisión se fija en 0 si no hubo predicciones de una clase. Son estimaciones puntuales derivadas de conteos; no se muestran intervalos por clase. ISIC 2020: B71/A71 son originales transductivos del E1 canónico; no son evaluación independiente.
 
 ## fig_c5_pr_roc_ham10000
 
@@ -191,4 +191,10 @@ Nota. Δ de F1 macro con IC 95 % bootstrap pareado por patient_id (1.000 remuest
 Distribución CIELAB de los píxeles del anillo perilesional en HAM10000, ISIC 2019 e ISIC 2020.
 
 Nota. Población: píxeles del anillo perilesional de las imágenes cuya estimación ITA por anillo es válida (4.539 HAM10000; 11.805 ISIC 2019 y 20.704 ISIC 2020, sin las que usaron el borde de la imagen como alternativa): fuera de la máscara de lesión, dilatación de Chebyshev del 25 % del diámetro equivalente (mínimo 3 px), sin pelo, reflejos, píxeles saturados ni borde negro. Se usan todos los píxeles, sin submuestreo. (a) porcentaje de los píxeles de cada conjunto por intervalo de 2 unidades de L*; (b) porcentaje de los píxeles por celda de 4 × 4 unidades en a*–b*, escala logarítmica común.
+
+## fig_t5_tone_pairs
+
+Pares original/transformada CIRCLe con la misma máscara de lesión y el tercil de luminancia registrado.
+
+Nota. El campo shift_buckets es s. El cambio L_shift = −8s se deriva con FST_SHIFT_L_STEP=8 L* por nivel y se muestra antes del clipping L*′=clip(L*−8s,0,100); no es un delta medido de píxeles. La máscara usa semántica true=lesion: la transformación actúa fuera de la lesión, que queda protegida. Los hashes source_sha256, transformed_sha256 y mask_sha256 se verifican contra los archivos. El tercil se calculó con la media de L del original sobre una muestra de 605 imágenes candidatas del servidor; no es el tercil de luminancia del manifiesto de tono del conjunto completo.
 

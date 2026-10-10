@@ -32,11 +32,11 @@ PLAN = (
     ("5_dominio", (("fig_d1_pad_d0_d3", FIGURES), ("fig_d2_pad_contrasts", FIGURES))),
 )
 # Pending-from-pod figures join the package automatically when their exports exist.
-OPTIONAL = (("3_tono", "fig_a_cielab_ring", FIGURES), ("3_tono", "fig_t5_tone_before_after", FIGURES),
+OPTIONAL = (("3_tono", "fig_a_cielab_ring", FIGURES), ("3_tono", "fig_t5_tone_pairs", f"{FIGURES}/thesis_s1_t5_qualitative_20261009/T5"),
             ("2_segmentacion", "fig_s1_qualitative_masks", FIGURES))
 PENDING_TEXT = {
     "fig_a_cielab_ring": "Figura A (CIELAB del anillo perilesional): cálculo en el servidor de la UNAB (HAM10000, ISIC 2019, ISIC 2020).",
-    "fig_t5_tone_before_after": "T5 antes/después de la transformación de tono: faltan las imágenes originales/transformadas del servidor.",
+    "fig_t5_tone_pairs": "T5 antes/después de la transformación de tono: faltan las imágenes originales/transformadas del servidor.",
     "fig_s1_qualitative_masks": "S1 comparación cualitativa de máscaras: faltan imágenes y máscaras por caso del servidor.",
 }
 NEW_EXPERIMENTS = ("Ablaciones aisladas de F4 (recorte, descriptores, combinación): requieren ejecutar esas condiciones.",
