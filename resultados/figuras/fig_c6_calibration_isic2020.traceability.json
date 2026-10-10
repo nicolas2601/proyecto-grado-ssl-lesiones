@@ -5,6 +5,8 @@
   "evaluation_unit": "image",
   "support": 6660,
   "bins": 15,
+  "low_support_threshold_n": 10,
+  "support_visualization": "grouped histogram on shared confidence scale; zero-support bins omitted",
   "bin_edges": "15 equal-width bins: (lo, hi], first bin [0, hi]",
   "ece_tolerance": 1e-06,
   "confidence_definition": "maximum class probability",
@@ -22,7 +24,8 @@
           "high": 0.06666666666666667,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 1,
@@ -30,7 +33,8 @@
           "high": 0.13333333333333333,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 2,
@@ -38,7 +42,8 @@
           "high": 0.2,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 3,
@@ -46,7 +51,8 @@
           "high": 0.26666666666666666,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 4,
@@ -54,7 +60,8 @@
           "high": 0.3333333333333333,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 5,
@@ -62,7 +69,8 @@
           "high": 0.4,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 6,
@@ -70,7 +78,8 @@
           "high": 0.4666666666666667,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 7,
@@ -78,7 +87,8 @@
           "high": 0.5333333333333333,
           "confidence": 0.5182872898644095,
           "accuracy": 0.6444444444444445,
-          "n": 45
+          "n": 45,
+          "low_support": false
         },
         {
           "index": 8,
@@ -86,7 +96,8 @@
           "high": 0.6,
           "confidence": 0.5673448147823362,
           "accuracy": 0.5384615384615384,
-          "n": 91
+          "n": 91,
+          "low_support": false
         },
         {
           "index": 9,
@@ -94,7 +105,8 @@
           "high": 0.6666666666666666,
           "confidence": 0.6343553239715958,
           "accuracy": 0.7530864197530864,
-          "n": 81
+          "n": 81,
+          "low_support": false
         },
         {
           "index": 10,
@@ -102,7 +114,8 @@
           "high": 0.7333333333333333,
           "confidence": 0.7010932766815696,
           "accuracy": 0.7254901960784313,
-          "n": 102
+          "n": 102,
+          "low_support": false
         },
         {
           "index": 11,
@@ -110,7 +123,8 @@
           "high": 0.8,
           "confidence": 0.7683326179146389,
           "accuracy": 0.8508771929824561,
-          "n": 114
+          "n": 114,
+          "low_support": false
         },
         {
           "index": 12,
@@ -118,7 +132,8 @@
           "high": 0.8666666666666667,
           "confidence": 0.8354125673685552,
           "accuracy": 0.8581081081081081,
-          "n": 148
+          "n": 148,
+          "low_support": false
         },
         {
           "index": 13,
@@ -126,7 +141,8 @@
           "high": 0.9333333333333333,
           "confidence": 0.9011820272548633,
           "accuracy": 0.8859649122807017,
-          "n": 228
+          "n": 228,
+          "low_support": false
         },
         {
           "index": 14,
@@ -134,7 +150,8 @@
           "high": 1.0,
           "confidence": 0.996699934501495,
           "accuracy": 0.9890616988548966,
-          "n": 5851
+          "n": 5851,
+          "low_support": false
         }
       ],
       "ece_recomputed": 0.01221336264378615,
@@ -154,7 +171,8 @@
           "high": 0.06666666666666667,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 1,
@@ -162,7 +180,8 @@
           "high": 0.13333333333333333,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 2,
@@ -170,7 +189,8 @@
           "high": 0.2,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 3,
@@ -178,7 +198,8 @@
           "high": 0.26666666666666666,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 4,
@@ -186,7 +207,8 @@
           "high": 0.3333333333333333,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 5,
@@ -194,7 +216,8 @@
           "high": 0.4,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 6,
@@ -202,7 +225,8 @@
           "high": 0.4666666666666667,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 7,
@@ -210,7 +234,8 @@
           "high": 0.5333333333333333,
           "confidence": 0.5171519574721468,
           "accuracy": 0.6136363636363636,
-          "n": 44
+          "n": 44,
+          "low_support": false
         },
         {
           "index": 8,
@@ -218,7 +243,8 @@
           "high": 0.6,
           "confidence": 0.5695675457847474,
           "accuracy": 0.5681818181818182,
-          "n": 88
+          "n": 88,
+          "low_support": false
         },
         {
           "index": 9,
@@ -226,7 +252,8 @@
           "high": 0.6666666666666666,
           "confidence": 0.6347065850514959,
           "accuracy": 0.5542168674698795,
-          "n": 83
+          "n": 83,
+          "low_support": false
         },
         {
           "index": 10,
@@ -234,7 +261,8 @@
           "high": 0.7333333333333333,
           "confidence": 0.7007778690667448,
           "accuracy": 0.7901234567901234,
-          "n": 81
+          "n": 81,
+          "low_support": false
         },
         {
           "index": 11,
@@ -242,7 +270,8 @@
           "high": 0.8,
           "confidence": 0.7720456782247602,
           "accuracy": 0.8,
-          "n": 120
+          "n": 120,
+          "low_support": false
         },
         {
           "index": 12,
@@ -250,7 +279,8 @@
           "high": 0.8666666666666667,
           "confidence": 0.8354020946186975,
           "accuracy": 0.922077922077922,
-          "n": 154
+          "n": 154,
+          "low_support": false
         },
         {
           "index": 13,
@@ -258,7 +288,8 @@
           "high": 0.9333333333333333,
           "confidence": 0.9010834229950293,
           "accuracy": 0.9135802469135802,
-          "n": 243
+          "n": 243,
+          "low_support": false
         },
         {
           "index": 14,
@@ -266,7 +297,8 @@
           "high": 1.0,
           "confidence": 0.9971137813856803,
           "accuracy": 0.9909355224901659,
-          "n": 5847
+          "n": 5847,
+          "low_support": false
         }
       ],
       "ece_recomputed": 0.011133408570747887,
@@ -286,7 +318,8 @@
           "high": 0.06666666666666667,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 1,
@@ -294,7 +327,8 @@
           "high": 0.13333333333333333,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 2,
@@ -302,7 +336,8 @@
           "high": 0.2,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 3,
@@ -310,7 +345,8 @@
           "high": 0.26666666666666666,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 4,
@@ -318,7 +354,8 @@
           "high": 0.3333333333333333,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 5,
@@ -326,7 +363,8 @@
           "high": 0.4,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 6,
@@ -334,7 +372,8 @@
           "high": 0.4666666666666667,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 7,
@@ -342,7 +381,8 @@
           "high": 0.5333333333333333,
           "confidence": 0.5174753847388807,
           "accuracy": 0.55,
-          "n": 20
+          "n": 20,
+          "low_support": false
         },
         {
           "index": 8,
@@ -350,7 +390,8 @@
           "high": 0.6,
           "confidence": 0.5674726535148364,
           "accuracy": 0.5555555555555556,
-          "n": 54
+          "n": 54,
+          "low_support": false
         },
         {
           "index": 9,
@@ -358,7 +399,8 @@
           "high": 0.6666666666666666,
           "confidence": 0.6283323622796164,
           "accuracy": 0.625,
-          "n": 56
+          "n": 56,
+          "low_support": false
         },
         {
           "index": 10,
@@ -366,7 +408,8 @@
           "high": 0.7333333333333333,
           "confidence": 0.6998908271749771,
           "accuracy": 0.6875,
-          "n": 64
+          "n": 64,
+          "low_support": false
         },
         {
           "index": 11,
@@ -374,7 +417,8 @@
           "high": 0.8,
           "confidence": 0.7653342842845732,
           "accuracy": 0.8295454545454546,
-          "n": 88
+          "n": 88,
+          "low_support": false
         },
         {
           "index": 12,
@@ -382,7 +426,8 @@
           "high": 0.8666666666666667,
           "confidence": 0.8377253828210021,
           "accuracy": 0.8983050847457628,
-          "n": 118
+          "n": 118,
+          "low_support": false
         },
         {
           "index": 13,
@@ -390,7 +435,8 @@
           "high": 0.9333333333333333,
           "confidence": 0.9011503598075989,
           "accuracy": 0.8433734939759037,
-          "n": 166
+          "n": 166,
+          "low_support": false
         },
         {
           "index": 14,
@@ -398,7 +444,8 @@
           "high": 1.0,
           "confidence": 0.9982523293790047,
           "accuracy": 0.9886773875943551,
-          "n": 6094
+          "n": 6094,
+          "low_support": false
         }
       ],
       "ece_recomputed": 0.012464456996347722,

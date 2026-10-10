@@ -6,10 +6,10 @@
 - [x] 1.5 Verify final SVG/PDF/PNG dimensions, editable SVG text, embedded PDF fonts, and source hashes.
 
 ## 2. C6 confidence calibration
-- [ ] 2.1 Verify probability NPZ inputs and published ECE records for each candidate arm.
-- [ ] 2.2 Add tests for predicted-class confidence, bin edges/support, reliability accuracy, and ECE consistency gates.
-- [ ] 2.3 Build only reliability panels supported by verified aligned probabilities; document any ECE mismatch or pending input.
-- [ ] 2.4 Export figures and sidecars; inspect all PNGs and validate vector/font/dimension metadata.
+- [x] 2.1 Verify probability NPZ inputs and published ECE records for each candidate arm.
+- [x] 2.2 Add tests for predicted-class confidence, bin edges/support, reliability accuracy, and ECE consistency gates.
+- [x] 2.3 Build only reliability panels supported by verified aligned probabilities; document any ECE mismatch or pending input.
+- [x] 2.4 Re-export C6 with aligned support histograms, omit empty bins, and mark bins with `n < 10` hollow; inspect all PNGs and validate vector/font/dimension metadata.
 
 ## 3. C7 ablations
 - [ ] 3.1 Locate verified A71/B71 protocol comparison and stored paired B71/B71+F4 contrasts.

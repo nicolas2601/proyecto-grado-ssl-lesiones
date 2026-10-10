@@ -5,6 +5,8 @@
   "evaluation_unit": "image",
   "support": 6660,
   "bins": 15,
+  "low_support_threshold_n": 10,
+  "support_visualization": "grouped histogram on shared confidence scale; zero-support bins omitted",
   "bin_edges": "15 equal-width bins: (lo, hi], first bin [0, hi]",
   "ece_tolerance": 1e-06,
   "confidence_definition": "maximum class probability",
@@ -22,7 +24,8 @@
           "high": 0.06666666666666667,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 1,
@@ -30,7 +33,8 @@
           "high": 0.13333333333333333,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 2,
@@ -38,7 +42,8 @@
           "high": 0.2,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 3,
@@ -46,7 +51,8 @@
           "high": 0.26666666666666666,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 4,
@@ -54,7 +60,8 @@
           "high": 0.3333333333333333,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 5,
@@ -62,7 +69,8 @@
           "high": 0.4,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 6,
@@ -70,7 +78,8 @@
           "high": 0.4666666666666667,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         },
         {
           "index": 7,
@@ -78,7 +87,8 @@
           "high": 0.5333333333333333,
           "confidence": 0.5151118294805543,
           "accuracy": 0.49401709401709404,
-          "n": 585
+          "n": 585,
+          "low_support": false
         },
         {
           "index": 8,
@@ -86,7 +96,8 @@
           "high": 0.6,
           "confidence": 0.5692616169306207,
           "accuracy": 0.8479355488418933,
-          "n": 993
+          "n": 993,
+          "low_support": false
         },
         {
           "index": 9,
@@ -94,7 +105,8 @@
           "high": 0.6666666666666666,
           "confidence": 0.6305325007926057,
           "accuracy": 0.9727427597955707,
-          "n": 1174
+          "n": 1174,
+          "low_support": false
         },
         {
           "index": 10,
@@ -102,7 +114,8 @@
           "high": 0.7333333333333333,
           "confidence": 0.6977109289379372,
           "accuracy": 0.9647577092511013,
-          "n": 681
+          "n": 681,
+          "low_support": false
         },
         {
           "index": 11,
@@ -110,7 +123,8 @@
           "high": 0.8,
           "confidence": 0.7692089283702064,
           "accuracy": 0.998587570621469,
-          "n": 708
+          "n": 708,
+          "low_support": false
         },
         {
           "index": 12,
@@ -118,7 +132,8 @@
           "high": 0.8666666666666667,
           "confidence": 0.8354037862469033,
           "accuracy": 0.9990338164251208,
-          "n": 1035
+          "n": 1035,
+          "low_support": false
         },
         {
           "index": 13,
@@ -126,7 +141,8 @@
           "high": 0.9333333333333333,
           "confidence": 0.8932763788738662,
           "accuracy": 1.0,
-          "n": 1484
+          "n": 1484,
+          "low_support": false
         },
         {
           "index": 14,
@@ -134,7 +150,8 @@
           "high": 1.0,
           "confidence": null,
           "accuracy": null,
-          "n": 0
+          "n": 0,
+          "low_support": false
         }
       ],
       "ece_recomputed": 0.20462647894839264,
