@@ -94,23 +94,28 @@ def build(repo: Path, outdir: Path, only: tuple[str, ...] | None = None) -> list
         vmax = max(float(s.max()) for s in shares.values())
         norm = LogNorm(vmin=DENSITY_FLOOR_PERCENT, vmax=vmax)
         image = None
-        limits: list[tuple[float, float, float, float]] = []
+        extents = []
+        for name, _label, _n in chosen:
+            occupied = np.argwhere(shares[name] >= DENSITY_FLOOR_PERCENT)
+            a_edges_n, b_edges_n = np.asarray(data[name]["doc"]["a_edges"]), np.asarray(data[name]["doc"]["b_edges"])
+            extents.append((a_edges_n[occupied[:, 0].min()], a_edges_n[occupied[:, 0].max() + 1],
+                            b_edges_n[occupied[:, 1].min()], b_edges_n[occupied[:, 1].max() + 1]))
+        a_lo, a_hi = min(e[0] for e in extents) - 4, max(e[1] for e in extents) + 4  # one common window: panels stay comparable
+        b_lo, b_hi = min(e[2] for e in extents) - 4, max(e[3] for e in extents) + 4
         for column, (name, label, _) in enumerate(chosen):
             ax = fig.add_subplot(grid[1, column])
             a_edges, b_edges = np.asarray(data[name]["doc"]["a_edges"]), np.asarray(data[name]["doc"]["b_edges"])
             masked = np.ma.masked_less(shares[name], DENSITY_FLOOR_PERCENT)
             image = ax.pcolormesh(b_edges, a_edges, masked, cmap=CMAP, norm=norm, shading="flat")
-            occupied = np.argwhere(shares[name] >= DENSITY_FLOOR_PERCENT)
-            a_lo, a_hi = a_edges[occupied[:, 0].min()] - 4, a_edges[occupied[:, 0].max() + 1] + 4
-            b_lo, b_hi = b_edges[occupied[:, 1].min()] - 4, b_edges[occupied[:, 1].max() + 1] + 4
-            limits.append((a_lo, a_hi, b_lo, b_hi))
             ax.set_xlim(b_lo, b_hi)
             ax.set_ylim(a_lo, a_hi)
-            ax.set_xticks(tick_range(b_lo, b_hi, 20))
+            ax.set_xticks(tick_range(b_lo, b_hi, 40))
             ax.set_yticks(tick_range(a_lo, a_hi, 20))
             ax.set_xlabel("b*")
             if column == 0:
                 ax.set_ylabel("a*")
+            else:
+                ax.set_yticklabels([])
             ax.set_title(f"{'(b) ' if column == 0 else ''}{label}", loc="left")
             style.style_axes(ax, grid_axis="both")
         bar = fig.colorbar(image, ax=fig.axes[1:], location="bottom", pad=0.18, fraction=0.04, aspect=45)
