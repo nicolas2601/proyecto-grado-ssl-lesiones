@@ -1,0 +1,31 @@
+{
+  "figure": "fig_s3_dice_distribution",
+  "question": "Cómo se reparte el Dice entre imágenes, más allá de la media.",
+  "status": "Artefactos verificados",
+  "resampling_unit": "imagen",
+  "n_resamples_per_ci": 1000,
+  "sources": [
+    {
+      "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/evaluacion_isic2018/per_image.csv",
+      "sha256": "8f01d5326d8330fc587a2d2a4f3db62611bc621c0014dfdf625fdfb4bf24d1b8"
+    },
+    {
+      "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/evaluacion_ham10000/per_image.csv",
+      "sha256": "953a9c3127996ff3b17974290c5cc4091132ee40745ecac1669a23603b6cde6f"
+    },
+    {
+      "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/evaluacion_isic2018/per_image.csv",
+      "sha256": "6127e34cba83ae42aded07de636c0112e42d656e8f201553e9cf473ae37e29df"
+    },
+    {
+      "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/evaluacion_ham10000/per_image.csv",
+      "sha256": "f464932812aa9e9f67a065f165f12cc3945e86b10228e9a045a89ff284eeef78"
+    }
+  ],
+  "paired_contrast_sources": null,
+  "script": "scripts/figures/fig_s2_s3_dice.py",
+  "limits": [
+    "ISIC 2018 parcialmente transductivo",
+    "student_r3 y S4-A2 evaluados a 224 px, umbral 0,5"
+  ]
+}
