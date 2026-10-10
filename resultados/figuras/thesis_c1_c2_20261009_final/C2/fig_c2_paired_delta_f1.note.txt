@@ -1,0 +1,4 @@
+N de validación: HAM10000 2.004; ISIC 2019 5.067; ISIC 2020 6.660.
+Bootstrap pareado, 1.000 remuestras, semilla 20260923.
+Unidad: HAM lesion_id; ISIC 2019 imagen; ISIC 2020 patient_id.
+Sin ajuste por multiplicidad.

@@ -1,0 +1,203 @@
+{
+  "figure_id": "C2",
+  "metric": "macro_f1",
+  "multiplicity_adjustment": "none",
+  "figure_script": {
+    "path": "scripts/figures/fig_c2_paired_delta_f1.py",
+    "sha256": "e6371b201d4bc8a7c065e274d15b14bd42198a77c65fdbd94edaf822212c5309"
+  },
+  "e3b_source_code_revision": "3052b40dcdadfc80b175c77b6f5fdc095bec27be",
+  "groups": [
+    {
+      "dataset": "ham10000",
+      "title": "HAM10000 · B71-TTA frente a ocho baselines congelados",
+      "n_val": 2004,
+      "unit": "lesion_id",
+      "n_resamples": 1000,
+      "seed": 20260923,
+      "source_code_revision": "3052b40dcdadfc80b175c77b6f5fdc095bec27be",
+      "comparisons": [
+        {
+          "dataset": "ham10000",
+          "arm": "B71 (TTA, canónico)",
+          "control": "AlexNet",
+          "label": "AlexNet",
+          "delta": 0.24132181689820398,
+          "low": 0.1941769943539694,
+          "high": 0.28981004436915503,
+          "n_val": 2004,
+          "unit": "lesion_id",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+        },
+        {
+          "dataset": "ham10000",
+          "arm": "B71 (TTA, canónico)",
+          "control": "VGG19",
+          "label": "VGG19",
+          "delta": 0.3330884143964866,
+          "low": 0.2844175736232943,
+          "high": 0.3800035074949665,
+          "n_val": 2004,
+          "unit": "lesion_id",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+        },
+        {
+          "dataset": "ham10000",
+          "arm": "B71 (TTA, canónico)",
+          "control": "ResNet-50",
+          "label": "ResNet-50",
+          "delta": 0.24710371379751855,
+          "low": 0.19685540649303196,
+          "high": 0.29434728018776635,
+          "n_val": 2004,
+          "unit": "lesion_id",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+        },
+        {
+          "dataset": "ham10000",
+          "arm": "B71 (TTA, canónico)",
+          "control": "EfficientNet-B0",
+          "label": "EfficientNet-B0",
+          "delta": 0.21004495140006818,
+          "low": 0.1579381629547042,
+          "high": 0.2609478280437826,
+          "n_val": 2004,
+          "unit": "lesion_id",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+        },
+        {
+          "dataset": "ham10000",
+          "arm": "B71 (TTA, canónico)",
+          "control": "ViT-B/16",
+          "label": "ViT-B/16",
+          "delta": 0.1508557328154363,
+          "low": 0.10046347929292809,
+          "high": 0.20681837080092935,
+          "n_val": 2004,
+          "unit": "lesion_id",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+        },
+        {
+          "dataset": "ham10000",
+          "arm": "B71 (TTA, canónico)",
+          "control": "SimSiam ResNet-50",
+          "label": "SimSiam ResNet-50",
+          "delta": 0.17723942426221084,
+          "low": 0.12784045871307356,
+          "high": 0.2298794134128475,
+          "n_val": 2004,
+          "unit": "lesion_id",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+        },
+        {
+          "dataset": "ham10000",
+          "arm": "B71 (TTA, canónico)",
+          "control": "DINOv2 ViT-S/14",
+          "label": "DINOv2 ViT-S/14",
+          "delta": 0.16330337657221383,
+          "low": 0.11976017955254169,
+          "high": 0.20664531702037223,
+          "n_val": 2004,
+          "unit": "lesion_id",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+        },
+        {
+          "dataset": "ham10000",
+          "arm": "B71 (TTA, canónico)",
+          "control": "DINOv2 ViT-B/14",
+          "label": "DINOv2 ViT-B/14",
+          "delta": 0.11391201311842347,
+          "low": 0.07284545050474688,
+          "high": 0.1584674363530033,
+          "n_val": 2004,
+          "unit": "lesion_id",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/e3b_bs64/e3b_summary.json"
+        }
+      ]
+    },
+    {
+      "dataset": "isic2019",
+      "title": "ISIC 2019 · B71 original frente al control público",
+      "n_val": 5067,
+      "unit": "image",
+      "n_resamples": 1000,
+      "seed": 20260923,
+      "source_code_revision": null,
+      "comparisons": [
+        {
+          "dataset": "isic2019",
+          "arm": "B71 original",
+          "control": "DINOv2 público (prot. B71)",
+          "label": "DINOv2 público (prot. B71)",
+          "delta": 0.013408695175973318,
+          "low": -0.009538930023683273,
+          "high": 0.03560710305186123,
+          "n_val": 5067,
+          "unit": "image",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__original__vs__PUBLIC_B71.json"
+        }
+      ]
+    },
+    {
+      "dataset": "isic2020",
+      "title": "ISIC 2020 · B71 original frente al control público",
+      "n_val": 6660,
+      "unit": "patient_id",
+      "n_resamples": 1000,
+      "seed": 20260923,
+      "source_code_revision": null,
+      "comparisons": [
+        {
+          "dataset": "isic2020",
+          "arm": "B71 original",
+          "control": "DINOv2 público (prot. B71)",
+          "label": "DINOv2 público (prot. B71)",
+          "delta": 0.02941325099025749,
+          "low": -0.002356853050497395,
+          "high": 0.061475760539730064,
+          "n_val": 6660,
+          "unit": "patient_id",
+          "n_resamples": 1000,
+          "seed": 20260923,
+          "source": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/contrasts/B71__original__vs__PUBLIC_B71.json"
+        }
+      ]
+    }
+  ],
+  "comparison_count": 10,
+  "sources": [
+    {
+      "path": "resultados/banco_completo/e3b_bs64/e3b_summary.json",
+      "sha256": "8575fb005fc319bf4d5b7b0147b2bd94f5866f047d4b99db6931e2a582a76562",
+      "last_changed_commit": "5e3eccaaeeff83afa95b44a8e6463cf6427ce004"
+    },
+    {
+      "path": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/contrasts/B71__original__vs__PUBLIC_B71.json",
+      "sha256": "8065c26e6b599cd8e9ac317b4e17896bf4b157d777bf4a7548db47449b61d4dc",
+      "last_changed_commit": "f7e6f24be48578b37ca06846530a74f9a855ce07"
+    },
+    {
+      "path": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/contrasts/B71__original__vs__PUBLIC_B71.json",
+      "sha256": "6dc0167cac8c0380919e87d02bebe0f6fb800a24b9b09525d532113aea00652b",
+      "last_changed_commit": "f7e6f24be48578b37ca06846530a74f9a855ce07"
+    }
+  ]
+}
