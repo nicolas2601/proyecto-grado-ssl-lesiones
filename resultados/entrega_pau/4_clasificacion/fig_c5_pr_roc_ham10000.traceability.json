@@ -1,0 +1,36 @@
+{
+  "figure_id": "C5",
+  "dataset": "ham10000",
+  "status": "Cálculo adicional desde probabilidades por imagen",
+  "positive_class": "melanoma",
+  "positive_count": 222,
+  "support": 2004,
+  "evaluation_unit": "image",
+  "arms": {
+    "B71_tta": {
+      "label": "B71 (TTA)",
+      "source": "resultados/banco_completo/e3b_bs64/e3b_probas.npz",
+      "prevalence": 0.11077844311377245,
+      "average_precision": 0.6159173649389859,
+      "roc_auc": 0.9020510409399298
+    },
+    "dinov2_vitb14": {
+      "label": "DINOv2 ViT-B/14",
+      "source": "resultados/banco_completo/e3b_bs64/e3b_probas.npz",
+      "prevalence": 0.11077844311377245,
+      "average_precision": 0.420252006403226,
+      "roc_auc": 0.8212176823287934
+    }
+  },
+  "sources": {
+    "resultados/banco_completo/e3b_bs64/e3b_probas.json": "efb093fa22f3c5974709463cc9c0862bb6fb54ce3f2f2d8858c531809737c798",
+    "resultados/banco_completo/e3b_bs64/e3b_probas.npz": "7b28ddaf0930c7e85c48ae6c9d483906db9cc2f4a0f4d9c254cd640fe32d9229",
+    "resultados/banco_completo/e3b_bs64/e3b_summary.json": "8575fb005fc319bf4d5b7b0147b2bd94f5866f047d4b99db6931e2a582a76562"
+  },
+  "metrics": {
+    "precision_recall": "average precision = sum(delta recall * precision at each distinct score)",
+    "roc": "trapezoidal area under empirical ROC from distinct scores"
+  },
+  "threshold_selection_on_target_test": false,
+  "script": "scripts/figures/fig_c5_pr_roc.py"
+}

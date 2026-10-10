@@ -1,0 +1,1 @@
+Δ de F1 macro con IC 95 % bootstrap pareado por patient_id (1.000 remuestras, semilla 20260923), sin ajuste por multiplicidad. D3 − D2 es la lectura registrada (mejora frente al control adaptado); D3 − D0 compara con el DINOv2 público: el IC queda por debajo de cero, de modo que el público sigue siendo mejor.

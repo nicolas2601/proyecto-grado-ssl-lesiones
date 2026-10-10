@@ -1,0 +1,1 @@
+Precisión, sensibilidad y F1 por diagnóstico para B71 y A71 en la partición indicada. Con n = 2.004 en HAM10000

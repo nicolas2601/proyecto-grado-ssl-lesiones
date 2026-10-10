@@ -1,0 +1,202 @@
+{
+  "figure_id": "C4",
+  "dataset": "isic2019",
+  "evaluation_unit": "image",
+  "n": 5067,
+  "protocol": "B71 y A71 originales transductivos, E1 canónico.",
+  "metric_definitions": {
+    "precision": "TP/(TP+FP), zero when predicted support is zero",
+    "sensitivity": "TP/(TP+FN)",
+    "f1": "2TP/(2TP+FP+FN)"
+  },
+  "figure_script": {
+    "path": "scripts/figures/fig_c4_per_class.py",
+    "sha256": "c679becf2c90c9aebd5be69c7f0880ef7c2bcea1f08e1cd45ef574223465d8a2"
+  },
+  "models": [
+    {
+      "path": "resultados/banco_completo/confusion/isic2019/b71_original__congelado.json",
+      "sha256": "ef7f704fc744df8698b5fff83169eb9d5a413e244318d66af230b8aaf58db8fd",
+      "last_changed_commit": "77839ccfd35815ad2d3db952b90a0929e9fe8bba",
+      "model": "B71 original (canónico, transductivo)",
+      "condition": "congelado",
+      "n": 5067,
+      "classes": [
+        "MEL",
+        "NV",
+        "BCC",
+        "AK",
+        "BKL",
+        "DF",
+        "VASC",
+        "SCC"
+      ],
+      "support": [
+        905,
+        2575,
+        665,
+        174,
+        525,
+        47,
+        50,
+        126
+      ],
+      "metrics": [
+        {
+          "class": "MEL",
+          "support": 905,
+          "precision": 0.6627155172413793,
+          "sensitivity": 0.6795580110497238,
+          "f1": 0.6710310965630114
+        },
+        {
+          "class": "NV",
+          "support": 2575,
+          "precision": 0.8941515650741351,
+          "sensitivity": 0.8431067961165049,
+          "f1": 0.8678792724365381
+        },
+        {
+          "class": "BCC",
+          "support": 665,
+          "precision": 0.7619738751814223,
+          "sensitivity": 0.7894736842105263,
+          "f1": 0.7754800590841949
+        },
+        {
+          "class": "AK",
+          "support": 174,
+          "precision": 0.4725274725274725,
+          "sensitivity": 0.4942528735632184,
+          "f1": 0.48314606741573035
+        },
+        {
+          "class": "BKL",
+          "support": 525,
+          "precision": 0.5905383360522023,
+          "sensitivity": 0.6895238095238095,
+          "f1": 0.6362038664323374
+        },
+        {
+          "class": "DF",
+          "support": 47,
+          "precision": 0.7073170731707317,
+          "sensitivity": 0.6170212765957447,
+          "f1": 0.6590909090909091
+        },
+        {
+          "class": "VASC",
+          "support": 50,
+          "precision": 0.8222222222222222,
+          "sensitivity": 0.74,
+          "f1": 0.7789473684210526
+        },
+        {
+          "class": "SCC",
+          "support": 126,
+          "precision": 0.475177304964539,
+          "sensitivity": 0.5317460317460317,
+          "f1": 0.50187265917603
+        }
+      ],
+      "origin": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "upstream": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__original.json"
+      ]
+    },
+    {
+      "path": "resultados/banco_completo/confusion/isic2019/a71_original__congelado.json",
+      "sha256": "a4f4c59babfd5d63266724aef840c888ba0b50cceb5c637c9dee3934d14165c3",
+      "last_changed_commit": "77839ccfd35815ad2d3db952b90a0929e9fe8bba",
+      "model": "A71 original (canónico, transductivo)",
+      "condition": "congelado",
+      "n": 5067,
+      "classes": [
+        "MEL",
+        "NV",
+        "BCC",
+        "AK",
+        "BKL",
+        "DF",
+        "VASC",
+        "SCC"
+      ],
+      "support": [
+        905,
+        2575,
+        665,
+        174,
+        525,
+        47,
+        50,
+        126
+      ],
+      "metrics": [
+        {
+          "class": "MEL",
+          "support": 905,
+          "precision": 0.7062279670975323,
+          "sensitivity": 0.6640883977900552,
+          "f1": 0.6845102505694761
+        },
+        {
+          "class": "NV",
+          "support": 2575,
+          "precision": 0.8924731182795699,
+          "sensitivity": 0.8702912621359223,
+          "f1": 0.881242626818718
+        },
+        {
+          "class": "BCC",
+          "support": 665,
+          "precision": 0.7419825072886297,
+          "sensitivity": 0.7654135338345864,
+          "f1": 0.7535159141376758
+        },
+        {
+          "class": "AK",
+          "support": 174,
+          "precision": 0.41148325358851673,
+          "sensitivity": 0.4942528735632184,
+          "f1": 0.4490861618798956
+        },
+        {
+          "class": "BKL",
+          "support": 525,
+          "precision": 0.6,
+          "sensitivity": 0.6228571428571429,
+          "f1": 0.611214953271028
+        },
+        {
+          "class": "DF",
+          "support": 47,
+          "precision": 0.5084745762711864,
+          "sensitivity": 0.6382978723404256,
+          "f1": 0.5660377358490566
+        },
+        {
+          "class": "VASC",
+          "support": 50,
+          "precision": 0.7192982456140351,
+          "sensitivity": 0.82,
+          "f1": 0.7663551401869159
+        },
+        {
+          "class": "SCC",
+          "support": 126,
+          "precision": 0.436241610738255,
+          "sensitivity": 0.5158730158730159,
+          "f1": 0.4727272727272727
+        }
+      ],
+      "origin": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+      "upstream": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/A71__original.json"
+      ]
+    }
+  ],
+  "limitations": [
+    "Point metrics derived from confusion counts; no per-class confidence intervals.",
+    "HAM10000 frozen DINOv2 ViT-B/14 omitted because n=2,014 differs from B71/A71 n=2,004."
+  ]
+}

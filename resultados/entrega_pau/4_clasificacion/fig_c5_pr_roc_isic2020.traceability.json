@@ -1,0 +1,46 @@
+{
+  "figure_id": "C5",
+  "dataset": "isic2020",
+  "status": "Cálculo adicional desde probabilidades por imagen",
+  "positive_class": "melanoma",
+  "positive_count": 122,
+  "support": 6660,
+  "evaluation_unit": "image",
+  "arms": {
+    "B71__original": {
+      "label": "B71 original",
+      "source": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.probas.npz",
+      "prevalence": 0.01831831831831832,
+      "average_precision": 0.15300951059844578,
+      "roc_auc": 0.8528739926482756
+    },
+    "B71__clean": {
+      "label": "B71 limpio",
+      "source": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__clean.probas.npz",
+      "prevalence": 0.01831831831831832,
+      "average_precision": 0.19719521019670969,
+      "roc_auc": 0.8758305793620147
+    },
+    "PUBLIC_B71": {
+      "label": "B71 público",
+      "source": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/PUBLIC_B71.probas.npz",
+      "prevalence": 0.01831831831831832,
+      "average_precision": 0.1546796108890201,
+      "roc_auc": 0.8790174967027566
+    }
+  },
+  "sources": {
+    "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__clean.json": "63cba11d1e595d31d7a566ca17df5806cfe232d1707392dac3b9e7cbb934b9e6",
+    "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__clean.probas.npz": "9ac5f9e85442bc2e47b085dd96e08b1083e4986401259765c8a279a5aa1aa650",
+    "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.json": "7ca39da0777d397cf8d48836aae193213751b671c83b95672aff90483d3d6f4b",
+    "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.probas.npz": "bfe2165f76e371f4a5408949eeba3d32d6409cc5285bcb50ff782b68f1843332",
+    "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/PUBLIC_B71.json": "96919adb655001cb92f1dd12b6b45a9d8faaaa2087e7b0ccf5a914019585799e",
+    "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/PUBLIC_B71.probas.npz": "3d8bce3ad7aaa24cc7fff22e00b525963a0b59850731fa23f62b63a34cbe223d"
+  },
+  "metrics": {
+    "precision_recall": "average precision = sum(delta recall * precision at each distinct score)",
+    "roc": "trapezoidal area under empirical ROC from distinct scores"
+  },
+  "threshold_selection_on_target_test": false,
+  "script": "scripts/figures/fig_c5_pr_roc.py"
+}

@@ -1,0 +1,1 @@
+F1 macro con IC 95 % y sensibilidad por diagnóstico de D0 a D3 en PAD-UFES-20 (target_test, BCC/MEL/NV).

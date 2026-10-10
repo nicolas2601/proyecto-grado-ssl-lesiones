@@ -1,0 +1,1 @@
+Esquema conceptual del ángulo ITA a partir de las coordenadas CIELAB L* y b*.

@@ -1,0 +1,60 @@
+{
+  "figure": "fig_char_diagnosis_distribution",
+  "question": "Cómo se reparten los diagnósticos en cada conjunto, con su taxonomía original.",
+  "status": "Artefactos verificados",
+  "totals": {
+    "ham10000": 10015,
+    "isic2019": 25331,
+    "isic2020": 33126,
+    "pad_ufes_20": 2298
+  },
+  "counts": {
+    "ham10000": {
+      "BKL": 1099,
+      "NV": 6705,
+      "DF": 115,
+      "MEL": 1113,
+      "VASC": 142,
+      "BCC": 514,
+      "AKIEC": 327
+    },
+    "isic2019": {
+      "NV": 12875,
+      "MEL": 4522,
+      "BKL": 2624,
+      "DF": 239,
+      "SCC": 628,
+      "BCC": 3323,
+      "VASC": 253,
+      "AK": 867
+    },
+    "isic2020": {
+      "BENIGN": 32542,
+      "MALIGNANT": 584
+    },
+    "pad_ufes_20": {
+      "ACK": 730,
+      "BCC": 845,
+      "MEL": 52,
+      "NEV": 244,
+      "SCC": 192,
+      "SEK": 235
+    }
+  },
+  "sources": [
+    {
+      "path": "resultados/banco_completo/e5/e5_fitzpatrick_ham10000.json",
+      "sha256": "02b61eebc1cfca55a4473a7b0722b9a32fe1ec539c70fa9dd1c2028af6f4698e"
+    },
+    {
+      "path": "resultados/banco_completo/e5/e5_fitzpatrick_isic2019.json",
+      "sha256": "5d2cc316ce1798693e65d2ad1b03e55f42295605e42110be266452587f7782e8"
+    },
+    {
+      "path": "resultados/banco_completo/e5/e5_fitzpatrick_isic2020.json",
+      "sha256": "d00e177db7d41e79dd059e1c796921160a29ecc15f74b37485b1366ea5137ea1"
+    }
+  ],
+  "pad_source": "src/dermssl/pad_ufes.py EXPECTED_DIAGNOSTIC_COUNTS (conteos verificados contra el manifiesto en docs/30)",
+  "script": "scripts/figures/fig_char_diagnosis.py"
+}
