@@ -1,0 +1,1 @@
+Cada violín resume el Dice por imagen (marca interna: mediana; líneas: cuartiles) calculado sobre todas las imágenes de la evaluación; no se reconstruye desde medias.

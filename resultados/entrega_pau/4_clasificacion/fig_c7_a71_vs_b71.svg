@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="490.393701pt" height="309.6pt" viewBox="0 0 490.393701 309.6" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-09T22:54:41.130579</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 309.6
+L 490.393701 309.6
+L 490.393701 0
+L 0 0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 132.406299 241.488
+L 276.282137 241.488
+L 276.282137 55.728
+L 132.406299 55.728
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 132.406299 241.488
+L 132.406299 55.728
+" clip-path="url(#p65685b7d07)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="132.406299" y="253.263312" transform="rotate(-0 132.406299 253.263312)">0,6</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 197.804407 241.488
+L 197.804407 55.728
+" clip-path="url(#p65685b7d07)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4"/>
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="197.804407" y="253.263312" transform="rotate(-0 197.804407 253.263312)">0,7</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 263.202515 241.488
+L 263.202515 55.728
+" clip-path="url(#p65685b7d07)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6"/>
+     <g id="text_3">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="263.202515" y="253.263312" transform="rotate(-0 263.202515 253.263312)">0,8</text>
+     </g>
+    </g>
+    <g id="text_4">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="204.344218" y="268.372969" transform="rotate(-0 204.344218 268.372969)">F1 macro</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_7"/>
+     <g id="text_5">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(107.606299 188.076354)">A71</text>
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(21.806299 201.418666)">cls_attn · LA0,5</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_8"/>
+     <g id="text_6">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(107.606299 103.711146)">B71</text>
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; fill: #222222" transform="translate(28.406299 116.911146)">CLS4 · balanced</text>
+     </g>
+    </g>
+   </g>
+   <g id="LineCollection_1">
+    <path d="M 184.430295 190.826182
+L 236.544804 190.826182
+" clip-path="url(#p65685b7d07)" style="fill: none; stroke: #8a6c58; stroke-width: 1.1"/>
+   </g>
+   <g id="line2d_9">
+    <defs>
+     <path id="m4ddd99efc1" d="M 0 3
+L 0 -3
+" style="stroke: #8a6c58; stroke-width: 0.7"/>
+    </defs>
+    <g clip-path="url(#p65685b7d07)">
+     <use xlink:href="#m4ddd99efc1" x="184.430295" y="190.826182" style="fill: #8a6c58; stroke: #8a6c58; stroke-width: 0.7"/>
+    </g>
+   </g>
+   <g id="line2d_10">
+    <g clip-path="url(#p65685b7d07)">
+     <use xlink:href="#m4ddd99efc1" x="236.544804" y="190.826182" style="fill: #8a6c58; stroke: #8a6c58; stroke-width: 0.7"/>
+    </g>
+   </g>
+   <g id="LineCollection_2">
+    <path d="M 178.379401 106.389818
+L 233.576669 106.389818
+" clip-path="url(#p65685b7d07)" style="fill: none; stroke: #8a6c58; stroke-width: 1.1"/>
+   </g>
+   <g id="line2d_11">
+    <g clip-path="url(#p65685b7d07)">
+     <use xlink:href="#m4ddd99efc1" x="178.379401" y="106.389818" style="fill: #8a6c58; stroke: #8a6c58; stroke-width: 0.7"/>
+    </g>
+   </g>
+   <g id="line2d_12">
+    <g clip-path="url(#p65685b7d07)">
+     <use xlink:href="#m4ddd99efc1" x="233.576669" y="106.389818" style="fill: #8a6c58; stroke: #8a6c58; stroke-width: 0.7"/>
+    </g>
+   </g>
+   <g id="line2d_13">
+    <path d="M 212.772972 190.826182
+" clip-path="url(#p65685b7d07)" style="fill: none; stroke: #8a6c58; stroke-width: 1.1; stroke-linecap: square"/>
+    <defs>
+     <path id="maf8e393f18" d="M 0 3
+C 0.795609 3 1.55874 2.683901 2.12132 2.12132
+C 2.683901 1.55874 3 0.795609 3 0
+C 3 -0.795609 2.683901 -1.55874 2.12132 -2.12132
+C 1.55874 -2.683901 0.795609 -3 0 -3
+C -0.795609 -3 -1.55874 -2.683901 -2.12132 -2.12132
+C -2.683901 -1.55874 -3 -0.795609 -3 0
+C -3 0.795609 -2.683901 1.55874 -2.12132 2.12132
+C -1.55874 2.683901 -0.795609 3 0 3
+z
+" style="stroke: #8a6c58; stroke-width: 0.7"/>
+    </defs>
+    <g clip-path="url(#p65685b7d07)">
+     <use xlink:href="#maf8e393f18" x="212.772972" y="190.826182" style="fill: #8a6c58; stroke: #8a6c58; stroke-width: 0.7"/>
+    </g>
+   </g>
+   <g id="line2d_14">
+    <path d="M 207.030141 106.389818
+" clip-path="url(#p65685b7d07)" style="fill: none; stroke: #8a6c58; stroke-width: 1.1; stroke-linecap: square"/>
+    <defs>
+     <path id="me49bf68457" d="M -3 3
+L 3 3
+L 3 -3
+L -3 -3
+z
+" style="stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#p65685b7d07)">
+     <use xlink:href="#me49bf68457" x="207.030141" y="106.389818" style="fill: #ffffff; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 132.406299 241.488
+L 132.406299 55.728
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 276.282137 241.488
+L 276.282137 55.728
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 132.406299 241.488
+L 276.282137 241.488
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 132.406299 55.728
+L 276.282137 55.728
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 12px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="132.406299" y="49.728" transform="rotate(-0 132.406299 49.728)">(a) F1 macro e IC 95 %</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_7">
+    <path d="M 336.709989 241.488
+L 480.585827 241.488
+L 480.585827 55.728
+L 336.709989 55.728
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_4">
+     <g id="line2d_15">
+      <path d="M 348.699642 241.488
+L 348.699642 55.728
+" clip-path="url(#pe7afdfb576)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_16"/>
+     <g id="text_8">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="348.699642" y="253.263312" transform="rotate(-0 348.699642 253.263312)">−0,1</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_17">
+      <path d="M 408.647908 241.488
+L 408.647908 55.728
+" clip-path="url(#pe7afdfb576)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_18"/>
+     <g id="text_9">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="408.647908" y="253.263312" transform="rotate(-0 408.647908 253.263312)">0</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_19">
+      <path d="M 468.596174 241.488
+L 468.596174 55.728
+" clip-path="url(#pe7afdfb576)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_20"/>
+     <g id="text_10">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="468.596174" y="253.263312" transform="rotate(-0 468.596174 253.263312)">+0,1</text>
+     </g>
+    </g>
+    <g id="text_11">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="408.647908" y="268.372969" transform="rotate(-0 408.647908 268.372969)">Δ F1 macro (B71 − A71)</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4"/>
+   <g id="line2d_21">
+    <path d="M 408.647908 241.488
+L 408.647908 55.728
+" clip-path="url(#pe7afdfb576)" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linecap: square"/>
+   </g>
+   <g id="LineCollection_3">
+    <path d="M 381.280756 148.608
+L 424.847878 148.608
+" clip-path="url(#pe7afdfb576)" style="fill: none; stroke: #8a6c58; stroke-width: 1.1"/>
+   </g>
+   <g id="line2d_22">
+    <defs>
+     <path id="m01a950c03a" d="M 0 3
+L 0 -3
+" style="stroke: #8a6c58"/>
+    </defs>
+    <g clip-path="url(#pe7afdfb576)">
+     <use xlink:href="#m01a950c03a" x="381.280756" y="148.608" style="fill: #8a6c58; stroke: #8a6c58"/>
+    </g>
+   </g>
+   <g id="line2d_23">
+    <g clip-path="url(#pe7afdfb576)">
+     <use xlink:href="#m01a950c03a" x="424.847878" y="148.608" style="fill: #8a6c58; stroke: #8a6c58"/>
+    </g>
+   </g>
+   <g id="line2d_24">
+    <path d="M 403.383646 148.608
+" clip-path="url(#pe7afdfb576)" style="fill: none; stroke: #8a6c58; stroke-width: 1.1; stroke-linecap: square"/>
+    <defs>
+     <path id="m8f3d96e565" d="M 0 3
+C 0.795609 3 1.55874 2.683901 2.12132 2.12132
+C 2.683901 1.55874 3 0.795609 3 0
+C 3 -0.795609 2.683901 -1.55874 2.12132 -2.12132
+C 1.55874 -2.683901 0.795609 -3 0 -3
+C -0.795609 -3 -1.55874 -2.683901 -2.12132 -2.12132
+C -2.683901 -1.55874 -3 -0.795609 -3 0
+C -3 0.795609 -2.683901 1.55874 -2.12132 2.12132
+C -1.55874 2.683901 -0.795609 3 0 3
+z
+" style="stroke: #8a6c58"/>
+    </defs>
+    <g clip-path="url(#pe7afdfb576)">
+     <use xlink:href="#m8f3d96e565" x="403.383646" y="148.608" style="fill: #8a6c58; stroke: #8a6c58"/>
+    </g>
+   </g>
+   <g id="patch_8">
+    <path d="M 336.709989 241.488
+L 336.709989 55.728
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 480.585827 241.488
+L 480.585827 55.728
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 336.709989 241.488
+L 480.585827 241.488
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 336.709989 55.728
+L 480.585827 55.728
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 12px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="336.709989" y="49.728" transform="rotate(-0 336.709989 49.728)">(b) Δ F1 pareada</text>
+   </g>
+  </g>
+  <g id="text_13">
+   <text style="font-size: 12px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="39.231496" y="13.836375" transform="rotate(-0 39.231496 13.836375)">A71 y B71 · validación HAM10000 (n = 2.004)</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p65685b7d07">
+   <rect x="132.406299" y="55.728" width="143.875838" height="185.76"/>
+  </clipPath>
+  <clipPath id="pe7afdfb576">
+   <rect x="336.709989" y="55.728" width="143.875838" height="185.76"/>
+  </clipPath>
+ </defs>
+</svg>

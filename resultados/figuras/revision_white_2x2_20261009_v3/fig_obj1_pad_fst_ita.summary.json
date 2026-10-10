@@ -1,0 +1,23 @@
+{
+  "n_total": 2298,
+  "n_missing_fst": 804,
+  "fst_counts": {
+    "I": 153,
+    "II": 876,
+    "III": 392,
+    "IV": 62,
+    "V": 10,
+    "VI": 1
+  },
+  "n_ita_valid": 1189,
+  "n_ita_unavailable": 305,
+  "ita_counts_by_fst": {
+    "I": 118,
+    "II": 711,
+    "III": 303,
+    "IV": 48,
+    "V": 8,
+    "VI": 1
+  },
+  "source_sha256": "b946a72b5b7e4d14b82564713f5c66195c8fa75acd2f82fe478ff1c6213ab373"
+}

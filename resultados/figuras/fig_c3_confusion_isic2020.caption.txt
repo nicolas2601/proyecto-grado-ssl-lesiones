@@ -1,0 +1,1 @@
+Matriz de confusión de B71 original (canónico, transductivo) en ISIC 2020 (n = 6.660), evaluación congelada, normalizada por clase real.

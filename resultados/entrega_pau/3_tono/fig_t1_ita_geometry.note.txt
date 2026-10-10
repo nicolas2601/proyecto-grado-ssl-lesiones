@@ -1,0 +1,1 @@
+ITA = arctan((L*−50)/b*) expresado en grados. El estimador reporta ITA cuando la mediana b* ≥ 5; de lo contrario, se abstiene. Las flechas y ángulos son esquemáticos, no corresponden a observaciones; el esquema no constituye validación clínica.

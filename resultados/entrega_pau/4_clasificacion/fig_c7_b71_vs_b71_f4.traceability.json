@@ -1,0 +1,80 @@
+{
+  "figure_id": "C7-B71-F4",
+  "status": "Cálculo adicional desde contrastes por imagen",
+  "support": 2004,
+  "evaluation_unit": "image",
+  "source_hashes": {
+    "resultados/banco_completo/e3/e3_final_eval.json": "7da2f82018c87f3d21362ee6958d80d5bad6f8b3d8e006fa297569d2ba881e18",
+    "resultados/banco_completo/e3b_bs64/e3b_summary.json": "8575fb005fc319bf4d5b7b0147b2bd94f5866f047d4b99db6931e2a582a76562",
+    "resultados/banco_completo/e3/robustez/e3_robustness/e3_robustness.json": "115cb431e4fec5dd58ca7f0249fc96e40b9965114fd779e5f4dd96be2666d288",
+    "resultados/banco_completo/e3/robustez/e3_s1_bs64_autocast/e3_final_eval.json": "e216e728a77febc5f25b17538bceeb05d4c0120f165481a10a7397b3804b4f1f",
+    "resultados/banco_completo/e3/robustez/e3_rob_s43/e3_final_eval.json": "8a868411e842a548cacceeae9e7af8295b2bf5789f95de01885232f880e62006",
+    "resultados/banco_completo/e3/robustez/e3_rob_s44/e3_final_eval.json": "aadd6ea290cc60dc5f2ecb97a9a53dd5c5ce3aae66ed1e05a1d0866305b7898d"
+  },
+  "script": "scripts/figures/fig_c7_ablations.py",
+  "script_sha256": "84a6f0170ccf453a08cf98eb3766884d64a964f5c1bd33572f15ab1f2eb0e2d3",
+  "metric": "macro_f1",
+  "registered_contrast": {
+    "delta": 0.035990551766247325,
+    "ci95": [
+      0.002048624770841898,
+      0.07778518372136149
+    ],
+    "resampling_unit": "lesion_id",
+    "n_resamples": 1000,
+    "seed": 20260923
+  },
+  "seed_contrasts": [
+    {
+      "seed": 42,
+      "delta": 0.03002125313500692,
+      "ci95": [
+        -0.0045781874161918675,
+        0.07148079450282278
+      ],
+      "b71": 0.7141070341743633,
+      "f4": 0.7441282873093702,
+      "source": "resultados/banco_completo/e3/robustez/e3_s1_bs64_autocast/e3_final_eval.json",
+      "source_revision": "4009c31",
+      "historical_source_sha256": "3c92041532e1dbdce8cb02eea95bfe0271df1c56ec873a347c5edcb8c20ac2bb",
+      "current_source_sha256": "e216e728a77febc5f25b17538bceeb05d4c0120f165481a10a7397b3804b4f1f"
+    },
+    {
+      "seed": 43,
+      "delta": 0.009175389575558413,
+      "ci95": [
+        -0.03394171594921898,
+        0.04994042700117057
+      ],
+      "b71": 0.7026486888345341,
+      "f4": 0.7118240784100925,
+      "source": "resultados/banco_completo/e3/robustez/e3_rob_s43/e3_final_eval.json",
+      "source_revision": "5a27f44^",
+      "historical_source_sha256": "506d7caa762b0080e23a383ed15cffb7c8d9a386bcf022789aa549c9ee0d93d1",
+      "current_source_sha256": "8a868411e842a548cacceeae9e7af8295b2bf5789f95de01885232f880e62006"
+    },
+    {
+      "seed": 44,
+      "delta": 0.026051973357511082,
+      "ci95": [
+        -0.0039495827440076065,
+        0.05773436757096675
+      ],
+      "b71": 0.7040789035538485,
+      "f4": 0.7301308769113596,
+      "source": "resultados/banco_completo/e3/robustez/e3_rob_s44/e3_final_eval.json",
+      "source_revision": "5a27f44^",
+      "historical_source_sha256": "f2c822687d4140e85da0e746280e3b9a5eeb19460c98c274e3a56d204c259c76",
+      "current_source_sha256": "aadd6ea290cc60dc5f2ecb97a9a53dd5c5ce3aae66ed1e05a1d0866305b7898d"
+    }
+  ],
+  "seed_reading": "none",
+  "seeds_excluding_zero": 0,
+  "f4_definition": "F4 = concat(full, bbox crop 10 % margin cut from the 224 view) + standardised mask descriptors",
+  "robustness_input_sha256": {
+    "42": "3c92041532e1dbdce8cb02eea95bfe0271df1c56ec873a347c5edcb8c20ac2bb",
+    "43": "506d7caa762b0080e23a383ed15cffb7c8d9a386bcf022789aa549c9ee0d93d1",
+    "44": "f2c822687d4140e85da0e746280e3b9a5eeb19460c98c274e3a56d204c259c76"
+  },
+  "seed_hash_reconciliation": "s42 matches commit 4009c31; s43/s44 match pre-MCC snapshot 5a27f44^; F1 values unchanged in current JSONs"
+}

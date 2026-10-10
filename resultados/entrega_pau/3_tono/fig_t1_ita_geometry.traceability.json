@@ -1,0 +1,19 @@
+{
+  "figure_id": "T1",
+  "kind": "conceptual_schematic",
+  "formula": "arctan((L*-50)/b*) * 180/pi",
+  "reporting_guard": {
+    "median_b_star_minimum": 5.0,
+    "comparison": ">="
+  },
+  "source": {
+    "path": "src/dermssl/fitzpatrick.py",
+    "sha256": "cfffc7130eb00889acfa5f301a156981338d394c8846fb7968159e7121e513e5",
+    "last_changed_commit": "8fc76f3ca81a3afec01279c2de72075b914eb559"
+  },
+  "figure_script": {
+    "path": "scripts/figures/fig_t1_ita_geometry.py",
+    "sha256": "e11383826ea9dd917c031de6ca6caa3f44c10064046110fcc167ec79d570f910"
+  },
+  "status": "conceptual; no patient observations; not clinical validation"
+}

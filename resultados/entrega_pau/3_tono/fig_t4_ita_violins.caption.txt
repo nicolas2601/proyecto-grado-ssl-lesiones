@@ -1,0 +1,1 @@
+Distribución continua de ITA por imagen para HAM10000, ISIC 2019 e ISIC 2020, con el ROI perilesional de E5.

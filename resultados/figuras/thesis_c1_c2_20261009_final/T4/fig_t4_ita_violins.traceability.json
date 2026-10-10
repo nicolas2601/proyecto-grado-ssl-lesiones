@@ -1,0 +1,216 @@
+{
+  "figure_id": "T4",
+  "metric": "ita_degrees",
+  "unit": "degrees per image",
+  "procedure": "E5 perilesional ROI estimator; valid fallback no_mask_border values included and counted separately",
+  "thresholds": [
+    40.0,
+    23.0,
+    12.0,
+    0.0,
+    -25.0
+  ],
+  "reporting_guard": {
+    "median_b_star_minimum": 5.0,
+    "comparison": ">="
+  },
+  "group_semantics": "ITA estimator categories I-VI; not clinically validated Fitzpatrick phototypes",
+  "density_profile": {
+    "method": "all valid values histogrammed at 1-degree bins and convolved with a normalized Gaussian kernel",
+    "bin_width_degrees": 1.0,
+    "gaussian_sigma_degrees": 2.0,
+    "observation_subsampling": "none"
+  },
+  "figure_script": {
+    "path": "scripts/figures/fig_t4_ita_violins.py",
+    "sha256": "ee5e586bbf7ed39c09aeecd36dad6bf481d7d7750dfd28ccf854914c0f5b7e6b"
+  },
+  "datasets": {
+    "ham10000": {
+      "dataset": "ham10000",
+      "label": "HAM10000",
+      "procedure": "E5 perilesional ROI estimator",
+      "n_total": 10015,
+      "n_valid": 4539,
+      "n_abstention": 5476,
+      "abstention_by_status": {
+        "ita_indeterminate": 5377,
+        "degenerate_mask": 26,
+        "ring_too_small": 73
+      },
+      "n_fallback_no_mask_border": 0,
+      "fallback_origins": {},
+      "source": {
+        "path": "resultados/banco_completo/e5/e5_fitzpatrick_ham10000.json",
+        "sha256": "02b61eebc1cfca55a4473a7b0722b9a32fe1ec539c70fa9dd1c2028af6f4698e",
+        "last_changed_commit": "963d29f704a03c155a7206e879d6663d0284fcdf",
+        "code_revision": "48d5f63bd6ef197d138bb44ebb7732294bef7243",
+        "roi_definition": {
+          "applicable": true,
+          "reason": "",
+          "rule": "Anillo fuera de la máscara de lesión (dilatación de Chebyshev de ancho 25 % del diámetro equivalente, mínimo 3 px, el mismo anillo de la variante F5 de E3) sin los píxeles de pelo, reflejos, saturados o del borde negro; mediana de L* y b* de lo que queda y el mismo ITA y umbrales que el estimador de Otsu.",
+          "ring_width_fraction": 0.25,
+          "ring_min_width_px": 3,
+          "saturation_level": 0.98,
+          "specular_min_L": 90.0,
+          "specular_max_chroma": 20.0,
+          "min_valid_px": 300,
+          "min_valid_fraction": 0.25,
+          "abstains_on": [
+            "no_mask",
+            "degenerate_mask",
+            "ring_too_small",
+            "ita_indeterminate",
+            "ita_out_of_range"
+          ],
+          "hair_detector": {
+            "module": "plan-segmentacion/comun/nucleo/hair_removal.py",
+            "function": "elongated_hair_mask",
+            "KERNEL": 9,
+            "THRESHOLD": 10,
+            "MIN_HAIR_LENGTH": 15,
+            "MAX_MEAN_WIDTH": 5.0
+          },
+          "fallback": {
+            "estimator": "no_mask_border",
+            "band_fraction": 0.1,
+            "applies_to": "imágenes con máscara en cuarentena o ausente (sin máscara elegible)",
+            "rule": "Sin máscara elegible, el borde de la imagen (marco de 10 % del lado corto) es la muestra de piel, con las mismas exclusiones, abstención y ITA que el anillo; se cuenta y se reporta aparte (`no_mask_border`).",
+            "source_224": {
+              "resize": "cache_io.load_resized_rgb(archivo fuente, 224): PIL draft + resize bilineal a 224 x 224 sin conservar la proporción, la misma función que construyó la caché del pool",
+              "applies_to": "imágenes sin máscara elegible cuyo original el pool no exportó (cuarentena) o que no están en el pool",
+              "limit": "no es idéntica a la imagen que habría en el pool: no se sabe si la caché del pool se construyó con quitar-pelo (--hair-removal) ni si leyó la misma versión del archivo (p. ej. ISIC 2019 `_downsampled`); por eso llevan el origen `source_224`, aparte de `pool_224`"
+            }
+          },
+          "pool_mask_reading": "PNG de la máscara del pool: píxel > 0 = lesión; misma grilla 224 × 224 que la imagen del pool (la imagen y la máscara se leen juntas)",
+          "choices_not_registered": "ancho del anillo, umbrales de reflejo/saturación y mínimos de píxeles"
+        }
+      }
+    },
+    "isic2019": {
+      "dataset": "isic2019",
+      "label": "ISIC 2019",
+      "procedure": "E5 perilesional ROI estimator",
+      "n_total": 25331,
+      "n_valid": 12558,
+      "n_abstention": 12773,
+      "abstention_by_status": {
+        "ita_indeterminate": 12393,
+        "ring_too_small": 380
+      },
+      "n_fallback_no_mask_border": 753,
+      "fallback_origins": {
+        "source_224": 753
+      },
+      "source": {
+        "path": "resultados/banco_completo/e5/e5_fitzpatrick_isic2019.json",
+        "sha256": "5d2cc316ce1798693e65d2ad1b03e55f42295605e42110be266452587f7782e8",
+        "last_changed_commit": "2ef8240429021511487231806bc0a4c3db203638",
+        "code_revision": "7a029a8abcbb577fcc8d68c2f47bcb1897e6e8f3",
+        "roi_definition": {
+          "applicable": true,
+          "reason": "",
+          "rule": "Anillo fuera de la máscara de lesión (dilatación de Chebyshev de ancho 25 % del diámetro equivalente, mínimo 3 px, el mismo anillo de la variante F5 de E3) sin los píxeles de pelo, reflejos, saturados o del borde negro; mediana de L* y b* de lo que queda y el mismo ITA y umbrales que el estimador de Otsu.",
+          "ring_width_fraction": 0.25,
+          "ring_min_width_px": 3,
+          "saturation_level": 0.98,
+          "specular_min_L": 90.0,
+          "specular_max_chroma": 20.0,
+          "min_valid_px": 300,
+          "min_valid_fraction": 0.25,
+          "abstains_on": [
+            "no_mask",
+            "degenerate_mask",
+            "ring_too_small",
+            "ita_indeterminate",
+            "ita_out_of_range"
+          ],
+          "hair_detector": {
+            "module": "plan-segmentacion/comun/nucleo/hair_removal.py",
+            "function": "elongated_hair_mask",
+            "KERNEL": 9,
+            "THRESHOLD": 10,
+            "MIN_HAIR_LENGTH": 15,
+            "MAX_MEAN_WIDTH": 5.0
+          },
+          "fallback": {
+            "estimator": "no_mask_border",
+            "band_fraction": 0.1,
+            "applies_to": "imágenes con máscara en cuarentena o ausente (sin máscara elegible)",
+            "rule": "Sin máscara elegible, el borde de la imagen (marco de 10 % del lado corto) es la muestra de piel, con las mismas exclusiones, abstención y ITA que el anillo; se cuenta y se reporta aparte (`no_mask_border`).",
+            "source_224": {
+              "resize": "cache_io.load_resized_rgb(archivo fuente, 224): PIL draft + resize bilineal a 224 x 224 sin conservar la proporción, la misma función que construyó la caché del pool",
+              "applies_to": "imágenes sin máscara elegible cuyo original el pool no exportó (cuarentena) o que no están en el pool",
+              "limit": "no es idéntica a la imagen que habría en el pool: no se sabe si la caché del pool se construyó con quitar-pelo (--hair-removal) ni si leyó la misma versión del archivo (p. ej. ISIC 2019 `_downsampled`); por eso llevan el origen `source_224`, aparte de `pool_224`"
+            }
+          },
+          "pool_mask_reading": "PNG de la máscara del pool: píxel > 0 = lesión; misma grilla 224 × 224 que la imagen del pool (la imagen y la máscara se leen juntas)",
+          "choices_not_registered": "ancho del anillo, umbrales de reflejo/saturación y mínimos de píxeles"
+        }
+      }
+    },
+    "isic2020": {
+      "dataset": "isic2020",
+      "label": "ISIC 2020",
+      "procedure": "E5 perilesional ROI estimator",
+      "n_total": 33126,
+      "n_valid": 21973,
+      "n_abstention": 11153,
+      "abstention_by_status": {
+        "ita_indeterminate": 6465,
+        "ring_too_small": 4688
+      },
+      "n_fallback_no_mask_border": 1269,
+      "fallback_origins": {
+        "source_224": 1269
+      },
+      "source": {
+        "path": "resultados/banco_completo/e5/e5_fitzpatrick_isic2020.json",
+        "sha256": "d00e177db7d41e79dd059e1c796921160a29ecc15f74b37485b1366ea5137ea1",
+        "last_changed_commit": "2ef8240429021511487231806bc0a4c3db203638",
+        "code_revision": "7a029a8abcbb577fcc8d68c2f47bcb1897e6e8f3",
+        "roi_definition": {
+          "applicable": true,
+          "reason": "",
+          "rule": "Anillo fuera de la máscara de lesión (dilatación de Chebyshev de ancho 25 % del diámetro equivalente, mínimo 3 px, el mismo anillo de la variante F5 de E3) sin los píxeles de pelo, reflejos, saturados o del borde negro; mediana de L* y b* de lo que queda y el mismo ITA y umbrales que el estimador de Otsu.",
+          "ring_width_fraction": 0.25,
+          "ring_min_width_px": 3,
+          "saturation_level": 0.98,
+          "specular_min_L": 90.0,
+          "specular_max_chroma": 20.0,
+          "min_valid_px": 300,
+          "min_valid_fraction": 0.25,
+          "abstains_on": [
+            "no_mask",
+            "degenerate_mask",
+            "ring_too_small",
+            "ita_indeterminate",
+            "ita_out_of_range"
+          ],
+          "hair_detector": {
+            "module": "plan-segmentacion/comun/nucleo/hair_removal.py",
+            "function": "elongated_hair_mask",
+            "KERNEL": 9,
+            "THRESHOLD": 10,
+            "MIN_HAIR_LENGTH": 15,
+            "MAX_MEAN_WIDTH": 5.0
+          },
+          "fallback": {
+            "estimator": "no_mask_border",
+            "band_fraction": 0.1,
+            "applies_to": "imágenes con máscara en cuarentena o ausente (sin máscara elegible)",
+            "rule": "Sin máscara elegible, el borde de la imagen (marco de 10 % del lado corto) es la muestra de piel, con las mismas exclusiones, abstención y ITA que el anillo; se cuenta y se reporta aparte (`no_mask_border`).",
+            "source_224": {
+              "resize": "cache_io.load_resized_rgb(archivo fuente, 224): PIL draft + resize bilineal a 224 x 224 sin conservar la proporción, la misma función que construyó la caché del pool",
+              "applies_to": "imágenes sin máscara elegible cuyo original el pool no exportó (cuarentena) o que no están en el pool",
+              "limit": "no es idéntica a la imagen que habría en el pool: no se sabe si la caché del pool se construyó con quitar-pelo (--hair-removal) ni si leyó la misma versión del archivo (p. ej. ISIC 2019 `_downsampled`); por eso llevan el origen `source_224`, aparte de `pool_224`"
+            }
+          },
+          "pool_mask_reading": "PNG de la máscara del pool: píxel > 0 = lesión; misma grilla 224 × 224 que la imagen del pool (la imagen y la máscara se leen juntas)",
+          "choices_not_registered": "ancho del anillo, umbrales de reflejo/saturación y mínimos de píxeles"
+        }
+      }
+    }
+  },
+  "excluded": "PAD-UFES-20 uses Otsu and registered FST; see fig_char_ita_distribution and T3"
+}

@@ -1,0 +1,1 @@
+Cada panel conserva la taxonomía original de su conjunto; las categorías no son equivalentes entre paneles. El eje es el porcentaje de las imágenes del conjunto completo (denominador = N del título de cada panel) y el número junto a cada barra es el conteo de imágenes. Describe la composición de los conjuntos, no la prevalencia poblacional.

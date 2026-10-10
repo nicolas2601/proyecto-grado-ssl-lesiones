@@ -1,0 +1,91 @@
+{
+  "figure": "fig_char_ita_distribution",
+  "question": "Cómo se distribuye el ITA estimado en cada conjunto y cuántas imágenes se abstienen.",
+  "status": "Artefactos verificados",
+  "bin_width_deg": 10,
+  "thresholds": [
+    40.0,
+    23.0,
+    12.0,
+    0.0,
+    -25.0
+  ],
+  "panels": {
+    "ham10000": {
+      "procedure": "ROI perilesional",
+      "n_total": 10015,
+      "n_valid": 4539,
+      "n_abstention": 5476,
+      "counts_by_group": {
+        "I": 3644,
+        "II": 643,
+        "III": 171,
+        "IV": 56,
+        "V": 23,
+        "VI": 2
+      }
+    },
+    "isic2019": {
+      "procedure": "ROI perilesional",
+      "n_total": 25331,
+      "n_valid": 12558,
+      "n_abstention": 12773,
+      "counts_by_group": {
+        "I": 9165,
+        "II": 1930,
+        "III": 696,
+        "IV": 413,
+        "V": 269,
+        "VI": 85
+      }
+    },
+    "isic2020": {
+      "procedure": "ROI perilesional",
+      "n_total": 33126,
+      "n_valid": 21973,
+      "n_abstention": 11153,
+      "counts_by_group": {
+        "I": 14569,
+        "II": 3266,
+        "III": 1613,
+        "IV": 1131,
+        "V": 971,
+        "VI": 423
+      }
+    },
+    "pad_ufes_20": {
+      "procedure": "fondo Otsu",
+      "n_total": 1494,
+      "n_valid": 1189,
+      "n_abstention": 305,
+      "counts_by_group": {
+        "I": 710,
+        "II": 252,
+        "III": 107,
+        "IV": 64,
+        "V": 48,
+        "VI": 8
+      }
+    }
+  },
+  "pad_scope": "solo imágenes con fototipo registrado (1494); 804 sin fototipo quedan fuera",
+  "sources": [
+    {
+      "path": "resultados/banco_completo/e5/e5_fitzpatrick_ham10000.json",
+      "sha256": "02b61eebc1cfca55a4473a7b0722b9a32fe1ec539c70fa9dd1c2028af6f4698e"
+    },
+    {
+      "path": "resultados/banco_completo/e5/e5_fitzpatrick_isic2019.json",
+      "sha256": "5d2cc316ce1798693e65d2ad1b03e55f42295605e42110be266452587f7782e8"
+    },
+    {
+      "path": "resultados/banco_completo/e5/e5_fitzpatrick_isic2020.json",
+      "sha256": "d00e177db7d41e79dd059e1c796921160a29ecc15f74b37485b1366ea5137ea1"
+    },
+    {
+      "path": "resultados/fst/pad_ufes_t1/pad_ufes_fst_validation.json",
+      "sha256": "b946a72b5b7e4d14b82564713f5c66195c8fa75acd2f82fe478ff1c6213ab373"
+    }
+  ],
+  "script": "scripts/figures/fig_char_ita_distribution.py"
+}

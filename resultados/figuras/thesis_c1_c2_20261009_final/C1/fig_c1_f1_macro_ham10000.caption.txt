@@ -1,0 +1,1 @@
+F1 macro de B71 con TTA canónico frente a ocho baselines congelados re-evaluados en el mismo split v6/v7 (2.004 imágenes).

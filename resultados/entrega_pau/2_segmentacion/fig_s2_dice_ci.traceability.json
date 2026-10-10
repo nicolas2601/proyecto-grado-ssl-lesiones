@@ -1,0 +1,34 @@
+{
+  "figure": "fig_s2_dice_ci",
+  "question": "Qué tan cerca están student_r3 y S4-A2 en Dice medio, con su incertidumbre individual.",
+  "status": "Artefactos verificados",
+  "resampling_unit": "imagen",
+  "n_resamples_per_ci": 1000,
+  "sources": [
+    {
+      "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/evaluacion_isic2018/summary.json",
+      "sha256": "123898d5ac87160b267babaebe73a47a426fd50c87358bbefde4081f09f9cc38"
+    },
+    {
+      "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/evaluacion_ham10000/summary.json",
+      "sha256": "d42617ef7b336d6535763d83743f8670e1adc0a9fe1ab8ab1c29e2994b59d8e7"
+    },
+    {
+      "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/evaluacion_isic2018/summary.json",
+      "sha256": "4d12c1ecf3658feb344862e5aaede1a4f24295518476452dd2aba604a4d74528"
+    },
+    {
+      "path": "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/evaluacion_ham10000/summary.json",
+      "sha256": "592db5e31681b6a47e40f4ea3e35e2d71e46b7f4f5f9a4ba5227a210bb7e5c4b"
+    }
+  ],
+  "paired_contrast_sources": [
+    "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/paired_vs_student_isic2018.json",
+    "plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/paired_vs_student_ham10000.json"
+  ],
+  "script": "scripts/figures/fig_s2_s3_dice.py",
+  "limits": [
+    "ISIC 2018 parcialmente transductivo",
+    "student_r3 y S4-A2 evaluados a 224 px, umbral 0,5"
+  ]
+}

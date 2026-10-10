@@ -1,0 +1,1 @@
+Las barras muestran F1 macro puntual y los bigotes, IC 95 % individuales publicados por cada fuente. No son intervalos de diferencias ni pruebas pareadas.

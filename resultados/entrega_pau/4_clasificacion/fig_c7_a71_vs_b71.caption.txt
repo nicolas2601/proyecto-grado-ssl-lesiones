@@ -1,0 +1,1 @@
+Comparación pareada A71 frente a B71 en HAM10000; extracción y sonda cambian junto con el protocolo.

@@ -1,0 +1,30 @@
+{
+  "figure": "fig_t3_ita_vs_fitzpatrick",
+  "question": "¿El estimador ITA reproduce el fototipo registrado mejor que predecir siempre el fototipo mayoritario?",
+  "status": "Artefactos verificados",
+  "source": "resultados/fst/pad_ufes_t1/pad_ufes_fst_validation.json",
+  "source_sha256": "b946a72b5b7e4d14b82564713f5c66195c8fa75acd2f82fe478ff1c6213ab373",
+  "code_revision": "57a28d2f0ff9cd34dd821c1d32c3b29de812c825",
+  "registration_commit": "d351f36df4a525b27661eced45eefaca38c888b2",
+  "exploratory": true,
+  "n_images": 2298,
+  "n_without_fst": 804,
+  "conditions": {
+    "whole_image": {
+      "n_evaluable": 1265,
+      "n_unavailable": 229,
+      "accuracy": 0.21739130434782608,
+      "majority": 0.5936758893280633,
+      "beats_majority": false
+    },
+    "masked": {
+      "n_evaluable": 1189,
+      "n_unavailable": 305,
+      "accuracy": 0.2287636669470143,
+      "majority": 0.5979814970563498,
+      "beats_majority": false
+    }
+  },
+  "discrepancy": "La literatura citada en docs reporta baseline de mayoría 51,3 % (Alipour et al.); este artefacto da 59,4 % y 59,8 % sobre las filas evaluables con fototipo registrado. La figura usa solo el artefacto.",
+  "script": "scripts/figures/fig_t3_ita_vs_fitzpatrick.py"
+}

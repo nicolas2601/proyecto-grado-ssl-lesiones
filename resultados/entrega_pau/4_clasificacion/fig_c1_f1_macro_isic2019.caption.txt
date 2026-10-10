@@ -1,0 +1,1 @@
+F1 macro del E1 canónico (batch 64 + autocast; n=5.067): B71 original transductivo y ocho baselines congelados con probe logreg; validación StratifiedKFold sin patient_id.

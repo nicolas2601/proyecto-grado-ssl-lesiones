@@ -1,0 +1,50 @@
+{
+  "figure_id": "C7-A71-B71",
+  "status": "Cálculo adicional desde contrastes por imagen",
+  "support": 2004,
+  "evaluation_unit": "image",
+  "source_hashes": {
+    "resultados/clasificacion/v71/v71_final_eval.json": "73f46565005b9076ee73accc1f9f774939af656118612da6b4a180ade903ffed"
+  },
+  "script": "scripts/figures/fig_c7_ablations.py",
+  "script_sha256": "84a6f0170ccf453a08cf98eb3766884d64a964f5c1bd33572f15ab1f2eb0e2d3",
+  "metric": "macro_f1",
+  "arms": {
+    "A71": {
+      "label": "A71",
+      "config": "A_soup_a1.0@224|cls_attn|la0.5|tta",
+      "macro_f1": 0.7228883757744924,
+      "ci95": [
+        0.6795496959862515,
+        0.7592377944388916
+      ],
+      "n": 2004
+    },
+    "B71": {
+      "label": "B71",
+      "config": "B_s42_a1.0@224|cls4|balanced|tta",
+      "macro_f1": 0.7141070341743633,
+      "ci95": [
+        0.6702972960284926,
+        0.7546992304690965
+      ],
+      "n": 2004
+    }
+  },
+  "contrast": {
+    "delta": -0.008781341600129111,
+    "ci95": [
+      -0.0456512816038645,
+      0.027023250794903274
+    ],
+    "arm": "B71",
+    "control": "A71"
+  },
+  "resampling_unit": "image",
+  "bootstrap": {
+    "n_resamples": 1000,
+    "rng_seed": 20260923,
+    "paired": true
+  },
+  "causal_scope": "bundled protocol contrast; extraction and probe also differ"
+}

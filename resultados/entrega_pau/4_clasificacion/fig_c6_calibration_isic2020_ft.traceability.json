@@ -1,0 +1,169 @@
+{
+  "figure_id": "C6",
+  "dataset": "isic2020_ft",
+  "status": "Cálculo adicional desde probabilidades por imagen",
+  "evaluation_unit": "image",
+  "support": 6660,
+  "bins": 15,
+  "low_support_threshold_n": 10,
+  "support_visualization": "grouped histogram on shared confidence scale; zero-support bins omitted",
+  "bin_edges": "15 equal-width bins: (lo, hi], first bin [0, hi]",
+  "ece_tolerance": 1e-06,
+  "confidence_definition": "maximum class probability",
+  "correctness": "argmax equals true class",
+  "arms": {
+    "dinov2_vitb14": {
+      "label": "DINOv2-B/14",
+      "confidence_definition": "maximum class probability",
+      "correctness": "argmax equals true class",
+      "bin_count": 15,
+      "bins": [
+        {
+          "index": 0,
+          "low": 0.0,
+          "high": 0.06666666666666667,
+          "confidence": null,
+          "accuracy": null,
+          "n": 0,
+          "low_support": false
+        },
+        {
+          "index": 1,
+          "low": 0.06666666666666667,
+          "high": 0.13333333333333333,
+          "confidence": null,
+          "accuracy": null,
+          "n": 0,
+          "low_support": false
+        },
+        {
+          "index": 2,
+          "low": 0.13333333333333333,
+          "high": 0.2,
+          "confidence": null,
+          "accuracy": null,
+          "n": 0,
+          "low_support": false
+        },
+        {
+          "index": 3,
+          "low": 0.2,
+          "high": 0.26666666666666666,
+          "confidence": null,
+          "accuracy": null,
+          "n": 0,
+          "low_support": false
+        },
+        {
+          "index": 4,
+          "low": 0.26666666666666666,
+          "high": 0.3333333333333333,
+          "confidence": null,
+          "accuracy": null,
+          "n": 0,
+          "low_support": false
+        },
+        {
+          "index": 5,
+          "low": 0.3333333333333333,
+          "high": 0.4,
+          "confidence": null,
+          "accuracy": null,
+          "n": 0,
+          "low_support": false
+        },
+        {
+          "index": 6,
+          "low": 0.4,
+          "high": 0.4666666666666667,
+          "confidence": null,
+          "accuracy": null,
+          "n": 0,
+          "low_support": false
+        },
+        {
+          "index": 7,
+          "low": 0.4666666666666667,
+          "high": 0.5333333333333333,
+          "confidence": 0.5151118294805543,
+          "accuracy": 0.49401709401709404,
+          "n": 585,
+          "low_support": false
+        },
+        {
+          "index": 8,
+          "low": 0.5333333333333333,
+          "high": 0.6,
+          "confidence": 0.5692616169306207,
+          "accuracy": 0.8479355488418933,
+          "n": 993,
+          "low_support": false
+        },
+        {
+          "index": 9,
+          "low": 0.6,
+          "high": 0.6666666666666666,
+          "confidence": 0.6305325007926057,
+          "accuracy": 0.9727427597955707,
+          "n": 1174,
+          "low_support": false
+        },
+        {
+          "index": 10,
+          "low": 0.6666666666666666,
+          "high": 0.7333333333333333,
+          "confidence": 0.6977109289379372,
+          "accuracy": 0.9647577092511013,
+          "n": 681,
+          "low_support": false
+        },
+        {
+          "index": 11,
+          "low": 0.7333333333333333,
+          "high": 0.8,
+          "confidence": 0.7692089283702064,
+          "accuracy": 0.998587570621469,
+          "n": 708,
+          "low_support": false
+        },
+        {
+          "index": 12,
+          "low": 0.8,
+          "high": 0.8666666666666667,
+          "confidence": 0.8354037862469033,
+          "accuracy": 0.9990338164251208,
+          "n": 1035,
+          "low_support": false
+        },
+        {
+          "index": 13,
+          "low": 0.8666666666666667,
+          "high": 0.9333333333333333,
+          "confidence": 0.8932763788738662,
+          "accuracy": 1.0,
+          "n": 1484,
+          "low_support": false
+        },
+        {
+          "index": 14,
+          "low": 0.9333333333333333,
+          "high": 1.0,
+          "confidence": null,
+          "accuracy": null,
+          "n": 0,
+          "low_support": false
+        }
+      ],
+      "ece_recomputed": 0.20462647894839264,
+      "published_ece": 0.2046264885245143,
+      "ece_matches_published": true,
+      "ece": 0.20462647894839264
+    }
+  },
+  "sources": {
+    "resultados/banco_completo/ft_isic2020/json/results_dinov2_vitb14_ft_isic2020.json": "82c888566d64792c1c5774bd552e50be5af78157a4769cb47e12cf7c10b1d2d9",
+    "resultados/banco_completo/ft_isic2020/probas/dinov2_vitb14.probas.npz": "df869bc932e1b5d32edf8d8ab3bb37b905e520904ea1fa1655da5ca018fee45a",
+    "resultados/banco_completo/ft_isic2020/probas/ft_isic2020_probas.sidecar.json": "daac4cf583ebdb914b20b1b60694fb58e8c6f734bc81298c55138a0c1431ba5f"
+  },
+  "script": "scripts/figures/fig_c6_calibration.py"
+}

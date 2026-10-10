@@ -1,0 +1,186 @@
+{
+  "figure_id": "C4",
+  "dataset": "ham10000",
+  "evaluation_unit": "image",
+  "n": 2004,
+  "protocol": "B71 y A71 congelados, partición común v6/v7.",
+  "metric_definitions": {
+    "precision": "TP/(TP+FP), zero when predicted support is zero",
+    "sensitivity": "TP/(TP+FN)",
+    "f1": "2TP/(2TP+FP+FN)"
+  },
+  "figure_script": {
+    "path": "scripts/figures/fig_c4_per_class.py",
+    "sha256": "f353be0f3c39735ff038625010647e699263f6ae9fc5b55e08ec20e571c9e9ad"
+  },
+  "models": [
+    {
+      "path": "resultados/banco_completo/confusion/ham10000/b71__congelado.json",
+      "sha256": "fc858c72fc0636645f5aef17ec341d9c827e457a417fdb859b7700c9d0ed34ad",
+      "last_changed_commit": "1a615567640c26e096c6dc8c55c86fac901e4594",
+      "model": "B71 (propuesto)",
+      "condition": "congelado",
+      "n": 2004,
+      "classes": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "nv",
+        "vasc"
+      ],
+      "support": [
+        66,
+        103,
+        220,
+        23,
+        222,
+        1341,
+        29
+      ],
+      "metrics": [
+        {
+          "class": "akiec",
+          "support": 66,
+          "precision": 0.75,
+          "sensitivity": 0.6818181818181818,
+          "f1": 0.7142857142857143
+        },
+        {
+          "class": "bcc",
+          "support": 103,
+          "precision": 0.7766990291262136,
+          "sensitivity": 0.7766990291262136,
+          "f1": 0.7766990291262136
+        },
+        {
+          "class": "bkl",
+          "support": 220,
+          "precision": 0.6679841897233202,
+          "sensitivity": 0.7681818181818182,
+          "f1": 0.7145877378435518
+        },
+        {
+          "class": "df",
+          "support": 23,
+          "precision": 0.7,
+          "sensitivity": 0.6086956521739131,
+          "f1": 0.6511627906976745
+        },
+        {
+          "class": "mel",
+          "support": 222,
+          "precision": 0.5784313725490197,
+          "sensitivity": 0.5315315315315315,
+          "f1": 0.5539906103286385
+        },
+        {
+          "class": "nv",
+          "support": 1341,
+          "precision": 0.9210134128166915,
+          "sensitivity": 0.9217002237136466,
+          "f1": 0.9213566902720834
+        },
+        {
+          "class": "vasc",
+          "support": 29,
+          "precision": 0.7727272727272727,
+          "sensitivity": 0.5862068965517241,
+          "f1": 0.6666666666666666
+        }
+      ],
+      "origin": "argmax de las probabilidades commiteadas (el JSON v7.1 no trae matriz_confusion)",
+      "upstream": [
+        "resultados/clasificacion/v71/v71_final_eval.json",
+        "resultados/clasificacion/v71/v71_final_eval.probas.npz"
+      ]
+    },
+    {
+      "path": "resultados/banco_completo/confusion/ham10000/a71__congelado.json",
+      "sha256": "955f97ee82e5042291b7ca6927c4005c1808577b79afe6e46ee27eec14172240",
+      "last_changed_commit": "1a615567640c26e096c6dc8c55c86fac901e4594",
+      "model": "A71 (ablación sin término de tono)",
+      "condition": "congelado",
+      "n": 2004,
+      "classes": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "nv",
+        "vasc"
+      ],
+      "support": [
+        66,
+        103,
+        220,
+        23,
+        222,
+        1341,
+        29
+      ],
+      "metrics": [
+        {
+          "class": "akiec",
+          "support": 66,
+          "precision": 0.7058823529411765,
+          "sensitivity": 0.7272727272727273,
+          "f1": 0.7164179104477612
+        },
+        {
+          "class": "bcc",
+          "support": 103,
+          "precision": 0.8020833333333334,
+          "sensitivity": 0.7475728155339806,
+          "f1": 0.7738693467336684
+        },
+        {
+          "class": "bkl",
+          "support": 220,
+          "precision": 0.7195121951219512,
+          "sensitivity": 0.8045454545454546,
+          "f1": 0.759656652360515
+        },
+        {
+          "class": "df",
+          "support": 23,
+          "precision": 0.5172413793103449,
+          "sensitivity": 0.6521739130434783,
+          "f1": 0.5769230769230769
+        },
+        {
+          "class": "mel",
+          "support": 222,
+          "precision": 0.5652173913043478,
+          "sensitivity": 0.5855855855855856,
+          "f1": 0.5752212389380531
+        },
+        {
+          "class": "nv",
+          "support": 1341,
+          "precision": 0.9282442748091603,
+          "sensitivity": 0.906785980611484,
+          "f1": 0.9173896642776311
+        },
+        {
+          "class": "vasc",
+          "support": 29,
+          "precision": 0.8,
+          "sensitivity": 0.6896551724137931,
+          "f1": 0.7407407407407407
+        }
+      ],
+      "origin": "argmax de las probabilidades commiteadas (el JSON v7.1 no trae matriz_confusion)",
+      "upstream": [
+        "resultados/clasificacion/v71/v71_final_eval.json",
+        "resultados/clasificacion/v71/v71_final_eval.probas.npz"
+      ]
+    }
+  ],
+  "limitations": [
+    "Point metrics derived from confusion counts; no per-class confidence intervals.",
+    "HAM10000 excluye DINOv2 ViT-B/14: su matriz usa n=2.014, distinto del split B71/A71 (n=2.004)."
+  ]
+}

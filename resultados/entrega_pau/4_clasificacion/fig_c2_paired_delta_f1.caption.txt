@@ -1,0 +1,1 @@
+C2: diferencias pareadas de F1 macro entre B71 y los controles con predicciones sobre las mismas imágenes. Panel (a), HAM10000, compara ocho baselines congelados; panel (b), ISIC, compara el control público B71.

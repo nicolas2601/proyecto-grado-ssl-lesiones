@@ -1,0 +1,1 @@
+Puntos: Dice medio por imagen; barras: IC 95 % bootstrap individual de cada modelo, no de la diferencia. El eje horizontal está truncado (0,70–0,82) para hacer visibles los intervalos. ISIC 2018 es parcialmente transductivo: 722 de sus imágenes estuvieron en el conjunto de preentrenamiento sin etiquetas.

@@ -1,0 +1,41 @@
+{
+  "figure": "fig_c3_confusion_isic2019",
+  "question": "Qué clases confunde B71 y con qué frecuencia, normalizado por clase real.",
+  "dataset": "ISIC 2019",
+  "model": "B71 original (canónico, transductivo)",
+  "condition": "congelado",
+  "n": 5067,
+  "classes": [
+    "MEL",
+    "NV",
+    "BCC",
+    "AK",
+    "BKL",
+    "DF",
+    "VASC",
+    "SCC"
+  ],
+  "support": [
+    905,
+    2575,
+    665,
+    174,
+    525,
+    47,
+    50,
+    126
+  ],
+  "mcc": 0.6652172647296124,
+  "source": "resultados/banco_completo/confusion/isic2019/b71_original__congelado.json",
+  "source_sha256": "ef7f704fc744df8698b5fff83169eb9d5a413e244318d66af230b8aaf58db8fd",
+  "upstream": [
+    "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2019/B71__original.json"
+  ],
+  "origin": "matriz_confusion de la celda E1 (cómputo canónico: batch 64 + autocast)",
+  "status": "Artefactos verificados",
+  "checks": [
+    "counts sum == n",
+    "rows recomputed from counts match normalizada_por_fila"
+  ],
+  "script": "scripts/figures/fig_c3_confusion.py"
+}

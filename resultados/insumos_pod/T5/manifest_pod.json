@@ -1,0 +1,69 @@
+{
+  "n_images": 4,
+  "items": [
+    {
+      "image_id": "ISIC_0034049",
+      "dir": "01_oscuro",
+      "tercil": "oscuro",
+      "luminance_mean_L": 129.08,
+      "shift_buckets": 2,
+      "source_sha256": "da143410c0c784a0dabe24597cc3fc6a1820460f2f29dd7c7f18764762cf2d80",
+      "transformed_sha256": "c1f2f464e83a43d26c05d9739912ac0fc5cc4e0b05e3906c788e61cef146dbf4",
+      "mask_sha256": "c60315e97a98bf3a284ce27b12d2b337bbe1829484ba29611c0f94f4a7bb57c2",
+      "transform": "circle_lab_l_star_v1",
+      "files": {
+        "original": "01_oscuro/original.png",
+        "transformed": "01_oscuro/transformed.png",
+        "mask": "01_oscuro/mask.png"
+      }
+    },
+    {
+      "image_id": "ISIC_4137798",
+      "dir": "02_medio",
+      "tercil": "medio",
+      "luminance_mean_L": 165.642,
+      "shift_buckets": 2,
+      "source_sha256": "a11b7b928433a20003332f6f88c0c8e1e6fb15545621bd6b6f822ca51fba04bf",
+      "transformed_sha256": "b402611a52b190daf3448d897d077c604ee9d014ad076cfd97af53c33fa772d0",
+      "mask_sha256": "76802efeeb666767adc26ecf387eae522a9d7162e4246e853237607c91c5f37f",
+      "transform": "circle_lab_l_star_v1",
+      "files": {
+        "original": "02_medio/original.png",
+        "transformed": "02_medio/transformed.png",
+        "mask": "02_medio/mask.png"
+      }
+    },
+    {
+      "image_id": "ISIC_8978290",
+      "dir": "03_claro",
+      "tercil": "claro",
+      "luminance_mean_L": 207.659,
+      "shift_buckets": 2,
+      "source_sha256": "fa2004412a0ceac53f959ea7a0e5c6d94cbfbe52a7de0c7c8400782898ba72c6",
+      "transformed_sha256": "daec43547a0293884c7e34598a648b521c81789dd46cfd776f562bdd6b10cf3a",
+      "mask_sha256": "ebe89709ce5839e39263ec5907c204e19e990fd97c90c593c3662f0255c454ba",
+      "transform": "circle_lab_l_star_v1",
+      "files": {
+        "original": "03_claro/original.png",
+        "transformed": "03_claro/transformed.png",
+        "mask": "03_claro/mask.png"
+      }
+    },
+    {
+      "image_id": "ISIC_4626633",
+      "dir": "04_medio_extra",
+      "tercil": "medio_extra",
+      "luminance_mean_L": 165.73,
+      "shift_buckets": 2,
+      "source_sha256": "9a92c97933db3cfdf3e0c714ef56ce35c80362cc5f4b44ef8de3c0d147175cfd",
+      "transformed_sha256": "70fbb9b59397d83f14716d5ef09895df434a91001e4b2085e7e0b3754536932d",
+      "mask_sha256": "67eb7124ce469c3e75c381de5abdee7edd83723d207a29207c88a58403cf7338",
+      "transform": "circle_lab_l_star_v1",
+      "files": {
+        "original": "04_medio_extra/original.png",
+        "transformed": "04_medio_extra/transformed.png",
+        "mask": "04_medio_extra/mask.png"
+      }
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "figure_id": "C1",
+  "dataset": "isic2020",
+  "metric": "macro_f1",
+  "support": 6660,
+  "evaluation_unit": "image",
+  "resampling_unit": "patient_id",
+  "protocol": "E1 canónico, batch 64 + autocast; partición por patient_id, n=6.660; B71 original transductivo",
+  "source_code_revision": null,
+  "figure_script": {
+    "path": "scripts/figures/fig_c1_macro_f1.py",
+    "sha256": "d3e7038795192ea6ea56dcbc535b855b3c6c93c74a5b7f18a9e91e7072992ea9"
+  },
+  "sources": [
+    {
+      "path": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.json",
+      "sha256": "7ca39da0777d397cf8d48836aae193213751b671c83b95672aff90483d3d6f4b",
+      "last_changed_commit": "f7e6f24be48578b37ca06846530a74f9a855ce07"
+    },
+    {
+      "path": "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.probas.npz",
+      "sha256": "bfe2165f76e371f4a5408949eeba3d32d6409cc5285bcb50ff782b68f1843332",
+      "last_changed_commit": "f7e6f24be48578b37ca06846530a74f9a855ce07"
+    },
+    {
+      "path": "results/baselines_isic2020/results_alexnet_isic2020.json",
+      "sha256": "3d9b19d043f404e74c4aa6619a633300beaa44e34ebdb7b7d2922de9f2e2b734",
+      "last_changed_commit": "98ce1b53be00baf764ac840d6879bb7ee8caf9d7"
+    },
+    {
+      "path": "results/baselines_isic2020/results_dinov2_vitb14_isic2020.json",
+      "sha256": "63dab8a57e86491b23b141692bd755aecb3e4cdbb5aeb5b01ef8b92092b9d3b8",
+      "last_changed_commit": "98ce1b53be00baf764ac840d6879bb7ee8caf9d7"
+    },
+    {
+      "path": "results/baselines_isic2020/results_dinov2_vits14_isic2020.json",
+      "sha256": "9e8e4fc488ea4a4917e24a40346c7426267fcc6ac7a6584f5b19d687a776af3b",
+      "last_changed_commit": "98ce1b53be00baf764ac840d6879bb7ee8caf9d7"
+    },
+    {
+      "path": "results/baselines_isic2020/results_efficientnet_b0_isic2020.json",
+      "sha256": "5f872cdf23d3b9e429ae56e4e02427b13f699be0f7455c2175616a5cf24b1d08",
+      "last_changed_commit": "98ce1b53be00baf764ac840d6879bb7ee8caf9d7"
+    },
+    {
+      "path": "results/baselines_isic2020/results_resnet50_isic2020.json",
+      "sha256": "d43551f16c6bfff7839f563b20c79a672930718fe1e951197a38f56a0c4e2b01",
+      "last_changed_commit": "98ce1b53be00baf764ac840d6879bb7ee8caf9d7"
+    },
+    {
+      "path": "results/baselines_isic2020/results_simsiam_r50_isic2020.json",
+      "sha256": "2aaa3e7c7defee38b7a4c22a7459d0d7839347d2adfafcab83c0db87617b5414",
+      "last_changed_commit": "98ce1b53be00baf764ac840d6879bb7ee8caf9d7"
+    },
+    {
+      "path": "results/baselines_isic2020/results_vgg19_isic2020.json",
+      "sha256": "2a37d2d97e8b7b545b825e446a7b6330583ccbc8965d0446b5ff91cdfee56ce6",
+      "last_changed_commit": "132765fed03431e6ee54995da25497054efb223b"
+    },
+    {
+      "path": "results/baselines_isic2020/results_vit_b16_isic2020.json",
+      "sha256": "408083eec1a4a5b590dfa9c2d815921a2c4093b6edb13990ba62982c1231c9c2",
+      "last_changed_commit": "98ce1b53be00baf764ac840d6879bb7ee8caf9d7"
+    }
+  ],
+  "rows": [
+    {
+      "name": "B71 original (canónico)",
+      "f1": 0.613587562916863,
+      "ci": [
+        0.5793137812119659,
+        0.6500505042359709
+      ],
+      "n": 6660,
+      "sources": [
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.json",
+        "resultados/banco_completo/isic_eval/limpio_canonico_bs64/isic2020/B71__original.probas.npz"
+      ]
+    },
+    {
+      "name": "AlexNet",
+      "f1": 0.5008124652003542,
+      "ci": [
+        0.48942054300432036,
+        0.5121929694004218
+      ],
+      "n": 6660,
+      "sources": [
+        "results/baselines_isic2020/results_alexnet_isic2020.json"
+      ]
+    },
+    {
+      "name": "VGG19",
+      "f1": 0.5100729844890383,
+      "ci": [
+        0.49783652996103933,
+        0.5233927366748155
+      ],
+      "n": 6660,
+      "sources": [
+        "results/baselines_isic2020/results_vgg19_isic2020.json"
+      ]
+    },
+    {
+      "name": "ResNet-50",
+      "f1": 0.5601191419313881,
+      "ci": [
+        0.5395785930651771,
+        0.579025458194583
+      ],
+      "n": 6660,
+      "sources": [
+        "results/baselines_isic2020/results_resnet50_isic2020.json"
+      ]
+    },
+    {
+      "name": "EfficientNet-B0",
+      "f1": 0.5457439830948283,
+      "ci": [
+        0.5264220443959136,
+        0.5639959918998356
+      ],
+      "n": 6660,
+      "sources": [
+        "results/baselines_isic2020/results_efficientnet_b0_isic2020.json"
+      ]
+    },
+    {
+      "name": "ViT-B/16",
+      "f1": 0.5492723650065712,
+      "ci": [
+        0.5319123970235409,
+        0.5668452222957988
+      ],
+      "n": 6660,
+      "sources": [
+        "results/baselines_isic2020/results_vit_b16_isic2020.json"
+      ]
+    },
+    {
+      "name": "SimSiam ResNet-50",
+      "f1": 0.4795327993503816,
+      "ci": [
+        0.4693342903352592,
+        0.49062931258080733
+      ],
+      "n": 6660,
+      "sources": [
+        "results/baselines_isic2020/results_simsiam_r50_isic2020.json"
+      ]
+    },
+    {
+      "name": "DINOv2 ViT-S/14",
+      "f1": 0.526613788253883,
+      "ci": [
+        0.5118819311242837,
+        0.5393054956807127
+      ],
+      "n": 6660,
+      "sources": [
+        "results/baselines_isic2020/results_dinov2_vits14_isic2020.json"
+      ]
+    },
+    {
+      "name": "DINOv2 ViT-B/14",
+      "f1": 0.5426984868118188,
+      "ci": [
+        0.5252104235598438,
+        0.5577478019288405
+      ],
+      "n": 6660,
+      "sources": [
+        "results/baselines_isic2020/results_dinov2_vitb14_isic2020.json"
+      ]
+    }
+  ],
+  "interval_semantics": "individual model intervals; not paired difference intervals"
+}

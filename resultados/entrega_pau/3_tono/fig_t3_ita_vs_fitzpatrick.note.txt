@@ -1,0 +1,1 @@
+Exploratorio. Solo imágenes de PAD-UFES-20 con fototipo registrado en los metadatos (el autor de la asignación no está verificado); se excluyen las que el estimador no pudo evaluar. Barras: IC 95 % bootstrap agrupado por paciente, descriptivo. La línea de mayoría siempre predice el fototipo II. Este resultado no valida las máscaras.

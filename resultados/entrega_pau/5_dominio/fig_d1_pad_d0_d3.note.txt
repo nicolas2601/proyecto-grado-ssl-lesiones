@@ -1,0 +1,1 @@
+Evaluación única en PAD-UFES-20 target_test, lectura primaria BCC/MEL/NV: 567 imágenes de 363 pacientes (25 melanomas). Barras del panel (a): IC 95 % bootstrap pareado por patient_id, 1.000 remuestras. El panel (b) muestra sensibilidad puntual por diagnóstico, sin IC (el artefacto no los publica). D2 y D3 provienen de adaptaciones de 2.000 pasos y no equivalen a B71.

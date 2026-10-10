@@ -1,0 +1,28 @@
+{
+  "figure_id": "C5",
+  "dataset": "isic2020_ft",
+  "status": "Cálculo adicional desde probabilidades por imagen",
+  "positive_class": "melanoma",
+  "positive_count": 122,
+  "support": 6660,
+  "evaluation_unit": "image",
+  "arms": {
+    "dinov2_vitb14": {
+      "label": "DINOv2-B/14",
+      "source": "resultados/banco_completo/ft_isic2020/probas/dinov2_vitb14.probas.npz",
+      "prevalence": 0.01831831831831832,
+      "average_precision": 0.07029424974894632,
+      "roc_auc": 0.781961947555025
+    }
+  },
+  "sources": {
+    "resultados/banco_completo/ft_isic2020/probas/dinov2_vitb14.probas.npz": "df869bc932e1b5d32edf8d8ab3bb37b905e520904ea1fa1655da5ca018fee45a",
+    "resultados/banco_completo/ft_isic2020/probas/ft_isic2020_probas.sidecar.json": "daac4cf583ebdb914b20b1b60694fb58e8c6f734bc81298c55138a0c1431ba5f"
+  },
+  "metrics": {
+    "precision_recall": "average precision = sum(delta recall * precision at each distinct score)",
+    "roc": "trapezoidal area under empirical ROC from distinct scores"
+  },
+  "threshold_selection_on_target_test": false,
+  "script": "scripts/figures/fig_c5_pr_roc.py"
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "dataset": "ham10000",
+    "role": "bueno",
+    "percentile": 90,
+    "image_id": "ISIC_0024442",
+    "dice": {
+      "student_r3": 0.9470058554347291,
+      "A2": 0.9449608971521322
+    }
+  },
+  {
+    "dataset": "ham10000",
+    "role": "mediano",
+    "percentile": 50,
+    "image_id": "ISIC_0029448",
+    "dice": {
+      "student_r3": 0.85223127279996,
+      "A2": 0.8579333937015796
+    }
+  },
+  {
+    "dataset": "ham10000",
+    "role": "malo",
+    "percentile": 10,
+    "image_id": "ISIC_0026132",
+    "dice": {
+      "student_r3": 0.5525474312513323,
+      "A2": 0.49753193960511033
+    }
+  },
+  {
+    "dataset": "isic2018",
+    "role": "bueno",
+    "percentile": 90,
+    "image_id": "ISIC_0014943",
+    "dice": {
+      "student_r3": 0.9400744565870062,
+      "A2": 0.9273038146335711
+    }
+  },
+  {
+    "dataset": "isic2018",
+    "role": "mediano",
+    "percentile": 50,
+    "image_id": "ISIC_0011095",
+    "dice": {
+      "student_r3": 0.773601209764528,
+      "A2": 0.814941279942056
+    }
+  },
+  {
+    "dataset": "isic2018",
+    "role": "malo",
+    "percentile": 10,
+    "image_id": "ISIC_0013369",
+    "dice": {
+      "student_r3": 0.38189955246146196,
+      "A2": 0.4010443864229765
+    }
+  }
+]

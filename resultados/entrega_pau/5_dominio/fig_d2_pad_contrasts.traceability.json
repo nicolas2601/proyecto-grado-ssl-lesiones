@@ -1,0 +1,60 @@
+{
+  "figure": "fig_d2_pad_contrasts",
+  "question": "Si la adaptación mejora frente a su control (D3 − D2) y si supera al público (D3 − D0).",
+  "status": "Artefactos verificados",
+  "source": "resultados/banco_completo/pad_da/pad_e2_eval.json",
+  "source_sha256": "91fa7750a9495cb4007173cd96b755bebade90ec4e5340c901f03fc95c576d29",
+  "code_revision": "1d7e447aa0538501f039e8a8ec3eeb164038e2b3",
+  "dataset": "PAD-UFES-20 target_test",
+  "reading": "primary",
+  "n_images": 567,
+  "n_patients": 363,
+  "bootstrap": {
+    "n_resamples": 1000,
+    "rng_seed": 20260923,
+    "paired": true,
+    "unit": "patient_id"
+  },
+  "classes": [
+    "bcc",
+    "mel",
+    "nv"
+  ],
+  "missing": [
+    "fracción de predicciones con argmax fuera del mapeo de la lectura: no figura en este artefacto",
+    "IC por diagnóstico: no publicados"
+  ],
+  "script": "scripts/figures/fig_d1_d2_pad.py",
+  "contrasts": [
+    {
+      "arm": "D3",
+      "control": "D2",
+      "delta": 0.08159214993411767,
+      "ci95": [
+        0.0524715342446347,
+        0.10851638920523039
+      ],
+      "excludes_zero": true
+    },
+    {
+      "arm": "D3",
+      "control": "D1",
+      "delta": 0.1249800743599033,
+      "ci95": [
+        0.09701634236766388,
+        0.15610252191543594
+      ],
+      "excludes_zero": true
+    },
+    {
+      "arm": "D3",
+      "control": "D0",
+      "delta": -0.0717029252160562,
+      "ci95": [
+        -0.10996379724702843,
+        -0.033202638653826215
+      ],
+      "excludes_zero": true
+    }
+  ]
+}

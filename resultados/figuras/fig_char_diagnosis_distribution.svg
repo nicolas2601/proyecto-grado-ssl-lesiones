@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="490.393701pt" height="446.4pt" viewBox="0 0 490.393701 446.4" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-09T21:20:21.582348</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 446.4
+L 490.393701 446.4
+L 490.393701 0
+L 0 0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 63.751181 178.56
+L 225.292635 178.56
+L 225.292635 26.784
+L 63.751181 26.784
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 63.751181 178.56
+L 63.751181 26.784
+" clip-path="url(#p9defa5efef)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="63.751181" y="190.335312" transform="rotate(-0 63.751181 190.335312)">0</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 144.521908 178.56
+L 144.521908 26.784
+" clip-path="url(#p9defa5efef)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4"/>
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="144.521908" y="190.335312" transform="rotate(-0 144.521908 190.335312)">50</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 225.292635 178.56
+L 225.292635 26.784
+" clip-path="url(#p9defa5efef)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6"/>
+     <g id="text_3">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="225.292635" y="190.335312" transform="rotate(-0 225.292635 190.335312)">100</text>
+     </g>
+    </g>
+    <g id="text_4">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="144.521908" y="205.709656" transform="rotate(-0 144.521908 205.709656)">% de las imágenes</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_7"/>
+     <g id="text_5">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="58.751181" y="41.206061" transform="rotate(-0 58.751181 41.206061)">NV</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_8"/>
+     <g id="text_6">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="58.751181" y="59.715329" transform="rotate(-0 58.751181 59.715329)">MEL</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_9"/>
+     <g id="text_7">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="58.751181" y="78.224598" transform="rotate(-0 58.751181 78.224598)">BKL</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_10"/>
+     <g id="text_8">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="58.751181" y="96.733866" transform="rotate(-0 58.751181 96.733866)">BCC</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_11"/>
+     <g id="text_9">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="58.751181" y="115.243134" transform="rotate(-0 58.751181 115.243134)">AKIEC</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_12"/>
+     <g id="text_10">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="58.751181" y="133.752402" transform="rotate(-0 58.751181 133.752402)">VASC</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_13"/>
+     <g id="text_11">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="58.751181" y="152.261671" transform="rotate(-0 58.751181 152.261671)">DF</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 63.751181 32.151688
+L 171.902499 32.151688
+L 171.902499 43.627434
+L 63.751181 43.627434
+z
+" clip-path="url(#p9defa5efef)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 63.751181 50.660956
+L 81.703816 50.660956
+L 81.703816 62.136702
+L 63.751181 62.136702
+z
+" clip-path="url(#p9defa5efef)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 63.751181 69.170224
+L 81.477997 69.170224
+L 81.477997 80.645971
+L 63.751181 80.645971
+z
+" clip-path="url(#p9defa5efef)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 63.751181 87.679493
+L 72.041976 87.679493
+L 72.041976 99.155239
+L 63.751181 99.155239
+z
+" clip-path="url(#p9defa5efef)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 63.751181 106.188761
+L 69.025675 106.188761
+L 69.025675 117.664507
+L 63.751181 117.664507
+z
+" clip-path="url(#p9defa5efef)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 63.751181 124.698029
+L 66.041634 124.698029
+L 66.041634 136.173776
+L 63.751181 136.173776
+z
+" clip-path="url(#p9defa5efef)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 63.751181 143.207298
+L 65.606125 143.207298
+L 65.606125 154.683044
+L 63.751181 154.683044
+z
+" clip-path="url(#p9defa5efef)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 63.751181 178.56
+L 63.751181 26.784
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 225.292635 178.56
+L 225.292635 26.784
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 63.751181 178.56
+L 225.292635 178.56
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 63.751181 26.784
+L 225.292635 26.784
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="174.325621" y="39.093717" transform="rotate(-0 174.325621 39.093717)">6.705</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="84.126938" y="57.602986" transform="rotate(-0 84.126938 57.602986)">1.113</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="83.901119" y="76.112254" transform="rotate(-0 83.901119 76.112254)">1.099</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="74.465097" y="94.605194" transform="rotate(-0 74.465097 94.605194)">514</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="71.448797" y="113.13079" transform="rotate(-0 71.448797 113.13079)">327</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="68.464756" y="131.640059" transform="rotate(-0 68.464756 131.640059)">142</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="68.029247" y="150.132999" transform="rotate(-0 68.029247 150.132999)">115</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 12px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="63.751181" y="20.784" transform="rotate(-0 63.751181 20.784)">HAM10000 (N = 10.015)</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_14">
+    <path d="M 314.140435 178.56
+L 475.68189 178.56
+L 475.68189 26.784
+L 314.140435 26.784
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_4">
+     <g id="line2d_14">
+      <path d="M 314.140435 178.56
+L 314.140435 26.784
+" clip-path="url(#p39b31a5f4e)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_15"/>
+     <g id="text_20">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="314.140435" y="190.335312" transform="rotate(-0 314.140435 190.335312)">0</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_16">
+      <path d="M 394.911163 178.56
+L 394.911163 26.784
+" clip-path="url(#p39b31a5f4e)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_17"/>
+     <g id="text_21">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="394.911163" y="190.335312" transform="rotate(-0 394.911163 190.335312)">50</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_18">
+      <path d="M 475.68189 178.56
+L 475.68189 26.784
+" clip-path="url(#p39b31a5f4e)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_19"/>
+     <g id="text_22">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="475.68189" y="190.335312" transform="rotate(-0 475.68189 190.335312)">100</text>
+     </g>
+    </g>
+    <g id="text_23">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="394.911163" y="205.709656" transform="rotate(-0 394.911163 205.709656)">% de las imágenes</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4">
+    <g id="ytick_8">
+     <g id="line2d_20"/>
+     <g id="text_24">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="41.206061" transform="rotate(-0 309.140435 41.206061)">NV</text>
+     </g>
+    </g>
+    <g id="ytick_9">
+     <g id="line2d_21"/>
+     <g id="text_25">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="59.715329" transform="rotate(-0 309.140435 59.715329)">MEL</text>
+     </g>
+    </g>
+    <g id="ytick_10">
+     <g id="line2d_22"/>
+     <g id="text_26">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="78.224598" transform="rotate(-0 309.140435 78.224598)">BCC</text>
+     </g>
+    </g>
+    <g id="ytick_11">
+     <g id="line2d_23"/>
+     <g id="text_27">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="96.733866" transform="rotate(-0 309.140435 96.733866)">BKL</text>
+     </g>
+    </g>
+    <g id="ytick_12">
+     <g id="line2d_24"/>
+     <g id="text_28">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="115.243134" transform="rotate(-0 309.140435 115.243134)">AK</text>
+     </g>
+    </g>
+    <g id="ytick_13">
+     <g id="line2d_25"/>
+     <g id="text_29">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="133.752402" transform="rotate(-0 309.140435 133.752402)">SCC</text>
+     </g>
+    </g>
+    <g id="ytick_14">
+     <g id="line2d_26"/>
+     <g id="text_30">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="152.261671" transform="rotate(-0 309.140435 152.261671)">VASC</text>
+     </g>
+    </g>
+    <g id="ytick_15">
+     <g id="line2d_27"/>
+     <g id="text_31">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="170.770939" transform="rotate(-0 309.140435 170.770939)">DF</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_15">
+    <path d="M 314.140435 32.151688
+L 396.247191 32.151688
+L 396.247191 43.627434
+L 314.140435 43.627434
+z
+" clip-path="url(#p39b31a5f4e)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 314.140435 50.660956
+L 342.978241 50.660956
+L 342.978241 62.136702
+L 314.140435 62.136702
+z
+" clip-path="url(#p39b31a5f4e)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 314.140435 69.170224
+L 335.33195 69.170224
+L 335.33195 80.645971
+L 314.140435 80.645971
+z
+" clip-path="url(#p39b31a5f4e)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 314.140435 87.679493
+L 330.87427 87.679493
+L 330.87427 99.155239
+L 314.140435 99.155239
+z
+" clip-path="url(#p39b31a5f4e)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 314.140435 106.188761
+L 319.669488 106.188761
+L 319.669488 117.664507
+L 314.140435 117.664507
+z
+" clip-path="url(#p39b31a5f4e)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 314.140435 124.698029
+L 318.145332 124.698029
+L 318.145332 136.173776
+L 314.140435 136.173776
+z
+" clip-path="url(#p39b31a5f4e)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 314.140435 143.207298
+L 315.753873 143.207298
+L 315.753873 154.683044
+L 314.140435 154.683044
+z
+" clip-path="url(#p39b31a5f4e)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 314.140435 161.716566
+L 315.664592 161.716566
+L 315.664592 173.192312
+L 314.140435 173.192312
+z
+" clip-path="url(#p39b31a5f4e)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 314.140435 178.56
+L 314.140435 26.784
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 475.68189 178.56
+L 475.68189 26.784
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 314.140435 178.56
+L 475.68189 178.56
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 314.140435 26.784
+L 475.68189 26.784
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="398.670313" y="39.093717" transform="rotate(-0 398.670313 39.093717)">12.875</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="345.401363" y="57.602986" transform="rotate(-0 345.401363 57.602986)">4.522</text>
+   </g>
+   <g id="text_34">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="337.755072" y="76.112254" transform="rotate(-0 337.755072 76.112254)">3.323</text>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="333.297392" y="94.621522" transform="rotate(-0 333.297392 94.621522)">2.624</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="322.09261" y="113.13079" transform="rotate(-0 322.09261 113.13079)">867</text>
+   </g>
+   <g id="text_37">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="320.568454" y="131.640059" transform="rotate(-0 320.568454 131.640059)">628</text>
+   </g>
+   <g id="text_38">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="318.176995" y="150.149327" transform="rotate(-0 318.176995 150.149327)">253</text>
+   </g>
+   <g id="text_39">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="318.087714" y="168.658595" transform="rotate(-0 318.087714 168.658595)">239</text>
+   </g>
+   <g id="text_40">
+    <text style="font-size: 12px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="314.140435" y="20.784" transform="rotate(-0 314.140435 20.784)">ISIC 2019 (N = 25.331)</text>
+   </g>
+  </g>
+  <g id="axes_3">
+   <g id="patch_27">
+    <path d="M 63.751181 406.224
+L 225.292635 406.224
+L 225.292635 254.448
+L 63.751181 254.448
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_5">
+    <g id="xtick_7">
+     <g id="line2d_28">
+      <path d="M 63.751181 406.224
+L 63.751181 254.448
+" clip-path="url(#p5139978899)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_29"/>
+     <g id="text_41">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="63.751181" y="417.999313" transform="rotate(-0 63.751181 417.999313)">0</text>
+     </g>
+    </g>
+    <g id="xtick_8">
+     <g id="line2d_30">
+      <path d="M 144.521908 406.224
+L 144.521908 254.448
+" clip-path="url(#p5139978899)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_31"/>
+     <g id="text_42">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="144.521908" y="417.999313" transform="rotate(-0 144.521908 417.999313)">50</text>
+     </g>
+    </g>
+    <g id="xtick_9">
+     <g id="line2d_32">
+      <path d="M 225.292635 406.224
+L 225.292635 254.448
+" clip-path="url(#p5139978899)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_33"/>
+     <g id="text_43">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="225.292635" y="417.999313" transform="rotate(-0 225.292635 417.999313)">100</text>
+     </g>
+    </g>
+    <g id="text_44">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="144.521908" y="433.373656" transform="rotate(-0 144.521908 433.373656)">% de las imágenes</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_6">
+    <g id="ytick_16">
+     <g id="line2d_34"/>
+     <g id="text_45">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="58.751181" y="268.870061" transform="rotate(-0 58.751181 268.870061)">BENIGNO</text>
+     </g>
+    </g>
+    <g id="ytick_17">
+     <g id="line2d_35"/>
+     <g id="text_46">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="58.751181" y="287.379329" transform="rotate(-0 58.751181 287.379329)">MALIGNO</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_28">
+    <path d="M 63.751181 259.815688
+L 222.444715 259.815688
+L 222.444715 271.291434
+L 63.751181 271.291434
+z
+" clip-path="url(#p5139978899)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 63.751181 278.324956
+L 66.599101 278.324956
+L 66.599101 289.800702
+L 63.751181 289.800702
+z
+" clip-path="url(#p5139978899)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 63.751181 406.224
+L 63.751181 254.448
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 225.292635 406.224
+L 225.292635 254.448
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_32">
+    <path d="M 63.751181 406.224
+L 225.292635 406.224
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_33">
+    <path d="M 63.751181 254.448
+L 225.292635 254.448
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_47">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="220.021593" y="266.757717" transform="rotate(-0 220.021593 266.757717)">32.542</text>
+   </g>
+   <g id="text_48">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="69.022223" y="285.266986" transform="rotate(-0 69.022223 285.266986)">584</text>
+   </g>
+   <g id="text_49">
+    <text style="font-size: 12px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="63.751181" y="248.448" transform="rotate(-0 63.751181 248.448)">ISIC 2020 (N = 33.126)</text>
+   </g>
+  </g>
+  <g id="axes_4">
+   <g id="patch_34">
+    <path d="M 314.140435 406.224
+L 475.68189 406.224
+L 475.68189 254.448
+L 314.140435 254.448
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_7">
+    <g id="xtick_10">
+     <g id="line2d_36">
+      <path d="M 314.140435 406.224
+L 314.140435 254.448
+" clip-path="url(#pd384df899f)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_37"/>
+     <g id="text_50">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="314.140435" y="417.999313" transform="rotate(-0 314.140435 417.999313)">0</text>
+     </g>
+    </g>
+    <g id="xtick_11">
+     <g id="line2d_38">
+      <path d="M 394.911163 406.224
+L 394.911163 254.448
+" clip-path="url(#pd384df899f)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_39"/>
+     <g id="text_51">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="394.911163" y="417.999313" transform="rotate(-0 394.911163 417.999313)">50</text>
+     </g>
+    </g>
+    <g id="xtick_12">
+     <g id="line2d_40">
+      <path d="M 475.68189 406.224
+L 475.68189 254.448
+" clip-path="url(#pd384df899f)" style="fill: none; stroke: #aaa39e; stroke-opacity: 0.28; stroke-width: 0.6; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_41"/>
+     <g id="text_52">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="475.68189" y="417.999313" transform="rotate(-0 475.68189 417.999313)">100</text>
+     </g>
+    </g>
+    <g id="text_53">
+     <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: middle; fill: #222222" x="394.911163" y="433.373656" transform="rotate(-0 394.911163 433.373656)">% de las imágenes</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_8">
+    <g id="ytick_18">
+     <g id="line2d_42"/>
+     <g id="text_54">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="268.870061" transform="rotate(-0 309.140435 268.870061)">BCC</text>
+     </g>
+    </g>
+    <g id="ytick_19">
+     <g id="line2d_43"/>
+     <g id="text_55">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="287.379329" transform="rotate(-0 309.140435 287.379329)">ACK</text>
+     </g>
+    </g>
+    <g id="ytick_20">
+     <g id="line2d_44"/>
+     <g id="text_56">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="305.888598" transform="rotate(-0 309.140435 305.888598)">NEV</text>
+     </g>
+    </g>
+    <g id="ytick_21">
+     <g id="line2d_45"/>
+     <g id="text_57">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="324.397866" transform="rotate(-0 309.140435 324.397866)">SEK</text>
+     </g>
+    </g>
+    <g id="ytick_22">
+     <g id="line2d_46"/>
+     <g id="text_58">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="342.907134" transform="rotate(-0 309.140435 342.907134)">SCC</text>
+     </g>
+    </g>
+    <g id="ytick_23">
+     <g id="line2d_47"/>
+     <g id="text_59">
+      <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: end; fill: #222222" x="309.140435" y="361.416402" transform="rotate(-0 309.140435 361.416402)">MEL</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_35">
+    <path d="M 314.140435 259.815688
+L 373.541014 259.815688
+L 373.541014 271.291434
+L 314.140435 271.291434
+z
+" clip-path="url(#pd384df899f)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_36">
+    <path d="M 314.140435 278.324956
+L 365.456911 278.324956
+L 365.456911 289.800702
+L 314.140435 289.800702
+z
+" clip-path="url(#pd384df899f)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_37">
+    <path d="M 314.140435 296.834224
+L 331.292792 296.834224
+L 331.292792 308.309971
+L 314.140435 308.309971
+z
+" clip-path="url(#pd384df899f)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_38">
+    <path d="M 314.140435 315.343493
+L 330.660123 315.343493
+L 330.660123 326.819239
+L 314.140435 326.819239
+z
+" clip-path="url(#pd384df899f)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_39">
+    <path d="M 314.140435 333.852761
+L 327.637372 333.852761
+L 327.637372 345.328507
+L 314.140435 345.328507
+z
+" clip-path="url(#pd384df899f)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_40">
+    <path d="M 314.140435 352.362029
+L 317.795856 352.362029
+L 317.795856 363.837776
+L 314.140435 363.837776
+z
+" clip-path="url(#pd384df899f)" style="fill: #f4ede6; stroke: #8a6c58; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_41">
+    <path d="M 314.140435 406.224
+L 314.140435 254.448
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_42">
+    <path d="M 475.68189 406.224
+L 475.68189 254.448
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_43">
+    <path d="M 314.140435 406.224
+L 475.68189 406.224
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_44">
+    <path d="M 314.140435 254.448
+L 475.68189 254.448
+" style="fill: none; stroke: #aaa39e; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_60">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="375.964136" y="266.757717" transform="rotate(-0 375.964136 266.757717)">845</text>
+   </g>
+   <g id="text_61">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="367.880033" y="285.266986" transform="rotate(-0 367.880033 285.266986)">730</text>
+   </g>
+   <g id="text_62">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="333.715914" y="303.776254" transform="rotate(-0 333.715914 303.776254)">244</text>
+   </g>
+   <g id="text_63">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="333.083245" y="322.285522" transform="rotate(-0 333.083245 322.285522)">235</text>
+   </g>
+   <g id="text_64">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="330.060493" y="340.79479" transform="rotate(-0 330.060493 340.79479)">192</text>
+   </g>
+   <g id="text_65">
+    <text style="font-size: 11px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="320.218977" y="359.304059" transform="rotate(-0 320.218977 359.304059)">52</text>
+   </g>
+   <g id="text_66">
+    <text style="font-size: 12px; font-family: 'Nimbus Mono PS'; text-anchor: start; fill: #222222" x="314.140435" y="248.448" transform="rotate(-0 314.140435 248.448)">PAD-UFES-20 (N = 2.298)</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p9defa5efef">
+   <rect x="63.751181" y="26.784" width="161.541454" height="151.776"/>
+  </clipPath>
+  <clipPath id="p39b31a5f4e">
+   <rect x="314.140435" y="26.784" width="161.541454" height="151.776"/>
+  </clipPath>
+  <clipPath id="p5139978899">
+   <rect x="63.751181" y="254.448" width="161.541454" height="151.776"/>
+  </clipPath>
+  <clipPath id="pd384df899f">
+   <rect x="314.140435" y="254.448" width="161.541454" height="151.776"/>
+  </clipPath>
+ </defs>
+</svg>

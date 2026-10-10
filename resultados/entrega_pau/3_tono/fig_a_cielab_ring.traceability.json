@@ -1,0 +1,40 @@
+{
+  "figure": "fig_a_cielab_ring",
+  "question": "Cómo se distribuyen L*, a* y b* en el anillo perilesional que alimenta la estimación ITA.",
+  "status": "Cálculo adicional (histogramas calculados en el pod)",
+  "population": "píxeles del anillo, imágenes con ITA válido",
+  "partial": false,
+  "pending_datasets": [],
+  "datasets": {
+    "ham10000": {
+      "n_images": 4539,
+      "n_pixels": 355218452,
+      "code_revision": "48d5f63+026a4a8"
+    },
+    "isic2019": {
+      "n_images": 11805,
+      "n_pixels": 142609501,
+      "code_revision": "48d5f63+026a4a8"
+    },
+    "isic2020": {
+      "n_images": 20704,
+      "n_pixels": 206068107,
+      "code_revision": "48d5f63+026a4a8"
+    }
+  },
+  "sources": [
+    {
+      "path": "resultados/insumos_pod/A/cielab_ring_hist_ham10000.json",
+      "sha256": "6ad466b916711d0981a78dd880698e072b18a3258afe1235a5879d95caec2985"
+    },
+    {
+      "path": "resultados/insumos_pod/A/cielab_ring_hist_isic2019.json",
+      "sha256": "e36fc7cb93917a0fc0f5aab11b76688bf65fe7af19be06f1d52e67ea1453e494"
+    },
+    {
+      "path": "resultados/insumos_pod/A/cielab_ring_hist_isic2020.json",
+      "sha256": "be789e443142761ab566f3418ccf2a140b4338df97f3b77091edaf94de06304c"
+    }
+  ],
+  "script": "scripts/figures/fig_a_cielab_ring.py"
+}

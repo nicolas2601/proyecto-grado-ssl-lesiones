@@ -1,0 +1,127 @@
+{
+  "figure_id": "T5",
+  "question": "Cómo se ve la transformación de tono (s = +2) sobre casos reales, con la lesión protegida.",
+  "status": "Cálculo adicional (transformación aplicada a imágenes del servidor)",
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "52a896bb30929a54899e332223ea5280e14e0a111f74cfaee46fbdc9c89a5193"
+  },
+  "formula": "L*' = clip(L* - 8s, 0, 100)",
+  "L_shift_semantics": "derived signed request before clipping: -FST_SHIFT_L_STEP * shift_buckets",
+  "FST_SHIFT_L_STEP": 8.0,
+  "mask_semantics": "true=lesion; lesion pixels are preserved",
+  "code_source": {
+    "path": "src/dermssl/circle.py",
+    "sha256": "3d7dfd356884cd0e78c3ef458298d2f24e0e0d0d481808e0555a3d819ab9a3dc"
+  },
+  "figure_script": {
+    "path": "scripts/figures/fig_t5_tone_pairs.py",
+    "sha256": "f5a4af58df5d46ec493ab24965811f55e177d148376477812787b1d8679fa191"
+  },
+  "pairs": [
+    {
+      "image_id": "ISIC_8978290",
+      "dataset": null,
+      "tercil": "claro",
+      "shift_buckets": 2,
+      "L_shift": -16.0,
+      "mask_semantics": "true=lesion",
+      "resolution": [
+        224,
+        224
+      ],
+      "files": {
+        "original.png": {
+          "path": "03_claro/original.png",
+          "sha256": "fa2004412a0ceac53f959ea7a0e5c6d94cbfbe52a7de0c7c8400782898ba72c6"
+        },
+        "transformed.png": {
+          "path": "03_claro/transformed.png",
+          "sha256": "daec43547a0293884c7e34598a648b521c81789dd46cfd776f562bdd6b10cf3a"
+        },
+        "mask.png": {
+          "path": "03_claro/mask.png",
+          "sha256": "ebe89709ce5839e39263ec5907c204e19e990fd97c90c593c3662f0255c454ba"
+        }
+      }
+    },
+    {
+      "image_id": "ISIC_4137798",
+      "dataset": null,
+      "tercil": "medio",
+      "shift_buckets": 2,
+      "L_shift": -16.0,
+      "mask_semantics": "true=lesion",
+      "resolution": [
+        224,
+        224
+      ],
+      "files": {
+        "original.png": {
+          "path": "02_medio/original.png",
+          "sha256": "a11b7b928433a20003332f6f88c0c8e1e6fb15545621bd6b6f822ca51fba04bf"
+        },
+        "transformed.png": {
+          "path": "02_medio/transformed.png",
+          "sha256": "b402611a52b190daf3448d897d077c604ee9d014ad076cfd97af53c33fa772d0"
+        },
+        "mask.png": {
+          "path": "02_medio/mask.png",
+          "sha256": "76802efeeb666767adc26ecf387eae522a9d7162e4246e853237607c91c5f37f"
+        }
+      }
+    },
+    {
+      "image_id": "ISIC_4626633",
+      "dataset": null,
+      "tercil": "medio_extra",
+      "shift_buckets": 2,
+      "L_shift": -16.0,
+      "mask_semantics": "true=lesion",
+      "resolution": [
+        224,
+        224
+      ],
+      "files": {
+        "original.png": {
+          "path": "04_medio_extra/original.png",
+          "sha256": "9a92c97933db3cfdf3e0c714ef56ce35c80362cc5f4b44ef8de3c0d147175cfd"
+        },
+        "transformed.png": {
+          "path": "04_medio_extra/transformed.png",
+          "sha256": "70fbb9b59397d83f14716d5ef09895df434a91001e4b2085e7e0b3754536932d"
+        },
+        "mask.png": {
+          "path": "04_medio_extra/mask.png",
+          "sha256": "67eb7124ce469c3e75c381de5abdee7edd83723d207a29207c88a58403cf7338"
+        }
+      }
+    },
+    {
+      "image_id": "ISIC_0034049",
+      "dataset": null,
+      "tercil": "oscuro",
+      "shift_buckets": 2,
+      "L_shift": -16.0,
+      "mask_semantics": "true=lesion",
+      "resolution": [
+        224,
+        224
+      ],
+      "files": {
+        "original.png": {
+          "path": "01_oscuro/original.png",
+          "sha256": "da143410c0c784a0dabe24597cc3fc6a1820460f2f29dd7c7f18764762cf2d80"
+        },
+        "transformed.png": {
+          "path": "01_oscuro/transformed.png",
+          "sha256": "c1f2f464e83a43d26c05d9739912ac0fc5cc4e0b05e3906c788e61cef146dbf4"
+        },
+        "mask.png": {
+          "path": "01_oscuro/mask.png",
+          "sha256": "c60315e97a98bf3a284ce27b12d2b337bbe1829484ba29611c0f94f4a7bb57c2"
+        }
+      }
+    }
+  ]
+}
