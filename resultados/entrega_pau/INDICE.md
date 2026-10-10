@@ -33,10 +33,10 @@
 | 4_clasificacion | fig_c7_b71_vs_b71_f4 | Contraste pareado de F1 macro B71+F4 frente a B71 y sensibilidad del resultado por semilla. | Cálculo adicional desde contrastes por imagen | fig_c7_b71_vs_b71_f4.svg |
 | 5_dominio | fig_d1_pad_d0_d3 | Cómo se comportan D0–D3 en PAD-UFES-20 (fotos clínicas): F1 macro y sensibilidad por diagnóstico. | Artefactos verificados | fig_d1_pad_d0_d3.svg |
 | 5_dominio | fig_d2_pad_contrasts | Si la adaptación mejora frente a su control (D3 − D2) y si supera al público (D3 − D0). | Artefactos verificados | fig_d2_pad_contrasts.svg |
+| 3_tono | fig_a_cielab_ring | Cómo se distribuyen L*, a* y b* en el anillo perilesional que alimenta la estimación ITA. | Cálculo adicional (histogramas calculados en el pod) | fig_a_cielab_ring.svg |
 
 ## Pendientes (dependen del servidor de la UNAB)
 
-- Figura A (CIELAB del anillo perilesional): cálculo en el servidor de la UNAB (HAM10000, ISIC 2019, ISIC 2020).
 - T5 antes/después de la transformación de tono: faltan las imágenes originales/transformadas del servidor.
 - S1 comparación cualitativa de máscaras: faltan imágenes y máscaras por caso del servidor.
 

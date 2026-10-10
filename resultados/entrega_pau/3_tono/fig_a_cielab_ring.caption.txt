@@ -1,0 +1,1 @@
+Distribución CIELAB de los píxeles del anillo perilesional en HAM10000, ISIC 2019 e ISIC 2020.
