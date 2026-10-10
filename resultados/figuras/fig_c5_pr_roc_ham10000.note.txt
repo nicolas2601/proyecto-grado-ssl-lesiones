@@ -1,0 +1,1 @@
+Positivo: melanoma; negativo: resto. Precision–recall: prevalencia de melanoma de la partición como baseline; AP se calcula como suma de incrementos de sensibilidad por precisión en cada umbral único. ROC: diagonal de azar y AUC como área trapezoidal de los puntos empíricos. No se seleccionan umbrales en esta partición.
