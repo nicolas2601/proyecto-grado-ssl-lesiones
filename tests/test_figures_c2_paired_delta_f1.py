@@ -63,16 +63,21 @@ def test_isic_c2_uses_only_paired_original_b71_public_control(dataset, unit, sup
     assert group["seed"] == 20260923
 
 
-def test_c2_footnotes_do_not_overlap_x_axis_label():
+def test_c2_separates_comparison_families_and_omits_caption_notes_from_plot():
     import matplotlib.pyplot as plt
 
     fig = figure._draw(figure.figure_data(REPO))
+    assert len(fig.axes) == 2
+    ham, isic = fig.axes
+    assert "(a) HAM10000" in fig.texts[0].get_text()
+    assert "(b) ISIC" in fig.texts[1].get_text()
+    assert len(ham.get_yticks()) == 8
+    assert len(isic.get_yticks()) == 2
+    assert all("C2" not in text.get_text() for text in fig.texts)
+    assert all("remuestras" not in text.get_text() for text in fig.texts)
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
-    xlabel = fig.axes[0].xaxis.label.get_window_extent(renderer)
-    footnotes = [text.get_window_extent(renderer) for text in fig.texts]
-    assert footnotes
-    assert max(box.y1 for box in footnotes) + 4 < xlabel.y0
+    assert all(text.get_window_extent(renderer).x1 < fig.bbox.x1 - 2 for text in fig.texts)
     plt.close(fig)
 
 
@@ -80,10 +85,11 @@ def test_c2_build_exports_vector_and_preview_with_traceability(tmp_path):
     paths = figure.build(REPO, tmp_path)
     assert {path.suffix for path in paths} == {".pdf", ".svg", ".png"}
     assert all(path.is_file() and path.stat().st_size > 0 for path in paths)
-    assert "C2 pareado" in (tmp_path / "fig_c2_paired_delta_f1.caption.txt").read_text(encoding="utf-8")
+    assert "C2:" in (tmp_path / "fig_c2_paired_delta_f1.caption.txt").read_text(encoding="utf-8")
     note = (tmp_path / "fig_c2_paired_delta_f1.note.txt").read_text(encoding="utf-8")
     assert "HAM10000 2.004" in note
     assert "ISIC 2019 5.067" in note
+    assert "VGG19" in note and "+0,3331" in note and "6bd96b7" in note and "Karen" in note
     trace = json.loads((tmp_path / "fig_c2_paired_delta_f1.traceability.json").read_text(encoding="utf-8"))
     assert trace["multiplicity_adjustment"] == "none"
     assert trace["comparison_count"] == 10

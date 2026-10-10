@@ -4,7 +4,7 @@
   "multiplicity_adjustment": "none",
   "figure_script": {
     "path": "scripts/figures/fig_c2_paired_delta_f1.py",
-    "sha256": "e6371b201d4bc8a7c065e274d15b14bd42198a77c65fdbd94edaf822212c5309"
+    "sha256": "1c77c525befdea32c32170afa71e79e686dd73d332e503d348391de9636d06f1"
   },
   "e3b_source_code_revision": "3052b40dcdadfc80b175c77b6f5fdc095bec27be",
   "groups": [

@@ -25,12 +25,11 @@ from dermssl.isic_eval import scoring as isic_scoring  # noqa: E402
 STEM = "fig_c2_paired_delta_f1"
 E3B_SOURCE = contrasts_load.E3B_DIRS["canónico (batch 64)"]
 ISIC_VARIANT = "canónico (batch 64 + autocast)"
-CAPTION = ("C2 pareado: diferencias de F1 macro de B71 frente a controles evaluados sobre las mismas imágenes. "
-           "HAM10000 incluye ocho baselines congelados; ISIC incluye el control público con protocolo de B71.")
-NOTE = ("N de validación: HAM10000 2.004; ISIC 2019 5.067; ISIC 2020 6.660.\n"
-        "Bootstrap pareado, 1.000 remuestras, semilla 20260923.\n"
-        "Unidad: HAM lesion_id; ISIC 2019 imagen; ISIC 2020 patient_id.\n"
-        "Sin ajuste por multiplicidad.")
+CAPTION = ("C2: diferencias pareadas de F1 macro entre B71 y los controles con predicciones sobre las mismas imágenes. "
+           "Panel (a), HAM10000, compara ocho baselines congelados; panel (b), ISIC, compara el control público B71.")
+NOTE = ("N: HAM10000 2.004; ISIC 2019 5.067; ISIC 2020 6.660. Bootstrap pareado, 1.000 remuestras, semilla 20260923. "
+        "Unidades: HAM lesion_id; ISIC 2019 imagen; ISIC 2020 patient_id. Sin ajuste por multiplicidad. "
+        "VGG19: ΔF1 +0,3331 se conserva según E3b/CONTRASTES_SSL.md; pendiente confirmar con Karen si la medición es anterior a 6bd96b7.")
 
 
 def _contrast_row(contrast, dataset: str, support: int, n_resamples: int, seed: int) -> dict:
@@ -133,50 +132,58 @@ def _traceability(repo: Path, data: dict) -> dict:
     }
 
 
+def _delta_tick(value: float, _position: int) -> str:
+    if abs(value) < 1e-12:
+        return style.fmt_es(0, 2)
+    return style.fmt_es(value, 2, signed=True)
+
+
+def _draw_forest_axis(ax, comparisons: list[dict], labels: list[str], limits: tuple[float, float]) -> None:
+    positions = list(range(len(comparisons)))
+    ax.axvline(0, color=style.COLORS["frame"], linewidth=style.LINE_WIDTHS["frame"], zorder=1)
+    for y, row in zip(positions, comparisons, strict=True):
+        ax.hlines(y, row["low"], row["high"], color=style.COLORS["accent"],
+                  linewidth=style.LINE_WIDTHS["curve"], zorder=2)
+        ax.plot(row["delta"], y, "o", markersize=5, markerfacecolor=style.COLORS["accent"],
+                markeredgecolor=style.COLORS["accent"], zorder=3)
+        ax.annotate(style.fmt_es(row["delta"], 3, signed=True), (row["high"], y), xytext=(5, 0),
+                    textcoords="offset points", va="center", fontsize=style.LABEL_PT,
+                    color=style.COLORS["text"])
+    ax.set_yticks(positions, labels)
+    ax.invert_yaxis()
+    ax.set_xlim(*limits)
+    ax.xaxis.set_major_formatter(_delta_tick)
+    style.style_axes(ax, "x")
+
+
 def _draw(data: dict):
-    rows = [comparison for group in data["groups"] for comparison in group["comparisons"]]
-    labels = []
-    for group in data["groups"]:
-        for comparison in group["comparisons"]:
-            if group["dataset"] == "ham10000":
-                labels.append(f"HAM10000 · {comparison['control']}")
-            else:
-                labels.append(f"{group['title'].split(' · ')[0]} · público B71")
-    low = min(0.0, *(row["low"] for row in rows))
-    high = max(0.0, *(row["high"] for row in rows))
+    ham, *isic = data["groups"]
+    comparisons = [*ham["comparisons"], *(group["comparisons"][0] for group in isic)]
+    low = min(0.0, *(row["low"] for row in comparisons))
+    high = max(0.0, *(row["high"] for row in comparisons))
     span = high - low
-    height = 2.5 + 0.48 * len(rows)
+    limits = low - span * 0.08, high + span * 0.48
 
     with style.context():
-        fig, ax = plt.subplots(figsize=(style.FIGURE_WIDTH_IN, height), facecolor=style.COLORS["background"])
-        positions = list(range(len(rows)))
-        ax.axvline(0, color=style.COLORS["frame"], linewidth=style.LINE_WIDTHS["frame"], zorder=1)
-        for y, row in zip(positions, rows, strict=True):
-            ax.hlines(y, row["low"], row["high"], color=style.COLORS["accent"],
-                      linewidth=style.LINE_WIDTHS["curve"], zorder=2)
-            ax.plot(row["delta"], y, "o", markersize=5, markerfacecolor=style.COLORS["accent"],
-                    markeredgecolor=style.COLORS["accent"], zorder=3)
-            ax.annotate(style.fmt_es(row["delta"], 3, signed=True), (row["high"], y), xytext=(5, 0),
-                        textcoords="offset points", va="center", fontsize=style.LABEL_PT,
-                        color=style.COLORS["text"])
-        ax.set_yticks(positions, labels)
-        ax.invert_yaxis()
-        ax.set_xlim(low - span * 0.08, high + span * 0.2)
-        ax.set_xlabel("Δ F1 macro · B71 − control")
-        ax.set_title("C2 · Diferencias pareadas de F1 macro", loc="left",
-                     color=style.COLORS["text"], fontsize=style.PANEL_TITLE_PT, pad=10)
-        ax.xaxis.set_major_formatter(lambda value, _: style.fmt_es(value, 2, signed=True))
-        style.style_axes(ax, "x")
-        footnotes = (
-            "N de validación: HAM10000 2.004; ISIC 2019 5.067; ISIC 2020 6.660.",
-            "Bootstrap pareado, 1.000 remuestras, semilla 20260923.",
-            "Unidad: HAM lesion_id; ISIC 2019 imagen; ISIC 2020 patient_id.",
-            "Sin ajuste por multiplicidad.",
-        )
-        for y, note in zip((0.17, 0.12, 0.07, 0.02), footnotes, strict=True):
-            fig.text(0.07, y, note, color=style.COLORS["text"], fontsize=style.LABEL_PT)
-        fig.subplots_adjust(left=0.43, right=0.96, top=0.92, bottom=0.32)
+        fig, (ax_ham, ax_isic) = plt.subplots(
+            2, 1, sharex=True, figsize=(style.FIGURE_WIDTH_IN, 8.8),
+            gridspec_kw={"height_ratios": (8, 2)}, facecolor=style.COLORS["background"])
+        _draw_forest_axis(ax_ham, ham["comparisons"], [row["control"] for row in ham["comparisons"]], limits)
+        isic_labels = [f"ISIC 2019 · n = {style.fmt_es(isic[0]['n_val'], 0)}",
+                       f"ISIC 2020 · n = {style.fmt_es(isic[1]['n_val'], 0)}"]
+        _draw_forest_axis(ax_isic, [group["comparisons"][0] for group in isic], isic_labels, limits)
+        ax_ham.tick_params(axis="x", labelbottom=False)
+        ax_ham.set_xlabel("")
+        ax_isic.set_xlabel("Δ F1 macro · B71 − control")
+        fig.subplots_adjust(left=0.46, right=0.96, top=0.88, bottom=0.12, hspace=0.48)
+        fig.text(0.06, ax_ham.get_position().y1 + 0.025,
+                 "(a) HAM10000 · B71-TTA − ocho baselines congelados",
+                 color=style.COLORS["text"], fontsize=style.PANEL_TITLE_PT)
+        fig.text(0.06, ax_isic.get_position().y1 + 0.025,
+                 "(b) ISIC 2019/2020 · B71 original − público B71",
+                 color=style.COLORS["text"], fontsize=style.PANEL_TITLE_PT)
     return fig
+
 
 
 def build(repo: Path = REPO, outdir: Path | None = None) -> list[Path]:
