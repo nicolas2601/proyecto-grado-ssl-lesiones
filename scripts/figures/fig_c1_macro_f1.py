@@ -159,8 +159,12 @@ def _draw(panel: dict):
 def _write_sidecars(repo: Path, target: Path, dataset: str, panel: dict) -> None:
     stem = f"{STEM}_{dataset}"
     trace = _traceability(repo, dataset, panel)
+    note = NOTE
+    if dataset == "ham10000":
+        note += (" Fila VGG19: ΔF1 +0,3331 se conserva según E3b/CONTRASTES_SSL.md; "
+                 "pendiente confirmación con Karen por posible medición anterior a 6bd96b7.")
     (target / f"{stem}.caption.txt").write_text(CAPTIONS[dataset] + "\n", encoding="utf-8")
-    (target / f"{stem}.note.txt").write_text(NOTE + "\n", encoding="utf-8")
+    (target / f"{stem}.note.txt").write_text(note + "\n", encoding="utf-8")
     (target / f"{stem}.traceability.json").write_text(json.dumps(trace, ensure_ascii=False, indent=2) + "\n",
                                                          encoding="utf-8")
 

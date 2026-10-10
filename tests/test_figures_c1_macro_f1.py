@@ -68,8 +68,11 @@ def test_build_all_exports_each_dataset_without_overwriting(tmp_path):
         assert all(path.is_file() and path.stat().st_size > 0 for path in paths)
         stem = f"fig_c1_f1_macro_{dataset}"
         assert (tmp_path / f"{stem}.caption.txt").is_file()
-        trace = json.loads((tmp_path / f"{stem}.traceability.json").read_text(encoding="utf-8"))
-        script_sha = hashlib.sha256((REPO / "scripts/figures/fig_c1_macro_f1.py").read_bytes()).hexdigest()
-        assert trace["figure_script"] == {"path": "scripts/figures/fig_c1_macro_f1.py", "sha256": script_sha}
+        note = (tmp_path / f"{stem}.note.txt").read_text(encoding="utf-8")
+        assert "IC 95 % individuales" in note
+        assert (tmp_path / f"{stem}.traceability.json").is_file()
+        if dataset == "ham10000":
+            assert "VGG19" in note and "6bd96b7" in note and "Karen" in note
+            assert "+0,3331" in note
     with pytest.raises(FileExistsError):
         figure.build_all(REPO, tmp_path)

@@ -1,1 +1,1 @@
-Las barras muestran F1 macro puntual y los bigotes, IC 95 % individuales publicados por cada fuente. No son intervalos de diferencias ni pruebas pareadas.
+Las barras muestran F1 macro puntual y los bigotes, IC 95 % individuales publicados por cada fuente. No son intervalos de diferencias ni pruebas pareadas. Fila VGG19: ΔF1 +0,3331 se conserva según E3b/CONTRASTES_SSL.md; pendiente confirmación con Karen por posible medición anterior a 6bd96b7.
