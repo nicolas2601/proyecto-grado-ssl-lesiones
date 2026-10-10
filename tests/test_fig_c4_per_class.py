@@ -94,7 +94,17 @@ def test_c4_figure_uses_three_explicit_metric_panels_and_traceable_sources(tmp_p
         assert trace["figure_id"] == "C4"
         assert trace["evaluation_unit"] == "image"
         assert len(trace["models"]) == 2
+        limitations = " ".join(trace["limitations"])
+        if dataset == "ham10000":
+            assert "DINOv2 ViT-B/14" in limitations
+        else:
+            assert "DINOv2" not in limitations and "transductivos" in limitations
         assert (tmp_path / f"{stem}.caption.txt").is_file()
-        assert (tmp_path / f"{stem}.note.txt").is_file()
+        note = (tmp_path / f"{stem}.note.txt").read_text(encoding="utf-8")
+        if dataset == "ham10000":
+            assert "DINOv2 ViT-B/14" in note and "n=2.014" in note and "n=2.004" in note
+        else:
+            assert "DINOv2" not in note
+            assert "transductivos" in note and "E1 canónico" in note
     with pytest.raises(FileExistsError):
         figure.build_all(REPO, tmp_path)

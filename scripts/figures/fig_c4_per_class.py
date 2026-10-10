@@ -54,9 +54,7 @@ CAPTION = "Precisión, sensibilidad y F1 por diagnóstico para B71 y A71 en la p
 NOTE = (
     "Filas = clase real; columnas = clase predicha. Precisión = TP/(TP+FP), sensibilidad = TP/(TP+FN) "
     "y F1 = 2TP/(2TP+FP+FN); precisión se fija en 0 si no hubo predicciones de una clase. "
-    "Son estimaciones puntuales derivadas de conteos; no se muestran intervalos por clase. "
-    "HAM10000 excluye DINOv2 ViT-B/14 porque su matriz usa n=2.014, distinto de B71/A71 (n=2.004). "
-    "Las matrices ISIC de B71/A71 son originales y transductivas; no interpretar como validación independiente."
+    "Son estimaciones puntuales derivadas de conteos; no se muestran intervalos por clase."
 )
 
 
@@ -225,7 +223,7 @@ def _traceability(repo: Path, panel: dict) -> dict:
                           "sha256": _sha256(repo / "scripts/figures/fig_c4_per_class.py")},
         "models": sources,
         "limitations": ["Point metrics derived from confusion counts; no per-class confidence intervals.",
-                        "HAM10000 frozen DINOv2 ViT-B/14 omitted because n=2,014 differs from B71/A71 n=2,004."],
+                        _dataset_limitation(panel)],
     }
 
 
@@ -235,6 +233,16 @@ def figure_data_metric_definitions() -> dict:
         "sensitivity": "TP/(TP+FN)",
         "f1": "2TP/(2TP+FP+FN)",
     }
+
+
+def _dataset_limitation(panel: dict) -> str:
+    if panel["dataset"] == "ham10000":
+        return "HAM10000 excluye DINOv2 ViT-B/14: su matriz usa n=2.014, distinto del split B71/A71 (n=2.004)."
+    return f"{panel['title']}: B71/A71 son originales transductivos del E1 canónico; no son evaluación independiente."
+
+
+def _note(panel: dict) -> str:
+    return f"{panel['protocol']} {NOTE} {_dataset_limitation(panel)}"
 
 
 def build_all(repo: Path = REPO, outdir: Path | None = None) -> dict[str, list[Path]]:
@@ -261,7 +269,7 @@ def build_all(repo: Path = REPO, outdir: Path | None = None) -> dict[str, list[P
             plt.close(fig)
         (target / f"{stem}.caption.txt").write_text(
             f"{CAPTION} Con n = {style.fmt_es(panel['n'], 0)} en {panel['title']}\n", encoding="utf-8")
-        (target / f"{stem}.note.txt").write_text(f"{panel['protocol']} {NOTE}\n", encoding="utf-8")
+        (target / f"{stem}.note.txt").write_text(_note(panel) + "\n", encoding="utf-8")
         trace = _traceability(repo, panel)
         (target / f"{stem}.traceability.json").write_text(
             json.dumps(trace, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
