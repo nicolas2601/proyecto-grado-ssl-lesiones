@@ -1,0 +1,19 @@
+{
+  "scope": "Exploratory ISIC2018 Training GroundTruth comparison; 100 pairs, all canonical IDs overlap the native teacher pool",
+  "grid": "224x224",
+  "foreground_definition": "label 1",
+  "ignore_definition": "label 255 counted as non-lesion over the full grid",
+  "averaging": "mean per-image pixel accuracy; equals pooled pixel accuracy because each image has the same grid",
+  "arms": {
+    "S0": {"accuracy": 0.8836690848214285, "dice": 0.5500553624153377, "sensitivity": 0.516361624066282, "specificity": 0.9866407021703279},
+    "S1": {"accuracy": 0.8836690848214285, "dice": 0.5500553624153377, "sensitivity": 0.516361624066282, "specificity": 0.9866407021703279},
+    "S2": {"accuracy": 0.7312093431122447, "dice": 0.011137018957223617, "sensitivity": 0.02477839699491347, "specificity": 0.9292635869086767},
+    "S3": {"accuracy": 0.8807499601403062, "dice": 0.5409218479605485, "sensitivity": 0.5026581438592371, "specificity": 0.9867513876977244},
+    "S4": {"accuracy": 0.8845920363316334, "dice": 0.5541297468299402, "sensitivity": 0.5218026047170335, "specificity": 0.9863032308920746}
+  },
+  "comparability_limits": [
+    "These 100 references are from ISIC2018 Training_Input, previously consulted in historical evaluation, and overlap the teacher pool by ID.",
+    "Not an independent test and not a direct comparison with SLED's ISIC2018 test split.",
+    "SLED paper evaluates at 768x560 after artifact preprocessing and color constancy; this audit scores outputs on a 224x224 full frame."
+  ]
+}

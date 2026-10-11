@@ -65,6 +65,8 @@ IGNORE cuenta como no-lesión sobre todo el frame; abstenciones cuentan como vac
 | S3 | 0,5409 | 0,4542 | 25 | -0,0091 | [-0,0125; -0,0063] |
 | S4 | 0,5541 | 0,4701 | 24 | +0,0041 | [-0,0003; +0,0110] |
 
+Accuracy por píxel, promedio por caso en el marco 224×224 (equivalente al micro promedio porque todos los marcos tienen igual tamaño): S0 88,37%; S1 88,37%; S2 73,12%; S3 88,07%; S4 88,46%. Para S0, sensibilidad 51,64% y especificidad 98,67%. IGNORE cuenta como no lesión en todo el marco. Accuracy alta refleja en parte el fondo dominante; no sustituye Dice. La evaluación por caso no es una comparación directa contra las tablas de SLED: nuestra muestra son 100 imágenes del conjunto de entrenamiento ISIC2018 y todos los IDs están en el pool del maestro; el artículo reporta el conjunto de prueba ISIC2018 (1000 imágenes), a otra resolución y preprocesamiento.
+
 Bootstrap pareado de 4000 réplicas, semilla 45, percentiles. S4 no muestra una mejora concluyente. S3 reduce ligeramente el Dice; no adoptarlo por contar más semillas válidas. Mantener S0 como control; no promover S1/S2/S3/S4 a entrenamiento. La inversión está haciendo una función decisiva en este maestro; retirar S2 empeora la lectura local, pero no demuestra que la heurística siempre sea correcta. S1 queda inconcluso, sin mapas que disparen su umbral.
 
 La primera generación del HTML falló al serializar un contador np.int64, después de guardar predicciones, métricas JSON y láminas. Se corrigió solo serialización y se regeneró la evaluación/HTML usando los 100 artefactos de predicción ya guardados; sin nueva inferencia ni selección. El hash del script de inferencia previo permanece en provenance.json; recuperación documentada y script corregido conservado.
