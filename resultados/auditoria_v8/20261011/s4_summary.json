@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "n": 200,
+  "numerical_gate_failed": 0,
+  "cohorts": {
+    "training100": {
+      "n": 100,
+      "S0_valid": 90,
+      "S4_valid": 88,
+      "seeds_changed": 63,
+      "mean_paired_raw_mae": 0.004687110557424603,
+      "mean_inpaint_fraction": 0.0077529097576530615
+    },
+    "quarantine100": {
+      "n": 100,
+      "S0_valid": 50,
+      "S4_valid": 53,
+      "seeds_changed": 50,
+      "mean_paired_raw_mae": 0.009148443637241144,
+      "mean_inpaint_fraction": 0.01527861926020408
+    }
+  },
+  "historical_mae_max": 0.0008305803639814258,
+  "historical_pixel_error_max": 0.005859375,
+  "scope": "Same frozen teacher; input intervention only. No student training, anatomical evaluation or ITA on synthesized color."
+}

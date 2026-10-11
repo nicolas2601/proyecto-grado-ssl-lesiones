@@ -186,3 +186,8 @@ No cambia pérdidas, geometría de entrenamiento, estimador ITA ni maestro.
 No se afirma exportación de 100 imágenes reales: exige acceso al pool y pseudomáscaras
 del clúster. Ver comandos y estado en [resultados/auditoria_v8](../resultados/auditoria_v8/README.md).
 
+
+
+## Ejecución del 2026-10-11 (posterior al registro)
+
+W0/W1/W2 ya ejecutados en copia separada del clúster. El estado diseñado/no ejecutado anterior corresponde a la entrega inicial. Ver [resultados y puertas](39-resultados-y-puertas-v8.md), protocolos 36–38 y [agregados de ejecución](../resultados/auditoria_v8/20261011/README.md). La evaluación ISIC2018 adicional es exploratoria y sus 100 IDs coinciden con el pool del maestro; no cierra la puerta de evaluación independiente. W3/W4 permanecen sin ejecución de nuevos maestros o entrenamientos.

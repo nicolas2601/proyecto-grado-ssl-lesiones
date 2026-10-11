@@ -1,0 +1,106 @@
+{
+  "status": "complete",
+  "n": 100,
+  "exploratory": true,
+  "n_in_pool_by_canonical_id": 100,
+  "arms": {
+    "S0": {
+      "n": 100,
+      "empty_predictions": 25,
+      "mean_dice": 0.5500553624153377,
+      "p10_dice": 0,
+      "mean_iou": 0.4665794584478848,
+      "mean_sensitivity": 0.5498858320993169,
+      "mean_hd95_defined": 25.251126086738207,
+      "n_hd95_defined": 75
+    },
+    "S1": {
+      "n": 100,
+      "empty_predictions": 25,
+      "mean_dice": 0.5500553624153377,
+      "p10_dice": 0,
+      "mean_iou": 0.4665794584478848,
+      "mean_sensitivity": 0.5498858320993169,
+      "mean_hd95_defined": 25.251126086738207,
+      "n_hd95_defined": 75
+    },
+    "S2": {
+      "n": 100,
+      "empty_predictions": 86,
+      "mean_dice": 0.011137018957223617,
+      "p10_dice": 0,
+      "mean_iou": 0.006037787528501132,
+      "mean_sensitivity": 0.009640759879660595,
+      "mean_hd95_defined": 70.76288561702721,
+      "n_hd95_defined": 14
+    },
+    "S3": {
+      "n": 100,
+      "empty_predictions": 25,
+      "mean_dice": 0.5409218479605485,
+      "p10_dice": 0,
+      "mean_iou": 0.4541697041395723,
+      "mean_sensitivity": 0.5337067605375879,
+      "mean_hd95_defined": 24.63192669769808,
+      "n_hd95_defined": 75
+    },
+    "S4": {
+      "n": 100,
+      "empty_predictions": 24,
+      "mean_dice": 0.5541297468299402,
+      "p10_dice": 0,
+      "mean_iou": 0.47010555220199257,
+      "mean_sensitivity": 0.555005125061931,
+      "mean_hd95_defined": 25.311705642571905,
+      "n_hd95_defined": 76
+    }
+  },
+  "paired_dice": {
+    "S1_minus_S0": {
+      "mean": 0,
+      "ci95_percentile": [
+        0,
+        0
+      ],
+      "better": 0,
+      "worse": 0,
+      "tied": 100
+    },
+    "S2_minus_S0": {
+      "mean": -0.5389183434581141,
+      "ci95_percentile": [
+        -0.6137901274156681,
+        -0.4635504298359465
+      ],
+      "better": 1,
+      "worse": 73,
+      "tied": 26
+    },
+    "S3_minus_S0": {
+      "mean": -0.009133514454789172,
+      "ci95_percentile": [
+        -0.01247318787016852,
+        -0.006338431211622044
+      ],
+      "better": 4,
+      "worse": 49,
+      "tied": 47
+    },
+    "S4_minus_S0": {
+      "mean": 0.004074384414602573,
+      "ci95_percentile": [
+        -0.0002844943768860821,
+        0.010961081718340917
+      ],
+      "better": 35,
+      "worse": 34,
+      "tied": 31
+    }
+  },
+  "limits": [
+    "Already consulted benchmark, exploratory not confirmation. Pool overlap by ID reported.",
+    "Seed predictions only, not student segmentation; no new training.",
+    "All100 included in Dice/IoU; HD95 undefined cases explicitly counted.",
+    "Do not tune S1 threshold, orientation, checkpoint or exclusion rules with this evaluation."
+  ]
+}

@@ -1,0 +1,343 @@
+{
+  "status": "complete",
+  "n_training": 100,
+  "n_quarantine": 100,
+  "pool_counts": {
+    "initial": 58457,
+    "eligible_export": 55034,
+    "quarantine": 3423
+  },
+  "per_dataset": {
+    "ham10000_p1": {
+      "eligible": 4889,
+      "quarantine": 111
+    },
+    "ham10000_p2": {
+      "eligible": 4934,
+      "quarantine": 81
+    },
+    "isic2019": {
+      "eligible": 13781,
+      "quarantine": 1535
+    },
+    "isic2020": {
+      "eligible": 31430,
+      "quarantine": 1696
+    }
+  },
+  "W0_by_dataset": {
+    "ham10000_p1": {
+      "v1_original": {
+        "n": 8,
+        "absent": 0,
+        "mean": 0.8077126158808408,
+        "p10": 0.48435967724475265,
+        "min": 0.40398245021937224
+      },
+      "v2_transformed": {
+        "n": 8,
+        "absent": 0,
+        "mean": 0.9163910777585264,
+        "p10": 0.7559580090902605,
+        "min": 0.47536280796490044
+      },
+      "tone_aligned": {
+        "n": 8,
+        "absent": 0,
+        "mean": 0.8077126158808408,
+        "p10": 0.48435967724475265,
+        "min": 0.40398245021937224
+      }
+    },
+    "ham10000_p2": {
+      "v1_original": {
+        "n": 6,
+        "absent": 0,
+        "mean": 0.9633174049098319,
+        "p10": 0.8899522147294954,
+        "min": 0.8047849699104653
+      },
+      "v2_transformed": {
+        "n": 6,
+        "absent": 0,
+        "mean": 0.8994287621971386,
+        "p10": 0.7011030822047264,
+        "min": 0.4307940701599883
+      },
+      "tone_aligned": {
+        "n": 6,
+        "absent": 0,
+        "mean": 0.9633174049098319,
+        "p10": 0.8899522147294954,
+        "min": 0.8047849699104653
+      }
+    },
+    "isic2019": {
+      "v1_original": {
+        "n": 19,
+        "absent": 0,
+        "mean": 0.8789199592324894,
+        "p10": 0.6941141516126211,
+        "min": 0.025824175824175823
+      },
+      "v2_transformed": {
+        "n": 19,
+        "absent": 0,
+        "mean": 0.8482751048189137,
+        "p10": 0.5570236558801659,
+        "min": 0.3148772267693789
+      },
+      "tone_aligned": {
+        "n": 19,
+        "absent": 0,
+        "mean": 0.8789199592324894,
+        "p10": 0.6941141516126211,
+        "min": 0.025824175824175823
+      }
+    },
+    "isic2020": {
+      "v1_original": {
+        "n": 67,
+        "absent": 0,
+        "mean": 0.9196968873948428,
+        "p10": 0.691490841223474,
+        "min": 0.29423592493297585
+      },
+      "v2_transformed": {
+        "n": 67,
+        "absent": 1,
+        "mean": 0.93103001310476,
+        "p10": 0.7564689807070202,
+        "min": 0.0
+      },
+      "tone_aligned": {
+        "n": 67,
+        "absent": 0,
+        "mean": 0.9196968873948428,
+        "p10": 0.691490841223474,
+        "min": 0.29423592493297585
+      }
+    }
+  },
+  "W0_by_mask_size": {
+    "0.05_to_0.20": {
+      "v1_original": {
+        "n": 59,
+        "absent": 0,
+        "mean": 0.9237566139665004,
+        "p10": 0.7198490408393386,
+        "min": 0.43797336119091146
+      },
+      "v2_transformed": {
+        "n": 59,
+        "absent": 0,
+        "mean": 0.9381754548172848,
+        "p10": 0.8333793464045165,
+        "min": 0.4307940701599883
+      },
+      "tone_aligned": {
+        "n": 59,
+        "absent": 0,
+        "mean": 0.9237566139665004,
+        "p10": 0.7198490408393386,
+        "min": 0.43797336119091146
+      }
+    },
+    "0.20_to_0.50": {
+      "v1_original": {
+        "n": 21,
+        "absent": 0,
+        "mean": 0.8636248737782847,
+        "p10": 0.5815099337748344,
+        "min": 0.40398245021937224
+      },
+      "v2_transformed": {
+        "n": 21,
+        "absent": 0,
+        "mean": 0.8475966106444082,
+        "p10": 0.5860819137368611,
+        "min": 0.3148772267693789
+      },
+      "tone_aligned": {
+        "n": 21,
+        "absent": 0,
+        "mean": 0.8636248737782847,
+        "p10": 0.5815099337748344,
+        "min": 0.40398245021937224
+      }
+    },
+    "ge_0.50": {
+      "v1_original": {
+        "n": 1,
+        "absent": 0,
+        "mean": 0.7560844787127053,
+        "p10": 0.7560844787127053,
+        "min": 0.7560844787127053
+      },
+      "v2_transformed": {
+        "n": 1,
+        "absent": 0,
+        "mean": 0.3437479047938317,
+        "p10": 0.3437479047938317,
+        "min": 0.3437479047938317
+      },
+      "tone_aligned": {
+        "n": 1,
+        "absent": 0,
+        "mean": 0.7560844787127053,
+        "p10": 0.7560844787127053,
+        "min": 0.7560844787127053
+      }
+    },
+    "lt_0.05": {
+      "v1_original": {
+        "n": 19,
+        "absent": 0,
+        "mean": 0.9035225781735404,
+        "p10": 0.7363422926186891,
+        "min": 0.025824175824175823
+      },
+      "v2_transformed": {
+        "n": 19,
+        "absent": 1,
+        "mean": 0.9330689738043739,
+        "p10": 0.945662100456621,
+        "min": 0.0
+      },
+      "tone_aligned": {
+        "n": 19,
+        "absent": 0,
+        "mean": 0.9035225781735404,
+        "p10": 0.7363422926186891,
+        "min": 0.025824175824175823
+      }
+    }
+  },
+  "W1": {
+    "I0": {
+      "status_counts": {
+        "ok": 53,
+        "ita_indeterminate": 47
+      },
+      "mean_ita_available": 54.736262729629026,
+      "median_pixels_available": 43771.0
+    },
+    "I1": {
+      "status_counts": {
+        "ok": 57,
+        "ita_indeterminate": 33,
+        "ring_too_small": 10
+      },
+      "mean_ita_available": 51.44308200164844,
+      "median_pixels_available": 8347.0
+    },
+    "I2": {
+      "status_counts": {
+        "ok": 57,
+        "ita_indeterminate": 33,
+        "ring_too_small": 10
+      },
+      "mean_ita_available": 51.57099583723064,
+      "median_pixels_available": 8347.0
+    },
+    "I1_I2_paired": {
+      "n_both_available": 57,
+      "bucket_changed": 0,
+      "median_abs_ita_change": 0.0,
+      "max_abs_ita_change": 1.0609725079102041
+    }
+  },
+  "W2": {
+    "training100": {
+      "n": 100,
+      "orientation_flipped": 90,
+      "raw_span_min": 0.7598876953125,
+      "raw_span_p10": 0.9671127319335937,
+      "arms": {
+        "S0": {
+          "valid": 90,
+          "reasons": {
+            "": 90,
+            "area": 10
+          },
+          "changed_vs_S0": 0
+        },
+        "S1": {
+          "valid": 90,
+          "reasons": {
+            "": 90,
+            "area": 10
+          },
+          "changed_vs_S0": 0
+        },
+        "S2": {
+          "valid": 12,
+          "reasons": {
+            "area": 88,
+            "": 12
+          },
+          "changed_vs_S0": 90
+        },
+        "S3": {
+          "valid": 90,
+          "reasons": {
+            "": 90,
+            "area": 10
+          },
+          "changed_vs_S0": 62
+        }
+      }
+    },
+    "quarantine100": {
+      "n": 100,
+      "orientation_flipped": 87,
+      "raw_span_min": 0.052734375,
+      "raw_span_p10": 0.82130126953125,
+      "arms": {
+        "S0": {
+          "valid": 50,
+          "reasons": {
+            "": 50,
+            "area": 43,
+            "no_region": 7
+          },
+          "changed_vs_S0": 0
+        },
+        "S1": {
+          "valid": 50,
+          "reasons": {
+            "": 50,
+            "area": 43,
+            "no_region": 7
+          },
+          "changed_vs_S0": 0
+        },
+        "S2": {
+          "valid": 52,
+          "reasons": {
+            "area": 36,
+            "": 52,
+            "no_region": 12
+          },
+          "changed_vs_S0": 72
+        },
+        "S3": {
+          "valid": 57,
+          "reasons": {
+            "": 57,
+            "area": 36,
+            "no_region": 7
+          },
+          "changed_vs_S0": 52
+        }
+      }
+    },
+    "S0_reproduced_historical_selected_slices": 200
+  },
+  "warnings": [
+    "No expert color or masks: no accuracy, Dice/IoU anatomy or HD95 conclusions. Agreement vs student is not anatomical evaluation.",
+    "Quarantine sample stratified 25 per dataset: not prevalence-weighted and not admitted to training.",
+    "S1 threshold is an uncalibrated development hypothesis, never a probability.",
+    "W3/W4 require gate decisions from independent evaluation; no student or SSL training started."
+  ]
+}
