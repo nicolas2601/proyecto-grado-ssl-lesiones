@@ -67,7 +67,7 @@ IGNORE cuenta como no-lesión sobre todo el frame; abstenciones cuentan como vac
 
 Bootstrap pareado de 4000 réplicas, semilla 45, percentiles. S4 no muestra una mejora concluyente. S3 reduce ligeramente el Dice; no adoptarlo por contar más semillas válidas. Mantener S0 como control; no promover S1/S2/S3/S4 a entrenamiento. La inversión está haciendo una función decisiva en este maestro; retirar S2 empeora la lectura local, pero no demuestra que la heurística siempre sea correcta. S1 queda inconcluso, sin mapas que disparen su umbral.
 
-La primera escritura de records falló por np.float32 y np.int64 no serializables. Se corrigió solo serialización y se reanudó evaluación usando los 100 artefactos de predicción ya guardados; sin nueva inferencia ni selección. El hash del script de inferencia previo permanece en provenance.json; recuperación documentada y script corregido conservado.
+La primera generación del HTML falló al serializar un contador np.int64, después de guardar predicciones, métricas JSON y láminas. Se corrigió solo serialización y se regeneró la evaluación/HTML usando los 100 artefactos de predicción ya guardados; sin nueva inferencia ni selección. El hash del script de inferencia previo permanece en provenance.json; recuperación documentada y script corregido conservado.
 
 ## Verificación y revisión
 
