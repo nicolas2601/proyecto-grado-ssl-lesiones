@@ -1,0 +1,20 @@
+{
+  "seed": 42,
+  "resolution": 224,
+  "hue_jitter": 0.02,
+  "cc_probs": [
+    [
+      "identity",
+      0.4
+    ],
+    [
+      "gray_world",
+      0.3
+    ],
+    [
+      "shades_of_gray",
+      0.3
+    ]
+  ],
+  "tone_view": true
+}
