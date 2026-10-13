@@ -11,10 +11,10 @@
   "resolution": 224,
   "seed": 42,
   "device": "cpu",
-  "epochs": 1,
+  "epochs": 150,
   "batch_size": 2,
   "learning_rate": 0.001,
-  "weight_decay": 1e-05,
+  "weight_decay": 0.00001,
   "resources": {
     "timeout_seconds": 180,
     "max_rss_mb": 4096,
@@ -33,12 +33,18 @@
   "hago": {
     "warmup_epochs": 10,
     "balance": "suppress_dominant",
-    "noise_std": 0.0,
+    "noise_std": 0,
     "seed": 42
   },
   "native_recipe": {
     "epochs": 150,
     "resolution": 256,
     "supervision": "expert masks + diagnostic classes; excluded in W3"
+  },
+  "v8_adaptation": {
+    "epochs": 150,
+    "resolution": 224,
+    "supervision": "pseudo_masks_from_sled",
+    "budget_interpretation": "V8 unsupervised adaptation budget; inherited from the paper's 150-epoch schedule but not a reproduction of its supervised objective"
   }
 }
