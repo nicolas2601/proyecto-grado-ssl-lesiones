@@ -154,12 +154,12 @@ def convert_simclr_tensorflow(prefix: Path, model):
             if match:
                 layers.add(match.group(1))
         def index(layer):
-            match = re.search(r"_(\\d+)$", layer)
+            match = re.search(r"_(\d+)$", layer)
             return int(match.group(1)) if match else -1
         return sorted(layers, key=index)
 
-    conv_layers = layer_order(r"(base_model/conv2d(?:_\\d+)?)/kernel")
-    bn_layers = layer_order(r"(base_model/batch_normalization(?:_\\d+)?)/(?:gamma|beta|moving_mean|moving_variance)")
+    conv_layers = layer_order(r"(base_model/conv2d(?:_\d+)?)/kernel")
+    bn_layers = layer_order(r"(base_model/batch_normalization(?:_\d+)?)/(?:gamma|beta|moving_mean|moving_variance)")
     conv_targets = ["stem.0.weight"]
     bn_targets = ["stem.1"]
     for stage in range(4):
