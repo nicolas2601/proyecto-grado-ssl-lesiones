@@ -31,5 +31,6 @@ def refined_manifest(document,prediction_directory,out,method,revision,*,usl_pol
         source=0 if method=='usl_net' else 1
         row['pseudo_paths'][source]=str(path.resolve());row['pseudo_sha256s'][source]=digest(path)
         row['pseudo_provenance'][source]={'method':method,'stage':'iterative_refinement',
-                                        'producer_revision':revision,'input_manifest_sha256':summary['input_manifest_sha256'],\n                                        'uses_expert_masks':False,'uses_diagnoses':False}
+                                        'producer_revision':revision,'input_manifest_sha256':summary['input_manifest_sha256'],
+                                        'uses_expert_masks':False,'uses_diagnoses':False}
     manifest=out/'manifest.json';manifest.write_text(json.dumps(updated,indent=2)+'\n');return manifest
