@@ -10,9 +10,9 @@ from dermssl.segmentation_methods import METHODS
 def arguments():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--method',choices=METHODS,required=True)
-    p.add_argument('--stage',choices=('check','synthetic','pretrain','ccam','generate','fit','predict'),required=True)
+    p.add_argument('--stage',choices=('check','synthetic','pretrain','ccam','generate','fit','predict','refine'),required=True)
     p.add_argument('--config',type=Path);p.add_argument('--manifest',type=Path);p.add_argument('--gate',type=Path)
-    p.add_argument('--out',type=Path);p.add_argument('--wandb-project',default='')
+    p.add_argument('--out',type=Path);p.add_argument('--predictions',type=Path,help='Completed predict output directory for refine');p.add_argument('--wandb-project',default='')
     p.add_argument('--resume',action='store_true',help='Resume a fit from its identity-checked checkpoint')
     p.add_argument('--ssl-origin',choices=('simclr','mocov1','mocov2','mocov3','dino'))
     p.add_argument('--include-common',action='store_true',help='Run shared contract tests once with a method smoke')
@@ -39,6 +39,12 @@ def storage_precheck(args,config):
         pixels=config.get('resolution',224)**2
         # Conservative NPY + uncompressed local RGB/overlay estimate, no old files.
         estimate=count*(pixels*((sources+2)*4+(sources+1)*6)+16384)/(1024**2)
+    elif args.stage=='refine':
+        document=json.loads(args.manifest.read_text());count=document.get('count')
+        if type(count)is not int or count<=0:raise ValueError('Positive frozen manifest count required')
+        pixels=config.get('resolution',224)**2
+        # One refined probability/pseudo map per row, plus a reserve for manifest metadata.
+        estimate=count*(pixels*4+4096)/(1024**2)
     else:estimate=128 if args.stage=='synthetic' else 1024
     if estimate>limit:raise ValueError('Registered output budget too small for the entire manifest')
     parent=args.out.parent.resolve()
@@ -98,6 +104,10 @@ def main():
     if not args.wandb_project or os.environ.get('WANDB_MODE','').lower() in {'offline','disabled'}:
         raise ValueError('Online W&B project required for executed stages')
     if args.stage not in config['stages']:raise ValueError('Stage unsupported for this method')
+    if args.stage=='refine' and args.method not in {'usl_net','rpi_net'}:
+        raise ValueError('Refinement is only defined for USL-Net and RPI-Net')
+    if args.stage=='refine' and not args.predictions:
+        raise ValueError('--predictions must point to a completed predict output directory')
     if args.stage!='synthetic' and (not args.manifest or not args.gate):raise ValueError('Frozen manifest and gate evidence required')
     storage_precheck(args,config)
     if not args._worker:return budget_child(args,config)
@@ -150,6 +160,23 @@ def main():
             try:fit(args.method,args.manifest,args.out,config,args.gate,sink=sink,revision=revision,resume=args.resume,tracking_run_id=getattr(sink._run,'id',None),source_hashes=source_hashes)
             finally:
                 signal.signal(signal.SIGTERM,previous_term);signal.signal(signal.SIGINT,previous_int)
+        elif args.stage=='refine':
+            from dermssl.segmentation_methods.common.data import read_manifest,digest
+            from dermssl.segmentation_methods.common.training import gate_report
+            from dermssl.segmentation_methods.common.refinement import refined_manifest
+            gate_report(args.gate,args.method,args.manifest,training=False)
+            prediction_summary=json.loads((args.predictions/'summary.json').read_text())
+            if prediction_summary.get('input_manifest_sha256')!=digest(args.manifest):
+                raise ValueError('Prediction output belongs to a different input manifest')
+            sources=4 if args.method=='rpi_net' else 1
+            document=read_manifest(args.manifest,need_pseudos=True,sources=sources,training=True)
+            refined=refined_manifest(document,args.predictions,args.out,args.method,revision,
+                                     usl_policy=config.get('usl_policy'))
+            report={'method':args.method,'stage':'refine','count':document['count'],
+                    'input_manifest_sha256':digest(args.manifest),'output_manifest_sha256':digest(refined),
+                    'producer_revision':revision,'prediction_manifest_sha256':prediction_summary['input_manifest_sha256']}
+            (args.out/'summary.json').write_text(json.dumps(report,indent=2)+'\\n')
+            sink.log({'refined_count':report['count'],'output_manifest_sha256':report['output_manifest_sha256']})
         elif args.stage=='pretrain':
             if not args.ssl_origin:raise ValueError('Explicit SSL origin required')
             from dermssl.segmentation_methods.common.pretraining import local_pretrain
