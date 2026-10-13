@@ -180,7 +180,7 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
                 from ..rpi_net.loss import dynamic_uncertainty_loss
                 outputs=model(image,target);loss,_=dynamic_uncertainty_loss(outputs['logits'],target,outputs['sigma'],valid,
                                                                            detach_alpha=config.get('detach_alpha',True))
-            elif method=='usl_net:
+            elif method=='usl_net':
                 outputs=model(image);loss=model.loss(outputs,target,valid)
             else:
                 from ..tridermnet_hago.loss import losses as triderm_losses
