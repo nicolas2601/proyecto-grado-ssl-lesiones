@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -189,9 +190,22 @@ def main():
     lock_path = run_root / "controller.lock"
     try:
         fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    except FileExistsError as error:
-        raise RuntimeError("Controller lock exists; inspect its owner before recovery") from error
-    os.write(fd, str(os.getpid()).encode())
+    except FileExistsError:
+        try:
+            owner = json.loads(lock_path.read_text())
+            if owner.get("host") != socket.gethostname():
+                raise RuntimeError("Controller lock belongs to another host; inspect the cluster job before recovery")
+            pid = int(owner["pid"])
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            lock_path.unlink()
+            fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
+            raise RuntimeError("Controller lock exists and its owner cannot be verified safely") from error
+        else:
+            raise RuntimeError("Controller is already active; inspect its recorded PID before recovery")
+    lock = {"pid": os.getpid(), "host": socket.gethostname(), "started_utc": time.time()}
+    os.write(fd, json.dumps(lock).encode())
     os.close(fd)
 
     try:
