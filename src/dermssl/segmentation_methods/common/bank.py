@@ -16,6 +16,12 @@ def source_bank(path,origins):
         source=document['sources'][origin]
         if origin=='dino':model=PatchTransformer(**source.get('architecture',{}))
         else:model=ResNet50Stages(last_stride=1)
+        provenance_document=json.loads(Path(source['provenance']).read_text())
+        required_public={'source_url','source_license','source_sha256','adapter','mapped_tensor_count'}
+        if provenance_document.get('protocol')!='public_ssl_initialization_v8' or not required_public.issubset(provenance_document):
+            raise ValueError('Public SSL checkpoint lacks reviewed source/license/hash/adapter provenance')
+        if provenance_document.get('source_sha256') is None or len(provenance_document['source_sha256'])!=64:
+            raise ValueError('Public SSL source checkpoint SHA-256 is required')
         provenance=load_reviewed(model,source['checkpoint'],source['provenance'],expected_method='ssl_'+origin)
         normalization=provenance.get('input_normalization')
         if normalization not in {'unit_rgb','imagenet'}:raise ValueError('Source checkpoint input normalization must be explicit')
