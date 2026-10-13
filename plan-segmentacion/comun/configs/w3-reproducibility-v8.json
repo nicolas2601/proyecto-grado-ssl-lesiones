@@ -14,7 +14,7 @@
   "candidates": [
     {
       "id": "sled",
-      "status": "reviewed_blocked_source_and_environment",
+      "status": "corrected_components_tested_upstream_integration_pending",
       "paper": "https://arxiv.org/abs/2309.01899",
       "repository": "https://github.com/SELGroup/SLED",
       "revision": "3213eacb65577c0d52f424369158fb56c609238e",
@@ -36,11 +36,18 @@
         "weights_provenance_resolved": true,
         "isolated_environment_verified": false,
         "smoke_passed": false
-      }
+      },
+      "variants": [
+        "gaussian_corrected",
+        "upstream_area_control"
+      ],
+      "implementation": "src/dermssl/w3_sled_adapter.py; external pinned checkout not vendored or executed",
+      "numerical_policy": "fail on degeneracy; stable multiscale softmax; seeded IForest; serial scales; private cwd; clip filled holes to valid",
+      "known_retained_difference": "upstream label-zero centroid behavior remains; Gaussian correction does not silently correct centroids"
     },
     {
       "id": "usl_net",
-      "status": "paper_reviewed_adaptation_required",
+      "status": "text_interpretation_components_tested_weights_and_integration_pending",
       "paper": "https://arxiv.org/html/2309.13289v3",
       "doi": "10.1016/j.bspc.2023.105769",
       "repository": null,
@@ -52,7 +59,8 @@
         "full_method_not_an_independent_master_without_new_feature_recipe",
         "centrality_text_and_pseudocode_disagree",
         "FCN_and_fusion_differ_from_current_pipeline",
-        "five_300_epoch_cycles_not_a_small_mask_pilot"
+        "five_300_epoch_cycles_not_a_small_mask_pilot",
+        "printed_loss_equation_not_BCE_visual_pdf_confirmed"
       ],
       "gates": {
         "implementation_verified": false,
@@ -61,20 +69,33 @@
         "weights_provenance_resolved": false,
         "isolated_environment_verified": false,
         "smoke_passed": false
+      },
+      "implementation": "w3_components.py + w3_usl_models.py; not a complete trained replica",
+      "text_decisions": {
+        "centrality": "minimum sum of pixel distances to H/2,W/2",
+        "loss": "masked BCE over confident pixels; printed eq.3 has duplicated log(1-p)",
+        "min_area": 500,
+        "connectivity": 4,
+        "threshold_ties": "uncertain",
+        "distance_cutoff": null,
+        "fcn_stages": "torchvision layer1/2/3 correspond to paper conv2/3/4",
+        "ccam": "1x1 background sigmoid; foreground complement"
       }
     },
     {
       "id": "rpi_net",
-      "status": "blocked_full_text_and_implementation",
+      "status": "full_text_reviewed_reimplementation_specification_pending",
       "paper": "https://doi.org/10.1016/j.bspc.2025.108433",
       "repository": null,
-      "revision": null,
+      "revision": "publisher PDF full text, online 2025-08-14; issue 2026",
       "weights": null,
       "risks": [
-        "only_publisher_preview_reviewed",
-        "full_text_not_obtained",
         "official_repository_not_identified",
-        "IPC_PIA_DUL_not_specified_reproducibly"
+        "checkpoint_provenance_not_resolved",
+        "kmeans_cluster_orientation_and_cam_target_unspecified",
+        "optimizer_and_iteration_details_not_fully_specified",
+        "DUL_reduction_and_gradient_conventions_need_declaration",
+        "attention_token_memory_budget_unmeasured"
       ],
       "gates": {
         "implementation_verified": false,
@@ -83,7 +104,41 @@
         "weights_provenance_resolved": false,
         "isolated_environment_verified": false,
         "smoke_passed": false
-      }
+      },
+      "full_text_obtained": true,
+      "pseudo_sources": [
+        "MoCov3 conv1 K-means",
+        "MoCov3 layer4 Grad-CAM++ (CCAM on ISIC-2017)",
+        "MoCov2 conv1 K-means",
+        "DINO final-layer K-means"
+      ]
+    }
+  ],
+  "updated_at": "2026-10-12 America/Bogota",
+  "component_revision_base": "df53048eb3729314631d39fe5b54ced3eb7d2de8",
+  "paper_attachments": [
+    {
+      "doi": "10.1016/j.bspc.2025.108433",
+      "sha256": "c9a71996c77e52a5042c78c3152d25189f342a16b36b46cc8abe2f1404b448a6"
+    },
+    {
+      "doi": "10.1016/j.bspc.2026.111536",
+      "sha256": "3385f298e287a3d6296ae9929b37a451fbbbbe90ba1f29ae3f3ccf0ec5ed5694"
+    },
+    {
+      "arxiv": "2309.13289v3",
+      "sha256": "30bd6a6ada51111027e474faa7b1a187ff16495f45927c2ea52b75d75a8907b1"
+    }
+  ],
+  "excluded_additional_papers": [
+    {
+      "id": "tridermnet_hago",
+      "doi": "10.1016/j.bspc.2026.111536",
+      "reason": "supervised masks and diagnostic class labels; not eligible as label-free teacher",
+      "review_notes": [
+        "split descriptions differ between sections 5.1 and 5.5",
+        "abstract and main-table segmentation results differ; cannot transfer accuracy claims"
+      ]
     }
   ]
 }

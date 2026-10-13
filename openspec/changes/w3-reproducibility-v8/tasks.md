@@ -9,8 +9,10 @@
 - [x] Validar pruebas y preflight sobre los 100 originales reales.
 - [ ] Resolver uso/reimplementación de SLED y entorno separado.
 - [ ] Especificar adaptación USL-Net, origen de pesos y ambigüedad de centralidad.
-- [ ] Obtener texto completo y código verificable de RPI-Net.
-- [ ] Implementar adaptadores y contratos de salidas con presupuesto medido.
+- [x] Obtener y revisar el texto completo de RPI-Net aportado por el usuario.
+- [ ] Identificar código/pesos oficiales de RPI-Net o cerrar especificación de reimplementación.
+- [x] Implementar componentes SLED corregido y USL-Net según texto; verificar 13 pruebas sintéticas.
+- [ ] Integrar maestros completos y medir tiempo/RAM en smoke de una imagen.
 - [ ] Ejecutar smoke y luego diagnósticos de máscaras de candidatos habilitados.
 - [ ] Resolver evaluación anatómica independiente antes de nuevos estudiantes.
 - [ ] Ejecutar comparación con W&B y documentar resultados completos.

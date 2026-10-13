@@ -1,0 +1,38 @@
+{
+  "status": "component_tests_passed_not_method_smoke",
+  "timestamp_utc": "2026-10-13T04:26:56.846459+00:00",
+  "tests_run": 13,
+  "tests_failed": 0,
+  "tests_errors": 0,
+  "tests_skipped": 0,
+  "elapsed_seconds": 0.34799349727109075,
+  "files_sha256": {
+    "src/dermssl/w3_components.py": "c8740acbd33aaccc6fb41b64e588d892d264ea2a91de95a1f800cfe771ac5beb",
+    "src/dermssl/w3_sled_adapter.py": "d65c0d54837c30429f5b27785b203f97e05db265154118fb21801c0199148f4a",
+    "src/dermssl/w3_usl_models.py": "b7c159d2d3ed4ee0de893b1780eebaa60793e5b74d1301f5f593ff8285098383",
+    "tests/test_w3_components.py": "86815c7d3a38c299bcbad89bb131c189b808cd9b7239fbc1c8f16ae0d48ac875",
+    "tests/test_w3_usl_models.py": "e1432d41afa69ddc32f63d1fe58ab45e3e53867a7365ed43da99f7b51bd9e153",
+    "scripts/verify_w3_components.py": "4e3abd7a1b1d60b6a895fe224b7e7a701ae5f17b2906d1a3e54c00c771619371"
+  },
+  "real_images_read": 0,
+  "ground_truth_read": false,
+  "third_party_sled_executed": false,
+  "training_started": false,
+  "methods_executed": [],
+  "gpu_used": false,
+  "wandb_run_created": true,
+  "wandb_url": "https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/150c830867ad",
+  "wandb_run_id": "150c830867ad",
+  "base_revision": "df53048eb3729314631d39fe5b54ced3eb7d2de8",
+  "geometry_reference_check": {
+    "opencv_circle_disagreement_pixels": {
+      "100x100": 0,
+      "224x224": 0,
+      "560x768": 0
+    }
+  },
+  "wandb_remote_verified": true,
+  "wandb_remote_state": "finished",
+  "credential_file_unchanged": true,
+  "credential_environment_restored": true
+}
