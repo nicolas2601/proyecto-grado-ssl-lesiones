@@ -14,10 +14,10 @@
   "resolution": 224,
   "seed": 42,
   "device": "cpu",
-  "epochs": 1,
+  "epochs": 50,
   "batch_size": 2,
   "learning_rate": 0.001,
-  "weight_decay": 1e-05,
+  "weight_decay": 0.00001,
   "resources": {
     "timeout_seconds": 180,
     "max_rss_mb": 4096,
@@ -35,7 +35,8 @@
     "initial_epochs": 50,
     "later_phase_epochs": 30,
     "phase_count": 1,
-    "phase_count_interpretation": "one 30-epoch refinement phase after the initial 50; V8 adaptation because the paper does not specify a count"
+    "phase_count_interpretation": "one 30-epoch refinement phase after the initial 50; V8 adaptation because the paper does not specify a count",
+    "v8_later_phase_interpretation": "fit config uses 50 epochs for initial phase; the controller plan must provide a separate config with epochs=30 for the single later phase"
   },
   "cam_target": "ssl_energy_gradcampp",
   "cluster_polarity": "border_majority_background"
