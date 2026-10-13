@@ -2,6 +2,8 @@
 
 Fecha: 2026-10-13. Rama: `experiment/modular-audit-v8`. Estado: preparación; no habilita corridas.
 
+El estado y los cierres específicos por método están en [46. Pendientes por método V8](46-pendientes-por-metodo-v8.md).
+
 Este flujo adapta la ejecución por etapas usada en segmentación V7. Mantiene salidas inmutables, pasos ordenados y parada ante error. No reutiliza checkpoints, bancos SSL, pseudo máscaras ni resultados entrenados por el proyecto en V7. Cada método empieza con pesos aleatorios cuando su protocolo no requiere inicialización externa y usa únicamente checkpoints públicos originales cuando su receta sí los requiere.
 
 ## Flujo de V7 que sirve de referencia
