@@ -14,7 +14,7 @@
   "epochs": 1,
   "batch_size": 2,
   "learning_rate": 0.001,
-  "weight_decay": 1e-05,
+  "weight_decay": 0.00001,
   "resources": {
     "timeout_seconds": 180,
     "max_rss_mb": 4096,
@@ -42,5 +42,10 @@
     "centroid_mode": "correct_all",
     "selection_variant": "gaussian_corrected",
     "refinement_passes": 30
+  },
+  "protocol": {
+    "primary_settings_frozen": true,
+    "primary_variant": "correct_all_centroids + gaussian_corrected_selector",
+    "upstream_controls": "upstream_zero/upstream_area retained as documented comparison controls; not part of the primary run"
   }
 }
