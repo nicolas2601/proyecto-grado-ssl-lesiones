@@ -110,9 +110,8 @@ def validate_plan(plan, path):
         seen.add(step["id"])
         if step["stage"] not in {"pretrain", "ccam", "generate", "fit", "predict", "refine"}:
             raise ValueError("Controller plan only accepts concrete pipeline stages")
-        for key in ("manifest", "gate", "config"):
-            if not Path(step[key]).is_file():
-                raise ValueError(f"Missing {key} for step {step['id']}: {step[key]}")
+        if not Path(step["config"]).is_file():
+            raise ValueError(f"Missing config for step {step['id']}: {step['config']}")
         if step["stage"] == "pretrain" and not step.get("ssl_origin"):
             raise ValueError(f"Pretrain step {step['id']} requires ssl_origin")
         if step["stage"] == "refine" and not step.get("predictions"):
@@ -198,9 +197,20 @@ def main():
     try:
         for step in steps:
             sid = step["id"]
-            identity = identity_for(plan_path, plan, step)
             record = ledger["steps"].get(sid)
             out = Path(step["out"])
+            missing = [key for key in ("manifest", "gate") if not Path(step[key]).is_file()]
+            if step["stage"] == "refine" and step.get("predictions") and not (Path(step["predictions"]) / "summary.json").is_file():
+                missing.append("predictions/summary.json")
+            if missing:
+                ledger["status"] = "awaiting_review"
+                ledger["awaiting_step"] = sid
+                ledger["missing_inputs"] = {key: step.get(key) for key in missing}
+                atomic_json(ledger_path, ledger)
+                print(json.dumps({"status": "awaiting_review", "step": sid,
+                                  "missing_inputs": ledger["missing_inputs"]}, indent=2))
+                return 3
+            identity = identity_for(plan_path, plan, step)
             if record and record.get("status") == "completed":
                 if record.get("identity") != identity or record.get("output_inventory") != inventory(out):
                     raise ValueError(f"Completed step {sid} changed on disk; refusing to reuse it")
