@@ -75,8 +75,8 @@ Los bancos pueden prepararse una sola vez y reutilizarse entre métodos únicame
 
 - **SLED:** confirmar presupuesto de tiempo/RAM para las escalas 200–650 sobre el manifiesto completo.
 - **USL-Net:** fijar `max_centroid_distance`, ciclos y épocas del CCAM/estudiante; los valores actuales incluyen `null` y límites de ejemplo.
-- **RPI-Net:** cerrar número y duración de fases, y validar procedencia de las cuatro pseudo fuentes.
-- **TriDermNet-HAGO:** la arquitectura se inicializa desde cero, según la receta original; no se reutilizan checkpoints ni pesos clasificadores de Nico/V7. Declarar de qué maestro V8 aprobado obtiene las pseudo etiquetas, documentar el reemplazo de diagnósticos por cobertura pseudo y fijar el presupuesto de la adaptación para que HAGO supere su calentamiento de 10 épocas. El paper reporta 150 épocas a 256×256 con máscaras expertas y clases diagnósticas; ese presupuesto no se traslada automáticamente a la variante pseudo-supervisada. La configuración de 1 época es solo un marcador de bloqueo.
+- **RPI-Net:** se congela una fase posterior de 30 épocas después de las 50 iniciales como adaptación V8 (el paper no fija el número); falta orquestar la fase y validar las cuatro pseudo fuentes.
+- **TriDermNet-HAGO:** la arquitectura se inicializa desde cero y se fija SLED como maestro no supervisado; no se reutilizan checkpoints ni pesos clasificadores de Nico/V7. Tras generar y revisar el manifiesto SLED, fijar su SHA-256 en la config. TriDerm usará únicamente esas pseudo etiquetas, sin diagnósticos ni máscaras expertas. Definir presupuesto suficiente para superar el calentamiento HAGO de 10 épocas. Las 150 épocas y 256×256 del paper corresponden a supervisión experta y no se trasladan automáticamente. La configuración de 1 época es solo un marcador de bloqueo.
 
 Registrar por método el dispositivo, timeout, RAM, memoria GPU, espacio de salida y reserva. Los probes sintéticos disponibles miden memoria/tiempo de pasos pequeños; no predicen duración del pool completo.
 
