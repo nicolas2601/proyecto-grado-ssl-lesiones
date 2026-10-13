@@ -116,6 +116,99 @@ def convert_resnet(state, model):
     return mapped, discarded
 
 
+def tensorflow_checkpoint_files(prefix: Path):
+    text = str(prefix)
+    if text.endswith(".index"):
+        text = text[:-6]
+    base = Path(text)
+    files = sorted(base.parent.glob(base.name + ".*"))
+    files = [p for p in files if p.suffix == ".index" or ".data-" in p.name]
+    if not any(p.suffix == ".index" for p in files) or not any(".data-" in p.name for p in files):
+        raise ValueError("SimCLR TensorFlow checkpoint needs its .index and .data shard files")
+    return base, files
+
+
+def tensorflow_checkpoint_sha(files):
+    h = hashlib.sha256()
+    for path in files:
+        h.update(path.name.encode())
+        with path.open("rb") as f:
+            for block in iter(lambda: f.read(1024 * 1024), b""):
+                h.update(block)
+    return h.hexdigest()
+
+
+def convert_simclr_tensorflow(prefix: Path, model):
+    try:
+        import tensorflow as tf
+    except ImportError as error:
+        raise RuntimeError("TensorFlow checkpoint reader is required for the official SimCLR format; no package was installed") from error
+    prefix, files = tensorflow_checkpoint_files(prefix)
+    reader = tf.train.load_checkpoint(str(prefix))
+    names = set(reader.get_variable_to_shape_map())
+
+    def layer_order(pattern):
+        layers = set()
+        for name in names:
+            match = re.fullmatch(pattern, name)
+            if match:
+                layers.add(match.group(1))
+        def index(layer):
+            match = re.search(r"_(\\d+)$", layer)
+            return int(match.group(1)) if match else -1
+        return sorted(layers, key=index)
+
+    conv_layers = layer_order(r"(base_model/conv2d(?:_\\d+)?)/kernel")
+    bn_layers = layer_order(r"(base_model/batch_normalization(?:_\\d+)?)/(?:gamma|beta|moving_mean|moving_variance)")
+    conv_targets = ["stem.0.weight"]
+    bn_targets = ["stem.1"]
+    for stage in range(4):
+        for block_index in range((3, 4, 6, 3)[stage]):
+            block = model.stages[stage][block_index]
+            base = f"stages.{stage}.{block_index}"
+            if isinstance(block.skip, torch.nn.Sequential):
+                conv_targets.append(base + ".skip.0.weight")
+                bn_targets.append(base + ".skip.1")
+            conv_targets.extend(base + f".body.{index}.weight" for index in (0, 3, 6))
+            bn_targets.extend(base + f".body.{index}" for index in (1, 4, 7))
+    if len(conv_layers) != len(conv_targets) or len(bn_layers) != len(bn_targets):
+        raise ValueError(f"SimCLR ResNet50 tensor count mismatch: conv={len(conv_layers)}/{len(conv_targets)}, bn={len(bn_layers)}/{len(bn_targets)}")
+
+    target = model.state_dict()
+    mapped = {}
+    used = set()
+    for layer, dst in zip(conv_layers, conv_targets, strict=True):
+        key = layer + "/kernel"
+        value = torch.from_numpy(reader.get_tensor(key)).permute(3, 2, 0, 1).contiguous()
+        if tuple(value.shape) != tuple(target[dst].shape):
+            raise ValueError(f"SimCLR convolution shape mismatch for {key} -> {dst}")
+        mapped[dst] = value
+        used.add(key)
+    bn_fields = (("gamma", "weight"), ("beta", "bias"),
+                 ("moving_mean", "running_mean"), ("moving_variance", "running_var"))
+    for layer, dstbase in zip(bn_layers, bn_targets, strict=True):
+        for source_suffix, target_suffix in bn_fields:
+            key = layer + "/" + source_suffix
+            value = torch.from_numpy(reader.get_tensor(key))
+            dst = dstbase + "." + target_suffix
+            if tuple(value.shape) != tuple(target[dst].shape):
+                raise ValueError(f"SimCLR batch-normalization shape mismatch for {key} -> {dst}")
+            mapped[dst] = value
+            used.add(key)
+        tracked = dstbase + ".num_batches_tracked"
+        mapped[tracked] = torch.zeros_like(target[tracked])
+    if set(target) != set(mapped):
+        raise ValueError("SimCLR conversion did not populate the complete local encoder state")
+    discarded = sorted(names - used)
+    allowed = ("head_supervised/", "head_contrastive/", "global_step")
+    unexpected = [name for name in discarded
+                  if not name.startswith(allowed) and not name.startswith(("global_step/",))]
+    if unexpected:
+        raise ValueError("Unexpected SimCLR tensors outside the encoder/known heads: " + ", ".join(unexpected[:10]))
+    model.load_state_dict(mapped, strict=True)
+    return mapped, discarded, tensorflow_checkpoint_sha(files), [str(p) for p in files]
+
+
 def normalize_dino_state(state):
     for prefix in ("module.backbone.", "backbone.", "module."):
         if any(k.startswith(prefix + "patch_embed.") for k in state):
@@ -188,6 +281,7 @@ def arguments():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--origin", choices=sorted(ALLOWED_ORIGINS), required=True)
     p.add_argument("--source", type=Path, required=True)
+    p.add_argument("--format", choices=("pytorch", "simclr_tensorflow"), default="pytorch")
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--source-url", required=True)
     p.add_argument("--license-id", required=True)
@@ -198,11 +292,20 @@ def arguments():
 
 def main():
     args = arguments()
-    if not args.source.is_file() or args.output.exists() or args.output.with_suffix(args.output.suffix + ".json").exists():
-        raise ValueError("Source must exist; output and provenance must be new paths")
-    state = tensor_state(args.source, args.origin)
+    if args.output.exists() or args.output.with_suffix(args.output.suffix + ".json").exists():
+        raise ValueError("Output and provenance must be new paths")
+    if args.format == "simclr_tensorflow" and args.origin != "simclr":
+        raise ValueError("TensorFlow input adapter is only defined for SimCLR")
+    if args.format == "pytorch" and not args.source.is_file():
+        raise ValueError("PyTorch source checkpoint must be a file")
     model = PatchTransformer() if args.origin == "dino" else ResNet50Stages(last_stride=1)
-    mapped, discarded = convert_dino(state, model) if args.origin == "dino" else convert_resnet(state, model)
+    source_files = None
+    if args.format == "simclr_tensorflow":
+        mapped, discarded, source_hash, source_files = convert_simclr_tensorflow(args.source, model)
+    else:
+        state = tensor_state(args.source, args.origin)
+        mapped, discarded = convert_dino(state, model) if args.origin == "dino" else convert_resnet(state, model)
+        source_hash = sha256(args.source)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"model": model.state_dict()}, args.output)
     provenance = {
@@ -211,7 +314,8 @@ def main():
         "producer_revision": args.producer_revision,
         "source_url": args.source_url,
         "source_license": args.license_id,
-        "source_sha256": sha256(args.source),
+        "source_sha256": source_hash,
+        "source_files": source_files,
         "checkpoint_sha256": sha256(args.output),
         "architecture": "DINO_ViT-S/16_224" if args.origin == "dino" else "ResNet50_encoder_local_last_stride_1",
         "adapter": ADAPTER_VERSION,
