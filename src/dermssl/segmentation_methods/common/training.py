@@ -123,9 +123,18 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
     """No expert/diagnostic arguments; no split rebuilding or automatic downloads."""
     global _STOP_REQUESTED
     _STOP_REQUESTED=False
+    expected_pseudo_method=None
+    if method=='tridermnet_hago':
+        expected_pseudo_method=config.get('pseudo_teacher_method')
+        pinned_manifest_sha=config.get('pseudo_manifest_sha256')
+        if expected_pseudo_method not in {'sled','usl_net','rpi_net'}:
+            raise ValueError('TriDerm requires a frozen pseudo_teacher_method from SLED, USL-Net, or RPI-Net')
+        if pinned_manifest_sha!=digest(manifest_path):
+            raise ValueError('TriDerm pseudo manifest hash is not pinned in its reviewed configuration')
     gate_report(gate_path,method,manifest_path)
     sources=4 if method=='rpi_net' else 1
-    document=read_manifest(manifest_path,need_pseudos=True,sources=sources,training=True)
+    document=read_manifest(manifest_path,need_pseudos=True,sources=sources,training=True,
+                           expected_pseudo_method=expected_pseudo_method)
     out=Path(out);resume_path=out/'resume.pt'
     if resume:
         if not out.is_dir() or not resume_path.is_file():raise ValueError('--resume requires an existing fit directory and intact resume.pt')
