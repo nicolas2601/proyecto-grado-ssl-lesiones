@@ -33,7 +33,8 @@
   "native_recipe": {
     "initial_epochs": 50,
     "later_phase_epochs": 30,
-    "phase_count": null
+    "phase_count": 1,
+    "phase_count_interpretation": "one 30-epoch refinement phase after the initial 50; V8 adaptation because the paper does not specify a count"
   },
   "cam_target": "ssl_energy_gradcampp",
   "cluster_polarity": "border_majority_background"
