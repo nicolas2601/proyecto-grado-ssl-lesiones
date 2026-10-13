@@ -63,7 +63,7 @@ Preparar solo las fuentes públicas que cada receta requiera; no usar `salidas/v
 | SLED | Ningún checkpoint |
 | USL-Net | SimCLR, MoCo v1 y MoCo v2 para la fusión/CCAM |
 | RPI-Net | MoCo v3, MoCo v2 y DINO original; MoCo v3 aporta dos fuentes (conv1 y CAM) |
-| TriDermNet-HAGO | No tiene banco declarado en el config actual; fijar por escrito su inicialización antes de entrenar |
+| TriDermNet-HAGO | Arquitectura desde cero; no checkpoint público del proyecto |
 
 Para cada checkpoint externo registrar URL/fuente oficial, licencia, arquitectura exacta, preprocesamiento/normalización, SHA-256, conversión reproducible si el formato no coincide, y manifiesto de procedencia. El loader V8 no descarga ni ejecuta código remoto y exige carga estricta; no sustituir DINO original de RPI por DINOv2.
 
@@ -74,7 +74,7 @@ Los bancos pueden prepararse una sola vez y reutilizarse entre métodos únicame
 - **SLED:** confirmar presupuesto de tiempo/RAM para las escalas 200–650 sobre el manifiesto completo.
 - **USL-Net:** fijar `max_centroid_distance`, ciclos y épocas del CCAM/estudiante; los valores actuales incluyen `null` y límites de ejemplo.
 - **RPI-Net:** cerrar número y duración de fases, y validar procedencia de las cuatro pseudo fuentes.
-- **TriDermNet-HAGO:** declarar de qué maestro V8 frescamente generado obtiene sus pseudo etiquetas, documentar el reemplazo de la tarea diagnóstica por cobertura pseudo y fijar épocas suficientes para que HAGO salga del calentamiento de 10 épocas. La configuración actual de 1 época nunca llega a esa fase.
+- **TriDermNet-HAGO:** la arquitectura se inicializa desde cero, según la receta original; no se reutilizan checkpoints ni pesos clasificadores de Nico/V7. Declarar de qué maestro V8 aprobado obtiene las pseudo etiquetas, documentar el reemplazo de diagnósticos por cobertura pseudo y fijar el presupuesto de la adaptación para que HAGO supere su calentamiento de 10 épocas. El paper reporta 150 épocas a 256×256 con máscaras expertas y clases diagnósticas; ese presupuesto no se traslada automáticamente a la variante pseudo-supervisada. La configuración de 1 época es solo un marcador de bloqueo.
 
 Registrar por método el dispositivo, timeout, RAM, memoria GPU, espacio de salida y reserva. Los probes sintéticos disponibles miden memoria/tiempo de pasos pequeños; no predicen duración del pool completo.
 
