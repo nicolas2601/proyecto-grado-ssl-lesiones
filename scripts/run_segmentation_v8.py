@@ -147,7 +147,7 @@ def main():
             fit=fit_module.fit
             previous_term=signal.signal(signal.SIGTERM,fit_module.request_stop)
             previous_int=signal.signal(signal.SIGINT,fit_module.request_stop)
-            try:fit(args.method,args.manifest,args.out,config,args.gate,sink=sink,revision=revision,resume=args.resume,tracking_run_id=getattr(sink._run,'id',None))
+            try:fit(args.method,args.manifest,args.out,config,args.gate,sink=sink,revision=revision,resume=args.resume,tracking_run_id=getattr(sink._run,'id',None),source_hashes=source_hashes)
             finally:
                 signal.signal(signal.SIGTERM,previous_term);signal.signal(signal.SIGINT,previous_int)
         elif args.stage=='pretrain':
