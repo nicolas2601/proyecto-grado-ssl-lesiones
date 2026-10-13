@@ -72,6 +72,13 @@ def sample_resources(out, phase, pid=None):
         sample["output_filesystem_free_bytes"] = usage.free
     except OSError:
         pass
+    cgroup = Path("/sys/fs/cgroup")
+    try:
+        for key in ("memory.max", "memory.current", "cpu.max", "pids.max"):
+            value = (cgroup / key).read_text().strip()
+            sample["cgroup_" + key.replace(".", "_")] = value
+    except OSError:
+        sample["cgroup_v2"] = None
     try:
         result = subprocess.run(
             ["nvidia-smi", "--query-gpu=name,uuid,memory.total,memory.used,utilization.gpu",
