@@ -9,7 +9,8 @@
     "ccam",
     "generate",
     "fit",
-    "predict"
+    "predict",
+    "refine"
   ],
   "resolution": 224,
   "seed": 42,
