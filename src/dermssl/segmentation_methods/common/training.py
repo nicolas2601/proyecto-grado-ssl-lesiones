@@ -147,12 +147,11 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
     provenance_path=config.get('initial_checkpoint_provenance')
     if bool(checkpoint_path)!=bool(provenance_path):
         raise ValueError('Iterative initialization requires both checkpoint and provenance paths')
-    if initial is not None and checkpoint_path:
-        raise ValueError('Choose one explicit initial-weight source')
     if initial is not None:
-        model.load_state_dict(initial,strict=True)
-    elif checkpoint_path:
-        load_reviewed(model,checkpoint_path,provenance_path,expected_method=method,device=device)
+        raise ValueError('Raw initial state dictionaries are disabled; use a reviewed V8 checkpoint with provenance')
+    if checkpoint_path:
+        load_reviewed(model,checkpoint_path,provenance_path,expected_method=method,
+                      required_protocol='w3-four-methods-v8',device=device)
     initial_hash=_state_hash(model.state_dict())
     dataset=make_dataset(document,size,sources,paired_flip=True,seed=seed)
     sampler=ResumableRandomSampler(len(dataset),seed)
