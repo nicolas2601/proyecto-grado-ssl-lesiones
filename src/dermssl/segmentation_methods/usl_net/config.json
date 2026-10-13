@@ -15,10 +15,10 @@
   "resolution": 224,
   "seed": 42,
   "device": "cpu",
-  "epochs": 1,
+  "epochs": 300,
   "batch_size": 2,
   "learning_rate": 0.001,
-  "weight_decay": 1e-05,
+  "weight_decay": 0.00001,
   "resources": {
     "timeout_seconds": 180,
     "max_rss_mb": 4096,
