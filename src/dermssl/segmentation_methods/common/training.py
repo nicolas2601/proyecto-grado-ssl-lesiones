@@ -171,6 +171,9 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
             'epoch':epoch,'global_step':global_step,'sampler':sampler.state_dict(),'epoch_losses':losses,
             'results':results,'rng':_rng_state(loader_generator),
             'hago_step_number':None if hago is None else hago.step_number})
+    if not resume:
+        sampler.set_epoch(epoch)
+        save_resume()
     while epoch<epochs:
         model.train();dataset.set_epoch(epoch);start=time.monotonic()
         sampler.set_epoch(epoch)
@@ -194,7 +197,7 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
                 if any(p.grad is not None and not torch.isfinite(p.grad).all() for p in model.parameters()):raise ValueError('Nonfinite gradient')
                 optimizer.step()
             losses.append(float(loss.detach()));global_step+=1
-            if global_step%checkpoint_every==0 or _STOP_REQUESTED:save_resume()
+            if global_step%checkpoint_every==0:save_resume()
             if _STOP_REQUESTED:
                 save_resume()
                 raise InterruptedError('Training stopped at a safe batch boundary; resume.pt is current')
