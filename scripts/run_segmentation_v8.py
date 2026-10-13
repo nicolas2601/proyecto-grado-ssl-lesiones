@@ -175,7 +175,7 @@ def main():
             report={'method':args.method,'stage':'refine','count':document['count'],
                     'input_manifest_sha256':digest(args.manifest),'output_manifest_sha256':digest(refined),
                     'producer_revision':revision,'prediction_manifest_sha256':prediction_summary['input_manifest_sha256']}
-            (args.out/'summary.json').write_text(json.dumps(report,indent=2)+'\\n')
+            (args.out/'summary.json').write_text(json.dumps(report,indent=2)+'\n')
             sink.log({'refined_count':report['count'],'output_manifest_sha256':report['output_manifest_sha256']})
         elif args.stage=='pretrain':
             if not args.ssl_origin:raise ValueError('Explicit SSL origin required')
