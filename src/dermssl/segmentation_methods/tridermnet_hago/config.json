@@ -28,6 +28,8 @@
   "comparison": "common eligible originals; all masks evaluated separately; same downstream student budget",
   "diagnostic_classification_enabled": false,
   "auxiliary_target": "pseudo_lesion_coverage",
+  "pseudo_teacher_method": null,
+  "pseudo_manifest_sha256": null,
   "hago": {
     "warmup_epochs": 10,
     "balance": "suppress_dominant",
