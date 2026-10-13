@@ -95,6 +95,27 @@ La primera comparación se ejecuta **de forma serial, un método a la vez**. Hay
 
 Un error, cambio de manifiesto, fallo de hash, salida parcial o presupuesto excedido detiene la cadena. No se continúa automáticamente con el siguiente método hasta revisar la evidencia del que terminó.
 
+### Recuperación después de una pausa o un crash
+
+Sí: el flujo operativo esperado es **detener → inspeccionar → corregir → reanudar desde el último estado íntegro → verificar → continuar**. La revisión debe conservar logs, código de salida, etapa, hashes de código/config/manifiesto, estado W&B, motivo de la parada y artefactos parciales.
+
+**Esta reanudación aún no está implementada en V8.** En el código actual, `fit` guarda `final.pt` al terminar, no un estado completo del optimizador y del cursor de entrenamiento; además, el launcher rechaza una carpeta de salida existente. Repetir el mismo comando no reanuda el trabajo. El pipeline V7 también detenía la secuencia ante error; eso no equivale a reanudación durable.
+
+Antes de una corrida larga, agregar y revisar:
+- checkpoints atómicos reanudables con pesos, optimizador, scheduler/scaler si aplica, época, lote/cursor, sampler y estados RNG de Python, NumPy, CPU y CUDA;
+- identidades verificables de checkpoint, arquitectura, hash de código/config/manifiesto, inicializaciones públicas y run ID de W&B;
+- registro por etapa con estado `pending/running/failed/completed`, artefactos y checksums, para saltar solo etapas completadas e íntegras;
+- una opción explícita de reanudación que valide esas identidades, continúe el mismo run W&B y rechace estados incompatibles;
+- guardado ante parada ordenada y recuperación tras terminación abrupta. Para evitar repetir lotes, el checkpoint necesita cursor/sampler y RNG de lote; un checkpoint solo al final de época repetiría la época incompleta.
+
+Reglas de recuperación:
+1. Si solo falló infraestructura y datos, receta y hashes siguen idénticos, continuar desde el último checkpoint íntegro.
+2. Si cambia un umbral/presupuesto no científico, registrar versión nueva y comprobar que el estado del optimizador sigue siendo compatible antes de reanudar.
+3. Si cambia arquitectura, manifiesto, inicialización o protocolo científico, no mezclar el estado anterior: abrir una ejecución nueva desde la etapa afectada con nueva procedencia.
+4. Nunca borrar ni sobrescribir la carpeta fallida; conservarla como evidencia y crear un destino de reanudación enlazado al run anterior.
+
+Hasta que exista este soporte, solo puede recuperarse manualmente una etapa no iniciada usando salidas previas verificadas; una etapa `fit` interrumpida no debe etiquetarse como reanudada.
+
 ### Puertas obligatorias para habilitar ejecución real
 
 Por método y por etapa, la evidencia debe coincidir con el SHA del manifiesto e indicar: datos verificados, grupos/exclusiones confirmados, banco y procedencia verificados cuando corresponda, presupuesto medido, smoke aprobado, revisión de código y evaluación anatómica independiente resuelta. Para entrenamiento, todos los campos exigidos por `common/training.py::gate_report` deben ser verdaderos. Después se actualizan configs y gates juntos; no se cambia `execution_enabled` aisladamente.
