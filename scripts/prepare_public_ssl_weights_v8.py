@@ -20,7 +20,7 @@ from dermssl.segmentation_methods.common.networks import ResNet50Stages
 from dermssl.segmentation_methods.common.dino import PatchTransformer
 
 
-ADAPTER_VERSION = "v8-public-ssl-adapter-1"
+ADAPTER_VERSION = "v8-public-ssl-adapter-2"
 RESNET_ORIGINS = {"mocov1", "mocov2", "mocov3", "simclr"}
 ALLOWED_ORIGINS = RESNET_ORIGINS | {"dino"}
 RESNET_PREFIXES = (
