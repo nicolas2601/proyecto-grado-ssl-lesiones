@@ -88,8 +88,8 @@ La primera comparación se ejecuta **de forma serial, un método a la vez**. Hay
 2. Ejecutar `check`; confirmar método, etapa, manifiesto y presupuesto.
 3. Generar los maestros/pseudo máscaras requeridos:
    - SLED: `generate`;
-   - USL-Net: `ccam` y luego `generate`;
-   - RPI-Net: `generate` con sus cuatro fuentes;
+   - USL-Net: `ccam` y luego `generate`; después de cada `fit`/`predict`, usar `refine` antes de iniciar el ciclo siguiente;
+   - RPI-Net: `generate` con sus cuatro fuentes y, tras el ajuste inicial, `predict` → `refine` para la fase posterior;
    - TriDermNet-HAGO: esperar el manifiesto maestro aprobado indicado en su receta; no generar máscaras con una red aleatoria.
 4. Inspeccionar manifiesto producido, hashes, cantidad de éxitos/abstenciones, cobertura, salidas y registro W&B. Una abstención no se elimina silenciosamente ni reduce el denominador.
 5. Solo si la puerta de esa salida pasa, ejecutar `fit` cuando aplique y luego `predict`.
@@ -99,7 +99,7 @@ Un error, cambio de manifiesto, fallo de hash, salida parcial o presupuesto exce
 
 ### Recuperación después de una pausa o un crash
 
-El launcher V8 ahora permite reanudar una etapa `fit` de USL-Net, RPI-Net o TriDermNet-HAGO desde el último checkpoint íntegro. No se reanudan automáticamente las etapas `pretrain`, `ccam`, `generate` ni `predict`; una interrupción en ellas conserva la carpeta parcial y exige revisión antes de decidir cómo reiniciar esa etapa en una carpeta nueva. SLED no tiene una etapa `fit`.
+El launcher V8 ahora permite reanudar una etapa `fit` de USL-Net, RPI-Net o TriDermNet-HAGO desde el último checkpoint íntegro y expone `refine` como etapa gated separada para USL/RPI. No se reanudan automáticamente las etapas `pretrain`, `ccam`, `generate`, `predict` ni `refine`; una interrupción en ellas conserva la carpeta parcial y exige revisión antes de decidir cómo reiniciar esa etapa en una carpeta nueva. SLED no tiene una etapa `fit`.
 
 En `fit`, el estado atómico `resume.pt` guarda pesos, AdamW, época, cursor y permutación del sampler, métricas parciales, resultados de épocas y RNG de Python, NumPy, CPU y CUDA. También conserva el contador de HAGO. Se escribe al inicio, cada 100 pasos (configurable con `checkpoint_every_steps`), al cierre de época y al recibir SIGTERM/SIGINT en una frontera segura entre lotes. El launcher espera 120 segundos por defecto para que el worker escriba el estado después de una parada ordenada; se puede fijar el margen con `resources.shutdown_grace_seconds`. Un corte abrupto puede repetir como máximo los lotes procesados desde el último guardado; si el proceso cae mientras escribe, el checkpoint anterior permanece íntegro.
 
@@ -115,7 +115,7 @@ python scripts/run_segmentation_v8.py --method <metodo> --stage fit \
 
 La opción solo está habilitada para `fit`; no se debe borrar `resume.pt`, renombrar la carpeta, cambiar la receta ni modificar la procedencia para forzar una continuación. Si los hashes no coinciden o falta el estado, se detiene y se abre una nueva ejecución desde la etapa afectada tras revisar la evidencia.
 
-El pipeline de varias etapas aún se ejecuta por comandos secuenciales, uno a la vez; todavía no existe un ledger que salte automáticamente etapas completas ni recupere `pretrain/ccam/generate/predict` por caso. Por eso, la política operativa sigue siendo detener → inspeccionar → corregir → reanudar el `fit` compatible o reiniciar solo la etapa fallida en salida nueva → verificar antes de continuar. El entrenamiento real permanece deshabilitado hasta cerrar las puertas de la sección siguiente.
+El pipeline de varias etapas aún se ejecuta por comandos secuenciales, uno a la vez; todavía no existe un ledger que coordine ciclos/fases, salte automáticamente etapas completas ni recupere `pretrain/ccam/generate/predict/refine` por caso. Por eso, la política operativa sigue siendo detener → inspeccionar → corregir → reanudar el `fit` compatible o reiniciar solo la etapa fallida en salida nueva → verificar antes de continuar. El entrenamiento real permanece deshabilitado hasta cerrar las puertas de la sección siguiente.
 
 ### Puertas obligatorias para habilitar ejecución real
 
