@@ -101,7 +101,13 @@ def main():
     if args.stage!='synthetic' and (not args.manifest or not args.gate):raise ValueError('Frozen manifest and gate evidence required')
     storage_precheck(args,config)
     if not args._worker:return budget_child(args,config)
-    from nucleo.wandb_logging import WandbSink
+    from nucleo.wandb_logging import WandbSink,run_id
+    expected_run_id=run_id('w3-four-methods-v8',args.out.name)
+    if args.resume:
+        import torch
+        resume_meta=torch.load(args.out/'resume.pt',map_location='cpu',weights_only=True)
+        if resume_meta.get('identity',{}).get('tracking_run_id')!=expected_run_id:
+            raise ValueError('Resume output name does not match the checkpoint W&B run; refusing to create another run')
     log_dir=args.out.parent/(args.out.name+'-tracking')
     if args.resume:
         if not log_dir.is_dir():raise ValueError('--resume requires the existing tracking directory for the same W&B run')
@@ -141,7 +147,7 @@ def main():
             fit=fit_module.fit
             previous_term=signal.signal(signal.SIGTERM,fit_module.request_stop)
             previous_int=signal.signal(signal.SIGINT,fit_module.request_stop)
-            try:fit(args.method,args.manifest,args.out,config,args.gate,sink=sink,revision=revision,resume=args.resume)
+            try:fit(args.method,args.manifest,args.out,config,args.gate,sink=sink,revision=revision,resume=args.resume,tracking_run_id=getattr(sink._run,'id',None))
             finally:
                 signal.signal(signal.SIGTERM,previous_term);signal.signal(signal.SIGINT,previous_int)
         elif args.stage=='pretrain':
