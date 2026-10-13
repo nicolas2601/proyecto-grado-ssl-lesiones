@@ -119,7 +119,15 @@ def convert_resnet(state, model):
 def normalize_dino_state(state):
     for prefix in ("module.backbone.", "backbone.", "module."):
         if any(k.startswith(prefix + "patch_embed.") for k in state):
-            return {k[len(prefix):]: v for k, v in state.items() if k.startswith(prefix)}
+            normalized = {}
+            for key, value in state.items():
+                if key.startswith(prefix):
+                    normalized[key[len(prefix):]] = value
+                elif key.startswith("module."):
+                    normalized[key[len("module."):]] = value
+                else:
+                    normalized[key] = value
+            return normalized
     if any(k.startswith("patch_embed.") for k in state):
         return state
     raise ValueError("Unrecognized DINO ViT checkpoint prefix")
