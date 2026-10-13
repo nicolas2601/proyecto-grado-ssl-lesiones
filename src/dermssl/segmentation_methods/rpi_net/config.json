@@ -33,7 +33,7 @@
   "native_recipe": {
     "initial_epochs": 50,
     "later_phase_epochs": 30,
-    "phase_count": "not fully specified"
+    "phase_count": null
   },
   "cam_target": "ssl_energy_gradcampp",
   "cluster_polarity": "border_majority_background"
