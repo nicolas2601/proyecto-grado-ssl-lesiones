@@ -13,6 +13,7 @@ def arguments():
     p.add_argument('--stage',choices=('check','synthetic','pretrain','ccam','generate','fit','predict'),required=True)
     p.add_argument('--config',type=Path);p.add_argument('--manifest',type=Path);p.add_argument('--gate',type=Path)
     p.add_argument('--out',type=Path);p.add_argument('--wandb-project',default='')
+    p.add_argument('--resume',action='store_true',help='Resume a fit from its identity-checked checkpoint')
     p.add_argument('--ssl-origin',choices=('simclr','mocov1','mocov2','mocov3','dino'))
     p.add_argument('--include-common',action='store_true',help='Run shared contract tests once with a method smoke')
     p.add_argument('--_worker',action='store_true',help=argparse.SUPPRESS)
@@ -64,7 +65,9 @@ def budget_child(args,config):
             except FileNotFoundError:pass
             if time.monotonic()-started>seconds or rss>ram:
                 os.killpg(child.pid,signal.SIGTERM)
-                try:child.wait(timeout=5)
+                grace=limits.get('shutdown_grace_seconds',120)
+                if not isinstance(grace,(int,float)) or grace<=0:raise ValueError('Positive shutdown grace budget required')
+                try:child.wait(timeout=grace)
                 except subprocess.TimeoutExpired:os.killpg(child.pid,signal.SIGKILL);child.wait()
                 raise RuntimeError('Registered wall-time/RSS budget exceeded; partial evidence preserved')
             time.sleep(.2)
@@ -72,7 +75,7 @@ def budget_child(args,config):
     except BaseException:
         if child.poll() is None:
             os.killpg(child.pid,signal.SIGTERM)
-            try:child.wait(timeout=5)
+            try:child.wait(timeout=120)
             except subprocess.TimeoutExpired:os.killpg(child.pid,signal.SIGKILL);child.wait()
         raise
 
@@ -87,7 +90,11 @@ def main():
             document=read_manifest(args.manifest,need_pseudos=args.stage=='fit',sources=4 if args.method=='rpi_net' else 1)
             print(json.dumps({'manifest_count':document['count'],'partition':document['partition']}))
         return 0
-    if not args.out or args.out.exists():raise ValueError('New explicit output directory required')
+    if not args.out:raise ValueError('Explicit output directory required')
+    if args.resume and args.stage!='fit':raise ValueError('--resume is currently supported only for fit')
+    if args.resume:
+        if not args.out.is_dir() or not (args.out/'resume.pt').is_file():raise ValueError('--resume requires an existing fit directory with resume.pt')
+    elif args.out.exists():raise ValueError('New output directory required; existing outputs are never overwritten')
     if not args.wandb_project or os.environ.get('WANDB_MODE','').lower() in {'offline','disabled'}:
         raise ValueError('Online W&B project required for executed stages')
     if args.stage not in config['stages']:raise ValueError('Stage unsupported for this method')
@@ -96,8 +103,11 @@ def main():
     if not args._worker:return budget_child(args,config)
     from nucleo.wandb_logging import WandbSink
     log_dir=args.out.parent/(args.out.name+'-tracking')
-    if log_dir.exists():raise ValueError('New tracking directory required')
-    log_dir.mkdir(parents=True)
+    if args.resume:
+        if not log_dir.is_dir():raise ValueError('--resume requires the existing tracking directory for the same W&B run')
+    else:
+        if log_dir.exists():raise ValueError('New tracking directory required')
+        log_dir.mkdir(parents=True)
     os.environ['WANDB_DIR']=str(log_dir.resolve());os.environ['WANDB_DISABLE_CODE']='true';os.environ['WANDB_CONSOLE']='off'
     name=args.out.name
     source_hashes={}
@@ -127,8 +137,13 @@ def main():
             sink.log({k:report[k] for k in ('tests_run','tests_failed','tests_errors','tests_skipped','real_images_read')})
             if not result.wasSuccessful() or result.testsRun==0:raise RuntimeError('Synthetic verification failed or no tests collected')
         elif args.stage=='fit':
-            from dermssl.segmentation_methods.common.training import fit
-            fit(args.method,args.manifest,args.out,config,args.gate,sink=sink)
+            from dermssl.segmentation_methods.common import training as fit_module
+            fit=fit_module.fit
+            previous_term=signal.signal(signal.SIGTERM,fit_module.request_stop)
+            previous_int=signal.signal(signal.SIGINT,fit_module.request_stop)
+            try:fit(args.method,args.manifest,args.out,config,args.gate,sink=sink,revision=revision,resume=args.resume)
+            finally:
+                signal.signal(signal.SIGTERM,previous_term);signal.signal(signal.SIGINT,previous_int)
         elif args.stage=='pretrain':
             if not args.ssl_origin:raise ValueError('Explicit SSL origin required')
             from dermssl.segmentation_methods.common.pretraining import local_pretrain
