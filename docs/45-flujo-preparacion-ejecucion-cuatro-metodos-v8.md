@@ -14,7 +14,7 @@ El driver `plan-segmentacion/camino-b-cnn/entrenamiento/run_pipeline.py` constru
 
 Las máscaras de referencia entran únicamente en evaluación. W&B acompaña las etapas de contraste, CCAM, estudiante y evaluación. La corrida de clasificación de V7 es otra línea y su launcher/checkpoints no se trasladan a V8.
 
-V8 conserva la idea de ejecución secuencial, pero usa su entry point y etapas por método: `scripts/run_segmentation_v8.py`. No se debe invocar el launcher V7 para ejecutar las implementaciones V8.
+V8 conserva la idea de ejecución secuencial y usa `scripts/run_segmentation_v8.py` para las etapas, coordinadas por `scripts/run_segmentation_controller_v8.py` a partir de un plan explícito. No se debe invocar el launcher V7.
 
 ## Flujo V8 propuesto
 
@@ -40,12 +40,13 @@ flowchart TD
 ### 0. Fijar la comparación antes de ver métricas
 
 Registrar en el protocolo V8:
-- qué se compara: pseudo máscaras de los maestros o máscaras finales de los segmentadores entrenados;
-- mismo manifiesto elegible, resolución, preprocesamiento, regla de incertidumbre, resolución de evaluación y conjunto de métricas;
-- denominador previsto, política para abstenciones y reglas de cierre;
-- qué componentes se entrenan desde cero y qué fuentes públicas se requieren por método.
+- La comparación primaria usa el mismo conjunto de evaluación reservado para las máscaras directas de SLED y las predicciones finales de USL-Net y RPI-Net.
+- TriDermNet-HAGO se presenta como la adaptación dependiente **SLED→TriDermNet-HAGO**; se informan por separado la salida de SLED y la predicción final de TriDerm.
+- Para todos se congelan manifiesto elegible, resolución, preprocesamiento, regla de incertidumbre, métricas, denominador y tratamiento de abstenciones. La cobertura y calidad de pseudo máscaras se reporta por separado de las métricas finales de segmentación.
+- Las máscaras expertas y diagnósticos se usan solo en la evaluación independiente; no ajustan umbrales, hiperparámetros ni selección de checkpoints.
+- Se registran los módulos entrenados desde cero y los pesos públicos usados por método.
 
-Esta decisión es necesaria porque SLED no tiene etapa de entrenamiento, mientras que USL-Net, RPI-Net y TriDermNet-HAGO sí tienen etapas dependientes de pseudo etiquetas.
+Así se distingue una salida directa sin entrenamiento (SLED), dos segmentadores con sus pseudo etiquetas de método y la adaptación TriDerm condicionada por SLED.
 
 ### 1. Cerrar datos y evaluación
 
@@ -73,16 +74,16 @@ Los bancos pueden prepararse una sola vez y reutilizarse entre métodos únicame
 
 ### 3. Completar la receta y los recursos de cada método
 
-- **SLED:** confirmar presupuesto de tiempo/RAM para las escalas 200–650 sobre el manifiesto completo.
-- **USL-Net:** fijar `max_centroid_distance`, ciclos y épocas del CCAM/estudiante; los valores actuales incluyen `null` y límites de ejemplo.
-- **RPI-Net:** se congela una fase posterior de 30 épocas después de las 50 iniciales como adaptación V8 (el paper no fija el número); falta orquestar la fase y validar las cuatro pseudo fuentes.
-- **TriDermNet-HAGO:** la arquitectura se inicializa desde cero y se fija SLED como maestro no supervisado; no se reutilizan checkpoints ni pesos clasificadores de Nico/V7. Tras generar y revisar el manifiesto SLED, fijar su SHA-256 en la config. TriDerm usará únicamente esas pseudo etiquetas, sin diagnósticos ni máscaras expertas. Definir presupuesto suficiente para superar el calentamiento HAGO de 10 épocas. Las 150 épocas y 256×256 del paper corresponden a supervisión experta y no se trasladan automáticamente. La configuración de 1 época es solo un marcador de bloqueo.
+- **SLED:** la configuración primaria está fijada en `correct_all` + `gaussian_corrected`; las variantes `upstream_zero` y `upstream_area` son controles. Falta medir tiempo, RAM y almacenamiento para el manifiesto completo.
+- **USL-Net:** configuración V8 fijada en cinco ciclos de 300 épocas. `max_centroid_distance=null` congela la decisión de no filtrar por distancia al centroide; no se elegirá un corte mirando resultados.
+- **RPI-Net:** configuración V8 fijada en 50 épocas iniciales y una fase posterior de 30 como adaptación (el paper no fija el número de fases). El plan deberá declarar la actualización de P2 y conservar P1/P3/P4.
+- **TriDermNet-HAGO:** arquitectura desde cero, con SLED como maestro no supervisado; no se reutilizan checkpoints ni pesos clasificadores de Nico/V7. Configuración de adaptación: 150 épocas a 224×224 y warmup HAGO de 10 épocas. Esto no reproduce el entrenamiento supervisado del paper. Falta generar y revisar el manifiesto SLED, fijar su SHA-256 en la config y medir presupuesto.
 
 Registrar por método el dispositivo, timeout, RAM, memoria GPU, espacio de salida y reserva. Los probes sintéticos disponibles miden memoria/tiempo de pasos pequeños; no predicen duración del pool completo.
 
 ### 4. Ejecutar por método, con puerta entre etapas
 
-La primera comparación se ejecuta **de forma serial, un método a la vez**. Hay dos RTX disponibles, pero los probes registrados no autorizan concurrencia de corridas completas. Para cada método:
+La comparación se ejecuta **en serie, un método a la vez**. El inventario guardado el 2026-10-05 registró dos GPU; la disponibilidad actual no está confirmada y los probes no autorizan concurrencia de corridas completas. Para cada método:
 
 1. Verificar config, hashes, W&B online, manifiesto, gate y carpeta de salida nueva.
 2. Ejecutar `check`; confirmar método, etapa, manifiesto y presupuesto.
@@ -90,7 +91,7 @@ La primera comparación se ejecuta **de forma serial, un método a la vez**. Hay
    - SLED: `generate`;
    - USL-Net: `ccam` y luego `generate`; después de cada `fit`/`predict`, usar `refine` antes de iniciar el ciclo siguiente;
    - RPI-Net: `generate` con sus cuatro fuentes y, tras el ajuste inicial, `predict` → `refine` para la fase posterior;
-   - TriDermNet-HAGO: esperar el manifiesto maestro aprobado indicado en su receta; no generar máscaras con una red aleatoria.
+   - TriDermNet-HAGO: ejecutar SLED como maestro, revisar hashes/cobertura y aprobar el manifiesto; congelar su hash en la receta antes de entrenar TriDerm.
 4. Inspeccionar manifiesto producido, hashes, cantidad de éxitos/abstenciones, cobertura, salidas y registro W&B. Una abstención no se elimina silenciosamente ni reduce el denominador.
 5. Solo si la puerta de esa salida pasa, ejecutar `fit` cuando aplique y luego `predict`.
 6. Evaluar con máscaras expertas reservadas, publicar informe y hashes; cerrar el método antes de iniciar el siguiente.
@@ -115,13 +116,13 @@ python scripts/run_segmentation_v8.py --method <metodo> --stage fit \
 
 La opción solo está habilitada para `fit`; no se debe borrar `resume.pt`, renombrar la carpeta, cambiar la receta ni modificar la procedencia para forzar una continuación. Si los hashes no coinciden o falta el estado, se detiene y se abre una nueva ejecución desde la etapa afectada tras revisar la evidencia.
 
-El pipeline de varias etapas aún se ejecuta por comandos secuenciales, uno a la vez; todavía no existe un ledger que coordine ciclos/fases, salte automáticamente etapas completas ni recupere `pretrain/ccam/generate/predict/refine` por caso. Por eso, la política operativa sigue siendo detener → inspeccionar → corregir → reanudar el `fit` compatible o reiniciar solo la etapa fallida en salida nueva → verificar antes de continuar. El entrenamiento real permanece deshabilitado hasta cerrar las puertas de la sección siguiente.
+El controlador serial ya mantiene un ledger, omite pasos completos solo si coinciden sus hashes e identidades y puede recorrer ciclos/fases enumerados en el plan. Puede recuperar `fit` desde `resume.pt`; no reanuda automáticamente `pretrain/ccam/generate/predict/refine` parciales ni inventa gates o el plan científico. La política sigue siendo detener → inspeccionar → corregir → reanudar un `fit` compatible o reiniciar la etapa fallida en salida nueva → verificar antes de continuar. El entrenamiento real permanece deshabilitado hasta cerrar las puertas de la sección siguiente.
 
 ### Puertas obligatorias para habilitar ejecución real
 
 Por método y por etapa, la evidencia debe coincidir con el SHA del manifiesto e indicar: datos verificados, grupos/exclusiones confirmados, banco y procedencia verificados cuando corresponda, presupuesto medido, smoke aprobado, revisión de código y evaluación anatómica independiente resuelta. Para entrenamiento, todos los campos exigidos por `common/training.py::gate_report` deben ser verdaderos. Después se actualizan configs y gates juntos; no se cambia `execution_enabled` aisladamente.
 
-Los configs publicados aún dicen `execution_enabled=false`, `device=cpu`, `epochs=1`, `batch_size=2`, bancos/checkpoints nulos y `max_output_mb=4096`. Son valores de bloqueo/ejemplo, no una receta de corrida completa. W&B debe quedar online y con el proyecto acordado; la entrega de notificaciones debe confirmarse aparte.
+Las configuraciones mantienen `execution_enabled=false`, `device=cpu`, `batch_size=2` y `max_output_mb=4096` como bloqueos/valores provisionales; el presupuesto de épocas ya está especificado por método en esta sección. Los bancos y hashes de checkpoints/manifiestos siguen pendientes donde aplican. Estos valores de recursos no describen una corrida completa. W&B debe quedar online y con el proyecto acordado; la entrega de notificaciones se confirma aparte.
 
 ## Evidencia ya disponible y límites
 
