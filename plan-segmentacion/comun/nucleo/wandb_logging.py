@@ -1,10 +1,11 @@
 """Optional Weights & Biases sink for ``JsonlLogger`` and the evaluation stage.
 
 The cluster has no reachable TensorBoard or MLflow UI, so runs are mirrored to
-W&B when credentials exist. Everything is opt-in: with no ``WANDB_API_KEY``
-(or ``WANDB_MODE=offline``), no project, or no installed client, every method
-is a no-op and training keeps going. The key is read from the environment by
-the client itself and is never logged, printed or stored in the run config.
+W&B when credentials exist. Everything is opt-in: with no environment or
+private netrc credential (or ``WANDB_MODE=offline``), no project, or no installed
+client, every method is a no-op and training keeps going. ``WANDB_NETRC_FILE``
+selects an explicit file; otherwise ~/.netrc is used. File keys are exposed to
+the client only during initialization and are scrubbed from warnings/config.
 """
 
 from __future__ import annotations
@@ -12,6 +13,8 @@ from __future__ import annotations
 import hashlib
 import netrc
 import os
+from contextlib import contextmanager
+from threading import RLock
 from pathlib import Path as _Path
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
@@ -19,12 +22,43 @@ from pathlib import Path
 OFFLINE_MODE = "offline"
 RUN_ID_LENGTH = 12
 NETRC_HOST = "api.wandb.ai"
+NETRC_FILE_ENV = "WANDB_NETRC_FILE"
+_INIT_LOCK = RLock()
 
 
-def _scrub(text: str) -> str:
+def _scrub(text: str, api_key: str | None = None) -> str:
     """Remove the API key from a message before it reaches the terminal."""
-    key = os.environ.get("WANDB_API_KEY")
-    return text.replace(key, "***") if key else text
+    for key in (api_key, os.environ.get("WANDB_API_KEY")):
+        if key:
+            text = text.replace(key, "***")
+    return text
+
+
+def _safe_payload(value, api_key: str | None):
+    """Keep the resolved credential out of nested run configuration and records."""
+    if isinstance(value, str):
+        return _scrub(value, api_key)
+    if isinstance(value, Mapping):
+        return {k: _safe_payload(v, api_key) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_safe_payload(v, api_key) for v in value]
+    return value
+
+
+@contextmanager
+def _client_credential(api_key: str | None):
+    """Expose a file credential only during SDK initialization, then restore it."""
+    with _INIT_LOCK:
+        previous = os.environ.get("WANDB_API_KEY")
+        if api_key:
+            os.environ["WANDB_API_KEY"] = api_key
+        try:
+            yield
+        finally:
+            if previous is None:
+                os.environ.pop("WANDB_API_KEY", None)
+            else:
+                os.environ["WANDB_API_KEY"] = previous
 
 
 def run_id(group: str | None, run_name: str) -> str:
@@ -33,16 +67,23 @@ def run_id(group: str | None, run_name: str) -> str:
     return digest.hexdigest()[:RUN_ID_LENGTH]
 
 
-def _netrc_has_wandb() -> bool:
-    """True when ~/.netrc holds a password for the W&B host (``wandb login`` writes it)."""
-    path = _Path.home() / ".netrc"
-    if not path.is_file():
-        return False
+def _netrc_key() -> str | None:
+    """Read an explicit netrc path, or ~/.netrc when none was configured."""
     try:
+        configured = os.environ.get(NETRC_FILE_ENV, "").strip()
+        path = _Path(configured).expanduser() if configured else _Path.home() / ".netrc"
+        if not path.is_file():
+            return None
+        if os.name == "posix" and path.stat().st_mode & 0o077:
+            return None
         entry = netrc.netrc(str(path)).authenticators(NETRC_HOST)
     except Exception:  # a malformed or unreadable file is simply no credential
-        return False
-    return bool(entry and entry[2])
+        return None
+    return entry[2] if entry and entry[2] else None
+
+
+def _netrc_has_wandb() -> bool:
+    return bool(_netrc_key())
 
 
 def credentials_available() -> bool:
@@ -54,9 +95,9 @@ def credentials_available() -> bool:
     return _netrc_has_wandb()
 
 
-def _warn(action: str, error: Exception) -> None:
+def _warn(action: str, error: Exception, api_key: str | None = None) -> None:
     """One line, no credentials, so a broken backend is visible but harmless."""
-    detail = _scrub(f"{type(error).__name__}: {error}")
+    detail = _scrub(f"{type(error).__name__}: {error}", api_key)
     print(f"aviso: seguimiento W&B deshabilitado en {action} ({detail})", flush=True)
 
 
@@ -96,10 +137,13 @@ class WandbSink:
         self._run = None
         self._wandb = None
         self.enabled = False
+        self._api_key = None
         if not project:
             return
-        if not credentials_available():
-            _disabled("no hay credenciales (WANDB_API_KEY, WANDB_MODE=offline o ~/.netrc)")
+        offline = os.environ.get("WANDB_MODE", "").strip().lower() == OFFLINE_MODE
+        self._api_key = os.environ.get("WANDB_API_KEY") or (None if offline else _netrc_key())
+        if not self._api_key and not offline:
+            _disabled("no hay credenciales (WANDB_API_KEY, WANDB_MODE=offline, WANDB_NETRC_FILE o ~/.netrc)")
             return
         client = _import_wandb()
         if client is None:
@@ -108,19 +152,20 @@ class WandbSink:
         self._wandb = client
         resolved_group = group or os.environ.get("WANDB_RUN_GROUP") or None
         try:
-            self._run = client.init(
-                project=project,
-                name=run_name or None,
-                id=run_id(resolved_group, run_name),
-                resume="allow",
-                entity=os.environ.get("WANDB_ENTITY") or None,
-                group=resolved_group,
-                tags=list(tags),
-                config=dict(config or {}),
-                reinit=True,
-            )
+            with _client_credential(self._api_key):
+                self._run = client.init(
+                    project=project,
+                    name=run_name or None,
+                    id=run_id(resolved_group, run_name),
+                    resume="allow",
+                    entity=os.environ.get("WANDB_ENTITY") or None,
+                    group=resolved_group,
+                    tags=list(tags),
+                    config=_safe_payload(dict(config or {}), self._api_key),
+                    reinit=True,
+                )
         except Exception as error:  # tracking must never stop the training
-            _warn("init", error)
+            _warn("init", error, self._api_key)
             return
         self.enabled = True
 
@@ -130,13 +175,13 @@ class WandbSink:
             operation()
         except Exception as error:  # tracking must never stop the training
             self.enabled = False
-            _warn(action, error)
+            _warn(action, error, self._api_key)
 
     def log(self, record: Mapping) -> None:
         if not self.enabled:
             return
         step = record_step(record)
-        payload = dict(record)
+        payload = _safe_payload(dict(record), self._api_key)
         self._safely(
             "log",
             lambda: self._run.log(payload)
@@ -211,3 +256,4 @@ def add_tracking_arguments(parser) -> None:
     parser.add_argument(
         "--wandb-run-name", default="", help="Nombre de la corrida; por defecto <etapa>-<salida>"
     )
+

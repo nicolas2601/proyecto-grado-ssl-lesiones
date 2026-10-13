@@ -15,7 +15,7 @@ import wandb_logging as wl
 
 @pytest.fixture(autouse=True)
 def _clean_environment(monkeypatch, tmp_path):
-    for name in ("WANDB_API_KEY", "WANDB_MODE", "WANDB_ENTITY", "WANDB_RUN_GROUP", "WANDB_PROJECT"):
+    for name in ("WANDB_API_KEY", "WANDB_MODE", "WANDB_ENTITY", "WANDB_RUN_GROUP", "WANDB_PROJECT", "WANDB_NETRC_FILE"):
         monkeypatch.delenv(name, raising=False)
     # An isolated home so a developer .netrc never decides the outcome of a test.
     home = tmp_path / "home"
@@ -327,3 +327,89 @@ def test_no_warning_when_tracking_was_never_requested(capsys):
 def test_secondary_ranks_stay_silent(capsys):
     wl.sink_from_args(_args(), "moco", is_main=False)
     assert capsys.readouterr().out == ""
+
+
+def test_custom_netrc_path_is_read_without_changing_environment(tmp_path, monkeypatch):
+    path = _write_netrc(tmp_path)
+    before = path.read_bytes()
+    monkeypatch.setenv("WANDB_NETRC_FILE", str(path))
+    assert wl.credentials_available()
+    assert "WANDB_API_KEY" not in wl.os.environ
+    assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize("kind", ["missing", "malformed", "wrong_host", "public"])
+def test_invalid_explicit_file_does_not_fall_back_to_home(kind, tmp_path, monkeypatch, _clean_environment):
+    _write_netrc(_clean_environment)
+    path = tmp_path / "selected.netrc"
+    if kind == "malformed":
+        path.write_text("not a netrc\n")
+        path.chmod(0o600)
+    elif kind in ("wrong_host", "public"):
+        path = _write_netrc(tmp_path, machine="other.example" if kind == "wrong_host" else "api.wandb.ai")
+        if kind == "public":
+            if wl.os.name != "posix": pytest.skip("POSIX permission check")
+            path.chmod(0o644)
+    monkeypatch.setenv("WANDB_NETRC_FILE", str(path))
+    assert not wl.credentials_available()
+
+
+@pytest.mark.parametrize("fail_init", [False, True])
+def test_file_key_reaches_sdk_and_environment_is_restored(fail_init, tmp_path, monkeypatch, capsys):
+    path = _write_netrc(tmp_path, password="super-secret-value")
+    before = path.read_bytes()
+    monkeypatch.setenv("WANDB_NETRC_FILE", str(path))
+    client = _FakeClient(fail_init=fail_init)
+    real_init = client.init
+    observed = []
+    def init(**kwargs):
+        observed.append(wl.os.environ.get("WANDB_API_KEY"))
+        return real_init(**kwargs)
+    client.init = init
+    monkeypatch.setattr(wl, "_import_wandb", lambda: client)
+    sink = wl.WandbSink("p", "r", config={"nested": ["super-secret-value"]})
+    assert sink.enabled is not fail_init
+    assert observed == ["super-secret-value"]
+    assert "WANDB_API_KEY" not in wl.os.environ
+    assert client.init_kwargs["config"] == {"nested": ["***"]}
+    assert path.read_bytes() == before
+    assert "super-secret-value" not in capsys.readouterr().out
+
+
+def test_environment_key_wins_over_file_and_is_preserved(tmp_path, monkeypatch):
+    monkeypatch.setenv("WANDB_NETRC_FILE", str(_write_netrc(tmp_path)))
+    monkeypatch.setenv("WANDB_API_KEY", "environment-key")
+    client = _FakeClient()
+    def init(**kwargs):
+        assert wl.os.environ["WANDB_API_KEY"] == "environment-key"
+        return _FakeRun()
+    client.init = init
+    monkeypatch.setattr(wl, "_import_wandb", lambda: client)
+    assert _sink().enabled
+    assert wl.os.environ["WANDB_API_KEY"] == "environment-key"
+
+
+@pytest.mark.parametrize("operation", ["log", "finish"])
+def test_file_key_is_scrubbed_after_initialization(operation, tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("WANDB_NETRC_FILE", str(_write_netrc(tmp_path)))
+    client = _FakeClient()
+    monkeypatch.setattr(wl, "_import_wandb", lambda: client)
+    sink = _sink()
+    def fail(*args, **kwargs):
+        raise RuntimeError("failure containing netrc-secret")
+    setattr(client.run, operation, fail)
+    if operation == "log": sink.log({"epoch": 1})
+    else: sink.finish()
+    assert not sink.enabled
+    assert "netrc-secret" not in capsys.readouterr().out
+    assert "WANDB_API_KEY" not in wl.os.environ
+
+
+def test_file_key_is_removed_from_metric_records(tmp_path, monkeypatch):
+    monkeypatch.setenv("WANDB_NETRC_FILE", str(_write_netrc(tmp_path)))
+    client = _FakeClient()
+    monkeypatch.setattr(wl, "_import_wandb", lambda: client)
+    sink = _sink()
+    sink.log({"epoch": 1, "note": "value netrc-secret"})
+    assert client.run.logged == [({"epoch": 1, "note": "value ***"}, 1)]
+
