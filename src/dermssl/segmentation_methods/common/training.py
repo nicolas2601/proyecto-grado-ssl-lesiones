@@ -119,7 +119,7 @@ class ResumableRandomSampler(Sampler):
         self.epoch=state.get('epoch');self.permutation=permutation.long();self.cursor=cursor
 
 
-def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revision=None,resume=False):
+def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revision=None,resume=False,tracking_run_id=None):
     """No expert/diagnostic arguments; no split rebuilding or automatic downloads."""
     global _STOP_REQUESTED
     _STOP_REQUESTED=False
@@ -148,7 +148,8 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
     revision=revision or subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
     identity={'method':method,'revision':revision,'config_sha256':_json_hash(config),
               'manifest_sha256':digest(manifest_path),'gate_sha256':digest(gate_path),
-              'initialization_sha256':initial_hash,'architecture':model.__class__.__module__+'.'+model.__class__.__qualname__}
+              'initialization_sha256':initial_hash,'architecture':model.__class__.__module__+'.'+model.__class__.__qualname__,
+              'tracking_run_id':tracking_run_id}
     checkpoint_every=config.get('checkpoint_every_steps',100)
     if type(checkpoint_every)is not int or checkpoint_every<1:raise ValueError('checkpoint_every_steps must be a positive integer')
     if resume:
