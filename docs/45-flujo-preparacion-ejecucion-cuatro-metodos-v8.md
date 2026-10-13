@@ -97,24 +97,23 @@ Un error, cambio de manifiesto, fallo de hash, salida parcial o presupuesto exce
 
 ### Recuperación después de una pausa o un crash
 
-Sí: el flujo operativo esperado es **detener → inspeccionar → corregir → reanudar desde el último estado íntegro → verificar → continuar**. La revisión debe conservar logs, código de salida, etapa, hashes de código/config/manifiesto, estado W&B, motivo de la parada y artefactos parciales.
+El launcher V8 ahora permite reanudar una etapa `fit` de USL-Net, RPI-Net o TriDermNet-HAGO desde el último checkpoint íntegro. No se reanudan automáticamente las etapas `pretrain`, `ccam`, `generate` ni `predict`; una interrupción en ellas conserva la carpeta parcial y exige revisión antes de decidir cómo reiniciar esa etapa en una carpeta nueva. SLED no tiene una etapa `fit`.
 
-**Esta reanudación aún no está implementada en V8.** En el código actual, `fit` guarda `final.pt` al terminar, no un estado completo del optimizador y del cursor de entrenamiento; además, el launcher rechaza una carpeta de salida existente. Repetir el mismo comando no reanuda el trabajo. El pipeline V7 también detenía la secuencia ante error; eso no equivale a reanudación durable.
+En `fit`, el estado atómico `resume.pt` guarda pesos, AdamW, época, cursor y permutación del sampler, métricas parciales, resultados de épocas y RNG de Python, NumPy, CPU y CUDA. También conserva el contador de HAGO. Se escribe al inicio, cada 100 pasos (configurable con `checkpoint_every_steps`), al cierre de época y al recibir SIGTERM/SIGINT en una frontera segura entre lotes. El launcher espera hasta 120 segundos para que el worker escriba el estado después de una parada ordenada. Un corte abrupto puede repetir como máximo los lotes procesados desde el último guardado; si el proceso cae mientras escribe, el checkpoint anterior permanece íntegro.
 
-Antes de una corrida larga, agregar y revisar:
-- checkpoints atómicos reanudables con pesos, optimizador, scheduler/scaler si aplica, época, lote/cursor, sampler y estados RNG de Python, NumPy, CPU y CUDA;
-- identidades verificables de checkpoint, arquitectura, hash de código/config/manifiesto, inicializaciones públicas y run ID de W&B;
-- registro por etapa con estado `pending/running/failed/completed`, artefactos y checksums, para saltar solo etapas completadas e íntegras;
-- una opción explícita de reanudación que valide esas identidades, continúe el mismo run W&B y rechace estados incompatibles;
-- guardado ante parada ordenada y recuperación tras terminación abrupta. Para evitar repetir lotes, el checkpoint necesita cursor/sampler y RNG de lote; un checkpoint solo al final de época repetiría la época incompleta.
+Antes de abrir W&B, `--resume` comprueba que el nombre de salida conserva el mismo run ID. El trainer rechaza el estado si cambió revisión de código, método/arquitectura, configuración, gate, manifiesto, inicialización o run ID de W&B. No descarga pesos ni consulta V7. La carpeta anterior y sus artefactos se preservan.
 
-Reglas de recuperación:
-1. Si solo falló infraestructura y datos, receta y hashes siguen idénticos, continuar desde el último checkpoint íntegro.
-2. Si cambia un umbral/presupuesto no científico, registrar versión nueva y comprobar que el estado del optimizador sigue siendo compatible antes de reanudar.
-3. Si cambia arquitectura, manifiesto, inicialización o protocolo científico, no mezclar el estado anterior: abrir una ejecución nueva desde la etapa afectada con nueva procedencia.
-4. Nunca borrar ni sobrescribir la carpeta fallida; conservarla como evidencia y crear un destino de reanudación enlazado al run anterior.
+Uso, después de inspeccionar logs y resolver la causa de la parada:
 
-Hasta que exista este soporte, solo puede recuperarse manualmente una etapa no iniciada usando salidas previas verificadas; una etapa `fit` interrumpida no debe etiquetarse como reanudada.
+```bash
+python scripts/run_segmentation_v8.py --method <metodo> --stage fit \
+  --config <config.json> --manifest <manifiesto.json> --gate <gate.json> \
+  --out <misma-carpeta-de-salida> --wandb-project <proyecto> --resume
+```
+
+La opción solo está habilitada para `fit`; no se debe borrar `resume.pt`, renombrar la carpeta, cambiar la receta ni modificar la procedencia para forzar una continuación. Si los hashes no coinciden o falta el estado, se detiene y se abre una nueva ejecución desde la etapa afectada tras revisar la evidencia.
+
+El pipeline de varias etapas aún se ejecuta por comandos secuenciales, uno a la vez; todavía no existe un ledger que salte automáticamente etapas completas ni recupere `pretrain/ccam/generate/predict` por caso. Por eso, la política operativa sigue siendo detener → inspeccionar → corregir → reanudar el `fit` compatible o reiniciar solo la etapa fallida en salida nueva → verificar antes de continuar. El entrenamiento real permanece deshabilitado hasta cerrar las puertas de la sección siguiente.
 
 ### Puertas obligatorias para habilitar ejecución real
 
