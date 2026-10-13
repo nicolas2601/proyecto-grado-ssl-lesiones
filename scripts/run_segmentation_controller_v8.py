@@ -163,14 +163,6 @@ def main():
         return 0
 
     run_root.mkdir(parents=True, exist_ok=True)
-    lock_path = run_root / "controller.lock"
-    try:
-        fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    except FileExistsError as error:
-        raise RuntimeError("Controller lock exists; inspect its owner before recovery") from error
-    os.write(fd, str(os.getpid()).encode())
-    os.close(fd)
-
     ledger_path = run_root / "ledger.json"
     plan_hash = file_sha(plan_path)
     if ledger_path.exists():
@@ -185,6 +177,14 @@ def main():
         ledger = {"protocol": plan["protocol"], "method": plan["method"], "plan_sha256": plan_hash,
                   "status": "prepared", "steps": {}}
         atomic_json(ledger_path, ledger)
+
+    lock_path = run_root / "controller.lock"
+    try:
+        fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    except FileExistsError as error:
+        raise RuntimeError("Controller lock exists; inspect its owner before recovery") from error
+    os.write(fd, str(os.getpid()).encode())
+    os.close(fd)
 
     try:
         for step in steps:
