@@ -15,7 +15,7 @@ def digest(path):
     with Path(path).open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
 
 
-def read_manifest(path, *, need_pseudos=False, sources=1, training=False):
+def read_manifest(path, *, need_pseudos=False, sources=1, training=False, expected_pseudo_method=None):
     document=json.loads(Path(path).read_text())
     if not isinstance(document,dict) or set(document)-{'schema_version','partition','count','eligibility','records'} or document.get('schema_version')!=1:
         raise ValueError('Versioned eligible-pool manifest required; no directory scan or implicit resplit')
@@ -42,6 +42,8 @@ def read_manifest(path, *, need_pseudos=False, sources=1, training=False):
             origins=r.get('pseudo_provenance',[])
             if len(origins)!=sources:raise ValueError('Every pseudo source needs provenance')
             for origin in origins:
+                if expected_pseudo_method is not None and origin.get('method')!=expected_pseudo_method:
+                    raise ValueError('Pseudo-label producer differs from the frozen method configuration')
                 if origin.get('uses_expert_masks') is not False or origin.get('uses_diagnoses') is not False:
                     raise ValueError('Expert/diagnostic supervision prohibited in W3')
                 if not origin.get('producer_revision') or not origin.get('method'):raise ValueError('Pseudo producer identity missing')
