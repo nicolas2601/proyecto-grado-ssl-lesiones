@@ -47,11 +47,24 @@ HAGO tiene calentamiento de diez épocas; un config de una época es un marcador
 
 **Cierre requerido:** fijar el maestro/pseudo manifiesto y su procedencia antes de entrenar; declarar si 150 épocas se adopta como presupuesto de adaptación o si se definirá otro criterio de parada; asegurar que la receta supera el warmup y registra evolución de pesos HAGO. Agregar etapa de generación solo si TriDerm va a generar sus propias pseudo máscaras; no generar etiquetas desde una red aleatoria.
 
+## Compatibilidad de las inicializaciones públicas
+
+La lista de orígenes ya está acotada por método, pero todavía no existe un banco cargable y verificado. El código define encoders propios (ResNet50Stages y PatchTransformer) y load_reviewed exige que el campo model del checkpoint coincida estrictamente con esos nombres y formas de parámetros. Identificar el enlace público no termina la tarea: se necesita un adaptador reproducible para cada formato y registrar su hash/licencia.
+
+| Origen | Fuente pública candidata | Trabajo técnico pendiente |
+|---|---|---|
+| SimCLR v1 ResNet50 1x | [Google Research SimCLR](https://github.com/google-research/simclr), pesos publicados por el proyecto | El checkpoint original es TensorFlow. El README oficial menciona conversión a PyTorch; falta adaptar y auditar esa conversión al ResNet50Stages local. |
+| MoCo v1/v2 ResNet50 | [Facebook Research MoCo](https://github.com/facebookresearch/moco); candidato MoCo v2 800 épocas | Extraer únicamente el encoder de la vista online y mapear stem/layers/downsample al ResNet local; comprobar normalización y carga estricta. |
+| MoCo v3 ResNet50 | [Facebook Research MoCo v3](https://github.com/facebookresearch/moco-v3), con checkpoints oficiales de 100/300/1000 épocas | Elegir el checkpoint conforme al paper, extraer el encoder y convertir nombres de estado al modelo local. Revisar la licencia archivada del proyecto antes de distribuir el artefacto. |
+| DINO ViT-S/16 | [Facebook Research DINO](https://github.com/facebookresearch/dino), entrada oficial dino_vits16 | La dimensión/profundidad del ViT local coinciden con ViT-S/16, pero la estructura de bloques y las claves del state dict difieren. Hace falta un mapeo revisado para patch embed, posición, QKV, MLP y normalización. |
+
+Las fuentes anteriores identifican repositorios oficiales, no certifican que el paper de cada método haya usado exactamente esos checkpoints o número de épocas. Se debe contrastar esa selección con los tres papers y guardar URL de archivo, licencia, SHA-256 y normalización en el manifiesto de procedencia. No descargar ni producir conversiones hasta completar ese mapeo. La alternativa de preentrenar encoders V8 localmente sigue siendo una adaptación distinta y no sustituye en silencio los inicializadores públicos requeridos.
+
 ## Bloqueos comunes
 
 1. Congelar manifiesto elegible y partición por paciente/lesión; resolver la ruta y la reserva de máscaras de referencia independientes para evaluación anatómica.
 2. Acordar el protocolo de comparación: máscaras producidas directamente frente a segmentadores finales; mismas imágenes, resolución, umbrales, métricas, tratamiento de abstenciones y denominador. Distinguir resultados de pseudo máscaras de resultados de segmentación final.
-3. Completar bancos públicos únicamente para USL-Net y RPI-Net. Guardar fuente oficial, licencia, arquitectura, normalización, SHA-256 y cualquier conversión revisada. No descargar ni aceptar pesos hasta verificar estos datos.
+3. Completar bancos públicos únicamente para USL-Net y RPI-Net. Implementar conversiones estrictas a los encoders locales y guardar fuente oficial, licencia, arquitectura, normalización, SHA-256 y conversión revisada. No descargar ni aceptar pesos antes de cerrar compatibilidad.
 4. Medir recursos del clúster y reemplazar, con evidencia, los marcadores comunes actuales: `device=cpu`, `epochs=1`, `batch_size=2`, timeout 180 s y salida máxima 4096 MiB. Los límites no describen una corrida completa.
 5. Hacer reanudables las etapas iterativas de USL y RPI y dejar un registro inmutable de cada ciclo/fase. El trainer ya puede cargar una inicialización previa marcada como V8; `fit` sigue siendo reanudable. `refine` ahora es una etapa separada con gate, pero no se reanuda automáticamente y aún falta un controlador que coordine todos los pasos por ciclo/fase.
 6. Mantener `execution_enabled=false` hasta que gates, configuraciones, pesos, datos, evaluación y presupuesto coincidan y estén revisados.
