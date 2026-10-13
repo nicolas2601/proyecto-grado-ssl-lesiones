@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader,Sampler
 from .data import read_manifest,make_dataset,digest
-from .checkpoints import save_checkpoint
+from .checkpoints import save_checkpoint,load_reviewed
 
 _STOP_REQUESTED=False
 
@@ -134,7 +134,16 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
     if type(epochs)is not int or epochs<1 or type(batch)is not int or batch<1:raise ValueError('Explicit positive epoch/batch budget required')
     seed=config.get('seed',42);seed_all(seed);device=prepare_device(config)
     model=model_for(method).to(device)
-    if initial is not None:model.load_state_dict(initial,strict=True)
+    checkpoint_path=config.get('initial_checkpoint')
+    provenance_path=config.get('initial_checkpoint_provenance')
+    if bool(checkpoint_path)!=bool(provenance_path):
+        raise ValueError('Iterative initialization requires both checkpoint and provenance paths')
+    if initial is not None and checkpoint_path:
+        raise ValueError('Choose one explicit initial-weight source')
+    if initial is not None:
+        model.load_state_dict(initial,strict=True)
+    elif checkpoint_path:
+        load_reviewed(model,checkpoint_path,provenance_path,expected_method=method,device=device)
     initial_hash=_state_hash(model.state_dict())
     dataset=make_dataset(document,size,sources,paired_flip=True,seed=seed)
     sampler=ResumableRandomSampler(len(dataset),seed)
@@ -161,15 +170,15 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
             hago.step_number=int(payload['hago_step_number'])
         epoch=int(payload['epoch']);global_step=int(payload['global_step'])
         sampler.load_state_dict(payload['sampler']);_restore_rng(payload['rng'],loader_generator)
-        losses=list(payload.get('epoch_losses',[]));results=list(payload.get('results',[]))
+        losses=list(payload.get('epoch_losses',[]));results=list(payload.get('results',[]));hago_metrics=list(payload.get('hago_metrics',[]))
         if epoch<0 or epoch>epochs:raise ValueError('Checkpoint epoch exceeds configured budget')
     else:
         out.mkdir(parents=True);(out/'config.json').write_text(json.dumps(config,indent=2)+'\n')
-        epoch=0;global_step=0;losses=[];results=[]
+        epoch=0;global_step=0;losses=[];results=[];hago_metrics=[]
     def save_resume():
         _atomic_checkpoint(resume_path,{'identity':identity,'model':model.state_dict(),'optimizer':optimizer.state_dict(),
             'epoch':epoch,'global_step':global_step,'sampler':sampler.state_dict(),'epoch_losses':losses,
-            'results':results,'rng':_rng_state(loader_generator),
+            'results':results,'hago_metrics':hago_metrics,'rng':_rng_state(loader_generator),
             'hago_step_number':None if hago is None else hago.step_number})
     if not resume:
         sampler.set_epoch(epoch)
@@ -191,7 +200,8 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
                 outputs=model(image);tasks=triderm_losses(outputs,target,valid)
                 loss=tasks['segmentation']+tasks['coverage']
             if not torch.isfinite(loss):raise ValueError('Nonfinite training loss')
-            if hago is not None:hago.step(tasks['segmentation'],tasks['coverage'],outputs['coverage_logits'],epoch)
+            if hago is not None:
+                hago_metrics.append(hago.step(tasks['segmentation'],tasks['coverage'],outputs['coverage_logits'],epoch))
             else:
                 loss.backward()
                 if any(p.grad is not None and not torch.isfinite(p.grad).all() for p in model.parameters()):raise ValueError('Nonfinite gradient')
@@ -203,11 +213,19 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
                 raise InterruptedError('Training stopped at a safe batch boundary; resume.pt is current')
         record={'epoch':epoch+1,'step':global_step,'mean_loss':float(np.mean(losses)),
                 'elapsed_seconds':time.monotonic()-start,'sample_count':len(dataset)}
-        results.append(record);epoch+=1;losses=[]
+        if hago is not None:
+            record['hago_warmup_fraction']=float(np.mean([m['warmup'] for m in hago_metrics])) if hago_metrics else 0.
+            weights=[m['segmentation_weight'] for m in hago_metrics if not m['warmup']]
+            entropies=[m['entropy'] for m in hago_metrics if 'entropy' in m]
+            record['hago_segmentation_weight_mean']=float(np.mean(weights)) if weights else None
+            record['hago_entropy_mean']=float(np.mean(entropies)) if entropies else None
+            record['hago_noise_fraction']=float(np.mean([m['noise_applied'] for m in hago_metrics])) if hago_metrics else 0.
+        results.append(record);epoch+=1;losses=[];hago_metrics=[]
         save_resume()
         metrics_tmp=out/'metrics.jsonl.tmp'
         metrics_tmp.write_text(''.join(json.dumps(row)+'\n' for row in results))
         os.replace(metrics_tmp,out/'metrics.jsonl')
         if sink is not None:sink.log(record)
-    save_checkpoint(model,out/'final.pt',method=method,revision=revision,manifest_sha=digest(manifest_path),extra={'epochs':epochs,'steps':global_step})
+    save_checkpoint(model,out/'final.pt',method=method,revision=revision,manifest_sha=digest(manifest_path),extra={'epochs':epochs,'steps':global_step,'initialization_sha256':initial_hash,
+                                                                        'initial_checkpoint':str(checkpoint_path) if checkpoint_path else None})
     return results
