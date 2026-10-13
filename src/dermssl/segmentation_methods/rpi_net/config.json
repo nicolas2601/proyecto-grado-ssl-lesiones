@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "method": "rpi_net",
+  "execution_enabled": false,
+  "stages": [
+    "check",
+    "synthetic",
+    "pretrain",
+    "generate",
+    "fit",
+    "predict"
+  ],
+  "resolution": 224,
+  "seed": 42,
+  "device": "cpu",
+  "epochs": 1,
+  "batch_size": 2,
+  "learning_rate": 0.001,
+  "weight_decay": 1e-05,
+  "resources": {
+    "timeout_seconds": 180,
+    "max_rss_mb": 4096,
+    "max_output_mb": 4096,
+    "max_gpu_memory_mb": null,
+    "gpu_reserve_mb": 1024
+  },
+  "source_bank": null,
+  "checkpoint": null,
+  "checkpoint_provenance": null,
+  "comparison": "common eligible originals; all masks evaluated separately; same downstream student budget",
+  "detach_alpha": true,
+  "token_grid": 14,
+  "native_recipe": {
+    "initial_epochs": 50,
+    "later_phase_epochs": 30,
+    "phase_count": "not fully specified"
+  },
+  "cam_target": "ssl_energy_gradcampp",
+  "cluster_polarity": "border_majority_background"
+}

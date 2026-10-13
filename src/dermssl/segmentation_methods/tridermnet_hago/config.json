@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "method": "tridermnet_hago",
+  "execution_enabled": false,
+  "stages": [
+    "check",
+    "synthetic",
+    "fit",
+    "predict"
+  ],
+  "resolution": 224,
+  "seed": 42,
+  "device": "cpu",
+  "epochs": 1,
+  "batch_size": 2,
+  "learning_rate": 0.001,
+  "weight_decay": 1e-05,
+  "resources": {
+    "timeout_seconds": 180,
+    "max_rss_mb": 4096,
+    "max_output_mb": 4096,
+    "max_gpu_memory_mb": null,
+    "gpu_reserve_mb": 1024
+  },
+  "source_bank": null,
+  "checkpoint": null,
+  "checkpoint_provenance": null,
+  "comparison": "common eligible originals; all masks evaluated separately; same downstream student budget",
+  "diagnostic_classification_enabled": false,
+  "auxiliary_target": "pseudo_lesion_coverage",
+  "hago": {
+    "warmup_epochs": 10,
+    "balance": "suppress_dominant",
+    "noise_std": 0.0,
+    "seed": 42
+  },
+  "native_recipe": {
+    "epochs": 150,
+    "resolution": 256,
+    "supervision": "expert masks + diagnostic classes; excluded in W3"
+  }
+}

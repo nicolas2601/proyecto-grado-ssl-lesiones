@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "method": "sled",
+  "execution_enabled": false,
+  "stages": [
+    "check",
+    "synthetic",
+    "generate",
+    "predict"
+  ],
+  "resolution": 224,
+  "seed": 42,
+  "device": "cpu",
+  "epochs": 1,
+  "batch_size": 2,
+  "learning_rate": 0.001,
+  "weight_decay": 1e-05,
+  "resources": {
+    "timeout_seconds": 180,
+    "max_rss_mb": 4096,
+    "max_output_mb": 4096,
+    "max_gpu_memory_mb": null,
+    "gpu_reserve_mb": 1024
+  },
+  "source_bank": null,
+  "checkpoint": null,
+  "checkpoint_provenance": null,
+  "comparison": "common eligible originals; all masks evaluated separately; same downstream student budget",
+  "sled": {
+    "scales": [
+      200,
+      250,
+      300,
+      350,
+      400,
+      450,
+      500,
+      550,
+      600,
+      650
+    ],
+    "centroid_mode": "correct_all",
+    "selection_variant": "gaussian_corrected",
+    "refinement_passes": 30
+  }
+}

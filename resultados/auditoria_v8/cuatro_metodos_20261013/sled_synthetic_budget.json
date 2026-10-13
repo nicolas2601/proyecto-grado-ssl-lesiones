@@ -1,0 +1,21 @@
+{
+  "status": "synthetic_default_sled_completed",
+  "resolution": 224,
+  "scales": [
+    200,
+    250,
+    300,
+    350,
+    400,
+    450,
+    500,
+    550,
+    600,
+    650
+  ],
+  "seconds": 7.8033541019999575,
+  "max_rss_mb": 156.19921875,
+  "mask_area_fraction": 0.1257374043367347,
+  "real_images_read": 0,
+  "no_scientific_accuracy_claim": true
+}
