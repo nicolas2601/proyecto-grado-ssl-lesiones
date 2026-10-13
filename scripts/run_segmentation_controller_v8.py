@@ -101,11 +101,13 @@ def validate_plan(plan, path):
         if step["id"] in seen:
             raise ValueError("Step IDs must be unique")
         seen.add(step["id"])
-        if step["stage"] not in {"ccam", "generate", "fit", "predict", "refine"}:
+        if step["stage"] not in {"pretrain", "ccam", "generate", "fit", "predict", "refine"}:
             raise ValueError("Controller plan only accepts concrete pipeline stages")
         for key in ("manifest", "gate", "config"):
             if not Path(step[key]).is_file():
                 raise ValueError(f"Missing {key} for step {step['id']}: {step[key]}")
+        if step["stage"] == "pretrain" and not step.get("ssl_origin"):
+            raise ValueError(f"Pretrain step {step['id']} requires ssl_origin")
         if step["stage"] == "refine" and not step.get("predictions"):
             raise ValueError(f"Refine step {step['id']} requires its completed predictions directory")
         if step["stage"] != "refine" and step.get("predictions"):
