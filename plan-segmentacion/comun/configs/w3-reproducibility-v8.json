@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "registered_at": "2026-10-12 America/Bogota",
+  "baseline_revision": "59c7ae4a3c4c6ed5bcd22bd8a8d245ca13e95559",
+  "sample_count": 100,
+  "sample": "fixed W0 eligible development IDs, original RGB only",
+  "primary_resolution": [
+    224,
+    224
+  ],
+  "training_authorized_by_this_registry": false,
+  "expert_evaluation_gate": "unresolved independent anatomical evaluation; W3 diagnostics do not establish efficacy",
+  "s0": "Frozen W2 CCAM seed pipeline; W0 student-r2 masks are separate",
+  "candidates": [
+    {
+      "id": "sled",
+      "status": "reviewed_blocked_source_and_environment",
+      "paper": "https://arxiv.org/abs/2309.01899",
+      "repository": "https://github.com/SELGroup/SLED",
+      "revision": "3213eacb65577c0d52f424369158fb56c609238e",
+      "license_identified": false,
+      "weights": "none",
+      "risks": [
+        "no_license_identified",
+        "legacy_python_and_java",
+        "example_entry_loads_ground_truth",
+        "gaussian_kernel_is_1x1",
+        "zero_denominators",
+        "unseeded_isolation_forest",
+        "ten_parallel_workers_and_shared_cwd_temporary_files"
+      ],
+      "gates": {
+        "implementation_verified": false,
+        "source_use_resolved": false,
+        "label_free_inputs_verified": false,
+        "weights_provenance_resolved": true,
+        "isolated_environment_verified": false,
+        "smoke_passed": false
+      }
+    },
+    {
+      "id": "usl_net",
+      "status": "paper_reviewed_adaptation_required",
+      "paper": "https://arxiv.org/html/2309.13289v3",
+      "doi": "10.1016/j.bspc.2023.105769",
+      "repository": null,
+      "revision": "arxiv:2309.13289v3",
+      "weights": "SimCLR/MoCov1/MoCov2 ResNet50 origins unresolved for local adaptation",
+      "risks": [
+        "official_repository_not_identified",
+        "current_pipeline_already_implements_usl_style_um",
+        "full_method_not_an_independent_master_without_new_feature_recipe",
+        "centrality_text_and_pseudocode_disagree",
+        "FCN_and_fusion_differ_from_current_pipeline",
+        "five_300_epoch_cycles_not_a_small_mask_pilot"
+      ],
+      "gates": {
+        "implementation_verified": false,
+        "source_use_resolved": true,
+        "label_free_inputs_verified": false,
+        "weights_provenance_resolved": false,
+        "isolated_environment_verified": false,
+        "smoke_passed": false
+      }
+    },
+    {
+      "id": "rpi_net",
+      "status": "blocked_full_text_and_implementation",
+      "paper": "https://doi.org/10.1016/j.bspc.2025.108433",
+      "repository": null,
+      "revision": null,
+      "weights": null,
+      "risks": [
+        "only_publisher_preview_reviewed",
+        "full_text_not_obtained",
+        "official_repository_not_identified",
+        "IPC_PIA_DUL_not_specified_reproducibly"
+      ],
+      "gates": {
+        "implementation_verified": false,
+        "source_use_resolved": false,
+        "label_free_inputs_verified": false,
+        "weights_provenance_resolved": false,
+        "isolated_environment_verified": false,
+        "smoke_passed": false
+      }
+    }
+  ]
+}

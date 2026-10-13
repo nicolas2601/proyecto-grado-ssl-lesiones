@@ -1,0 +1,68 @@
+{
+  "status": "inputs_verified_methods_gated",
+  "code_base_revision": "59c7ae4a3c4c6ed5bcd22bd8a8d245ca13e95559",
+  "source_hashes": {
+    "scripts/preflight_w3.py": "7a3dd09515b747bb2c82cbcc308ccacfaefcef648dd4adfa3f30f38b934b0ae4",
+    "src/dermssl/w3_preflight.py": "82e3856d3db906ebc00e6117facd9306ac19581c3861be834564f931b908a020"
+  },
+  "registry_sha256": "7b1d3d370fcad43efa13195a7b76179b965a7daa0686e194928c318cdb3b0d31",
+  "data_preflight_sha256": "0edc0841a61ac3826dbea5ceb26aaab7894b97157c328e79c40ba4ba34872883",
+  "data_validation_revision": "8da61a06502e4c8f2a7e5e21eb0d01da6314c984",
+  "count": 100,
+  "selection": "unchanged W0 development IDs; not an independent expert evaluation",
+  "candidate_readiness": [
+    {
+      "method": "sled",
+      "ready_for_pilot": false,
+      "missing_gates": [
+        "implementation_verified",
+        "source_use_resolved",
+        "label_free_inputs_verified",
+        "isolated_environment_verified",
+        "smoke_passed"
+      ],
+      "status": "reviewed_blocked_source_and_environment"
+    },
+    {
+      "method": "usl_net",
+      "ready_for_pilot": false,
+      "missing_gates": [
+        "implementation_verified",
+        "label_free_inputs_verified",
+        "weights_provenance_resolved",
+        "isolated_environment_verified",
+        "smoke_passed"
+      ],
+      "status": "paper_reviewed_adaptation_required"
+    },
+    {
+      "method": "rpi_net",
+      "ready_for_pilot": false,
+      "missing_gates": [
+        "implementation_verified",
+        "source_use_resolved",
+        "label_free_inputs_verified",
+        "weights_provenance_resolved",
+        "isolated_environment_verified",
+        "smoke_passed"
+      ],
+      "status": "blocked_full_text_and_implementation"
+    }
+  ],
+  "python": "3.13.15",
+  "versions": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.0",
+    "scikit-learn": "1.9.0",
+    "scikit-image": "0.26.0",
+    "pyod": null,
+    "jpype1": null,
+    "numba": "0.67.0",
+    "torch": "2.11.0+cu128",
+    "wandb": "0.30.0"
+  },
+  "methods_executed": [],
+  "gpu_training_started": false,
+  "baseline_note": "W0 student-r2 pseudomasks are not W2 S0 CCAM seeds",
+  "wandb_note": "No run created: this is preparation, not an experiment result"
+}
