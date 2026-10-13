@@ -205,7 +205,7 @@ def main():
         "source_license": args.license_id,
         "source_sha256": sha256(args.source),
         "checkpoint_sha256": sha256(args.output),
-        "architecture": "DINO_ViT-S/16_224" if args.origin == "dino" else "ResNet50",
+        "architecture": "DINO_ViT-S/16_224" if args.origin == "dino" else "ResNet50_encoder_local_last_stride_1",
         "adapter": ADAPTER_VERSION,
         "input_normalization": args.input_normalization,
         "mapped_tensor_count": len(mapped),
