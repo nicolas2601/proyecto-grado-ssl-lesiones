@@ -33,7 +33,7 @@ El controlador es un motor serial recuperable, no genera automáticamente un pla
 
 El último inventario guardado en `resultados/entorno/hardware.json` se midió el **2026-10-05**: 2 GPU NVIDIA RTX PRO 4000 Blackwell con 24.467 MiB cada una, CPU de 48 hilos lógicos, 123 GiB de RAM, volumen compartido de 40 T y `/dev/shm` de 64 MiB. Es una referencia histórica, no una lectura de disponibilidad actual.
 
-La observación actual de Jupyter no quedó disponible: el navegador rechazó leer el estado retenido tras una entrega de credenciales. Por tanto, el estado actual de procesos, VRAM libre, RAM/disco disponibles y logs del pod queda **sin confirmar**; no se interpreta como clúster vacío. La próxima medición debe ser de solo lectura en el pod y guardar fecha UTC, límites cgroup, procesos existentes, GPU y espacio libre antes de crear el plan de ejecución.
+En la revisión del 2026-10-13, una pestaña nueva abrió JupyterLab y el explorador `/user/nmoreno534/tree`, pero la vista quedó en blanco y no expuso archivos, terminal, procesos ni registros. La observación del estado retenido también fue restringida por el navegador. Por tanto, procesos actuales, VRAM libre, RAM/disco disponibles y logs del pod quedan **sin confirmar**; esto no significa que el clúster esté vacío. La próxima medición debe ser de solo lectura en el pod y guardar fecha UTC, límites cgroup, procesos existentes, GPU y espacio libre antes de crear el plan de ejecución.
 
 ## Lista de cierre previa al entrenamiento
 
