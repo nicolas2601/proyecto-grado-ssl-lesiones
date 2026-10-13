@@ -101,7 +101,7 @@ El launcher V8 ahora permite reanudar una etapa `fit` de USL-Net, RPI-Net o TriD
 
 En `fit`, el estado atómico `resume.pt` guarda pesos, AdamW, época, cursor y permutación del sampler, métricas parciales, resultados de épocas y RNG de Python, NumPy, CPU y CUDA. También conserva el contador de HAGO. Se escribe al inicio, cada 100 pasos (configurable con `checkpoint_every_steps`), al cierre de época y al recibir SIGTERM/SIGINT en una frontera segura entre lotes. El launcher espera 120 segundos por defecto para que el worker escriba el estado después de una parada ordenada; se puede fijar el margen con `resources.shutdown_grace_seconds`. Un corte abrupto puede repetir como máximo los lotes procesados desde el último guardado; si el proceso cae mientras escribe, el checkpoint anterior permanece íntegro.
 
-Antes de abrir W&B, `--resume` comprueba que el nombre de salida conserva el mismo run ID. El trainer rechaza el estado si cambió revisión de código, método/arquitectura, configuración, gate, manifiesto, inicialización o run ID de W&B. No descarga pesos ni consulta V7. La carpeta anterior y sus artefactos se preservan.
+Antes de abrir W&B, `--resume` comprueba que el nombre de salida conserva el mismo run ID. El trainer rechaza el estado si cambió la revisión o los hashes de archivos fuente, método/arquitectura, configuración, gate, manifiesto, inicialización o run ID de W&B. No descarga pesos ni consulta V7. La carpeta anterior y sus artefactos se preservan.
 
 Uso, después de inspeccionar logs y resolver la causa de la parada:
 
