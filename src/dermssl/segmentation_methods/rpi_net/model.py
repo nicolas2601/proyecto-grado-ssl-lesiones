@@ -6,6 +6,28 @@ from torch.nn import functional as F
 from ..common.networks import ResNet50Stages, Pyramid, image_batch
 
 
+def adaptive_average_tokens(feature, grid):
+    """Adaptive-average bins with a deterministic CUDA backward path.
+
+    Integer ratios use ordinary average pooling. Other geometries retain the
+    same floor/ceil bins as adaptive pooling, including overlapping bins.
+    """
+    height, width = feature.shape[-2:]
+    rows, columns = grid
+    if rows < 1 or columns < 1:
+        raise ValueError('Positive token grid required')
+    if height % rows == 0 and width % columns == 0:
+        return F.avg_pool2d(feature, (height // rows, width // columns))
+    return torch.stack([
+        torch.stack([
+            feature[..., (i * height) // rows:((i + 1) * height + rows - 1) // rows,
+                    (j * width) // columns:((j + 1) * width + columns - 1) // columns].mean(dim=(-2, -1))
+            for j in range(columns)
+        ], dim=-1)
+        for i in range(rows)
+    ], dim=-2)
+
+
 class CrossAttention(nn.Module):
     def __init__(self, width):
         super().__init__(); self.q=nn.Linear(width,width); self.k=nn.Linear(width,width); self.v=nn.Linear(width,width)
@@ -46,8 +68,8 @@ class RPINet(nn.Module):
         n=len(images); size=images.shape[-2:]; grid=(self.token_grid,self.token_grid)
         flat_pseudo=pseudos.reshape(n*4,1,*size)
         pf=self.pseudo_pyramid(self.pseudo_encoder(flat_pseudo)[:3])
-        pf=F.adaptive_avg_pool2d(pf,grid).reshape(n,4,-1,*grid)
-        img_tokens=F.adaptive_avg_pool2d(image_feature,grid).flatten(2).transpose(1,2)
+        pf=adaptive_average_tokens(pf,grid).reshape(n,4,-1,*grid)
+        img_tokens=adaptive_average_tokens(image_feature,grid).flatten(2).transpose(1,2)
         pt=[pf[:,i].flatten(2).transpose(1,2) for i in range(4)]
         refined=self.interaction(img_tokens,pt)
         sigmas=[self.uncertainty(t.transpose(1,2).reshape(n,-1,*grid)) for t in refined]

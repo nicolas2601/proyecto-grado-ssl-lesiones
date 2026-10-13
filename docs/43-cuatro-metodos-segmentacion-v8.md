@@ -235,17 +235,13 @@ SLED default completo (224², diez escalas200..650) terminó sobre imagen sinté
 en aproximadamente7.8s y156MiB de máximoRSS local. Es diagnóstico de recursos,
 NO pronóstico fiable para cada original, cluster o GPU; no habilita puerta real.
 
-Acceso seguro llegó a JupyterLab, pero después browser bloqueó observación por
-estado nativo de credenciales no recuperable. No se continuó ni se intentó leer
-credenciales. Por ello los módulos nuevos **no están sincronizados/verificados hoy
-en el clúster**, y no se creó nueva corrida W&B. Lo anterior de42 permanece como
-historial distinto. Se publica código comprobado localmente en v8; la verificación
-clúster/remota queda pendiente explícita, sin inventar acceso ni resultados.
-
-Próxima secuencia: recuperar acceso operativo; comprobar pool/recetas/bancos;
-primer original con recursos y W&B; maestros contra S0; evaluación independiente;
-mismo estudiante/presupuesto; decidir integración y W4. No elegir ganador con
-acuerdo entre pseudomáscaras ni con métricas de confident pixels solamente.
+La verificación inicial local se conserva como historial. Posteriormente se
+sincronizaron los módulos en el clúster, se comprobaron sus pruebas con W&B y se
+ejecutó un smoke SLED sobre un original; esa evidencia es distinta de la prueba
+local anterior. La preparación del 2026-10-13, la cuenta de Paula, los hashes de
+todos los originales y la corrección de RPI en CUDA se registran en el
+[documento 44](44-preparacion-cluster-y-cuda-v8.md). Los bancos de pesos y las
+puertas científicas pendientes no se habilitan por esta comprobación.
 
 ## Fuentes
 

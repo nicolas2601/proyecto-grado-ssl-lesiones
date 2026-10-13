@@ -2,13 +2,44 @@ import unittest
 import numpy as np
 import torch
 from torch.nn import functional as F
-from dermssl.segmentation_methods.rpi_net.model import RPINet,CrossAttention,PseudoInteraction
+from dermssl.segmentation_methods.rpi_net.model import RPINet,CrossAttention,PseudoInteraction,adaptive_average_tokens
 from dermssl.segmentation_methods.rpi_net.loss import dynamic_uncertainty_loss
 from dermssl.segmentation_methods.rpi_net.pseudolabels import cluster_foreground,gradcampp_energy
 from test_usl_net import TinyEncoder
 
 
 class RPITest(unittest.TestCase):
+    def test_token_pool_matches_reference_values_and_gradients(self):
+        for height, width, grid in ((16,16,(4,4)), (7,9,(4,5)), (2,3,(5,4))):
+            with self.subTest(shape=(height,width), grid=grid):
+                x=torch.randn(2,3,height,width,dtype=torch.float64,requires_grad=True)
+                reference=x.detach().clone().requires_grad_(True)
+                actual=adaptive_average_tokens(x,grid)
+                expected=F.adaptive_avg_pool2d(reference,grid)
+                weights=torch.randn_like(actual)
+                torch.testing.assert_close(actual,expected,rtol=1e-12,atol=1e-12)
+                actual.backward(weights);expected.backward(weights)
+                torch.testing.assert_close(x.grad,reference.grad,rtol=1e-12,atol=1e-12)
+
+    @unittest.skipUnless(torch.cuda.is_available(), 'CUDA required for regression')
+    def test_token_pool_cuda_backward_is_repeatable(self):
+        previous=torch.are_deterministic_algorithms_enabled()
+        try:
+            torch.use_deterministic_algorithms(True)
+            for height,width,grid in ((16,16,(4,4)), (7,9,(4,5))):
+                base=torch.arange(2*3*height*width,device='cuda',dtype=torch.float32).reshape(2,3,height,width)
+                outputs=[];gradients=[]
+                for _ in range(2):
+                    x=base.detach().clone().requires_grad_(True)
+                    pooled=adaptive_average_tokens(x,grid)
+                    pooled.square().sum().backward()
+                    outputs.append(pooled.detach());gradients.append(x.grad.detach())
+                self.assertTrue(torch.equal(outputs[0],outputs[1]))
+                self.assertTrue(torch.equal(gradients[0],gradients[1]))
+        finally:
+            torch.use_deterministic_algorithms(previous)
+
+
     def test_attention_matches_scaled_dot_product_equation(self):
         attention=CrossAttention(2)
         with torch.no_grad():
