@@ -39,7 +39,7 @@ def export(method,stage,manifest_path,out,config,gate_path,*,revision,sink=None)
         load_reviewed(model,config['checkpoint'],config['checkpoint_provenance'],expected_method=method)
     if model is not None:model.to(device).eval()
     out.mkdir(parents=True);records=[];failures=0
-    origin={'method':method,'producer_revision':revision,'uses_expert_masks':False,'uses_diagnoses':False}
+    origin={'method':method,'producer_revision':revision,'input_manifest_sha256':digest(manifest_path),\n            'uses_expert_masks':False,'uses_diagnoses':False}
     for index,row in enumerate(document['records']):
         started=time.monotonic();entry={k:row[k] for k in ('image_id','dataset','image_path','image_sha256')}
         case=out/f'case_{index:06d}';case.mkdir()
