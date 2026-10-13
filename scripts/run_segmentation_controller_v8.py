@@ -152,8 +152,10 @@ def main():
     plan_path = args.plan.resolve()
     plan = json.loads(plan_path.read_text())
     steps = validate_plan(plan, plan_path)
-    run_root = Path(plan.get("run_root", "")).resolve()
-    if not str(run_root) or run_root == Path("/"):
+    if not plan.get("run_root"):
+        raise ValueError("Plan must specify a dedicated run_root")
+    run_root = Path(plan["run_root"]).resolve()
+    if run_root == Path("/"):
         raise ValueError("Plan must specify a dedicated run_root")
     if not args.execute:
         print(json.dumps({"method": plan["method"], "step_order": [s["id"] for s in steps],
@@ -208,11 +210,35 @@ def main():
             cmd = command_for(plan, step, resume=recovering_fit)
             if recovering_fit:
                 cmd[cmd.index("--_worker")] = "--_worker"
+            config = json.loads(Path(step["config"]).read_text())
+            limits = config.get("resources", {})
+            timeout = limits.get("timeout_seconds")
+            max_rss = limits.get("max_rss_mb")
+            grace = limits.get("shutdown_grace_seconds", 120)
+            interval = float(plan.get("resource_sample_seconds", 10))
+            if any(not isinstance(x, (int, float)) or x <= 0 for x in (timeout, max_rss, grace, interval)):
+                raise ValueError("Positive timeout, RSS, shutdown grace, and sample interval required")
             process = subprocess.Popen(cmd, cwd=ROOT, start_new_session=True)
+            started = time.monotonic()
             try:
                 while process.poll() is None:
                     sample_resources(out.parent, "running", process.pid)
-                    time.sleep(float(plan.get("resource_sample_seconds", 10)))
+                    try:
+                        status = Path(f"/proc/{process.pid}/status").read_text().splitlines()
+                        rss = int(next(x.split()[1] for x in status if x.startswith("VmRSS:"))) / 1024
+                    except (OSError, StopIteration, ValueError):
+                        rss = 0
+                    expired = time.monotonic() - started > timeout
+                    over_rss = rss > max_rss
+                    if expired or over_rss:
+                        os.killpg(process.pid, signal.SIGTERM)
+                        try:
+                            process.wait(timeout=grace)
+                        except subprocess.TimeoutExpired:
+                            os.killpg(process.pid, signal.SIGKILL)
+                            process.wait()
+                        raise RuntimeError("Registered wall-time/RSS limit exceeded; output evidence preserved")
+                    time.sleep(interval)
             except KeyboardInterrupt:
                 ledger["steps"][sid]["status"] = "interrupted"
                 ledger["steps"][sid]["interrupted_utc"] = time.time()
