@@ -16,8 +16,8 @@ class PatchTransformer(nn.Module):
         self.patch=nn.Conv2d(3,dimension,patch_size,stride=patch_size)
         self.class_token=nn.Parameter(torch.zeros(1,1,dimension));side=image_size//patch_size
         self.position=nn.Parameter(torch.zeros(1,dimension,side,side));self.class_position=nn.Parameter(torch.zeros(1,1,dimension))
-        layer=nn.TransformerEncoderLayer(dimension,heads,4*dimension,dropout=0.,activation='gelu',batch_first=True,norm_first=True)
-        self.transformer=nn.TransformerEncoder(layer,depth,enable_nested_tensor=False);self.norm=nn.LayerNorm(dimension)
+        layer=nn.TransformerEncoderLayer(dimension,heads,4*dimension,dropout=0.,activation='gelu',batch_first=True,norm_first=True,layer_norm_eps=1e-6)
+        self.transformer=nn.TransformerEncoder(layer,depth,enable_nested_tensor=False);self.norm=nn.LayerNorm(dimension,eps=1e-6)
     def tokens(self,images):
         feature=self.patch(images);n,c,h,w=feature.shape
         pos=F.interpolate(self.position,size=(h,w),mode='bicubic',align_corners=False)
