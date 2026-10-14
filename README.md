@@ -29,7 +29,7 @@ Lectura al 2026-09-29, con las tres semillas y sin elegir ninguna (regla en [doc
 | [`src/dermssl/`](src/dermssl/) | Librería del proyecto: preentrenamiento SSL (`pretrain/`), probes, métricas, bootstrap pareado, evaluación final, procedencia de corridas. |
 | [`scripts/`](scripts/) | Puntos de entrada: preentrenamiento, selección de variantes, evaluación final y generadores de tablas (`build_*`). |
 | [`resultados/`](resultados/README.md) | Resultados versionados: C1, v7 y bancos congelados. Las tablas se generan desde JSON. |
-| [`docs/`](docs/README.md) | Documentación numerada 00-28, con índice y estado de cada documento. |
+| [`docs/`](docs/README.md) | Documentación de metodología, versiones y operación; ver índice. |
 | [`plan-segmentacion/`](plan-segmentacion/README.md) | Segmentación sin etiquetas (CCAM, pseudo-máscaras, remoción de pelo). |
 | [`tests/`](tests/) | Suite de pytest; corre sin GPU. |
 | [`openspec/`](openspec/) | Especificaciones de cambios (OpenSpec). |
