@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "protocol": "v8_preparation_review_not_scientific_gate",
+  "date_utc": "2026-10-14",
+  "repository_base_revision": "9b931af95431e10ffaa4ab8435c1a300cbd0833a",
+  "adapter3_source_revision": "7a586059c0a971635bfdae4c7c485b90078027a5",
+  "launch_ready": false,
+  "training_started": false,
+  "prior_audits_tests_or_conversions_repeated": false,
+  "new_rpi_bank_integration": {
+    "status": "passed_existing_runtime_loader",
+    "origins": [
+      "mocov3",
+      "mocov2",
+      "dino"
+    ],
+    "normalization": "imagenet",
+    "image_count": 0,
+    "encoder_forward_count": 0,
+    "training_runs": 0,
+    "weights_reconverted": false
+  },
+  "weights": {
+    "simclr_r50_1x": {
+      "observed_bytes": null,
+      "source_sha256": null,
+      "validation": "original_google_archive_not_downloaded; alternate_hf_candidate_verified_locally",
+      "conversion_status": "spatial_profile_prepared_runtime_validation_pending_no_real_conversion"
+    },
+    "mocov1_r50_200ep": {
+      "observed_bytes": 95347404,
+      "source_sha256": "6a12a752e5ab418158f52c19781003a5cf71e2502d362f8962c6cf7ff1fc473",
+      "validation": "downloaded_md5_prefix_match_and_local_sha256_recorded",
+      "conversion_status": "converted_strict"
+    },
+    "mocov2_r50_800ep": {
+      "observed_bytes": 112133139,
+      "source_sha256": "5e4a3fd7178a95837c0ad71c265ed5f477d271e753ba505b6b6a5e86829eeb7e",
+      "validation": "downloaded_exact_size_published_md5_prefix_match_and_local_sha256_recorded",
+      "conversion_status": "converted_strict"
+    },
+    "mocov3_r50_1000ep": {
+      "observed_bytes": 272786643,
+      "source_sha256": "5baee69ef3c0b6f153eac41543be48dbd2ca6ff8f6327bb44fc0aa61f8fb4eee",
+      "validation": "downloaded_exact_size_local_sha256_recorded",
+      "conversion_status": "converted_strict"
+    },
+    "dino_vits16": {
+      "observed_bytes": 86710517,
+      "source_sha256": "1566d50496f27f52f07fea6094fa29b2fdd6fae89da65bdd3ebc3b24ef6b7eb7",
+      "validation": "downloaded_local_sha256_recorded_only",
+      "conversion_status": "converted_strict"
+    }
+  },
+  "simclr_diagnostics": {
+    "official_archive_http_status": 403,
+    "error_code": "AccessDenied",
+    "error_message": "Access denied.",
+    "additional_official_bucket_metadata_http_status": 401,
+    "checkpoint_bytes_saved": 0,
+    "inference_limit": "The error does not establish whether the object is private, missing, or available to a different legitimately authorized client."
+  },
+  "new_simclr_profile": {
+    "scope": "origin-specific SimCLR spatial profile",
+    "syntax_passed": true,
+    "new_spatial_tests_count": 5,
+    "new_spatial_tests_executed": true,
+    "cluster_patch_deployed": false,
+    "blocker": "Cluster code deployment rejected by automatic review; subsequent browser recovery unavailable",
+    "scientific_execution_authorized": false,
+    "new_spatial_tests_passed": true
+  },
+  "data": {
+    "existing_verified_originals": 40896,
+    "existing_integrity_failures": 0,
+    "original_grouping_review": "pending",
+    "expert_evaluation_manifest_resolved": false,
+    "original_image_audit_repeated": false
+  },
+  "resources": {
+    "cpu_affinity_observed": 48,
+    "cgroup_cpu_max": "max 100000",
+    "cgroup_memory_max": "max",
+    "gpu_observation": [
+      {
+        "model": "NVIDIA RTX PRO 4000 Blackwell",
+        "total_memory_mib": 24467,
+        "used_memory_mib": 2,
+        "utilization_percent": 0
+      },
+      {
+        "model": "NVIDIA RTX PRO 4000 Blackwell",
+        "total_memory_mib": 24467,
+        "used_memory_mib": 2,
+        "utilization_percent": 0
+      }
+    ],
+    "shared_filesystem_available_gib_approx": 40434.5,
+    "individual_disk_quota_verified": false,
+    "registered_configs_still_provisional": true,
+    "export_estimate_gib": {
+      "one_source": 46.49,
+      "rpi_four_sources": 103.82
+    },
+    "configured_output_limit_gib": 4,
+    "full_stage_time_ram_vram_budgets_registered": false,
+    "prior_gpu_probes_repeated": false
+  },
+  "wandb": {
+    "viewer_username": "paulasaavedra1101",
+    "shared_project": "dermssl-segmentacion",
+    "shared_project_read_access": true,
+    "running_runs_at_observation": 0,
+    "run_created": false,
+    "credential_file_changed": false,
+    "alert_delivery_verified": false
+  },
+  "protected_checkouts": {
+    "head": "d55c5cddad2b3c02a862404bd1b1c4c4a9166624",
+    "base_checkout_clean": true,
+    "cuda_fix_local_modifications_preserved": [
+      "src/dermssl/segmentation_methods/rpi_net/model.py",
+      "tests/segmentation_v8/test_rpi_net.py"
+    ],
+    "local_changes_modified_by_this_review": false
+  },
+  "cluster_documents": {
+    "status_size_note_updated": true,
+    "observations_file": "~/work/public_ssl_v8_preparation/cluster-readiness.observations.json",
+    "rpi_candidate_bank": "~/work/public_ssl_v8_preparation/source-bank.rpi-net.reviewed-candidate.json",
+    "aggregate_file_download_to_local_confirmed": false,
+    "later_browser_recovery": "native credential state cannot be safely resumed",
+    "full_review_sync_to_cluster_pending": true
+  },
+  "launch_blockers": [
+    "Patient/lesion group eligibility and independent anatomical evaluation unresolved",
+    "Per-stage and cumulative resources/storage/time plans not finalized",
+    "Concrete serial controller plans and corresponding manifest-bound gates not created",
+    "TriDerm SLED pseudo-mask manifest and frozen SHA-256 not generated/reviewed",
+    "Deploy reviewed adapter and verified HF candidate to isolated cluster runtime; verify transfer and runtime manifest",
+    "HF PyTorch conversion is validated locally; original TensorFlow numerical equivalence remains unverified and must not be claimed"
+  ],
+  "next_action_requiring_explicit_approval": "Upload reviewed adapter code to a separate cluster preparation runtime; prior automatic review required explicit cluster-code-deployment approval.",
+  "prepared_patch_package": {
+    "filename": "v8_simclr_same_profile_7a586059.patch.zip",
+    "size_bytes": 24558,
+    "sha256": "24b63a184fd3ad8a502044695b41d8527c907bea38ed1c03a1015c30b67d9cd0",
+    "new_runtime": "runtime_simclr_same_7a586059",
+    "code_files": [
+      "src/dermssl/segmentation_methods/common/networks.py",
+      "src/dermssl/segmentation_methods/common/bank.py",
+      "scripts/prepare_public_ssl_weights_v8.py"
+    ],
+    "new_test_count": 5,
+    "status": "superseded_metadata_rebuild_required_not_uploaded",
+    "upload_automatic_review": "rejected; explicit cluster-code-deployment approval required"
+  },
+  "simclr_hf_local_candidate": {
+    "download": {
+      "repository": "lightly-ai/simclrv1-imagenet1k-resnet50-1x",
+      "revision": "476674d2c9804bc2cd4abd8bde6121b6d6b19990",
+      "filename": "resnet50-1x.pth",
+      "source_url": "https://huggingface.co/lightly-ai/simclrv1-imagenet1k-resnet50-1x/resolve/476674d2c9804bc2cd4abd8bde6121b6d6b19990/resnet50-1x.pth",
+      "expected_bytes": 102542786,
+      "received_bytes": 102542786,
+      "published_hf_lfs_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+      "computed_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+      "sha256_matches": true,
+      "complete": true,
+      "license_declared": "apache-2.0",
+      "verification_scope": "Hugging Face LFS object identity; not byte equality to original Google TensorFlow archive",
+      "cluster_transfer_confirmed": false,
+      "conversion_verified": true
+    },
+    "mapping_validation": {
+      "status": "passed_explicitly_aligned_pytorch_reference",
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "source_tensor_count": 320,
+      "mapped_encoder_tensor_count": 318,
+      "discarded_classifier_keys": [
+        "fc.weight",
+        "fc.bias"
+      ],
+      "input_normalization": "unit_rgb",
+      "max_absolute_error_by_stage": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "stage_shapes": [
+        [
+          1,
+          256,
+          56,
+          56
+        ],
+        [
+          1,
+          512,
+          28,
+          28
+        ],
+        [
+          1,
+          1024,
+          14,
+          14
+        ],
+        [
+          1,
+          2048,
+          14,
+          14
+        ]
+      ],
+      "unaltered_publisher_symmetric_vs_corrected_profile_max_abs_first_three_stages": [
+        840.3051147460938,
+        202.37867736816406,
+        100.98931121826172
+      ],
+      "reference_changes": [
+        "even-stem TensorFlow SAME maxpool (0 before, 1 after)",
+        "last-stage stride 2 to 1"
+      ],
+      "comparison_scope": "real downloaded PyTorch weights and explicit V8 spatial/dense profile; not original TensorFlow checkpoint parity",
+      "original_google_archive_identity_verified": false,
+      "tensorflow_numerical_equivalence_verified": false,
+      "real_images_read": 0,
+      "synthetic_inputs": 1,
+      "training_started": false,
+      "cluster_deployment_verified": false
+    },
+    "spatial_tests": {
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "tests_run": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "prior_tests_repeated": false,
+      "training_started": false
+    },
+    "conversion_encoder_sha256": "cff4a8bca6cf17d73c79be2aa727cb58dea3f64b5f1f1d727d11e05caf8aed4a",
+    "converter_reference_revision": "139d3cb0bd0c64b5ad32aab810e0bd0a0dddaae0",
+    "cluster_transfer_confirmed": false,
+    "scientific_gate_passed": false
+  }
+}

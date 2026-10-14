@@ -1,4 +1,8 @@
+> Estado más reciente: [descarga Hugging Face y validación local](52-simclr-huggingface-validacion-local-v8.md). Las afirmaciones siguientes sobre SimCLR pendiente describen el estado previo a esa validación.
+
 # Revisión para preparación e intento de transferencia al clúster
+
+> **Estado actualizado, 2026-10-14 UTC:** el ZIP original de runtime sí quedó subido y extraído en una etapa posterior, con SHA-256 `83dfe51de9b128b7f13780bd21bde08548aa02d76cf038603ebd99891269109d`; sus recibos siguen inmutables. Hay cuatro checkpoints convertidos. La copia `STATUS.md` recibió la corrección exacta de tamaños. La carga de un ZIP nuevo con el parche SimCLR fue rechazada por revisión automática y no se completó; después el navegador bloqueó la descarga del informe y no pudo reanudarse. Ver [51](51-cierre-preparacion-y-bloqueos-lanzamiento-v8.md). El intento fallido descrito a continuación es histórico.
 
 2026-10-13, America/Bogota. Continúa `eb5ca591`.
 Estado físico de pesos: no descargados. No se habilitan entrenamiento ni gates.
@@ -79,3 +83,4 @@ con el plan revisado sobre los cuatro candidatos MoCo/DINO. SimCLR conserva su
 bloqueo de acceso y su revisión semántica; no se sustituye por otra familia. Las
 conversiones se ejecutan únicamente sobre archivos íntegros y quedan separadas
 de cualquier habilitación científica.
+

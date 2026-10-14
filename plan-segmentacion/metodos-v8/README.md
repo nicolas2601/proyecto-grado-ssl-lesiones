@@ -24,3 +24,8 @@ checksum publicado, licencia de código y validación pendiente de cada archivo.
 [Plan revisado para preparación académica](public-weights.reviewed-research.plan.json)
 y [estado de transferencia al clúster](../../docs/50-intento-transferencia-y-revision-preparacion-v8.md).
 La revisión documental no certifica archivos aún no descargados.
+
+
+[Revisión actual y puertas de lanzamiento](../../docs/51-cierre-preparacion-y-bloqueos-lanzamiento-v8.md): cuatro pesos convertidos y banco candidato RPI cargado; SimCLR y las puertas científicas permanecen pendientes. El documento nuevo actualiza los estados históricos.
+
+Actualización: [SimCLR Hugging Face y validación local](../../docs/52-simclr-huggingface-validacion-local-v8.md).

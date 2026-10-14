@@ -1,0 +1,16 @@
+{
+  "repository": "lightly-ai/simclrv1-imagenet1k-resnet50-1x",
+  "revision": "476674d2c9804bc2cd4abd8bde6121b6d6b19990",
+  "filename": "resnet50-1x.pth",
+  "source_url": "https://huggingface.co/lightly-ai/simclrv1-imagenet1k-resnet50-1x/resolve/476674d2c9804bc2cd4abd8bde6121b6d6b19990/resnet50-1x.pth",
+  "expected_bytes": 102542786,
+  "received_bytes": 102542786,
+  "published_hf_lfs_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+  "computed_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+  "sha256_matches": true,
+  "complete": true,
+  "license_declared": "apache-2.0",
+  "verification_scope": "Hugging Face LFS object identity; not byte equality to original Google TensorFlow archive",
+  "cluster_transfer_confirmed": false,
+  "conversion_verified": true
+}

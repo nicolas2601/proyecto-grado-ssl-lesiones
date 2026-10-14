@@ -1,6 +1,6 @@
 {
   "files": {
-    "scripts/prepare_public_ssl_weights_v8.py": "7bfa34bb153e22413409fa77c8e245a401688042af0ffa56d095714d41fcf77d",
+    "scripts/prepare_public_ssl_weights_v8.py": "d61253d176c1b018026d9151e5dc9d7fac29cd754d1bbc822438f351f009e85b",
     "src/dermssl/__init__.py": "b2d4546b48cd7ac7ca986d026320ad7a2f24e92141762f8a34dc49aabc1c9006",
     "src/dermssl/bench/__init__.py": "1f55e9d4246633f9f2b4b026e6190f19bc2565c66b2542b036ce39cab7bdf02f",
     "src/dermssl/bench/ablation.py": "4253bb0dfe93087465ab5d73431b274e9453ea5a38d367a901a47e8c92046504",
@@ -156,13 +156,13 @@
     "src/dermssl/segmentation_methods/README.md": "646cdbbcc9d7a22cc0b587b0eb0a9a450f24aeb1700e7e5339261253dfacf6f6",
     "src/dermssl/segmentation_methods/__init__.py": "2e38e1c61acde0dc7f53ee31006e5649765874769d682ee45cca4744c5896d7c",
     "src/dermssl/segmentation_methods/common/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "src/dermssl/segmentation_methods/common/bank.py": "ac494451ca2fa199e547dfe79806bab5ba3566af08444c370e86c2b4227841c1",
+    "src/dermssl/segmentation_methods/common/bank.py": "44fa7007546ec5fb632bb3647056f9211482941805c9469235e31688773e73e9",
     "src/dermssl/segmentation_methods/common/checkpoints.py": "06e070106b6cfa5c2ceeacbfd5dc4b349fac0f26658873e10ef50b0866d1f9e8",
     "src/dermssl/segmentation_methods/common/data.py": "6aea01a3247487e585d025c075719a1102717e58dd417b988582cc6f4813cda5",
     "src/dermssl/segmentation_methods/common/dino.py": "9e377bfed1ec7156476760b41f84a5a03461664a81e3f4d8de0049c0202baa33",
     "src/dermssl/segmentation_methods/common/inference.py": "257548d260d72d5e0ffeaabf34a9903103d37372d4e18e46c0fc0ba28f5941b4",
     "src/dermssl/segmentation_methods/common/losses.py": "c6fd84c8ff0ec19eec3f20aaa9a07110ffd05312d183716a42d836d1d66b923b",
-    "src/dermssl/segmentation_methods/common/networks.py": "7b4031a716cc32c03e66ce3ff94ffce05be0f997010297e51916b440314704c8",
+    "src/dermssl/segmentation_methods/common/networks.py": "f8f957ad818fac3a6ce7db3b1618347b22c367fceb0fab851a4fe0da7b886400",
     "src/dermssl/segmentation_methods/common/pretraining.py": "87b1c2a074bd8d2322ac2d3642bd16ecfaefb58c948870fc498b61cc9254c9b1",
     "src/dermssl/segmentation_methods/common/refinement.py": "d8eba814e5c7a5c35e54d36728ad46f129ca3b2f485cf29a6e2e3bdb0040d063",
     "src/dermssl/segmentation_methods/common/review.py": "a25b8a8f795225fd89dea42fb3dda0046a3f8e7d7d6877fcc74dd2d53f83cd4c",
@@ -211,6 +211,6 @@
     "src/dermssl/w3_sled_adapter.py": "d65c0d54837c30429f5b27785b203f97e05db265154118fb21801c0199148f4a",
     "src/dermssl/w3_usl_models.py": "b7c159d2d3ed4ee0de893b1780eebaa60793e5b74d1301f5f593ff8285098383"
   },
-  "producer_revision": "8a2f42fe60aa5e29c0dd346cc2e645278897db4d",
+  "producer_revision": "7a586059c0a971635bfdae4c7c485b90078027a5",
   "schema_version": 1
 }

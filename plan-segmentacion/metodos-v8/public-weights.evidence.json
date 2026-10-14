@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "review_scope": "upstream_documentary_review_not_checkpoint_byte_validation",
+  "review_scope": "documentary_sources_and_cluster_download_strict_conversion_receipts_not_scientific_evaluation",
   "base_revision": "22ef5129a65baf5972bac3fa27715e96bd1bdd57",
   "sources": [
     {
@@ -135,16 +135,17 @@
         "artifact_scope": "No separate checkpoint-specific notice established by this review; repository declaration is not marked as exact-file approval."
       },
       "conversion": {
-        "status": "unverified_with_static_semantic_difference",
+        "status": "spatial_profile_prepared_runtime_validation_pending_no_real_conversion",
         "findings": [
-          "Upstream resnet.py uses TensorFlow SAME max-pooling; local ResNet50Stages uses symmetric padding=1.",
-          "At a 112px stem output, TF SAME kernel3/stride2 pads 0 before and 1 after; local padding=1 pads both sides. Parameter shapes alone do not detect the spatial shift.",
-          "Local last_stride=1 is a declared V8 dense-feature adaptation, not a literal upstream encoder.",
-          "Tensor names, shard contents and numerical behavior still require the real archive."
+          "Upstream kernel3/stride2 SAME max-pooling has trailing asymmetric padding for an even stem input; legacy adapter-2 used symmetric padding.",
+          "Adapter-3 adds an origin-specific tensorflow_same profile and rejects legacy/mismatched SimCLR provenance. Five new tests exist but were not executed; only syntax was checked.",
+          "Static convolution stride placement, fixed convolution padding and BatchNorm epsilon=1e-5 agree with pinned upstream resnet.py.",
+          "Local last_stride=1 remains a declared dense-feature adaptation of upstream stride=2.",
+          "No official SimCLR archive/shards were downloaded; real tensor mapping and numerical parity remain unverified."
         ]
       },
       "real_file_validation": "not_downloaded",
-      "download_blocker": "last confirmed cluster request returned HTTP 403",
+      "download_blocker": "Bounded cluster GET returned HTTP 403 XML AccessDenied; the additional officially published bucket metadata endpoint returned HTTP 401.",
       "download_url": "https://storage.googleapis.com/simclr-gcs/checkpoints/ResNet50_1x.zip",
       "published_url": "https://storage.cloud.google.com/simclr-gcs/checkpoints/ResNet50_1x.zip"
     },
@@ -188,12 +189,15 @@
           "Original archive may include momentum/queue/optimizer state; never fall back to unsafe pickle loading.",
           "last_stride=1 is a declared dense-feature adaptation."
         ],
-        "execution_receipt": "cluster: staging-01/mocov1_r50_200ep/converted/receipt.json"
+        "execution_receipt": "cluster: staging-01/mocov1_r50_200ep/converted/receipt.json",
+        "converted_encoder_path": "staging-01/mocov1_r50_200ep/converted/encoder.pt"
       },
       "paper_exact_checkpoint_identity": "not_established",
       "real_file_validation": "downloaded_md5_prefix_match_and_local_sha256_recorded",
       "download_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar",
-      "published_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar"
+      "published_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar",
+      "source_sha256": "6a12a752e5ab418158f52c19781003a5cf71e2502d362f8962c6cf7ff1fc473",
+      "observed_bytes": 95347404
     },
     {
       "id": "mocov2_r50_800ep",
@@ -349,21 +353,24 @@
         "notes": [
           "Official dino_vits16 hub function references exactly this file and loads it strictly.",
           "No DINOv2, DINOv3, linear classifier, or full student/teacher checkpoint substitution.",
-          "LayerNorm epsilon=1e-6 and ViT dimensions agree in the inspected code; tensor mapping and numerical behavior remain unverified."
+          "LayerNorm epsilon=1e-6 and ViT dimensions agree in the inspected code; tensor mapping passed strict conversion with the real source; numerical behavior remains unverified."
         ],
-        "execution_receipt": "cluster: staging-01/dino_vits16/converted/receipt.json"
+        "execution_receipt": "cluster: staging-01/dino_vits16/converted/receipt.json",
+        "converted_encoder_path": "staging-01/dino_vits16/converted/encoder.pt"
       },
       "paper_exact_checkpoint_identity": "not_established",
       "real_file_validation": "downloaded_local_sha256_recorded_only",
       "download_url": "https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth",
-      "published_url": "https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth"
+      "published_url": "https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth",
+      "source_sha256": "1566d50496f27f52f07fea6094fa29b2fdd6fae89da65bdd3ebc3b24ef6b7eb7",
+      "observed_bytes": 86710517
     }
   ],
   "cluster_accessed": true,
-  "real_checkpoints_downloaded": 2,
+  "real_checkpoints_downloaded": 4,
   "full_weight_sha256_verified": false,
   "scientific_gates_enabled": false,
-  "local_sha256_recorded": 2,
+  "local_sha256_recorded": 4,
   "execution_record": {
     "observed_at_utc": "2026-10-14T02:27:26.346017+00:00",
     "scope": "public checkpoint download and strict conversion only",
@@ -420,11 +427,134 @@
     "reference_checkout": {
       "revision": "d55c5cd",
       "local_changes": "untouched"
-    }
+    },
+    "historical_snapshot": true,
+    "historical_scope_note": "This immutable staging-01 snapshot predates the successful staging-02 MoCo v2/v3 downloads; current counts/statuses are in current_state_summary and per-artifact receipts."
   },
   "cluster_preparation_update": {
     "updated_at_utc": "2026-10-14",
     "corrected_plan_sha256": "a8a84880074f371ab88d86237609db8d4a5ee0cfaa5e4338e59af14ae2c11ba3",
     "note": "MoCo v2/v3 expected_bytes previously contained one extra repeated digit: 1121331339 and 2727866643. The HTTP 200 identity-encoding Content-Length and complete transfer sizes were 112133139 and 272786643. The old entries were approximately, but not exactly, 10x the observed values (the exact 10x values are 1121331390 and 2727866430; the old entries differ by -51 and +213 bytes). These corrected sizes were used for complete source downloads and strict CPU conversion in staging-02. The pinned runtime and reference checkout d55c5cd were not modified; no training or scientific gates were run."
+  },
+  "current_state_summary": {
+    "date_utc": "2026-10-14",
+    "downloaded_and_converted_artifact_ids": [
+      "mocov1_r50_200ep",
+      "mocov2_r50_800ep",
+      "mocov3_r50_1000ep",
+      "dino_vits16"
+    ],
+    "simclr_real_checkpoint_present": false,
+    "rpi_bank_existing_loader_integration": "passed; CPU, no forward, no images, no training",
+    "rpi_bank_mapping": {
+      "P1": "mocov3_r50_1000ep",
+      "P2": "mocov3_r50_1000ep",
+      "P3": "mocov2_r50_800ep",
+      "P4": "dino_vits16"
+    },
+    "candidate_bank_path": "cluster: public_ssl_v8_preparation/source-bank.rpi-net.reviewed-candidate.json",
+    "scientific_launch_ready": false,
+    "latest_review_document": "docs/51-cierre-preparacion-y-bloqueos-lanzamiento-v8.md",
+    "adapter3_validation": {
+      "scope": "origin-specific SimCLR spatial profile",
+      "syntax_passed": true,
+      "new_spatial_tests_count": 5,
+      "new_spatial_tests_executed": false,
+      "cluster_patch_deployed": false,
+      "blocker": "automatic review rejected cluster ZIP upload; local PyTorch unavailable",
+      "scientific_execution_authorized": false
+    }
+  },
+  "simclr_hf_local_candidate": {
+    "download": {
+      "repository": "lightly-ai/simclrv1-imagenet1k-resnet50-1x",
+      "revision": "476674d2c9804bc2cd4abd8bde6121b6d6b19990",
+      "filename": "resnet50-1x.pth",
+      "source_url": "https://huggingface.co/lightly-ai/simclrv1-imagenet1k-resnet50-1x/resolve/476674d2c9804bc2cd4abd8bde6121b6d6b19990/resnet50-1x.pth",
+      "expected_bytes": 102542786,
+      "received_bytes": 102542786,
+      "published_hf_lfs_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+      "computed_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+      "sha256_matches": true,
+      "complete": true,
+      "license_declared": "apache-2.0",
+      "verification_scope": "Hugging Face LFS object identity; not byte equality to original Google TensorFlow archive",
+      "cluster_transfer_confirmed": false,
+      "conversion_verified": true
+    },
+    "mapping_validation": {
+      "status": "passed_explicitly_aligned_pytorch_reference",
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "source_tensor_count": 320,
+      "mapped_encoder_tensor_count": 318,
+      "discarded_classifier_keys": [
+        "fc.weight",
+        "fc.bias"
+      ],
+      "input_normalization": "unit_rgb",
+      "max_absolute_error_by_stage": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "stage_shapes": [
+        [
+          1,
+          256,
+          56,
+          56
+        ],
+        [
+          1,
+          512,
+          28,
+          28
+        ],
+        [
+          1,
+          1024,
+          14,
+          14
+        ],
+        [
+          1,
+          2048,
+          14,
+          14
+        ]
+      ],
+      "unaltered_publisher_symmetric_vs_corrected_profile_max_abs_first_three_stages": [
+        840.3051147460938,
+        202.37867736816406,
+        100.98931121826172
+      ],
+      "reference_changes": [
+        "even-stem TensorFlow SAME maxpool (0 before, 1 after)",
+        "last-stage stride 2 to 1"
+      ],
+      "comparison_scope": "real downloaded PyTorch weights and explicit V8 spatial/dense profile; not original TensorFlow checkpoint parity",
+      "original_google_archive_identity_verified": false,
+      "tensorflow_numerical_equivalence_verified": false,
+      "real_images_read": 0,
+      "synthetic_inputs": 1,
+      "training_started": false,
+      "cluster_deployment_verified": false
+    },
+    "spatial_tests": {
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "tests_run": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "prior_tests_repeated": false,
+      "training_started": false
+    },
+    "conversion_encoder_sha256": "cff4a8bca6cf17d73c79be2aa727cb58dea3f64b5f1f1d727d11e05caf8aed4a",
+    "converter_reference_revision": "139d3cb0bd0c64b5ad32aab810e0bd0a0dddaae0",
+    "cluster_transfer_confirmed": false,
+    "scientific_gate_passed": false
   }
 }

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "protocol": "public_ssl_staging_v8",
-  "adapter_revision": "8a2f42fe60aa5e29c0dd346cc2e645278897db4d",
-  "adapter_sha256": "7bfa34bb153e22413409fa77c8e245a401688042af0ffa56d095714d41fcf77d",
-  "notes": "Candidate inventory; per-artifact review fields govern staging. On 2026-10-14 the official MoCo v2/v3 endpoints returned HTTP 200 with identity-encoding Content-Length values 112133139 and 272786643. Earlier expected_bytes were 1121331339 and 2727866643: approximately, but not exactly, 10x the observed sizes. The exact 10x values would be 1121331390 and 2727866430, so the earlier entries differ by -51 and +213 bytes, respectively; each had one extra repeated digit. The corrected sizes match completed transfer byte counts. MoCo v2's ETag starts with the published MD5 prefix a04e12f8; MoCo v3's multipart ETag is not a digest. Complete downloads still require exact-length checks and recorded local SHA-256; size metadata alone does not establish checkpoint integrity. No upstream SHA-256 is published for these artifacts; complete-transfer local SHA-256 values are recorded in the evidence JSON and cluster receipts. SLED and TriDerm do not require public weights.",
+  "adapter_revision": "7a586059c0a971635bfdae4c7c485b90078027a5",
+  "adapter_sha256": "d61253d176c1b018026d9151e5dc9d7fac29cd754d1bbc822438f351f009e85b",
+  "notes": "Candidate inventory; per-artifact review fields govern staging. On 2026-10-14 the official MoCo v2/v3 endpoints returned HTTP 200 with identity-encoding Content-Length values 112133139 and 272786643. Earlier expected_bytes were 1121331339 and 2727866643: approximately, but not exactly, 10x the observed sizes. The exact 10x values would be 1121331390 and 2727866430, so the earlier entries differ by -51 and +213 bytes, respectively; each had one extra repeated digit. The corrected sizes match completed transfer byte counts. MoCo v2's ETag starts with the published MD5 prefix a04e12f8; MoCo v3's multipart ETag is not a digest. Complete downloads still require exact-length checks and recorded local SHA-256; size metadata alone does not establish checkpoint integrity. No upstream SHA-256 is published for these artifacts; complete-transfer local SHA-256 values are recorded in the evidence JSON and cluster receipts. SLED and TriDerm do not require public weights. Adapter 3 prepares an origin-specific TensorFlow SAME pooling profile for SimCLR; five new spatial checks passed locally on CPU; the alternate Hugging Face PyTorch source was downloaded and strictly converted locally. Syntax alone does not validate real tensors or upstream numerical equivalence. Legacy MoCo/DINO conversion receipts remain pinned to adapter 2 and their original source manifest.",
   "artifacts": [
     {
       "id": "simclr_r50_1x",
@@ -28,7 +28,18 @@
         "approval_scope": "noncommercial_research_preparation_only_no_scientific_gate"
       },
       "published_md5_prefix": null,
-      "documentary_evidence": "public-weights.evidence.json#simclr_r50_1x"
+      "documentary_evidence": "public-weights.evidence.json#simclr_r50_1x",
+      "architecture_review": {
+        "stem_pooling": "tensorflow_same",
+        "batch_norm_epsilon": 1e-05,
+        "last_stride": 1,
+        "upstream_last_stride": 2,
+        "last_stride_is_declared_v8_adaptation": true,
+        "spatial_profile_tests_passed": true,
+        "real_conversion_verified": false,
+        "real_hf_pytorch_conversion_verified_locally": true,
+        "original_tensorflow_conversion_verified": false
+      }
     },
     {
       "id": "mocov1_r50_200ep",
@@ -141,5 +152,106 @@
       "dino_vits16"
     ]
   },
-  "adapter_source_manifest_sha256": "3fa7df95516e01400f6af7365c14d4d3d6fc625e7eeb294149490f6e6d9cc4bc"
+  "adapter_source_manifest_sha256": "245feb68229ca9d2b4a65dffb85216946b5ab1df115721224858eda44f76c426",
+  "adapter_validation": {
+    "scope": "origin-specific SimCLR spatial profile",
+    "syntax_passed": true,
+    "new_spatial_tests_count": 5,
+    "new_spatial_tests_executed": false,
+    "cluster_patch_deployed": false,
+    "blocker": "automatic review rejected cluster ZIP upload; local PyTorch unavailable",
+    "scientific_execution_authorized": false
+  },
+  "simclr_hf_local_candidate": {
+    "download": {
+      "repository": "lightly-ai/simclrv1-imagenet1k-resnet50-1x",
+      "revision": "476674d2c9804bc2cd4abd8bde6121b6d6b19990",
+      "filename": "resnet50-1x.pth",
+      "source_url": "https://huggingface.co/lightly-ai/simclrv1-imagenet1k-resnet50-1x/resolve/476674d2c9804bc2cd4abd8bde6121b6d6b19990/resnet50-1x.pth",
+      "expected_bytes": 102542786,
+      "received_bytes": 102542786,
+      "published_hf_lfs_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+      "computed_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+      "sha256_matches": true,
+      "complete": true,
+      "license_declared": "apache-2.0",
+      "verification_scope": "Hugging Face LFS object identity; not byte equality to original Google TensorFlow archive",
+      "cluster_transfer_confirmed": false,
+      "conversion_verified": true
+    },
+    "mapping_validation": {
+      "status": "passed_explicitly_aligned_pytorch_reference",
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "source_tensor_count": 320,
+      "mapped_encoder_tensor_count": 318,
+      "discarded_classifier_keys": [
+        "fc.weight",
+        "fc.bias"
+      ],
+      "input_normalization": "unit_rgb",
+      "max_absolute_error_by_stage": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "stage_shapes": [
+        [
+          1,
+          256,
+          56,
+          56
+        ],
+        [
+          1,
+          512,
+          28,
+          28
+        ],
+        [
+          1,
+          1024,
+          14,
+          14
+        ],
+        [
+          1,
+          2048,
+          14,
+          14
+        ]
+      ],
+      "unaltered_publisher_symmetric_vs_corrected_profile_max_abs_first_three_stages": [
+        840.3051147460938,
+        202.37867736816406,
+        100.98931121826172
+      ],
+      "reference_changes": [
+        "even-stem TensorFlow SAME maxpool (0 before, 1 after)",
+        "last-stage stride 2 to 1"
+      ],
+      "comparison_scope": "real downloaded PyTorch weights and explicit V8 spatial/dense profile; not original TensorFlow checkpoint parity",
+      "original_google_archive_identity_verified": false,
+      "tensorflow_numerical_equivalence_verified": false,
+      "real_images_read": 0,
+      "synthetic_inputs": 1,
+      "training_started": false,
+      "cluster_deployment_verified": false
+    },
+    "spatial_tests": {
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "tests_run": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "prior_tests_repeated": false,
+      "training_started": false
+    },
+    "conversion_encoder_sha256": "cff4a8bca6cf17d73c79be2aa727cb58dea3f64b5f1f1d727d11e05caf8aed4a",
+    "converter_reference_revision": "139d3cb0bd0c64b5ad32aab810e0bd0a0dddaae0",
+    "cluster_transfer_confirmed": false,
+    "scientific_gate_passed": false
+  }
 }

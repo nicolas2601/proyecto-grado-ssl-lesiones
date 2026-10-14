@@ -1,0 +1,60 @@
+{
+  "status": "passed_explicitly_aligned_pytorch_reference",
+  "torch_version": "2.11.0+cpu",
+  "device": "cpu",
+  "source_tensor_count": 320,
+  "mapped_encoder_tensor_count": 318,
+  "discarded_classifier_keys": [
+    "fc.weight",
+    "fc.bias"
+  ],
+  "input_normalization": "unit_rgb",
+  "max_absolute_error_by_stage": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "stage_shapes": [
+    [
+      1,
+      256,
+      56,
+      56
+    ],
+    [
+      1,
+      512,
+      28,
+      28
+    ],
+    [
+      1,
+      1024,
+      14,
+      14
+    ],
+    [
+      1,
+      2048,
+      14,
+      14
+    ]
+  ],
+  "unaltered_publisher_symmetric_vs_corrected_profile_max_abs_first_three_stages": [
+    840.3051147460938,
+    202.37867736816406,
+    100.98931121826172
+  ],
+  "reference_changes": [
+    "even-stem TensorFlow SAME maxpool (0 before, 1 after)",
+    "last-stage stride 2 to 1"
+  ],
+  "comparison_scope": "real downloaded PyTorch weights and explicit V8 spatial/dense profile; not original TensorFlow checkpoint parity",
+  "original_google_archive_identity_verified": false,
+  "tensorflow_numerical_equivalence_verified": false,
+  "real_images_read": 0,
+  "synthetic_inputs": 1,
+  "training_started": false,
+  "cluster_deployment_verified": false
+}

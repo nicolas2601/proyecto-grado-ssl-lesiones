@@ -1,4 +1,8 @@
+> Estado más reciente: [descarga Hugging Face y validación local](52-simclr-huggingface-validacion-local-v8.md). Las afirmaciones siguientes sobre SimCLR pendiente describen el estado previo a esa validación.
+
 # Revisión de fuentes para pesos reales V8
+
+> **Actualización, 2026-10-14 UTC:** MoCo v1/v2/v3 y DINO original ya tienen archivos reales y recibos de conversión estricta. No hay comparación con un SHA-256 completo publicado. El adaptador 3 prepara el perfil SAME exclusivo de SimCLR, todavía sin pruebas runtime ni checkpoint real. Ver [51](51-cierre-preparacion-y-bloqueos-lanzamiento-v8.md). La revisión documental que sigue conserva su alcance y fecha histórica.
 
 2026-10-13, America/Bogota. Continúa `22ef5129`; no es una validación de archivos
 de pesos ni una repetición de las auditorías de datos o modelos.
@@ -88,3 +92,4 @@ no se habilita entrenamiento por completar únicamente esa preparación.
 Actualización posterior: el [documento 50](50-intento-transferencia-y-revision-preparacion-v8.md)
 registra la decisión documental para preparación no comercial y el intento real
 de transferencia. No sustituye los pendientes físicos o semánticos de esta revisión.
+

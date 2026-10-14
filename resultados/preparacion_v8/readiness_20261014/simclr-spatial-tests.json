@@ -1,0 +1,10 @@
+{
+  "torch_version": "2.11.0+cpu",
+  "device": "cpu",
+  "tests_run": 5,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "prior_tests_repeated": false,
+  "training_started": false
+}
