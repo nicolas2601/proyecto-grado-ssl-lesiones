@@ -126,3 +126,33 @@ falta de equivalencia numérica con el checkpoint TensorFlow original de Google,
 congelar el manifiesto de pseudo-máscaras SLED, y concretar el plan serial con sus
 límites por etapa. Mantener `execution_enabled=false`; no lanzar corridas hasta que
 los bloqueos científicos y operativos estén cerrados y revisados.
+
+
+## Revisión en vivo posterior al acceso seguro (2026-10-14)
+
+- Autenticación segura de UNABIA completada y Jupyter accesible como `nmoreno534`.
+- Descarga ISIC2018 activa: proceso `wget` observado; el ZIP de imágenes tenía
+  8.718.849.309 de 11.165.358.566 bytes (aprox. 78 %). No existía `.done` ni el
+  ZIP de máscaras en esa observación. Es un avance puntual, no un estado final.
+- `/home/jovyan/work/proyectonp/repo_four_methods_v8_d55c5cd_20261013`:
+  HEAD `d55c5cd`, árbol limpio.
+- `/home/jovyan/work/proyectonp/repo_four_methods_v8_cuda_fix_20261013`:
+  HEAD `d55c5cd`, conserva únicamente los cambios locales registrados en
+  `rpi_net/model.py` y `test_rpi_net.py`. No se modificaron.
+- El recibo real `usl-net.bank-verification.json` confirma carga estricta del
+  banco, `execution_ready=false` y alcance de construcción/carga sin entrenamiento.
+  No registra el forward de fusión.
+- Los dos runtimes de preparación (`runtime_eb5ca59` y
+  `runtime_simclr_same_eed86c8`) no contienen
+  `scripts/run_segmentation_v8.py` ni
+  `scripts/run_segmentation_controller_v8.py`; no constituyen una copia completa
+  desde la que lanzar el flujo. Preparar una copia de ejecución nueva con revisión
+  fijada y la corrección CUDA RPI preservada/contrastada, sin alterar los checkouts
+  protegidos.
+- Los configs base de la rama siguen con `execution_enabled=false`, CPU,
+  `batch_size=2`, timeout 180 s, RSS/salida 4096 MiB y sin presupuesto VRAM.
+  USL/RPI tienen `source_bank=null`; TriDerm tiene
+  `pseudo_manifest_sha256=null`. Deben existir configs revisados por etapa antes
+  de lanzar, junto con los manifiestos y gates correspondientes.
+- La revisión fue de lectura. No se ejecutaron pruebas, forward, conversiones,
+  auditorías de imágenes ni entrenamientos; la descarga permaneció activa.
