@@ -27,7 +27,8 @@ de código: Apache-2.0 (`LICENSE`). Los pesos de modelo tienen licencia aparte
 ## 2. Stack técnico (confirmado por archivos del repo)
 
 - **Lenguaje:** Python. CI corre la suite en 3.11 / 3.12 / 3.13 (`.github/workflows/ci.yml`).
-  El entorno del clúster UNABIA fija **Python 3.11.x** (`cluster/README.md`). Los
+  `cluster/README.md` documenta un perfil UNABIA de preentrenamiento v6 en
+  **Python 3.11.x**; no confirma el runtime de otras corridas. Los
   `.pyc` cacheados localmente son `cpython-314` (entorno de desarrollo local en
   Python 3.14) — no confundir con el target de CI/cluster.
 - **No hay `pyproject.toml` ni `setup.py`/`setup.cfg`** en el repo — no confirmado
@@ -41,8 +42,9 @@ de código: Apache-2.0 (`LICENSE`). Los pesos de modelo tienen licencia aparte
     el release).
   - `requirements-pretrain.txt`: runs de preentrenamiento v6 GPU (torch>=2.2,
     torchvision>=0.17, mlflow, Pillow, opencv).
-  - `cluster/requirements.txt`: entorno del clúster (PyTorch 2.4.1 + torchvision
-    0.19.1, wheels cu121).
+  - `cluster/requirements.txt`: perfil pineado para preentrenamiento v6
+    (PyTorch 2.4.1 + torchvision 0.19.1, wheels cu121); no asumir que describe
+    el runtime de otros pipelines UNABIA.
   - `demo/requirements.txt` y `demo/requirements-cpu.txt`: demo local.
   - No confirmado un requirements.txt único "de producción"; cada carpeta declara
     el suyo según para qué se usa.
@@ -136,11 +138,14 @@ bloqueos documentados al 2026-10-14 (todos con `execution_enabled=false`,
 `launch_ready=false`, `training_started=false` — **nadie debe cambiar esos flags
 sin evidencia real**):
 
-- **Cuota de disco/CPU en UNABIA sin verificar.** El punto de montaje NFS reporta
-  ~40 TiB compartidos, pero eso no acredita una cuota individual. `quota`, `lfs`,
-  `squota`, `sacctmgr`, `scontrol`, `sinfo`, `squeue` no están disponibles en el
-  entorno observado. El perfil de CPU (`cpu.max`) tiene lecturas inconsistentes
-  entre observaciones — sin reconciliar.
+- **Recursos de UNABIA medidos en vivo (2026-10-14).** La tarea 5 del punch list
+  y `resultados/preparacion_v8/readiness_20261014/readiness.review.json`
+  (bloque `resources`) registran 48 CPUs, 123 GiB de RAM (115 GiB libres), 2×
+  RTX PRO 4000 Blackwell de 24 GB (0 % de uso), `cpu.max=max 100000`, límite de
+  memoria `max` y disco NFS compartido de 40 TiB (1 % usado). No repitas esta
+  medición si no hay un cambio material. Los 40 TiB describen el volumen
+  compartido, no una cuota individual. Sigue pendiente traducir estos valores
+  en límites por etapa para el plan del controlador (tarea 6).
 - **SimCLR (checkpoint oficial) bloqueado — mitigado vía espejo Hugging Face,
   no resuelto del todo.** El ZIP TensorFlow oficial (`gs://simclr-checkpoints`,
   403; objeto alterno del README oficial, 401) sigue sin descargarse. Se usa en

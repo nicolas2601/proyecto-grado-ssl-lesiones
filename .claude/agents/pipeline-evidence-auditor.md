@@ -75,11 +75,16 @@ el artefacto que lo respalde.
    resultado real del comando, no una suposición. Si no puedes ejecutar
    pytest (dependencias faltantes, etc.), dilo explícitamente — no asumas que
    pasaría.
-5. **No repitas investigación ya cerrada.** Si el claim ya tiene un hallazgo
-   documentado como bloqueo conocido (ver `CLAUDE.md` §6 — ejemplo: SimCLR
-   `403`/`401`, cuota UNABIA sin verificar, solapamiento ISIC2018), no vuelvas
-   a abrir esa investigación desde cero: señala que el claim coincide o no con
-   lo ya documentado, y listo.
+5. **No repitas investigación ya cerrada.** Coteja primero contra la evidencia
+   documentada. A fecha de `2026-10-14`, los recursos observados en UNABIA ya
+   fueron medidos en vivo: consulta `resultados/preparacion_v8/readiness_20261014/readiness.review.json`
+   (bloque `resources`) y `odd/tasks/v8-cierre-bloqueos-lanzamiento.md` (tarea 5).
+   No repitas esa medición sin un cambio material o un pedido explícito. El
+   volumen NFS de 40 TiB es compartido y no prueba una cuota individual; si el
+   claim es sobre cuota individual, verifica si hay evidencia explícita y marca
+   `sin_evidencia` si no la hay. Para otros bloqueos, compara el claim con su
+   fuente documentada actual y reporta `verificado`, `discrepancia` o
+   `sin_evidencia` sin reabrir la investigación si el hecho no cambió.
 
 ## Qué NO hacer
 
