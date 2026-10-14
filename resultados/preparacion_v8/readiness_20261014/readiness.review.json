@@ -151,9 +151,10 @@
     "Per-stage and cumulative resources/storage/time plans not finalized",
     "Concrete serial controller plans and corresponding manifest-bound gates not created",
     "TriDerm SLED pseudo-mask manifest and frozen SHA-256 not generated/reviewed",
-    "HF PyTorch conversion is validated locally; original TensorFlow numerical equivalence remains unverified (anonymous GCS access confirmed blocked by IAM, requires real GCP credentials) and must not be claimed"
+    "HF PyTorch conversion is validated locally; original TensorFlow numerical equivalence remains unverified (anonymous GCS access confirmed blocked by IAM, requires real GCP credentials) and must not be claimed",
+    "USL-Net source bank is specified but the three-source cluster load and synthetic fusion check remain pending; HF SimCLR transfer is unconfirmed."
   ],
-  "next_action_requiring_explicit_approval": "Upload reviewed adapter code to a separate cluster preparation runtime; prior automatic review required explicit cluster-code-deployment approval.",
+  "next_action_requiring_explicit_approval": "When Jupyter is reachable, verify the three checkpoint/provenance pairs and perform the requested no-image synthetic USL-Net bank load; do not start scientific training.",
   "prepared_patch_package": {
     "filename": "v8_simclr_same_profile_eed86c8.patch.zip",
     "size_bytes": 8005,
@@ -198,10 +199,10 @@
       ],
       "input_normalization": "unit_rgb",
       "max_absolute_error_by_stage": [
-        0.0,
-        0.0,
-        0.0,
-        0.0
+        0,
+        0,
+        0,
+        0
       ],
       "stage_shapes": [
         [
@@ -260,5 +261,29 @@
     "converter_reference_revision": "139d3cb0bd0c64b5ad32aab810e0bd0a0dddaae0",
     "cluster_transfer_confirmed": false,
     "scientific_gate_passed": false
+  },
+  "usl_net_source_bank": {
+    "status": "candidate_manifest_prepared_cluster_load_pending",
+    "superseded_by": "usl_net_bank (same session date, cluster became reachable; real strict load completed)",
+    "manifest": "plan-segmentacion/metodos-v8/source-bank.usl-net.candidate.json",
+    "readiness": "plan-segmentacion/metodos-v8/source-bank.usl-net.review.json",
+    "origins": [
+      "simclr",
+      "mocov1",
+      "mocov2"
+    ],
+    "simclr_hf_transfer_confirmed": false,
+    "mocov1_conversion": "strict_converted_in_cluster_per_existing_receipt",
+    "mocov2_conversion": "strict_converted_in_cluster_per_existing_receipt",
+    "cluster_loader_verified": false,
+    "synthetic_fusion_forward_verified": false,
+    "expected_feature_shape": [
+      1,
+      9216,
+      14,
+      14
+    ],
+    "training_started": false,
+    "jupyter_access_check": "502 Bad Gateway: connection refused"
   }
 }
