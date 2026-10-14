@@ -242,10 +242,14 @@ y `openspec/changes/` cuando el trabajo entra en SDD explícito.
 Hay artefactos sueltos en la raíz que **no se deben borrar ni mover sin
 preguntarle primero al usuario**, porque no está confirmado si son desechables:
 
-- `jupyter-terminal-25.png` … `jupyter-terminal-46.png` (al menos 22 capturas de
-  pantalla sueltas de sesiones de terminal Jupyter, sin indexar en ningún doc).
-- `.playwright-mcp/` (directorio sin seguimiento, probablemente artefactos de una
-  sesión de automatización de navegador contra UNABIA).
+- `jupyter-terminal-25.png` … `jupyter-terminal-46.png`. **Ya no es un
+  problema** (2026-10-14): `.gitignore` línea 12 (`*.png`) ya las cubre,
+  confirmado con `git check-ignore -v` — no aparecen como `??`. Se deja la
+  entrada solo como ejemplo de este patrón de limpieza.
+- `.playwright-mcp/` (directorio sin seguimiento, artefactos de las sesiones de
+  automatización de navegador contra UNABIA). **Sigue sin regla de
+  `.gitignore`** — a diferencia de los `.png`, este sí sigue apareciendo como
+  `??` en `git status`.
 - `v8-validation-f1dc0d2.tar` (archivo sin seguimiento). **Ya identificado**
   (2026-10-14): es el snapshot del commit `f1dc0d2` extraído en UNABIA en
   `~/work/validation_v8/f1dc0d2-20261014/` — ver sección 6, "copia candidata
