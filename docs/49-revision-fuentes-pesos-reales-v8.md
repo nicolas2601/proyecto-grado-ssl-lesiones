@@ -84,3 +84,7 @@ El siguiente trabajo con archivos reales sigue siendo desplegar en un checkout
 independiente, cerrar las revisiones por artefacto y descargar en el clúster.
 Después se registran hashes, claves excluidas, normalización y carga estricta;
 no se habilita entrenamiento por completar únicamente esa preparación.
+
+Actualización posterior: el [documento 50](50-intento-transferencia-y-revision-preparacion-v8.md)
+registra la decisión documental para preparación no comercial y el intento real
+de transferencia. No sustituye los pendientes físicos o semánticos de esta revisión.

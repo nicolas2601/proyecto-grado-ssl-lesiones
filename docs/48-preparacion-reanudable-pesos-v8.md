@@ -23,6 +23,14 @@ con la base fijada, sin archivos de código locales sin seguimiento. Registra la
 revisión real del checkout; un commit posterior que solo agregue este preparador o
 documentación es compatible. No se importa ni ejecuta el conversor externo de SimCLR.
 
+### Snapshot exportado sin Git
+
+El preparador también acepta un snapshot si `adapter_source_manifest_sha256` fija
+el hash de `adapter-source-manifest.json` en su raíz. Comprueba revisión y todos
+los archivos importables, rechazando cambios, ausencias y añadidos. No fabrica
+historia Git ni omite el control de identidad. Ver [50](50-intento-transferencia-y-revision-preparacion-v8.md)
+para el plan académico revisado y el intento de transferencia real.
+
 ## Revisión por artefacto
 
 Copiar el plan una sola vez a un archivo de revisión fuera del checkout. Completar

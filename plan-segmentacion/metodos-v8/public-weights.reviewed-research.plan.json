@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "protocol": "public_ssl_staging_v8",
+  "adapter_revision": "8a2f42fe60aa5e29c0dd346cc2e645278897db4d",
+  "adapter_sha256": "7bfa34bb153e22413409fa77c8e245a401688042af0ffa56d095714d41fcf77d",
+  "notes": "Candidate inventory, not a reviewed download authorization. Recorded sizes come from the earlier cluster HEAD observations; expected_sha256 remains null until an independent digest is available. SLED and TriDerm do not require public weights.",
+  "artifacts": [
+    {
+      "id": "simclr_r50_1x",
+      "origin": "simclr",
+      "url": "https://storage.googleapis.com/simclr-gcs/checkpoints/ResNet50_1x.zip",
+      "format": "simclr_tensorflow",
+      "expected_bytes": null,
+      "expected_sha256": null,
+      "max_bytes": 2147483648,
+      "max_unpacked_bytes": 2147483648,
+      "checkpoint_prefix": "ResNet50_1x/model.ckpt-225206",
+      "review": {
+        "approved": true,
+        "reviewed_by": "Codex, documentary review requested by the project owner",
+        "reviewed_at": "2026-10-13 America/Bogota",
+        "license_id": "Apache-2.0",
+        "license_evidence_url": "https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/README.md",
+        "artifact_license_scope": "Use the Apache-2.0 project declaration accompanying the official model publication, with attribution/license notices retained. This is a documentary scope inference from the project publication, not a new license granted by this review.",
+        "source_selection_evidence": "V8 docs/46 selects this official file as an explicit initialization adaptation; exact checkpoint identity with the USL/RPI paper is not asserted. https://storage.googleapis.com/simclr-gcs/checkpoints/ResNet50_1x.zip",
+        "input_normalization": "unit_rgb",
+        "normalization_evidence_url": "https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/data_util.py",
+        "approval_scope": "noncommercial_research_preparation_only_no_scientific_gate"
+      },
+      "published_md5_prefix": null,
+      "documentary_evidence": "public-weights.evidence.json#simclr_r50_1x"
+    },
+    {
+      "id": "mocov1_r50_200ep",
+      "origin": "mocov1",
+      "url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar",
+      "format": "pytorch",
+      "expected_bytes": 95347404,
+      "expected_sha256": null,
+      "max_bytes": 110000000,
+      "max_unpacked_bytes": 250000000,
+      "review": {
+        "approved": true,
+        "reviewed_by": "Codex, documentary review requested by the project owner",
+        "reviewed_at": "2026-10-13 America/Bogota",
+        "license_id": "CC-BY-NC-4.0",
+        "license_evidence_url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/README.md",
+        "artifact_license_scope": "For noncommercial academic preparation use the CC-BY-NC-4.0 declaration in the README publishing this checkpoint. MIT relicensing is attributed to the software only; no claim that it relicenses the checkpoint. Attribution and noncommercial conditions are retained.",
+        "source_selection_evidence": "V8 docs/46 selects this official file as an explicit initialization adaptation; exact checkpoint identity with the USL/RPI paper is not asserted. https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar",
+        "input_normalization": "imagenet",
+        "normalization_evidence_url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/main_lincls.py",
+        "approval_scope": "noncommercial_research_preparation_only_no_scientific_gate"
+      },
+      "published_md5_prefix": "b251726a",
+      "published_checksum_evidence_url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/README.md",
+      "documentary_evidence": "public-weights.evidence.json#mocov1_r50_200ep"
+    },
+    {
+      "id": "mocov2_r50_800ep",
+      "origin": "mocov2",
+      "url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar",
+      "format": "pytorch",
+      "expected_bytes": 1121331339,
+      "expected_sha256": null,
+      "max_bytes": 1200000000,
+      "max_unpacked_bytes": 250000000,
+      "review": {
+        "approved": true,
+        "reviewed_by": "Codex, documentary review requested by the project owner",
+        "reviewed_at": "2026-10-13 America/Bogota",
+        "license_id": "CC-BY-NC-4.0",
+        "license_evidence_url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/README.md",
+        "artifact_license_scope": "For noncommercial academic preparation use the CC-BY-NC-4.0 declaration in the README publishing this checkpoint. MIT relicensing is attributed to the software only; no claim that it relicenses the checkpoint. Attribution and noncommercial conditions are retained.",
+        "source_selection_evidence": "V8 docs/46 selects this official file as an explicit initialization adaptation; exact checkpoint identity with the USL/RPI paper is not asserted. https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar",
+        "input_normalization": "imagenet",
+        "normalization_evidence_url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/main_lincls.py",
+        "approval_scope": "noncommercial_research_preparation_only_no_scientific_gate"
+      },
+      "published_md5_prefix": "a04e12f8",
+      "published_checksum_evidence_url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/README.md",
+      "documentary_evidence": "public-weights.evidence.json#mocov2_r50_800ep"
+    },
+    {
+      "id": "mocov3_r50_1000ep",
+      "origin": "mocov3",
+      "url": "https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar",
+      "format": "pytorch",
+      "expected_bytes": 2727866643,
+      "expected_sha256": null,
+      "max_bytes": 2800000000,
+      "max_unpacked_bytes": 250000000,
+      "review": {
+        "approved": true,
+        "reviewed_by": "Codex, documentary review requested by the project owner",
+        "reviewed_at": "2026-10-13 America/Bogota",
+        "license_id": "CC-BY-NC-4.0",
+        "license_evidence_url": "https://github.com/facebookresearch/moco-v3/blob/c349e6e24f40d3fedb22d973f92defa4cedf37a7/README.md",
+        "artifact_license_scope": "For noncommercial academic preparation use the CC-BY-NC-4.0 declaration in the README publishing this checkpoint. MIT relicensing is attributed to the software only; no claim that it relicenses the checkpoint. Attribution and noncommercial conditions are retained.",
+        "source_selection_evidence": "V8 docs/46 selects this official file as an explicit initialization adaptation; exact checkpoint identity with the USL/RPI paper is not asserted. https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar",
+        "input_normalization": "imagenet",
+        "normalization_evidence_url": "https://github.com/facebookresearch/moco-v3/blob/c349e6e24f40d3fedb22d973f92defa4cedf37a7/main_lincls.py",
+        "approval_scope": "noncommercial_research_preparation_only_no_scientific_gate"
+      },
+      "published_md5_prefix": null,
+      "documentary_evidence": "public-weights.evidence.json#mocov3_r50_1000ep"
+    },
+    {
+      "id": "dino_vits16",
+      "origin": "dino",
+      "url": "https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth",
+      "format": "pytorch",
+      "expected_bytes": 86710517,
+      "expected_sha256": null,
+      "max_bytes": 100000000,
+      "max_unpacked_bytes": 200000000,
+      "review": {
+        "approved": true,
+        "reviewed_by": "Codex, documentary review requested by the project owner",
+        "reviewed_at": "2026-10-13 America/Bogota",
+        "license_id": "Apache-2.0",
+        "license_evidence_url": "https://github.com/facebookresearch/dino/blob/7c446df5b9f45747937fb0d72314eb9f7b66930a/README.md",
+        "artifact_license_scope": "Use the Apache-2.0 project declaration accompanying the official model publication, with attribution/license notices retained. This is a documentary scope inference from the project publication, not a new license granted by this review.",
+        "source_selection_evidence": "V8 docs/46 selects this official file as an explicit initialization adaptation; exact checkpoint identity with the USL/RPI paper is not asserted. https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth",
+        "input_normalization": "imagenet",
+        "normalization_evidence_url": "https://github.com/facebookresearch/dino/blob/7c446df5b9f45747937fb0d72314eb9f7b66930a/eval_linear.py",
+        "approval_scope": "noncommercial_research_preparation_only_no_scientific_gate"
+      },
+      "published_md5_prefix": null,
+      "documentary_evidence": "public-weights.evidence.json#dino_vits16"
+    }
+  ],
+  "bank_requirements": {
+    "usl_net": [
+      "simclr_r50_1x",
+      "mocov1_r50_200ep",
+      "mocov2_r50_800ep"
+    ],
+    "rpi_net": [
+      "mocov3_r50_1000ep",
+      "mocov2_r50_800ep",
+      "dino_vits16"
+    ]
+  },
+  "adapter_source_manifest_sha256": "3fa7df95516e01400f6af7365c14d4d3d6fc625e7eeb294149490f6e6d9cc4bc"
+}

@@ -20,3 +20,7 @@ gates ni activa las configuraciones científicas.
 La [evidencia documental fijada](public-weights.evidence.json) y la [revisión de
 pesos reales](../../docs/49-revision-fuentes-pesos-reales-v8.md) distinguen
 checksum publicado, licencia de código y validación pendiente de cada archivo.
+
+[Plan revisado para preparación académica](public-weights.reviewed-research.plan.json)
+y [estado de transferencia al clúster](../../docs/50-intento-transferencia-y-revision-preparacion-v8.md).
+La revisión documental no certifica archivos aún no descargados.

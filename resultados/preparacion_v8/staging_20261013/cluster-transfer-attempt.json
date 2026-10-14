@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "implementation_base_revision": "eb5ca5910a4760b917b25a2d614aa60e9f74b92c",
+  "authentication": {
+    "secure_request": "submitted",
+    "jupyter_visible_after_login": true,
+    "upload_status": "not_confirmed",
+    "final_error": "Browser observation is unavailable because native credential state cannot be safely resumed. Start a new browser runtime to continue."
+  },
+  "cluster": {
+    "preparation_root": "/home/jovyan/work/public_ssl_v8_preparation",
+    "scoped_inventory_depth": 3,
+    "checkpoints_observed": 0,
+    "existing_converter": "source/simclr-converter",
+    "adapter_deployment": "not_confirmed",
+    "old_checkout_modified": false
+  },
+  "prepared_bundle": {
+    "filename": "v8_public_weights_runtime_eb5ca59.zip",
+    "bytes": 501594,
+    "sha256": "83dfe51de9b128b7f13780bd21bde08548aa02d76cf038603ebd99891269109d",
+    "baseline_source_revision": "8a2f42fe60aa5e29c0dd346cc2e645278897db4d",
+    "git_blobs_matched": 210,
+    "source_manifest_sha256": "3fa7df95516e01400f6af7365c14d4d3d6fc625e7eeb294149490f6e6d9cc4bc"
+  },
+  "review_scope": "Documentary approval for noncommercial academic preparation using the license terms in the official model publication; not a binary checkpoint validation or a scientific gate. MoCo code MIT relicensing is not extended to weights; CC-BY-NC-4.0 publication terms retained. Apache project scope for SimCLR/DINO is explicitly recorded as an inference.",
+  "new_snapshot_checks": {
+    "command": "python -m unittest discover -s tests -p test_public_ssl_snapshot_v8.py -v",
+    "tests_run": 4,
+    "failures": 0,
+    "errors": 0,
+    "mocks_only": true
+  },
+  "real_checkpoints_downloaded": 0,
+  "real_model_conversions": 0,
+  "previous_test_suites_repeated": false,
+  "training_started": false,
+  "scientific_gates_enabled": false,
+  "files_sha256": {
+    "scripts/stage_public_ssl_weights_v8.py": "f046fb20c346e737c077915eba7ce8407b5bfa8c7d38fffb28eebadd25145bcf",
+    "tests/test_public_ssl_snapshot_v8.py": "f4cc7525ce969433c7a672c09fa2cdd608c78391dc40176d698c130e91f5f74b",
+    "adapter-source-manifest.json": "3fa7df95516e01400f6af7365c14d4d3d6fc625e7eeb294149490f6e6d9cc4bc",
+    "plan-segmentacion/metodos-v8/public-weights.reviewed-research.plan.json": "ff611d1c5056f649cbca65a6a261d08f101f5c6c7548d2f3631fe17a914632a8"
+  }
+}

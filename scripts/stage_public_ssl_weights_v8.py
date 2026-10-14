@@ -253,6 +253,27 @@ def download(item, folder, reserve, timeout, max_seconds):
 def adapter_identity(plan):
     if digest(ADAPTER) != plan["adapter_sha256"]:
         raise ValueError("Adapter hash differs from the pinned version")
+    if not (ROOT / ".git").exists():
+        manifest_path = ROOT / "adapter-source-manifest.json"
+        expected = plan.get("adapter_source_manifest_sha256")
+        if not expected or not re.fullmatch(r"[a-f0-9]{64}", expected) or digest(manifest_path) != expected:
+            raise ValueError("A source snapshot requires its independently pinned manifest hash")
+        manifest = json.loads(manifest_path.read_text())
+        if (manifest.get("schema_version") != 1
+                or manifest.get("producer_revision") != plan["adapter_revision"]):
+            raise ValueError("Source snapshot revision differs from the reviewed baseline")
+        files = manifest.get("files", {})
+        actual = {str(p.relative_to(ROOT)) for p in (ROOT / "src").rglob("*")
+                  if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"}
+        actual.add("scripts/prepare_public_ssl_weights_v8.py")
+        if set(files) != actual:
+            raise ValueError("Source snapshot has missing or unrecorded files")
+        for name, sha in files.items():
+            path = ROOT / name
+            if path.is_symlink() or path.resolve().is_relative_to(ROOT) is False or digest(path) != sha:
+                raise ValueError("Source snapshot file changed: " + name)
+        return {"producer_revision": plan["adapter_revision"], "adapter_sha256": digest(ADAPTER),
+                "source_manifest_sha256": expected}
     def git(*args):
         return subprocess.check_output(["git", *args], cwd=ROOT, text=True, stderr=subprocess.PIPE).strip()
     revision = git("rev-parse", "HEAD")
