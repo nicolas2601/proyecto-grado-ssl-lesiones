@@ -75,11 +75,17 @@ el artefacto que lo respalde.
    resultado real del comando, no una suposición. Si no puedes ejecutar
    pytest (dependencias faltantes, etc.), dilo explícitamente — no asumas que
    pasaría.
-5. **No repitas investigación ya cerrada.** Si el claim ya tiene un hallazgo
-   documentado como bloqueo conocido (ver `CLAUDE.md` §6 — ejemplo: SimCLR
-   `403`/`401`, cuota UNABIA sin verificar, solapamiento ISIC2018), no vuelvas
-   a abrir esa investigación desde cero: señala que el claim coincide o no con
-   lo ya documentado, y listo.
+5. **No repitas investigación ya cerrada y distingue el alcance de cada dato.**
+   La cuota individual de disco/CPU sigue sin verificarse, como indica
+   `CLAUDE.md` §6. La tarea 5 y `resultados/preparacion_v8/readiness_20261014/readiness.review.json`
+   (bloque `resources`) registran recursos agregados del nodo observados en vivo
+   el `2026-10-14` (48 CPUs, 123 GiB de RAM, 2 GPU y 40 TiB de disco NFS
+   compartido); esos valores no acreditan una cuota individual. Si el claim es
+   sobre cuota individual, busca evidencia explícita y marca `sin_evidencia` si
+   no existe. No repitas la medición agregada del nodo sin un cambio material o
+   un pedido explícito. Para otros bloqueos, coteja el claim con la fuente
+   actual y reporta `verificado`, `discrepancia` o `sin_evidencia`; no reabras
+   su investigación si el hecho no cambió.
 
 ## Qué NO hacer
 

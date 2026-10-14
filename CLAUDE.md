@@ -27,7 +27,8 @@ de código: Apache-2.0 (`LICENSE`). Los pesos de modelo tienen licencia aparte
 ## 2. Stack técnico (confirmado por archivos del repo)
 
 - **Lenguaje:** Python. CI corre la suite en 3.11 / 3.12 / 3.13 (`.github/workflows/ci.yml`).
-  El entorno del clúster UNABIA fija **Python 3.11.x** (`cluster/README.md`). Los
+  `cluster/README.md` documenta un perfil UNABIA de preentrenamiento v6 en
+  **Python 3.11.x**; no confirma el runtime de otras corridas. Los
   `.pyc` cacheados localmente son `cpython-314` (entorno de desarrollo local en
   Python 3.14) — no confundir con el target de CI/cluster.
 - **No hay `pyproject.toml` ni `setup.py`/`setup.cfg`** en el repo — no confirmado
@@ -41,8 +42,9 @@ de código: Apache-2.0 (`LICENSE`). Los pesos de modelo tienen licencia aparte
     el release).
   - `requirements-pretrain.txt`: runs de preentrenamiento v6 GPU (torch>=2.2,
     torchvision>=0.17, mlflow, Pillow, opencv).
-  - `cluster/requirements.txt`: entorno del clúster (PyTorch 2.4.1 + torchvision
-    0.19.1, wheels cu121).
+  - `cluster/requirements.txt`: perfil pineado para preentrenamiento v6
+    (PyTorch 2.4.1 + torchvision 0.19.1, wheels cu121); no asumir que describe
+    el runtime de otros pipelines UNABIA.
   - `demo/requirements.txt` y `demo/requirements-cpu.txt`: demo local.
   - No confirmado un requirements.txt único "de producción"; cada carpeta declara
     el suyo según para qué se usa.
