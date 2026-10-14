@@ -312,6 +312,6 @@ Usa el especialista cuyo alcance coincida con la tarea:
 - `crear-figuras-cientificas` — crea o revisa diagramas y esquemas de método.
 - `mantener-indice-docs` — sincroniza el índice con los documentos numerados reales.
 
-Los nombres son los valores `name` de los archivos en `.claude/agents/` y
-`.claude/skills/`; las rutas de archivo se conservan para no romper sus
-referencias existentes.
+Los nombres visibles coinciden con el campo `name` y con el nombre base de
+cada archivo en `.claude/agents/` y `.claude/skills/`, para que la invocación y
+la búsqueda en el repositorio usen términos consistentes.

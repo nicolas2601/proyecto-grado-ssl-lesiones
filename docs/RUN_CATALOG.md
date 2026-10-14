@@ -33,4 +33,4 @@ Este documento ayuda a encontrar el procedimiento correcto; no reemplaza los run
 
 ## Referencias de operación del navegador
 
-El acceso de este proyecto al clúster es JupyterLab en [UNABIA](https://unabia.unab.edu.co), mediante el servidor Playwright MCP y su perfil persistente configurado en .mcp.json. No uses SSH ni gestiones cookies o storage_state. Si aparece el login, detente y pide al usuario que inicie sesión de forma interactiva. La guía completa de autorización, manejo de sesión y secretos está en [.claude/agents/cluster-session-operator.md](../.claude/agents/cluster-session-operator.md).
+El acceso de este proyecto al clúster es JupyterLab en [UNABIA](https://unabia.unab.edu.co), mediante el servidor Playwright MCP y su perfil persistente configurado en .mcp.json. No uses SSH ni gestiones cookies o storage_state. Si aparece el login, detente y pide al usuario que inicie sesión de forma interactiva. La guía completa de autorización, manejo de sesión y secretos está en [.claude/agents/operador-unabia.md](../.claude/agents/operador-unabia.md).
