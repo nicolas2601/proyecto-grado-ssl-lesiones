@@ -9,14 +9,27 @@
   "prior_audits_tests_or_conversions_repeated": false,
   "usl_net_bank": {
     "status": "constructed_and_loaded_end_to_end",
-    "origins": ["simclr", "mocov1", "mocov2"],
+    "origins": [
+      "simclr",
+      "mocov1",
+      "mocov2"
+    ],
     "bank_file": "~/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
     "bank_load_verified": true,
     "strict_load": true,
     "per_encoder_param_count": 23508032,
     "simclr_checkpoint_sha256": "cff4a8bca6cf17d73c79be2aa727cb58dea3f64b5f1f1d727d11e05caf8aed4a",
     "simclr_checkpoint_matches_prior_local_validation": true,
-    "execution_ready": false
+    "execution_ready": false,
+    "synthetic_fusion_forward_receipt_in_committed_repository": "not_found",
+    "expected_feature_shape_at_224px": [
+      1,
+      9216,
+      14,
+      14
+    ],
+    "verification_commit": "c55b6b146d78d4ab9e2a7fb6a1743e72c3fb134b",
+    "verification_document": "docs/54-usl-net-banco-pesos-v8.md"
   },
   "new_rpi_bank_integration": {
     "status": "passed_existing_runtime_loader",
@@ -152,9 +165,9 @@
     "Concrete serial controller plans and corresponding manifest-bound gates not created",
     "TriDerm SLED pseudo-mask manifest and frozen SHA-256 not generated/reviewed",
     "HF PyTorch conversion is validated locally; original TensorFlow numerical equivalence remains unverified (anonymous GCS access confirmed blocked by IAM, requires real GCP credentials) and must not be claimed",
-    "USL-Net source bank is specified but the three-source cluster load and synthetic fusion check remain pending; HF SimCLR transfer is unconfirmed."
+    "Repository evidence confirms the strict three-source USL-Net load, but no committed receipt documents a 224x224 synthetic fused-output forward with expected shape [1, 9216, 14, 14]."
   ],
-  "next_action_requiring_explicit_approval": "When Jupyter is reachable, verify the three checkpoint/provenance pairs and perform the requested no-image synthetic USL-Net bank load; do not start scientific training.",
+  "next_action_requiring_explicit_approval": "Keep scientific execution disabled. The USL-Net strict bank load is already recorded; when secure cluster access is available, first check for an existing receipt of the 224x224 synthetic fusion forward and perform only that one no-image check if it is absent. Do not repeat transfer, conversion, or bank loading. Resolve all data, evaluation, resource, SLED-manifest, and serial-plan gates before any scientific launch.",
   "prepared_patch_package": {
     "filename": "v8_simclr_same_profile_eed86c8.patch.zip",
     "size_bytes": 8005,
