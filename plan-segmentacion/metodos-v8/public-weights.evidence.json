@@ -425,6 +425,6 @@
   "cluster_preparation_update": {
     "updated_at_utc": "2026-10-14",
     "corrected_plan_sha256": "a8a84880074f371ab88d86237609db8d4a5ee0cfaa5e4338e59af14ae2c11ba3",
-    "note": "MoCo v2/v3 expected_bytes were each ten times the current HTTP 200 identity-encoding Content-Length; corrected values are 112133139 and 272786643. Both complete source files converted strictly on CPU in staging-02. The pinned runtime and reference checkout d55c5cd were not modified; no training or scientific gates were run."
+    "note": "MoCo v2/v3 expected_bytes previously contained one extra repeated digit: 1121331339 and 2727866643. The HTTP 200 identity-encoding Content-Length and complete transfer sizes were 112133139 and 272786643. The old entries were approximately, but not exactly, 10x the observed values (the exact 10x values are 1121331390 and 2727866430; the old entries differ by -51 and +213 bytes). These corrected sizes were used for complete source downloads and strict CPU conversion in staging-02. The pinned runtime and reference checkout d55c5cd were not modified; no training or scientific gates were run."
   }
 }
