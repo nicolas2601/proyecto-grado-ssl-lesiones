@@ -138,14 +138,11 @@ bloqueos documentados al 2026-10-14 (todos con `execution_enabled=false`,
 `launch_ready=false`, `training_started=false` — **nadie debe cambiar esos flags
 sin evidencia real**):
 
-- **Recursos de UNABIA medidos en vivo (2026-10-14).** La tarea 5 del punch list
-  y `resultados/preparacion_v8/readiness_20261014/readiness.review.json`
-  (bloque `resources`) registran 48 CPUs, 123 GiB de RAM (115 GiB libres), 2×
-  RTX PRO 4000 Blackwell de 24 GB (0 % de uso), `cpu.max=max 100000`, límite de
-  memoria `max` y disco NFS compartido de 40 TiB (1 % usado). No repitas esta
-  medición si no hay un cambio material. Los 40 TiB describen el volumen
-  compartido, no una cuota individual. Sigue pendiente traducir estos valores
-  en límites por etapa para el plan del controlador (tarea 6).
+- **Cuota de disco/CPU en UNABIA sin verificar.** El punto de montaje NFS reporta
+  ~40 TiB compartidos, pero eso no acredita una cuota individual. `quota`, `lfs`,
+  `squota`, `sacctmgr`, `scontrol`, `sinfo`, `squeue` no están disponibles en el
+  entorno observado. El perfil de CPU (`cpu.max`) tiene lecturas inconsistentes
+  entre observaciones — sin reconciliar.
 - **SimCLR (checkpoint oficial) bloqueado — mitigado vía espejo Hugging Face,
   no resuelto del todo.** El ZIP TensorFlow oficial (`gs://simclr-checkpoints`,
   403; objeto alterno del README oficial, 401) sigue sin descargarse. Se usa en
