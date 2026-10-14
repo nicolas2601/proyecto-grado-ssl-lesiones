@@ -1,6 +1,6 @@
 # Índice de documentación
 
-Una línea por documento, en orden numérico. La columna Estado indica si el documento es la referencia vigente o si otro lo reemplazó. Los superados se conservan sin editar, porque cuentan cómo se llegó al diseño actual.
+Una línea por documento, en orden numérico. La columna Estado indica si el documento es la referencia vigente o si otro lo reemplazó. Los superados se conservan sin editar, porque cuentan cómo se llegó al diseño actual. Este índice puede quedar detrás de los documentos nuevos: para una versión activa, descubre también los archivos recientes en `docs/` y verifica su fecha y alcance antes de tratarlos como vigentes.
 
 Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Rediseño v7](28-rediseno-brazo-propuesto-v7.md) y el [resultado v7](../resultados/clasificacion/v7/README.md). Para el cierre de lo que pidieron el profesor y Pau, con veredicto por regla: [tabla de cierre](../resultados/TABLA_CIERRE.md) (generada).
 
@@ -48,6 +48,7 @@ Otros documentos:
 | Documento | Tema |
 |---|---|
 | [GUIA.md](GUIA.md) | Guía del repositorio y arquitectura del sistema. |
+| [RUN_CATALOG.md](RUN_CATALOG.md) | Índice de procedimientos de corridas SSL y operación en UNABIA por versión. |
 | [plan-segmentacion-sin-etiquetas.md](plan-segmentacion-sin-etiquetas.md) | Plan ejecutivo de pruebas de segmentación no supervisada por tono. |
 | [superpowers/plans/](superpowers/plans/) | Planes de ejecución. |
 | [figuras_analisis/](figuras_analisis/) | Figuras de análisis. |
@@ -57,4 +58,5 @@ Otros documentos:
 1. Un resultado nuevo se guarda como JSON con su commit y su tabla generada en `resultados/`.
 2. Un documento superado no se borra: se marca en esta tabla.
 3. Las cifras viven en los JSON y en las tablas generadas; los documentos las enlazan.
+4. El catálogo de corridas guía hacia el procedimiento de cada versión; verifica siempre el código y el estado vigentes antes de ejecutar.
 
