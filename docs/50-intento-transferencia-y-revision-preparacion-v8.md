@@ -84,3 +84,29 @@ bloqueo de acceso y su revisión semántica; no se sustituye por otra familia. L
 conversiones se ejecutan únicamente sobre archivos íntegros y quedan separadas
 de cualquier habilitación científica.
 
+## Actualización posterior: transferencia y prueba sintética en UNABIA (2026-10-14)
+
+Lo anterior conserva el relato de la sesión del 2026-10-13 y no describe el estado
+actual. En una sesión posterior se transfirió el checkpoint SimCLR PyTorch fijado
+de Hugging Face a
+`/home/jovyan/work/public_ssl_v8_preparation/staging-03/simclr_r50_1x/resnet50-1x.pth`;
+los 102.542.786 bytes y SHA-256
+`fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea` coinciden con
+el objeto publicado. Se instalaron cinco módulos de código en
+`runtime_simclr_same_eed86c8/src/dermssl/` y sus hashes coinciden con la revisión
+`eed86c892ef1c0516e21a024a66f0b8788aedd76`.
+
+Después, en el clúster, el banco USL-Net revisado pasó un forward sintético con
+`torch.randn` float32 de forma `[1,3,224,224]`, semilla 42, CPU, modo `eval` y
+`inference_mode`. La salida fue finita `[1,9216,14,14]`; se leyeron cero imágenes
+reales y no comenzó entrenamiento. El recibo se conserva en el clúster, no como
+archivo crudo versionado en Git. El mismo recibo está enlazado como artefacto
+`usl-net-synthetic-forward-20261014` (tipo `validation-receipt`) en el run nuevo de W&B
+[`g8us8pz9`](https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/g8us8pz9),
+con SHA-256 `b392e7d32eba94fe663777a4af754f4f554df50c715baaa0807ae535b7f6a83a`.
+
+Este avance no prueba equivalencia numérica con el checkpoint TensorFlow original
+de Google ni habilita entrenamiento. Los gates de datos/evaluación, cuotas y
+presupuestos completos, planes seriales, revisión de SLED y configuración
+CUDA/launcher permanecen pendientes. Ver el estado consolidado en [54](54-usl-net-banco-pesos-v8.md).
+

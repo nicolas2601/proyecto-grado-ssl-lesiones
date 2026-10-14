@@ -8,20 +8,20 @@
   "training_started": false,
   "prior_audits_tests_or_conversions_repeated": false,
   "usl_net_bank": {
-    "status": "constructed_and_loaded_end_to_end",
+    "status": "synthetic_forward_passed_cluster_no_training",
     "origins": [
       "simclr",
       "mocov1",
       "mocov2"
     ],
-    "bank_file": "~/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
+    "bank_file": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
     "bank_load_verified": true,
     "strict_load": true,
     "per_encoder_param_count": 23508032,
     "simclr_checkpoint_sha256": "cff4a8bca6cf17d73c79be2aa727cb58dea3f64b5f1f1d727d11e05caf8aed4a",
     "simclr_checkpoint_matches_prior_local_validation": true,
     "execution_ready": false,
-    "synthetic_fusion_forward_receipt_in_committed_repository": "not_found",
+    "synthetic_fusion_forward_receipt_in_committed_repository": "cluster_and_wandb_only_not_raw_file_in_git",
     "expected_feature_shape_at_224px": [
       1,
       9216,
@@ -29,7 +29,34 @@
       14
     ],
     "verification_commit": "c55b6b146d78d4ab9e2a7fb6a1743e72c3fb134b",
-    "verification_document": "docs/54-usl-net-banco-pesos-v8.md"
+    "verification_document": "docs/54-usl-net-banco-pesos-v8.md",
+    "bank_sha256": "306136b3abd29ae32ac8be2a1456cf4113cf4122f93b9f05d4663641cce6f6",
+    "synthetic_forward": {
+      "status": "passed",
+      "device": "cpu",
+      "model_mode": "eval",
+      "grad_mode": "torch.inference_mode",
+      "seed": 42,
+      "input": "torch.randn",
+      "input_dtype": "float32",
+      "input_shape": [
+        1,
+        3,
+        224,
+        224
+      ],
+      "output_shape": [
+        1,
+        9216,
+        14,
+        14
+      ],
+      "output_finite": true,
+      "real_images_read": 0,
+      "training_started": false,
+      "receipt_path": "/home/jovyan/work/public_ssl_v8_preparation/usl-net-synthetic-forward-20261014.json",
+      "receipt_sha256": "b392e7d32eba94fe663777a4af754f4f554df50c715baaa0807ae535b7f6a83a"
+    }
   },
   "new_rpi_bank_integration": {
     "status": "passed_existing_runtime_loader",
@@ -46,10 +73,12 @@
   },
   "weights": {
     "simclr_r50_1x": {
-      "observed_bytes": null,
-      "source_sha256": null,
-      "validation": "original_google_archive_not_downloaded; alternate_hf_candidate_verified_locally",
-      "conversion_status": "spatial_profile_prepared_runtime_validation_pending_no_real_conversion"
+      "observed_bytes": 102542786,
+      "source_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+      "validation": "huggingface_lfs_sha256_verified_and_transferred_to_unabia; not_original_google_tensorflow_archive",
+      "conversion_status": "pytorch_candidate_deployed_and_bank_forward_passed; tensorflow_numerical_equivalence_pending",
+      "cluster_transfer_confirmed": true,
+      "cluster_path": "/home/jovyan/work/public_ssl_v8_preparation/staging-03/simclr_r50_1x/resnet50-1x.pth"
     },
     "mocov1_r50_200ep": {
       "observed_bytes": 95347404,
@@ -76,14 +105,6 @@
       "conversion_status": "converted_strict"
     }
   },
-  "simclr_diagnostics": {
-    "official_archive_http_status": 403,
-    "error_code": "AccessDenied",
-    "error_message": "Access denied.",
-    "additional_official_bucket_metadata_http_status": 401,
-    "checkpoint_bytes_saved": 0,
-    "inference_limit": "The error does not establish whether the object is private, missing, or available to a different legitimately authorized client."
-  },
   "new_simclr_profile": {
     "scope": "origin-specific SimCLR spatial profile",
     "syntax_passed": true,
@@ -95,7 +116,16 @@
     "cluster_runtime": "runtime_simclr_same_eed86c8",
     "cluster_patch_sha256": "18333b4ae02ea86dedf0749dae5941877a3840af81172a4e19f7650767f06a3c",
     "scientific_execution_authorized": false,
-    "new_spatial_tests_passed": true
+    "new_spatial_tests_passed": true,
+    "runtime_modules_deployed": [
+      "w3_components.py",
+      "w3_usl_models.py",
+      "segmentation_methods/common/losses.py",
+      "segmentation_methods/usl_net/model.py",
+      "segmentation_methods/usl_net/__init__.py"
+    ],
+    "runtime_modules_source_revision": "eed86c892ef1c0516e21a024a66f0b8788aedd76",
+    "runtime_modules_hashes_verified": true
   },
   "data": {
     "existing_verified_originals": 40896,
@@ -138,9 +168,17 @@
     "shared_project": "dermssl-segmentacion",
     "shared_project_read_access": true,
     "running_runs_at_observation": 0,
-    "run_created": false,
+    "run_created": true,
     "credential_file_changed": false,
-    "alert_delivery_verified": false
+    "alert_delivery_verified": false,
+    "run_id": "g8us8pz9",
+    "run_name": "usl_net_real_bank_synthetic_forward_20261014",
+    "entity": "nmoreno534-universidad-autonoma-de-bucaramanga",
+    "run_url": "https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/g8us8pz9",
+    "artifact_name": "usl-net-synthetic-forward-20261014",
+    "artifact_type": "validation-receipt",
+    "artifact_file": "receipt.json",
+    "receipt_sha256": "b392e7d32eba94fe663777a4af754f4f554df50c715baaa0807ae535b7f6a83a"
   },
   "protected_checkouts": {
     "head": "d55c5cddad2b3c02a862404bd1b1c4c4a9166624",
@@ -159,16 +197,6 @@
     "later_browser_recovery": "native credential state cannot be safely resumed",
     "full_review_sync_to_cluster_pending": true
   },
-  "launch_blockers": [
-    "Patient/lesion group eligibility and independent anatomical evaluation unresolved",
-    "Per-stage and cumulative resources/storage/time plans not finalized",
-    "Concrete serial controller plans and corresponding manifest-bound gates not created",
-    "TriDerm SLED pseudo-mask manifest and frozen SHA-256 not generated/reviewed",
-    "HF PyTorch conversion is validated locally; original TensorFlow numerical equivalence remains unverified (anonymous GCS access confirmed blocked by IAM, requires real GCP credentials) and must not be claimed",
-    "Repository evidence confirms the strict three-source USL-Net load, but no committed receipt documents a 224x224 synthetic fused-output forward with expected shape [1, 9216, 14, 14].",
-    "Preparation runtimes lack the training launcher/controller; a complete revision-pinned execution copy with reviewed CUDA fix/configs is required without modifying protected checkouts."
-  ],
-  "next_action_requiring_explicit_approval": "Keep scientific execution disabled. The USL-Net strict bank load is already recorded; when secure cluster access is available, first check for an existing receipt of the 224x224 synthetic fusion forward and perform only that one no-image check if it is absent. Do not repeat transfer, conversion, or bank loading. Resolve all data, evaluation, resource, SLED-manifest, and serial-plan gates before any scientific launch.",
   "prepared_patch_package": {
     "filename": "v8_simclr_same_profile_eed86c8.patch.zip",
     "size_bytes": 8005,
@@ -198,8 +226,9 @@
       "complete": true,
       "license_declared": "apache-2.0",
       "verification_scope": "Hugging Face LFS object identity; not byte equality to original Google TensorFlow archive",
-      "cluster_transfer_confirmed": false,
-      "conversion_verified": true
+      "cluster_transfer_confirmed": true,
+      "conversion_verified": true,
+      "cluster_path": "/home/jovyan/work/public_ssl_v8_preparation/staging-03/simclr_r50_1x/resnet50-1x.pth"
     },
     "mapping_validation": {
       "status": "passed_explicitly_aligned_pytorch_reference",
@@ -273,11 +302,12 @@
     },
     "conversion_encoder_sha256": "cff4a8bca6cf17d73c79be2aa727cb58dea3f64b5f1f1d727d11e05caf8aed4a",
     "converter_reference_revision": "139d3cb0bd0c64b5ad32aab810e0bd0a0dddaae0",
-    "cluster_transfer_confirmed": false,
-    "scientific_gate_passed": false
+    "cluster_transfer_confirmed": true,
+    "scientific_gate_passed": false,
+    "cluster_forward_verification": "See usl_net_bank.synthetic_forward; no numerical equivalence to original Google TensorFlow checkpoint established."
   },
   "usl_net_source_bank": {
-    "status": "candidate_manifest_prepared_cluster_load_pending",
+    "status": "superseded_by_verified_cluster_bank_and_synthetic_forward",
     "superseded_by": "usl_net_bank (same session date, cluster became reachable; real strict load completed)",
     "manifest": "plan-segmentacion/metodos-v8/source-bank.usl-net.candidate.json",
     "readiness": "plan-segmentacion/metodos-v8/source-bank.usl-net.review.json",
@@ -286,11 +316,11 @@
       "mocov1",
       "mocov2"
     ],
-    "simclr_hf_transfer_confirmed": false,
+    "simclr_hf_transfer_confirmed": true,
     "mocov1_conversion": "strict_converted_in_cluster_per_existing_receipt",
     "mocov2_conversion": "strict_converted_in_cluster_per_existing_receipt",
-    "cluster_loader_verified": false,
-    "synthetic_fusion_forward_verified": false,
+    "cluster_loader_verified": true,
+    "synthetic_fusion_forward_verified": true,
     "expected_feature_shape": [
       1,
       9216,
@@ -298,7 +328,8 @@
       14
     ],
     "training_started": false,
-    "jupyter_access_check": "502 Bad Gateway: connection refused"
+    "current_bank_path": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
+    "current_bank_sha256": "306136b3abd29ae32ac8be2a1456cf4113cf4122f93b9f05d4663641cce6f6"
   },
   "live_launch_review": {
     "date_utc": "2026-10-14",
@@ -318,5 +349,43 @@
     ],
     "preparation_runtimes_have_launcher_and_controller": false,
     "new_tests_or_training_started": false
+  },
+  "execution_enabled": false,
+  "launch_blockers": [
+    "Patient/lesion group eligibility and independent anatomical evaluation manifest unresolved",
+    "Effective individual quotas and complete per-stage/cumulative CPU, GPU, RAM, VRAM, disk, and time budgets not finalized",
+    "Concrete serial controller plans with frozen configs/manifests and reviewed gates not created",
+    "TriDerm SLED pseudo-mask manifest and frozen SHA-256 not generated/reviewed",
+    "SimCLR candidate is not numerically verified against original Google TensorFlow checkpoint",
+    "SLED review and exact training runtime CUDA/launcher availability and revision remain unverified"
+  ],
+  "next_action_requiring_explicit_approval": "Keep scientific execution disabled. Resolve and review all patient/lesion, independent evaluation, effective quota/budget, serial config/manifest, SLED, CUDA and launcher gates. The current cluster synthetic forward and W&B receipt do not authorize training.",
+  "current_cluster_observation": {
+    "runtime_python": "/home/jovyan/work/proyectonp/.venv/bin/python",
+    "pytorch": "2.11.0+cu128",
+    "cuda_available": true,
+    "cuda_device_count": 2,
+    "gpus": [
+      {
+        "model": "NVIDIA RTX PRO 4000 Blackwell",
+        "total_memory_mib": 24467,
+        "free_memory_mib": 23985
+      },
+      {
+        "model": "NVIDIA RTX PRO 4000 Blackwell",
+        "total_memory_mib": 24467,
+        "free_memory_mib": 23985
+      }
+    ],
+    "filesystem": "/home/jovyan/work",
+    "filesystem_type": "NFS",
+    "filesystem_source": "192.168.247.100:/compartido_serv_unab",
+    "shared_capacity": "40T",
+    "shared_used_approx": "373G",
+    "shared_free_approx": "40T",
+    "individual_quota_verified": false,
+    "quota_command": "quota -s",
+    "quota_command_available": false,
+    "interpretation": "CUDA visibility observed, not a GPU reservation or approved budget; shared NFS capacity does not establish an individual quota."
   }
 }
