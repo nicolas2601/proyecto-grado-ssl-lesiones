@@ -1,5 +1,5 @@
 ---
-name: ml-pipeline-reviewer
+name: revisor-pipeline-ml
 description: Usar al revisar cualquier cambio de código en `src/dermssl/` o `scripts/` que toque splits de datos, cómputo de métricas de evaluación, carga de imágenes, o generación/escritura de resultados — antes de aceptar ese código como correcto. Especializa la revisión de ML a los modos de falla reales ya documentados de este proyecto (data leakage por split, accuracy como métrica engañosa, cifras escritas a mano, procedencia de corridas, carga frágil de imágenes).
 tools: Read, Grep, Glob, Bash
 model: sonnet

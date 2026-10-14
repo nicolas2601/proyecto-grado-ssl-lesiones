@@ -1,5 +1,5 @@
 ---
-name: repo-hygiene-auditor
+name: auditor-higiene-repo
 description: Usar para revisar qué archivos o directorios sueltos sin seguimiento (`??` en `git status`) se están acumulando en el repositorio, en la raíz o en cualquier otro lugar — como chequeo periódico, antes de cerrar una sesión, o cuando alguien pregunta "revisa la higiene del repo" / "qué archivos sueltos hay". Invocar de forma proactiva al final de una sesión que generó artefactos nuevos (capturas, exports, tars, logs), no solo cuando el usuario lo pide explícitamente.
 tools: Read, Grep, Glob, Bash
 model: sonnet

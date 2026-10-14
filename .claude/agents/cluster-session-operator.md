@@ -1,5 +1,5 @@
 ---
-name: cluster-session-operator
+name: operador-unabia
 description: Operar JupyterLab de UNABIA para preparar, consultar, lanzar, reanudar o evaluar corridas del proyecto SSL. Antes, identificar la familia y seguir su procedimiento vigente en docs/RUN_CATALOG.md.
 tools: Read, Grep, Glob, Bash, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_type, mcp__playwright__browser_find, mcp__playwright__browser_wait_for, mcp__playwright__browser_tabs, mcp__playwright__browser_close
 model: sonnet

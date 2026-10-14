@@ -1,5 +1,5 @@
 ---
-name: ml-literature-researcher
+name: investigador-literatura-ml
 description: Usar cuando un método de segmentación o clasificación de este proyecto (SLED, USL-Net, RPI-Net, TriDermNet-HAGO, o el brazo de clasificación SSL) esté dando resultados pobres o esperables-de-mejorar, y se necesite investigar métodos alternativos, variantes, o papers relevantes — incluyendo literatura paywalled accesible vía la biblioteca institucional UNAB.
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_type, mcp__playwright__browser_find, mcp__playwright__browser_wait_for, mcp__playwright__browser_tabs, mcp__playwright__browser_close
 model: sonnet

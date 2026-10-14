@@ -294,3 +294,24 @@ El resto (capturas de Jupyter y `.playwright-mcp/`) seguía apareciendo como
   (`upstream_numerical_equivalence_verified`). Esto no es "ya quedó resuelto":
   es el sustituto mejor documentado disponible, nunca presentarlo como el
   checkpoint oficial.
+
+
+## 10. Agentes y skills del proyecto
+
+Usa el especialista cuyo alcance coincida con la tarea:
+
+- `operador-unabia` — prepara, inspecciona y opera corridas en UNABIA con el procedimiento de `docs/RUN_CATALOG.md`.
+- `investigador-literatura-ml` — busca métodos y literatura cuando una línea implementada no rinde lo esperado.
+- `arquitecto-metodos-ml` — planifica la implementación de un método ya elegido; no lo selecciona ni lo programa.
+- `revisor-pipeline-ml` — revisa cambios de código de ML antes de aceptarlos.
+- `auditor-evidencia-pipeline` — verifica afirmaciones de resolución, preparación o cifras con evidencia.
+- `auditor-higiene-repo` — identifica archivos sin seguimiento; no los limpia.
+- `documentador-corridas` — registra el estado, resultados y procedencia de corridas desde sus artefactos locales.
+- `actualizar-tablas-resultados` — regenera tablas desde JSON mediante los generadores del repo.
+- `crear-graficas-resultados` — crea o revisa gráficas cuantitativas.
+- `crear-figuras-cientificas` — crea o revisa diagramas y esquemas de método.
+- `mantener-indice-docs` — sincroniza el índice con los documentos numerados reales.
+
+Los nombres son los valores `name` de los archivos en `.claude/agents/` y
+`.claude/skills/`; las rutas de archivo se conservan para no romper sus
+referencias existentes.

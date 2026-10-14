@@ -1,5 +1,5 @@
 ---
-name: pipeline-evidence-auditor
+name: auditor-evidencia-pipeline
 description: Usar cuando alguien (el usuario, otra sesión, un doc nuevo o un commit) afirme que algo quedó "resuelto", "cerrado", "verificado" o "listo para lanzar" en este proyecto — en particular cualquier cambio de un gate de ejecución (`execution_enabled`, `execution_ready`, `launch_ready`, `training_started`, etc.) a `true`, o cualquier cifra nueva en una tabla de resultados. Invocar antes de aceptar ese claim como cerrado, no después.
 tools: Read, Grep, Glob, Bash
 model: sonnet
