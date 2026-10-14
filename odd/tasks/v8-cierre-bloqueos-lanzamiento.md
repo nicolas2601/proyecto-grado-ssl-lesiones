@@ -94,10 +94,12 @@ lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
   `source_bank()` real: los 3 encoders cargan con `strict=True`, 23.508.032
   parámetros cada uno. Ver doc 54 (este, el que relata la ejecución real).
   `execution_ready` sigue en `false` — cargar pesos no autoriza entrenar.
-- [ ] **Tarea 6 — plan serial concreto del controlador.** `scripts/run_segmentation_controller_v8.py`
+- [~] **Tarea 6 — plan serial concreto del controlador.** `scripts/run_segmentation_controller_v8.py`
   leído y entendido (espera plan JSON con `schema_version=1`, `protocol="w3-four-methods-v8"`,
   steps con manifest/gate/config/out, límites `timeout_seconds`/`max_rss_mb` por
-  config). No escrito todavía — depende de tarea 1 (necesita el manifiesto real).
+  config). Borradores de dependencias, recursos y seis configs deshabilitados preparados en
+  `plan-segmentacion/metodos-v8/launch-preparation/` (commit `a983858`). El plan
+  ejecutable con rutas/hashes/gates reales sigue dependiendo de tarea 1.
 - [ ] **Tarea 7 — habilitar execution_enabled y lanzar.** Bloqueada por todo lo anterior.
 
 ## Verificación aplicada
@@ -156,3 +158,21 @@ los bloqueos científicos y operativos estén cerrados y revisados.
   de lanzar, junto con los manifiestos y gates correspondientes.
 - La revisión fue de lectura. No se ejecutaron pruebas, forward, conversiones,
   auditorías de imágenes ni entrenamientos; la descarga permaneció activa.
+
+
+## Avance independiente de la descarga (2026-10-14)
+
+Commit `a983858`: especificación de dependencias, recursos y seis configs de
+preparación (SLED, USL, CCAM, RPI inicial, RPI 30 épocas y TriDerm). Todos siguen
+con ejecución deshabilitada; timeout y almacenamiento esperan presupuesto por etapa.
+Los bancos USL/RPI quedan referenciados a sus rutas reales. Se registran el gate
+propio `usl_ccam`, el presupuesto CCAM aún no fijado y el refresco P2 RPI que necesita
+vinculación explícita. No son planes ejecutables ni autorizaciones de entrenamiento.
+
+El delta completo `d55c5cd -> dd0fc88` (52 archivos) está empaquetado localmente con
+blobs esperados para verificar la futura copia independiente. Su transferencia fue
+bloqueada por protección de datos de credenciales. La revisión automática rechazó
+reconectar la pestaña existente; una pestaña nueva indicada por el navegador también
+falló con `native credential state cannot be safely resumed`. No se cambió de canal
+para eludir el bloqueo y no se afirma despliegue. Los detalles están en el README de
+`launch-preparation`. Los checkouts, sus cambios y la descarga permanecen preservados.
