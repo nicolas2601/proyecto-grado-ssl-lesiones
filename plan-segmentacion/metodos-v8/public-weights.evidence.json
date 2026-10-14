@@ -183,14 +183,15 @@
         "status": "code_relicense_documented_checkpoint_scope_not_explicitly_resolved"
       },
       "conversion": {
-        "status": "not_run",
+        "status": "converted_strict",
         "notes": [
           "Original archive may include momentum/queue/optimizer state; never fall back to unsafe pickle loading.",
           "last_stride=1 is a declared dense-feature adaptation."
-        ]
+        ],
+        "execution_receipt": "cluster: staging-01/mocov1_r50_200ep/converted/receipt.json"
       },
       "paper_exact_checkpoint_identity": "not_established",
-      "real_file_validation": "not_downloaded",
+      "real_file_validation": "downloaded_md5_prefix_match_and_local_sha256_recorded",
       "download_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar",
       "published_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar"
     },
@@ -236,9 +237,10 @@
         ]
       },
       "paper_exact_checkpoint_identity": "not_established",
-      "real_file_validation": "not_downloaded",
+      "real_file_validation": "blocked_remote_size_mismatch",
       "download_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar",
-      "published_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar"
+      "published_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar",
+      "download_blocker": "Remote size differs from the recorded candidate size; no file was promoted."
     },
     {
       "id": "mocov3_r50_1000ep",
@@ -276,9 +278,10 @@
         ]
       },
       "paper_exact_checkpoint_identity": "not_established",
-      "real_file_validation": "not_downloaded",
+      "real_file_validation": "blocked_remote_size_mismatch",
       "download_url": "https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar",
-      "published_url": "https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar"
+      "published_url": "https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar",
+      "download_blocker": "Remote size differs from the recorded candidate size; no file was promoted."
     },
     {
       "id": "dino_vits16",
@@ -312,21 +315,81 @@
         "artifact_scope": "Repository declaration and official hub loader confirmed; no separate file-specific approval asserted."
       },
       "conversion": {
-        "status": "not_run",
+        "status": "converted_strict",
         "notes": [
           "Official dino_vits16 hub function references exactly this file and loads it strictly.",
           "No DINOv2, DINOv3, linear classifier, or full student/teacher checkpoint substitution.",
           "LayerNorm epsilon=1e-6 and ViT dimensions agree in the inspected code; tensor mapping and numerical behavior remain unverified."
-        ]
+        ],
+        "execution_receipt": "cluster: staging-01/dino_vits16/converted/receipt.json"
       },
       "paper_exact_checkpoint_identity": "not_established",
-      "real_file_validation": "not_downloaded",
+      "real_file_validation": "downloaded_local_sha256_recorded_only",
       "download_url": "https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth",
       "published_url": "https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth"
     }
   ],
-  "cluster_accessed": false,
-  "real_checkpoints_downloaded": 0,
+  "cluster_accessed": true,
+  "real_checkpoints_downloaded": 2,
   "full_weight_sha256_verified": false,
-  "scientific_gates_enabled": false
+  "scientific_gates_enabled": false,
+  "local_sha256_recorded": 2,
+  "execution_record": {
+    "observed_at_utc": "2026-10-14T02:27:26.346017+00:00",
+    "scope": "public checkpoint download and strict conversion only",
+    "cluster_workspace": "/home/jovyan/work/public_ssl_v8_preparation/staging-01",
+    "runtime_archive": {
+      "filename": "v8_public_weights_runtime_eb5ca59.zip",
+      "size_bytes": 501594,
+      "sha256": "83dfe51de9b128b7f13780bd21bde08548aa02d76cf038603ebd99891269109d",
+      "zip_integrity": "passed",
+      "reviewed_plan_sha256": "ff611d1c5056f649cbca65a6a261d08f101f5c6c7548d2f3631fe17a914632a8",
+      "source_manifest_sha256": "3fa7df95516e01400f6af7365c14d4d3d6fc625e7eeb294149490f6e6d9cc4bc",
+      "source_snapshot_files_matched": 210
+    },
+    "artifacts": {
+      "mocov1_r50_200ep": {
+        "download_status": "downloaded",
+        "source_sha256": "6a12a752e5ab418158f52c19781003a5cf71e2502d362f8962c6cf7ff1fc473",
+        "source_md5": "b251726a57be750490c34a7602b59076",
+        "published_md5_prefix": "b251726a",
+        "published_md5_prefix_matches": true,
+        "conversion_status": "converted_strict",
+        "converted_checkpoint": "mocov1_r50_200ep/converted/encoder.pt",
+        "receipt": "mocov1_r50_200ep/converted/receipt.json"
+      },
+      "dino_vits16": {
+        "download_status": "downloaded",
+        "source_sha256": "1566d50496f27f52f07fea6094fa29b2fdd6fae89da65bdd3ebc3b24ef6b7eb7",
+        "source_sha256_scope": "locally recorded; no published full SHA-256 comparison",
+        "conversion_status": "converted_strict",
+        "converted_checkpoint": "dino_vits16/converted/encoder.pt",
+        "receipt": "dino_vits16/converted/receipt.json"
+      },
+      "mocov2_r50_800ep": {
+        "download_status": "blocked",
+        "blocker": "remote_size_differs_from_recorded_candidate_size",
+        "conversion_status": "not_run"
+      },
+      "mocov3_r50_1000ep": {
+        "download_status": "blocked",
+        "blocker": "remote_size_differs_from_recorded_candidate_size",
+        "conversion_status": "not_run"
+      },
+      "simclr_r50_1x": {
+        "download_status": "not_retried",
+        "last_confirmed_cluster_response": "HTTP 403",
+        "conversion_status": "not_run",
+        "known_architecture_issue": "TensorFlow SAME max-pooling has a spatial padding offset versus the local symmetric PyTorch max-pool"
+      }
+    },
+    "source_snapshot_validation": "passed before the two strict conversions",
+    "training_runs": 0,
+    "tests_or_prior_audits_repeated": false,
+    "scientific_gates_run": false,
+    "reference_checkout": {
+      "revision": "d55c5cd",
+      "local_changes": "untouched"
+    }
+  }
 }
