@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "scope": "new_public_weight_staging_io_only",
+  "implementation_base_revision": "8a2f42fe60aa5e29c0dd346cc2e645278897db4d",
+  "command": "python -m unittest discover -s tests -p test_public_ssl_staging_v8.py -v",
+  "tests_run": 14,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "http": "mocked",
+  "adapter_execution": "mocked",
+  "checkpoint_bytes": "temporary_synthetic_bytes_only",
+  "files_sha256": {
+    "scripts/stage_public_ssl_weights_v8.py": "23368aa2edfea22d926cfe2573fb8f89352ba8861cf34124f43437b962ac3ece",
+    "tests/test_public_ssl_staging_v8.py": "79653a21e4b949cf51868a1d9e3d1ef4be00ea52055ea64fac86327d5a836fcd",
+    "plan-segmentacion/metodos-v8/public-weights.plan.json": "099988f85fd2f0ac76d5d76b283afb7268134dd5028f08e62a16cb1ae7a695fc"
+  },
+  "real_checkpoints_downloaded": 0,
+  "real_model_conversions": 0,
+  "legacy_test_suites_repeated": false,
+  "cluster_accessed": false,
+  "training_started": false,
+  "scientific_gates_enabled": false,
+  "limitations": [
+    "Real upstream HTTP transfer and tensor mappings remain unverified.",
+    "Artifact license and normalization reviews remain unapproved.",
+    "Jupyter native credential observation restriction and SimCLR HTTP 403 remain unresolved."
+  ]
+}

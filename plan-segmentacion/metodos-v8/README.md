@@ -11,3 +11,8 @@ Cada método reúne código, `config.json` y `README.md` en su carpeta:
 [Documento 43](../../docs/43-cuatro-metodos-segmentacion-v8.md): decisiones, estados,
 manifiestos, recursos y comparación. Las configuraciones no autorizan ejecución
 real automáticamente. El launcher es `scripts/run_segmentation_v8.py`.
+
+Preparación de pesos públicos: [inventario de candidatos](public-weights.plan.json)
+y [guía reanudable](../../docs/48-preparacion-reanudable-pesos-v8.md).
+`stage_public_ssl_weights_v8.py` prepara archivos con revisión explícita; no crea
+gates ni activa las configuraciones científicas.

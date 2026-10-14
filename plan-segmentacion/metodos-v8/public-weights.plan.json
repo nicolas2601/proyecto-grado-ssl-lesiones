@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "protocol": "public_ssl_staging_v8",
+  "adapter_revision": "8a2f42fe60aa5e29c0dd346cc2e645278897db4d",
+  "adapter_sha256": "7bfa34bb153e22413409fa77c8e245a401688042af0ffa56d095714d41fcf77d",
+  "notes": "Candidate inventory, not a reviewed download authorization. Recorded sizes come from the earlier cluster HEAD observations; expected_sha256 remains null until an independent digest is available. SLED and TriDerm do not require public weights.",
+  "artifacts": [
+    {
+      "id": "simclr_r50_1x",
+      "origin": "simclr",
+      "url": "https://storage.googleapis.com/simclr-gcs/checkpoints/ResNet50_1x.zip",
+      "format": "simclr_tensorflow",
+      "expected_bytes": null,
+      "expected_sha256": null,
+      "max_bytes": 2147483648,
+      "max_unpacked_bytes": 2147483648,
+      "checkpoint_prefix": "ResNet50_1x/model.ckpt-225206",
+      "review": {
+        "approved": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "license_id": null,
+        "license_evidence_url": null,
+        "artifact_license_scope": null,
+        "source_selection_evidence": null,
+        "input_normalization": null,
+        "normalization_evidence_url": null
+      }
+    },
+    {
+      "id": "mocov1_r50_200ep",
+      "origin": "mocov1",
+      "url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar",
+      "format": "pytorch",
+      "expected_bytes": 95347404,
+      "expected_sha256": null,
+      "max_bytes": 110000000,
+      "max_unpacked_bytes": 250000000,
+      "review": {
+        "approved": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "license_id": null,
+        "license_evidence_url": null,
+        "artifact_license_scope": null,
+        "source_selection_evidence": null,
+        "input_normalization": null,
+        "normalization_evidence_url": null
+      }
+    },
+    {
+      "id": "mocov2_r50_800ep",
+      "origin": "mocov2",
+      "url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar",
+      "format": "pytorch",
+      "expected_bytes": 1121331339,
+      "expected_sha256": null,
+      "max_bytes": 1200000000,
+      "max_unpacked_bytes": 250000000,
+      "review": {
+        "approved": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "license_id": null,
+        "license_evidence_url": null,
+        "artifact_license_scope": null,
+        "source_selection_evidence": null,
+        "input_normalization": null,
+        "normalization_evidence_url": null
+      }
+    },
+    {
+      "id": "mocov3_r50_1000ep",
+      "origin": "mocov3",
+      "url": "https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar",
+      "format": "pytorch",
+      "expected_bytes": 2727866643,
+      "expected_sha256": null,
+      "max_bytes": 2800000000,
+      "max_unpacked_bytes": 250000000,
+      "review": {
+        "approved": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "license_id": null,
+        "license_evidence_url": null,
+        "artifact_license_scope": null,
+        "source_selection_evidence": null,
+        "input_normalization": null,
+        "normalization_evidence_url": null
+      }
+    },
+    {
+      "id": "dino_vits16",
+      "origin": "dino",
+      "url": "https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth",
+      "format": "pytorch",
+      "expected_bytes": 86710517,
+      "expected_sha256": null,
+      "max_bytes": 100000000,
+      "max_unpacked_bytes": 200000000,
+      "review": {
+        "approved": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "license_id": null,
+        "license_evidence_url": null,
+        "artifact_license_scope": null,
+        "source_selection_evidence": null,
+        "input_normalization": null,
+        "normalization_evidence_url": null
+      }
+    }
+  ],
+  "bank_requirements": {
+    "usl_net": [
+      "simclr_r50_1x",
+      "mocov1_r50_200ep",
+      "mocov2_r50_800ep"
+    ],
+    "rpi_net": [
+      "mocov3_r50_1000ep",
+      "mocov2_r50_800ep",
+      "dino_vits16"
+    ]
+  }
+}

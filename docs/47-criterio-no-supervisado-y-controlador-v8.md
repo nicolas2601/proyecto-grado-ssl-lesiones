@@ -16,6 +16,10 @@ Estado: preparación; no habilita entrenamiento ni descargas. V7 y sus pesos que
 
 Límite actual: la ruta TensorFlow usa `tf.train.load_checkpoint`, ordena y valida los scopes `base_model/`, transforma filtros HWIO→OIHW, inicializa `num_batches_tracked` a cero y registra las cabezas excluidas. Todavía no se ha ejecutado con un archivo oficial; el clúster necesitará disponer de TensorFlow. No se debe marcar SimCLR verificado hasta revisar las formas y cargar el resultado estrictamente. Ningún adaptador se considera verificado hasta ejecutar la conversión sobre cada archivo elegido, cotejar licencia/URL/hash/arquitectura/normalización y revisar que la cabeza excluida no contenga pesos de clasificación que lleguen al modelo.
 
+### Preparación de transferencias (2026-10-13)
+
+El nuevo `scripts/stage_public_ssl_weights_v8.py` prepara candidatos públicos por archivo y conecta con el adaptador existente; no sustituye ni verifica sus mapeos. Sin acciones explícitas no escribe ni conecta. Implementa reanudación con ETag fuerte, rangos y hash del parcial; registra un HTTP 403 sin reintentarlo y continúa con otros candidatos revisados. La conversión exige código fijado y publica el encoder/procedencia juntos después de la carga estricta del adaptador. Un hash calculado localmente sin digest independiente no acredita autenticidad. Las revisiones del inventario siguen pendientes y no se habilitan bancos ni gates. Ver [48](48-preparacion-reanudable-pesos-v8.md). Esta implementación no acredita ningún cambio de archivos o dependencias en el clúster.
+
 ## Coordinación y recuperación
 
 `scripts/run_segmentation_controller_v8.py` ejecuta en serie una lista ordenada de pasos desde un plan JSON. Cada paso declara método, etapa, configuración, manifiesto congelado, gate revisado, carpeta nueva y, para `refine`, la salida `predict` que le corresponde. El controlador no inventa gates ni elige pseudo etiquetas.
