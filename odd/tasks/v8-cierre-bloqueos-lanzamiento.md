@@ -45,17 +45,20 @@ lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
     adquisición de datos externos, no de escritura de script.
   - **Decisión del usuario (2026-10-14): descargar ISIC2018 Task 1 oficial.**
     Verificado con HEAD request (sin login, HTTP 200): `ISIC2018_Task1-2_Training_Input.zip`
-    (1.165.358.566 B) y `ISIC2018_Task1_Training_GroundTruth.zip` (27.402.895 B) en
+    y `ISIC2018_Task1_Training_GroundTruth.zip` (27.402.895 B) en
     `https://isic-challenge-data.s3.amazonaws.com/2018/`. Descarga lanzada en segundo
     plano en el clúster (`nohup`+`disown`, sobrevive aunque se cierre la sesión del
     navegador) hacia `/home/jovyan/work/isic2018_task1/` (NO en `/home/jovyan/work/datos/`,
     que es de solo lectura — dueño `nobody`, permiso denegado al escribir ahí).
     El script de descarga calcula `checksums.sha256.txt` y escribe `.done` al terminar.
-    Progreso verificado a los ~33s: 21,6 MB / 1,1 GB del Input (~2%). Pendiente:
-    confirmar `.done`, verificar que `ISIC2018_Task1_Training_GroundTruth.zip` tenga
-    2594 máscaras `ISIC_<id>_segmentation.png`, y recién ahí diseñar cómo esta reserva
-    se integra al manifiesto elegible (como partición `development` separada y fuera
-    del pool `train`, per docs/39:82).
+    **Corrección (2026-10-14, ~13:52 UTC): el Content-Length real del Training Input es
+    11.165.358.566 B (~11,2 GB), no 1,1 GB — error de lectura propio en la primera
+    verificación (se perdió un dígito). A los ~45 min llevaba 2,1 GB (~19%); a ese ritmo
+    son varias horas, no ~30 minutos.** Pendiente: confirmar `.done`, verificar que
+    `ISIC2018_Task1_Training_GroundTruth.zip` tenga 2594 máscaras
+    `ISIC_<id>_segmentation.png`, y recién ahí diseñar cómo esta reserva se integra al
+    manifiesto elegible (como partición `development` separada y fuera del pool `train`,
+    per docs/39:82).
 
 - [~] **Tarea 2 — resolver SimCLR.** Parcialmente resuelto (2026-10-14):
   - Confirmado (3 vías independientes: API JSON del bucket GCS, ruta de objeto
