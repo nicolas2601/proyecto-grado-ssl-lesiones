@@ -77,7 +77,7 @@ lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
     no es lo mismo que autorizar correr algo sobre él; y la equivalencia TF
     numérica real sigue sin verificar (solo el candidato HF está validado).
 - [ ] **Tarea 3 — manifiesto pseudo-máscaras SLED.** Sin avance (depende de tarea 1).
-- [ ] **Tarea 4 — cerrar banco de pesos USL-Net.** Sin avance.
+- [~] **Tarea 4 — cerrar banco de pesos USL-Net.** En curso: candidato exacto de tres orígenes y estado de validación registrados en `plan-segmentacion/metodos-v8/source-bank.usl-net.candidate.json` y docs/54. La carga conjunta del banco en el runtime aún no se verificó; el checkpoint HF de SimCLR no está transferido al clúster.
 - [ ] **Tarea 6 — plan serial concreto del controlador.** `scripts/run_segmentation_controller_v8.py`
   leído y entendido (espera plan JSON con `schema_version=1`, `protocol="w3-four-methods-v8"`,
   steps con manifest/gate/config/out, límites `timeout_seconds`/`max_rss_mb` por
@@ -85,9 +85,14 @@ lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
 - [ ] **Tarea 7 — habilitar execution_enabled y lanzar.** Bloqueada por todo lo anterior.
 
 ## Verificación aplicada
-Ninguna (sesión fue investigación read-only + medición en vivo del clúster; no se
-escribió ni modificó código todavía).
+Se validó estáticamente el manifiesto candidato USL-Net: exactamente los orígenes
+`simclr`, `mocov1` y `mocov2`; hashes y perfiles de normalización presentes. No se
+repitieron auditorías, conversiones ni pruebas anteriores. No se hizo carga conjunta,
+forward, entrenamiento ni se tocó la descarga ISIC en curso. Jupyter devolvió
+`502 Bad Gateway` / `Connection refused` al intentar verificar el runtime.
 
 ## Próximo paso
-Esperar decisión del usuario sobre la fuente de máscaras expertas para la reserva
-anatómica (tarea 1) antes de escribir el script de construcción del manifiesto.
+Cuando Jupyter responda, comprobar hashes/rutas y cargar el banco USL-Net con los tres
+orígenes; hacer solo un forward sintético 224×224 para verificar la fusión, sin usar
+imágenes reales ni entrenar. Mantener ISIC descargando y continuar dejando lanzamiento
+deshabilitado hasta cerrar los bloqueos científicos restantes.

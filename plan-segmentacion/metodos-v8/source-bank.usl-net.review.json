@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "protocol": "v8_usl_source_bank_readiness_not_scientific_gate",
+  "date_utc": "2026-10-14",
+  "bank_manifest": "source-bank.usl-net.candidate.json",
+  "required_origins": ["simclr", "mocov1", "mocov2"],
+  "candidate_execution_ready": false,
+  "training_started": false,
+  "source_status": {
+    "simclr": {
+      "status": "checkpoint_and_conversion_verified_locally",
+      "source_bytes": 102542786,
+      "source_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+      "encoder_sha256": "cff4a8bca6cf17d73c79be2aa727cb58dea3f64b5f1f1d727d11e05caf8aed4a",
+      "normalization": "unit_rgb",
+      "cluster_transfer_confirmed": false,
+      "google_tensorflow_parity": false
+    },
+    "mocov1": {
+      "status": "downloaded_and_strictly_converted_in_cluster_per_recorded_receipt",
+      "source_bytes": 95347404,
+      "source_sha256": "6a12a752e5ab418158f52c19781003a5cf71e2502d362f8962c6cf7ff1fc473",
+      "published_md5_prefix_match": true,
+      "normalization": "imagenet"
+    },
+    "mocov2": {
+      "status": "downloaded_and_strictly_converted_in_cluster_per_recorded_receipt",
+      "source_bytes": 112133139,
+      "source_sha256": "5e4a3fd7178a95837c0ad71c265ed5f477d271e753ba505b6b6a5e86829eeb7e",
+      "published_md5_prefix_match": true,
+      "normalization": "imagenet"
+    }
+  },
+  "loader_contract": {
+    "entrypoint": "dermssl.segmentation_methods.common.bank.source_bank",
+    "exact_origin_set": ["simclr", "mocov1", "mocov2"],
+    "strict_checkpoint_loading": true,
+    "encoder_parameters_frozen_for_ccam": true,
+    "normalization_applied_from_provenance": true,
+    "fused_feature_channels": 9216,
+    "expected_feature_shape_at_224px": [1, 9216, 14, 14],
+    "real_images_used": 0,
+    "training_runs": 0
+  },
+  "cluster_state_observation": {
+    "patch_runtime_reported_by_user_and_repository_receipt": "runtime_simclr_same_eed86c8",
+    "runtime_archive_sha256": "18333b4ae02ea86dedf0749dae5941877a3840af81172a4e19f7650767f06a3c",
+    "current_jupyter_browser_check": "502 Bad Gateway: connection refused",
+    "live_bank_load_verified": false
+  },
+  "remaining_bank_gates": [
+    "Place the pinned Hugging Face source/checkpoint and its provenance in the declared staging-03 path, or download the pinned public file in that runtime; transfer is not confirmed.",
+    "Verify deployed adapter/source manifest identity against the candidate provenance.",
+    "Resolve all three checkpoint/provenance paths on the cluster and run source_bank with exactly simclr/mocov1/mocov2.",
+    "Run one synthetic 224x224 forward to verify fused feature shape; no training or real images in this bank check."
+  ],
+  "launch_ready": false
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "method": "usl_net",
+  "candidate_status": "prepared_pending_cluster_transfer_and_three_source_load",
+  "cluster_root": "/home/jovyan/work/public_ssl_v8_preparation",
+  "required_runtime": "runtime_simclr_same_eed86c8",
+  "scientific_execution_authorized": false,
+  "execution_enabled": false,
+  "sources": {
+    "simclr": {
+      "checkpoint": "/home/jovyan/work/public_ssl_v8_preparation/staging-03/simclr_hf_r50_1x/converted/encoder.pt",
+      "provenance": "/home/jovyan/work/public_ssl_v8_preparation/staging-03/simclr_hf_r50_1x/converted/encoder.pt.json",
+      "source_id": "lightly-ai/simclrv1-imagenet1k-resnet50-1x@476674d2c9804bc2cd4abd8bde6121b6d6b19990",
+      "source_sha256": "fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea",
+      "checkpoint_sha256": "cff4a8bca6cf17d73c79be2aa727cb58dea3f64b5f1f1d727d11e05caf8aed4a",
+      "input_normalization": "unit_rgb",
+      "stem_pooling": "tensorflow_same",
+      "dense_last_stride_adaptation": true,
+      "local_conversion_validation": "strict_tensor_mapping_and_four_stage_aligned_pytorch_comparison_passed",
+      "cluster_transfer_confirmed": false,
+      "original_google_tensorflow_numerical_equivalence_verified": false
+    },
+    "mocov1": {
+      "checkpoint": "/home/jovyan/work/public_ssl_v8_preparation/staging-01/mocov1_r50_200ep/converted/encoder.pt",
+      "provenance": "/home/jovyan/work/public_ssl_v8_preparation/staging-01/mocov1_r50_200ep/converted/encoder.pt.json",
+      "source_id": "facebookresearch/moco:moco_v1_200ep_pretrain",
+      "source_sha256": "6a12a752e5ab418158f52c19781003a5cf71e2502d362f8962c6cf7ff1fc473",
+      "input_normalization": "imagenet",
+      "stem_pooling": "symmetric",
+      "conversion_status": "converted_strict_cluster_receipt"
+    },
+    "mocov2": {
+      "checkpoint": "/home/jovyan/work/public_ssl_v8_preparation/staging-02/mocov2_r50_800ep/converted/encoder.pt",
+      "provenance": "/home/jovyan/work/public_ssl_v8_preparation/staging-02/mocov2_r50_800ep/converted/encoder.pt.json",
+      "source_id": "facebookresearch/moco:moco_v2_800ep_pretrain",
+      "source_sha256": "5e4a3fd7178a95837c0ad71c265ed5f477d271e753ba505b6b6a5e86829eeb7e",
+      "input_normalization": "imagenet",
+      "stem_pooling": "symmetric",
+      "conversion_status": "converted_strict_cluster_receipt"
+    }
+  }
+}
