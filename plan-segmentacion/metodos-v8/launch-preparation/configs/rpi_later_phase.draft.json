@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "method": "rpi_net",
+  "execution_enabled": false,
+  "stages": [
+    "check",
+    "synthetic",
+    "pretrain",
+    "generate",
+    "fit",
+    "predict",
+    "refine"
+  ],
+  "resolution": 224,
+  "seed": 42,
+  "device": "cuda:0",
+  "epochs": 30,
+  "batch_size": 2,
+  "learning_rate": 0.001,
+  "weight_decay": 0.00001,
+  "resources": {
+    "timeout_seconds": null,
+    "max_rss_mb": 65536,
+    "max_output_mb": null,
+    "max_gpu_memory_mb": 20480,
+    "gpu_reserve_mb": 4096,
+    "shutdown_grace_seconds": 120
+  },
+  "source_bank": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.rpi-net.reviewed-candidate.json",
+  "checkpoint": null,
+  "checkpoint_provenance": null,
+  "comparison": "common eligible originals; all masks evaluated separately; same downstream student budget",
+  "detach_alpha": true,
+  "token_grid": 14,
+  "native_recipe": {
+    "initial_epochs": 50,
+    "later_phase_epochs": 30,
+    "phase_count": 1,
+    "phase_count_interpretation": "one 30-epoch refinement phase after the initial 50; V8 adaptation because the paper does not specify a count",
+    "v8_later_phase_interpretation": "fit config uses 50 epochs for initial phase; the controller plan must provide a separate config with epochs=30 for the single later phase"
+  },
+  "cam_target": "ssl_energy_gradcampp",
+  "cluster_polarity": "border_majority_background",
+  "preparation_review": {
+    "status": "draft_not_execution_authorized",
+    "resource_caps_measured": false,
+    "manifest_bound": false,
+    "gate_bound": false,
+    "stage_role": "single_later_phase"
+  },
+  "initial_checkpoint": null,
+  "initial_checkpoint_provenance": null
+}

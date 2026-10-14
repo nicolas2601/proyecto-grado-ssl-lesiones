@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "protocol": "w3-v8-launch-preparation-draft",
+  "execution_enabled": false,
+  "controller_input": false,
+  "wandb_project": "dermssl-segmentacion",
+  "manifest_binding": "Resolve frozen manifest paths and SHA-256 before producing controller plans; never fabricate gates.",
+  "source_banks": {
+    "usl_net": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
+    "rpi_net": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.rpi-net.reviewed-candidate.json"
+  },
+  "common_gate_fields": [
+    "data_verified",
+    "independent_anatomical_evaluation_resolved",
+    "resource_budget_measured",
+    "weights_provenance_verified",
+    "smoke_passed",
+    "verification_revision",
+    "input_manifest_sha256"
+  ],
+  "methods": {
+    "sled": {
+      "gradient_training": false,
+      "sequence": [
+        "generate originals -> SLED pseudo manifest",
+        "review coverage, abstentions, provenance and freeze manifest SHA-256"
+      ],
+      "dependencies": [
+        "eligible originals manifest",
+        "nontraining SLED gate"
+      ]
+    },
+    "usl_net": {
+      "sequence": [
+        "ccam on eligible train originals with frozen public bank",
+        "generate initial UM pseudo manifest",
+        "five ordered student cycles: fit -> predict -> review; refine supplies the next cycle"
+      ],
+      "student_cycles": 5,
+      "student_epochs_each": 300,
+      "initialization": "Cycle 1 random student; later-cycle initialization must explicitly identify a V8 same-method checkpoint and provenance.",
+      "ccam_gate_method": "usl_ccam",
+      "ccam_epochs": null,
+      "ccam_batch_constraint": "at least 2 inputs; manifest count modulo batch size must not equal 1; do not silently drop originals.",
+      "dependencies": [
+        "eligible originals",
+        "USL fusion forward receipt",
+        "CCAM budget and own reviewed gate",
+        "initial pseudo manifest",
+        "per-cycle configs and gates"
+      ]
+    },
+    "rpi_net": {
+      "initial_epochs": 50,
+      "later_epochs": 30,
+      "later_phase_count": 1,
+      "sequence": [
+        "generate separate P1-P4 pseudo sources",
+        "fit initial phase",
+        "predict/refine and review phase inputs",
+        "fit one later phase",
+        "predict final"
+      ],
+      "pending_recipe_binding": [
+        "Specify exact P2 refresh step and evidence while preserving P1/P3/P4 identity; do not assume generic refine performs CAM refresh.",
+        "Bind later-phase initialization and per-phase manifests/configs explicitly."
+      ]
+    },
+    "tridermnet_hago": {
+      "epochs": 150,
+      "warmup_epochs": 10,
+      "sequence": [
+        "consume reviewed frozen SLED pseudo manifest",
+        "fit random-initialized student",
+        "predict"
+      ],
+      "dependencies": [
+        "SLED pseudo manifest SHA-256",
+        "train gate bound to same manifest"
+      ],
+      "expert_or_diagnostic_training": false
+    }
+  },
+  "blocked_by_isic": [
+    "independent anatomical development reservation",
+    "final eligible pool split and corresponding manifest hashes"
+  ],
+  "independent_preparation": [
+    "source execution snapshot",
+    "stage dependency specification",
+    "resource-budget formulas",
+    "disabled config templates",
+    "tracking/project binding"
+  ],
+  "scientific_limitations": [
+    "HF SimCLR candidate is not verified numerically equivalent to original Google TensorFlow checkpoint; acceptance and reporting scope must remain explicit."
+  ]
+}

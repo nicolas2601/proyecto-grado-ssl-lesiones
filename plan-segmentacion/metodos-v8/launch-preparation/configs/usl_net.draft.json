@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "method": "usl_net",
+  "execution_enabled": false,
+  "stages": [
+    "check",
+    "synthetic",
+    "pretrain",
+    "ccam",
+    "generate",
+    "fit",
+    "predict",
+    "refine"
+  ],
+  "resolution": 224,
+  "seed": 42,
+  "device": "cuda:0",
+  "epochs": 300,
+  "batch_size": 2,
+  "learning_rate": 0.001,
+  "weight_decay": 0.00001,
+  "resources": {
+    "timeout_seconds": null,
+    "max_rss_mb": 65536,
+    "max_output_mb": null,
+    "max_gpu_memory_mb": 20480,
+    "gpu_reserve_mb": 4096,
+    "shutdown_grace_seconds": 120
+  },
+  "source_bank": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
+  "checkpoint": null,
+  "checkpoint_provenance": null,
+  "comparison": "common eligible originals; all masks evaluated separately; same downstream student budget",
+  "ccam_checkpoint": null,
+  "ccam_provenance": null,
+  "usl_policy": {
+    "min_area": 500,
+    "connectivity": 4,
+    "max_centroid_distance": null
+  },
+  "native_recipe": {
+    "cycles": 5,
+    "epochs_per_cycle": 300
+  },
+  "preparation_review": {
+    "status": "draft_not_execution_authorized",
+    "resource_caps_measured": false,
+    "manifest_bound": false,
+    "gate_bound": false
+  }
+}

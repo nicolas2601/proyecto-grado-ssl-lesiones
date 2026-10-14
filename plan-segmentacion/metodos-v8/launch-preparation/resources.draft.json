@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "protocol": "w3-v8-launch-preparation-draft",
+  "status": "not_approved_for_execution",
+  "execution_enabled": false,
+  "evidence_revision": "dd0fc88f6db45df89ec14dfc22e45c3e26dc1147",
+  "observed_capacity": {
+    "cpu_count": 48,
+    "host_ram_gib": 123,
+    "available_ram_gib_at_prior_observation": 115,
+    "gpu_count": 2,
+    "gpu_memory_mib_each": 24467,
+    "individual_storage_quota_verified": false
+  },
+  "proposed_single_process_caps": {
+    "device": "cuda:0",
+    "batch_size": 2,
+    "max_rss_mb": 65536,
+    "max_gpu_memory_mb": 20480,
+    "gpu_reserve_mb": 4096,
+    "timeout_seconds": null,
+    "shutdown_grace_seconds": 120,
+    "resource_sample_seconds": 10
+  },
+  "cap_basis": "Operational ceilings below observed host/GPU capacity, not measured stage requirements; must be reviewed against stage evidence before execution.",
+  "manifest_count": null,
+  "reference_audited_original_count_not_training_count": 40896,
+  "output_budget_formula": {
+    "generate_or_predict_mb": "N * (R^2 * ((S+2)*4+(S+1)*6)+16384) / 1048576",
+    "refine_mb": "N * (R^2*4+4096) / 1048576",
+    "sources": {
+      "sled": 1,
+      "usl_net": 1,
+      "rpi_net_generate": 4,
+      "tridermnet_hago": 1
+    },
+    "resolution": 224,
+    "reserve_mb_minimum": 512,
+    "retention": "Sum retained outputs of every declared cycle/phase; include tracking and checkpoints separately."
+  },
+  "unresolved": [
+    "Frozen eligible train/development counts",
+    "Stage wall-time estimates from existing evidence or a distinct justified measurement",
+    "Per-stage output budgets and cumulative retention",
+    "Individual quota or allocation confirmation",
+    "CUDA execution-copy identity and prior smoke evidence alignment"
+  ],
+  "do_not_repeat": [
+    "Original image integrity audit",
+    "Completed synthetic suites",
+    "Public checkpoint downloads and conversions",
+    "Completed strict source-bank loads"
+  ]
+}

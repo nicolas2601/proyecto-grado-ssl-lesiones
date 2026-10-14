@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "method": "tridermnet_hago",
+  "execution_enabled": false,
+  "stages": [
+    "check",
+    "synthetic",
+    "fit",
+    "predict"
+  ],
+  "resolution": 224,
+  "seed": 42,
+  "device": "cuda:0",
+  "epochs": 150,
+  "batch_size": 2,
+  "learning_rate": 0.001,
+  "weight_decay": 0.00001,
+  "resources": {
+    "timeout_seconds": null,
+    "max_rss_mb": 65536,
+    "max_output_mb": null,
+    "max_gpu_memory_mb": 20480,
+    "gpu_reserve_mb": 4096,
+    "shutdown_grace_seconds": 120
+  },
+  "source_bank": null,
+  "checkpoint": null,
+  "checkpoint_provenance": null,
+  "comparison": "common eligible originals; all masks evaluated separately; same downstream student budget",
+  "diagnostic_classification_enabled": false,
+  "auxiliary_target": "pseudo_lesion_coverage",
+  "pseudo_teacher_method": "sled",
+  "pseudo_manifest_sha256": null,
+  "hago": {
+    "warmup_epochs": 10,
+    "balance": "suppress_dominant",
+    "noise_std": 0,
+    "seed": 42
+  },
+  "native_recipe": {
+    "epochs": 150,
+    "resolution": 256,
+    "supervision": "expert masks + diagnostic classes; excluded in W3"
+  },
+  "v8_adaptation": {
+    "epochs": 150,
+    "resolution": 224,
+    "supervision": "pseudo_masks_from_sled",
+    "budget_interpretation": "V8 unsupervised adaptation budget; inherited from the paper's 150-epoch schedule but not a reproduction of its supervised objective"
+  },
+  "preparation_review": {
+    "status": "draft_not_execution_authorized",
+    "resource_caps_measured": false,
+    "manifest_bound": false,
+    "gate_bound": false
+  }
+}
