@@ -16,11 +16,11 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from dermssl.segmentation_methods.common.networks import ResNet50Stages
+from dermssl.segmentation_methods.common.networks import public_resnet_encoder
 from dermssl.segmentation_methods.common.dino import PatchTransformer
 
 
-ADAPTER_VERSION = "v8-public-ssl-adapter-2"
+ADAPTER_VERSION = "v8-public-ssl-adapter-3"
 RESNET_ORIGINS = {"mocov1", "mocov2", "mocov3", "simclr"}
 ALLOWED_ORIGINS = RESNET_ORIGINS | {"dino"}
 RESNET_PREFIXES = (
@@ -139,6 +139,8 @@ def tensorflow_checkpoint_sha(files):
 
 
 def convert_simclr_tensorflow(prefix: Path, model):
+    if getattr(model, 'stem_pooling', None) != 'tensorflow_same':
+        raise ValueError('TensorFlow SimCLR conversion requires the TensorFlow SAME stem pooling profile')
     try:
         import tensorflow as tf
     except ImportError as error:
@@ -298,7 +300,7 @@ def main():
         raise ValueError("TensorFlow input adapter is only defined for SimCLR")
     if args.format == "pytorch" and not args.source.is_file():
         raise ValueError("PyTorch source checkpoint must be a file")
-    model = PatchTransformer() if args.origin == "dino" else ResNet50Stages(last_stride=1)
+    model = PatchTransformer() if args.origin == "dino" else public_resnet_encoder(args.origin)
     source_files = None
     if args.format == "simclr_tensorflow":
         mapped, discarded, source_hash, source_files = convert_simclr_tensorflow(args.source, model)
@@ -318,6 +320,9 @@ def main():
         "source_files": source_files,
         "checkpoint_sha256": sha256(args.output),
         "architecture": "DINO_ViT-S/16_224" if args.origin == "dino" else "ResNet50_encoder_local_last_stride_1",
+        "stem_pooling": None if args.origin == "dino" else model.stem_pooling,
+        "dense_last_stride_adaptation": args.origin != "dino",
+        "upstream_numerical_equivalence_verified": False,
         "adapter": ADAPTER_VERSION,
         "input_normalization": args.input_normalization,
         "mapped_tensor_count": len(mapped),
@@ -331,3 +336,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

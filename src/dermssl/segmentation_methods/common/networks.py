@@ -16,12 +16,27 @@ class Bottleneck(nn.Module):
     def forward(self, x): return F.relu(self.body(x) + self.skip(x))
 
 
+class TensorFlowSameMaxPool2d(nn.Module):
+    """SimCLRv1 stem: kernel 3, stride 2, SAME padding with extra trailing pixels."""
+    def forward(self, x):
+        height, width = x.shape[-2:]
+        pad_h = max(0, ((height + 1) // 2 - 1) * 2 + 3 - height)
+        pad_w = max(0, ((width + 1) // 2 - 1) * 2 + 3 - width)
+        x = F.pad(x, (pad_w // 2, pad_w - pad_w // 2,
+                      pad_h // 2, pad_h - pad_h // 2), value=float('-inf'))
+        return F.max_pool2d(x, kernel_size=3, stride=2, padding=0)
+
+
 class ResNet50Stages(nn.Module):
     channels = (256, 512, 1024)
-    def __init__(self, in_channels=3, last_stride=2):
+    def __init__(self, in_channels=3, last_stride=2, stem_pooling='symmetric'):
         super().__init__()
+        if stem_pooling not in {'symmetric', 'tensorflow_same'}:
+            raise ValueError('Unknown ResNet stem pooling profile')
+        self.stem_pooling = stem_pooling
+        pooling = TensorFlowSameMaxPool2d() if stem_pooling == 'tensorflow_same' else nn.MaxPool2d(3, stride=2, padding=1)
         self.stem = nn.Sequential(nn.Conv2d(in_channels, 64, 7, stride=2, padding=3, bias=False),
-                                  nn.BatchNorm2d(64), nn.ReLU(), nn.MaxPool2d(3, stride=2, padding=1))
+                                  nn.BatchNorm2d(64), nn.ReLU(), pooling)
         self.stages = nn.ModuleList(); incoming = 64
         for planes, blocks, stride in zip((64, 128, 256, 512), (3, 4, 6, 3), (1, 2, 2, last_stride)):
             layer = [Bottleneck(incoming, planes, stride)]
@@ -32,6 +47,13 @@ class ResNet50Stages(nn.Module):
         x = self.stem(x); outputs = []
         for stage in self.stages: x = stage(x); outputs.append(x)
         return tuple(outputs)
+
+
+def public_resnet_encoder(origin, *, last_stride=1):
+    if origin not in {'simclr', 'mocov1', 'mocov2', 'mocov3'}:
+        raise ValueError('Unknown public ResNet origin')
+    pooling = 'tensorflow_same' if origin == 'simclr' else 'symmetric'
+    return ResNet50Stages(last_stride=last_stride, stem_pooling=pooling)
 
 
 class Pyramid(nn.Module):
@@ -46,3 +68,4 @@ class Pyramid(nn.Module):
 def image_batch(x):
     if x.ndim != 4 or x.shape[1] != 3 or not torch.isfinite(x).all():
         raise ValueError('Finite BCHW RGB batch required')
+

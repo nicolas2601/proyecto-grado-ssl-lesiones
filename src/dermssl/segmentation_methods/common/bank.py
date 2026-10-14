@@ -3,7 +3,7 @@ import json
 import torch
 from torch import nn
 from pathlib import Path
-from .networks import ResNet50Stages
+from .networks import public_resnet_encoder
 from .dino import PatchTransformer
 from .checkpoints import load_reviewed
 
@@ -14,14 +14,18 @@ def source_bank(path,origins):
     result={}
     for origin in origins:
         source=document['sources'][origin]
-        if origin=='dino':model=PatchTransformer(**source.get('architecture',{}))
-        else:model=ResNet50Stages(last_stride=1)
         provenance_document=json.loads(Path(source['provenance']).read_text())
+        if origin=='simclr' and provenance_document.get('stem_pooling')!='tensorflow_same':
+            raise ValueError('SimCLR provenance must declare the TensorFlow SAME stem pooling profile')
+        if origin in {'mocov1','mocov2','mocov3'} and provenance_document.get('stem_pooling','symmetric')!='symmetric':
+            raise ValueError('MoCo provenance has an incompatible stem pooling profile')
         required_public={'source_url','source_license','source_sha256','adapter','mapped_tensor_count'}
         if provenance_document.get('protocol')!='public_ssl_initialization_v8' or not required_public.issubset(provenance_document):
             raise ValueError('Public SSL checkpoint lacks reviewed source/license/hash/adapter provenance')
         if provenance_document.get('source_sha256') is None or len(provenance_document['source_sha256'])!=64:
             raise ValueError('Public SSL source checkpoint SHA-256 is required')
+        if origin=='dino':model=PatchTransformer(**source.get('architecture',{}))
+        else:model=public_resnet_encoder(origin)
         provenance=load_reviewed(model,source['checkpoint'],source['provenance'],expected_method='ssl_'+origin)
         normalization=provenance.get('input_normalization')
         if normalization not in {'unit_rgb','imagenet'}:raise ValueError('Source checkpoint input normalization must be explicit')
@@ -38,3 +42,4 @@ class NormalizedEncoder(nn.Module):
         self.register_buffer('std',torch.tensor([.229,.224,.225])[None,:,None,None])
     def forward(self,x):return self.base((x-self.mean)/self.std)
     def shallow_features(self,x):return self.base.shallow_features((x-self.mean)/self.std)
+
