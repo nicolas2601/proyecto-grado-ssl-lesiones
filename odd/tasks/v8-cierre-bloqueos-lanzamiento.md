@@ -77,7 +77,18 @@ lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
     no es lo mismo que autorizar correr algo sobre él; y la equivalencia TF
     numérica real sigue sin verificar (solo el candidato HF está validado).
 - [ ] **Tarea 3 — manifiesto pseudo-máscaras SLED.** Sin avance (depende de tarea 1).
-- [ ] **Tarea 4 — cerrar banco de pesos USL-Net.** Sin avance.
+- [x] **Tarea 4 — cerrar banco de pesos USL-Net. Cerrado y verificado end-to-end
+  (2026-10-14).** USL-Net exige exactamente `{simclr, mocov1, mocov2}`
+  (`usl_net/model.py`). MoCo v1/v2 ya estaban convertidos. Para SimCLR: se completó
+  el árbol de paquete `dermssl` que faltaba en el runtime desplegado (checkpoints.py,
+  dino.py, data.py, transferidos por base64 fragmentado y verificados hash por hash),
+  se descargó el checkpoint HF al clúster (tamaño/SHA-256 exactos), se corrió
+  `prepare_public_ssl_weights_v8.py` de verdad — el `checkpoint_sha256` resultante
+  coincide byte a byte con la validación local previa (conversión determinística).
+  Se construyó `source-bank.usl-net.reviewed-candidate.json` y se verificó con
+  `source_bank()` real: los 3 encoders cargan con `strict=True`, 23.508.032
+  parámetros cada uno. Ver doc 54. `execution_ready` sigue en `false` — cargar pesos
+  no autoriza entrenar.
 - [ ] **Tarea 6 — plan serial concreto del controlador.** `scripts/run_segmentation_controller_v8.py`
   leído y entendido (espera plan JSON con `schema_version=1`, `protocol="w3-four-methods-v8"`,
   steps con manifest/gate/config/out, límites `timeout_seconds`/`max_rss_mb` por

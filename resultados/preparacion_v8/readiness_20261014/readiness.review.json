@@ -7,6 +7,17 @@
   "launch_ready": false,
   "training_started": false,
   "prior_audits_tests_or_conversions_repeated": false,
+  "usl_net_bank": {
+    "status": "constructed_and_loaded_end_to_end",
+    "origins": ["simclr", "mocov1", "mocov2"],
+    "bank_file": "~/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
+    "bank_load_verified": true,
+    "strict_load": true,
+    "per_encoder_param_count": 23508032,
+    "simclr_checkpoint_sha256": "cff4a8bca6cf17d73c79be2aa727cb58dea3f64b5f1f1d727d11e05caf8aed4a",
+    "simclr_checkpoint_matches_prior_local_validation": true,
+    "execution_ready": false
+  },
   "new_rpi_bank_integration": {
     "status": "passed_existing_runtime_loader",
     "origins": [
