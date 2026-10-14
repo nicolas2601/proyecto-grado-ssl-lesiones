@@ -101,14 +101,28 @@ lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
 - [ ] **Tarea 7 — habilitar execution_enabled y lanzar.** Bloqueada por todo lo anterior.
 
 ## Verificación aplicada
-Se validó estáticamente el manifiesto candidato USL-Net: exactamente los orígenes
-`simclr`, `mocov1` y `mocov2`; hashes y perfiles de normalización presentes. No se
-repitieron auditorías, conversiones ni pruebas anteriores. No se hizo carga conjunta,
-forward, entrenamiento ni se tocó la descarga ISIC en curso. Jupyter devolvió
-`502 Bad Gateway` / `Connection refused` al intentar verificar el runtime.
+El cierre del paso 4 está registrado en el commit `c55b6b146d78d4ab9e2a7fb6a1743e72c3fb134b`
+y en [docs/54-usl-net-banco-pesos-v8.md](../../docs/54-usl-net-banco-pesos-v8.md):
+SimCLR HF se transfirió y convirtió en el clúster con el SHA-256 esperado, y
+`source_bank()` cargó exactamente `simclr`, `mocov1` y `mocov2` con
+`strict=True` (23.508.032 parámetros por encoder). No se entrenó. El recibo
+`readiness.review.json` conserva `launch_ready=false` y `training_started=false`.
+
+El recibo versionado no documenta un forward sintético de 224×224 ni la salida
+`[1, 9216, 14, 14]`; por ello ese subcheck no se declara aprobado. Esta continuación
+no repitió transferencias, conversiones, cargas, auditorías, pruebas ni entrenamientos.
+El estado del login y de la descarga ISIC no se inspeccionó en vivo en esta sesión.
 
 ## Próximo paso
-Cuando Jupyter responda, comprobar hashes/rutas y cargar el banco USL-Net con los tres
-orígenes; hacer solo un forward sintético 224×224 para verificar la fusión, sin usar
-imágenes reales ni entrenar. Mantener ISIC descargando y continuar dejando lanzamiento
-deshabilitado hasta cerrar los bloqueos científicos restantes.
+No repetir la transferencia, conversión ni carga conjunta del banco USL-Net: esa parte
+de la tarea 4 ya quedó cerrada en el commit `c55b6b1`. Cuando haya acceso seguro al
+clúster, comprobar primero si existe un recibo del forward sintético 224×224; solo si
+falta, hacer una única pasada sin imágenes reales ni entrenamiento y registrar si la
+salida es `[1, 9216, 14, 14]`.
+
+Las tareas 1, 2, 3 y 6 siguen abiertas: terminar y revisar la reserva anatómica y el
+manifiesto elegible (incluida la descarga ISIC2018 ya iniciada), mantener explícita la
+falta de equivalencia numérica con el checkpoint TensorFlow original de Google,
+congelar el manifiesto de pseudo-máscaras SLED, y concretar el plan serial con sus
+límites por etapa. Mantener `execution_enabled=false`; no lanzar corridas hasta que
+los bloqueos científicos y operativos estén cerrados y revisados.
