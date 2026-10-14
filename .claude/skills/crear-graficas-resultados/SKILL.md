@@ -38,17 +38,15 @@ pregunta concreta; no sustituye la fuente tabular ni el registro de corrida.
 
 ## Estilo y control visual
 
-- Sigue el estilo del documento de destino. La skill `figuras-tesis-ssl` solo guía la tesis SSL; no traslades su paleta, tipografía o perfil a otros documentos sin evidencia.
-- Define el tamaño físico según el espacio final (por ejemplo, una columna o página completa). Ajusta fuentes, etiquetas, marcas, líneas y marcadores para que sigan legibles al insertar la gráfica.
+- Para el Anteproyecto o la tesis SSL, aplica el perfil visual de `CLAUDE.md` §9. Mantén fondo blanco, Times New Roman, texto sin negrita general y la paleta cappuccino/tonos claros; no uses Purple Teal como paleta del proyecto. Reserva Fitzpatrick a gráficas de tono/fototipo.
+- Para otros artículos, adopta la guía visual de la revista o manuscrito de destino. No mezcles perfiles entre entregas.
+- Define el tamaño físico según el ancho de columna o página final. Ajusta tipografía, etiquetas, marcas, grosores y marcadores para que sean legibles al tamaño impreso.
 - Elige rangos, marcas y aspecto de ejes que representen los datos sin exagerar diferencias. Usa aspecto igual solo cuando las unidades y la pregunta visual lo justifiquen.
-- Mantén una paleta sobria y consistente dentro del mismo manuscrito: asigna el mismo color a cada grupo en todas las figuras. Combina color con forma o estilo de línea; considera daltonismo.
-- Mantén las cuadrículas discretas y detrás de los datos. Ubica la leyenda sin tapar observaciones y con márgenes compactos.
-- Conserva los ajustes de diseño en el script reproducible; no retoques manualmente la exportación de forma que el resultado diverja de su fuente.
-- Exporta PDF o SVG vectorial cuando el destino lo admita. Para raster, fija resolución suficiente para el tamaño final.
-- Revisa e itera con la gráfica colocada en la plantilla real, no solo en la ventana del entorno de desarrollo.
+- Mantén colores y codificación redundante consistentes entre figuras; evita depender únicamente del color para distinguir grupos.
+- Mantén cuadrículas discretas, leyendas compactas y sin solapamientos. Conserva los ajustes de composición en el script reproducible.
+- Exporta PDF/SVG vectorial cuando el destino lo admita; para raster, fija resolución suficiente. Revisa e itera con la gráfica insertada en la plantilla real.
 
-Los criterios de tamaño, tipografía, ejes, cuadrícula, leyenda, paleta coherente y revisión en plantilla se inspiran en el [README de BeautifulFigures](https://github.com/AndreyChurkin/BeautifulFigures/blob/main/01_main_simple_example/Python/README.md) y su [ejemplo de Matplotlib](https://github.com/AndreyChurkin/BeautifulFigures/blob/main/01_main_simple_example/Python/scripts/beautiful_figure_example.py). La paleta Purple Teal y sus parámetros concretos son ejemplos, no una convención automática para este proyecto.
-
+Usa [BeautifulFigures](https://github.com/AndreyChurkin/BeautifulFigures/blob/main/01_main_simple_example/Python/README.md) y su [script de Matplotlib](https://github.com/AndreyChurkin/BeautifulFigures/blob/main/01_main_simple_example/Python/scripts/beautiful_figure_example.py) como referencia de composición y calidad de publicación. Para el Anteproyecto, adapta esos parámetros a su perfil de `CLAUDE.md` §9; no copies la paleta del ejemplo ni retoques una exportación fuera del script.
 ## Límites
 
 - Las tablas numéricas se regeneran con

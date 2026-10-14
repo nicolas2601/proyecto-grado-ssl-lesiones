@@ -45,8 +45,9 @@ sustituye tablas.
   esa tesis y el repo las confirma.
 - Mantén etiquetas concisas, jerarquía visual clara y contraste suficiente.
   No uses color como único medio para distinguir categorías.
-- Ajusta tamaño, proporción, tipografía, grosor de trazos y márgenes al espacio real de la plantilla. Comprueba la figura ya insertada en el documento y a tamaño final.
-- Aplica, cuando corresponda, los criterios editoriales de [BeautifulFigures](https://github.com/AndreyChurkin/BeautifulFigures/blob/main/01_main_simple_example/Python/README.md): itera sobre legibilidad y composición. Su paleta Purple Teal y sus parámetros de Matplotlib son ejemplos, no valores predeterminados del proyecto.
+- Si el destino es el Anteproyecto o la tesis SSL, aplica el perfil visual de `CLAUDE.md` §9: conserva su paleta, tipografía, fondo y proporciones. Para otros manuscritos, sigue la plantilla de destino; no impongas este perfil.
+- Usa BeautifulFigures como guía técnica para ajustar dimensiones, ejes, tipografía, grosores, márgenes y leyendas, e itera con la figura insertada en la plantilla real. Conserva esos ajustes en el archivo fuente; no copies la paleta Purple Teal del ejemplo.
+- Mantén homogeneidad visual entre figuras sin cambiar el significado de sus elementos. Si un requisito de estilo compite con la legibilidad o la fidelidad científica, simplifica o reorganiza el diseño.
 - Usa fotografías o imágenes clínicas solo si son datos reales, están
   autorizadas para ese uso y se conserva su procedencia. No generes imágenes
   sintéticas que puedan parecer casos clínicos reales.
