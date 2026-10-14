@@ -85,3 +85,4 @@ salidas/
 # Thesis figures: the PNG exports (and the pod-side cases of figure 3) are deliverables, not build noise (see tests/test_figures_outputs_versioned.py)
 !resultados/figuras/*.png
 !resultados/figuras/fuentes/*.npz
+.gstack/
