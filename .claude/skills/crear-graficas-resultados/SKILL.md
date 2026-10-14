@@ -36,19 +36,18 @@ pregunta concreta; no sustituye la fuente tabular ni el registro de corrida.
    correspondencia con la fuente de datos. Contrasta los valores graficados
    con el JSON/CSV y cita la ruta del script y de los datos.
 
-## Estilo
+## Estilo y control visual
 
-- Sigue el estilo ya definido en la tesis, paper o informe que recibirá la
-  gráfica. Si se aplica la skill de proyecto `figuras-tesis-ssl`, úsala como
-  guía para la tesis; no traslades su paleta, tipografía ni perfil a otros
-  documentos sin evidencia de que corresponde.
-- Elige colores distinguibles y aptos para daltonismo; no dependas solo del
-  color para separar series.
-- Fija el tamaño físico de salida y comprueba el tamaño real de letra y la
-  fuente disponible. Prioriza formato vectorial para publicación cuando sea
-  compatible con la entrega.
-- No uses efectos decorativos que dificulten la comparación o sugieran
-  precisión que los datos no tienen.
+- Sigue el estilo del documento de destino. La skill `figuras-tesis-ssl` solo guía la tesis SSL; no traslades su paleta, tipografía o perfil a otros documentos sin evidencia.
+- Define el tamaño físico según el espacio final (por ejemplo, una columna o página completa). Ajusta fuentes, etiquetas, marcas, líneas y marcadores para que sigan legibles al insertar la gráfica.
+- Elige rangos, marcas y aspecto de ejes que representen los datos sin exagerar diferencias. Usa aspecto igual solo cuando las unidades y la pregunta visual lo justifiquen.
+- Mantén una paleta sobria y consistente dentro del mismo manuscrito: asigna el mismo color a cada grupo en todas las figuras. Combina color con forma o estilo de línea; considera daltonismo.
+- Mantén las cuadrículas discretas y detrás de los datos. Ubica la leyenda sin tapar observaciones y con márgenes compactos.
+- Conserva los ajustes de diseño en el script reproducible; no retoques manualmente la exportación de forma que el resultado diverja de su fuente.
+- Exporta PDF o SVG vectorial cuando el destino lo admita. Para raster, fija resolución suficiente para el tamaño final.
+- Revisa e itera con la gráfica colocada en la plantilla real, no solo en la ventana del entorno de desarrollo.
+
+Los criterios de tamaño, tipografía, ejes, cuadrícula, leyenda, paleta coherente y revisión en plantilla se inspiran en el [README de BeautifulFigures](https://github.com/AndreyChurkin/BeautifulFigures/blob/main/01_main_simple_example/Python/README.md) y su [ejemplo de Matplotlib](https://github.com/AndreyChurkin/BeautifulFigures/blob/main/01_main_simple_example/Python/scripts/beautiful_figure_example.py). La paleta Purple Teal y sus parámetros concretos son ejemplos, no una convención automática para este proyecto.
 
 ## Límites
 

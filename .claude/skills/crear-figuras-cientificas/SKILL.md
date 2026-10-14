@@ -45,6 +45,8 @@ sustituye tablas.
   esa tesis y el repo las confirma.
 - Mantén etiquetas concisas, jerarquía visual clara y contraste suficiente.
   No uses color como único medio para distinguir categorías.
+- Ajusta tamaño, proporción, tipografía, grosor de trazos y márgenes al espacio real de la plantilla. Comprueba la figura ya insertada en el documento y a tamaño final.
+- Aplica, cuando corresponda, los criterios editoriales de [BeautifulFigures](https://github.com/AndreyChurkin/BeautifulFigures/blob/main/01_main_simple_example/Python/README.md): itera sobre legibilidad y composición. Su paleta Purple Teal y sus parámetros de Matplotlib son ejemplos, no valores predeterminados del proyecto.
 - Usa fotografías o imágenes clínicas solo si son datos reales, están
   autorizadas para ese uso y se conserva su procedencia. No generes imágenes
   sintéticas que puedan parecer casos clínicos reales.

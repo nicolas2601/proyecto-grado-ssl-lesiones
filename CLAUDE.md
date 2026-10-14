@@ -239,7 +239,7 @@ Este repo ya usa activamente los mecanismos genéricos de seguimiento del usuari
 No crear un tercer mecanismo de tracking: usar `odd/tasks/` para trabajo orgánico
 y `openspec/changes/` cuando el trabajo entra en SDD explícito.
 
-## 8. Higiene del repositorio (preguntar antes de tocar)
+## 8. Archivos sin seguimiento (preguntar antes de tocar)
 
 Hay artefactos sueltos en la raíz que **no se deben borrar ni mover sin
 preguntarle primero al usuario**, porque no está confirmado si son desechables:
@@ -305,7 +305,7 @@ Usa el especialista cuyo alcance coincida con la tarea:
 - `arquitecto-metodos-ml` — planifica la implementación de un método ya elegido; no lo selecciona ni lo programa.
 - `revisor-pipeline-ml` — revisa cambios de código de ML antes de aceptarlos.
 - `auditor-evidencia-pipeline` — verifica afirmaciones de resolución, preparación o cifras con evidencia.
-- `auditor-higiene-repo` — identifica archivos sin seguimiento; no los limpia.
+- `auditor-archivos-sin-seguimiento` — identifica archivos sin seguimiento; no los limpia.
 - `documentador-corridas` — registra el estado, resultados y procedencia de corridas desde sus artefactos locales.
 - `actualizar-tablas-resultados` — regenera tablas desde JSON mediante los generadores del repo.
 - `crear-graficas-resultados` — crea o revisa gráficas cuantitativas.
