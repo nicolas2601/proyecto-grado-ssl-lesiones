@@ -27,6 +27,16 @@ La lectura en vivo de UNABIA confirmó el entorno activo y sus límites visibles
 
 Se conservan los checksums y la correspondencia de 2.594 IDs de ISIC2018 registrados abajo. Los manifiestos científicos, la evaluación independiente, cuotas y presupuestos por etapa, validación de métodos y transferencia del código siguen abiertos. `execution_enabled=false`, `launch_ready=false` y `training_started=false`; no se ejecutaron nuevas pruebas ni entrenamiento. El gate de limpieza sintética se mantiene pendiente para inmediatamente antes de la primera corrida real.
 
+### Avance de solapamiento ISIC2018 y evaluación independiente (2026-10-14 UTC)
+
+El archivo completo de entrenamiento ISIC2018 no puede congelarse como evaluación independiente: la comparación exacta por ID realizada en UNABIA encontró 1.917 de sus 2.594 IDs dentro del inventario de originales. Los 677 IDs sin coincidencia necesitan revisión adicional antes de considerarse elegibles.
+
+La comparación usó `/home/jovyan/work/proyectonp/audit_v8_sync_20261013/full_pool_d55c5cd_20261013/original_records.jsonl` y los ZIP de imágenes y máscaras de ISIC2018 registrados abajo, desde la terminal Jupyter autenticada. El inventario contiene 40.896 filas y 40.896 IDs únicos: `isic2019` 10.991, `isic2020` 24.993 y `ham10000` 4.912. Los ZIP contienen 2.594 IDs distintos de siete dígitos. La intersección es de 1.917 IDs únicos y 1.917 filas, todas categorizadas como `isic2019` en el inventario.
+
+El esquema del JSONL contiene `bytes`, `dataset`, `height`, `image_id`, `image_path`, `image_sha256` y `width`; no contiene campos de paciente, lesión o `case_group`. Esta revisión comparó IDs, sin comparar hashes de contenido ni grupos paciente/lesión. La ausencia de coincidencia de los 677 IDs restantes no acredita independencia ni ausencia de exposición previa. Los manifiestos de elegibilidad y evaluación siguen sin resolver.
+
+**Próximos gates:** contrastar contenido por hash, obtener y auditar agrupación paciente/lesión trazable, revisar exposición previa y excluir solapamientos con entrenamiento/desarrollo antes de congelar el manifiesto independiente y su SHA-256. Se conservan `execution_enabled=false`, `launch_ready=false` y `training_started=false`; este avance no modifica la preparación de ningún método, cuotas ni presupuestos. La procedencia sintética y el gate de limpieza inmediatamente anterior a la primera corrida real permanecen vigentes.
+
 ### Avance de índices ISIC2018 y gate de limpieza (2026-10-14 UTC)
 
 En UNABIA, `/home/jovyan/work/isic2018_task1`, `sha256sum -c checksums.sha256.txt` confirmó ambos ZIP. La inspección de sus índices identificó 2.594 IDs de imágenes `.jpg` y 2.594 IDs de máscaras `_segmentation.png`, con intersección exacta de 2.594 y cero IDs sin pareja en ambas direcciones; los primeros ejemplos fueron `0000000`, `0000001` y `0000002`.
