@@ -3,7 +3,7 @@
   "protocol": "public_ssl_staging_v8",
   "adapter_revision": "8a2f42fe60aa5e29c0dd346cc2e645278897db4d",
   "adapter_sha256": "7bfa34bb153e22413409fa77c8e245a401688042af0ffa56d095714d41fcf77d",
-  "notes": "Candidate inventory; per-artifact review fields govern staging. On 2026-10-14 the official MoCo v2/v3 endpoints returned HTTP 200 with Content-Length 112133139 and 272786643 (identity encoding); earlier expected_bytes values were wrong by a factor of ten. MoCo v2's ETag starts with the published MD5 prefix a04e12f8; MoCo v3's multipart ETag is not a digest. Complete downloads still require exact-length checks and recorded local SHA-256; size metadata alone does not establish checkpoint integrity. expected_sha256 remains null pending download. SLED and TriDerm do not require public weights.",
+  "notes": "Candidate inventory; per-artifact review fields govern staging. On 2026-10-14 the official MoCo v2/v3 endpoints returned HTTP 200 with Content-Length 112133139 and 272786643 (identity encoding); earlier expected_bytes values were wrong by a factor of ten. MoCo v2's ETag starts with the published MD5 prefix a04e12f8; MoCo v3's multipart ETag is not a digest. Complete downloads still require exact-length checks and recorded local SHA-256; size metadata alone does not establish checkpoint integrity. No upstream SHA-256 is published for these artifacts; complete-transfer local SHA-256 values are recorded in the evidence JSON and cluster receipts. SLED and TriDerm do not require public weights.",
   "artifacts": [
     {
       "id": "simclr_r50_1x",
