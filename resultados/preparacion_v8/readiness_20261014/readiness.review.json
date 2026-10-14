@@ -679,6 +679,98 @@
     "interpretation": "The earlier one-core cgroup profile conflicts with the later visible-root unlimited cpu.max observation. Both are retained separately; neither is asserted as the unique effective training quota. Shared capacity and absent environment limits do not establish individual allocation.",
     "training_started": false
   },
+  "remaining_gate_documentary_review": {
+    "date_utc": "2026-10-14",
+    "repository_revision": "8110b351bba52b8529e8b7e3688d02ca35803a0f",
+    "resource_drafts": {
+      "path": "plan-segmentacion/metodos-v8/launch-preparation/resources.draft.json",
+      "max_rss_mib_proposed": 65536,
+      "gpu_memory_mib_proposed": 20480,
+      "gpu_reserve_mib_proposed": 4096,
+      "batch_size_proposed": 2,
+      "manifest_eligible_n": null,
+      "timeout": null,
+      "draft_config_count": 6,
+      "all_draft_config_timeouts_null": true,
+      "all_draft_config_output_limits_null": true,
+      "sled_device": "cpu",
+      "sled_gpu_budget": null,
+      "final_budgets_approved": false,
+      "measured_method_profiles": false,
+      "v7_budgets_reused": false,
+      "interpretation": "Draft proposals only; no final budget or measured allocation is established."
+    },
+    "repository_resource_guards": {
+      "launcher": "scripts/run_segmentation_v8.py",
+      "launcher_guards": [
+        "Estimate expected output from N, resolution and source count.",
+        "Check free disk against expected output plus 512 MiB.",
+        "Enforce timeout and RSS in the child process."
+      ],
+      "training": "src/dermssl/segmentation_methods/common/training.py",
+      "training_guards": [
+        "Require a positive CUDA budget.",
+        "Validate GPU budget plus reserve against free memory.",
+        "Limit the PyTorch memory fraction."
+      ],
+      "controller": "scripts/run_segmentation_controller_v8.py",
+      "controller_telemetry": ["RSS", "host memory", "filesystem", "cgroup", "nvidia-smi"],
+      "per_method_cpu_cap_present": false,
+      "num_workers_zero_fixes_pytorch_threads": false,
+      "individual_allocation_approved": false,
+      "interpretation": "Code guards and telemetry do not approve an individual resource allocation."
+    },
+    "candidate_inventory_boundary": {
+      "historical_inventory_rows": 40896,
+      "historical_inventory_missing_fields": ["patient_id", "lesion_id", "case_group"],
+      "isic2018_candidate_count": 2011,
+      "candidates_with_both_group_ids": 390,
+      "known_patient_count": 350,
+      "known_lesion_count": 390,
+      "sidecar_status": "Possible preparatory inventory; not created in this documentary update.",
+      "candidate_sidecar_fields": ["complete image ID", "ZIP/member", "existing hashes", "known/missing groups", "provenance"],
+      "candidate_inventory_frozen": false,
+      "candidate_inventory_eligible": false,
+      "candidate_independence_established": false,
+      "eligible_manifest_closure_requirements": [
+        "Traceable historical groups for every dataset exposed to pretraining, development, pseudo-mask generation and tuning.",
+        "Resolve dummy and missing IDs and audit both patient and lesion groups.",
+        "Audit near-duplicates; current hashes establish exact equality only.",
+        "Review prior ISIC2018 exposure.",
+        "Validate image and mask contents.",
+        "Freeze the eligible manifest, its hash and the evaluation protocol."
+      ],
+      "reference_labels_allowed_for_threshold_or_checkpoint_selection": false,
+      "protocol_reference": "docs/45-flujo-preparacion-ejecucion-cuatro-metodos-v8.md"
+    },
+    "quota_ui_review": {
+      "location": "UNABIA UI via Playwright",
+      "user": "nmoreno534",
+      "portal_storage_description": "JupyterLab personal storage on QNAP.",
+      "home_file_browser": "Files and directories displayed without quota information.",
+      "search_terms": ["quota", "storage", "QNAP", "personal"],
+      "quota_record_found": false,
+      "personal_numeric_hard_or_soft_limit_found": false,
+      "individual_quota_verified": false,
+      "observed_nfs_export": "192.168.247.100:/compartido_serv_unab/home/nmoreno534",
+      "filesystem_capacity_is_individual_quota": false,
+      "previous_cgroup_and_quota_observations_remeasured": false,
+      "previous_conflicting_observations_reconciled": false,
+      "required_confirmations": [
+        "UNABIA/JupyterHub confirmation of the launch runtime and allocation.",
+        "QNAP/NFS administrator confirmation of the quota tied to the user and export."
+      ],
+      "administrators_contacted": false,
+      "email_sent": false
+    },
+    "new_tests_run": false,
+    "new_cluster_processes_run": false,
+    "execution_enabled": false,
+    "launch_ready": false,
+    "training_started": false,
+    "synthetic_artifacts_retained_until_pre_real_run_cleanup": true,
+    "interpretation": "Documentary evidence only; prior overlap counts, synthetic forward limits, SLED noise abstention and inconclusive USLStudent remain unchanged. A candidate inventory is not an eligible frozen independent evaluation manifest."
+  },
   "current_cluster_observation": {
     "date_utc": "2026-10-14",
     "location": "UNABIA",
