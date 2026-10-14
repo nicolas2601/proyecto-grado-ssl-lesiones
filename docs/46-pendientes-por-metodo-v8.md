@@ -12,6 +12,19 @@
 
 Fecha: 2026-10-13. Rama: `experiment/modular-audit-v8`. Estado: preparación. Este documento no habilita ni inicia entrenamiento, auditorías o pruebas.
 
+### Avance de índices ISIC2018 y gate de limpieza (2026-10-14 UTC)
+
+En UNABIA, `/home/jovyan/work/isic2018_task1`, `sha256sum -c checksums.sha256.txt` confirmó ambos ZIP. La inspección de sus índices identificó 2.594 IDs de imágenes `.jpg` y 2.594 IDs de máscaras `_segmentation.png`, con intersección exacta de 2.594 y cero IDs sin pareja en ambas direcciones; los primeros ejemplos fueron `0000000`, `0000001` y `0000002`.
+
+| Archivo | SHA-256 verificado en UNABIA |
+|---|---|
+| `ISIC2018_Task1-2_Training_Input.zip` | `80f98572347a2d7a376227fa9eb2e4f7459d317cb619865b8b9910c81446675f` |
+| `ISIC2018_Task1_Training_GroundTruth.zip` | `99f8b2bb3c4d6af483362010715f7e7d5d122d9f6c02cac0e0d15bef77c7604c` |
+
+Este avance acredita checksums y correspondencia de nombres dentro de los archivos. Siguen pendientes extracción y validación de contenido, grupos paciente/lesión, historial de exposición, ausencia de solapamiento con entrenamiento/desarrollo y manifiesto de evaluación independiente congelado. `execution_enabled=false`, `launch_ready=false` y `training_started=false` se mantienen.
+
+**Gate obligatorio antes de la primera corrida real:** inventariar los artefactos sintéticos en UNABIA y W&B, conservar su procedencia y recibos de auditoría fuera del espacio de resultados reales conforme a [54](54-usl-net-banco-pesos-v8.md), y eliminar las salidas de prueba, logs sintéticos y su run/artefacto W&B antes del lanzamiento. El inventario conocido incluye el run `g8us8pz9`, el artefacto `usl-net-synthetic-forward-20261014` y el recibo `/home/jovyan/work/public_ssl_v8_preparation/usl-net-synthetic-forward-20261014.json`; la preservación del recibo debe resolverse antes de retirar ese archivo del espacio operativo. Registrar la limpieza y comprobar que ninguna ruta de corrida real consuma pruebas sintéticas. Este gate sigue pendiente; todavía no se ejecuta limpieza y no autoriza borrar datos, pesos ni resultados científicos reales.
+
 ### Actualización del clúster (2026-10-13)
 
 Jupyter quedó autenticado y accesible para continuar. En la lectura de solo observación: 3 kernels y 25 terminales en Running; no hubo coincidencias de procesos con los patrones de entrenamiento consultados; se observó `dermssl.hub_keepalive` (PID 6397). Dos RTX PRO 4000 Blackwell estaban libres según `nvidia-smi`; RAM disponible 115 GiB y volumen compartido con aproximadamente 40 T libres. Estos datos permiten avanzar con la preparación de archivos y conversiones; **no** habilitan la corrida científica. Faltan límites cgroup/cuotas efectivas, licencias de cada artefacto exacto y las conversiones/hash/normalización/carga estricta. El checkout de referencia continúa en `d55c5cd` con dos cambios locales RPI preservados; el adaptador no está en los checkouts revisados y no se hallaron checkpoints en `local-models`. El detalle y las limitaciones de observación están en [47](47-criterio-no-supervisado-y-controlador-v8.md). No se relanzaron pruebas, auditorías o corridas; tampoco se descargaron pesos.
@@ -99,6 +112,7 @@ Las fuentes anteriores identifican repositorios oficiales, no certifican que el 
 4. La observación inicial de recursos está en [47](47-criterio-no-supervisado-y-controlador-v8.md), pero faltan cuotas individuales, presupuestos completos por etapa/acumulados de tiempo, RAM, VRAM y disco, y mediciones de perfil. Configs y límites siguen provisionales; no habilitan corridas.
 5. Preparar y revisar planes seriales de USL/RPI con configs, manifiestos y gates por ciclo/fase; verificar revisión de SLED y disponibilidad del launcher/CUDA en la revisión fijada del runtime. El controlador no genera estos planes ni autoriza gates.
 6. Mantener `execution_enabled=false` hasta que gates, configuraciones, pesos, datos, evaluación y presupuesto coincidan y estén revisados.
+7. Antes del primer entrenamiento real, completar y registrar el gate de limpieza de pruebas sintéticas descrito en el avance del 2026-10-14; conservar la evidencia de auditoría fuera de los resultados reales y retirar las salidas, logs, run y artefacto sintéticos de su espacio operativo.
 
 ## Orden de trabajo propuesto
 

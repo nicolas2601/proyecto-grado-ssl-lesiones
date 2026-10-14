@@ -132,7 +132,37 @@
     "existing_integrity_failures": 0,
     "original_grouping_review": "pending",
     "expert_evaluation_manifest_resolved": false,
-    "original_image_audit_repeated": false
+    "original_image_audit_repeated": false,
+    "isic2018_archive_index_review": {
+      "date_utc": "2026-10-14",
+      "location": "UNABIA",
+      "directory": "/home/jovyan/work/isic2018_task1",
+      "checksum_command": "sha256sum -c checksums.sha256.txt",
+      "checksum_check_passed": true,
+      "archives": [
+        {
+          "filename": "ISIC2018_Task1-2_Training_Input.zip",
+          "sha256": "80f98572347a2d7a376227fa9eb2e4f7459d317cb619865b8b9910c81446675f",
+          "image_id_count": 2594
+        },
+        {
+          "filename": "ISIC2018_Task1_Training_GroundTruth.zip",
+          "sha256": "99f8b2bb3c4d6af483362010715f7e7d5d122d9f6c02cac0e0d15bef77c7604c",
+          "mask_id_count": 2594
+        }
+      ],
+      "matched_id_count": 2594,
+      "images_without_mask_id_count": 0,
+      "masks_without_image_id_count": 0,
+      "example_ids": ["0000000", "0000001", "0000002"],
+      "verification_scope": "Archive checksums and filename ID correspondence only; no extraction or content validation.",
+      "content_validation_complete": false,
+      "patient_lesion_grouping_resolved": false,
+      "exposure_history_reviewed": false,
+      "training_development_no_overlap_verified": false,
+      "independent_evaluation_manifest_frozen": false,
+      "scientific_result": false
+    }
   },
   "resources": {
     "cpu_affinity_observed": 48,
@@ -351,13 +381,31 @@
     "new_tests_or_training_started": false
   },
   "execution_enabled": false,
+  "pre_real_run_synthetic_cleanup_gate": {
+    "required": true,
+    "timing": "Immediately before the first real training run, after other launch gates are resolved.",
+    "status": "pending_not_executed",
+    "cleanup_complete": false,
+    "known_synthetic_run_id": "g8us8pz9",
+    "known_synthetic_artifact_name": "usl-net-synthetic-forward-20261014",
+    "known_synthetic_receipt_path": "/home/jovyan/work/public_ssl_v8_preparation/usl-net-synthetic-forward-20261014.json",
+    "required_actions": [
+      "Inventory exact synthetic outputs, logs, runs and artifacts in UNABIA and W&B.",
+      "Preserve provenance and audit receipts outside real-run results according to docs/54-usl-net-banco-pesos-v8.md before removing operational synthetic artifacts.",
+      "Remove inventoried synthetic test outputs and logs, and the synthetic W&B run and artifact, before real training starts.",
+      "Record cleanup and verify real-run paths and inputs contain no synthetic test artifacts."
+    ],
+    "protected_from_cleanup": ["real datasets", "public source weights", "scientific real-run results", "preserved audit provenance and receipts"],
+    "training_started": false
+  },
   "launch_blockers": [
     "Patient/lesion group eligibility and independent anatomical evaluation manifest unresolved",
     "Effective individual quotas and complete per-stage/cumulative CPU, GPU, RAM, VRAM, disk, and time budgets not finalized",
     "Concrete serial controller plans with frozen configs/manifests and reviewed gates not created",
     "TriDerm SLED pseudo-mask manifest and frozen SHA-256 not generated/reviewed",
     "SimCLR candidate is not numerically verified against original Google TensorFlow checkpoint",
-    "SLED review and exact training runtime CUDA/launcher availability and revision remain unverified"
+    "SLED review and exact training runtime CUDA/launcher availability and revision remain unverified",
+    "Mandatory synthetic test cleanup must be recorded immediately before first real training, with audit provenance and receipts preserved outside real-run results"
   ],
   "next_action_requiring_explicit_approval": "Keep scientific execution disabled. Resolve and review all patient/lesion, independent evaluation, effective quota/budget, serial config/manifest, SLED, CUDA and launcher gates. The current cluster synthetic forward and W&B receipt do not authorize training.",
   "current_cluster_observation": {
