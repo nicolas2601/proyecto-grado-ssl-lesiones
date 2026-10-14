@@ -165,7 +165,8 @@
     "Concrete serial controller plans and corresponding manifest-bound gates not created",
     "TriDerm SLED pseudo-mask manifest and frozen SHA-256 not generated/reviewed",
     "HF PyTorch conversion is validated locally; original TensorFlow numerical equivalence remains unverified (anonymous GCS access confirmed blocked by IAM, requires real GCP credentials) and must not be claimed",
-    "Repository evidence confirms the strict three-source USL-Net load, but no committed receipt documents a 224x224 synthetic fused-output forward with expected shape [1, 9216, 14, 14]."
+    "Repository evidence confirms the strict three-source USL-Net load, but no committed receipt documents a 224x224 synthetic fused-output forward with expected shape [1, 9216, 14, 14].",
+    "Preparation runtimes lack the training launcher/controller; a complete revision-pinned execution copy with reviewed CUDA fix/configs is required without modifying protected checkouts."
   ],
   "next_action_requiring_explicit_approval": "Keep scientific execution disabled. The USL-Net strict bank load is already recorded; when secure cluster access is available, first check for an existing receipt of the 224x224 synthetic fusion forward and perform only that one no-image check if it is absent. Do not repeat transfer, conversion, or bank loading. Resolve all data, evaluation, resource, SLED-manifest, and serial-plan gates before any scientific launch.",
   "prepared_patch_package": {
@@ -298,5 +299,24 @@
     ],
     "training_started": false,
     "jupyter_access_check": "502 Bad Gateway: connection refused"
+  },
+  "live_launch_review": {
+    "date_utc": "2026-10-14",
+    "secure_unabia_login_verified": true,
+    "jupyter_access_verified": true,
+    "isic_training_input_observed_bytes": 8718849309,
+    "isic_training_input_expected_bytes": 11165358566,
+    "isic_download_process_observed": true,
+    "isic_done_marker_present": false,
+    "isic_groundtruth_zip_present": false,
+    "protected_base_head": "d55c5cd",
+    "protected_base_status": "clean",
+    "protected_cuda_head": "d55c5cd",
+    "protected_cuda_local_modifications_preserved": [
+      "src/dermssl/segmentation_methods/rpi_net/model.py",
+      "tests/segmentation_v8/test_rpi_net.py"
+    ],
+    "preparation_runtimes_have_launcher_and_controller": false,
+    "new_tests_or_training_started": false
   }
 }
