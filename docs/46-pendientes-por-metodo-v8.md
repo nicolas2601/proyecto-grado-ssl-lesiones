@@ -4,13 +4,28 @@
 
 > **Estado actualizado, 2026-10-14 UTC:** el checkpoint SimCLR real se transfirió a UNABIA (102.542.786 bytes; SHA-256 `fdd96bbcc92008232f31e0f7de46d30810e7115a05005d7cff926e78e6fa37ea`); cinco módulos del runtime coinciden por hash con la revisión `eed86c892ef1c0516e21a024a66f0b8788aedd76`; y el banco USL-Net pasó un forward sintético en CPU, con salida finita `[1,9216,14,14]`, sin imágenes reales ni entrenamiento. El recibo está en el clúster y como artefacto W&B; no se versiona su archivo crudo en Git. Run: [g8us8pz9](https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/g8us8pz9). Equivalencia numérica con TensorFlow/Google original, manifiestos y grupos paciente/lesión, evaluación independiente, cuotas y presupuestos completos, configs/manifiestos seriales, revisión de SLED y comprobación de CUDA/launcher siguen pendientes. `execution_enabled=false`, `launch_ready=false`, `training_started=false`: este avance no habilita entrenamiento.
 >
-> En el runtime actual, `nvidia-smi` mostró 2 NVIDIA RTX PRO 4000 Blackwell de 24.467 MiB cada una, con 23.985 MiB libres durante la observación; PyTorch `2.11.0+cu128` detectó CUDA y ambas GPU desde `/home/jovyan/work/proyectonp/.venv/bin/python`. Es evidencia de visibilidad CUDA, no de reserva ni cuota aprobada. `/home/jovyan/work` usa NFS compartido de 40 T con cerca de 40 T libres redondeados; `quota -s` no está instalado, por lo que el espacio global no acredita cuota individual. El gate de recursos/almacenamiento sigue abierto.
+> La lectura posterior del 2026-10-14 confirmó CUDA y 2 NVIDIA RTX PRO 4000 Blackwell desde `/home/jovyan/work/proyectonp/.venv/bin/python`, con 23.754 MiB libres de 23.985 MiB reportados por GPU en esa medición. La afinidad de 48 CPU está limitada por `cpu.max=100000 100000` a una cuota de 1 CPU. El NFS compartido muestra aproximadamente 39,5 TiB disponibles; no se obtuvo una cuota individual ni una reserva GPU. El presupuesto provisional de VRAM más reserva supera en 822 MiB la memoria libre observada. Recursos, presupuestos y runtime de lanzamiento siguen pendientes; el detalle actualizado está en el inventario de abajo.
 >
 > El flujo histórico de Nicolás para V7 se resume en [55](55-flujo-v7-para-corridas-v8-en-unabia.md) para orientar preparación y cierre de corridas; sus datos, recetas y checkpoints no se trasladan a segmentación V8.
 
 ## Historial de preparación
 
 Fecha: 2026-10-13. Rama: `experiment/modular-audit-v8`. Estado: preparación. Este documento no habilita ni inicia entrenamiento, auditorías o pruebas.
+
+### Avance de inventario de recursos y runtime (2026-10-14 UTC)
+
+La lectura en vivo de UNABIA confirmó el entorno activo y sus límites visibles. Falta acreditar la cuota individual y preparar el código V8 fijado para poder validar cada método en su runtime de lanzamiento.
+
+| Aspecto | Evidencia y pendiente |
+|---|---|
+| Entorno activo | `/home/jovyan/work/proyectonp/.venv/bin/python`: Python `3.13.15`, PyTorch `2.11.0+cu128`, compilación CUDA `12.8`, CUDA disponible y 2 GPU visibles. Esto no verifica todavía launcher/controlador ni su revisión. |
+| Dependencias | NumPy `2.5.3`, SciPy `1.18.0`, scikit-learn `1.9.0`, scikit-image `0.26.0`, Pillow `12.3.0`, W&B `0.30.0` y torchvision `0.26.0+cu128`. Son versiones observadas, no un entorno congelado aprobado. |
+| CPU, RAM y procesos | Afinidad: 48 CPU. Cgroup: `cpu.max=100000 100000` (cuota de 1 CPU), `memory.max=max`, `pids.max=150962`. Los límites de shell para CPU, espacio de direcciones y tamaño de archivo son ilimitados; no acreditan una asignación individual de entrenamiento. |
+| GPU y presupuesto | Cada RTX PRO 4000 Blackwell reportó 23.754 MiB libres / 23.985 MiB totales. El borrador de 20.480 MiB de VRAM + 4.096 MiB de reserva = 24.576 MiB supera la memoria libre observada en 822 MiB. Sigue provisional: medir y revisar consumo por método antes de fijar o aprobar el presupuesto real. |
+| Almacenamiento individual | `/home/jovyan/work` está montado por NFS desde `192.168.247.100:/compartido_serv_unab/home/nmoreno534`; `statvfs` indica cerca de 39,8 TiB totales / 39,5 TiB disponibles en el montaje compartido. El panel menciona almacenamiento QNAP personal sin mostrar una cuota. `quota`, `lfs`, `squota`, `sacctmgr`, `scontrol`, `sinfo` y `squeue` no están disponibles. La cuota individual sigue sin verificar. |
+| Código para validar métodos | `/home/jovyan/work/proyectonp` no contiene un checkout Git ni `scripts/run_segmentation_v8.py` o `scripts/run_segmentation_controller_v8.py`. Los candidatos inspeccionados en el nivel superior eran bundles de auditoría. La consulta `git ls-remote` de la rama V8 pidió usuario y fue cancelada sin introducir credenciales. Transferir el proyecto V8 y verificar su revisión/hashes sigue pendiente. |
+
+Se conservan los checksums y la correspondencia de 2.594 IDs de ISIC2018 registrados abajo. Los manifiestos científicos, la evaluación independiente, cuotas y presupuestos por etapa, validación de métodos y transferencia del código siguen abiertos. `execution_enabled=false`, `launch_ready=false` y `training_started=false`; no se ejecutaron nuevas pruebas ni entrenamiento. El gate de limpieza sintética se mantiene pendiente para inmediatamente antes de la primera corrida real.
 
 ### Avance de índices ISIC2018 y gate de limpieza (2026-10-14 UTC)
 
