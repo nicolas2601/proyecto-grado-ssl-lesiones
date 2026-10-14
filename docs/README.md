@@ -40,6 +40,7 @@ Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Redise
 | [30](30-pad-ufes-zero-shot.md) | PAD-UFES-20: licencia, protocolo y predicción de la prueba externa sin entrenar. | Registrado, sin correr |
 | [35](35-auditoria-modular-v8.md) | Auditoría modular v8: vistas reales, piel/ITA y pilotos sin etiquetas. | Registrado; W0 implementado, ejecución real pendiente |
 | [48](48-preparacion-reanudable-pesos-v8.md) | Preparador reanudable de pesos públicos V8, evidencias y bloqueos. | Implementado; despliegue y artefactos pendientes |
+| [49](49-revision-fuentes-pesos-reales-v8.md) | Fuentes oficiales fijadas, checksums publicados, licencias y límites semánticos. | Revisión documental; archivos reales pendientes |
 
 Otros documentos:
 

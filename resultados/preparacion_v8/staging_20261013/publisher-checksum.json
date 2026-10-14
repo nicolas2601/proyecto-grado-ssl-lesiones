@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "scope": "new_published_md5_prefix_paths_only",
+  "base_revision": "22ef5129a65baf5972bac3fa27715e96bd1bdd57",
+  "command": "python -m unittest discover -s tests -p test_public_ssl_md5_prefix_v8.py -v",
+  "tests_run": 3,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "http": "mocked",
+  "real_checkpoints_downloaded": 0,
+  "real_model_conversions": 0,
+  "cluster_accessed": false,
+  "previous_staging_14_tests_repeated": false,
+  "legacy_model_tests_repeated": false,
+  "training_started": false,
+  "scientific_gates_enabled": false,
+  "documentary_files_pinned": 16,
+  "files_sha256": {
+    "scripts/stage_public_ssl_weights_v8.py": "a82e267a171b52217c66ab78bde8de6a2f9649f4f385679e535ba7077649f29d",
+    "tests/test_public_ssl_md5_prefix_v8.py": "8d2b930356f78f1968e6c9c5a0fe03cbe3d0a6a32d40f3e79d9ba877509b0d2e",
+    "plan-segmentacion/metodos-v8/public-weights.plan.json": "8f5e7765b40b54a8338d4945c342cddbcda533eb65b179b4af8f054ceec84f44",
+    "plan-segmentacion/metodos-v8/public-weights.evidence.json": "089fd3dd1e88d145631b3fce27a7f468cb15c99facc07820a698962b81cd046d"
+  }
+}

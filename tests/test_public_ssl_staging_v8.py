@@ -46,7 +46,7 @@ class StagingIO(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.folder = Path(self.temp.name)
         self.item = copy.deepcopy(json.loads((ROOT / "plan-segmentacion/metodos-v8/public-weights.plan.json").read_text())["artifacts"][1])
-        self.item.update(url=URL, expected_bytes=8, max_bytes=100)
+        self.item.update(url=URL, expected_bytes=8, max_bytes=100, published_md5_prefix=None)
 
     def transfer(self, response):
         with patch.object(staging.urllib.request, "build_opener") as make:

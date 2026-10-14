@@ -1,0 +1,332 @@
+{
+  "schema_version": 1,
+  "review_scope": "upstream_documentary_review_not_checkpoint_byte_validation",
+  "base_revision": "22ef5129a65baf5972bac3fa27715e96bd1bdd57",
+  "sources": [
+    {
+      "repository": "facebookresearch/moco",
+      "revision": "132aea9da9bb995a411c915c0420be3db62052f3",
+      "path": "README.md",
+      "git_blob_sha": "c091d9cc5edcd99bddb1e27eaa99893744ebcdfd",
+      "url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/README.md"
+    },
+    {
+      "repository": "facebookresearch/moco",
+      "revision": "132aea9da9bb995a411c915c0420be3db62052f3",
+      "path": "LICENSE",
+      "git_blob_sha": "3b222bf0df5d89da4ec749faff8cdc563bb84d2f",
+      "url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/LICENSE"
+    },
+    {
+      "repository": "facebookresearch/moco",
+      "revision": "132aea9da9bb995a411c915c0420be3db62052f3",
+      "path": "main_lincls.py",
+      "git_blob_sha": "cf08754a13fbdcb1bdb77e12c8cced91a14c9e04",
+      "url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/main_lincls.py"
+    },
+    {
+      "repository": "facebookresearch/moco-v3",
+      "revision": "c349e6e24f40d3fedb22d973f92defa4cedf37a7",
+      "path": "README.md",
+      "git_blob_sha": "fe71bcefe479cbf5ef508addfd9381fb2b8affa1",
+      "url": "https://github.com/facebookresearch/moco-v3/blob/c349e6e24f40d3fedb22d973f92defa4cedf37a7/README.md"
+    },
+    {
+      "repository": "facebookresearch/moco-v3",
+      "revision": "c349e6e24f40d3fedb22d973f92defa4cedf37a7",
+      "path": "LICENSE",
+      "git_blob_sha": "105a4fb33f75de2fc37c4bd73b7952e19602b589",
+      "url": "https://github.com/facebookresearch/moco-v3/blob/c349e6e24f40d3fedb22d973f92defa4cedf37a7/LICENSE"
+    },
+    {
+      "repository": "facebookresearch/moco-v3",
+      "revision": "c349e6e24f40d3fedb22d973f92defa4cedf37a7",
+      "path": "CONFIG.md",
+      "git_blob_sha": "ebd0dc7633bc5bbae4557bac0cbf467909d96aca",
+      "url": "https://github.com/facebookresearch/moco-v3/blob/c349e6e24f40d3fedb22d973f92defa4cedf37a7/CONFIG.md"
+    },
+    {
+      "repository": "facebookresearch/moco-v3",
+      "revision": "c349e6e24f40d3fedb22d973f92defa4cedf37a7",
+      "path": "main_lincls.py",
+      "git_blob_sha": "333bd4a4e042e232debb13398dc4dad4ed45dc77",
+      "url": "https://github.com/facebookresearch/moco-v3/blob/c349e6e24f40d3fedb22d973f92defa4cedf37a7/main_lincls.py"
+    },
+    {
+      "repository": "facebookresearch/dino",
+      "revision": "7c446df5b9f45747937fb0d72314eb9f7b66930a",
+      "path": "README.md",
+      "git_blob_sha": "affca658f19b5509920ec065797b6abb88149982",
+      "url": "https://github.com/facebookresearch/dino/blob/7c446df5b9f45747937fb0d72314eb9f7b66930a/README.md"
+    },
+    {
+      "repository": "facebookresearch/dino",
+      "revision": "7c446df5b9f45747937fb0d72314eb9f7b66930a",
+      "path": "LICENSE",
+      "git_blob_sha": "b09cd7856d58590578ee1a4f3ad45d1310a97f87",
+      "url": "https://github.com/facebookresearch/dino/blob/7c446df5b9f45747937fb0d72314eb9f7b66930a/LICENSE"
+    },
+    {
+      "repository": "facebookresearch/dino",
+      "revision": "7c446df5b9f45747937fb0d72314eb9f7b66930a",
+      "path": "hubconf.py",
+      "git_blob_sha": "3709271ed2b52bb86fbeb70fc02bc47d1add207e",
+      "url": "https://github.com/facebookresearch/dino/blob/7c446df5b9f45747937fb0d72314eb9f7b66930a/hubconf.py"
+    },
+    {
+      "repository": "facebookresearch/dino",
+      "revision": "7c446df5b9f45747937fb0d72314eb9f7b66930a",
+      "path": "eval_linear.py",
+      "git_blob_sha": "cdef16b473d216889b493aa0c7a63e15f945092c",
+      "url": "https://github.com/facebookresearch/dino/blob/7c446df5b9f45747937fb0d72314eb9f7b66930a/eval_linear.py"
+    },
+    {
+      "repository": "facebookresearch/dino",
+      "revision": "7c446df5b9f45747937fb0d72314eb9f7b66930a",
+      "path": "vision_transformer.py",
+      "git_blob_sha": "f69a7ad0522500ca2a85305a789be5ca6ac474d0",
+      "url": "https://github.com/facebookresearch/dino/blob/7c446df5b9f45747937fb0d72314eb9f7b66930a/vision_transformer.py"
+    },
+    {
+      "repository": "google-research/simclr",
+      "revision": "383d4143fd8cf7879ae10f1046a9baeb753ff438",
+      "path": "README.md",
+      "git_blob_sha": "9b94658d085ded6fb36492d218adf44860cadf60",
+      "url": "https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/README.md"
+    },
+    {
+      "repository": "google-research/simclr",
+      "revision": "383d4143fd8cf7879ae10f1046a9baeb753ff438",
+      "path": "LICENSE",
+      "git_blob_sha": "7a4a3ea2424c09fbe48d455aed1eaa94d9124835",
+      "url": "https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/LICENSE"
+    },
+    {
+      "repository": "google-research/simclr",
+      "revision": "383d4143fd8cf7879ae10f1046a9baeb753ff438",
+      "path": "data_util.py",
+      "git_blob_sha": "b9da5ebd71cc771665419bc9b13a937cf2e4c500",
+      "url": "https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/data_util.py"
+    },
+    {
+      "repository": "google-research/simclr",
+      "revision": "383d4143fd8cf7879ae10f1046a9baeb753ff438",
+      "path": "resnet.py",
+      "git_blob_sha": "201fb7bacf7b21d4ff94a47dc54375301f8fdf18",
+      "url": "https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/resnet.py"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "simclr_r50_1x",
+      "official_publication_confirmed": true,
+      "architecture": {
+        "family": "SimCLRv1",
+        "encoder": "ResNet50",
+        "width": 1,
+        "projection_head_in_archive": false
+      },
+      "normalization": {
+        "value": "unit_rgb",
+        "status": "confirmed_in_upstream_preprocess_image"
+      },
+      "license": {
+        "repository_id": "Apache-2.0",
+        "artifact_scope": "No separate checkpoint-specific notice established by this review; repository declaration is not marked as exact-file approval."
+      },
+      "conversion": {
+        "status": "unverified_with_static_semantic_difference",
+        "findings": [
+          "Upstream resnet.py uses TensorFlow SAME max-pooling; local ResNet50Stages uses symmetric padding=1.",
+          "At a 112px stem output, TF SAME kernel3/stride2 pads 0 before and 1 after; local padding=1 pads both sides. Parameter shapes alone do not detect the spatial shift.",
+          "Local last_stride=1 is a declared V8 dense-feature adaptation, not a literal upstream encoder.",
+          "Tensor names, shard contents and numerical behavior still require the real archive."
+        ]
+      },
+      "real_file_validation": "not_downloaded",
+      "download_blocker": "last confirmed cluster request returned HTTP 403",
+      "download_url": "https://storage.googleapis.com/simclr-gcs/checkpoints/ResNet50_1x.zip",
+      "published_url": "https://storage.cloud.google.com/simclr-gcs/checkpoints/ResNet50_1x.zip"
+    },
+    {
+      "id": "mocov1_r50_200ep",
+      "official_publication_confirmed": true,
+      "architecture": {
+        "encoder": "ResNet50",
+        "pretrain_epochs": 200,
+        "source_branch": "encoder_q"
+      },
+      "published_checksum": {
+        "algorithm": "md5",
+        "prefix": "b251726a",
+        "hex_digits": 8,
+        "full_digest_available_in_reviewed_table": false
+      },
+      "normalization": {
+        "value": "imagenet",
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "status": "confirmed_in_upstream_main_lincls"
+      },
+      "license": {
+        "readme_declaration": "CC-BY-NC-4.0",
+        "license_file": "MIT",
+        "relicense_commit": "7397dfe146c7ca6bbb58e9c382498069178ba764",
+        "status": "code_relicense_documented_checkpoint_scope_not_explicitly_resolved"
+      },
+      "conversion": {
+        "status": "not_run",
+        "notes": [
+          "Original archive may include momentum/queue/optimizer state; never fall back to unsafe pickle loading.",
+          "last_stride=1 is a declared dense-feature adaptation."
+        ]
+      },
+      "paper_exact_checkpoint_identity": "not_established",
+      "real_file_validation": "not_downloaded",
+      "download_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar",
+      "published_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v1_200ep/moco_v1_200ep_pretrain.pth.tar"
+    },
+    {
+      "id": "mocov2_r50_800ep",
+      "official_publication_confirmed": true,
+      "architecture": {
+        "encoder": "ResNet50",
+        "pretrain_epochs": 800,
+        "source_branch": "encoder_q"
+      },
+      "published_checksum": {
+        "algorithm": "md5",
+        "prefix": "a04e12f8",
+        "hex_digits": 8,
+        "full_digest_available_in_reviewed_table": false
+      },
+      "normalization": {
+        "value": "imagenet",
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "status": "confirmed_in_upstream_main_lincls"
+      },
+      "license": {
+        "readme_declaration": "CC-BY-NC-4.0",
+        "license_file": "MIT",
+        "relicense_commit": "7397dfe146c7ca6bbb58e9c382498069178ba764",
+        "status": "code_relicense_documented_checkpoint_scope_not_explicitly_resolved"
+      },
+      "conversion": {
+        "status": "not_run",
+        "notes": [
+          "One staged file is shared between USL-Net and RPI-Net.",
+          "last_stride=1 is a declared dense-feature adaptation."
+        ]
+      },
+      "paper_exact_checkpoint_identity": "not_established",
+      "real_file_validation": "not_downloaded",
+      "download_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar",
+      "published_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar"
+    },
+    {
+      "id": "mocov3_r50_1000ep",
+      "official_publication_confirmed": true,
+      "architecture": {
+        "encoder": "ResNet50",
+        "pretrain_epochs": 1000,
+        "source_branch": "base_encoder",
+        "selected_file_kind": "pretrain_not_linear_eval"
+      },
+      "normalization": {
+        "value": "imagenet",
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "status": "confirmed_in_upstream_main_lincls"
+      },
+      "license": {
+        "repository_id": "CC-BY-NC-4.0",
+        "readme_license_consistent": true,
+        "artifact_scope": "Project declaration confirmed; no separate file-specific approval asserted."
+      },
+      "conversion": {
+        "status": "not_run",
+        "notes": [
+          "Use the same upstream encoder for P1 and P2.",
+          "last_stride=1 is a declared dense-feature adaptation."
+        ]
+      },
+      "paper_exact_checkpoint_identity": "not_established",
+      "real_file_validation": "not_downloaded",
+      "download_url": "https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar",
+      "published_url": "https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar"
+    },
+    {
+      "id": "dino_vits16",
+      "official_publication_confirmed": true,
+      "architecture": {
+        "family": "DINO_original",
+        "encoder": "ViT-S/16",
+        "dimension": 384,
+        "depth": 12,
+        "heads": 6,
+        "patch_size": 16,
+        "input_size": 224,
+        "selected_file_kind": "backbone_only"
+      },
+      "normalization": {
+        "value": "imagenet",
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "status": "confirmed_in_upstream_eval_linear"
+      },
+      "license": {
+        "repository_id": "Apache-2.0",
+        "artifact_scope": "Repository declaration and official hub loader confirmed; no separate file-specific approval asserted."
+      },
+      "conversion": {
+        "status": "not_run",
+        "notes": [
+          "Official dino_vits16 hub function references exactly this file and loads it strictly.",
+          "No DINOv2, DINOv3, linear classifier, or full student/teacher checkpoint substitution.",
+          "LayerNorm epsilon=1e-6 and ViT dimensions agree in the inspected code; tensor mapping and numerical behavior remain unverified."
+        ]
+      },
+      "paper_exact_checkpoint_identity": "not_established",
+      "real_file_validation": "not_downloaded",
+      "download_url": "https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth",
+      "published_url": "https://dl.fbaipublicfiles.com/dino/dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth"
+    }
+  ],
+  "cluster_accessed": false,
+  "real_checkpoints_downloaded": 0,
+  "full_weight_sha256_verified": false,
+  "scientific_gates_enabled": false
+}

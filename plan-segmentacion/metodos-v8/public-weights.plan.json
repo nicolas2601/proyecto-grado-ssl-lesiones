@@ -25,7 +25,9 @@
         "source_selection_evidence": null,
         "input_normalization": null,
         "normalization_evidence_url": null
-      }
+      },
+      "published_md5_prefix": null,
+      "documentary_evidence": "public-weights.evidence.json#simclr_r50_1x"
     },
     {
       "id": "mocov1_r50_200ep",
@@ -46,7 +48,10 @@
         "source_selection_evidence": null,
         "input_normalization": null,
         "normalization_evidence_url": null
-      }
+      },
+      "published_md5_prefix": "b251726a",
+      "published_checksum_evidence_url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/README.md",
+      "documentary_evidence": "public-weights.evidence.json#mocov1_r50_200ep"
     },
     {
       "id": "mocov2_r50_800ep",
@@ -67,7 +72,10 @@
         "source_selection_evidence": null,
         "input_normalization": null,
         "normalization_evidence_url": null
-      }
+      },
+      "published_md5_prefix": "a04e12f8",
+      "published_checksum_evidence_url": "https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/README.md",
+      "documentary_evidence": "public-weights.evidence.json#mocov2_r50_800ep"
     },
     {
       "id": "mocov3_r50_1000ep",
@@ -88,7 +96,9 @@
         "source_selection_evidence": null,
         "input_normalization": null,
         "normalization_evidence_url": null
-      }
+      },
+      "published_md5_prefix": null,
+      "documentary_evidence": "public-weights.evidence.json#mocov3_r50_1000ep"
     },
     {
       "id": "dino_vits16",
@@ -109,7 +119,9 @@
         "source_selection_evidence": null,
         "input_normalization": null,
         "normalization_evidence_url": null
-      }
+      },
+      "published_md5_prefix": null,
+      "documentary_evidence": "public-weights.evidence.json#dino_vits16"
     }
   ],
   "bank_requirements": {

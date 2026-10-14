@@ -34,10 +34,14 @@ de la revisión; no interpreta jurídicamente una licencia ni certifica su alcan
 No basta con copiar la licencia del código del repositorio a la de sus pesos.
 
 `expected_sha256` es opcional y permanece `null` en el inventario. Si existe un
-digest independiente, registrarlo antes de descargar. Sin él, la herramienta
+digest independiente, registrarlo antes de descargar. Sin él, y si tampoco hay prefijo MD5 publicado, la herramienta
 registra `integrity=local_sha256_only`: identifica los bytes recibidos y permite
 detectar cambios locales posteriores, pero no demuestra autenticidad por una
-comparación independiente. Con él se exige coincidencia antes de promover el archivo.
+comparación independiente. Con él se exige coincidencia antes de promover el archivo. Los candidatos MoCo
+v1/v2 ahora incluyen `published_md5_prefix`: se compara únicamente ese prefijo
+publicado y se registra `matches_published_md5_prefix`, además del SHA-256 local.
+No equivale a un MD5 completo independiente ni a autenticidad criptográfica. Ver
+[49](49-revision-fuentes-pesos-reales-v8.md) y el inventario de evidencia fijada.
 
 Las revisiones pueden completarse una por una. Cambiar un artefacto que ya tiene
 archivos exige otra carpeta de preparación; no se reaprovechan silenciosamente

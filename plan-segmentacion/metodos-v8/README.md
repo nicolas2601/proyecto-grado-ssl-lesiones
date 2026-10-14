@@ -16,3 +16,7 @@ Preparación de pesos públicos: [inventario de candidatos](public-weights.plan.
 y [guía reanudable](../../docs/48-preparacion-reanudable-pesos-v8.md).
 `stage_public_ssl_weights_v8.py` prepara archivos con revisión explícita; no crea
 gates ni activa las configuraciones científicas.
+
+La [evidencia documental fijada](public-weights.evidence.json) y la [revisión de
+pesos reales](../../docs/49-revision-fuentes-pesos-reales-v8.md) distinguen
+checksum publicado, licencia de código y validación pendiente de cada archivo.

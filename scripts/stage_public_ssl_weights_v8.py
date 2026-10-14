@@ -32,8 +32,8 @@ CHUNK = 8 * 1024 * 1024
 CONVERTED_BUDGET = 256 * 1024 * 1024  # Fixed ResNet50 / ViT-S/16 encoder output.
 
 
-def digest(path, limit=None):
-    h = hashlib.sha256()
+def digest(path, limit=None, algorithm="sha256"):
+    h = hashlib.md5(usedforsecurity=False) if algorithm == "md5" else hashlib.sha256()
     with Path(path).open("rb") as stream:
         while limit is None or limit > 0:
             block = stream.read(CHUNK if limit is None else min(CHUNK, limit))
@@ -120,6 +120,9 @@ def read_plan(path):
         sha = item.get("expected_sha256")
         if sha is not None and not re.fullmatch(r"[a-f0-9]{64}", sha):
             raise ValueError(f"Invalid expected SHA-256: {aid}")
+        prefix = item.get("published_md5_prefix")
+        if prefix is not None and not re.fullmatch(r"[a-f0-9]{8}", prefix):
+            raise ValueError(f"Published MoCo MD5 prefixes must contain exactly 8 hex digits: {aid}")
     return plan
 
 
@@ -235,8 +238,13 @@ def download(item, folder, reserve, timeout, max_seconds):
     observed = digest(part)
     if item.get("expected_sha256") and observed != item["expected_sha256"]:
         raise ValueError("Published/reviewed SHA-256 does not match; source was not promoted")
+    md5 = digest(part, algorithm="md5") if item.get("published_md5_prefix") else None
+    if md5 is not None and not md5.startswith(item["published_md5_prefix"]):
+        raise ValueError("Published MD5 prefix does not match; source was not promoted")
     meta.update(complete=True, sha256=observed,
-                integrity="matches_expected_sha256" if item.get("expected_sha256") else "local_sha256_only")
+                md5=md5, published_md5_prefix=item.get("published_md5_prefix"),
+                integrity=("matches_expected_sha256" if item.get("expected_sha256") else
+                           "matches_published_md5_prefix" if md5 else "local_sha256_only"))
     atomic_json(meta_path, meta)
     os.replace(part, target)
     return target, meta
@@ -398,7 +406,8 @@ def main():
                             or target.stat().st_size != transfer.get("total_bytes")):
                         raise ValueError("A complete, unchanged staged source is required before conversion")
                 record.update(status="downloaded", source_sha256=transfer["sha256"],
-                              source=str(target), integrity=transfer["integrity"])
+                              source=str(target), integrity=transfer["integrity"],
+                              md5=transfer.get("md5"), published_md5_prefix=transfer.get("published_md5_prefix"))
                 if args.convert:
                     code = adapter_identity(plan)
                     output = convert(plan, item, target, transfer, folder, code, args.reserve_bytes)
