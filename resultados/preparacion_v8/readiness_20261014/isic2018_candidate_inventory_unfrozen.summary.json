@@ -1,0 +1,29 @@
+{
+  "candidate_inventory_bytes": 524709,
+  "candidate_inventory_path": "/home/jovyan/work/validation_v8/f1dc0d2-20261014/isic2018_candidate_inventory_unfrozen.jsonl",
+  "candidate_inventory_sha256": "dd73c192277ab1c94811d216140b65bb84e010702096bcfcf7514b02a51ad05a",
+  "counts": {
+    "candidate_records": 2011,
+    "candidate_with_both_group_ids": 390,
+    "candidate_with_lesion_id": 1098,
+    "candidate_with_patient_id": 390,
+    "exact_image_id_overlap": 583,
+    "historical_unique_image_ids": 40896,
+    "source_records": 2594,
+    "unique_candidate_lesion_ids": 1083,
+    "unique_candidate_patient_ids": 350
+  },
+  "created_utc": "2026-10-14T19:34:42.590146+00:00",
+  "historical_image_id_inventory_path": "/home/jovyan/work/proyectonp/audit_v8_sync_20261013/full_pool_d55c5cd_20261013/original_records.jsonl",
+  "limitations": [
+    "Image-ID nonoverlap does not prove patient or lesion independence across all prior exposure.",
+    "Historical inventory rows lack patient_id and lesion_id.",
+    "Aggregate exact-hash audit has no per-candidate hashes retained.",
+    "case_group is unset; this is not a frozen train/development/holdout manifest."
+  ],
+  "method": "Exact full image_id exclusion against the previously audited inventory; no image bytes or hashes recalculated.",
+  "prior_exact_identity_audit_path": "/home/jovyan/work/validation_v8/f1dc0d2-20261014/isic2018_exact_identity_hash_audit.json",
+  "schema": "isic2018-candidate-inventory-unfrozen-v1",
+  "source_metadata_path": "/home/jovyan/work/validation_v8/f1dc0d2-20261014/isic2018_collection_63_metadata.csv",
+  "status": "candidate_only_unfrozen_not_independent_not_executable"
+}
