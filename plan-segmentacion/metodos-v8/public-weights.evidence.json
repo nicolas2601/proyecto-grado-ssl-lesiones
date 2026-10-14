@@ -230,17 +230,32 @@
         "status": "code_relicense_documented_checkpoint_scope_not_explicitly_resolved"
       },
       "conversion": {
-        "status": "not_run",
+        "status": "converted_strict",
         "notes": [
           "One staged file is shared between USL-Net and RPI-Net.",
           "last_stride=1 is a declared dense-feature adaptation."
-        ]
+        ],
+        "converted_encoder_path": "staging-02/mocov2_r50_800ep/converted/encoder.pt",
+        "converted_encoder_bytes": 94304835,
+        "validation_scope": "Strict source-to-encoder schema conversion only; not scientific evaluation."
       },
       "paper_exact_checkpoint_identity": "not_established",
-      "real_file_validation": "blocked_remote_size_mismatch",
+      "real_file_validation": "downloaded_exact_size_published_md5_prefix_match_and_local_sha256_recorded",
       "download_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar",
       "published_url": "https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar",
-      "download_blocker": "Remote size differs from the recorded candidate size; no file was promoted."
+      "observed_bytes": 112133139,
+      "source_sha256": "5e4a3fd7178a95837c0ad71c265ed5f477d271e753ba505b6b6a5e86829eeb7e",
+      "download_receipt": {
+        "complete": true,
+        "content_length_bytes": 112133139,
+        "updated_at_utc": "2026-10-14T03:12:04.480514+00:00",
+        "source_sha256": "5e4a3fd7178a95837c0ad71c265ed5f477d271e753ba505b6b6a5e86829eeb7e",
+        "computed_md5": "a04e12f80e44fdac1cfb4e06f33727b",
+        "published_md5_prefix": "a04e12f8",
+        "response_etag": "a04e12f80e44fdac1cfb4e06f33727b",
+        "corrected_plan_sha256": "a8a84880074f371ab88d86237609db8d4a5ee0cfaa5e4338e59af14ae2c11ba3",
+        "local_receipt": "staging-02/mocov2_r50_800ep/transfer.json"
+      }
     },
     {
       "id": "mocov3_r50_1000ep",
@@ -271,17 +286,32 @@
         "artifact_scope": "Project declaration confirmed; no separate file-specific approval asserted."
       },
       "conversion": {
-        "status": "not_run",
+        "status": "converted_strict",
         "notes": [
           "Use the same upstream encoder for P1 and P2.",
           "last_stride=1 is a declared dense-feature adaptation."
-        ]
+        ],
+        "converted_encoder_path": "staging-02/mocov3_r50_1000ep/converted/encoder.pt",
+        "converted_encoder_bytes": 94340835,
+        "validation_scope": "Strict source-to-encoder schema conversion only; not scientific evaluation."
       },
       "paper_exact_checkpoint_identity": "not_established",
-      "real_file_validation": "blocked_remote_size_mismatch",
+      "real_file_validation": "downloaded_exact_size_local_sha256_recorded",
       "download_url": "https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar",
       "published_url": "https://dl.fbaipublicfiles.com/moco-v3/r-50-1000ep/r-50-1000ep.pth.tar",
-      "download_blocker": "Remote size differs from the recorded candidate size; no file was promoted."
+      "observed_bytes": 272786643,
+      "source_sha256": "5baee69ef3c0b6f153eac41543be48dbd2ca6ff8f6327bb44fc0aa61f8fb4eee",
+      "download_receipt": {
+        "complete": true,
+        "content_length_bytes": 272786643,
+        "updated_at_utc": "2026-10-14T03:12:07.187805+00:00",
+        "source_sha256": "5baee69ef3c0b6f153eac41543be48dbd2ca6ff8f6327bb44fc0aa61f8fb4eee",
+        "published_md5_prefix": null,
+        "response_etag": "3e8928fbf541ffdb717ed4982591f46e-18",
+        "etag_interpretation": "multipart ETag; not a content digest",
+        "corrected_plan_sha256": "a8a84880074f371ab88d86237609db8d4a5ee0cfaa5e4338e59af14ae2c11ba3",
+        "local_receipt": "staging-02/mocov3_r50_1000ep/transfer.json"
+      }
     },
     {
       "id": "dino_vits16",
@@ -391,5 +421,10 @@
       "revision": "d55c5cd",
       "local_changes": "untouched"
     }
+  },
+  "cluster_preparation_update": {
+    "updated_at_utc": "2026-10-14",
+    "corrected_plan_sha256": "a8a84880074f371ab88d86237609db8d4a5ee0cfaa5e4338e59af14ae2c11ba3",
+    "note": "MoCo v2/v3 expected_bytes were each ten times the current HTTP 200 identity-encoding Content-Length; corrected values are 112133139 and 272786643. Both complete source files converted strictly on CPU in staging-02. The pinned runtime and reference checkout d55c5cd were not modified; no training or scientific gates were run."
   }
 }
