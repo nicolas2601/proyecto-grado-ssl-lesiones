@@ -153,6 +153,47 @@
       "nearest_queue_alone_covers_all_candidate_pool_paths": false,
       "base_id_exclusions_materialized": false,
       "protocol_change_to_relax_independence_adopted": false,
+      "literature_protocol_review_20261015": {
+        "date_utc": "2026-10-15",
+        "scope": "Contraste documental con fuentes primarias; sin entrenamiento, pruebas, materialización de manifiestos ni cambio de gates.",
+        "task_mask_count_correction": {
+          "task1_training_images": 2594,
+          "task1_training_lesion_masks": 2594,
+          "task2_attribute_masks_per_image": 5,
+          "task2_training_attribute_masks": 12970,
+          "original_task1_validation_images": 100,
+          "original_task1_test_images": 1000,
+          "label_availability": "Las máscaras de entrenamiento Task 1 eran públicas; las de validación/test original permanecían ocultas durante el desafío. Los 2594 ejemplos no son el test ciego original.",
+          "primary_sources": [
+            "https://arxiv.org/html/1902.03368v1",
+            "https://forum.isic-archive.com/t/number-of-images-and-ground-truths/335",
+            "https://challenge.isic-archive.com/landing/2018/45/"
+          ]
+        },
+        "independence_levels": {
+          "image_disjoint": "Excluir las mismas imágenes fuente, derivados y duplicados confirmados de toda exposición de aprendizaje.",
+          "lesion_disjoint": "Excluir fotografías distintas de la misma lesión mediante enlaces de grupo fiables y trazables.",
+          "patient_disjoint": "Excluir todas las imágenes de cada paciente evaluado de toda exposición de aprendizaje.",
+          "site_or_dataset_external": "Verificar procedencia externa, grupos e historial de uso adecuados a la afirmación; un nombre de dataset distinto no acredita independencia por sí solo."
+        },
+        "metadata_utility_and_limit": "HAM10000 permite agrupar fotografías por lesion_id en filas enlazables, pero no tiene patient_id. La lesión adicional previamente informada cae entre los 1917 solapamientos por ID base ya propuestos para exclusión. De los 677 IDs restantes, 189 enlazan sidecars ISIC2019 sin aportar paciente o lesión no vacíos. Task 1 conserva cobertura parcial: 1098 filas/1083 lesiones y 390 filas/350 pacientes sobre 2594 imágenes.",
+        "metadata_primary_source": "https://doi.org/10.1038/sdata.2018.161",
+        "claim_item_20": "Recomienda particiones disjuntas por paciente o nivel superior y justificar separaciones de nivel inferior.",
+        "claim_item_20_url": "https://rsna.github.io/claim/item-20.html",
+        "challenge_external_testing_scope": "El artículo ISIC2018 documenta generalización institucional externa en Task 3; no proporciona un puente de identidad de pacientes para Task 1.",
+        "transductive_scope": "La segmentación transductiva puede usar las imágenes objetivo sin sus máscaras para estimar desempeño sobre esa cohorte disponible. Debe declararse la exposición; no acredita evaluación inductiva en pacientes no vistos.",
+        "transductive_primary_source": "https://arxiv.org/html/2107.08964v2",
+        "historical_protocol_scope": "Clasificación V7 agrupó por lesion_id; Camino B separó claves de imagen por hash y declaró régimen transductivo. Esto delimita su alcance sin invalidar globalmente los resultados ni inferir consultas de máscaras no documentadas.",
+        "current_cohort_framing": "Benchmark público retrospectivo previamente consultado; los 2594 ejemplos de entrenamiento Task 1 reasignados a evaluación V8 no son el test ciego original.",
+        "recommended_path_pending_adoption": [
+          "Congelar protocolo, configuraciones y regla de selección antes de puntuar con máscaras expertas.",
+          "Reservar las 2594 imágenes Task 1 y materializar/verificar exclusiones de las 1917 filas por ID base y sus derivados/casi duplicados confirmados de toda exposición de aprendizaje.",
+          "Aplicar exclusiones de grupos conocidos donde sean fiables, completar adjudicación y congelar manifiestos con hashes y limitaciones explícitas.",
+          "Informar evaluación retrospectiva del benchmark público e independencia por paciente sin acreditar; usar una evaluación final separada si las métricas influyen en la selección."
+        ],
+        "requirements_for_clinically_independent_claim": "Cohorte nueva o enlace de paciente completo y defendible, además de un test ciego adecuado sin consulta previa; procedencia externa verificada si se afirma independencia por centro.",
+        "execution_effect": "Ninguno: recomendación documental no adoptada; paso 1 abierto y predicados/flags de ejecución sin cambios. Limpieza sintética inmediatamente antes de la primera corrida real."
+      },
       "historical_v7_context": {
         "date_utc": "2026-10-15",
         "segmentation_evaluation_dataset": "ISIC2018 Task 1",
@@ -813,7 +854,7 @@
       "images_without_mask_id_count": 0,
       "masks_without_image_id_count": 0,
       "example_ids": ["0000000", "0000001", "0000002"],
-      "verification_scope": "Archive checksums and filename ID correspondence for 2594 IDs only; this does not verify all 12970 expert masks (five per image reported by the official challenge page), extraction or content.",
+      "verification_scope": "Archive checksums and filename ID correspondence for 2594 Task 1 image/mask pairs only; extraction and image/mask content remain unchecked. Task 1 has 2594 lesion masks, one per image; the 12970 masks, five per image, belong to Task 2 attributes (ISIC2018 article sections 2.1-2.2 and organizer clarification).",
       "content_validation_complete": false,
       "patient_lesion_grouping_resolved": false,
       "exposure_history_reviewed": false,
