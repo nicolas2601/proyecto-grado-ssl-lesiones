@@ -10,6 +10,16 @@
 >
 > El flujo histórico de Nicolás para V7 se resume en [55](55-flujo-v7-para-corridas-v8-en-unabia.md) para orientar preparación y cierre de corridas; sus datos, recetas y checkpoints no se trasladan a segmentación V8.
 
+## Estado del paso 1 tras la revisión de cierre (2026-10-14 UTC)
+
+**Bloqueo confirmado; no hay manifiesto ejecutable congelado.** El cargador común exige `patient_lesion_groups_preserved=true` (`src/dermssl/segmentation_methods/common/data.py:25`) y el entrenamiento exige además `independent_anatomical_evaluation_resolved=true` (`common/training.py:42`). La evidencia disponible no acredita esos predicados: falta un cruce autoritativo de pacientes/lesiones comparable entre evaluación y toda exposición de aprendizaje. No se marcarán como resueltos por ausencia de coincidencias de ID o pHash.
+
+La revisión de los 677 IDs corregidos conserva 189 coincidencias con los 25.331 IDs de ISIC2019 Training y cero con los 8.238 IDs oficiales de Test. Ambos sidecars Training disponibles carecen de paciente/lesión no vacíos para esas 189 filas. Las 2.594 imágenes ISIC2018 siguen reservadas para validación/evaluación; sus máscaras expertas nunca supervisan el entrenamiento no supervisado. El JSONL histórico de 2.011 filas sigue superado, con `case_group` y SHA-256 por imagen nulos; no aporta un manifiesto final ni estratos transferibles.
+
+La cola de vecinos más cercanos cubre 1.235 de las 4.195 rutas del pool nominadas por el cribado completo: **2.960 rutas candidatas quedan fuera de esa cola**. Revisar únicamente esa cola no adjudica los 15.702 pares. Tampoco están materializadas las exclusiones de las 1.917 filas coincidentes por ID base. El paso 1 continúa abierto hasta resolver adjudicación, exclusiones, exposición y grupos, o una decisión explícita de protocolo que describa honestamente la independencia que puede sostenerse; esa decisión aún no se ha adoptado ni implementado. La búsqueda de metadatos solo se reabre ante un mapeo autoritativo identificado, sin repetir búsquedas generales.
+
+TriDerm/SLED y los planes seriales siguen dependiendo del cierre del paso 1. La cuota agregada se acepta como referencia de planificación, sin certificar cuota individual ni reconciliar `cpu.max`; no se repite la búsqueda de herramientas de cuota y los presupuestos por método siguen pendientes. La limpieza sintética continúa inmediatamente antes de la primera corrida real. `execution_enabled=false`, `launch_ready=false`, `training_started=false`.
+
 ## Historial de preparación
 
 Fecha: 2026-10-13. Rama: `experiment/modular-audit-v8`. Estado: preparación. Este documento no habilita ni inicia entrenamiento, auditorías o pruebas.
