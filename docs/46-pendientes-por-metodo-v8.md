@@ -20,6 +20,14 @@ La cola de vecinos más cercanos cubre 1.235 de las 4.195 rutas del pool nominad
 
 TriDerm/SLED y los planes seriales siguen dependiendo del cierre del paso 1. La cuota agregada se acepta como referencia de planificación, sin certificar cuota individual ni reconciliar `cpu.max`; no se repite la búsqueda de herramientas de cuota y los presupuestos por método siguen pendientes. La limpieza sintética continúa inmediatamente antes de la primera corrida real. `execution_enabled=false`, `launch_ready=false`, `training_started=false`.
 
+### Contexto histórico V7 y alcance del bloqueo (2026-10-15 UTC)
+
+La segmentación V7 evaluó las 2.594 imágenes ISIC2018 Task 1: 722 IDs habían aparecido sin etiquetas en el pool de entrenamiento y 1.872 estaban fuera. Reportó Dice 0,801 y 0,686, respectivamente, e identificó explícitamente **0,686 como estimación de generalización fuera del pool** ([resultados de segmentación, líneas 151–156](../resultados/segmentacion/README.md#dentro-y-fuera-del-pool-de-entrenamiento)). Las máscaras expertas entraron únicamente en evaluación ([flujo V7, líneas 13–15](45-flujo-preparacion-ejecucion-cuatro-metodos-v8.md#flujo-de-v7-que-sirve-de-referencia)). Esta distinción acredita análisis de exposición por imagen, no separación por paciente/lesión. ISIC2018 ya fue consultado y constituye un benchmark repetido; no es un test intacto.
+
+La clasificación V7 sí documentó particiones y controles por `lesion_id` en HAM10000. Su alcance es específico de clasificación y no certifica la segmentación ni independencia paciente/lesión entre fuentes: su propia limitación indica que `lesion_id` no detecta lesiones re-fotografiadas en ISIC2019/2020 con otros IDs y bytes ([limitaciones V7, líneas 447–450](27-plan-v7-mejoras-ssl.md)). No se transfiere ese resultado a los gates V8.
+
+El usuario solicita continuar la preparación manteniendo este bloqueo documentado; **eso no aprueba relajar el gate ejecutable V8**. Solo mediante una revisión explícita del protocolo podría describirse una futura cohorte sin IDs de imagen compartidos como benchmark repetido y previamente consultado, sin atribuirle independencia paciente/lesión. Esa revisión no se ha adoptado. Siguen sin resolver `patient_lesion_groups_preserved` y la evaluación independiente; los tres flags de lanzamiento permanecen en `false`, el paso 2 TriDerm/SLED continúa detrás del paso 1 y la limpieza sintética sigue al final.
+
 ## Historial de preparación
 
 Fecha: 2026-10-13. Rama: `experiment/modular-audit-v8`. Estado: preparación. Este documento no habilita ni inicia entrenamiento, auditorías o pruebas.
