@@ -57,11 +57,18 @@ Los tres cruces por pares entre Task 1 completa, HAM10000 train y Task 3 test di
 
 **Los ceros no acreditan independencia clínica:** falta `patient_id` en HAM10000 y no hay equivalencia de identidades entre sistemas. Tampoco adjudican los candidatos positivos del cruce anterior. El paso 1 sigue abierto, `manifest_frozen=false`, las exclusiones siguen sin aplicar/verificar y la limpieza sintética queda pendiente al final.
 
+La auditoría retrospectiva local del 2026-10-15 distingue dos protocolos: clasificación V7 agrupó HAM10000 por `lesion_id` mediante `StratifiedGroupKFold`, con selección interna y exclusiones del pool SSL; sus JSON finales s42/s43/s44 comparten `n_eval=2004` y `eval_ids_sha256=6ff4c17f04a9eae2f0d058aaa41084ea65b9aff91e4d5e5b05c924b4465a2fc6`. Camino B asignó pseudo-validación por hash de `dataset:image_id` con semilla 42: su cache tiene 58.457 imágenes y 1.169 de validación. El registro S4-A2 real es `plan-segmentacion/camino-b-cnn/resultados/2026-09-28-s4-a2/run.json`; declara entrenamiento completo y régimen transductivo sin etiquetas. El análisis 722 dentro/1.872 fuera del pool procede separadamente de `2026-09-21-final/evaluacion_isic2018/summary.json`. Ninguno certifica separación clínica entre fuentes. Rutas, claves y limitaciones quedan en [la auditoría de docs/46](../../docs/46-pendientes-por-metodo-v8.md#auditoría-retrospectiva-de-splits-y-utilidad-de-ham10000-2026-10-15) y `data.step_1_freeze_gate_review.retrospective_split_audit_20261015` del recibo.
+
+Los metadatos HAM sí sirven para agrupar fotografías de una lesión, excluir IDs/grupos conocidos y trazar procedencia. Sus 10.015 filas oficiales tienen lesión y carecen de paciente; no bastan para acreditar independencia paciente/lesión de Task 1 frente a todas las exposiciones de entrenamiento. Falta un enlace de paciente comparable, completo y trazable en ambos lados. La cobertura parcial por fuentes y los ceros de cadenas exactas no lo reemplazan. Se mantiene el bloqueo o se requiere una revisión explícita del alcance científico; no se adoptó esa revisión ni se habilitaron gates. Esta actualización es documental: no constituye una corrida nueva ni repite búsquedas generales. El recibo actualizado revoca el relato antiguo de `AGENTS.md` §5: los 1.334 `_downsampled` son derivados confirmados por ID base, no falsos positivos; rigen las 1.917 exclusiones pendientes y los 677 IDs sin enlace, con los 2.011 candidatos conservados solo como historial.
+
 **Tarea 1 abierta:** adjudicar los vínculos positivos del mismo ámbito usando los
 identificadores únicamente en UNABIA, conservar las 2.594 imágenes para evaluación,
 materializar/verificar las exclusiones del lado de aprendizaje y completar pHash,
 grupos y exposición antes de congelar. Sigue vigente la propuesta de excluir
 1.917 filas por ID base: 583 exactas y 1.334 derivados terminales `_downsampled`.
+Los cero SHA-256 exactos del cribado histórico de 2.011 no revocan la identidad
+base de esos derivados reducidos. Solo 677 IDs quedan sin enlace de ID base;
+los estratos y cruces anteriores sobre 2.011 se conservan con alcance histórico.
 El nuevo informe compara instantáneas actuales y no verifica la pertenencia al ZIP
 histórico; la comprobación previa de 2.594 IDs ZIP/API iguales queda separada.
 No se aplicaron exclusiones ni se congelaron manifiestos; `execution_enabled=false`,
