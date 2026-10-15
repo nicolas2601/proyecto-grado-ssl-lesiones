@@ -258,6 +258,220 @@
         "exact_stem_overlap_count": 583,
         "corrected_base_image_id_overlap_count": 1917
       },
+      "official_group_metadata_crosswalk_20261015": {
+        "date_utc": "2026-10-15",
+        "location": "UNABIA",
+        "status": "completed_candidate_links_not_adjudicated",
+        "scope": "Instantáneas actuales de metadatos oficiales enlazadas al inventario histórico del pool; consultas agregadas ejecutadas en el clúster, sin identificadores individuales en este registro.",
+        "report_path": "/home/jovyan/work/validation_v8/f1dc0d2-20261014/official-metadata-crosswalk-20261015-final/official_group_metadata_audit.json",
+        "report_sha256": "e95774848d3f7c15fdff4d1795ba84746aecef1136e8edd9e4db92383cd69f6",
+        "report_bytes": 9748,
+        "historical_pool_rows": 40896,
+        "evaluation_images": 2594,
+        "historical_evaluation_zip_membership_verified": false,
+        "historical_evaluation_zip_membership_scope": "Este informe no repitió la comprobación del ZIP. La verificación anterior de igualdad exacta de 2594 IDs ZIP/API se conserva separadamente en archive_and_api_collection_exact_id_match_count.",
+        "source_urls": {
+          "collection_63_metadata": "https://api.isic-archive.com/collections/63/metadata/",
+          "collection_65_metadata": "https://api.isic-archive.com/collections/65/metadata/",
+          "collection_70_metadata": "https://api.isic-archive.com/collections/70/metadata/",
+          "collection_212_metadata": "https://api.isic-archive.com/collections/212/metadata/",
+          "challenge_2018_task3_lesion_groupings": "https://isic-archive.s3.amazonaws.com/challenges/2018/ISIC2018_Task3_Training_LesionGroupings.csv",
+          "challenge_2019_training_metadata": "https://isic-archive.s3.amazonaws.com/challenges/2019/ISIC_2019_Training_Metadata.csv",
+          "challenge_2019_test_metadata": "https://isic-archive.s3.amazonaws.com/challenges/2019/ISIC_2019_Test_Metadata.csv",
+          "challenge_2020_training_groundtruth_v2": "https://isic-archive.s3.amazonaws.com/challenges/2020/ISIC_2020_Training_GroundTruth_v2.csv",
+          "challenge_2020_training_duplicates": "https://isic-archive.s3.amazonaws.com/challenges/2020/ISIC_2020_Training_Duplicates.csv",
+          "challenge_2018_task3_grouping_explanation": "https://forum.isic-archive.com/t/task-3-supplemental-information/430",
+          "official_challenge_data_index": "https://challenge.isic-archive.com/data/",
+          "ham10000_primary_dataverse_doi": "https://doi.org/10.7910/DVN/DBW86T"
+        },
+        "source_downloads_and_receipts_retained_on_cluster": true,
+        "repeat_source_downloads_required": false,
+        "evaluation_group_coverage_scope": "Cohorte completa de 2594 imágenes reservadas; no son los estratos del inventario histórico de 2011 filas ni conteos para los 677 IDs sin coincidencia de ID base.",
+        "evaluation_image_linkage_by_collection": {
+          "63": { "joined_images": 2594, "non_null_lesion_id_rows": 1098, "unique_lesion_ids": 1083, "non_null_patient_id_rows": 390, "unique_patient_ids": 350 },
+          "65": { "joined_images": 2593, "non_null_lesion_id_rows": 1098, "unique_lesion_ids": 1083, "non_null_patient_id_rows": 389, "unique_patient_ids": 350 },
+          "70": { "joined_images": 0 },
+          "212": { "joined_images": 0 }
+        },
+        "official_2018_task3_lesion_groupings": {
+          "official_challenge_description_entries": 10015,
+          "description_source_url": "https://challenge.isic-archive.com/data/",
+          "evaluation_joined_images": 0,
+          "task1_task2_evaluation_grouping_resolved": false
+        },
+        "targeted_unmatched_cohort_followup": {
+          "date_utc": "2026-10-15",
+          "location": "UNABIA",
+          "scope": "Consulta agregada separada sobre los 677 IDs sin coincidencia de ID base; no es un resultado filtrado de los candidatos 3/4 del informe de cohorte completa.",
+          "evaluation_images": 677,
+          "isic2019_full_resolution_sidecar": {
+            "path": "/home/jovyan/work/datos/isic2019_fullres/ISIC_2019_Training_Metadata.csv",
+            "joined_evaluation_images": 189,
+            "nonempty_patient_id_rows": 0,
+            "nonempty_lesion_id_rows": 0
+          },
+          "isic2019_secondary_training_sidecar": {
+            "path": "/home/jovyan/work/datos/isic2019/train-metadata.csv",
+            "joined_evaluation_images": 189,
+            "nonempty_patient_id_rows": 0,
+            "nonempty_lesion_id_rows": 0
+          },
+          "isic2020_joined_evaluation_images": 0,
+          "official_isic2019_test_image_id_matches": 0,
+          "historical_isic2019_pool_rows": 10991,
+          "exact_lesion_string_intersection_with_historical_isic2019_pool": 0,
+          "candidate_images_with_shared_lesion_id": 0,
+          "whole_cohort_group_candidate_membership_in_677_verified": false,
+          "patient_lesion_independence_established": false,
+          "interpretation": "Los ceros corresponden solo al subconjunto y fuentes indicados; la ausencia de grupos útiles no acredita independencia ni permite atribuir a estos 677 los candidatos 3/4 de la cohorte completa."
+        },
+        "ham10000_primary_dataverse_access_review": {
+          "date_utc": "2026-10-15",
+          "location": "UNABIA",
+          "source_url": "https://doi.org/10.7910/DVN/DBW86T",
+          "source_doi": "10.7910/DVN/DBW86T",
+          "source_verified_as_primary": true,
+          "request_method": "GET",
+          "request_scope": "Intento inicial de listado general mediante la API de Harvard Dataverse; el HTTP 403 corresponde solo a este intento.",
+          "http_status": 403,
+          "response_format_observed": "HTML",
+          "files_downloaded_by_attempt": false,
+          "files_modified_by_attempt": false,
+          "additional_id_crosswalk_obtained": true,
+          "status": "listing_403_followed_by_direct_file_downloads_and_crosswalk_completed_in_unabia",
+          "interpretation": "El listado general devolvió 403 HTML sin descargar archivos; posteriormente los endpoints directos permitieron obtener dos TSV e IDs. Los ceros exactos no acreditan independencia clínica ni cierran gates.",
+          "source_version": "4.0",
+          "direct_file_crosswalk": {
+            "date_utc": "2026-10-15",
+            "location": "UNABIA",
+            "discovery": "Página oficial y archivos abiertos con Playwright siguiendo la captura del usuario; file IDs identificados antes de las descargas directas.",
+            "report_path": "/home/jovyan/work/validation_v8/f1dc0d2-20261014/official-metadata-crosswalk-20261015-final/harvard_v4_source/ham10000_crosswalk_summary.json",
+            "report_parsed_on_cluster": true,
+            "source_directory": "/home/jovyan/work/validation_v8/f1dc0d2-20261014/official-metadata-crosswalk-20261015-final/harvard_v4_source/",
+            "image_zips_downloaded": false,
+            "downloaded_sources": [
+              {
+                "filename": "HAM10000_metadata.tab",
+                "file_id": 4338392,
+                "bytes": 830428,
+                "sha256": "a430c61b1f42eb6b080ded6f7a9db2ddd707cfe64db318e1ea62d43ab97a6505",
+                "rows": 10015,
+                "unique_image_ids": 10015,
+                "unique_lesion_ids": 7470,
+                "multi_image_lesion_groups": 1956,
+                "patient_id_field_present": false
+              },
+              {
+                "filename": "ISIC2018_Task3_Test_GroundTruth.tab",
+                "file_id": 6924466,
+                "bytes": 129552,
+                "sha256": "5a65224821baa5840edb9d68fd2cff5a2106c60c62d15524a03b012db3bcf1a4",
+                "rows": 1512,
+                "unique_image_ids": 1512,
+                "unique_lesion_ids": 1223,
+                "multi_image_lesion_groups": 226,
+                "patient_id_field_present": false
+              }
+            ],
+            "existing_task1_sidecar": {
+              "filename": "isic2018_collection_63_metadata.csv",
+              "sha256": "4d7d982a56c265d5440f3f85560690bbf3e3ec91b890c62873acc2315e61e0af",
+              "rows": 2594,
+              "unique_image_ids": 2594,
+              "nonempty_patient_id_rows": 390,
+              "unique_patient_ids": 350
+            },
+            "pairwise_exact_matches": [
+              {
+                "left": "isic2018_task1_collection63",
+                "right": "ham10000_train",
+                "image_id_matches": 0,
+                "lesion_id_string_matches": 0
+              },
+              {
+                "left": "isic2018_task1_collection63",
+                "right": "isic2018_task3_test",
+                "image_id_matches": 0,
+                "lesion_id_string_matches": 0
+              },
+              {
+                "left": "ham10000_train",
+                "right": "isic2018_task3_test",
+                "image_id_matches": 0,
+                "lesion_id_string_matches": 0
+              }
+            ],
+            "historical_exact_id_subsets": [
+              {
+                "scope": "2011 candidatos históricos sin coincidencia exacta en el inventario.",
+                "images": 2011,
+                "ham10000_image_id_matches": 0,
+                "task3_test_image_id_matches": 0
+              },
+              {
+                "scope": "583 IDs con coincidencia exacta en el inventario histórico.",
+                "images": 583,
+                "ham10000_image_id_matches": 0,
+                "task3_test_image_id_matches": 0
+              }
+            ],
+            "subset_interpretation": "2594 Task1 = 2011 candidatos + 583 residuales según el cruce histórico de ID exacto. No son los conteos del flujo separado de exclusiones por ID base.",
+            "source_provenance_relation": "Dataverse identifica HAM10000 como entrenamiento de clasificación Task 3 e indica contribución mayoritaria del mismo origen a validación/test; no proporciona enlace de identidad paciente.",
+            "task3_scope": "Clasificación; IDs de lesión propios del test, sin patient_id. Sus etiquetas no se incorporan al entrenamiento/evaluación de segmentación Task 1 V8.",
+            "cross_source_patient_identity_bridge_verified": false,
+            "patient_lesion_independence_established": false,
+            "earlier_positive_group_candidates_adjudicated_by_this_crosswalk": false,
+            "manifest_frozen": false,
+            "exclusions_applied": false,
+            "exclusions_verified": false,
+            "execution_enabled": false,
+            "launch_ready": false,
+            "training_started": false,
+            "synthetic_cleanup_pending_immediately_before_real_run": true
+          }
+        },
+        "official_2019_training_metadata": {
+          "evaluation_joined_images": 2593,
+          "evaluation_non_null_lesion_id_rows": 708,
+          "evaluation_unique_lesion_ids": 693,
+          "patient_id_field_present": false,
+          "isic2019_pool_joined_rows": 10991,
+          "different_image_id_lesion_candidates": { "shared_strings": 3, "evaluation_rows": 3, "pool_rows": 3 },
+          "different_image_id_patient_candidates": 0,
+          "patient_candidate_zero_reason": "Campo ausente; el cero no demuestra independencia.",
+          "status": "candidate_not_independently_adjudicated",
+          "group_identity_confirmed": false
+        },
+        "collection_65_same_scope_candidates": {
+          "comparison": "Metadatos de colección 65 para evaluación y pool ISIC2019 dentro de la misma colección, omitiendo coincidencias exactas de ID de imagen de evaluación.",
+          "different_image_id_lesion_candidates": { "shared_strings": 3, "evaluation_rows": 3, "pool_rows": 3 },
+          "different_image_id_patient_candidates": { "shared_strings": 4, "evaluation_rows": 4, "pool_rows": 4 },
+          "group_identity_confirmed": false,
+          "adjudication_complete": false,
+          "candidate_counts_additive_with_official_2019_sidecar": false
+        },
+        "image_overlap_reconciliation": {
+          "exact_raw_id_pool_rows": 583,
+          "terminal_downsampled_derivative_pool_rows": 1334,
+          "base_image_id_overlap_pool_rows": 1917,
+          "numeric_suffix_only_matching_used": false,
+          "exclusions_applied": false
+        },
+        "cross_collection_group_namespaces_verified_comparable": false,
+        "missing_group_ids_are_unknown_not_disjoint": true,
+        "patient_lesion_independence": "unresolved",
+        "next_action": "Adjudicar los candidatos positivos de paciente/lesión del mismo ámbito mediante identificadores solo en UNABIA; conservar las 2594 imágenes para evaluación; materializar y verificar las exclusiones del lado de aprendizaje y completar pHash, grupos e historial de exposición antes de congelar los manifiestos.",
+        "step_1_gate": "open",
+        "executable": false,
+        "training_consumable": false,
+        "exclusions_applied": false,
+        "manifest_frozen": false,
+        "execution_enabled": false,
+        "launch_ready": false,
+        "training_started": false,
+        "downstream_pseudo_masks_and_serial_plans_wait_for_step_1": true,
+        "synthetic_cleanup_pending_immediately_before_real_run": true
+      },
       "candidate_content_hash_review": {
         "status": "historical_2011_candidate_review_superseded_by_base_image_id_filter_and_phash_screen",
         "numeric_alias_cases_hashed": 1334,

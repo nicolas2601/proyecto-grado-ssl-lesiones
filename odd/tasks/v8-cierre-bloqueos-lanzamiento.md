@@ -19,6 +19,60 @@ Acceso al clúster UNAB autorizado explícitamente por el usuario vía Playwrigh
 (URL: https://unabia.unab.edu.co, ver memoria `infra/unab-cluster-access`). El login
 lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
 
+## Avance vigente del paso 1 (2026-10-15 UTC)
+
+Se completó en UNABIA el cruce adicional de metadatos oficiales actuales de las
+colecciones ISIC 63/65/70/212 y cinco suplementos oficiales con el inventario
+histórico. El informe `official_group_metadata_audit.json`, en
+`/home/jovyan/work/validation_v8/f1dc0d2-20261014/official-metadata-crosswalk-20261015-final/`,
+ocupa 9.748 bytes; SHA-256
+`e95774848d3f7c15fdff4d1795ba84746aecef1136e8edd9e4db92383cd69f6`.
+Las fuentes y recibos están conservados: no repetir descargas ni el cribado pHash.
+El detalle y las fuentes primarias quedan en [docs/46](../../docs/46-pendientes-por-metodo-v8.md#cruce-adicional-de-metadatos-oficiales-isic-en-unabia-2026-10-15-utc)
+y en `data.isic2018_independent_evaluation_id_overlap_review` del recibo de preparación.
+
+La colección 63 cubre las 2.594 imágenes reservadas, con `lesion_id` para 1.098 y
+`patient_id` para 390; la colección 65 enlaza 2.593. Dentro de la colección 65,
+omitiendo coincidencias exactas del ID de imagen, aparecen 3 cadenas de lesión
+compartidas (3 filas de evaluación y 3 filas distintas del pool) y 4 cadenas de
+paciente (4 y 4). El suplemento oficial ISIC2019 Training también nomina 3 cadenas
+de lesión entre imágenes distintas; esos hallazgos no se suman como casos nuevos.
+Su identidad sigue sin confirmar. La agrupación oficial ISIC2018 Task 3 no enlaza
+esta cohorte de evaluación. Los IDs ausentes y las comparaciones entre espacios
+de identidad sin equivalencia acreditada impiden demostrar independencia completa.
+
+En la consulta dirigida separada de los 677 IDs sin coincidencia de ID base,
+los sidecars ISIC2019 Full Resolution y Secondary Training enlazan 189 imágenes
+cada uno y no aportan `patient_id` ni `lesion_id` no vacíos. ISIC2020 y el test
+oficial ISIC2019 enlazan cero. La comparación de lesiones con las 10.991 filas
+históricas del pool ISIC2019 da cero cadenas compartidas y cero imágenes
+candidatas con lesión compartida. Estos ceros no acreditan independencia ni
+ubican dentro de esos 677 los candidatos 3/4 de la cohorte completa.
+
+El cruce dirigido de [HAM10000 en Harvard Dataverse, DOI 10.7910/DVN/DBW86T](https://doi.org/10.7910/DVN/DBW86T), versión 4.0, sí se completó después en UNABIA. El 403 HTML afectaba al listado general por API; los endpoints directos funcionaron al identificar los `fileId` en la página y sus archivos con Playwright, siguiendo la captura del usuario. Solo se descargaron los dos TSV pequeños, sin ZIP de imágenes; sus tamaños y SHA-256, junto al hash del sidecar Task 1 ya disponible, están en [docs/46](../../docs/46-pendientes-por-metodo-v8.md#cruce-dirigido-ham10000--isic2018-task-3-harvard-dataverse-v40-2026-10-15-utc) y el recibo de preparación.
+
+El recibo completo, generado y parseado en el clúster, está en `/home/jovyan/work/validation_v8/f1dc0d2-20261014/official-metadata-crosswalk-20261015-final/harvard_v4_source/ham10000_crosswalk_summary.json`, junto a los TSV fuente. HAM10000: 10.015 filas/IDs únicos, 7.470 lesiones distintas y 1.956 grupos con más de una imagen; Task 3 test: 1.512 filas/IDs únicos, 1.223 lesiones y 226 grupos con más de una imagen. Ambos carecen de `patient_id`. Task 1 colección 63: 2.594 filas/IDs únicos y 390 filas con paciente, correspondientes a 350 IDs de paciente distintos.
+
+Los tres cruces por pares entre Task 1 completa, HAM10000 train y Task 3 test dieron cero IDs de imagen exactos y cero cadenas de lesión compartidas. Los subconjuntos históricos de 2.011 candidatos y de 583 IDs coincidentes con el inventario también dieron cero `image_id` frente a ambos TSV; no sustituyen el filtro vigente de ID base. Dataverse describe una procedencia compartida entre clasificación Task 3 train y validación/test; esa descripción no proporciona un puente de identidad paciente. Task 3 test tiene sus propios IDs de lesión y sus etiquetas de clasificación no se incorporan a segmentación V8.
+
+**Los ceros no acreditan independencia clínica:** falta `patient_id` en HAM10000 y no hay equivalencia de identidades entre sistemas. Tampoco adjudican los candidatos positivos del cruce anterior. El paso 1 sigue abierto, `manifest_frozen=false`, las exclusiones siguen sin aplicar/verificar y la limpieza sintética queda pendiente al final.
+
+**Tarea 1 abierta:** adjudicar los vínculos positivos del mismo ámbito usando los
+identificadores únicamente en UNABIA, conservar las 2.594 imágenes para evaluación,
+materializar/verificar las exclusiones del lado de aprendizaje y completar pHash,
+grupos y exposición antes de congelar. Sigue vigente la propuesta de excluir
+1.917 filas por ID base: 583 exactas y 1.334 derivados terminales `_downsampled`.
+El nuevo informe compara instantáneas actuales y no verifica la pertenencia al ZIP
+histórico; la comprobación previa de 2.594 IDs ZIP/API iguales queda separada.
+No se aplicaron exclusiones ni se congelaron manifiestos; `execution_enabled=false`,
+`launch_ready=false`, `training_started=false`. TriDerm/SLED y los planes seriales
+esperan el paso 1; la limpieza sintética se mantiene justo antes de la corrida real.
+La cuota agregada continúa como referencia de planificación, sin certificar cuota
+individual; no se reabre la búsqueda de herramientas ni se resuelve `cpu.max`.
+
+Los apartados siguientes conservan el historial de tareas y observaciones; las
+descargas, forwards y despliegues ya acreditados no se repiten por sus estados antiguos.
+
 ## Estado por tarea
 
 - [x] **Tarea 5 — medir cuotas reales del clúster.** Confirmado en vivo por terminal
