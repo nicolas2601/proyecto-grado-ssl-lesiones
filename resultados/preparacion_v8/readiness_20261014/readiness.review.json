@@ -137,9 +137,9 @@
       "date_utc": "2026-10-14",
       "status": "blocked_no_executable_frozen_manifest",
       "evidence_scope": "Reconciles existing UNABIA evidence and the current repository gate audit; no new training, manifest materialization or exclusion.",
-      "loader_required_predicate": "patient_lesion_groups_preserved=true",
+      "loader_required_predicate": "Historical: patient_lesion_groups_preserved=true. Retrospective: accepted hash-bound protocol/evidence, patient_independence_accredited=false, frozen learning/reserved cohorts and verified exclusions.",
       "loader_gate_source": "src/dermssl/segmentation_methods/common/data.py:25",
-      "training_additional_required_predicate": "independent_anatomical_evaluation_resolved=true",
+      "training_additional_required_predicate": "Historical: independent_anatomical_evaluation_resolved=true. Retrospective: retrospective_protocol_reviewed=true with matching config/gate/manifest protocol and patient_independence_accredited=false.",
       "training_gate_source": "src/dermssl/segmentation_methods/common/training.py:42",
       "authoritative_comparable_cross_source_group_mapping_available": false,
       "required_predicates_supported_by_current_evidence": false,
@@ -152,7 +152,33 @@
       "candidate_pool_paths_outside_nearest_queue": 2960,
       "nearest_queue_alone_covers_all_candidate_pool_paths": false,
       "base_id_exclusions_materialized": false,
-      "protocol_change_to_relax_independence_adopted": false,
+      "protocol_change_to_relax_independence_adopted": true,
+      "retrospective_protocol_adoption_20261015": {
+        "accepted_by": "user",
+        "decision": "Proceed as retrospective_public_benchmark; patient independence remains explicitly unaccredited.",
+        "patient_independence_accredited": false,
+        "original_blind_challenge_test": false,
+        "public_task1_images_reserved": 2594,
+        "expert_masks_used_for_learning": false,
+        "code_status": "Candidate implementation and contract tests written, including reviewed checkpoint protocol/training-manifest/training-gate/cohort lineage embedded in weights and sidecar, pinned by config and verified by export/evaluator; not executed locally or validated in UNABIA by this change.",
+        "runtime_protocol_materialized": false,
+        "manifest_frozen": false,
+        "execution_enabled": false,
+        "launch_ready": false,
+        "training_started": false,
+        "remaining_evidence": [
+          "Materialize and verify 1917 base-ID exclusions: 583 exact and 1334 terminal _downsampled derivatives.",
+          "Manually adjudicate 15702 perceptual candidate pairs and reliable group links; nearest review covers 1235 of 4195 candidate pool paths. No automatic perceptual-distance exclusion.",
+          "Validate decoded content and geometry of all 2594 Task 1 image/mask pairs.",
+          "Complete learning-exposure review and isolate reference masks.",
+          "Freeze protocol acceptance/review, evidence and cohort hashes, config/gate/manifest bindings.",
+          "Review candidate code and run new contract tests exclusively in UNABIA; concrete serial plans and measured budgets remain pending.",
+          "Complete synthetic cleanup immediately before first real run, retaining audit receipts."
+        ],
+        "evaluation_contract": "Separate evaluator; exact IDs and hashes; complete export; >=0.5 inclusive; image bootstrap; null undefined metrics; abstentions zero Dice/IoU in original denominator. W&B uploaded requires acknowledgement; offline remains offline-pending.",
+        "historical_practices_reused": ["Frozen protocol/config/seed/revision", "Immutable artifacts and hashes", "Original denominator and explicit abstentions", "Expert masks only in separate scoring", "Checkpoint selection independent of final expert masks"],
+        "v7_epoch_or_resource_budgets_transferred": false
+      },
       "literature_protocol_review_20261015": {
         "date_utc": "2026-10-15",
         "scope": "Contraste documental con fuentes primarias; sin entrenamiento, pruebas, materialización de manifiestos ni cambio de gates.",
@@ -185,14 +211,14 @@
         "transductive_primary_source": "https://arxiv.org/html/2107.08964v2",
         "historical_protocol_scope": "Clasificación V7 agrupó por lesion_id; Camino B separó claves de imagen por hash y declaró régimen transductivo. Esto delimita su alcance sin invalidar globalmente los resultados ni inferir consultas de máscaras no documentadas.",
         "current_cohort_framing": "Benchmark público retrospectivo previamente consultado; los 2594 ejemplos de entrenamiento Task 1 reasignados a evaluación V8 no son el test ciego original.",
-        "recommended_path_pending_adoption": [
+        "recommended_path_adopted_20261015_pending_evidence": [
           "Congelar protocolo, configuraciones y regla de selección antes de puntuar con máscaras expertas.",
           "Reservar las 2594 imágenes Task 1 y materializar/verificar exclusiones de las 1917 filas por ID base y sus derivados/casi duplicados confirmados de toda exposición de aprendizaje.",
           "Aplicar exclusiones de grupos conocidos donde sean fiables, completar adjudicación y congelar manifiestos con hashes y limitaciones explícitas.",
           "Informar evaluación retrospectiva del benchmark público e independencia por paciente sin acreditar; usar una evaluación final separada si las métricas influyen en la selección."
         ],
         "requirements_for_clinically_independent_claim": "Cohorte nueva o enlace de paciente completo y defendible, además de un test ciego adecuado sin consulta previa; procedencia externa verificada si se afirma independencia por centro.",
-        "execution_effect": "Ninguno: recomendación documental no adoptada; paso 1 abierto y predicados/flags de ejecución sin cambios. Limpieza sintética inmediatamente antes de la primera corrida real."
+        "execution_effect": "El usuario adoptó el alcance retrospectivo público con independencia por paciente no acreditada. Código candidato pendiente de revisión y validación en UNABIA; paso 1 y evidencias materiales abiertos. Flags de ejecución false. Limpieza sintética inmediatamente antes de la primera corrida real."
       },
       "historical_v7_context": {
         "date_utc": "2026-10-15",

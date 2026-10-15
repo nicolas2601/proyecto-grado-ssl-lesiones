@@ -21,6 +21,32 @@ lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
 
 ## Avance vigente del paso 1 (2026-10-15 UTC)
 
+### Decisión adoptada y entrega candidata
+
+El usuario aprobó `retrospective_public_benchmark`, manteniendo `patient_independence_accredited=false`. Sustituye las declaraciones históricas posteriores sobre reformulación pendiente de aprobación. El alcance es evaluación retrospectiva pública de 2.594 imágenes/máscaras Task 1; no acredita pacientes nuevos ni test ciego original.
+
+- [x] Registrar aceptación del alcance limitado y conservar la limitación clínica.
+- [~] Preparar contrato/evaluador candidatos: protocolo común en config/gate/manifest/export; recibos hash de exclusiones, adjudicación, máscaras, exposición y aislamiento; IDs exactos, `>=0.5`, bootstrap por imagen y fallos en denominador original.
+- [x] Revisión estática y suite nueva de contratos en copia aislada de UNABIA: 15 passed, 2 warnings. No se ejecutaron localmente; no equivale a validación científica ni a habilitación de la corrida.
+- [ ] Materializar/verificar 1.917 exclusiones por ID base; adjudicar manualmente 15.702 pares y vínculos fiables. Nearest cubre 1.235/4.195 rutas; no habilita exclusión automática.
+- [ ] Validar contenido/geometría de 2.594 pares, completar exposición y aislar máscaras; congelar protocolo/manifiestos/hashes reales.
+- [ ] Preparar pseudo-máscaras, planes seriales y presupuestos medidos. No copiar épocas/recursos V7.
+- [ ] Limpiar pruebas sintéticas justo antes de la corrida real, conservando recibos.
+
+Se recuperan semilla/config/revisión fijadas, artefactos inmutables, hashes/procedencia y selección de checkpoint independiente de máscaras finales. W&B registra entrega solo con acuse; offline queda pendiente. `execution_enabled=false`, `launch_ready=false`, `training_started=false`.
+
+El candidato incorpora la corrección de revisión sobre linaje de checkpoints: protocolo, manifiesto/gate de entrenamiento y cohorte deben coincidir en pesos, sidecar, configuración y recibo del export. Un checkpoint histórico sin linaje embebido no se admite cambiando el sidecar. Los contratos de mismatch/sustitución se validaron en la suite aislada de UNABIA.
+
+La revisión posterior exige ese recibo también al refinar, ligado a manifiesto/config/gate/export; el evaluador registra revisión del snapshot y hashes propios/de métricas. Los contratos para export histórico, tipo incorrecto de checkpoint, recibo sustituido y procedencia del código se probaron en UNABIA. La evaluación científica y los cierres materiales continúan pendientes.
+
+### Validación aislada de contratos en UNABIA (2026-10-15)
+
+Ruta: `/home/jovyan/work/validation_v8/retrospective-public-benchmark-20261015/`. Paquete ZIP r4: SHA-256 `dd87871b023897160d389e0037216bd74fe2cb85b2945c792aa502b31e78a6de`, 20 rutas seguras. Se corrigió una omisión del bundle: la primera copia carecía del módulo de métricas compartido y sus cuatro dependencias, con resultado 13 passed/2 failed. R4 incorporó esos archivos; la copia base `f1dc0d2-20261014` quedó intacta.
+
+Comando: `PYTHONPATH=src ./.validation_deps/bin/pytest -q tests/segmentation_v8/test_retrospective_protocol.py`. Resultado: **15 passed, 2 warnings en 2,07 s**. Las advertencias corresponden a opciones heredadas `timeout`/`timeout_method` desconocidas por pytest en ese entorno; la suite no acredita su activación. Se validaron contratos con fixtures, sin entrenamiento, evaluación científica, W&B, publicación de métricas ni limpieza sintética.
+
+Independencia por paciente `false/no acreditada`; manifiesto sin congelar. Siguen pendientes exclusiones, adjudicación, contenido/geometría, exposición, aislamiento, pseudo-máscaras, planes seriales y presupuestos; limpieza sintética justo antes de la primera corrida real. Esta actualización modifica solo documentación: no cambia `readiness` ni gates, que siguen `execution_enabled=false`, `launch_ready=false`, `training_started=false`.
+
 Se completó en UNABIA el cruce adicional de metadatos oficiales actuales de las
 colecciones ISIC 63/65/70/212 y cinco suplementos oficiales con el inventario
 histórico. El informe `official_group_metadata_audit.json`, en

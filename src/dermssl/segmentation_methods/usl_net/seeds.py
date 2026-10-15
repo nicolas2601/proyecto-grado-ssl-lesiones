@@ -7,14 +7,14 @@ from torch.utils.data import Dataset,DataLoader
 from ..common.bank import source_bank
 from ..common.data import read_manifest,rgb_tensor_array,digest
 from ..common.training import gate_report,seed_all,prepare_device
-from ..common.checkpoints import save_checkpoint
+from ..common.checkpoints import save_checkpoint,training_lineage
 from .model import ContrastiveFusion,USLSeedGenerator
 from .ccam import existing_ccam_loss
 
 
 def fit_ccam(manifest_path,bank_path,out,config,gate_path,*,revision,sink=None):
-    gate_report(gate_path,'usl_ccam',manifest_path)
-    document=read_manifest(manifest_path,training=True)
+    gate_report(gate_path,'usl_ccam',manifest_path,config=config,stage='ccam')
+    document=read_manifest(manifest_path,training=True,purpose='ccam')
     out=Path(out)
     if out.exists():raise ValueError('New CCAM output directory required')
     size=config.get('resolution',224);batch=config.get('batch_size');epochs=config.get('epochs')
@@ -43,4 +43,5 @@ def fit_ccam(manifest_path,bank_path,out,config,gate_path,*,revision,sink=None):
         record={'epoch':epoch+1,'mean_ccam_loss':float(np.mean(values)),'sample_count':len(document['records'])}
         with (out/'metrics.jsonl').open('a') as f:f.write(json.dumps(record)+'\n')
         if sink is not None:sink.log(record)
-    return save_checkpoint(model.ccam,out/'ccam.pt',method='usl_ccam',revision=revision,manifest_sha=digest(manifest_path))
+    return save_checkpoint(model.ccam,out/'ccam.pt',method='usl_ccam',revision=revision,manifest_sha=digest(manifest_path),
+                           lineage=training_lineage(document,manifest_path,gate_path))

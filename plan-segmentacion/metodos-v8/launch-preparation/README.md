@@ -1,29 +1,37 @@
 # Preparación de lanzamiento V8
 
-Estado: borradores deshabilitados. Estos archivos no son planes ejecutables del controlador.
+Estado: borradores deshabilitados y código retrospectivo candidato pendiente de revisión y validación en UNABIA. Estos archivos no constituyen planes ejecutables completos del controlador.
 
-## Avance independiente de ISIC2018
+## Protocolo aceptado
 
-- `resources.draft.json`: techos operativos propuestos y fórmulas de almacenamiento por imagen/etapa. Los límites de 64 GiB RAM y 20 GiB VRAM son propuestas bajo la capacidad observada, no mediciones de consumo. Timeout, conteos y almacenamiento acumulado requieren cierre.
-- `pipeline.draft.json`: dependencias por método, bancos reales, gates y recetas ya registradas. No incluye preentrenamiento SSL nuevo: se reutilizan los pesos públicos verificados.
-- Paquete de snapshot completo preparado localmente: `v8-execution-dd0fc88.patch.zip`, 97.589 bytes, SHA-256 `dda8fa0ea1f3d9e5802f2a48438e2702e2dc141fb296893cb6ae2af71e44f965`. Contiene el delta de 52 archivos desde `d55c5cd` a `dd0fc88` y los blobs esperados. La transferencia al clúster NO está confirmada.
+El usuario adoptó `retrospective_public_benchmark`; `patient_independence_accredited=false`. ISIC2018 Task 1 aporta 2.594 imágenes y 2.594 máscaras de contorno públicas, reservadas para puntuación retrospectiva. Las 12.970 máscaras de atributos corresponden a Task 2. No se afirma evaluación ciega original ni generalización a pacientes nuevos.
 
-## Copia de ejecución pendiente
+Cada configuración, gate, manifiesto y exportación retrospectivos debe contener la misma referencia `evaluation_protocol` con `path`, `sha256` y `protocol_id`. El archivo referido usa `schema_version=1`, `regime=retrospective_public_benchmark`, identidad, revisión, aceptación (`accepted_by`, `accepted_at`), independencia paciente falsa y uso de máscaras expertas/diagnósticos para aprender falso. Congela `evaluation_cohort_sha256`, `reference_cohort_sha256`, `learning_cohort_sha256s`, y `reserved_images` (solo `image_id`/`image_sha256`). Los hashes de cohorte se calculan mediante las funciones de `common/protocol.py`, sin rutas absolutas en la identidad de cohorte.
 
-Crear una copia independiente desde el checkout base limpio, aplicar el delta fijado y contrastar cada archivo con el blob de GitHub. Registrar su identidad de snapshot y revisión local. Comparar la corrección CUDA RPI de la rama con la copia protegida antes de reutilizarla. No cambiar los checkouts protegidos ni tomar como identidad upstream un commit local diferente.
+`evidence` requiere referencias `path`/`sha256` para `exclusions_verified`, `duplicates_adjudicated`, `mask_content_validated`, `exposure_review_complete` y `evaluation_masks_isolated`. Cada recibo debe declarar su `check`, `verified=true`, la misma `review_revision` y los mismos `evaluation_cohort_sha256`, `reference_cohort_sha256` y `learning_cohort_sha256s`, respaldados por la auditoría real. No crear recibos afirmativos hasta completar esos trabajos. El gate fija además `config_sha256` (JSON canónico), `retrospective_protocol_reviewed=true` y `patient_independence_accredited=false`, junto a los predicados de datos, pesos, smoke y recursos ya requeridos. El contrato histórico estricto conserva sus requisitos.
 
-La carga por el selector de archivos quedó bloqueada por protección de datos de credenciales. La revisión automática rechazó reconectar la pestaña existente; la recuperación indicada en una pestaña nueva también falló con `native credential state cannot be safely resumed`. No se intentó transferir por una vía alternativa después del bloqueo.
+Las imágenes reservadas solo entran en `predict`, mediante manifiesto `partition=evaluation` con originales sin pseudos, diagnósticos ni rutas de máscaras expertas. Fit, CCAM, preentrenamiento, generación y refinamiento rechazan esa partición. El manifiesto de referencia aislado, consumido solo por `scripts/evaluate_segmentation_v8.py`, contiene `schema_version=1`, `partition=evaluation`, referencia al mismo protocolo, `evaluation_cohort_sha256`, `count` y `records` con `image_id`, `image_sha256`, `mask_path`, `mask_sha256`. `reference_cohort_sha256` fija las tuplas ordenadas `(image_id,image_sha256,mask_sha256)`; evita dependencias circulares entre hashes del protocolo y manifiesto.
 
-## Condiciones que no deben ocultarse
+El evaluador consume `summary.json`, `cases.jsonl`, `config.json` y `gate.json` del export V8 completo; verifica identidad, conteos, SHA-256 y geometría. Usa umbral fijo inclusivo `>=0.5`, comparación en resolución congelada con referencia redimensionada por vecino más próximo y bootstrap por imagen (`bootstrap_seed`, `bootstrap_replicates`, mínimo 100, prespecificados en el protocolo). Las abstenciones reciben Dice/IoU cero con denominador original; métricas indefinidas se registran como `null` y se muestran los denominadores y réplicas indefinidas. Las referencias públicas no eligen umbral ni checkpoint. W&B respeta el modo configurado: `uploaded` requiere acuse real y offline queda `offline-pending`.
 
-1. CCAM usa gate `method=usl_ccam`, distinto del gate del estudiante USL; falta fijar su presupuesto de épocas. Su implementación actual guarda `ccam.pt` al final y no ofrece reanudación intermedia: considerar esto al aprobar tiempo e interrupciones.
-2. Los cinco ciclos USL y la fase RPI 50+30 requieren entradas, salidas, inicializaciones y revisiones propias. El refresco P2 necesita un paso concreto; no se atribuye automáticamente al refinamiento genérico.
-3. Los gates deben corresponder al SHA-256 del manifiesto real y a la revisión que se ejecutará. Las pruebas previas se reutilizan con su alcance original; no se atribuyen a código diferente sin evidencia.
-4. La aceptación del candidato HF SimCLR y sus límites de equivalencia deben declararse. No afirmar paridad con Google TensorFlow.
-5. W&B online usa el proyecto `dermssl-segmentacion`; comprobar conexión al lanzar. La entrega de alertas sigue sin confirmarse.
+Los checkpoints retrospectivos fijan `protocol_sha256`, `training_manifest_sha256`, `training_gate_sha256` y `training_cohort_sha256` tanto dentro del archivo de pesos como en su sidecar. La configuración revisada fija ese bloque como `checkpoint_lineage`, además de `checkpoint_sha256` y `checkpoint_provenance_sha256`. Inicializaciones iterativas usan el prefijo `initial_checkpoint`; CCAM usa `ccam_checkpoint` para esos tres campos. El cambio de sidecar no puede atribuir linaje a un checkpoint histórico sin esos datos embebidos. El export neural conserva `checkpoint.lineage.json` y su SHA-256; el evaluador coteja el recibo, la configuración y el checkpoint/sidecar originales antes de puntuar. SLED declara explícitamente ejecución por imagen sin checkpoint. Ningún checkpoint histórico se considera compatible con el régimen retrospectivo por cambiar únicamente rutas o gates.
 
-## Dependencias de ISIC2018
+El refinamiento retrospectivo exige la ruta del manifiesto original y verifica su igualdad con el documento, además de configuración/gate/summary/ledger, tipo de checkpoint y el mismo recibo de linaje comprobado por el evaluador. El hash del ledger por sí solo no habilita una predicción histórica. El evaluador exige `--code-revision` con la revisión completa del snapshot desplegado y registra `code_revision_source=explicit_snapshot_revision`, `evaluator_sha256`, `metrics_sha256`, inventario de fuentes y `code_sha256` agregado; comprueba que los bytes cargados no cambien durante la evaluación. La revisión declarada debe contrastarse con el recibo del ZIP, sin presentarla como revisión Git verificada automáticamente.
 
-Al finalizar la descarga existente: revisar el recibo/checksums, el ZIP de imágenes y las 2.594 máscaras esperadas, establecer la reserva anatómica y excluir solapamientos paciente/lesión e imagen del entrenamiento. Solo entonces fijar manifiestos, hashes y gates. No incorporar máscaras expertas a objetivos de entrenamiento.
+## Estado del despliegue y transferencia
 
-No se ejecutaron modelos, pruebas ni entrenamientos en esta preparación.
+La copia `~/work/validation_v8/f1dc0d2-20261014/` ya contiene el lanzador y parches SimCLR SAME/RPI contrastados por hash en la auditoría anterior. Se conservan sus recibos; no repetir esa validación ni confundirla con la nueva implementación retrospectiva. La nueva implementación aún no se declara desplegada ni validada.
+
+El código se prepara localmente y se entrega mediante ZIP con rutas relativas, inventario y SHA-256. GitHub conserva código y documentación; no se usa como canal de transferencia al clúster. La documentación de independencia del commit `006d7c9` se entregó previamente por `v8-clinical-independence-literature-20261015-r1.zip`. Las antiguas incidencias del selector son historia y no describen el estado actual de esa transferencia. Entrenamientos, evaluaciones y pruebas se realizan en UNABIA.
+
+## Pendientes de ejecución
+
+1. Materializar/verificar 1.917 exclusiones por ID base: 583 exactas y 1.334 `_downsampled`. Conservar los 2.594 originales reservados.
+2. Adjudicar manualmente 15.702 pares pHash y vínculos de grupo fiables. Nearest cubre solo 1.235/4.195 rutas; no excluir automáticamente por distancia.
+3. Validar contenido/geometría de 2.594 pares, revisar exposición y aislar referencias. Congelar protocolo, cohortes, hashes y manifiestos reales.
+4. Revisar código candidato y ejecutar pruebas nuevas solo en UNABIA, con resultados separados de los científicos.
+5. Fijar pseudo-máscaras SLED para TriDerm y planes por ciclo USL/fase RPI con inicializaciones propias. CCAM tiene gate `usl_ccam`, presupuesto pendiente y checkpoint al final; no ofrece reanudación intermedia. El refresco P2 RPI debe figurar como paso propio.
+6. Medir/revisar tiempo, RSS, VRAM y disco por etapa/acumulados. Cuotas agregadas son referencia de planificación; cuota individual no acreditada y sin búsqueda nueva salvo herramienta nueva. Límites de borradores no son mediciones; 20 GiB VRAM más 4 GiB de reserva supera la memoria libre observada anteriormente.
+7. Justo antes de la primera corrida real, completar limpieza sintética con recibos. La aceptación de SimCLR HF conserva la falta de equivalencia acreditada con Google TensorFlow. Confirmar W&B y su modo según el perfil vigente.
+
+`resources.draft.json`, `pipeline.draft.json` y configs continúan deshabilitados. No se trasladan épocas/presupuestos V7 sin evidencia. El controlador genérico no recibe una etapa `evaluate` en esta entrega: el evaluador se invoca separadamente después del export final congelado. `execution_enabled=false`, `launch_ready=false`, `training_started=false`.

@@ -4,6 +4,7 @@ from pathlib import Path
 import hashlib,json
 import numpy as np
 from PIL import Image
+from .protocol import validate_binding, cohort_digest
 
 
 FORBIDDEN={'diagnosis','diagnostic_label','class_label','expert_mask','ground_truth','phototype','ita'}
@@ -15,14 +16,27 @@ def digest(path):
     with Path(path).open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
 
 
-def read_manifest(path, *, need_pseudos=False, sources=1, training=False, expected_pseudo_method=None):
+def read_manifest(path, *, need_pseudos=False, sources=1, training=False, expected_pseudo_method=None, purpose=None):
     document=json.loads(Path(path).read_text())
-    if not isinstance(document,dict) or set(document)-{'schema_version','partition','count','eligibility','records'} or document.get('schema_version')!=1:
+    return validate_manifest_document(document,need_pseudos=need_pseudos,sources=sources,
+                                      training=training,expected_pseudo_method=expected_pseudo_method,purpose=purpose)
+
+
+def validate_manifest_document(document, *, need_pseudos=False, sources=1, training=False, expected_pseudo_method=None, purpose=None):
+    if not isinstance(document,dict) or set(document)-{'schema_version','partition','count','eligibility','records','evaluation_protocol'} or document.get('schema_version')!=1:
         raise ValueError('Versioned eligible-pool manifest required; no directory scan or implicit resplit')
-    if document.get('partition') not in {'train','development'} or (training and document['partition']!='train'):
+    protocol=validate_binding(document)
+    reserved=document.get('partition')=='evaluation'
+    if reserved and (protocol is None or purpose!='predict' or training or need_pseudos):
+        raise ValueError('Reserved evaluation images are allowed only for final prediction')
+    if (not reserved and document.get('partition') not in {'train','development'}) or (training and document['partition']!='train'):
         raise ValueError('Only frozen training/development inputs allowed; target_test/evaluation excluded')
     proof=document.get('eligibility',{})
-    if proof.get('verified') is not True or proof.get('excludes_target_test') is not True or proof.get('patient_lesion_groups_preserved') is not True or proof.get('deduplication_preserved') is not True:
+    groups_ok=proof.get('patient_lesion_groups_preserved') is True
+    if protocol is not None:
+        groups_ok=(proof.get('patient_independence_accredited') is False
+                   and proof.get('patient_lesion_groups_preserved') is False)
+    if proof.get('verified') is not True or proof.get('excludes_target_test') is not True or not groups_ok or proof.get('deduplication_preserved') is not True:
         raise ValueError('Explicit verified eligibility, exclusions and preserved groups required')
     for key in ('source_manifest_sha256','exclusions_sha256','verification_revision'):
         if not isinstance(proof.get(key),str) or not proof[key]: raise ValueError('Eligibility provenance incomplete')
@@ -30,6 +44,8 @@ def read_manifest(path, *, need_pseudos=False, sources=1, training=False, expect
     if not rows or document.get('count')!=len(rows) or len({r.get('image_id') for r in rows})!=len(rows):
         raise ValueError('Nonempty fixed count and unique original IDs required')
     for r in rows:
+        if reserved and set(r)-{'image_id','dataset','image_path','image_sha256'}:
+            raise ValueError('Reserved prediction manifest permits original images only; no expert masks or pseudos')
         if set(r)-ALLOWED or not {'image_id','dataset','image_path','image_sha256'}<=set(r):
             raise ValueError('Only original-image and pseudo provenance fields allowed')
         if not isinstance(r['image_id'],str) or not r['image_id']:raise ValueError('Nonempty string image ID required')
@@ -47,6 +63,15 @@ def read_manifest(path, *, need_pseudos=False, sources=1, training=False, expect
                 if origin.get('uses_expert_masks') is not False or origin.get('uses_diagnoses') is not False:
                     raise ValueError('Expert/diagnostic supervision prohibited in W3')
                 if not origin.get('producer_revision') or not origin.get('method'):raise ValueError('Pseudo producer identity missing')
+    if reserved and cohort_digest(rows)!=protocol['evaluation_cohort_sha256']:
+        raise ValueError('Evaluation cohort differs from the frozen protocol')
+    if protocol is not None and not reserved:
+        if cohort_digest(rows) not in protocol['learning_cohort_sha256s']:
+            raise ValueError('Learning cohort is not frozen in the reviewed protocol')
+        reserved_ids={r['image_id'] for r in protocol['reserved_images']}
+        reserved_hashes={r['image_sha256'] for r in protocol['reserved_images']}
+        if any(r['image_id'] in reserved_ids or r['image_sha256'] in reserved_hashes for r in rows):
+            raise ValueError('Reserved image ID or identical content appears in learning')
     return document
 
 

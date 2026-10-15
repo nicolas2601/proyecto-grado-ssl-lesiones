@@ -7,24 +7,26 @@ import torch
 from .data import read_manifest,rgb_tensor_array,valid_array,digest
 from .training import gate_report,model_for,prepare_device
 from .bank import source_bank
-from .checkpoints import load_reviewed
+from .checkpoints import load_reviewed,checkpoint_requirements
+from .protocol import protocol_metadata, object_digest, cohort_digest
 from dermssl.w3_components import DegenerateCase,USLTextPolicy,usl_text_pseudolabel
 
 
 def _usl_generator(config):
     from ..usl_net.model import USLSeedGenerator,ContrastiveFusion
     model=USLSeedGenerator(ContrastiveFusion(source_bank(config['source_bank'],('simclr','mocov1','mocov2'))))
-    load_reviewed(model.ccam,config['ccam_checkpoint'],config['ccam_provenance'],expected_method='usl_ccam')
+    load_reviewed(model.ccam,config['ccam_checkpoint'],config['ccam_provenance'],expected_method='usl_ccam',
+                  **checkpoint_requirements(config,'ccam_checkpoint'))
     return model
 
 
 def export(method,stage,manifest_path,out,config,gate_path,*,revision,sink=None):
     if stage not in {'generate','predict'}:raise ValueError('Seed generation or final prediction stage required')
-    gate_report(gate_path,method,manifest_path,training=False)
-    document=read_manifest(manifest_path)
+    gate_report(gate_path,method,manifest_path,training=False,config=config,stage=stage)
+    document=read_manifest(manifest_path,purpose=stage)
     out=Path(out)
     if out.exists():raise ValueError('Never overwrite another run')
-    size=config.get('resolution',224);device=prepare_device(config);model=None
+    size=config.get('resolution',224);device=prepare_device(config);model=None;checkpoint_receipt=None
     if method=='sled':
         from ..sled.pipeline import SLEDConfig,segment
         sled_config=SLEDConfig(**config.get('sled',{}))
@@ -36,9 +38,18 @@ def export(method,stage,manifest_path,out,config,gate_path,*,revision,sink=None)
     elif stage=='generate':raise ValueError('TriDermNet consumes reviewed pseudo labels; it is not an independent seed generator')
     else:
         model=model_for(method)
-        load_reviewed(model,config['checkpoint'],config['checkpoint_provenance'],expected_method=method)
+        checkpoint_origin=load_reviewed(model,config['checkpoint'],config['checkpoint_provenance'],expected_method=method,
+                                       **checkpoint_requirements(config))
+        checkpoint_receipt={'method':method,'checkpoint_sha256':digest(config['checkpoint']),
+                            'provenance_sha256':digest(config['checkpoint_provenance']),
+                            'lineage':checkpoint_origin.get('lineage'),
+                            **protocol_metadata(document)}
     if model is not None:model.to(device).eval()
     out.mkdir(parents=True);records=[];failures=0
+    (out/'config.json').write_text(json.dumps(config,indent=2,allow_nan=False)+'\n')
+    (out/'gate.json').write_bytes(Path(gate_path).read_bytes())
+    if checkpoint_receipt is not None:
+        (out/'checkpoint.lineage.json').write_text(json.dumps(checkpoint_receipt,indent=2,allow_nan=False)+'\n')
     origin={'method':method,'producer_revision':revision,'input_manifest_sha256':digest(manifest_path),
             'uses_expert_masks':False,'uses_diagnoses':False}
     for index,row in enumerate(document['records']):
@@ -73,17 +84,37 @@ def export(method,stage,manifest_path,out,config,gate_path,*,revision,sink=None)
             np.save(case/'valid.npy',valid[0]);valid_path=case/'valid.npy'
             entry.update(pseudo_paths=paths,pseudo_sha256s=hashes,pseudo_provenance=[origin.copy() for _ in paths],
                          valid_path=str(valid_path.resolve()),valid_sha256=digest(valid_path))
-            record={'index':index,'status':'ok','elapsed_seconds':time.monotonic()-started,
+            record={'index':index,'image_id':row['image_id'],'image_sha256':row['image_sha256'],
+                    'status':'ok','elapsed_seconds':time.monotonic()-started,
                     'foreground_fraction':float((maps>=.65).mean()),'audit':audit}
+            if stage=='predict':
+                # The final map includes all pixels. Invalid pixels are explicit
+                # abstentions and never silently disappear from the denominator.
+                probability_path=case/'probability.npy'
+                if not probability_path.exists():
+                    np.save(probability_path,maps[0])
+                record.update(prediction_path=str(probability_path.resolve()),
+                              prediction_sha256=digest(probability_path),
+                              valid_path=str(valid_path.resolve()),valid_sha256=digest(valid_path))
             records.append(entry)
         except DegenerateCase as error:
-            failures+=1;record={'index':index,'status':'abstained','reason':str(error),'elapsed_seconds':time.monotonic()-started}
+            failures+=1;record={'index':index,'image_id':row['image_id'],'image_sha256':row['image_sha256'],
+                               'status':'abstained','reason':str(error),'elapsed_seconds':time.monotonic()-started}
         # Geometry/hash/runtime failures stop the run; do not hide them as abstention.
         with (out/'cases.jsonl').open('a') as stream:stream.write(json.dumps(record)+'\n')
         if sink is not None:sink.log({'processed':index+1,'abstentions':failures,'case_seconds':record['elapsed_seconds']})
     # Keep original denominator in evidence. Refuse to call a partial list the full pool.
     report={'method':method,'stage':stage,'input_count':len(document['records']),'successful_count':len(records),'abstentions':failures,
-            'input_manifest_sha256':digest(manifest_path),'producer_revision':revision}
+            'input_manifest_sha256':digest(manifest_path),'producer_revision':revision,
+            'input_cohort_sha256':cohort_digest(document['records']),
+            'config_sha256':object_digest(config),'gate_sha256':digest(gate_path),
+            'cases_sha256':digest(out/'cases.jsonl'),'export_complete':True,
+            'prediction_threshold':.5,'threshold_inclusive':True,
+            **protocol_metadata(document)}
+    if stage=='predict':
+        report['checkpoint_kind']='image_wise_no_checkpoint' if method=='sled' else 'trained'
+        if checkpoint_receipt is not None:
+            report['checkpoint_lineage_sha256']=digest(out/'checkpoint.lineage.json')
     (out/'summary.json').write_text(json.dumps(report,indent=2)+'\n')
     document['records']=records;document['count']=len(records)
     (out/'successful_pseudos_manifest.json').write_text(json.dumps(document,indent=2)+'\n')

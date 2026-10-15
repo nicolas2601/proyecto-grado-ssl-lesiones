@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import Dataset,DataLoader
 from .data import read_manifest,rgb_tensor_array,digest
 from .training import gate_report,seed_all,prepare_device
-from .checkpoints import save_checkpoint
+from .checkpoints import save_checkpoint,training_lineage
 from .ssl import ContrastiveEncoder,MomentumContrast,MoCoV3,simclr_loss
 from .dino import DinoDistillation
 
@@ -20,8 +20,8 @@ def build_pretrainer(variant):
 
 
 def local_pretrain(variant,manifest_path,out,config,gate_path,*,revision,sink=None):
-    gate_report(gate_path,'ssl_'+variant,manifest_path)
-    document=read_manifest(manifest_path,training=True)
+    gate_report(gate_path,'ssl_'+variant,manifest_path,config=config,stage='pretrain')
+    document=read_manifest(manifest_path,training=True,purpose='pretrain')
     size=config.get('resolution',224);seed=config.get('seed',42);epochs=config.get('epochs');batch=config.get('batch_size')
     if type(epochs)is not int or epochs<1 or type(batch)is not int or batch<2:raise ValueError('Explicit positive SSL budget and batch >=2 required')
     if len(document['records'])<2 or len(document['records'])%batch==1:
@@ -64,4 +64,5 @@ def local_pretrain(variant,manifest_path,out,config,gate_path,*,revision,sink=No
         with (out/'metrics.jsonl').open('a') as f:f.write(json.dumps(record)+'\n')
     # Export the feature encoder, not a projector or momentum queue state.
     backbone=model.backbone if variant in {'simclr','dino'} else model.online.backbone
-    return save_checkpoint(backbone,out/'encoder.pt',method='ssl_'+variant,revision=revision,manifest_sha=digest(manifest_path),extra={'epochs':epochs})
+    return save_checkpoint(backbone,out/'encoder.pt',method='ssl_'+variant,revision=revision,manifest_sha=digest(manifest_path),extra={'epochs':epochs},
+                           lineage=training_lineage(document,manifest_path,gate_path))

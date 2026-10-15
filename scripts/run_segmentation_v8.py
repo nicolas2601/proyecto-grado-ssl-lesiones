@@ -109,6 +109,17 @@ def main():
     if args.stage=='refine' and not args.predictions:
         raise ValueError('--predictions must point to a completed predict output directory')
     if args.stage!='synthetic' and (not args.manifest or not args.gate):raise ValueError('Frozen manifest and gate evidence required')
+    if args.stage!='synthetic':
+        from dermssl.segmentation_methods.common.training import gate_report
+        from dermssl.segmentation_methods.common.data import read_manifest
+        # Validate before the budget child or tracking creates run artifacts.
+        gate_method=('usl_ccam' if args.stage=='ccam' else
+                     'ssl_'+args.ssl_origin if args.stage=='pretrain' and args.ssl_origin else args.method)
+        gate_report(args.gate,gate_method,
+                    args.manifest,training=args.stage in {'fit','ccam','pretrain'},
+                    config=config,stage=args.stage)
+        read_manifest(args.manifest,purpose=args.stage,
+                      training=args.stage in {'fit','ccam','pretrain','refine'})
     storage_precheck(args,config)
     if not args._worker:return budget_child(args,config)
     from nucleo.wandb_logging import WandbSink,run_id
@@ -134,9 +145,12 @@ def main():
     for path in sorted((ROOT/'tests/segmentation_v8').glob('*.py')):source_hashes[str(path.relative_to(ROOT))]=sha256(path.read_bytes()).hexdigest()
     for dependency in ('src/dermssl/w3_components.py','src/dermssl/w3_usl_models.py','plan-segmentacion/camino-b-cnn/pseudo-mascaras/ccam_engine.py'):
         source_hashes[dependency]=sha256((ROOT/dependency).read_bytes()).hexdigest()
+    from dermssl.segmentation_methods.common.protocol import protocol_metadata
+    protocol_info=protocol_metadata(config) if args.stage!='synthetic' else {}
     sink=WandbSink(args.wandb_project,name,group='w3-four-methods-v8',tags=[args.method,args.stage],
                    config={'method':args.method,'stage':args.stage,'seed':config.get('seed',42),
-                           'resolution':config.get('resolution',224),'scientific_efficacy_evaluation':False,'source_hashes':source_hashes})
+                           'resolution':config.get('resolution',224),'scientific_efficacy_evaluation':False,
+                           'source_hashes':source_hashes,**protocol_info})
     if not sink.enabled:raise RuntimeError('Tracking unavailable; no method execution started')
     started=time.monotonic();status='failed'
     try:
@@ -164,14 +178,14 @@ def main():
             from dermssl.segmentation_methods.common.data import read_manifest,digest
             from dermssl.segmentation_methods.common.training import gate_report
             from dermssl.segmentation_methods.common.refinement import refined_manifest
-            gate_report(args.gate,args.method,args.manifest,training=False)
+            gate_report(args.gate,args.method,args.manifest,training=False,config=config,stage='refine')
             prediction_summary=json.loads((args.predictions/'summary.json').read_text())
             if prediction_summary.get('input_manifest_sha256')!=digest(args.manifest):
                 raise ValueError('Prediction output belongs to a different input manifest')
             sources=4 if args.method=='rpi_net' else 1
             document=read_manifest(args.manifest,need_pseudos=True,sources=sources,training=True)
             refined=refined_manifest(document,args.predictions,args.out,args.method,revision,
-                                     usl_policy=config.get('usl_policy'))
+                                     usl_policy=config.get('usl_policy'),manifest_path=args.manifest)
             report={'method':args.method,'stage':'refine','count':document['count'],
                     'input_manifest_sha256':digest(args.manifest),'output_manifest_sha256':digest(refined),
                     'producer_revision':revision,'prediction_manifest_sha256':prediction_summary['input_manifest_sha256']}
