@@ -28,6 +28,14 @@ La clasificación V7 sí documentó particiones y controles por `lesion_id` en H
 
 El usuario solicita continuar la preparación manteniendo este bloqueo documentado; **eso no aprueba relajar el gate ejecutable V8**. Solo mediante una revisión explícita del protocolo podría describirse una futura cohorte sin IDs de imagen compartidos como benchmark repetido y previamente consultado, sin atribuirle independencia paciente/lesión. Esa revisión no se ha adoptado. Siguen sin resolver `patient_lesion_groups_preserved` y la evaluación independiente; los tres flags de lanzamiento permanecen en `false`, el paso 2 TriDerm/SLED continúa detrás del paso 1 y la limpieza sintética sigue al final.
 
+### Registro de propuestas y candidatos validado en UNABIA (2026-10-15 UTC)
+
+El generador [`scripts/build_v8_exclusion_review.py`](../scripts/build_v8_exclusion_review.py) produjo en UNABIA `/home/jovyan/work/validation_v8/f1dc0d2-20261014/isic2018_exclusion_review_register_20261015.json`: 9.271.726 bytes, SHA-256 `4b967833559bba375c59b57686b19278301bd6767926fdd3fac215fddd11fecf`. Conserva procedencia SHA-256 de las tres entradas consumidas y pasó `consistency.all_checks_passed=true`: 2.594 imágenes de evaluación, 40.896 registros del pool, 1.917 solapamientos de ID base (583 stems exactos y 1.334 derivados terminales `_downsampled`), 15.702 pares pHash, 544 IDs de evaluación candidatos y 4.195 rutas únicas del pool candidatas.
+
+El primer intento abortó sin generar salida: en el par 2.235, pHash guardaba `train_id=ISIC_0014591` y el inventario `image_id=ISIC_0014591_downsampled`. La corrección compara el ID pHash con el ID base del inventario, preservando IDs y rutas originales. La segunda ejecución pasó y la revisión fresca del script fue PASS. El ZIP v2 se transfirió por UI a `/home/jovyan/work/validation_v8/f1dc0d2-20261014/v8-exclusion-review-register-20261015-v2.zip`, SHA-256 `87d32a480c6f2b8a9a50b768f070f53ca9545cae1cd3d26fca39d7852bcd1e42`.
+
+**El paso 1 sigue ABIERTO.** El registro es auditable, `executable=false`, `training_consumable=false` y `manifest_frozen=false`. Las 1.917 exclusiones conservan estado `proposed_required_not_applied`; los pares pHash permanecen `review_pending`, sin duplicados confirmados ni eliminaciones. La independencia paciente/lesión sigue sin resolver y `execution_enabled=false`, `launch_ready=false`, `training_started=false`. No se recalculó pHash ni se modificaron W&B o las pruebas sintéticas; TriDerm/SLED y los planes seriales siguen esperando el cierre del paso 1.
+
 ## Historial de preparación
 
 Fecha: 2026-10-13. Rama: `experiment/modular-audit-v8`. Estado: preparación. Este documento no habilita ni inicia entrenamiento, auditorías o pruebas.
