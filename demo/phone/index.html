@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f0e8">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#172422">
+    <meta name="description" content="Herramienta auxiliar de investigación para explorar clasificación experimental de imágenes de piel.">
+    <meta name="api-origin" content="https://derm.nicolasmoreno.site">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>DermSSL · Explorador móvil</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <header class="topbar">
+      <a class="wordmark" href="#main"><span class="mark" aria-hidden="true">d.</span><span>DERMSSL <small>CAMPO / 01</small></span></a>
+      <span class="connection" id="connection" role="status"><i aria-hidden="true"></i> Comprobando modelos</span>
+    </header>
+    <main id="main" class="layout">
+      <section class="intro" aria-labelledby="title">
+        <p class="eyebrow">LABORATORIO PORTÁTIL <span>·</span> PROTOTIPO DE INVESTIGACIÓN</p>
+        <h1 id="title">Una imagen.<br><em>Siete hipótesis.</em></h1>
+        <p class="lede">Explora una clasificación experimental de lesiones cutáneas desde tu teléfono.</p>
+        <p class="warning"><span aria-hidden="true">!</span><span><strong>Herramienta auxiliar.</strong> No ofrece diagnóstico ni reemplaza la valoración de un profesional de salud.</span></p>
+      </section>
+      <section class="workspace" aria-label="Análisis de imagen">
+        <div class="capture-card">
+          <div class="section-head"><div><p class="eyebrow">01 / IMAGEN</p><h2>Elige una fotografía</h2></div><span class="step-index">CAPTURA</span></div>
+          <div class="preview" id="preview">
+            <video id="video" playsinline muted aria-label="Vista previa de la cámara" hidden></video>
+            <img id="preview-image" alt="Vista previa de la imagen seleccionada" hidden>
+            <div class="empty-state" id="empty-state"><span class="frame-icon" aria-hidden="true"><i></i><b></b></span><strong>Tu imagen aparece aquí</strong><span>JPEG · PNG · WebP</span></div>
+            <span class="preview-label" id="preview-label" hidden>VISTA PREVIA</span>
+          </div>
+          <div class="capture-actions">
+            <button class="button button-dark" id="camera-button" type="button"><span aria-hidden="true">◉</span> Abrir cámara</button>
+            <button class="button button-light upload-button" id="upload-button" type="button"><span aria-hidden="true">↑</span> Subir foto</button>
+            <input id="file-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+          </div>
+          <p class="hint" id="image-hint">La imagen se envía al servidor para procesarse; no se guarda en esta app.</p>
+          <div class="camera-actions" id="camera-actions" hidden><button class="button button-capture" id="capture-button" type="button">Capturar imagen</button><button class="text-button" id="cancel-camera" type="button">Cerrar cámara</button></div>
+        </div>
+        <div class="settings-card">
+          <div class="section-head"><div><p class="eyebrow">02 / CONFIGURACIÓN</p><h2>Versión del experimento</h2></div><span class="step-index">MODELO</span></div>
+          <fieldset class="model-picker"><legend class="sr-only">Selecciona el modelo</legend>
+            <label class="model-option"><input type="radio" name="model" value="A71"><span class="radio-mark" aria-hidden="true"></span><span class="model-name">A71</span><span class="model-detail">Exploración PAD</span><span class="availability" id="status-A71">Verificando</span></label>
+            <label class="model-option"><input type="radio" name="model" value="B71" checked><span class="radio-mark" aria-hidden="true"></span><span class="model-name">B71</span><span class="model-detail">Propuesto con tono</span><span class="availability" id="status-B71">Verificando</span></label>
+          </fieldset>
+          <div class="method-note model-identity-note" id="A71-identity" hidden></div>
+          <div class="method-note model-identity-note" id="B71-identity" hidden></div>
+          <div class="method-note"><span class="note-mark" aria-hidden="true">i</span><p>Ambas opciones: CLS estándar, sin configuración registrada. Segmentación: <strong>pendiente</strong>.</p></div>
+          <div class="method-note pad-note"><span class="note-mark" aria-hidden="true">↗</span><p>Las estadísticas PAD son exploratorias de desarrollo (A71 vs D0); no describen B71. Procedencia: <code>pad_dev_H1_paired.json</code>, SHA-256 <code>702d086e202cb9045cc159534280efc7d9c70597406453fd6ca68ec9d066dd8e</code>.</p></div>
+          <div class="method-note f4-note"><span class="note-mark" aria-hidden="true">!</span><p>Segmentación F4: pendiente de validar pesos, sonda y golden. F4 nombra una variante de segmentación, no un fototipo. El reporte histórico del laboratorio no representa métricas actuales de A71 o B71.</p></div>
+          <button class="button button-accent" id="analyze-button" type="button" disabled><span>Analizar imagen</span><span aria-hidden="true">↗</span></button>
+          <button class="button button-light live-button" id="live-button" type="button" disabled aria-pressed="false"><span class="live-indicator" aria-hidden="true"></span><span id="live-label">Iniciar captura en vivo</span></button>
+          <p class="disabled-note" id="disabled-note">Selecciona un modelo disponible y una imagen para continuar.</p>
+          <p class="disabled-note live-note">Captura secuencial, no streaming; una petición a la vez. La cuota del servidor es compartida por la demo.</p>
+        </div>
+      </section>
+      <section class="result-card" id="result" aria-labelledby="result-title" hidden>
+        <div class="result-heading"><div><p class="eyebrow">03 / RESULTADO EXPERIMENTAL</p><h2 id="result-title">Distribución de clases</h2></div><span class="result-model" id="result-model"></span></div>
+        <p class="cycle-note" id="cycle-note" hidden></p>
+        <p class="result-caveat">Puntuaciones softmax del clasificador; no representan probabilidad clínica ni nivel de certeza diagnóstica.</p>
+        <div class="prediction-highlight"><span class="prediction-symbol" aria-hidden="true">↗</span><div><span class="eyebrow">CLASE CON MAYOR PUNTUACIÓN</span><strong id="prediction-name"></strong></div><span class="prediction-score" id="prediction-score"></span></div>
+        <div class="probability-list" id="probability-list" aria-label="Siete puntuaciones del clasificador"></div>
+        <div class="identity-line"><span>IDENTIDAD DEL MODELO</span><span id="model-identity">—</span></div>
+      </section>
+      <section class="result-card evidence-card" aria-labelledby="pad-title">
+        <div class="result-heading"><div><p class="eyebrow">EVIDENCIA / PAD · DESARROLLO EXPLORATORIO</p><h2 id="pad-title">Una diferencia, no una garantía</h2></div></div>
+        <p class="result-caveat">A71 frente a DINOv2 público (D0), con sonda HAM: 568 imágenes de 353 pacientes en la tarea condicional BCC/MEL/NEV. Melanoma: 27 imágenes de 18 pacientes. No es un test independiente ni una medición de B71.</p>
+        <svg class="interval-chart" viewBox="0 0 420 180" role="img" aria-labelledby="interval-title interval-desc">
+          <title id="interval-title">Diferencias A71 menos D0 con intervalos del 95 % por paciente</title>
+          <desc id="interval-desc">Macro-F1 −0,1002, intervalo −0,1456 a −0,0549. MCC −0,1072, intervalo −0,1720 a −0,0422. ECE +0,0998, intervalo +0,0529 a +0,1547; menor ECE es mejor. Las tres métricas favorecen D0 en esta tarea.</desc>
+          <path d="M200 18V144" stroke="#899086" stroke-dasharray="4 4"/>
+          <g fill="#172422" font-size="14"><text x="0" y="45">Macro-F1</text><text x="0" y="85">MCC</text><text x="0" y="125">ECE ↓</text></g>
+          <g stroke="#a13b32" stroke-width="4" stroke-linecap="round"><path d="M112.6 40H167"/><path d="M96.8 80H174.7"/><path d="M231.7 120H292.8"/></g>
+          <g fill="#a13b32"><circle cx="139.9" cy="40" r="6"/><circle cx="135.7" cy="80" r="6"/><circle cx="259.9" cy="120" r="6"/></g>
+          <g fill="#58635d" font-size="13"><text x="80" y="165">−0,20</text><text x="196" y="165">0</text><text x="307" y="165">+0,20</text><text x="325" y="45">−0,1002</text><text x="325" y="85">−0,1072</text><text x="325" y="125">+0,0998</text></g>
+        </svg>
+        <p class="result-caveat">IC95 % pareado: 1000 remuestras por paciente. Reporte del operador contrastado localmente por SHA-256. Estas diferencias favorecen D0 en macro-F1, MCC y calibración; A71 detectó más imágenes MEL (13/27 frente a 3/27). No prueban que toda adaptación SSL empeore.</p>
+      </section>
+      <section class="research-links" aria-label="Documentación de investigación">
+        <p class="eyebrow">CONTEXTO DEL EXPERIMENTO</p>
+        <a href="/architecture/phone-research.html"><span>Investigación móvil</span><span aria-hidden="true">↗</span></a>
+        <a href="/architecture/experiment-gates.html"><span>Puertas del experimento</span><span aria-hidden="true">↗</span></a>
+        <a href="/architecture/split-firewall.html"><span>Separación de datos</span><span aria-hidden="true">↗</span></a>
+        <a href="https://derm.nicolasmoreno.site/docs"><span>API de inferencia (Swagger)</span><span aria-hidden="true">↗</span></a>
+        <a href="https://derm.nicolasmoreno.site/api/report"><span>Reporte de investigación (histórico)</span><span aria-hidden="true">↗</span></a>
+      </section>
+      <footer class="footnote"><span>DERMSSL <span aria-hidden="true">/</span> PROTOTIPO DE INVESTIGACIÓN</span><span>Sin diagnóstico. Sin inferencia sin conexión.</span></footer>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
