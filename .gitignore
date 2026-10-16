@@ -20,6 +20,8 @@ data/*
 
 # --- Secretos (NUNCA commitear) ---
 .env
+.env.*
+!.env.example
 *.key
 kaggle.json
 *credentials*
@@ -58,3 +60,5 @@ results/**/mlruns/
 # --- bundles locales de transferencia; la fuente canónica permanece en Git ---
 /pretrain-v6-bundle.zip
 /fix-kaggle-fst-manifest-glob.zip
+/.claude/
+/demo/models/*.npz
