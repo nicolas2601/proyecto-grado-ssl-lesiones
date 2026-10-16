@@ -11,11 +11,11 @@ clasificador. Que gano, que perdio, y como mejorarlo.
 | Resultado | Tabla (generada) | Datos | Estado |
 |---|---|---|---|
 | v7: las tres semillas combinadas (lectura principal) | [clasificacion/v7/SEMILLAS.md](clasificacion/v7/SEMILLAS.md) | los tres `final_eval.json` | Vigente |
-| v7: evaluación única A\*, B\* y DINOv2 público sobre val, semilla 42 | [clasificacion/v7/README.md](clasificacion/v7/README.md) | `clasificacion/v7/final_eval.json` | Vigente |
+| v7: evaluación única Modelo de control, Proposed sin segmentación y DINOv2 público sobre val, semilla 42 | [clasificacion/v7/README.md](clasificacion/v7/README.md) | `clasificacion/v7/final_eval.json` | Vigente |
 | v7: réplica con semilla 43 (registrada en docs/28 §4.1) | [clasificacion/v7/s43/README.md](clasificacion/v7/s43/README.md) | `clasificacion/v7/s43/final_eval.json` | Vigente |
 | v7: réplica con semilla 44 (registrada en docs/29 §2.5), con su procedencia (control s42 y arranque abortado) | [clasificacion/v7/s44/README.md](clasificacion/v7/s44/README.md) | `clasificacion/v7/s44/final_eval.json`, `clasificacion/v7/s44/eval_provenance.json` | Vigente |
 | Clasificador: v6, C1 y v7 lado a lado, con matriz de confusión, F1 y recall por clase y melanoma | [clasificacion/TABLA_CLASIFICADOR.md](clasificacion/TABLA_CLASIFICADOR.md) | `clasificacion/bank.json`, `clasificacion/c1/c1_cells.json`, los tres `final_eval.json` y `final_eval.probas.npz` | Vigente |
-| Segmentación: estudiante final (Dice, IoU, HD95) y pseudo-máscaras v7 contra los umbrales de docs/27 | [segmentacion/TABLA_SEGMENTACION.md](segmentacion/TABLA_SEGMENTACION.md) | `summary.json` y `*_stats.json` de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
+| Segmentación: experimento de segmentación final (Dice, IoU, HD95) y pseudo-máscaras v7 contra los umbrales de docs/27 | [segmentacion/TABLA_SEGMENTACION.md](segmentacion/TABLA_SEGMENTACION.md) | `summary.json` y `*_stats.json` de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
 | Cierre: pedidos del profesor y plan de Pau → qué se hizo → resultado, con veredicto por regla | [TABLA_CIERRE.md](TABLA_CIERRE.md) | los JSON de `clasificacion/` y de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
 | C1: grilla de condiciones de máscara por backbone | [clasificacion/c1/README.md](clasificacion/c1/README.md) | `clasificacion/c1/*.json` | Vigente |
 | v6: bancos congelados y bootstrap pareado | Secciones 4 a 7 de este documento | `clasificacion/bank.json`, `clasificacion/bootstrap.json` | Superado por v7 |
@@ -100,7 +100,7 @@ en las dos direcciones, esta en la seccion 7.
 ## 2. Segmentacion sin mascaras ni etiquetas
 
 Commit `d81a492`, preset `cluster-final`. MoCo v2 sobre el pool, saliencia
-CCAM, modulo de incertidumbre y U-Net estudiante con re-etiquetado en tres
+CCAM, modulo de incertidumbre y U-Net experimento de segmentación con re-etiquetado en tres
 rondas.
 
 | Conjunto | Papel | n | Dice medio [IC 95 %] | Dice mediana | IoU | HD95 mediana |
@@ -125,7 +125,7 @@ campo del dermatoscopio), pareado por imagen:
 
 Honestidad: **"supera a los pisos" a secas seria incorrecto**. En ISIC 2018
 empata en solapamiento con el piso mas fuerte y gana en borde; el unico
-indicador donde un piso supera al estudiante es el percentil 10 de Dice en
+indicador donde un piso supera al experimento de segmentación es el percentil 10 de Dice en
 HAM10000 (0,530 contra 0,507).
 
 ---
@@ -392,7 +392,7 @@ antes de que cerrara el banco).
   al metodo es exactamente la seleccion que invalida una comparacion. Que el
   veredicto cambie con el probe es, en si mismo, evidencia de que la
   diferencia es chica.
-- **El estudiante de segmentacion no supera al piso mas fuerte** en
+- **El experimento de segmentación de segmentacion no supera al piso mas fuerte** en
   solapamiento medio sobre ISIC 2018; gana en borde y en fallos
   catastroficos.
 
@@ -452,7 +452,7 @@ En orden de retorno esperado:
    hacia el oscuro; Corbin y Marques 2023 usan hasta dos niveles con signo
    aleatorio, exponiendo al modelo a las dos direcciones.
 4. **Pseudo-mascaras de la ronda 3.** Las usadas son las de la ronda 2; el
-   estudiante final no exporta predicciones sobre el pool. Exportarlas es
+   experimento de segmentación final no exporta predicciones sobre el pool. Exportarlas es
    trabajo mecanico y mejora la entrada de todo lo demas.
 5. **Resolucion.** Todo se materializa a 224 para no transformar ISIC 2020 en
    resolucion nativa. Subirla eleva el techo, a costa de espacio y computo.

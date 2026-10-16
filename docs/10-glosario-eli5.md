@@ -1,17 +1,36 @@
 # 10 — Glosario y nomenclatura del proyecto
 
+## Nombres cortos para presentar el trabajo
+
+El nombre identifica el caso; la explicación técnica va en otra columna, no dentro del nombre.
+
+| Nombre visible | Explicación sencilla | Correspondencia técnica |
+|---|---|---|
+| Proposed sin segmentación | Clasifica la foto sin localizar previamente la lesión con una máscara. | Configuración registrada `B71`. |
+| Proposed con segmentación | Usa la foto, la zona de lesión y datos de su forma y color. | Variante experimental `B71 + F4`; no tiene mejora robusta demostrada. |
+| Modelo de control | Permite comparar qué cambia al añadir el ajuste de tono. | Brazo `A*` y configuración `A71`; conservar el protocolo de cada fila. No usa segmentación. |
+| Experimento de segmentación 1 | Primera ronda de aprendizaje de la red U-Net. | `student_r1`. |
+| Experimento de segmentación 2 | Segunda ronda de aprendizaje de la misma red U-Net. | `student_r2`. |
+| Experimento de segmentación 3 | Tercera ronda de aprendizaje de la misma red U-Net. | `student_r3`; máscaras usadas en la variante con segmentación. |
+| Experimento de segmentación 4 | Prueba DINOv2 con máscaras iniciales obtenidas de su saliencia. | `S4-A1`. |
+| Experimento de segmentación 5 | Prueba DINOv2 con máscaras iniciales obtenidas de CCAM. | `S4-A2`. |
+
+Los números 1–5 son etiquetas de presentación de esta documentación: no cambian los identificadores de las corridas. Los experimentos 1–3 son rondas de la misma arquitectura, no tres arquitecturas diferentes. Los experimentos 4 y 5 comparan el origen de las pseudo-máscaras. Solo las dos primeras filas son versiones de Proposed.
+
+**Pesos limpios** significa que se excluyeron imágenes de validación del preentrenamiento. **Semilla** identifica una repetición del entrenamiento. Ambos son detalles de la condición evaluada, no nombres de propuestas nuevas.
+
 ## Nombres oficiales de las dos versiones
 
 Esta nomenclatura describe las entradas del sistema, no cambia los experimentos ni sus resultados. Solo hay dos nombres de presentación:
 
 | Nombre de presentación | Explicación sencilla | Definición técnica y correspondencia histórica |
 |---|---|---|
-| **Proposed sin segmentación** | Clasifica la fotografía completa, sin usar una máscara para localizar la lesión. | Configuración registrada B71: adaptación SSL con consistencia de tono sobre DINOv2, extracción de características y clasificador lineal. B71 es un identificador de trazabilidad, no el nombre público. |
-| **Proposed con segmentación** | Usa la fotografía completa y la región de lesión localizada por un segmentador; agrega información de su forma y color. | Variante experimental B71 + F4 de E3: combina características de imagen completa y recorte con margen, más descriptores derivados de la máscara de lesión de la configuración `student_r3`. No clasifica únicamente la máscara. |
+| **Proposed sin segmentación** | Clasifica la fotografía completa, sin usar una máscara para localizar la lesión. | Configuración registrada Proposed sin segmentación: adaptación SSL con consistencia de tono sobre DINOv2, extracción de características y clasificador lineal. Proposed sin segmentación es un identificador de trazabilidad, no el nombre público. |
+| **Proposed con segmentación** | Usa la fotografía completa y la región de lesión localizada por un segmentador; agrega información de su forma y color. | Variante experimental Proposed con segmentación de E3: combina características de imagen completa y recorte con margen, más descriptores derivados de la máscara de lesión de la configuración `student_r3`. No clasifica únicamente la máscara. |
 
 **Estado de la evidencia:** la versión con segmentación es exploratoria. El registro de docs/33 retiró su adopción como mejora confirmada porque la ventaja no fue robusta al cómputo. El nombre de presentación no convierte ese resultado en una mejora demostrada ni reemplaza el resultado principal sin segmentación. Tampoco garantiza desempeño clínico.
 
-**No son dos nombres nuevos para A71 y B71:** A71 no usa segmentación en su configuración registrada. Es un experimento de control de adaptación SSL sin el término de consistencia de tono; B71 sí incluye ese término. Comparar A71 contra B71 no aísla el efecto de segmentar y sus protocolos seleccionados también difieren. Para estudiar segmentación se consulta la comparación pareada de B71 + F4 contra B71 bajo el mismo protocolo de E3.
+**No son dos nombres nuevos para Modelo de control y Proposed sin segmentación:** Modelo de control no usa segmentación en su configuración registrada. Es un experimento de control de adaptación SSL sin el término de consistencia de tono; Proposed sin segmentación sí incluye ese término. Comparar Modelo de control contra Proposed sin segmentación no aísla el efecto de segmentar y sus protocolos seleccionados también difieren. Para estudiar segmentación se consulta la comparación pareada de Proposed con segmentación contra Proposed sin segmentación bajo el mismo protocolo de E3.
 
 ### Experimentos, no propuestas adicionales
 
@@ -19,14 +38,14 @@ Los códigos se conservan para localizar archivos y reproducir resultados. No so
 
 | Código histórico | Nombre descriptivo del experimento | Qué identifica y qué no identifica |
 |---|---|---|
-| A*, A71 | Control de adaptación SSL sin consistencia de tono | A* es el brazo de entrenamiento; A71 es su configuración de evaluación seleccionada en v7.1. No es la versión con segmentación. |
-| B*, B71 | Adaptación SSL con consistencia de tono | B* identifica el brazo de entrenamiento y B71 su configuración seleccionada. Proposed sin segmentación corresponde a B71, no a cualquier ejecución B*. |
-| A71/B71 originales y limpios | Condiciones de procedencia del preentrenamiento | Los limpios excluyen imágenes de validación ISIC del pool SSL. No son arquitecturas nuevas ni propuestas adicionales. Los originales en ISIC requieren declarar su carácter transductivo. |
+| Modelo de control, Modelo de control | Control de adaptación SSL sin consistencia de tono | Modelo de control es el brazo de entrenamiento; Modelo de control es su configuración de evaluación seleccionada en v7.1. No es la versión con segmentación. |
+| Proposed sin segmentación, Proposed sin segmentación | Adaptación SSL con consistencia de tono | Proposed sin segmentación identifica el brazo de entrenamiento y Proposed sin segmentación su configuración seleccionada. Proposed sin segmentación corresponde a Proposed sin segmentación, no a cualquier ejecución Proposed sin segmentación. |
+| Modelo de control / Proposed sin segmentación originales y limpios | Condiciones de procedencia del preentrenamiento | Los limpios excluyen imágenes de validación ISIC del pool SSL. No son arquitecturas nuevas ni propuestas adicionales. Los originales en ISIC requieren declarar su carácter transductivo. |
 | `student_r1`, `student_r2`, `student_r3` | Experimento de segmentación U-Net, rondas de aprendizaje 1, 2 y 3 | Son etapas del aprendizaje con pseudo-máscaras y re-etiquetado; no tres arquitecturas distintas. La configuración publicada es la tercera ronda. `r0` en pseudo-máscaras identifica la generación inicial, no un cuarto modelo final. |
 | S4-A1 | Experimento de segmentación con pseudo-máscaras de saliencia DINOv2 | Encoder DINOv2 congelado y decoder tipo U-Net; no confundir A1 de segmentación con A1 del piloto de clasificación. |
-| S4-A2 | Experimento de segmentación con pseudo-máscaras iniciales CCAM | Encoder DINOv2 congelado y decoder tipo U-Net. Es candidato de segmentación evaluado por separado; no reemplaza automáticamente `student_r3` en E3/F4. |
-| F1–F5, E3 | Experimentos de integración de segmentación en clasificación | F1 combina imagen y recorte; F2 cambia la resolución de origen del recorte; F3 usa vistas guiadas por máscara; F4 agrega forma y color a F1; F5 agrega anillo perilesional a F1. Son condiciones, no cinco propuestas finales. |
-| D0–D3, E2 | Experimentos de transferencia a fotografías clínicas PAD-UFES-20 | D0: referencia pública; D1: adaptación A* limpia; D2: continuación en fuente como control de cómputo; D3: continuación con imágenes fuente y destino sin etiquetas del destino. No son versiones con/sin segmentación. |
+| Experimento de segmentación 5 | Experimento de segmentación con pseudo-máscaras iniciales CCAM | Encoder DINOv2 congelado y decoder tipo U-Net. Es candidato de segmentación evaluado por separado; no reemplaza automáticamente `student_r3` en E3/F4. |
+| F1–F5, E3 | Experimentos de integración de segmentación en clasificación | F1 combina imagen y recorte; F2 cambia la resolución de origen del recorte; F3 usa vistas guiadas por máscara; Proposed con segmentación (experimental) agrega forma y color a F1; F5 agrega anillo perilesional a F1. Son condiciones, no cinco propuestas finales. |
+| Modelo de referencia–Adaptación al nuevo conjunto, E2 | Experimentos de transferencia a fotografías clínicas PAD-UFES-20 | Modelo de referencia: referencia pública; Adaptación inicial: adaptación Modelo de control limpia; Control de entrenamiento: continuación en fuente como control de cómputo; Adaptación al nuevo conjunto: continuación con imágenes fuente y destino sin etiquetas del destino. No son versiones con/sin segmentación. |
 | s42, s43, s44 | Repeticiones con semillas aleatorias distintas | Evalúan variabilidad del entrenamiento. No se elige la semilla que dé el mejor resultado después de ver evaluación. |
 | v6, v7, v7.1 | Etapas históricas del protocolo | No son arquitecturas; un resultado conserva su versión, partición, pesos y receta de evaluación. |
 | C, S, T, E y números asociados | Identificadores locales de pruebas | Su significado depende del documento que los registra. S1 de un plan experimental no tiene por qué ser Figura S1; T5 de una figura tampoco renombra automáticamente otro experimento. Siempre indicar el contexto. |
@@ -36,7 +55,7 @@ Los códigos se conservan para localizar archivos y reproducir resultados. No so
 - **Referencias de la literatura (baselines):** arquitecturas y métodos publicados usados para comparar. Se mantienen sus nombres, por ejemplo DINOv2, SimSiam y U-Net. Que una técnica forme parte de Proposed no significa que la hayamos inventado.
 - **Aporte del proyecto:** diseño, integración y evaluación de la adaptación SSL, la consistencia de tono y la variante que incorpora segmentación y descriptores, con los límites documentados. No presentamos como propia la arquitectura base de la literatura.
 - **Arquitectura:** estructura de la red. **Receta de entrenamiento:** cómo aprende. **Checkpoint:** pesos de una ejecución. **Pipeline:** cadena completa de procesamiento, extracción y clasificación. No usar estas cuatro palabras como sinónimos.
-- **Student (estudiante):** red entrenada con pseudo-etiquetas en estos experimentos. **Pseudo-máscara:** región de lesión estimada automáticamente, no anotación de especialista. **Teacher (maestro):** fuente de supervisión automática cuando el método la tenga; no asumir que todas las etapas usan una arquitectura teacher–student explícita.
+- **Student (experimento de segmentación):** red entrenada con pseudo-etiquetas en estos experimentos. **Pseudo-máscara:** región de lesión estimada automáticamente, no anotación de especialista. **Teacher (maestro):** fuente de supervisión automática cuando el método la tenga; no asumir que todas las etapas usan una arquitectura teacher–experimento de segmentación explícita.
 - **Backbone congelado:** sus pesos no cambian al ajustar el clasificador. **Fine-tuning supervisado:** actualiza pesos con etiquetas diagnósticas. SSL describe el aprendizaje de la representación sin esas etiquetas; la sonda lineal posterior sí usa etiquetas de entrenamiento.
 - **Segmentación:** estima dónde está la lesión; no determina por sí sola qué diagnóstico tiene. **Clasificación:** asigna una categoría diagnóstica. No llamar sensibilidad diagnóstica al Dice de una máscara.
 - **Transformación de tono:** modifica luminosidad/apariencia en la región indicada por la máscara; no crea evidencia de un fototipo clínico distinto ni demuestra una mejora por sí sola.
@@ -130,9 +149,9 @@ Los ejemplos siguientes pertenecen a etapas anteriores del proyecto; no sustituy
 
 Los generadores aplican los nombres visibles de este glosario; las claves y referencias a archivos siguen usando los códigos originales. Cada tabla se verifica contra su generador y sus JSON de origen:
 
-- [Configuraciones de evaluación v7.1](../resultados/clasificacion/v71/README.md): A* v7.1 corresponde al control A71; B* v7.1 corresponde a Proposed sin segmentación (B71).
+- [Configuraciones de evaluación v7.1](../resultados/clasificacion/v71/README.md): Modelo de control corresponde al control Modelo de control; Proposed sin segmentación corresponde a Proposed sin segmentación (Proposed sin segmentación).
 - [Banco HAM10000](../resultados/banco_completo/TABLA_HAM10000.md), [ISIC 2019](../resultados/banco_completo/TABLA_ISIC2019.md) e [ISIC 2020](../resultados/banco_completo/TABLA_ISIC2020.md): distinguir controles, referencias de literatura y procedencia de pesos; no colapsar filas diferentes bajo una cifra única.
-- [Experimentos de integración y ablaciones](../resultados/banco_completo/TABLA_ABLACION.md): F4 corresponde a Proposed con segmentación; las otras condiciones siguen como experimentos, no como propuestas adicionales.
+- [Experimentos de integración y ablaciones](../resultados/banco_completo/TABLA_ABLACION.md): Proposed con segmentación (experimental) corresponde a Proposed con segmentación; las otras condiciones siguen como experimentos, no como propuestas adicionales.
 - [Resultados de segmentación](../resultados/segmentacion/TABLA_SEGMENTACION.md): los estudiantes son configuraciones del experimento de segmentación, no clasificadores diagnósticos.
 
 La simplificación a dos nombres no elimina controles, repeticiones ni resultados desfavorables. Toda cifra debe conservar su dataset, partición, protocolo, semilla y estado exploratorio cuando corresponda.

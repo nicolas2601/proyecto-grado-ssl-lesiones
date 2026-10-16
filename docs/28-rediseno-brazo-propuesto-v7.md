@@ -2,7 +2,7 @@
 
 ## Nomenclatura de lectura
 
-**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
 
 Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
 
@@ -71,9 +71,9 @@ Inferencia: la adaptación completa reescribe capas tempranas que DINOv2 ya ten�
 
 B1-spec se detuvo con SIGTERM a las 17:58:10 UTC, en el paso ~270 (el último logueado en W&B es el 200, run 22732c19750d), cuando A3 ganó la oleada 1b. Ya no hace falta: el warmup no tuvo efecto medible en el plain (A3 − A1, los cuatro IC incluyen el cero). Se conservan su run.json y sus curvas en W&B. No hay checkpoint parcial: en los pilotos no se escribe ninguno antes del final (tampoco en A1-A3, cuyas carpetas solo tienen `run.json` y el backbone final), y el SIGTERM no guarda. No se evalúa ni compite. B1 se relanzó con head-warmup 150 sobre la misma revisión que B2 (1453b06).
 
-**Memoria y revisión de código (registrado el 2026-09-27).** B1-spec se quedó sin memoria al arrancar (CUDA OOM, 23,35 GiB en una GPU de 24): el tercer forward, el de la vista de tono con gradiente, no cabe con batch 128. Por eso B corre con `--grad-checkpoint`, que recalcula los 12 bloques en el backward. La matemática es la misma, porque no hay dropout ni drop-path y un test fija gradientes iguales con y sin checkpoint. Cambia el tiempo por paso, así que el flag es parte de la config de B. Batch 64 o acumular 2×64 quedan descartados: cambian el batch que ve el BatchNorm del proyector y rompen la comparación con A1. **Regla para las finales:** A\*, B\* y, si se reevalúa, el público corren sobre un mismo `code_revision`. En los pilotos las revisiones difieren (A1/A2 en 9021931; A3 y B después) y eso se documenta en el reporte.
+**Memoria y revisión de código (registrado el 2026-09-27).** B1-spec se quedó sin memoria al arrancar (CUDA OOM, 23,35 GiB en una GPU de 24): el tercer forward, el de la vista de tono con gradiente, no cabe con batch 128. Por eso B corre con `--grad-checkpoint`, que recalcula los 12 bloques en el backward. La matemática es la misma, porque no hay dropout ni drop-path y un test fija gradientes iguales con y sin checkpoint. Cambia el tiempo por paso, así que el flag es parte de la config de B. Batch 64 o acumular 2×64 quedan descartados: cambian el batch que ve el BatchNorm del proyector y rompen la comparación con A1. **Regla para las finales:** Modelo de control, Proposed sin segmentación y, si se reevalúa, el público corren sobre un mismo `code_revision`. En los pilotos las revisiones difieren (A1/A2 en 9021931; A3 y B después) y eso se documenta en el reporte.
 
-**Réplica de semilla (opcional, registrada antes de las finales).** Las finales usan semilla 42. El IC del bootstrap cubre la variabilidad del conjunto de evaluación, NO la del entrenamiento. Si hay GPU libre al terminar las finales, se repiten A\* y B\* con semilla 43, en la misma revisión y con el mismo exclude, y se reportan AMBAS semillas. No se elige semilla: la conclusión se reporta con las dos. Si no hay tiempo, esto va como limitación explícita. Programación (2026-09-27): A\* con semilla 43 en cuda:0 apenas termine A\* (~23:10 UTC) y B\* con semilla 43 en cuda:1 apenas termine B\* (~01:50 UTC), las dos desde la revisión f1c2053 y con el exclude 95d21013….
+**Réplica de semilla (opcional, registrada antes de las finales).** Las finales usan semilla 42. El IC del bootstrap cubre la variabilidad del conjunto de evaluación, NO la del entrenamiento. Si hay GPU libre al terminar las finales, se repiten Modelo de control y Proposed sin segmentación con semilla 43, en la misma revisión y con el mismo exclude, y se reportan AMBAS semillas. No se elige semilla: la conclusión se reporta con las dos. Si no hay tiempo, esto va como limitación explícita. Programación (2026-09-27): Modelo de control con semilla 43 en cuda:0 apenas termine Modelo de control (~23:10 UTC) y Proposed sin segmentación con semilla 43 en cuda:1 apenas termine Proposed sin segmentación (~01:50 UTC), las dos desde la revisión f1c2053 y con el exclude 95d21013….
 
 **Evaluación de la réplica s43 (registrada el 2026-09-28, antes de correrla).** La evaluación de semilla 42 ya está hecha (`resultados/clasificacion/v7/`, commit f562ea9). La réplica es otra lectura de val, pero sobre modelos distintos, y se fija así antes de ver un solo número:
 
@@ -88,7 +88,7 @@ El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops indepe
 
 **Regla de selección, por oleada:** gana la variante con mayor macro-F1 en el holdout interno. Si `|Δ macro-F1| < 0,005`, gana la de menor ECE. La oleada 2 hereda las anclas de la ganadora de la oleada 1, así que los dos brazos difieren solo en el tono.
 
-**Finales:** experimento de control SSL sin consistencia de tono y experimento SSL con consistencia de tono con `--max-steps 5700` (≈12 GPU-h, el presupuesto de la v6), una GPU cada una, en paralelo, y la evaluación única del punto 3.
+**Finales:** Modelo de control y Proposed sin segmentación con `--max-steps 5700` (≈12 GPU-h, el presupuesto de la v6), una GPU cada una, en paralelo, y la evaluación única del punto 3.
 
 ## 5. Predicciones registradas
 
@@ -96,12 +96,12 @@ El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops indepe
 - **P2 (tono):** el propuesto v7 contra el plain anclado v7: ECE mejor (IC excluye el cero) y macro-F1 no peor (Δ ≥ −0,01).
 - **P3 (objetivo de la tesis):** el propuesto v7 contra DINOv2 público: macro-F1 Δ ≥ 0 manteniendo la ventaja en ECE. Probabilidad estimada antes del dato: ≈35 %.
 
-**Lecturas (registradas el 2026-09-27, antes de que termine A\*).** P1, P2 y P3 como están arriba son las lecturas PRIMARIAS y deciden el veredicto. Se reportan además dos lecturas SECUNDARIAS, rotuladas así en el JSON y en la tabla, que no cambian los veredictos primarios:
+**Lecturas (registradas el 2026-09-27, antes de que termine Modelo de control).** P1, P2 y P3 como están arriba son las lecturas PRIMARIAS y deciden el veredicto. Se reportan además dos lecturas SECUNDARIAS, rotuladas así en el JSON y en la tabla, que no cambian los veredictos primarios:
 
-- **P1-NI** (no inferioridad estricta): el límite inferior del IC de Δ macro-F1 A\* − público es ≥ −0,01.
-- **P3-IC**: el límite inferior del IC de Δ macro-F1 B\* − público es > 0. Solo si P3-IC se cumple, la tesis dice que el propuesto le gana al público. Si se cumple solo P3 primaria, dice que no pierde.
+- **P1-NI** (no inferioridad estricta): el límite inferior del IC de Δ macro-F1 Modelo de control − público es ≥ −0,01.
+- **P3-IC**: el límite inferior del IC de Δ macro-F1 Proposed sin segmentación − público es > 0. Solo si P3-IC se cumple, la tesis dice que el propuesto le gana al público. Si se cumple solo P3 primaria, dice que no pierde.
 
-**Protocolo de la evaluación única:** el mismo de C1/v6. El probe `logreg` se entrena sobre el train COMPLETO de C1 (8.011 ids, fingerprint `d347edd52d0d7648`) y se evalúa sobre val (2.004 ids, `6ff4c17f04a9eae2`). `scripts/c1_final_eval.py` verifica los dos fingerprints y que los `run.json` de A\* y B\* compartan `code_revision` y exclude antes de extraer nada.
+**Protocolo de la evaluación única:** el mismo de C1/v6. El probe `logreg` se entrena sobre el train COMPLETO de C1 (8.011 ids, fingerprint `d347edd52d0d7648`) y se evalúa sobre val (2.004 ids, `6ff4c17f04a9eae2`). `scripts/c1_final_eval.py` verifica los dos fingerprints y que los `run.json` de Modelo de control y Proposed sin segmentación compartan `code_revision` y exclude antes de extraer nada.
 
 Criterio: se reporta el resultado sea cual sea. Si P3 no se cumple, la conclusión honesta es que la adaptación SSL mejora calibración y ranking pero no la separación por clase frente a DINOv2 público.
 
@@ -117,24 +117,24 @@ Las cifras están en la [tabla combinada de las dos semillas](../resultados/clas
 | P1-NI (secundaria) | no cumplida | cumplida |
 | P3-IC (secundaria) | cumplida | cumplida |
 
-- **Resultado principal:** P3-IC se cumple con las dos semillas, así que por la regla de §4.1 la conclusión es robusta a la semilla. El propuesto B\* le gana al DINOv2 público en macro-F1, con los dos intervalos por encima de cero. También lo mejora en AUC y en calibración con las dos semillas.
-- **El término de tono no aporta nada medible.** B\* y A\* no se distinguen en macro-F1 con ninguna semilla, y el signo de la diferencia cambia de una a otra. La peor calibración de B\* que apareció con la semilla 42 no se repite con la 43. La mejora sobre el público viene de la adaptación SSL anclada a DINOv2, no del término de tono. Nota: en AUC, A\* ordena apenas mejor que B\* con la semilla 43 (el IC excluye el cero por poco). Con la semilla 42 eso no pasa.
-- **A\* frente al público:** no pierde con ninguna semilla. Con la 43 además le gana (el intervalo excluye el cero); con la 42 no llegaba. Por eso P1-NI cambia de semilla a semilla.
-- **Variación entre semillas:** A\* se movió unos 0,04 de macro-F1 de una semilla a la otra, lo mismo que el efecto de B\* contra el público. El intervalo del bootstrap cubre la variación del conjunto de evaluación, no la del entrenamiento. Con una sola semilla no se habría podido sostener la conclusión. Con dos ya no depende de la semilla, pero la magnitud del efecto sigue siendo incierta.
+- **Resultado principal:** P3-IC se cumple con las dos semillas, así que por la regla de §4.1 la conclusión es robusta a la semilla. El propuesto Proposed sin segmentación le gana al DINOv2 público en macro-F1, con los dos intervalos por encima de cero. También lo mejora en AUC y en calibración con las dos semillas.
+- **El término de tono no aporta nada medible.** Proposed sin segmentación y Modelo de control no se distinguen en macro-F1 con ninguna semilla, y el signo de la diferencia cambia de una a otra. La peor calibración de Proposed sin segmentación que apareció con la semilla 42 no se repite con la 43. La mejora sobre el público viene de la adaptación SSL anclada a DINOv2, no del término de tono. Nota: en AUC, Modelo de control ordena apenas mejor que Proposed sin segmentación con la semilla 43 (el IC excluye el cero por poco). Con la semilla 42 eso no pasa.
+- **Modelo de control frente al público:** no pierde con ninguna semilla. Con la 43 además le gana (el intervalo excluye el cero); con la 42 no llegaba. Por eso P1-NI cambia de semilla a semilla.
+- **Variación entre semillas:** Modelo de control se movió unos 0,04 de macro-F1 de una semilla a la otra, lo mismo que el efecto de Proposed sin segmentación contra el público. El intervalo del bootstrap cubre la variación del conjunto de evaluación, no la del entrenamiento. Con una sola semilla no se habría podido sostener la conclusión. Con dos ya no depende de la semilla, pero la magnitud del efecto sigue siendo incierta.
 
 ### 5.2 Evaluación secundaria C1-v7: ¿la máscara ayuda al clasificador final? (registrada el 2026-09-28, antes de correr)
 
 Es otra lectura de val, sobre modelos ya fijados, y se declara como tal: no reemplaza el resultado primario de §5.1.
 
-- **Qué:** la misma grilla de C1 (docs/27): sin máscara, recorte a la caja, fondo gris y pooling en la máscara. Usa las mismas máscaras de experimento de segmentación U-Net, ronda final 3 (el mismo archivo fijado por sha en `c1_mask_provenance`). Los backbones son A\* y B\* con las semillas 42 y 43, más el DINOv2 público. Solo hay extracción y probe `logreg`, sin entrenar backbones.
+- **Qué:** la misma grilla de C1 (docs/27): sin máscara, recorte a la caja, fondo gris y pooling en la máscara. Usa las mismas máscaras de Experimento de segmentación 3 (el mismo archivo fijado por sha en `c1_mask_provenance`). Los backbones son Modelo de control y Proposed sin segmentación con las semillas 42 y 43, más el DINOv2 público. Solo hay extracción y probe `logreg`, sin entrenar backbones.
 - **Contraste:** bootstrap pareado (1.000 remuestras) de cada condición contra "sin máscara" del mismo backbone, en las cuatro métricas.
 - **Lectura:** la máscara ayuda si alguna condición le gana a "sin máscara" en macro-F1, con el IC por encima de cero, en las dos semillas del mismo brazo. Si pasa en una sola semilla, se reporta como "no robusto a la semilla", con la misma regla de §4.1.
-- **Secundario agregado el 2026-09-28, antes de correr:** la misma grilla con las máscaras de A2 (experimento de segmentación DINOv2 con decoder tipo U-Net, docs/27), que pasó a segmentador candidato. Es solo extracción y probe. El resultado primario de esta sección sigue siendo el de las máscaras de experimento de segmentación U-Net, ronda final 3, como estaba registrado. A2 se describe así: "mejora pequeña pero consistente en Dice sobre experimento de segmentación U-Net, ronda final 3 (+0,004 en ISIC 2018 y +0,010 en HAM10000, IC pareado sin cero); HD95 igual en ISIC y mejor en HAM".
+- **Secundario agregado el 2026-09-28, antes de correr:** la misma grilla con las máscaras de A2 (Segmentador DINOv2, docs/27), que pasó a segmentador candidato. Es solo extracción y probe. El resultado primario de esta sección sigue siendo el de las máscaras de Experimento de segmentación 3, como estaba registrado. A2 se describe así: "mejora pequeña pero consistente en Dice sobre Experimento de segmentación 3 (+0,004 en ISIC 2018 y +0,010 en HAM10000, IC pareado sin cero); HD95 igual en ISIC y mejor en HAM".
 
 **Resultado (2026-09-28).** Datos en `resultados/clasificacion/c1_v7/` (primario en `student_r3/`, secundario en `a2/`, comparación entre segmentadores en `a2_vs_student_cells.json`).
-- **Primario, máscaras de experimento de segmentación U-Net, ronda final 3: la máscara no ayuda.** Ninguna de las 15 celdas le gana a "sin máscara" con el IC del macro-F1 por encima de cero, así que la regla de las dos semillas no llega a aplicarse. El fondo gris empeora en el público (−0,092 [−0,141; −0,041]) y en A\* con las dos semillas (s42 −0,052 [−0,095; −0,011]; s43 −0,058 [−0,101; −0,018]); el pooling en la máscara empeora en B\* s42 (−0,034 [−0,068; −0,004]). El resto no cambia; el mayor Δ puntual es +0,016 (B\* s42, recorte a la caja) con IC que cruza el cero.
-- **Secundario, máscaras de A2: mismo patrón.** 0/15 mejoran; el fondo gris empeora en el público (−0,085 [−0,133; −0,034]) y en A\* s43 (−0,044 [−0,089; −0,002]); el resto no cambia.
-- **A2 contra experimento de segmentación U-Net, ronda final 3 en la misma celda** (bootstrap pareado del macro-F1 sobre las mismas predicciones de val): indistinguibles en 15/15. Como dato descriptivo, no como tendencia: 13 de los 15 Δ puntuales favorecen a A2. No estaba pre-registrado y las celdas no son independientes, porque comparten val y backbone.
+- **Primario, máscaras de Experimento de segmentación 3: la máscara no ayuda.** Ninguna de las 15 celdas le gana a "sin máscara" con el IC del macro-F1 por encima de cero, así que la regla de las dos semillas no llega a aplicarse. El fondo gris empeora en el público (−0,092 [−0,141; −0,041]) y en Modelo de control con las dos semillas (s42 −0,052 [−0,095; −0,011]; s43 −0,058 [−0,101; −0,018]); el pooling en la máscara empeora en Proposed sin segmentación s42 (−0,034 [−0,068; −0,004]). El resto no cambia; el mayor Δ puntual es +0,016 (Proposed sin segmentación s42, recorte a la caja) con IC que cruza el cero.
+- **Secundario, máscaras de A2: mismo patrón.** 0/15 mejoran; el fondo gris empeora en el público (−0,085 [−0,133; −0,034]) y en Modelo de control s43 (−0,044 [−0,089; −0,002]); el resto no cambia.
+- **A2 contra Experimento de segmentación 3 en la misma celda** (bootstrap pareado del macro-F1 sobre las mismas predicciones de val): indistinguibles en 15/15. Como dato descriptivo, no como tendencia: 13 de los 15 Δ puntuales favorecen a A2. No estaba pre-registrado y las celdas no son independientes, porque comparten val y backbone.
 
 #### 5.2.1 EXPLORATORIO: C1-v7 estratificado por tono (registrado el 2026-09-28, antes de calcular nada)
 
@@ -146,7 +146,7 @@ La pregunta es de Nicolás: ¿la máscara ayuda a clasificar mejor la piel más 
 - En los dos casos los terciles de color se reportan, pero como descripción del color de la imagen, no como tono de piel validado.
 
 **Qué se calcula (si se cumple la condición).**
-- **Entradas:** las probabilidades por imagen de val (n = 2.004) que C1-v7 ya guardó por celda (`<celda>.proba.npy` más su `manifest.json`). Son 5 backbones × 4 condiciones (`none`, `bbox_crop`, `neutral_bg`, `mask_pool`) para cada uno de los dos segmentadores, experimento de segmentación U-Net, ronda final 3 (primario) y A2 (secundario). Las etiquetas salen del mismo cache del banco que usó la grilla. No se reentrena ni se re-extrae nada. Antes de calcular se verifica que el sha de las probabilidades coincida con el manifiesto de la celda y que el orden de val coincida con `val_order_sha256`.
+- **Entradas:** las probabilidades por imagen de val (n = 2.004) que C1-v7 ya guardó por celda (`<celda>.proba.npy` más su `manifest.json`). Son 5 backbones × 4 condiciones (`none`, `bbox_crop`, `neutral_bg`, `mask_pool`) para cada uno de los dos segmentadores, Experimento de segmentación 3 (primario) y A2 (secundario). Las etiquetas salen del mismo cache del banco que usó la grilla. No se reentrena ni se re-extrae nada. Antes de calcular se verifica que el sha de las probabilidades coincida con el manifiesto de la celda y que el orden de val coincida con `val_order_sha256`.
 - **Tono por imagen:** el manifiesto publicado `fst_pseudo_manifest.csv`, que usa el estimador corregido (`c272bdb`) y el estrato `tone_tercile` (`bbd9bab`) sobre las pseudo-máscaras `pseudo_r2`. Supuesto heredado: `pseudo_r2` no registra `region_mode` y se toma `central` (docs/27, «FST con las máscaras de A2»). Se reporta la cobertura: cuántas imágenes de val tienen bucket FST y cuántas tienen tercil. Las que no tienen bucket (`ita_indeterminate`, es decir mediana de b\* < 5, y las que están en cuarentena) quedan fuera del bin, con su n a la vista.
 - **Bins:** FST I, FST II y FST III-VI agrupado; terciles `tone_tercile` claro, medio y oscuro. Aclaración: `tone_tercile` es el tercil de la mediana de L\* de la piel sobre el pool, no un tercil de ITA. Se usa ese porque el ITA solo está definido cuando b\* ≥ 5 (README de camino-b-cnn, «Estimador corregido»). Los terciles son relativos al pool: «oscuro» significa lo más oscuro de un dataset de piel mayormente clara, no un fototipo oscuro.
 - **Métricas por bin:** macro-F1, balanced accuracy y sensibilidad de melanoma (recall de `mel` con argmax). Cada bin informa su n y su número de melanomas.
@@ -195,12 +195,12 @@ La pregunta es de Nicolás: ¿la máscara ayuda a clasificar mejor la piel más 
 ### 5.3 Observación, no resultado registrado: las finales degradan las features densas (2026-09-28)
 
 S-diag (docs/27) segmenta sin entrenar usando los tokens de parche del último bloque. En su método primario, las finales v7 quedaron por debajo del DINOv2 público, con intervalos que no se solapan:
-- **ISIC 2018 (Dice [IC 95 %]):** público 0,452 [0,441; 0,464], A\* s42 0,338 [0,328; 0,348], B\* s42 0,364 [0,354; 0,374].
-- **HAM10000:** público 0,563 [0,558; 0,569], A\* 0,398 [0,393; 0,402], B\* 0,437 [0,433; 0,442].
+- **ISIC 2018 (Dice [IC 95 %]):** público 0,452 [0,441; 0,464], Modelo de control s42 0,338 [0,328; 0,348], Proposed sin segmentación s42 0,364 [0,354; 0,374].
+- **HAM10000:** público 0,563 [0,558; 0,569], Modelo de control 0,398 [0,393; 0,402], Proposed sin segmentación 0,437 [0,433; 0,442].
 
 La predicción de S-diag no comparaba pesos entre sí, así que esto se reporta como observación. Es coherente con cómo se entrenó la v7: SimSiam y el ancla actúan sobre el CLS, y nada restringe los tokens de parche. Es la misma degradación de las features densas que motiva el Gram anchoring de DINOv3 (Siméoni et al., 2025, arXiv:2508.10104); acá se usó solo la versión liviana sobre el CLS (§2).
 
-Implicancia para v7.1 (docs/29 §2.2 y §2.7): las features locales (media o GeM de los parches, attention pooling) podrían rendir menos en A\*/B\* que en el público. Se reporta lo que salga, sin ajustar nada por esta observación.
+Implicancia para v7.1 (docs/29 §2.2 y §2.7): las features locales (media o GeM de los parches, attention pooling) podrían rendir menos en Modelo de control / Proposed sin segmentación que en el público. Se reporta lo que salga, sin ajustar nada por esta observación.
 
 ## 6. Referencias
 

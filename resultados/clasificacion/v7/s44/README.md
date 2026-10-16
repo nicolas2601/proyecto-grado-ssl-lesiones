@@ -4,36 +4,36 @@ Probe `logreg`, n = 2004, `code_revision` 1d1109eaf2c8382fab1b0e5ed7aae9f5de356a
 
 | Brazo | Macro-F1 | Bal-acc | AUC | ECE |
 |---|---|---|---|---|
-| experimento de control SSL sin consistencia de tono | 0,6843 [0,6398; 0,7248] | 0,6445 [0,5995; 0,6927] | 0,9639 [0,9562; 0,9709] | 0,0239 [0,0189; 0,0401] |
-| experimento SSL con consistencia de tono | 0,6725 [0,6267; 0,7139] | 0,6405 [0,5946; 0,6865] | 0,9643 [0,9587; 0,9698] | 0,0204 [0,0166; 0,0381] |
+| Modelo de control | 0,6843 [0,6398; 0,7248] | 0,6445 [0,5995; 0,6927] | 0,9639 [0,9562; 0,9709] | 0,0239 [0,0189; 0,0401] |
+| Proposed sin segmentación | 0,6725 [0,6267; 0,7139] | 0,6405 [0,5946; 0,6865] | 0,9643 [0,9587; 0,9698] | 0,0204 [0,0166; 0,0381] |
 | DINOv2 público | 0,6158 [0,5690; 0,6550] | 0,5924 [0,5459; 0,6376] | 0,9257 [0,9123; 0,9370] | 0,1307 [0,1159; 0,1476] |
 
 | Contraste | Δ Macro-F1 | Δ Bal-acc | Δ AUC | Δ ECE |
 |---|---|---|---|---|
-| experimento de control SSL sin consistencia de tono − DINOv2 público | 0,0684 [0,0245; 0,1105] | 0,0521 [0,0096; 0,0943] | 0,0382 [0,0286; 0,0482] | -0,1069 [-0,1215; -0,0832] |
-| experimento SSL con consistencia de tono − DINOv2 público | 0,0567 [0,0142; 0,0998] | 0,0481 [0,0017; 0,0953] | 0,0385 [0,0292; 0,0495] | -0,1103 [-0,1218; -0,0879] |
-| experimento SSL con consistencia de tono − experimento de control SSL sin consistencia de tono | -0,0117 [-0,0476; 0,0271] | -0,0040 [-0,0409; 0,0385] | 0,0004 [-0,0049; 0,0065] | -0,0034 [-0,0180; 0,0136] |
+| Modelo de control − DINOv2 público | 0,0684 [0,0245; 0,1105] | 0,0521 [0,0096; 0,0943] | 0,0382 [0,0286; 0,0482] | -0,1069 [-0,1215; -0,0832] |
+| Proposed sin segmentación − DINOv2 público | 0,0567 [0,0142; 0,0998] | 0,0481 [0,0017; 0,0953] | 0,0385 [0,0292; 0,0495] | -0,1103 [-0,1218; -0,0879] |
+| Proposed sin segmentación − Modelo de control | -0,0117 [-0,0476; 0,0271] | -0,0040 [-0,0409; 0,0385] | 0,0004 [-0,0049; 0,0065] | -0,0034 [-0,0180; 0,0136] |
 
 | Predicción (docs/28 §5) | Criterio | Veredicto |
 |---|---|---|
-| P1 | macro-F1 experimento de control SSL sin consistencia de tono - público >= -0.01 | cumplida |
-| P2 | ECE experimento SSL con consistencia de tono - experimento de control SSL sin consistencia de tono < 0 con IC que excluye el cero y macro-F1 >= -0.01 | no cumplida |
-| P3 | macro-F1 experimento SSL con consistencia de tono - público >= 0 y ECE experimento SSL con consistencia de tono - público < 0 con IC que excluye el cero | cumplida |
-| P1-NI | límite inferior IC macro-F1 experimento de control SSL sin consistencia de tono - público >= -0.01 | cumplida |
-| P3-IC | límite inferior IC macro-F1 experimento SSL con consistencia de tono - público > 0 (permite decir que le gana) | cumplida |
+| P1 | macro-F1 Modelo de control - público >= -0.01 | cumplida |
+| P2 | ECE Proposed sin segmentación - Modelo de control < 0 con IC que excluye el cero y macro-F1 >= -0.01 | no cumplida |
+| P3 | macro-F1 Proposed sin segmentación - público >= 0 y ECE Proposed sin segmentación - público < 0 con IC que excluye el cero | cumplida |
+| P1-NI | límite inferior IC macro-F1 Modelo de control - público >= -0.01 | cumplida |
+| P3-IC | límite inferior IC macro-F1 Proposed sin segmentación - público > 0 (permite decir que le gana) | cumplida |
 
 ## ECE con IC basic (lectura secundaria)
 
-IC basic (reverse-percentile) de ECE, lectura secundaria. El ECE remuestreado tiene sesgo hacia arriba, así que el IC percentil puede dejar el punto afuera (experimento de control SSL sin consistencia de tono en val v7). El basic refleja los cuantiles alrededor del punto y puede salir de [0, 1]. Los veredictos primarios usan el IC percentil registrado y no cambian.
+IC basic (reverse-percentile) de ECE, lectura secundaria. El ECE remuestreado tiene sesgo hacia arriba, así que el IC percentil puede dejar el punto afuera (Modelo de control en val v7). El basic refleja los cuantiles alrededor del punto y puede salir de [0, 1]. Los veredictos primarios usan el IC percentil registrado y no cambian.
 
 | Brazo o contraste | ECE / Δ ECE | IC basic | ¿Punto fuera del IC percentil? |
 |---|---|---|---|
-| experimento de control SSL sin consistencia de tono | 0,0239 | [0,0076; 0,0289] | no |
-| experimento SSL con consistencia de tono | 0,0204 | [0,0028; 0,0243] | no |
+| Modelo de control | 0,0239 | [0,0076; 0,0289] | no |
+| Proposed sin segmentación | 0,0204 | [0,0028; 0,0243] | no |
 | DINOv2 público | 0,1307 | [0,1138; 0,1456] | no |
-| experimento de control SSL sin consistencia de tono − DINOv2 público | -0,1069 | [-0,1306; -0,0922] | no |
-| experimento SSL con consistencia de tono − DINOv2 público | -0,1103 | [-0,1328; -0,0988] | no |
-| experimento SSL con consistencia de tono − experimento de control SSL sin consistencia de tono | -0,0034 | [-0,0205; 0,0112] | no |
+| Modelo de control − DINOv2 público | -0,1069 | [-0,1306; -0,0922] | no |
+| Proposed sin segmentación − DINOv2 público | -0,1103 | [-0,1328; -0,0988] | no |
+| Proposed sin segmentación − Modelo de control | -0,0034 | [-0,0205; 0,0112] | no |
 
 P2 leída con el IC basic: no cumplida (el veredicto primario no cambia).
 

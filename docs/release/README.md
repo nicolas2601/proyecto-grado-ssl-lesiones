@@ -2,13 +2,13 @@
 
 ## Nomenclatura de lectura
 
-**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
 
 Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
 
 Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](../10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
 
-Four classifiers from the thesis "self-supervised adaptation of DINOv2 to dermoscopy": `A_s42`, `A_s43` (A\*, anchored SSL adaptation) and `B_s42`, `B_s43` (B\*, plus a tone-consistency term), each a DINOv2 ViT-B/14 backbone adapted without labels and a linear head for the 7 HAM10000 classes.
+Four classifiers from the thesis "self-supervised adaptation of DINOv2 to dermoscopy": `A_s42`, `A_s43` (Modelo de control, anchored SSL adaptation) and `B_s42`, `B_s43` (Proposed sin segmentación, plus a tone-consistency term), each a DINOv2 ViT-B/14 backbone adapted without labels and a linear head for the 7 HAM10000 classes.
 
 **Research use only. Not a medical device; do not use for diagnosis.** Weights: CC BY-NC 4.0, non-commercial (`LICENSE-WEIGHTS`); code: Apache-2.0 (`LICENSE`).
 

@@ -2,7 +2,7 @@
 
 ## Nomenclatura de lectura
 
-**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
 
 Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
 
@@ -56,8 +56,8 @@ rechazada por el protocolo.
 
 | Evidencia | Estado | Conteo verificable en este checkout |
 |---|---|---:|
-| experimento de segmentación U-Net, ronda 1 | Pendiente de corrida versionada | No hay `best.pt`, `metrics.jsonl` ni `summary.json` comprometidos |
-| experimento de segmentación U-Net, ronda 2 | Pendiente de corrida versionada | No hay `best.pt`, `metrics.jsonl` ni `summary.json` comprometidos |
+| Experimento de segmentación 1 | Pendiente de corrida versionada | No hay `best.pt`, `metrics.jsonl` ni `summary.json` comprometidos |
+| Experimento de segmentación 2 | Pendiente de corrida versionada | No hay `best.pt`, `metrics.jsonl` ni `summary.json` comprometidos |
 | Manifiesto pseudo-máscaras -> ITA/FST | Implementado | La cuarentena se registra por imagen; no hay ejecución de bundle que permita sumar casos |
 | FST V2 histórico con U-Net | Reportado históricamente; pendiente de verificación reproducible | HAM10000: 0; ISIC2019: 19; ISIC2020: 88 máscaras degeneradas |
 

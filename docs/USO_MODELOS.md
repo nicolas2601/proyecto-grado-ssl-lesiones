@@ -2,7 +2,7 @@
 
 ## Nomenclatura de lectura
 
-**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
 
 Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
 
@@ -29,7 +29,7 @@ v7/
     release.json  parity.json
 ```
 
-`A_*` es el brazo A\* (adaptación SSL anclada) y `B_*` el B\* (más el término de tono); `_s42` y `_s43` son las semillas del preentrenamiento. Los ejemplos usan `B_s42`; cambia esa carpeta por la del modelo que quieras. Las clases son las 7 de HAM10000: `akiec`, `bcc`, `bkl`, `df`, `mel`, `nv`, `vasc`.
+`A_*` es el brazo Modelo de control (adaptación SSL anclada) y `B_*` el Proposed sin segmentación (más el término de tono); `_s42` y `_s43` son las semillas del preentrenamiento. Los ejemplos usan `B_s42`; cambia esa carpeta por la del modelo que quieras. Las clases son las 7 de HAM10000: `akiec`, `bcc`, `bkl`, `df`, `mel`, `nv`, `vasc`.
 
 Todos los comandos se corren desde la carpeta `v7/`, con la imagen a clasificar copiada como `lesion.jpg`. Antes de empezar, verifica la descarga:
 

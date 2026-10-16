@@ -2,7 +2,7 @@
 
 ## Nomenclatura de lectura
 
-**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
 
 Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
 
@@ -16,12 +16,12 @@ La tabla principal es la [combinada de las tres semillas](resultados/clasificaci
 
 Dos tablas generadas más, con el mismo test: la del [clasificador](resultados/clasificacion/TABLA_CLASIFICADOR.md) (v6, C1 y v7 lado a lado, y por clase: matriz de confusión, F1, recall y sensibilidad y AUC de melanoma) y la de [segmentación](resultados/segmentacion/TABLA_SEGMENTACION.md) (red de segmentación entrenada con pseudo-máscaras final contra las máscaras de referencia y pseudo-máscaras v7 contra los umbrales registrados en docs/27).
 
-Compara tres brazos sobre la validación del fold 0 de C1: DINOv2 público, SSL anclado sin tono (A\*) y SSL propuesto con tono (B\*). Usa un probe lineal, una sola evaluación e intervalos bootstrap del 95 %. Las predicciones se registraron antes de correrla ([docs/28 §5](docs/28-rediseno-brazo-propuesto-v7.md)).
+Compara tres brazos sobre la validación del fold 0 de C1: DINOv2 público, SSL anclado sin tono (Modelo de control) y SSL propuesto con tono (Proposed sin segmentación). Usa un probe lineal, una sola evaluación e intervalos bootstrap del 95 %. Las predicciones se registraron antes de correrla ([docs/28 §5](docs/28-rediseno-brazo-propuesto-v7.md)).
 
 Lectura al 2026-09-29, con las tres semillas y sin elegir ninguna (regla en [docs/28 §4.1](docs/28-rediseno-brazo-propuesto-v7.md), extendida a tres semillas en [docs/29 §2.5](docs/29-plan-v7.1.md)):
-- B\* le gana al DINOv2 público en macro-F1 en las tres semillas, con intervalos que excluyen el cero.
-- A\* no pierde contra el público en ninguna (P1). La no inferioridad estricta (P1-NI) se cumple en s43 y s44 pero no en s42: no es robusta a la semilla.
-- B\* y A\* no se distinguen entre sí, y B\* no calibra mejor que A\*.
+- Proposed sin segmentación le gana al DINOv2 público en macro-F1 en las tres semillas, con intervalos que excluyen el cero.
+- Modelo de control no pierde contra el público en ninguna (P1). La no inferioridad estricta (P1-NI) se cumple en s43 y s44 pero no en s42: no es robusta a la semilla.
+- Proposed sin segmentación y Modelo de control no se distinguen entre sí, y Proposed sin segmentación no calibra mejor que Modelo de control.
 - La variación entre semillas es del orden del efecto medido.
 
 ## Objetivos específicos
@@ -47,7 +47,7 @@ Lectura al 2026-09-29, con las tres semillas y sin elegir ninguna (regla en [doc
 
 ## Cómo reproducir la evaluación v7
 
-Requiere HAM10000 en `~/work/datos/ham10000`, los backbones finales A\* y B\* con su `run.json`, y el holdout y la lista de exclusión de C1. El script se niega a correr sobre validación si el árbol de git está sucio, si los ids de train o de val no coinciden con C1 o si la salida ya existe.
+Requiere HAM10000 en `~/work/datos/ham10000`, los backbones finales Modelo de control y Proposed sin segmentación con su `run.json`, y el holdout y la lista de exclusión de C1. El script se niega a correr sobre validación si el árbol de git está sucio, si los ids de train o de val no coinciden con C1 o si la salida ya existe.
 
 ```bash
 PYTHONPATH=src python scripts/c1_final_eval.py --split val --single-evaluation \

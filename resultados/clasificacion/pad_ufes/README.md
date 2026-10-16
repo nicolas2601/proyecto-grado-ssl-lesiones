@@ -20,10 +20,10 @@ Fototipo: El grupo III-VI es 84 % tipo III (392/465), así que NO representa pie
 
 Veredictos registrados (docs/30 §3), copiados del JSON:
 
-- **PAD-P1**: cumplida (Δ puntual macro-F1 B\* − público ≤ 0 con las dos semillas)
-- **PAD-P2**: cumplida (Δ puntual macro-F1 A\* − público ≤ 0 con las dos semillas)
-- **PAD-P3**: no cumplida (Δ puntual ECE B\* − público < 0 con las dos semillas)
-- **PAD-P4**: no cumplida (IC de macro-F1 B\* − A\* cruza el 0 con las dos semillas)
+- **PAD-P1**: cumplida (Δ puntual macro-F1 Proposed sin segmentación − público ≤ 0 con las dos semillas)
+- **PAD-P2**: cumplida (Δ puntual macro-F1 Modelo de control − público ≤ 0 con las dos semillas)
+- **PAD-P3**: no cumplida (Δ puntual ECE Proposed sin segmentación − público < 0 con las dos semillas)
+- **PAD-P4**: no cumplida (IC de macro-F1 Proposed sin segmentación − Modelo de control cruza el 0 con las dos semillas)
 
 | Predicción | Semilla | Contraste | Métrica | Δ puntual | IC 95 % pareado | Lectura |
 |---|---|---|---|---:|---|---|
@@ -92,10 +92,10 @@ Mejora robusta a la semilla (IC excluye 0 a favor del brazo con las dos semillas
 
 Veredictos registrados (docs/30 §3), copiados del JSON:
 
-- **PAD-P1**: cumplida (Δ puntual macro-F1 B\* − público ≤ 0 con las dos semillas)
-- **PAD-P2**: cumplida (Δ puntual macro-F1 A\* − público ≤ 0 con las dos semillas)
-- **PAD-P3**: no cumplida (Δ puntual ECE B\* − público < 0 con las dos semillas)
-- **PAD-P4**: no cumplida (IC de macro-F1 B\* − A\* cruza el 0 con las dos semillas)
+- **PAD-P1**: cumplida (Δ puntual macro-F1 Proposed sin segmentación − público ≤ 0 con las dos semillas)
+- **PAD-P2**: cumplida (Δ puntual macro-F1 Modelo de control − público ≤ 0 con las dos semillas)
+- **PAD-P3**: no cumplida (Δ puntual ECE Proposed sin segmentación − público < 0 con las dos semillas)
+- **PAD-P4**: no cumplida (IC de macro-F1 Proposed sin segmentación − Modelo de control cruza el 0 con las dos semillas)
 
 | Predicción | Semilla | Contraste | Métrica | Δ puntual | IC 95 % pareado | Lectura |
 |---|---|---|---|---:|---|---|

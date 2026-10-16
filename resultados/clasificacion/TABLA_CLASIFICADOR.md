@@ -24,14 +24,14 @@ La accuracy sola engaña con este desbalance: `nv` es 1341 de 2004 imágenes de 
 | C1 | ssl_plain_vitb14 | 0,5784 — | 0,5345 — | 0,9454 — | 0,0159 — | 0,7974 — | `resultados/clasificacion/c1/c1_cells.json` |
 | C1 | ssl_proposed_vits14 | 0,4823 — | 0,4342 — | 0,9209 — | 0,0382 — | 0,7750 — | `resultados/clasificacion/c1/c1_cells.json` |
 | C1 | ssl_proposed_vitb14 | 0,5261 — | 0,4803 — | 0,9436 — | 0,0268 — | 0,7934 — | `resultados/clasificacion/c1/c1_cells.json` |
-| v7 s42 | experimento de control SSL sin consistencia de tono | 0,6464 [0,5980; 0,6894] | 0,6021 [0,5565; 0,6488] | 0,9619 [0,9563; 0,9671] | 0,0135 [0,0138; 0,0336] | 0,8318 [0,8154; 0,8468] | `resultados/clasificacion/v7/final_eval.json` |
-| v7 s43 | experimento de control SSL sin consistencia de tono | 0,6850 [0,6353; 0,7258] | 0,6457 [0,5968; 0,6942] | 0,9662 [0,9603; 0,9711] | 0,0202 [0,0169; 0,0377] | 0,8443 [0,8293; 0,8603] | `resultados/clasificacion/v7/s43/final_eval.json` |
-| v7 s44 | experimento de control SSL sin consistencia de tono | 0,6843 [0,6398; 0,7248] | 0,6445 [0,5995; 0,6927] | 0,9639 [0,9562; 0,9709] | 0,0239 [0,0189; 0,0401] | 0,8438 [0,8283; 0,8598] | `resultados/clasificacion/v7/s44/final_eval.json` |
-| media s42/s43/s44 | experimento de control SSL sin consistencia de tono | 0,6719 — | 0,6308 — | 0,9640 — | 0,0192 — | 0,8400 — | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json`, `resultados/clasificacion/v7/s44/final_eval.json` |
-| v7 s42 | experimento SSL con consistencia de tono | 0,6606 [0,6157; 0,7040] | 0,6327 [0,5871; 0,6838] | 0,9629 [0,9563; 0,9690] | 0,0325 [0,0253; 0,0497] | 0,8313 [0,8149; 0,8478] | `resultados/clasificacion/v7/final_eval.json` |
-| v7 s43 | experimento SSL con consistencia de tono | 0,6638 [0,6152; 0,7052] | 0,6119 [0,5657; 0,6607] | 0,9623 [0,9563; 0,9677] | 0,0178 [0,0166; 0,0377] | 0,8308 [0,8149; 0,8468] | `resultados/clasificacion/v7/s43/final_eval.json` |
-| v7 s44 | experimento SSL con consistencia de tono | 0,6725 [0,6267; 0,7139] | 0,6405 [0,5946; 0,6865] | 0,9643 [0,9587; 0,9698] | 0,0204 [0,0166; 0,0381] | 0,8418 [0,8258; 0,8573] | `resultados/clasificacion/v7/s44/final_eval.json` |
-| media s42/s43/s44 | experimento SSL con consistencia de tono | 0,6656 — | 0,6284 — | 0,9632 — | 0,0236 — | 0,8347 — | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json`, `resultados/clasificacion/v7/s44/final_eval.json` |
+| v7 s42 | Modelo de control | 0,6464 [0,5980; 0,6894] | 0,6021 [0,5565; 0,6488] | 0,9619 [0,9563; 0,9671] | 0,0135 [0,0138; 0,0336] | 0,8318 [0,8154; 0,8468] | `resultados/clasificacion/v7/final_eval.json` |
+| v7 s43 | Modelo de control | 0,6850 [0,6353; 0,7258] | 0,6457 [0,5968; 0,6942] | 0,9662 [0,9603; 0,9711] | 0,0202 [0,0169; 0,0377] | 0,8443 [0,8293; 0,8603] | `resultados/clasificacion/v7/s43/final_eval.json` |
+| v7 s44 | Modelo de control | 0,6843 [0,6398; 0,7248] | 0,6445 [0,5995; 0,6927] | 0,9639 [0,9562; 0,9709] | 0,0239 [0,0189; 0,0401] | 0,8438 [0,8283; 0,8598] | `resultados/clasificacion/v7/s44/final_eval.json` |
+| media s42/s43/s44 | Modelo de control | 0,6719 — | 0,6308 — | 0,9640 — | 0,0192 — | 0,8400 — | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json`, `resultados/clasificacion/v7/s44/final_eval.json` |
+| v7 s42 | Proposed sin segmentación | 0,6606 [0,6157; 0,7040] | 0,6327 [0,5871; 0,6838] | 0,9629 [0,9563; 0,9690] | 0,0325 [0,0253; 0,0497] | 0,8313 [0,8149; 0,8478] | `resultados/clasificacion/v7/final_eval.json` |
+| v7 s43 | Proposed sin segmentación | 0,6638 [0,6152; 0,7052] | 0,6119 [0,5657; 0,6607] | 0,9623 [0,9563; 0,9677] | 0,0178 [0,0166; 0,0377] | 0,8308 [0,8149; 0,8468] | `resultados/clasificacion/v7/s43/final_eval.json` |
+| v7 s44 | Proposed sin segmentación | 0,6725 [0,6267; 0,7139] | 0,6405 [0,5946; 0,6865] | 0,9643 [0,9587; 0,9698] | 0,0204 [0,0166; 0,0381] | 0,8418 [0,8258; 0,8573] | `resultados/clasificacion/v7/s44/final_eval.json` |
+| media s42/s43/s44 | Proposed sin segmentación | 0,6656 — | 0,6284 — | 0,9632 — | 0,0236 — | 0,8347 — | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json`, `resultados/clasificacion/v7/s44/final_eval.json` |
 | v7 s42 = s43 = s44 | DINOv2 público | 0,6158 [0,5690; 0,6550] | 0,5924 [0,5459; 0,6376] | 0,9257 [0,9123; 0,9370] | 0,1307 [0,1159; 0,1476] | 0,7819 [0,7655; 0,7994] | `resultados/clasificacion/v7/final_eval.json`, `resultados/clasificacion/v7/s43/final_eval.json`, `resultados/clasificacion/v7/s44/final_eval.json` |
 | referencia | siempre nv | — | — | — | — | 0,6692 — | `y_true` de `resultados/clasificacion/v7/final_eval.probas.npz` |
 
@@ -43,41 +43,41 @@ IC 95 % de la sensibilidad y del AUC de melanoma: bootstrap percentil sobre imá
 
 | Brazo | Sensibilidad melanoma [IC 95 %] | AUC melanoma, uno contra el resto [IC 95 %] | Macro-F1 |
 |---|---|---|---|
-| experimento de control SSL sin consistencia de tono s42 | 0,4865 [0,4235; 0,5490] | 0,8985 [0,8784; 0,9168] | 0,6464 |
-| experimento de control SSL sin consistencia de tono s43 | 0,4775 [0,4087; 0,5354] | 0,9111 [0,8925; 0,9279] | 0,6850 |
-| experimento de control SSL sin consistencia de tono s44 | 0,5000 [0,4394; 0,5570] | 0,9112 [0,8907; 0,9289] | 0,6843 |
-| experimento SSL con consistencia de tono s42 | 0,5045 [0,4422; 0,5683] | 0,9100 [0,8917; 0,9261] | 0,6606 |
-| experimento SSL con consistencia de tono s43 | 0,4505 [0,3871; 0,5089] | 0,8985 [0,8779; 0,9162] | 0,6638 |
-| experimento SSL con consistencia de tono s44 | 0,4505 [0,3799; 0,5152] | 0,8999 [0,8789; 0,9185] | 0,6725 |
+| Modelo de control s42 | 0,4865 [0,4235; 0,5490] | 0,8985 [0,8784; 0,9168] | 0,6464 |
+| Modelo de control s43 | 0,4775 [0,4087; 0,5354] | 0,9111 [0,8925; 0,9279] | 0,6850 |
+| Modelo de control s44 | 0,5000 [0,4394; 0,5570] | 0,9112 [0,8907; 0,9289] | 0,6843 |
+| Proposed sin segmentación s42 | 0,5045 [0,4422; 0,5683] | 0,9100 [0,8917; 0,9261] | 0,6606 |
+| Proposed sin segmentación s43 | 0,4505 [0,3871; 0,5089] | 0,8985 [0,8779; 0,9162] | 0,6638 |
+| Proposed sin segmentación s44 | 0,4505 [0,3799; 0,5152] | 0,8999 [0,8789; 0,9185] | 0,6725 |
 | DINOv2 público s42 = s43 = s44 | 0,4279 [0,3632; 0,4978] | 0,8331 [0,8054; 0,8603] | 0,6158 |
 
 ### F1 por clase
 
 | Brazo | akiec | bcc | bkl | df | mel | nv | vasc |
 |---|---|---|---|---|---|---|---|
-| experimento de control SSL sin consistencia de tono s42 | 0,6290 | 0,7071 | 0,6727 | 0,4444 | 0,5524 | 0,9235 | 0,5957 |
-| experimento de control SSL sin consistencia de tono s43 | 0,6116 | 0,7488 | 0,7239 | 0,5854 | 0,5594 | 0,9263 | 0,6400 |
-| experimento de control SSL sin consistencia de tono s44 | 0,6260 | 0,7549 | 0,7032 | 0,5556 | 0,5678 | 0,9293 | 0,6531 |
-| experimento SSL con consistencia de tono s42 | 0,5625 | 0,7327 | 0,6848 | 0,5116 | 0,5558 | 0,9234 | 0,6531 |
-| experimento SSL con consistencia de tono s43 | 0,5833 | 0,7236 | 0,6975 | 0,6111 | 0,5141 | 0,9210 | 0,5957 |
-| experimento SSL con consistencia de tono s44 | 0,6508 | 0,7172 | 0,7177 | 0,5106 | 0,5291 | 0,9291 | 0,6531 |
+| Modelo de control s42 | 0,6290 | 0,7071 | 0,6727 | 0,4444 | 0,5524 | 0,9235 | 0,5957 |
+| Modelo de control s43 | 0,6116 | 0,7488 | 0,7239 | 0,5854 | 0,5594 | 0,9263 | 0,6400 |
+| Modelo de control s44 | 0,6260 | 0,7549 | 0,7032 | 0,5556 | 0,5678 | 0,9293 | 0,6531 |
+| Proposed sin segmentación s42 | 0,5625 | 0,7327 | 0,6848 | 0,5116 | 0,5558 | 0,9234 | 0,6531 |
+| Proposed sin segmentación s43 | 0,5833 | 0,7236 | 0,6975 | 0,6111 | 0,5141 | 0,9210 | 0,5957 |
+| Proposed sin segmentación s44 | 0,6508 | 0,7172 | 0,7177 | 0,5106 | 0,5291 | 0,9291 | 0,6531 |
 | DINOv2 público s42 = s43 = s44 | 0,4853 | 0,6377 | 0,5919 | 0,5854 | 0,4471 | 0,8969 | 0,6667 |
 
 ### Recall por clase
 
 | Brazo | akiec | bcc | bkl | df | mel | nv | vasc |
 |---|---|---|---|---|---|---|---|
-| experimento de control SSL sin consistencia de tono s42 | 0,5909 | 0,6796 | 0,6727 | 0,3478 | 0,4865 | 0,9545 | 0,4828 |
-| experimento de control SSL sin consistencia de tono s43 | 0,5606 | 0,7379 | 0,7091 | 0,5217 | 0,4775 | 0,9612 | 0,5517 |
-| experimento de control SSL sin consistencia de tono s44 | 0,6212 | 0,7476 | 0,7000 | 0,4348 | 0,5000 | 0,9560 | 0,5517 |
-| experimento SSL con consistencia de tono s42 | 0,5455 | 0,7184 | 0,6864 | 0,4783 | 0,5045 | 0,9441 | 0,5517 |
-| experimento SSL con consistencia de tono s43 | 0,5303 | 0,6990 | 0,6864 | 0,4783 | 0,4505 | 0,9560 | 0,4828 |
-| experimento SSL con consistencia de tono s44 | 0,6212 | 0,6893 | 0,6818 | 0,5217 | 0,4505 | 0,9672 | 0,5517 |
+| Modelo de control s42 | 0,5909 | 0,6796 | 0,6727 | 0,3478 | 0,4865 | 0,9545 | 0,4828 |
+| Modelo de control s43 | 0,5606 | 0,7379 | 0,7091 | 0,5217 | 0,4775 | 0,9612 | 0,5517 |
+| Modelo de control s44 | 0,6212 | 0,7476 | 0,7000 | 0,4348 | 0,5000 | 0,9560 | 0,5517 |
+| Proposed sin segmentación s42 | 0,5455 | 0,7184 | 0,6864 | 0,4783 | 0,5045 | 0,9441 | 0,5517 |
+| Proposed sin segmentación s43 | 0,5303 | 0,6990 | 0,6864 | 0,4783 | 0,4505 | 0,9560 | 0,4828 |
+| Proposed sin segmentación s44 | 0,6212 | 0,6893 | 0,6818 | 0,5217 | 0,4505 | 0,9672 | 0,5517 |
 | DINOv2 público s42 = s43 = s44 | 0,5000 | 0,6408 | 0,6000 | 0,5217 | 0,4279 | 0,9045 | 0,5517 |
 
 ### Matrices de confusión (filas: clase real; columnas: predicha)
 
-#### experimento de control SSL sin consistencia de tono s42
+#### Modelo de control s42
 
 | real \ predicha | akiec | bcc | bkl | df | mel | nv | vasc |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -89,7 +89,7 @@ IC 95 % de la sensibilidad y del AUC de melanoma: bootstrap percentil sobre imá
 | nv | 1 | 4 | 25 | 2 | 27 | 1280 | 2 |
 | vasc | 0 | 3 | 0 | 2 | 3 | 7 | 14 |
 
-#### experimento de control SSL sin consistencia de tono s43
+#### Modelo de control s43
 
 | real \ predicha | akiec | bcc | bkl | df | mel | nv | vasc |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -101,7 +101,7 @@ IC 95 % de la sensibilidad y del AUC de melanoma: bootstrap percentil sobre imá
 | nv | 2 | 1 | 17 | 2 | 25 | 1289 | 5 |
 | vasc | 0 | 3 | 1 | 1 | 4 | 4 | 16 |
 
-#### experimento de control SSL sin consistencia de tono s44
+#### Modelo de control s44
 
 | real \ predicha | akiec | bcc | bkl | df | mel | nv | vasc |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -113,7 +113,7 @@ IC 95 % de la sensibilidad y del AUC de melanoma: bootstrap percentil sobre imá
 | nv | 2 | 2 | 23 | 1 | 28 | 1282 | 3 |
 | vasc | 0 | 3 | 0 | 0 | 2 | 8 | 16 |
 
-#### experimento SSL con consistencia de tono s42
+#### Proposed sin segmentación s42
 
 | real \ predicha | akiec | bcc | bkl | df | mel | nv | vasc |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -125,7 +125,7 @@ IC 95 % de la sensibilidad y del AUC de melanoma: bootstrap percentil sobre imá
 | nv | 2 | 4 | 27 | 2 | 37 | 1266 | 3 |
 | vasc | 0 | 3 | 0 | 2 | 3 | 5 | 16 |
 
-#### experimento SSL con consistencia de tono s43
+#### Proposed sin segmentación s43
 
 | real \ predicha | akiec | bcc | bkl | df | mel | nv | vasc |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -137,7 +137,7 @@ IC 95 % de la sensibilidad y del AUC de melanoma: bootstrap percentil sobre imá
 | nv | 1 | 4 | 21 | 0 | 29 | 1282 | 4 |
 | vasc | 0 | 3 | 1 | 1 | 2 | 8 | 14 |
 
-#### experimento SSL con consistencia de tono s44
+#### Proposed sin segmentación s44
 
 | real \ predicha | akiec | bcc | bkl | df | mel | nv | vasc |
 |---|---:|---:|---:|---:|---:|---:|---:|

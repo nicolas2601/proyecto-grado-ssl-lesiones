@@ -66,8 +66,8 @@ def test_render_has_one_row_per_v6_backbone_and_c1_cell():
 
 def test_v7_rows_carry_the_ci_and_the_seed_mean_has_none():
     text = bct.render(_sources())
-    assert "[" in [ln for ln in text.splitlines() if "| v7 s42 | experimento de control SSL sin consistencia de tono |" in ln][0]
-    mean_line = [ln for ln in text.splitlines() if "| media s42/s43 | experimento de control SSL sin consistencia de tono |" in ln][0]
+    assert "[" in [ln for ln in text.splitlines() if "| v7 s42 | Modelo de control |" in ln][0]
+    mean_line = [ln for ln in text.splitlines() if "| media s42/s43 | Modelo de control |" in ln][0]
     assert "[" not in mean_line
 
 
@@ -103,7 +103,7 @@ def test_melanoma_rows_carry_a_bootstrap_ci_and_the_header_states_the_method():
     text = bct.render(_sources())
     assert f"{pcm.BOOTSTRAP_RESAMPLES} remuestras" in text
     assert f"semilla {pcm.BOOTSTRAP_SEED}" in text
-    mel_rows = [ln for ln in text.splitlines() if ln.startswith("| experimento de control SSL sin consistencia de tono s42 |")]
+    mel_rows = [ln for ln in text.splitlines() if ln.startswith("| Modelo de control s42 |")]
     assert mel_rows[0].count("[") == 2  # sensitivity and AUC, both with a CI
 
 
@@ -115,7 +115,7 @@ def test_summary_has_accuracy_and_the_always_nv_reference_row():
     nv_share = float((src["probas"][42]["y_true"] == CLASSES.index("nv")).mean())
     nv_row = [ln for ln in text.splitlines() if "| siempre nv |" in ln]
     assert len(nv_row) == 1 and bct._num(nv_share) in nv_row[0]
-    v7_row = [ln for ln in text.splitlines() if ln.startswith("| v7 s42 | experimento de control SSL sin consistencia de tono |")][0]
+    v7_row = [ln for ln in text.splitlines() if ln.startswith("| v7 s42 | Modelo de control |")][0]
     assert v7_row.count("[") == 5  # four JSON metrics plus accuracy, each with a CI
     assert "macro-F1" in text and "engaña" in text
 

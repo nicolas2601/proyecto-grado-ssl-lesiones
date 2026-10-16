@@ -105,6 +105,6 @@ def test_the_segmenters_must_score_the_same_images(tmp_path):
 def test_the_table_is_rendered_from_the_document_with_decimal_commas(tmp_path):
     root, extract = _fixture_root(tmp_path)
     text = t2.render_markdown(t2.build_document(root, extract, n_resamples=50, seed=1))
-    assert "sin potencia" in text and "experimento de segmentación U-Net, ronda final 3" in text and "experimento de segmentación DINOv2 con pseudo-máscaras CCAM" in text
+    assert "sin potencia" in text and "Experimento de segmentación 3" in text and "Experimento de segmentación 5" in text
     assert "0,5" in text and "0.5" not in text
     assert "no es tono de piel" in text

@@ -30,7 +30,7 @@ Generado por `scripts/build_fitzpatrick_table.py` desde los JSON de `resultados/
 ## HAM10000
 
 - Imágenes: 10.015 (train 8.001, val 2.014); ilegibles: 0.
-- Máscaras: experimento de segmentación U-Net, ronda final 3 nativas, sha256 `8b356ce0fb04`.
+- Máscaras: Experimento de segmentación 3 nativas, sha256 `8b356ce0fb04`.
 - Revisión de código: `48d5f63bd6ef197d138bb44ebb7732294bef7243`.
 
 ### Cobertura de los estimadores
@@ -145,7 +145,7 @@ Cortes de L\* propios de este dataset (n = 10.015 con L\*): oscuro L\* ≤ 66,02
 ## ISIC 2019
 
 - Imágenes: 25.331 (train 20.264, val 5.067); ilegibles: 0.
-- Máscaras: pseudo-máscaras automáticas (experimento de segmentación U-Net, ronda final 3, sin etiquetas expertas) del pool de `salidas/tone/inputs`; manifiesto sha256 `fbbaa27e89c1` (58.457 entradas).
+- Máscaras: pseudo-máscaras automáticas (Experimento de segmentación 3, sin etiquetas expertas) del pool de `salidas/tone/inputs`; manifiesto sha256 `fbbaa27e89c1` (58.457 entradas).
 - Revisión de código: `7a029a8abcbb577fcc8d68c2f47bcb1897e6e8f3`.
 
 ### Cobertura de los estimadores
@@ -266,7 +266,7 @@ Cortes de L\* propios de este dataset (n = 25.312 con L\*): oscuro L\* ≤ 65,92
 ## ISIC 2020
 
 - Imágenes: 33.126 (train 26.466, val 6.660); ilegibles: 0.
-- Máscaras: pseudo-máscaras automáticas (experimento de segmentación U-Net, ronda final 3, sin etiquetas expertas) del pool de `salidas/tone/inputs`; manifiesto sha256 `fbbaa27e89c1` (58.457 entradas).
+- Máscaras: pseudo-máscaras automáticas (Experimento de segmentación 3, sin etiquetas expertas) del pool de `salidas/tone/inputs`; manifiesto sha256 `fbbaa27e89c1` (58.457 entradas).
 - Revisión de código: `7a029a8abcbb577fcc8d68c2f47bcb1897e6e8f3`.
 
 ### Cobertura de los estimadores

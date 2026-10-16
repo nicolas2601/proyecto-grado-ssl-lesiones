@@ -12,7 +12,7 @@ Constraint kept: the professor's rule (2026-09-18). Training never reads masks o
 
 - ADDED `field_roi`: dermoscope field validity mask (circle fitted to the non-black bounding box, inward margin), computed once in the cache stage and stored as `field.npy`.
 - MODIFIED `uncertainty_module`: candidates restricted to the field, orientation ring taken inside the field, maximum area fraction of the field (default 0.6), outside-field pixels labelled background.
-- MODIFIED `gpu_augment`: multiplicative radial vignette augmentation for MoCo and student views, never applied to masks.
+- MODIFIED `gpu_augment`: multiplicative radial vignette augmentation for MoCo and experimento de segmentación views, never applied to masks.
 - MODIFIED `fitzpatrick.estimate_fst*`: optional explicit border mask; `fst_pseudo_manifest` passes the field so ITA uses field pixels only.
 - MODIFIED `evaluate_segmentation`: percentiles, predicted and reference coverage, stratification by FST bucket from a manifest, overlay grids (worst, best, random), optional Weights & Biases logging.
 - ADDED `wandb_logging`: optional sink for `JsonlLogger`, enabled by `WANDB_API_KEY` plus `--wandb-project`; no-op otherwise.

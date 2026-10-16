@@ -37,8 +37,8 @@ Datos de las rondas de auto-entrenamiento (`resultados/2026-09-21-final/pseudo_r
 | Ronda | fuente | excluded_no_region | excluded_by_area | mean_foreground_fraction |
 |---|---|---:|---:|---:|
 | r0 | ccam (saliencia cruda) | 670 | 4.252 | 0,1305 |
-| r1 | student | 913 | 1.640 | 0,1476 |
-| r2 | student | 877 | 1.631 | 0,1433 |
+| r1 | experimento de segmentación | 913 | 1.640 | 0,1476 |
+| r2 | experimento de segmentación | 877 | 1.631 | 0,1433 |
 
 **Verificado, no es un problema de tamaño de imagen:** se revisó `evaluate_segmentation.py` y los `summary.json` reales de `piloto`, `final`, `v2` y `baselines_v2` — predicción y máscara de referencia siempre se cargan al mismo `resolution` dentro de cada corrida, y HAM10000/ISIC2018 comparten checkpoint y resolución (224px) en todas las rondas revisadas. No confundir con la validación de FST/ITA sobre ISIC2019 (`docs/20`, sección 3), donde el resize también se sospechó y también se descartó por separado (diferencia de ~2,7 puntos entre resized y full-res) — son dos investigaciones distintas, ambas con resultado negativo para la hipótesis de resize.
 

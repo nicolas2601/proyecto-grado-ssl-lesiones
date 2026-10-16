@@ -17,9 +17,9 @@ Generado por `scripts/build_bench_ablation.py` desde los JSON del repositorio. N
 - **Congelado (sin fine-tuning):** la red no se toca; solo se entrena el clasificador lineal de encima (regresión logística).
 - **Fine-tuning:** se reentrena toda la red con las etiquetas del dataset.
 - **Segmentación:** uso de máscaras de lesión como entrada. La columna dice «no» en todas las filas salvo en el bloque exploratorio de HAM10000 (variante Proposed con segmentación (experimental) del bloque E3 de docs/33), que no cambia el propuesto.
-- **Transductivo:** el pool de preentrenamiento auto-supervisado contenía las imágenes de val (sin etiquetas). Solo aplica a Proposed sin segmentación / control SSL sin consistencia de tono originales en ISIC 2019 e ISIC 2020.
+- **Transductivo:** el pool de preentrenamiento auto-supervisado contenía las imágenes de val (sin etiquetas). Solo aplica a Proposed sin segmentación / Modelo de control originales en ISIC 2019 e ISIC 2020.
 - **Cómputo canónico:** extracción de features con batch 64 y autocast CUDA (el de v7.1). El batch 16 mueve las cifras unas milésimas (orden de reducción en fp16) y se reporta solo como **sensibilidad**.
-- **Pesos limpios (sensibilidad):** Proposed sin segmentación / control SSL sin consistencia de tono re-preentrenados con un pool SSL sin las imágenes de val de ISIC (docs/33, sección 2). En HAM10000 son un análisis posterior que se lee al lado de la fila registrada de **pesos originales (selección)**; no es selección y no reemplaza al propuesto.
+- **Pesos limpios (sensibilidad):** Proposed sin segmentación / Modelo de control re-preentrenados con un pool SSL sin las imágenes de val de ISIC (docs/33, sección 2). En HAM10000 son un análisis posterior que se lee al lado de la fila registrada de **pesos originales (selección)**; no es selección y no reemplaza al propuesto.
 - **Contraste pareado:** diferencia entre dos modelos sobre las mismas imágenes, con IC bootstrap de la diferencia. «Mejor» solo si el IC excluye 0; si lo incluye, «sin diferencia demostrable».
 - **Exploratorio:** variantes post-hoc o con selección en otro conjunto; se reportan pero no cambian el propuesto ni se leen como resultado confirmado.
 
@@ -35,7 +35,7 @@ Particiones de val de este banco (no son la misma partición):
 - **Entre particiones distintas la comparación es solo de intervalos (IC 95 %)**, no un test pareado: HAM10000 usa la partición v6/v7 (n = 2.004) para el propuesto y la de Kaggle (n = 2.014) para los baselines; ISIC 2019 e ISIC 2020 tienen la suya. Los contrastes pareados solo existen donde dos modelos comparten partición e imágenes y hay probabilidades por imagen (docs/33, sección 5); están al final de cada tabla y, todos juntos, en `CONTRASTES_SSL.md` (sin corrección por multiplicidad).
 - **Optimista: época elegida en val.** Todas las filas de fine-tuning (HAM10000, ISIC 2019 e ISIC 2020) eligen su mejor época por balanced accuracy sobre val; el plan decía holdout interno y se mantuvo la receta existente por consistencia entre datasets (errata de docs/33). Las de ISIC 2020 corrieron en nuestro pod (GPU RTX PRO 4000), no en el banco de Karen. El propuesto no tiene fine-tuning y no se ve afectado.
 - **Modelo y protocolo no son lo mismo.** El propuesto usa el protocolo de Proposed sin segmentación (features cls4, TTA, probe balanceado); la fila «DINOv2 público, protocolo de Proposed sin segmentación» es el control con el mismo protocolo y pesos públicos. Los 8 baselines siguen el protocolo de su propio banco (probe logreg).
-- Los IC solo existen donde la fuente los publica: los baselines, para exactitud balanceada y F1 macro; Proposed sin segmentación / control SSL sin consistencia de tono, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en Proposed sin segmentación / control SSL sin consistencia de tono salen de las probabilidades commiteadas, también sin IC.
+- Los IC solo existen donde la fuente los publica: los baselines, para exactitud balanceada y F1 macro; Proposed sin segmentación / Modelo de control, para accuracy, exactitud balanceada, F1 macro, AUC y ECE. Precisión macro, recall macro y MCC de los baselines salen exactos de la matriz de confusión y van sin IC; en Proposed sin segmentación / Modelo de control salen de las probabilidades commiteadas, también sin IC.
 - **Pesos limpios en HAM10000: sensibilidad posterior, no es selección.** La fila registrada del propuesto (pesos originales, selección) no se reemplaza. Las filas del bloque «pesos limpios (sensibilidad)» usan la configuración y los umbrales de operación del holdout original, ajustados con los pesos originales y aplicados sin cambios a los limpios (supuesto declarado), con cómputo canónico; sus contrastes pareados (por `lesion_id`, con MCC) están en `CONTRASTES_SSL.md` y `TABLA_ABLACION.md`.
 - Las filas «pendiente» no tienen número: se listan con su motivo técnico (sin ETA inventada), para que nada parezca olvidado. No se inventa ninguna cifra.
 
@@ -46,35 +46,35 @@ HAM10000, val n = 2.004 (partición v6/v7), probe logreg, fuente `resultados/cla
 | Método | Configuración | F1 macro | Exactitud balanceada | AUC | ECE ↓ | MCC |
 |---|---|---|---|---|---|---|
 | v7: DINOv2 público | `public@224\|cls\|none\|id` | 0,6158 [0,5690; 0,6550] | 0,5924 [0,5459; 0,6376] | 0,9257 [0,9123; 0,9370] | 0,1307 [0,1159; 0,1476] | 0,5783 |
-| v7: experimento de control SSL sin consistencia de tono | `A_s42_a1.0@224\|cls\|none\|id` | 0,6464 [0,5980; 0,6894] | 0,6021 [0,5565; 0,6488] | 0,9619 [0,9563; 0,9671] | 0,0135 [0,0138; 0,0336] | 0,6647 |
-| v7: experimento SSL con consistencia de tono | `B_s42_a1.0@224\|cls\|none\|id` | 0,6606 [0,6157; 0,7040] | 0,6327 [0,5871; 0,6838] | 0,9629 [0,9563; 0,9690] | 0,0325 [0,0253; 0,0497] | 0,6682 |
+| v7: Modelo de control | `A_s42_a1.0@224\|cls\|none\|id` | 0,6464 [0,5980; 0,6894] | 0,6021 [0,5565; 0,6488] | 0,9619 [0,9563; 0,9671] | 0,0135 [0,0138; 0,0336] | 0,6647 |
+| v7: Proposed sin segmentación | `B_s42_a1.0@224\|cls\|none\|id` | 0,6606 [0,6157; 0,7040] | 0,6327 [0,5871; 0,6838] | 0,9629 [0,9563; 0,9690] | 0,0325 [0,0253; 0,0497] | 0,6682 |
 | v7.1: DINOv2 público, mejor protocolo | `public@224\|cls4\|la0.5\|tta` | 0,6857 [0,6412; 0,7208] | 0,6622 [0,6160; 0,7058] | 0,9598 [0,9516; 0,9665] | 0,0702 [0,0605; 0,0871] | 0,6683 |
-| v7.1: DINOv2 público, protocolo de control SSL sin consistencia de tono | `public@224\|cls_attn\|la0.5\|tta` | 0,6320 [0,5875; 0,6710] | 0,6174 [0,5714; 0,6632] | 0,9432 [0,9339; 0,9519] | 0,0806 [0,0684; 0,0987] | 0,6110 |
+| v7.1: DINOv2 público, protocolo de Modelo de control | `public@224\|cls_attn\|la0.5\|tta` | 0,6320 [0,5875; 0,6710] | 0,6174 [0,5714; 0,6632] | 0,9432 [0,9339; 0,9519] | 0,0806 [0,0684; 0,0987] | 0,6110 |
 | v7.1: DINOv2 público, protocolo de Proposed sin segmentación | `public@224\|cls4\|balanced\|tta` | 0,6837 [0,6381; 0,7202] | 0,6659 [0,6176; 0,7102] | 0,9619 [0,9549; 0,9680] | 0,0688 [0,0573; 0,0846] | 0,6712 |
-| v7.1: control SSL sin consistencia de tono | `A_soup_a1.0@224\|cls_attn\|la0.5\|tta` | 0,7229 [0,6795; 0,7592] | 0,7305 [0,6844; 0,7719] | 0,9644 [0,9558; 0,9718] | 0,0154 [0,0135; 0,0339] | 0,6996 |
+| v7.1: Modelo de control | `A_soup_a1.0@224\|cls_attn\|la0.5\|tta` | 0,7229 [0,6795; 0,7592] | 0,7305 [0,6844; 0,7719] | 0,9644 [0,9558; 0,9718] | 0,0154 [0,0135; 0,0339] | 0,6996 |
 | v7.1: Proposed sin segmentación (propuesto) | `B_s42_a1.0@224\|cls4\|balanced\|tta` | 0,7141 [0,6703; 0,7547] | 0,6964 [0,6504; 0,7408] | 0,9602 [0,9516; 0,9680] | 0,0529 [0,0428; 0,0695] | 0,6901 |
 
 ### Limpios (E1) frente a originales
 
-Limpio = pesos re-preentrenados sin las imágenes de val de ISIC en el pool (docs/33, sección 2). Predicción registrada (Proposed sin segmentación, pesos con exclusión de validación frente a Proposed sin segmentación original, mismo cómputo canónico): ISIC 2019: Δ F1 macro -0,0055 [-0,0232; +0,0155], el IC incluye 0: se cumple la predicción (igual dentro del IC); ISIC 2020: Δ F1 macro +0,0093 [-0,0224; +0,0409], el IC incluye 0: se cumple la predicción (igual dentro del IC).
+Limpio = pesos re-preentrenados sin las imágenes de val de ISIC en el pool (docs/33, sección 2). Predicción registrada (Proposed sin segmentación (pesos limpios) frente a Proposed sin segmentación original, mismo cómputo canónico): ISIC 2019: Δ F1 macro -0,0055 [-0,0232; +0,0155], el IC incluye 0: se cumple la predicción (igual dentro del IC); ISIC 2020: Δ F1 macro +0,0093 [-0,0224; +0,0409], el IC incluye 0: se cumple la predicción (igual dentro del IC).
 
 | Dataset | Método | Transductivo | F1 macro [IC 95 %] | MCC | Nota |
 |---|---|---|---|---|---|
-| HAM10000 | control SSL sin consistencia de tono (ablación sin término de tono) | no | 0,7229 [0,6795; 0,7592] | 0,6996 | pesos originales (selección); probe logreg C1; precisión, recall y MCC desde las probabilidades |
+| HAM10000 | Modelo de control (ablación sin término de tono) | no | 0,7229 [0,6795; 0,7592] | 0,6996 | pesos originales (selección); probe logreg C1; precisión, recall y MCC desde las probabilidades |
 | HAM10000 | Proposed sin segmentación (propuesto) | no | 0,7141 [0,6703; 0,7547] | 0,6901 | pesos originales (selección); probe logreg C1; precisión, recall y MCC desde las probabilidades; cómputo canónico = S1 (batch 64 + autocast, el de v7.1). F1 macro de Proposed sin segmentación en S0/S1/S2: 0,7106 / 0,7141 / 0,7089 (el cómputo de extracción mueve la cifra) |
-| HAM10000 | Proposed sin segmentación, pesos con exclusión de validación (canónico) | no | 0,7104 [0,6672; 0,7497] | 0,6790 | pesos limpios (pool SSL sin las imágenes de val de ISIC); análisis de sensibilidad posterior, no es selección: configuración y umbrales del holdout original (ajustados con los pesos originales y aplicados sin cambios); cómputo canónico (batch 64 + autocast); se lee al lado de la fila registrada de pesos originales, que no se reemplaza |
-| HAM10000 | control SSL sin consistencia de tono, pesos con exclusión de validación (canónico) | no | 0,7025 [0,6606; 0,7432] | 0,7047 | pesos limpios (pool SSL sin las imágenes de val de ISIC); análisis de sensibilidad posterior, no es selección: configuración y umbrales del holdout original (ajustados con los pesos originales y aplicados sin cambios); cómputo canónico (batch 64 + autocast); se lee al lado de la fila registrada de pesos originales, que no se reemplaza |
+| HAM10000 | Proposed sin segmentación (pesos limpios) (canónico) | no | 0,7104 [0,6672; 0,7497] | 0,6790 | pesos limpios (pool SSL sin las imágenes de val de ISIC); análisis de sensibilidad posterior, no es selección: configuración y umbrales del holdout original (ajustados con los pesos originales y aplicados sin cambios); cómputo canónico (batch 64 + autocast); se lee al lado de la fila registrada de pesos originales, que no se reemplaza |
+| HAM10000 | Modelo de control (pesos limpios) (canónico) | no | 0,7025 [0,6606; 0,7432] | 0,7047 | pesos limpios (pool SSL sin las imágenes de val de ISIC); análisis de sensibilidad posterior, no es selección: configuración y umbrales del holdout original (ajustados con los pesos originales y aplicados sin cambios); cómputo canónico (batch 64 + autocast); se lee al lado de la fila registrada de pesos originales, que no se reemplaza |
 | ISIC 2019 | Proposed sin segmentación original (canónico) | sí | 0,6717 [0,6436; 0,6951] | 0,6652 | cómputo canónico (batch 64 + autocast) |
-| ISIC 2019 | Proposed sin segmentación, pesos con exclusión de validación (canónico) | no | 0,6662 [0,6401; 0,6911] | 0,6628 | cómputo canónico (batch 64 + autocast) |
-| ISIC 2019 | control SSL sin consistencia de tono, pesos con exclusión de validación (canónico) | no | 0,6549 [0,6278; 0,6771] | 0,6698 | cómputo canónico (batch 64 + autocast) |
-| ISIC 2019 | control SSL sin consistencia de tono original (canónico) | sí | 0,6481 [0,6218; 0,6719] | 0,6649 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2019 | Proposed sin segmentación (pesos limpios) (canónico) | no | 0,6662 [0,6401; 0,6911] | 0,6628 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2019 | Modelo de control (pesos limpios) (canónico) | no | 0,6549 [0,6278; 0,6771] | 0,6698 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2019 | Modelo de control original (canónico) | sí | 0,6481 [0,6218; 0,6719] | 0,6649 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2019 | Proposed sin segmentación original (batch 16) | sí | 0,6756 [0,6482; 0,6977] | 0,6677 | sensibilidad: cómputo no canónico (batch 16); transductivo |
-| ISIC 2019 | control SSL sin consistencia de tono original (batch 16) | sí | 0,6522 [0,6256; 0,6759] | 0,6669 | sensibilidad: cómputo no canónico (batch 16); transductivo |
-| ISIC 2020 | control SSL sin consistencia de tono original (canónico) | sí | 0,6543 [0,6164; 0,6896] | 0,3166 | cómputo canónico (batch 64 + autocast) |
-| ISIC 2020 | control SSL sin consistencia de tono, pesos con exclusión de validación (canónico) | no | 0,6467 [0,6095; 0,6837] | 0,3040 | cómputo canónico (batch 64 + autocast) |
-| ISIC 2020 | Proposed sin segmentación, pesos con exclusión de validación (canónico) | no | 0,6229 [0,5865; 0,6602] | 0,2506 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2019 | Modelo de control original (batch 16) | sí | 0,6522 [0,6256; 0,6759] | 0,6669 | sensibilidad: cómputo no canónico (batch 16); transductivo |
+| ISIC 2020 | Modelo de control original (canónico) | sí | 0,6543 [0,6164; 0,6896] | 0,3166 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2020 | Modelo de control (pesos limpios) (canónico) | no | 0,6467 [0,6095; 0,6837] | 0,3040 | cómputo canónico (batch 64 + autocast) |
+| ISIC 2020 | Proposed sin segmentación (pesos limpios) (canónico) | no | 0,6229 [0,5865; 0,6602] | 0,2506 | cómputo canónico (batch 64 + autocast) |
 | ISIC 2020 | Proposed sin segmentación original (canónico) | sí | 0,6136 [0,5793; 0,6501] | 0,2336 | cómputo canónico (batch 64 + autocast) |
-| ISIC 2020 | control SSL sin consistencia de tono original (batch 16) | sí | 0,6554 [0,6197; 0,6910] | 0,3196 | sensibilidad: cómputo no canónico (batch 16); transductivo |
+| ISIC 2020 | Modelo de control original (batch 16) | sí | 0,6554 [0,6197; 0,6910] | 0,3196 | sensibilidad: cómputo no canónico (batch 16); transductivo |
 | ISIC 2020 | Proposed sin segmentación original (batch 16) | sí | 0,6123 [0,5781; 0,6486] | 0,2315 | sensibilidad: cómputo no canónico (batch 16); transductivo |
 
 ### HAM10000: pesos limpios (sensibilidad) frente al original y al público
@@ -83,41 +83,41 @@ Análisis de sensibilidad posterior, no es selección: configuración y umbrales
 
 | Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura |
 |---|---|---|---|---|---|
-| Proposed sin segmentación, pesos con exclusión de validación | DINOv2 público (prot. Proposed sin segmentación) | F1 macro | +0,0267 [-0,0122; +0,0686] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | DINOv2 público (prot. Proposed sin segmentación) | Exactitud balanceada | +0,0276 [-0,0114; +0,0690] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | DINOv2 público (prot. Proposed sin segmentación) | AUC OvR macro | -0,0007 [-0,0071; +0,0059] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | DINOv2 público (prot. Proposed sin segmentación) | ECE (menor es mejor) | -0,0107 [-0,0260; +0,0045] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | DINOv2 público (prot. Proposed sin segmentación) | Recall de melanoma | -0,0045 [-0,0773; +0,0672] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | DINOv2 público (prot. Proposed sin segmentación) | AUC de melanoma | +0,0055 [-0,0112; +0,0226] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | DINOv2 público (prot. Proposed sin segmentación) | MCC | +0,0078 [-0,0227; +0,0368] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | Proposed sin segmentación original | F1 macro | -0,0037 [-0,0360; +0,0270] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | Proposed sin segmentación original | Exactitud balanceada | -0,0028 [-0,0339; +0,0282] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | Proposed sin segmentación original | AUC OvR macro | +0,0010 [-0,0068; +0,0101] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | Proposed sin segmentación original | ECE (menor es mejor) | +0,0052 [-0,0072; +0,0166] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | Proposed sin segmentación original | Recall de melanoma | -0,0225 [-0,0820; +0,0294] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | Proposed sin segmentación original | AUC de melanoma | -0,0035 [-0,0171; +0,0110] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | Proposed sin segmentación original | MCC | -0,0111 [-0,0359; +0,0116] | no | sin diferencia demostrable (el IC incluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | DINOv2 público (prot. control SSL sin consistencia de tono) | F1 macro | +0,0705 [+0,0255; +0,1132] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | DINOv2 público (prot. control SSL sin consistencia de tono) | Exactitud balanceada | +0,0929 [+0,0502; +0,1356] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | DINOv2 público (prot. control SSL sin consistencia de tono) | AUC OvR macro | +0,0198 [+0,0101; +0,0304] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | DINOv2 público (prot. control SSL sin consistencia de tono) | ECE (menor es mejor) | -0,0649 [-0,0766; -0,0415] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | DINOv2 público (prot. control SSL sin consistencia de tono) | Recall de melanoma | +0,1892 [+0,1048; +0,2715] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | DINOv2 público (prot. control SSL sin consistencia de tono) | AUC de melanoma | +0,0674 [+0,0390; +0,0949] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | DINOv2 público (prot. control SSL sin consistencia de tono) | MCC | +0,0937 [+0,0569; +0,1283] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | control SSL sin consistencia de tono original | F1 macro | -0,0204 [-0,0578; +0,0140] | no | sin diferencia demostrable (el IC incluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | control SSL sin consistencia de tono original | Exactitud balanceada | -0,0202 [-0,0574; +0,0167] | no | sin diferencia demostrable (el IC incluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | control SSL sin consistencia de tono original | AUC OvR macro | -0,0014 [-0,0063; +0,0040] | no | sin diferencia demostrable (el IC incluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | control SSL sin consistencia de tono original | ECE (menor es mejor) | +0,0002 [-0,0162; +0,0145] | no | sin diferencia demostrable (el IC incluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | control SSL sin consistencia de tono original | Recall de melanoma | +0,0631 [+0,0084; +0,1174] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | control SSL sin consistencia de tono original | AUC de melanoma | -0,0034 [-0,0189; +0,0104] | no | sin diferencia demostrable (el IC incluye 0) |
-| control SSL sin consistencia de tono, pesos con exclusión de validación | control SSL sin consistencia de tono original | MCC | +0,0051 [-0,0210; +0,0289] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | control SSL sin consistencia de tono, pesos con exclusión de validación | F1 macro | +0,0079 [-0,0247; +0,0445] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | control SSL sin consistencia de tono, pesos con exclusión de validación | Exactitud balanceada | -0,0167 [-0,0500; +0,0175] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | control SSL sin consistencia de tono, pesos con exclusión de validación | AUC OvR macro | -0,0018 [-0,0083; +0,0051] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | control SSL sin consistencia de tono, pesos con exclusión de validación | ECE (menor es mejor) | +0,0424 [+0,0204; +0,0511] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | control SSL sin consistencia de tono, pesos con exclusión de validación | Recall de melanoma | -0,1396 [-0,2146; -0,0686] | sí | control SSL sin consistencia de tono, pesos con exclusión de validación mejor (el IC excluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | control SSL sin consistencia de tono, pesos con exclusión de validación | AUC de melanoma | -0,0147 [-0,0318; +0,0024] | no | sin diferencia demostrable (el IC incluye 0) |
-| Proposed sin segmentación, pesos con exclusión de validación | control SSL sin consistencia de tono, pesos con exclusión de validación | MCC | -0,0257 [-0,0551; +0,0028] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | DINOv2 público (prot. Proposed sin segmentación) | F1 macro | +0,0267 [-0,0122; +0,0686] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | DINOv2 público (prot. Proposed sin segmentación) | Exactitud balanceada | +0,0276 [-0,0114; +0,0690] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | DINOv2 público (prot. Proposed sin segmentación) | AUC OvR macro | -0,0007 [-0,0071; +0,0059] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | DINOv2 público (prot. Proposed sin segmentación) | ECE (menor es mejor) | -0,0107 [-0,0260; +0,0045] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | DINOv2 público (prot. Proposed sin segmentación) | Recall de melanoma | -0,0045 [-0,0773; +0,0672] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | DINOv2 público (prot. Proposed sin segmentación) | AUC de melanoma | +0,0055 [-0,0112; +0,0226] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | DINOv2 público (prot. Proposed sin segmentación) | MCC | +0,0078 [-0,0227; +0,0368] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Proposed sin segmentación original | F1 macro | -0,0037 [-0,0360; +0,0270] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Proposed sin segmentación original | Exactitud balanceada | -0,0028 [-0,0339; +0,0282] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Proposed sin segmentación original | AUC OvR macro | +0,0010 [-0,0068; +0,0101] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Proposed sin segmentación original | ECE (menor es mejor) | +0,0052 [-0,0072; +0,0166] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Proposed sin segmentación original | Recall de melanoma | -0,0225 [-0,0820; +0,0294] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Proposed sin segmentación original | AUC de melanoma | -0,0035 [-0,0171; +0,0110] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Proposed sin segmentación original | MCC | -0,0111 [-0,0359; +0,0116] | no | sin diferencia demostrable (el IC incluye 0) |
+| Modelo de control (pesos limpios) | DINOv2 público (prot. Modelo de control) | F1 macro | +0,0705 [+0,0255; +0,1132] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Modelo de control (pesos limpios) | DINOv2 público (prot. Modelo de control) | Exactitud balanceada | +0,0929 [+0,0502; +0,1356] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Modelo de control (pesos limpios) | DINOv2 público (prot. Modelo de control) | AUC OvR macro | +0,0198 [+0,0101; +0,0304] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Modelo de control (pesos limpios) | DINOv2 público (prot. Modelo de control) | ECE (menor es mejor) | -0,0649 [-0,0766; -0,0415] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Modelo de control (pesos limpios) | DINOv2 público (prot. Modelo de control) | Recall de melanoma | +0,1892 [+0,1048; +0,2715] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Modelo de control (pesos limpios) | DINOv2 público (prot. Modelo de control) | AUC de melanoma | +0,0674 [+0,0390; +0,0949] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Modelo de control (pesos limpios) | DINOv2 público (prot. Modelo de control) | MCC | +0,0937 [+0,0569; +0,1283] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Modelo de control (pesos limpios) | Modelo de control original | F1 macro | -0,0204 [-0,0578; +0,0140] | no | sin diferencia demostrable (el IC incluye 0) |
+| Modelo de control (pesos limpios) | Modelo de control original | Exactitud balanceada | -0,0202 [-0,0574; +0,0167] | no | sin diferencia demostrable (el IC incluye 0) |
+| Modelo de control (pesos limpios) | Modelo de control original | AUC OvR macro | -0,0014 [-0,0063; +0,0040] | no | sin diferencia demostrable (el IC incluye 0) |
+| Modelo de control (pesos limpios) | Modelo de control original | ECE (menor es mejor) | +0,0002 [-0,0162; +0,0145] | no | sin diferencia demostrable (el IC incluye 0) |
+| Modelo de control (pesos limpios) | Modelo de control original | Recall de melanoma | +0,0631 [+0,0084; +0,1174] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Modelo de control (pesos limpios) | Modelo de control original | AUC de melanoma | -0,0034 [-0,0189; +0,0104] | no | sin diferencia demostrable (el IC incluye 0) |
+| Modelo de control (pesos limpios) | Modelo de control original | MCC | +0,0051 [-0,0210; +0,0289] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Modelo de control (pesos limpios) | F1 macro | +0,0079 [-0,0247; +0,0445] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Modelo de control (pesos limpios) | Exactitud balanceada | -0,0167 [-0,0500; +0,0175] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Modelo de control (pesos limpios) | AUC OvR macro | -0,0018 [-0,0083; +0,0051] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Modelo de control (pesos limpios) | ECE (menor es mejor) | +0,0424 [+0,0204; +0,0511] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Proposed sin segmentación (pesos limpios) | Modelo de control (pesos limpios) | Recall de melanoma | -0,1396 [-0,2146; -0,0686] | sí | Modelo de control (pesos limpios) mejor (el IC excluye 0) |
+| Proposed sin segmentación (pesos limpios) | Modelo de control (pesos limpios) | AUC de melanoma | -0,0147 [-0,0318; +0,0024] | no | sin diferencia demostrable (el IC incluye 0) |
+| Proposed sin segmentación (pesos limpios) | Modelo de control (pesos limpios) | MCC | -0,0257 [-0,0551; +0,0028] | no | sin diferencia demostrable (el IC incluye 0) |
 
 ### F1-F5 con segmentación (E3): holdout
 
@@ -126,12 +126,12 @@ Selección SOLO en el holdout de HAM. Regla registrada: `macro_f1 >= best no-mas
 | Variante | Descripción | F1 macro holdout [IC 95 %] | F1 macro, tercil L* oscuro | Recall de melanoma | Cumple la regla | Adoptable |
 |---|---|---|---|---|---|---|
 | Proposed sin segmentación | Referencia: Proposed sin segmentación sin segmentación | 0,7725 [0,7328; 0,8062] | 0,7533 | 0,5955 | — | — |
-| experimento con imagen completa y recorte | concat(features de la imagen completa, features del recorte con margen 10 %) | 0,7859 [0,7486; 0,8165] | 0,7754 | 0,6180 | sí | sí |
-| experimento con recorte de resolución original | F1 con el recorte tomado de la resolución original | 0,7819 [0,7464; 0,8117] | 0,7868 | 0,5899 | sí | sí |
-| experimento con recorte de resolución original a 448 píxeles | F2 con el recorte a 448 px (`crop_orig448`) | 0,7858 [0,7460; 0,8168] | 0,7643 | 0,6236 | sí | sí |
-| experimento con vistas guiadas por la máscara | TTA guiada por máscara (imagen completa + 4 recortes) | 0,7456 [0,7024; 0,7804] | 0,7479 | 0,5787 | no | no |
+| Imagen y recorte | concat(features de la imagen completa, features del recorte con margen 10 %) | 0,7859 [0,7486; 0,8165] | 0,7754 | 0,6180 | sí | sí |
+| Recorte original | F1 con el recorte tomado de la resolución original | 0,7819 [0,7464; 0,8117] | 0,7868 | 0,5899 | sí | sí |
+| Recorte a 448 píxeles | F2 con el recorte a 448 px (`crop_orig448`) | 0,7858 [0,7460; 0,8168] | 0,7643 | 0,6236 | sí | sí |
+| Vistas de la lesión | TTA guiada por máscara (imagen completa + 4 recortes) | 0,7456 [0,7024; 0,7804] | 0,7479 | 0,5787 | no | no |
 | Proposed con segmentación (experimental) | F1 + descriptores de forma y color de la máscara | 0,7868 [0,7496; 0,8148] | 0,7951 | 0,6067 | sí | sí |
-| experimento con imagen, recorte y anillo perilesional | F1 + anillo perilesional | 0,7812 [0,7440; 0,8126] | 0,7849 | 0,5955 | sí | sí |
+| Imagen y piel alrededor | F1 + anillo perilesional | 0,7812 [0,7440; 0,8126] | 0,7849 | 0,5955 | sí | sí |
 
 ### Proposed con segmentación (experimental) frente a Proposed sin segmentación en val (E3, cómputo S0)
 
@@ -152,9 +152,9 @@ Regla de lectura fijada de antemano: el IC pareado de F1 macro debe excluir 0 en
 | S1: batch 64 + autocast (canónico, el de v7.1) | 0,7141 | 0,7441 | +0,0300 [-0,0046; +0,0715] | no | +0,0222 [-0,0159; +0,0624] | +0,0135 [-0,0446; +0,0714] |
 | S2: batch 64, fp32 | 0,7089 | 0,7483 | +0,0393 [+0,0039; +0,0824] | sí | +0,0318 [-0,0069; +0,0749] | +0,0360 [-0,0154; +0,0876] |
 
-### Robustez de Proposed con segmentación (experimental) − Proposed sin segmentación a la semilla de experimento SSL con consistencia de tono
+### Robustez de Proposed con segmentación (experimental) − Proposed sin segmentación a la semilla de Proposed sin segmentación
 
-Robustez de Proposed con segmentación (experimental) − Proposed sin segmentación a la semilla de experimento SSL con consistencia de tono (post-hoc, cómputo canónico). El IC excluye 0 en 0 de 3 semillas: lectura «none», ninguna semilla (0 de 3): sin diferencia demostrable. Δ medio de F1 macro +0,0217 (mín. +0,0092, máx. +0,0300); la dirección favorece a Proposed con segmentación (experimental) en 3 de 3 semillas. Fuente `resultados/banco_completo/e3/robustez/e3_robustness/e3_robustness.json`.
+Robustez de Proposed con segmentación (experimental) − Proposed sin segmentación a la semilla de Proposed sin segmentación (post-hoc, cómputo canónico). El IC excluye 0 en 0 de 3 semillas: lectura «none», ninguna semilla (0 de 3): sin diferencia demostrable. Δ medio de F1 macro +0,0217 (mín. +0,0092, máx. +0,0300); la dirección favorece a Proposed con segmentación (experimental) en 3 de 3 semillas. Fuente `resultados/banco_completo/e3/robustez/e3_robustness/e3_robustness.json`.
 
 | Semilla | Proposed sin segmentación F1 macro | Proposed con segmentación (experimental) F1 macro | Δ F1 macro [IC 95 %] | IC excluye 0 | Δ exactitud balanceada [IC 95 %] | IC excluye 0 |
 |---|---|---|---|---|---|---|
@@ -168,50 +168,50 @@ Robustez de Proposed con segmentación (experimental) − Proposed sin segmentac
 
 | Brazo | Descripción | F1 macro | Exactitud balanceada | Accuracy | AUC | ECE ↓ | MCC | Fuera de rango |
 |---|---|---|---|---|---|---|---|---|
-| referencia pública sin adaptación | DINOv2 público | 0,4410 [0,3970; 0,4827] | 0,5284 [0,4750; 0,5853] | 0,5802 [0,5352; 0,6259] | 0,7599 [0,7061; 0,8146] | 0,3413 [0,3017; 0,3890] | 0,3740 [0,3144; 0,4306] | 0,3210 |
-| control de adaptación SSL en el dominio fuente | experimento de control SSL sin consistencia de tono s42 limpio | 0,2443 [0,2053; 0,2824] | 0,4244 [0,3519; 0,5012] | 0,2698 [0,2230; 0,3170] | 0,7257 [0,6749; 0,7783] | 0,5592 [0,5125; 0,6034] | 0,1871 [0,1407; 0,2341] | 0,4039 |
-| control de continuación SSL solo con imágenes fuente | control de adaptación SSL en el dominio fuente continuado con el pool limpio (control de cómputo) | 0,2877 [0,2458; 0,3326] | 0,4897 [0,4132; 0,5674] | 0,3333 [0,2850; 0,3811] | 0,7577 [0,7026; 0,8136] | 0,4753 [0,4316; 0,5236] | 0,2309 [0,1894; 0,2731] | 0,3422 |
-| experimento de adaptación SSL con imágenes fuente y destino | control de continuación SSL solo con imágenes fuente más las imágenes de `target_adapt` de PAD, sin etiquetas | 0,3693 [0,3240; 0,4173] | 0,5271 [0,4529; 0,6087] | 0,4444 [0,3941; 0,4949] | 0,7740 [0,7136; 0,8370] | 0,3183 [0,2788; 0,3670] | 0,3039 [0,2564; 0,3521] | 0,4780 |
+| Modelo de referencia | DINOv2 público | 0,4410 [0,3970; 0,4827] | 0,5284 [0,4750; 0,5853] | 0,5802 [0,5352; 0,6259] | 0,7599 [0,7061; 0,8146] | 0,3413 [0,3017; 0,3890] | 0,3740 [0,3144; 0,4306] | 0,3210 |
+| Adaptación inicial | Modelo de control s42 limpio | 0,2443 [0,2053; 0,2824] | 0,4244 [0,3519; 0,5012] | 0,2698 [0,2230; 0,3170] | 0,7257 [0,6749; 0,7783] | 0,5592 [0,5125; 0,6034] | 0,1871 [0,1407; 0,2341] | 0,4039 |
+| Control de entrenamiento | Adaptación inicial continuado con el pool limpio (control de cómputo) | 0,2877 [0,2458; 0,3326] | 0,4897 [0,4132; 0,5674] | 0,3333 [0,2850; 0,3811] | 0,7577 [0,7026; 0,8136] | 0,4753 [0,4316; 0,5236] | 0,2309 [0,1894; 0,2731] | 0,3422 |
+| Adaptación al nuevo conjunto | Control de entrenamiento más las imágenes de `target_adapt` de PAD, sin etiquetas | 0,3693 [0,3240; 0,4173] | 0,5271 [0,4529; 0,6087] | 0,4444 [0,3941; 0,4949] | 0,7740 [0,7136; 0,8370] | 0,3183 [0,2788; 0,3670] | 0,3039 [0,2564; 0,3521] | 0,4780 |
 
 ### D0-D3 (E2): contrastes pareados
 
-experimento de adaptación SSL con imágenes fuente y destino − control de continuación SSL solo con imágenes fuente es la predicción primaria registrada; los demás son descriptivos. Predicción primaria registrada (experimento de adaptación SSL con imágenes fuente y destino − control de continuación SSL solo con imágenes fuente, F1 macro > 0 con IC que excluye 0): cumplida = sí (`prediction_d3_minus_d2_met` del JSON); Δ +0,0816 [+0,0525; +0,1085].
+Adaptación al nuevo conjunto − Control de entrenamiento es la predicción primaria registrada; los demás son descriptivos. Predicción primaria registrada (Adaptación al nuevo conjunto − Control de entrenamiento, F1 macro > 0 con IC que excluye 0): cumplida = sí (`prediction_d3_minus_d2_met` del JSON); Δ +0,0816 [+0,0525; +0,1085].
 
 | Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura |
 |---|---|---|---|---|---|
-| experimento de adaptación SSL con imágenes fuente y destino | control de continuación SSL solo con imágenes fuente | F1 macro | +0,0816 [+0,0525; +0,1085] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de continuación SSL solo con imágenes fuente | Exactitud balanceada | +0,0375 [-0,0161; +0,0875] | no | sin diferencia demostrable (el IC incluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de continuación SSL solo con imágenes fuente | Accuracy | +0,1111 [+0,0755; +0,1468] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de continuación SSL solo con imágenes fuente | AUC OvR macro | +0,0162 [-0,0065; +0,0393] | no | sin diferencia demostrable (el IC incluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de continuación SSL solo con imágenes fuente | ECE (menor es mejor) | -0,1570 [-0,1943; -0,1199] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de continuación SSL solo con imágenes fuente | MCC | +0,0730 [+0,0419; +0,1034] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | control de adaptación SSL en el dominio fuente | F1 macro | +0,0434 [+0,0196; +0,0682] | sí | control de continuación SSL solo con imágenes fuente mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | control de adaptación SSL en el dominio fuente | Exactitud balanceada | +0,0653 [+0,0297; +0,1112] | sí | control de continuación SSL solo con imágenes fuente mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | control de adaptación SSL en el dominio fuente | Accuracy | +0,0635 [+0,0366; +0,0914] | sí | control de continuación SSL solo con imágenes fuente mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | control de adaptación SSL en el dominio fuente | AUC OvR macro | +0,0321 [+0,0068; +0,0593] | sí | control de continuación SSL solo con imágenes fuente mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | control de adaptación SSL en el dominio fuente | ECE (menor es mejor) | -0,0838 [-0,1114; -0,0510] | sí | control de continuación SSL solo con imágenes fuente mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | control de adaptación SSL en el dominio fuente | MCC | +0,0438 [+0,0127; +0,0752] | sí | control de continuación SSL solo con imágenes fuente mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de adaptación SSL en el dominio fuente | F1 macro | +0,1250 [+0,0970; +0,1561] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de adaptación SSL en el dominio fuente | Exactitud balanceada | +0,1027 [+0,0427; +0,1740] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de adaptación SSL en el dominio fuente | Accuracy | +0,1746 [+0,1413; +0,2131] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de adaptación SSL en el dominio fuente | AUC OvR macro | +0,0483 [+0,0212; +0,0828] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de adaptación SSL en el dominio fuente | ECE (menor es mejor) | -0,2408 [-0,2812; -0,1993] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | control de adaptación SSL en el dominio fuente | MCC | +0,1168 [+0,0788; +0,1617] | sí | experimento de adaptación SSL con imágenes fuente y destino mejor (el IC excluye 0) |
-| control de adaptación SSL en el dominio fuente | referencia pública sin adaptación | F1 macro | -0,1967 [-0,2304; -0,1638] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| control de adaptación SSL en el dominio fuente | referencia pública sin adaptación | Exactitud balanceada | -0,1040 [-0,1670; -0,0421] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| control de adaptación SSL en el dominio fuente | referencia pública sin adaptación | Accuracy | -0,3104 [-0,3556; -0,2643] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| control de adaptación SSL en el dominio fuente | referencia pública sin adaptación | AUC OvR macro | -0,0343 [-0,0834; +0,0051] | no | sin diferencia demostrable (el IC incluye 0) |
-| control de adaptación SSL en el dominio fuente | referencia pública sin adaptación | ECE (menor es mejor) | +0,2179 [+0,1684; +0,2611] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| control de adaptación SSL en el dominio fuente | referencia pública sin adaptación | MCC | -0,1869 [-0,2366; -0,1380] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | referencia pública sin adaptación | F1 macro | -0,1533 [-0,1893; -0,1150] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | referencia pública sin adaptación | Exactitud balanceada | -0,0387 [-0,1074; +0,0342] | no | sin diferencia demostrable (el IC incluye 0) |
-| control de continuación SSL solo con imágenes fuente | referencia pública sin adaptación | Accuracy | -0,2469 [-0,2931; -0,1996] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | referencia pública sin adaptación | AUC OvR macro | -0,0022 [-0,0565; +0,0447] | no | sin diferencia demostrable (el IC incluye 0) |
-| control de continuación SSL solo con imágenes fuente | referencia pública sin adaptación | ECE (menor es mejor) | +0,1341 [+0,0851; +0,1782] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| control de continuación SSL solo con imágenes fuente | referencia pública sin adaptación | MCC | -0,1431 [-0,1876; -0,0941] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | referencia pública sin adaptación | F1 macro | -0,0717 [-0,1100; -0,0332] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | referencia pública sin adaptación | Exactitud balanceada | -0,0013 [-0,0671; +0,0666] | no | sin diferencia demostrable (el IC incluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | referencia pública sin adaptación | Accuracy | -0,1358 [-0,1838; -0,0874] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | referencia pública sin adaptación | AUC OvR macro | +0,0140 [-0,0397; +0,0579] | no | sin diferencia demostrable (el IC incluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | referencia pública sin adaptación | ECE (menor es mejor) | -0,0229 [-0,0727; +0,0265] | no | sin diferencia demostrable (el IC incluye 0) |
-| experimento de adaptación SSL con imágenes fuente y destino | referencia pública sin adaptación | MCC | -0,0701 [-0,1188; -0,0200] | sí | referencia pública sin adaptación mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Control de entrenamiento | F1 macro | +0,0816 [+0,0525; +0,1085] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Control de entrenamiento | Exactitud balanceada | +0,0375 [-0,0161; +0,0875] | no | sin diferencia demostrable (el IC incluye 0) |
+| Adaptación al nuevo conjunto | Control de entrenamiento | Accuracy | +0,1111 [+0,0755; +0,1468] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Control de entrenamiento | AUC OvR macro | +0,0162 [-0,0065; +0,0393] | no | sin diferencia demostrable (el IC incluye 0) |
+| Adaptación al nuevo conjunto | Control de entrenamiento | ECE (menor es mejor) | -0,1570 [-0,1943; -0,1199] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Control de entrenamiento | MCC | +0,0730 [+0,0419; +0,1034] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Control de entrenamiento | Adaptación inicial | F1 macro | +0,0434 [+0,0196; +0,0682] | sí | Control de entrenamiento mejor (el IC excluye 0) |
+| Control de entrenamiento | Adaptación inicial | Exactitud balanceada | +0,0653 [+0,0297; +0,1112] | sí | Control de entrenamiento mejor (el IC excluye 0) |
+| Control de entrenamiento | Adaptación inicial | Accuracy | +0,0635 [+0,0366; +0,0914] | sí | Control de entrenamiento mejor (el IC excluye 0) |
+| Control de entrenamiento | Adaptación inicial | AUC OvR macro | +0,0321 [+0,0068; +0,0593] | sí | Control de entrenamiento mejor (el IC excluye 0) |
+| Control de entrenamiento | Adaptación inicial | ECE (menor es mejor) | -0,0838 [-0,1114; -0,0510] | sí | Control de entrenamiento mejor (el IC excluye 0) |
+| Control de entrenamiento | Adaptación inicial | MCC | +0,0438 [+0,0127; +0,0752] | sí | Control de entrenamiento mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Adaptación inicial | F1 macro | +0,1250 [+0,0970; +0,1561] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Adaptación inicial | Exactitud balanceada | +0,1027 [+0,0427; +0,1740] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Adaptación inicial | Accuracy | +0,1746 [+0,1413; +0,2131] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Adaptación inicial | AUC OvR macro | +0,0483 [+0,0212; +0,0828] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Adaptación inicial | ECE (menor es mejor) | -0,2408 [-0,2812; -0,1993] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Adaptación inicial | MCC | +0,1168 [+0,0788; +0,1617] | sí | Adaptación al nuevo conjunto mejor (el IC excluye 0) |
+| Adaptación inicial | Modelo de referencia | F1 macro | -0,1967 [-0,2304; -0,1638] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Adaptación inicial | Modelo de referencia | Exactitud balanceada | -0,1040 [-0,1670; -0,0421] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Adaptación inicial | Modelo de referencia | Accuracy | -0,3104 [-0,3556; -0,2643] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Adaptación inicial | Modelo de referencia | AUC OvR macro | -0,0343 [-0,0834; +0,0051] | no | sin diferencia demostrable (el IC incluye 0) |
+| Adaptación inicial | Modelo de referencia | ECE (menor es mejor) | +0,2179 [+0,1684; +0,2611] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Adaptación inicial | Modelo de referencia | MCC | -0,1869 [-0,2366; -0,1380] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Control de entrenamiento | Modelo de referencia | F1 macro | -0,1533 [-0,1893; -0,1150] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Control de entrenamiento | Modelo de referencia | Exactitud balanceada | -0,0387 [-0,1074; +0,0342] | no | sin diferencia demostrable (el IC incluye 0) |
+| Control de entrenamiento | Modelo de referencia | Accuracy | -0,2469 [-0,2931; -0,1996] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Control de entrenamiento | Modelo de referencia | AUC OvR macro | -0,0022 [-0,0565; +0,0447] | no | sin diferencia demostrable (el IC incluye 0) |
+| Control de entrenamiento | Modelo de referencia | ECE (menor es mejor) | +0,1341 [+0,0851; +0,1782] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Control de entrenamiento | Modelo de referencia | MCC | -0,1431 [-0,1876; -0,0941] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Modelo de referencia | F1 macro | -0,0717 [-0,1100; -0,0332] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Modelo de referencia | Exactitud balanceada | -0,0013 [-0,0671; +0,0666] | no | sin diferencia demostrable (el IC incluye 0) |
+| Adaptación al nuevo conjunto | Modelo de referencia | Accuracy | -0,1358 [-0,1838; -0,0874] | sí | Modelo de referencia mejor (el IC excluye 0) |
+| Adaptación al nuevo conjunto | Modelo de referencia | AUC OvR macro | +0,0140 [-0,0397; +0,0579] | no | sin diferencia demostrable (el IC incluye 0) |
+| Adaptación al nuevo conjunto | Modelo de referencia | ECE (menor es mejor) | -0,0229 [-0,0727; +0,0265] | no | sin diferencia demostrable (el IC incluye 0) |
+| Adaptación al nuevo conjunto | Modelo de referencia | MCC | -0,0701 [-0,1188; -0,0200] | sí | Modelo de referencia mejor (el IC excluye 0) |

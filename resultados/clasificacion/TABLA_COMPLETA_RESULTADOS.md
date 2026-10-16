@@ -6,9 +6,9 @@ Números copiados de los JSON del repositorio el 2026-10-02 (fuentes al final). 
 
 1. **Punto de partida:** DINOv2 ViT-B/14 público (Meta), una red preentrenada en millones de imágenes generales, sin dermatología.
 2. **Adaptación auto-supervisada (sin etiquetas):** con SimSiam, la red aprende a dar la misma representación a dos versiones aumentadas de la misma lesión. Nunca ve el diagnóstico. Se entrenan solo los bloques 8-11 y las LayerNorm, y dos anclas la mantienen cerca del DINOv2 público ("SimSiam anclado").
-3. **Término de tono (el aporte propio de la tesis):** la misma imagen con el tono de piel cambiado debe dar la misma representación, para no depender del color de la piel. **B\*** = con término de tono (propuesto). **A\*** = el mismo modelo sin él (ablación).
+3. **Término de tono (el aporte propio de la tesis):** la misma imagen con el tono de piel cambiado debe dar la misma representación, para no depender del color de la piel. **Proposed sin segmentación** = con término de tono (propuesto). **Modelo de control** = el mismo modelo sin él (ablación).
 4. **Clasificador:** el backbone queda congelado y encima se entrena solo una regresión logística con las etiquetas. Las etiquetas nunca tocan el backbone.
-5. **Protocolo v7.1 de Proposed sin segmentación:** pesos de B\* semilla 42, features = CLS de las 4 últimas capas, pesos de clase balanceados (las clases raras pesan más) y TTA (se promedian 8 rotaciones y volteos). Se eligió en un holdout interno; validación se leyó una sola vez.
+5. **Protocolo v7.1 de Proposed sin segmentación:** pesos de Proposed sin segmentación semilla 42, features = CLS de las 4 últimas capas, pesos de clase balanceados (las clases raras pesan más) y TTA (se promedian 8 rotaciones y volteos). Se eligió en un holdout interno; validación se leyó una sola vez.
 
 ## 2. Qué significa cada métrica
 
@@ -78,38 +78,38 @@ Una ablación le quita al modelo sus ingredientes uno por uno para ver cuál pro
 |---|---|---|---|---|---|---|---|---|---|
 | DINOv2 público, probe base | no | no | no | 0.782 | 0.592 | 0.616 [0.569; 0.655] | 0.926 | 0.131 | 0.428 |
 | DINOv2 público + protocolo de Proposed sin segmentación | no | no | sí | 0.828 | 0.666 | 0.684 [0.638; 0.720] | 0.962 | 0.069 | 0.514 |
-| A\* s42, probe base | sí | no | no | 0.832 | 0.602 | 0.646 [0.598; 0.689] | 0.962 | 0.014 | 0.487 |
-| B\* s42, probe base | sí | sí | no | 0.831 | 0.633 | 0.661 [0.616; 0.704] | 0.963 | 0.033 | 0.505 |
-| control SSL sin consistencia de tono (A\* sin tono + su mejor protocolo) | sí | no | sí | 0.840 | 0.731 | **0.723** [0.680; 0.759] | 0.964 | 0.015 | 0.586 |
+| Modelo de control s42, probe base | sí | no | no | 0.832 | 0.602 | 0.646 [0.598; 0.689] | 0.962 | 0.014 | 0.487 |
+| Proposed sin segmentación s42, probe base | sí | sí | no | 0.831 | 0.633 | 0.661 [0.616; 0.704] | 0.963 | 0.033 | 0.505 |
+| Modelo de control (Modelo de control sin tono + su mejor protocolo) | sí | no | sí | 0.840 | 0.731 | **0.723** [0.680; 0.759] | 0.964 | 0.015 | 0.586 |
 | **Proposed sin segmentación — propuesto final** | sí | sí | sí | 0.838 | 0.696 | 0.714 [0.670; 0.755] | 0.960 | 0.053 | 0.532 |
 
 ### 5.2 Contrastes pareados (diferencia de F1 macro [IC 95 %])
 
 | Pregunta | Diferencia de F1 macro | Veredicto |
 |---|---|---|
-| ¿Sirve el SSL anclado? control SSL sin consistencia de tono contra el público con el mismo protocolo | +0.091 [+0.050; +0.132] | **sí, mejora** |
+| ¿Sirve el SSL anclado? Modelo de control contra el público con el mismo protocolo | +0.091 [+0.050; +0.132] | **sí, mejora** |
 | ¿Sirve el SSL anclado? Proposed sin segmentación contra el público con el mismo protocolo | +0.030 [−0.007; +0.069] | sin diferencia (pero mejora la calibración: ECE −0.016 [−0.030; −0.001]) |
-| ¿Sirve el protocolo v7.1? control SSL sin consistencia de tono contra A\* con probe base | +0.077 [+0.036; +0.122] | **sí, mejora** |
-| ¿Sirve el protocolo v7.1? Proposed sin segmentación contra B\* con probe base | +0.054 [+0.011; +0.091] | **sí, mejora** |
-| ¿Sirve el término de tono? B\* contra A\*, mismo probe, semilla 42 | +0.014 [−0.019; +0.054] | sin diferencia |
-| ¿Sirve el término de tono? B\* contra A\*, mismo probe, semilla 43 | −0.021 [−0.058; +0.016] | sin diferencia |
-| ¿Sirve el término de tono? B\* contra A\*, mismo probe, semilla 44 | −0.012 [−0.048; +0.027] | sin diferencia |
-| Proposed sin segmentación contra control SSL sin consistencia de tono (cambian tono y protocolo a la vez; no aísla el tono) | −0.009 [−0.046; +0.027] | sin diferencia (control SSL sin consistencia de tono mejor calibrado: ECE +0.037 [+0.016; +0.049] a favor de control SSL sin consistencia de tono) |
+| ¿Sirve el protocolo v7.1? Modelo de control contra Modelo de control con probe base | +0.077 [+0.036; +0.122] | **sí, mejora** |
+| ¿Sirve el protocolo v7.1? Proposed sin segmentación contra Proposed sin segmentación con probe base | +0.054 [+0.011; +0.091] | **sí, mejora** |
+| ¿Sirve el término de tono? Proposed sin segmentación contra Modelo de control, mismo probe, semilla 42 | +0.014 [−0.019; +0.054] | sin diferencia |
+| ¿Sirve el término de tono? Proposed sin segmentación contra Modelo de control, mismo probe, semilla 43 | −0.021 [−0.058; +0.016] | sin diferencia |
+| ¿Sirve el término de tono? Proposed sin segmentación contra Modelo de control, mismo probe, semilla 44 | −0.012 [−0.048; +0.027] | sin diferencia |
+| Proposed sin segmentación contra Modelo de control (cambian tono y protocolo a la vez; no aísla el tono) | −0.009 [−0.046; +0.027] | sin diferencia (Modelo de control mejor calibrado: ECE +0.037 [+0.016; +0.049] a favor de Modelo de control) |
 | Todo junto: Proposed sin segmentación contra el público con probe base | +0.098 [+0.057; +0.144] | **sí, mejora** |
 
 ### 5.3 Qué sirvió y qué no
 
-1. **Sirvió el SSL anclado.** Adaptar DINOv2 a las lesiones sin etiquetas mejora el F1 macro en +0.091 con el mismo protocolo (control SSL sin consistencia de tono). Es la mejora más grande.
+1. **Sirvió el SSL anclado.** Adaptar DINOv2 a las lesiones sin etiquetas mejora el F1 macro en +0.091 con el mismo protocolo (Modelo de control). Es la mejora más grande.
 2. **Sirvió el protocolo v7.1** (features, pesos de clase, TTA): +0.05 a +0.08 sin reentrenar nada.
-3. **El término de tono NO sirvió para clasificar.** En la única prueba limpia (B\* contra A\*, todo lo demás igual) da "sin diferencia" en las tres semillas, y el signo cambia de una semilla a otra.
-4. **Por eso el mejor de nuestros modelos es control SSL sin consistencia de tono** (la ablación, sin tono): 0.723 contra 0.714 de Proposed sin segmentación, aunque la diferencia no es demostrable. Proposed sin segmentación sale 1.º en el ranking por el SSL anclado y el protocolo, no por el término de tono.
+3. **El término de tono NO sirvió para clasificar.** En la única prueba limpia (Proposed sin segmentación contra Modelo de control, todo lo demás igual) da "sin diferencia" en las tres semillas, y el signo cambia de una semilla a otra.
+4. **Por eso el mejor de nuestros modelos es Modelo de control** (la ablación, sin tono): 0.723 contra 0.714 de Proposed sin segmentación, aunque la diferencia no es demostrable. Proposed sin segmentación sale 1.º en el ranking por el SSL anclado y el protocolo, no por el término de tono.
 5. **Qué se puede afirmar en la tesis:** "la adaptación SSL anclada sobre DINOv2 mejora la clasificación frente al DINOv2 público y empata con el fine-tuning supervisado sin usar etiquetas en el backbone". **Qué no se puede afirmar:** "el término de tono mejora la clasificación".
 
 ## 6. Cuidado al comparar
 
 - Hay dos particiones de val, las dos agrupadas por `lesion_id`: la de Kaggle (baselines y fine-tuning, n = 2014) y la de v7 (nuestro modelo, n = 2004). Entre particiones las filas no son pareadas, así que "Frente a Proposed sin segmentación" compara intervalos y no es un test pareado. Los tests pareados válidos son los de la sección 5.
 - El fine-tuning supervisado elige su mejor época mirando val, así que su número es optimista.
-- La precisión macro de Proposed sin segmentación y control SSL sin consistencia de tono aparece como "—" porque no está guardada en los JSON. Se puede calcular a partir de las probabilidades guardadas (`v71_final_eval.probas.npz`).
+- La precisión macro de Proposed sin segmentación y Modelo de control aparece como "—" porque no está guardada en los JSON. Se puede calcular a partir de las probabilidades guardadas (`v71_final_eval.probas.npz`).
 
 ## Fuentes
 

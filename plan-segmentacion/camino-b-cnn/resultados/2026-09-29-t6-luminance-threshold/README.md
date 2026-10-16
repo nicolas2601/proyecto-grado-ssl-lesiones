@@ -1,4 +1,4 @@
-# T6 — Umbral de máscara por tercil de luminancia sobre experimento de segmentación DINOv2 con pseudo-máscaras CCAM (exploratorio)
+# T6 — Umbral de máscara por tercil de luminancia sobre Experimento de segmentación 5 (exploratorio)
 
 Generado por `scripts/t6_luminance_threshold.py` desde `t6_luminance_threshold.json`; no editar a mano. Registro, predicción y salvedades: docs/27, bloque T6. Análogo barato de *Fitzpatrick Thresholding for Skin Image Segmentation* (arXiv 2510.06655).
 

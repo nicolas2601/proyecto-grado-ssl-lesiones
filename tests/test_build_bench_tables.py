@@ -94,14 +94,14 @@ def test_isic2020_finetune_block_says_not_run_and_pending_rows_are_listed():
     text = _md("TABLA_ISIC2020")
     assert "Curva por época" in text and "ETA ~" not in text
     for name in TABLES:
-        assert "Proposed sin segmentación, pesos con exclusión de validación" in _md(name)
+        assert "Proposed sin segmentación (pesos limpios)" in _md(name)
     assert "pendiente" in _md("TABLA_HAM10000") and "pendiente; " not in _md("TABLA_ISIC2019")
     assert "Proposed sin segmentación original" in _md("TABLA_ISIC2019") and "Proposed sin segmentación original" not in _md("TABLA_HAM10000")
 
 
 def test_ham_table_has_the_proposed_rows_and_all_eight_baselines_in_both_blocks():
     text = _md("TABLA_HAM10000")
-    for label in ("Proposed sin segmentación (propuesto)", "control SSL sin consistencia de tono (ablación", "DINOv2 público, protocolo de Proposed sin segmentación"):
+    for label in ("Proposed sin segmentación (propuesto)", "Modelo de control (ablación", "DINOv2 público, protocolo de Proposed sin segmentación"):
         assert label in text
     frozen, tuned = text.split("## Con fine-tuning")
     for model in ("AlexNet", "VGG19", "ResNet-50", "EfficientNet-B0", "ViT-B/16", "SimSiam ResNet-50",
@@ -132,6 +132,6 @@ def test_shared_reading_rule_says_isic2020_finetune_ran_in_our_pod():
 
 def test_ham_clean_rows_are_measured_in_their_own_block_once_the_result_is_committed():
     lines = _md("TABLA_HAM10000").splitlines()
-    rows = [ln for ln in lines if "pesos con exclusión de validación (canónico)" in ln and "ham_clean_val.json" in ln]
+    rows = [ln for ln in lines if "pesos limpios" in ln and "canónico" in ln and "ham_clean_val.json" in ln]
     assert len(rows) == 2 and all("| ok |" in r and "sensibilidad posterior" in r for r in rows)
     assert not [ln for ln in lines if ln.startswith("| — | ") and "limpio" in ln]  # nothing pending is left

@@ -18,12 +18,12 @@ Multiplicidad: 270 contrastes en total, unos 13.5 IC sin cero esperables por aza
 
 | Segmentador | Backbone | Tercil | Condición | n | n mel | Δ macro-F1 [IC 95 %] | Δ bal-acc [IC 95 %] | Δ sens. mel [IC 95 %] |
 |---|---|---|---|---:|---:|---|---|---|
-| student_r3 | dinov2_public_vitb14 | oscuro | bbox_crop | 820 | 99 | -0,0242 [-0,1102; +0,0608] indistinguible | -0,0476 [-0,1417; +0,0481] indistinguible | +0,1010 [+0,0000; +0,2062] indistinguible |
-| student_r3 | dinov2_public_vitb14 | oscuro | mask_pool | 820 | 99 | +0,0246 [-0,0280; +0,0784] indistinguible | +0,0060 [-0,0465; +0,0573] indistinguible | +0,0606 [-0,0471; +0,1786] indistinguible |
-| student_r3 | v7_astar_s42 | oscuro | bbox_crop | 820 | 99 | +0,0034 [-0,0718; +0,0788] indistinguible | -0,0019 [-0,0737; +0,0694] indistinguible | +0,0202 [-0,0809; +0,1250] indistinguible |
-| student_r3 | v7_astar_s42 | oscuro | mask_pool | 820 | 99 | +0,0194 [-0,0515; +0,0863] indistinguible | +0,0190 [-0,0458; +0,0843] indistinguible | -0,0606 [-0,1294; +0,0002] indistinguible |
-| student_r3 | v7_astar_s43 | oscuro | bbox_crop | 820 | 99 | -0,0220 [-0,0970; +0,0431] indistinguible | -0,0049 [-0,0831; +0,0764] indistinguible | +0,0202 [-0,0544; +0,0938] indistinguible |
-| student_r3 | v7_astar_s43 | oscuro | mask_pool | 820 | 99 | -0,0221 [-0,0717; +0,0269] indistinguible | -0,0235 [-0,0729; +0,0314] indistinguible | +0,0303 [-0,0495; +0,1075] indistinguible |
+| Experimento de segmentación 3 | dinov2_public_vitb14 | oscuro | bbox_crop | 820 | 99 | -0,0242 [-0,1102; +0,0608] indistinguible | -0,0476 [-0,1417; +0,0481] indistinguible | +0,1010 [+0,0000; +0,2062] indistinguible |
+| Experimento de segmentación 3 | dinov2_public_vitb14 | oscuro | mask_pool | 820 | 99 | +0,0246 [-0,0280; +0,0784] indistinguible | +0,0060 [-0,0465; +0,0573] indistinguible | +0,0606 [-0,0471; +0,1786] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s42 | oscuro | bbox_crop | 820 | 99 | +0,0034 [-0,0718; +0,0788] indistinguible | -0,0019 [-0,0737; +0,0694] indistinguible | +0,0202 [-0,0809; +0,1250] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s42 | oscuro | mask_pool | 820 | 99 | +0,0194 [-0,0515; +0,0863] indistinguible | +0,0190 [-0,0458; +0,0843] indistinguible | -0,0606 [-0,1294; +0,0002] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s43 | oscuro | bbox_crop | 820 | 99 | -0,0220 [-0,0970; +0,0431] indistinguible | -0,0049 [-0,0831; +0,0764] indistinguible | +0,0202 [-0,0544; +0,0938] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s43 | oscuro | mask_pool | 820 | 99 | -0,0221 [-0,0717; +0,0269] indistinguible | -0,0235 [-0,0729; +0,0314] indistinguible | +0,0303 [-0,0495; +0,1075] indistinguible |
 | a2 | dinov2_public_vitb14 | oscuro | bbox_crop | 820 | 99 | -0,0499 [-0,1293; +0,0285] indistinguible | -0,0757 [-0,1661; +0,0140] indistinguible | +0,0303 [-0,0599; +0,1300] indistinguible |
 | a2 | dinov2_public_vitb14 | oscuro | mask_pool | 820 | 99 | +0,0261 [-0,0333; +0,0847] indistinguible | -0,0098 [-0,0682; +0,0451] indistinguible | +0,0707 [-0,0342; +0,1744] indistinguible |
 | a2 | v7_astar_s42 | oscuro | bbox_crop | 820 | 99 | +0,0205 [-0,0437; +0,0924] indistinguible | +0,0206 [-0,0447; +0,0916] indistinguible | +0,0101 [-0,0883; +0,1098] indistinguible |
@@ -35,45 +35,45 @@ Multiplicidad: 270 contrastes en total, unos 13.5 IC sin cero esperables por aza
 
 | Segmentador | Backbone | Tercil | Condición | n | n mel | Δ macro-F1 [IC 95 %] | Δ bal-acc [IC 95 %] | Δ sens. mel [IC 95 %] |
 |---|---|---|---|---:|---:|---|---|---|
-| student_r3 | dinov2_public_vitb14 | oscuro | neutral_bg | 820 | 99 | -0,0500 [-0,1433; +0,0512] indistinguible | -0,0870 [-0,1928; +0,0285] indistinguible | +0,0404 [-0,0706; +0,1613] indistinguible |
-| student_r3 | dinov2_public_vitb14 | medio | bbox_crop | 957 | 82 | -0,0097 [-0,0879; +0,0690] indistinguible | -0,0160 [-0,0907; +0,0611] indistinguible | -0,0732 [-0,1974; +0,0494] indistinguible |
-| student_r3 | dinov2_public_vitb14 | medio | neutral_bg | 957 | 82 | -0,1000 [-0,1718; -0,0268] empeora | -0,0754 [-0,1464; -0,0083] empeora | -0,0488 [-0,1867; +0,0824] indistinguible |
-| student_r3 | dinov2_public_vitb14 | medio | mask_pool | 957 | 82 | +0,0197 [-0,0511; +0,0908] indistinguible | +0,0260 [-0,0410; +0,0936] indistinguible | -0,0854 [-0,2055; +0,0256] indistinguible |
-| student_r3 | dinov2_public_vitb14 | claro | bbox_crop | 183 | 35 | -0,0440 [-0,1704; +0,1063] indistinguible | -0,0368 [-0,1829; +0,0969] indistinguible | +0,0571 [-0,1379; +0,2446] indistinguible |
-| student_r3 | dinov2_public_vitb14 | claro | neutral_bg | 183 | 35 | -0,1062 [-0,2708; +0,0669] indistinguible | -0,0757 [-0,2547; +0,0898] indistinguible | -0,1714 [-0,3637; +0,0000] indistinguible |
-| student_r3 | dinov2_public_vitb14 | claro | mask_pool | 183 | 35 | -0,0089 [-0,1350; +0,1377] indistinguible | -0,0382 [-0,1642; +0,0929] indistinguible | -0,0286 [-0,2000; +0,1380] indistinguible |
-| student_r3 | v7_astar_s42 | oscuro | neutral_bg | 820 | 99 | -0,0188 [-0,1112; +0,0768] indistinguible | -0,0218 [-0,1156; +0,0774] indistinguible | +0,0101 [-0,0714; +0,0938] indistinguible |
-| student_r3 | v7_astar_s42 | medio | bbox_crop | 957 | 82 | -0,0156 [-0,0778; +0,0450] indistinguible | -0,0200 [-0,0776; +0,0391] indistinguible | -0,0366 [-0,1216; +0,0520] indistinguible |
-| student_r3 | v7_astar_s42 | medio | neutral_bg | 957 | 82 | -0,0870 [-0,1394; -0,0325] empeora | -0,0791 [-0,1299; -0,0288] empeora | -0,1220 [-0,2180; -0,0260] empeora |
-| student_r3 | v7_astar_s42 | medio | mask_pool | 957 | 82 | -0,0118 [-0,0670; +0,0493] indistinguible | -0,0131 [-0,0695; +0,0471] indistinguible | -0,0854 [-0,1618; -0,0169] empeora |
-| student_r3 | v7_astar_s42 | claro | bbox_crop | 183 | 35 | -0,0055 [-0,0518; +0,0389] indistinguible | +0,0234 [-0,0183; +0,0740] indistinguible | +0,0571 [+0,0000; +0,1464] indistinguible |
-| student_r3 | v7_astar_s42 | claro | neutral_bg | 183 | 35 | +0,0939 [-0,0224; +0,2403] indistinguible | +0,1218 [-0,0028; +0,2572] indistinguible | +0,1714 [+0,0526; +0,3104] mejora |
-| student_r3 | v7_astar_s42 | claro | mask_pool | 183 | 35 | +0,0151 [-0,0206; +0,0536] indistinguible | +0,0378 [+0,0002; +0,0821] mejora | +0,0000 [-0,0833; +0,0833] indistinguible |
-| student_r3 | v7_astar_s43 | oscuro | neutral_bg | 820 | 99 | -0,0535 [-0,1275; +0,0304] indistinguible | -0,0605 [-0,1402; +0,0329] indistinguible | +0,0808 [-0,0171; +0,1837] indistinguible |
-| student_r3 | v7_astar_s43 | medio | bbox_crop | 957 | 82 | -0,0094 [-0,0713; +0,0487] indistinguible | -0,0170 [-0,0750; +0,0409] indistinguible | +0,0244 [-0,0641; +0,1098] indistinguible |
-| student_r3 | v7_astar_s43 | medio | neutral_bg | 957 | 82 | -0,0752 [-0,1323; -0,0202] empeora | -0,0650 [-0,1210; -0,0147] empeora | -0,1463 [-0,2501; -0,0361] empeora |
-| student_r3 | v7_astar_s43 | medio | mask_pool | 957 | 82 | -0,0121 [-0,0640; +0,0391] indistinguible | +0,0044 [-0,0436; +0,0491] indistinguible | +0,0488 [-0,0695; +0,1609] indistinguible |
-| student_r3 | v7_astar_s43 | claro | bbox_crop | 183 | 35 | +0,0453 [-0,0282; +0,1697] indistinguible | +0,0379 [-0,0599; +0,1596] indistinguible | +0,0571 [-0,0690; +0,2000] indistinguible |
-| student_r3 | v7_astar_s43 | claro | neutral_bg | 183 | 35 | +0,0907 [-0,0463; +0,2209] indistinguible | +0,0889 [-0,0325; +0,2214] indistinguible | +0,0286 [-0,1250; +0,1875] indistinguible |
-| student_r3 | v7_astar_s43 | claro | mask_pool | 183 | 35 | -0,0153 [-0,0855; +0,0434] indistinguible | -0,0465 [-0,1111; +0,0114] indistinguible | -0,0571 [-0,2000; +0,0857] indistinguible |
-| student_r3 | v7_bstar_s42 | oscuro | bbox_crop | 820 | 99 | +0,0464 [-0,0207; +0,1198] indistinguible | +0,0369 [-0,0427; +0,1205] indistinguible | +0,0404 [-0,0488; +0,1358] indistinguible |
-| student_r3 | v7_bstar_s42 | oscuro | neutral_bg | 820 | 99 | +0,0010 [-0,0728; +0,0792] indistinguible | -0,0125 [-0,0873; +0,0672] indistinguible | +0,0505 [-0,0691; +0,1667] indistinguible |
-| student_r3 | v7_bstar_s42 | oscuro | mask_pool | 820 | 99 | -0,0209 [-0,0647; +0,0152] indistinguible | -0,0298 [-0,0760; +0,0073] indistinguible | -0,0707 [-0,1429; +0,0000] indistinguible |
-| student_r3 | v7_bstar_s42 | medio | bbox_crop | 957 | 82 | +0,0152 [-0,0389; +0,0738] indistinguible | +0,0202 [-0,0353; +0,0841] indistinguible | -0,1098 [-0,2262; +0,0000] indistinguible |
-| student_r3 | v7_bstar_s42 | medio | neutral_bg | 957 | 82 | -0,0261 [-0,0810; +0,0300] indistinguible | -0,0314 [-0,0840; +0,0234] indistinguible | -0,1098 [-0,2273; +0,0225] indistinguible |
-| student_r3 | v7_bstar_s42 | medio | mask_pool | 957 | 82 | -0,0261 [-0,0650; +0,0188] indistinguible | -0,0239 [-0,0641; +0,0183] indistinguible | -0,0244 [-0,1333; +0,0834] indistinguible |
-| student_r3 | v7_bstar_s42 | claro | bbox_crop | 183 | 35 | -0,0779 [-0,1766; +0,0215] indistinguible | -0,0611 [-0,1571; +0,0095] indistinguible | +0,0000 [-0,1430; +0,1471] indistinguible |
-| student_r3 | v7_bstar_s42 | claro | neutral_bg | 183 | 35 | +0,0130 [-0,0706; +0,1185] indistinguible | +0,0116 [-0,0696; +0,1147] indistinguible | +0,0286 [-0,1463; +0,2059] indistinguible |
-| student_r3 | v7_bstar_s42 | claro | mask_pool | 183 | 35 | -0,0295 [-0,1666; +0,1064] indistinguible | -0,0623 [-0,1633; +0,0727] indistinguible | -0,0286 [-0,1667; +0,0969] indistinguible |
-| student_r3 | v7_bstar_s43 | oscuro | bbox_crop | 820 | 99 | +0,0209 [-0,0400; +0,0814] indistinguible | +0,0224 [-0,0441; +0,0920] indistinguible | +0,1010 [+0,0000; +0,1864] indistinguible |
-| student_r3 | v7_bstar_s43 | oscuro | neutral_bg | 820 | 99 | +0,0004 [-0,0738; +0,0764] indistinguible | -0,0029 [-0,0743; +0,0747] indistinguible | +0,0707 [-0,0435; +0,1868] indistinguible |
-| student_r3 | v7_bstar_s43 | oscuro | mask_pool | 820 | 99 | -0,0113 [-0,0650; +0,0411] indistinguible | -0,0058 [-0,0557; +0,0444] indistinguible | +0,1010 [+0,0000; +0,1900] indistinguible |
-| student_r3 | v7_bstar_s43 | medio | bbox_crop | 957 | 82 | -0,0263 [-0,0802; +0,0283] indistinguible | -0,0183 [-0,0713; +0,0328] indistinguible | -0,0122 [-0,1000; +0,0732] indistinguible |
-| student_r3 | v7_bstar_s43 | medio | neutral_bg | 957 | 82 | -0,0347 [-0,0848; +0,0132] indistinguible | -0,0133 [-0,0671; +0,0353] indistinguible | -0,0610 [-0,1628; +0,0362] indistinguible |
-| student_r3 | v7_bstar_s43 | medio | mask_pool | 957 | 82 | -0,0117 [-0,0517; +0,0308] indistinguible | -0,0009 [-0,0398; +0,0396] indistinguible | -0,0122 [-0,1139; +0,0886] indistinguible |
-| student_r3 | v7_bstar_s43 | claro | bbox_crop | 183 | 35 | +0,0285 [-0,0529; +0,1602] indistinguible | +0,0706 [+0,0051; +0,1716] mejora | +0,1429 [+0,0323; +0,2759] mejora |
-| student_r3 | v7_bstar_s43 | claro | neutral_bg | 183 | 35 | +0,1116 [-0,0089; +0,2485] indistinguible | +0,1257 [-0,0031; +0,2523] indistinguible | +0,2000 [+0,0333; +0,3794] mejora |
-| student_r3 | v7_bstar_s43 | claro | mask_pool | 183 | 35 | +0,0809 [-0,0168; +0,2135] indistinguible | +0,0908 [-0,0163; +0,2194] indistinguible | +0,1429 [+0,0312; +0,2647] mejora |
+| Experimento de segmentación 3 | dinov2_public_vitb14 | oscuro | neutral_bg | 820 | 99 | -0,0500 [-0,1433; +0,0512] indistinguible | -0,0870 [-0,1928; +0,0285] indistinguible | +0,0404 [-0,0706; +0,1613] indistinguible |
+| Experimento de segmentación 3 | dinov2_public_vitb14 | medio | bbox_crop | 957 | 82 | -0,0097 [-0,0879; +0,0690] indistinguible | -0,0160 [-0,0907; +0,0611] indistinguible | -0,0732 [-0,1974; +0,0494] indistinguible |
+| Experimento de segmentación 3 | dinov2_public_vitb14 | medio | neutral_bg | 957 | 82 | -0,1000 [-0,1718; -0,0268] empeora | -0,0754 [-0,1464; -0,0083] empeora | -0,0488 [-0,1867; +0,0824] indistinguible |
+| Experimento de segmentación 3 | dinov2_public_vitb14 | medio | mask_pool | 957 | 82 | +0,0197 [-0,0511; +0,0908] indistinguible | +0,0260 [-0,0410; +0,0936] indistinguible | -0,0854 [-0,2055; +0,0256] indistinguible |
+| Experimento de segmentación 3 | dinov2_public_vitb14 | claro | bbox_crop | 183 | 35 | -0,0440 [-0,1704; +0,1063] indistinguible | -0,0368 [-0,1829; +0,0969] indistinguible | +0,0571 [-0,1379; +0,2446] indistinguible |
+| Experimento de segmentación 3 | dinov2_public_vitb14 | claro | neutral_bg | 183 | 35 | -0,1062 [-0,2708; +0,0669] indistinguible | -0,0757 [-0,2547; +0,0898] indistinguible | -0,1714 [-0,3637; +0,0000] indistinguible |
+| Experimento de segmentación 3 | dinov2_public_vitb14 | claro | mask_pool | 183 | 35 | -0,0089 [-0,1350; +0,1377] indistinguible | -0,0382 [-0,1642; +0,0929] indistinguible | -0,0286 [-0,2000; +0,1380] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s42 | oscuro | neutral_bg | 820 | 99 | -0,0188 [-0,1112; +0,0768] indistinguible | -0,0218 [-0,1156; +0,0774] indistinguible | +0,0101 [-0,0714; +0,0938] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s42 | medio | bbox_crop | 957 | 82 | -0,0156 [-0,0778; +0,0450] indistinguible | -0,0200 [-0,0776; +0,0391] indistinguible | -0,0366 [-0,1216; +0,0520] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s42 | medio | neutral_bg | 957 | 82 | -0,0870 [-0,1394; -0,0325] empeora | -0,0791 [-0,1299; -0,0288] empeora | -0,1220 [-0,2180; -0,0260] empeora |
+| Experimento de segmentación 3 | v7_astar_s42 | medio | mask_pool | 957 | 82 | -0,0118 [-0,0670; +0,0493] indistinguible | -0,0131 [-0,0695; +0,0471] indistinguible | -0,0854 [-0,1618; -0,0169] empeora |
+| Experimento de segmentación 3 | v7_astar_s42 | claro | bbox_crop | 183 | 35 | -0,0055 [-0,0518; +0,0389] indistinguible | +0,0234 [-0,0183; +0,0740] indistinguible | +0,0571 [+0,0000; +0,1464] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s42 | claro | neutral_bg | 183 | 35 | +0,0939 [-0,0224; +0,2403] indistinguible | +0,1218 [-0,0028; +0,2572] indistinguible | +0,1714 [+0,0526; +0,3104] mejora |
+| Experimento de segmentación 3 | v7_astar_s42 | claro | mask_pool | 183 | 35 | +0,0151 [-0,0206; +0,0536] indistinguible | +0,0378 [+0,0002; +0,0821] mejora | +0,0000 [-0,0833; +0,0833] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s43 | oscuro | neutral_bg | 820 | 99 | -0,0535 [-0,1275; +0,0304] indistinguible | -0,0605 [-0,1402; +0,0329] indistinguible | +0,0808 [-0,0171; +0,1837] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s43 | medio | bbox_crop | 957 | 82 | -0,0094 [-0,0713; +0,0487] indistinguible | -0,0170 [-0,0750; +0,0409] indistinguible | +0,0244 [-0,0641; +0,1098] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s43 | medio | neutral_bg | 957 | 82 | -0,0752 [-0,1323; -0,0202] empeora | -0,0650 [-0,1210; -0,0147] empeora | -0,1463 [-0,2501; -0,0361] empeora |
+| Experimento de segmentación 3 | v7_astar_s43 | medio | mask_pool | 957 | 82 | -0,0121 [-0,0640; +0,0391] indistinguible | +0,0044 [-0,0436; +0,0491] indistinguible | +0,0488 [-0,0695; +0,1609] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s43 | claro | bbox_crop | 183 | 35 | +0,0453 [-0,0282; +0,1697] indistinguible | +0,0379 [-0,0599; +0,1596] indistinguible | +0,0571 [-0,0690; +0,2000] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s43 | claro | neutral_bg | 183 | 35 | +0,0907 [-0,0463; +0,2209] indistinguible | +0,0889 [-0,0325; +0,2214] indistinguible | +0,0286 [-0,1250; +0,1875] indistinguible |
+| Experimento de segmentación 3 | v7_astar_s43 | claro | mask_pool | 183 | 35 | -0,0153 [-0,0855; +0,0434] indistinguible | -0,0465 [-0,1111; +0,0114] indistinguible | -0,0571 [-0,2000; +0,0857] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s42 | oscuro | bbox_crop | 820 | 99 | +0,0464 [-0,0207; +0,1198] indistinguible | +0,0369 [-0,0427; +0,1205] indistinguible | +0,0404 [-0,0488; +0,1358] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s42 | oscuro | neutral_bg | 820 | 99 | +0,0010 [-0,0728; +0,0792] indistinguible | -0,0125 [-0,0873; +0,0672] indistinguible | +0,0505 [-0,0691; +0,1667] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s42 | oscuro | mask_pool | 820 | 99 | -0,0209 [-0,0647; +0,0152] indistinguible | -0,0298 [-0,0760; +0,0073] indistinguible | -0,0707 [-0,1429; +0,0000] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s42 | medio | bbox_crop | 957 | 82 | +0,0152 [-0,0389; +0,0738] indistinguible | +0,0202 [-0,0353; +0,0841] indistinguible | -0,1098 [-0,2262; +0,0000] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s42 | medio | neutral_bg | 957 | 82 | -0,0261 [-0,0810; +0,0300] indistinguible | -0,0314 [-0,0840; +0,0234] indistinguible | -0,1098 [-0,2273; +0,0225] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s42 | medio | mask_pool | 957 | 82 | -0,0261 [-0,0650; +0,0188] indistinguible | -0,0239 [-0,0641; +0,0183] indistinguible | -0,0244 [-0,1333; +0,0834] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s42 | claro | bbox_crop | 183 | 35 | -0,0779 [-0,1766; +0,0215] indistinguible | -0,0611 [-0,1571; +0,0095] indistinguible | +0,0000 [-0,1430; +0,1471] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s42 | claro | neutral_bg | 183 | 35 | +0,0130 [-0,0706; +0,1185] indistinguible | +0,0116 [-0,0696; +0,1147] indistinguible | +0,0286 [-0,1463; +0,2059] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s42 | claro | mask_pool | 183 | 35 | -0,0295 [-0,1666; +0,1064] indistinguible | -0,0623 [-0,1633; +0,0727] indistinguible | -0,0286 [-0,1667; +0,0969] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s43 | oscuro | bbox_crop | 820 | 99 | +0,0209 [-0,0400; +0,0814] indistinguible | +0,0224 [-0,0441; +0,0920] indistinguible | +0,1010 [+0,0000; +0,1864] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s43 | oscuro | neutral_bg | 820 | 99 | +0,0004 [-0,0738; +0,0764] indistinguible | -0,0029 [-0,0743; +0,0747] indistinguible | +0,0707 [-0,0435; +0,1868] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s43 | oscuro | mask_pool | 820 | 99 | -0,0113 [-0,0650; +0,0411] indistinguible | -0,0058 [-0,0557; +0,0444] indistinguible | +0,1010 [+0,0000; +0,1900] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s43 | medio | bbox_crop | 957 | 82 | -0,0263 [-0,0802; +0,0283] indistinguible | -0,0183 [-0,0713; +0,0328] indistinguible | -0,0122 [-0,1000; +0,0732] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s43 | medio | neutral_bg | 957 | 82 | -0,0347 [-0,0848; +0,0132] indistinguible | -0,0133 [-0,0671; +0,0353] indistinguible | -0,0610 [-0,1628; +0,0362] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s43 | medio | mask_pool | 957 | 82 | -0,0117 [-0,0517; +0,0308] indistinguible | -0,0009 [-0,0398; +0,0396] indistinguible | -0,0122 [-0,1139; +0,0886] indistinguible |
+| Experimento de segmentación 3 | v7_bstar_s43 | claro | bbox_crop | 183 | 35 | +0,0285 [-0,0529; +0,1602] indistinguible | +0,0706 [+0,0051; +0,1716] mejora | +0,1429 [+0,0323; +0,2759] mejora |
+| Experimento de segmentación 3 | v7_bstar_s43 | claro | neutral_bg | 183 | 35 | +0,1116 [-0,0089; +0,2485] indistinguible | +0,1257 [-0,0031; +0,2523] indistinguible | +0,2000 [+0,0333; +0,3794] mejora |
+| Experimento de segmentación 3 | v7_bstar_s43 | claro | mask_pool | 183 | 35 | +0,0809 [-0,0168; +0,2135] indistinguible | +0,0908 [-0,0163; +0,2194] indistinguible | +0,1429 [+0,0312; +0,2647] mejora |
 | a2 | dinov2_public_vitb14 | oscuro | neutral_bg | 820 | 99 | -0,0791 [-0,1837; +0,0157] indistinguible | -0,1223 [-0,2367; -0,0140] empeora | +0,0606 [-0,0516; +0,1721] indistinguible |
 | a2 | dinov2_public_vitb14 | medio | bbox_crop | 957 | 82 | -0,0040 [-0,0832; +0,0770] indistinguible | +0,0008 [-0,0728; +0,0727] indistinguible | +0,0000 [-0,1177; +0,1268] indistinguible |
 | a2 | dinov2_public_vitb14 | medio | neutral_bg | 957 | 82 | -0,0795 [-0,1499; -0,0046] empeora | -0,0553 [-0,1296; +0,0119] indistinguible | -0,0976 [-0,2470; +0,0506] indistinguible |

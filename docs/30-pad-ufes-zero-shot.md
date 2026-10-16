@@ -2,7 +2,7 @@
 
 ## Nomenclatura de lectura
 
-**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
 
 Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
 
@@ -110,7 +110,7 @@ Los bloques de §2-3 y §5 no se editan: el guard los compara byte a byte contra
 - **Nota sobre los grupos de fototipo (Paula, 2026-09-28).** El metadata tiene, por imagen: I 153, II 876, III 392, IV 62, V 10, VI 1 y 804 vacíos. Se reportan I, II y III-VI agrupado. El grupo III-VI es casi todo tipo III, así que no representa piel oscura. IV, V y VI van solo como conteo descriptivo, sin veredicto. La frase para la tesis es literal: "PAD-UFES-20 no permite concluir sobre FST V-VI". La nota con el porcentaje no se transcribe a mano: `dermssl.pad_ufes.fst_note` la calcula desde el metadata, y la escriben el manifiesto, el JSON de la evaluación y el de la validación FST, junto con la tabla `<salida>.fst_table.md`. Con los conteos de arriba sale "84 % tipo III (392/465)".
 - **Errata de la primera pasada: remuestras no finitas en los estratos de fototipo (2026-09-29).** La primera pasada de §2-3 abortó en el pod sin escribir salida: no hubo JSON y no se vio ningún número. Falló dentro de `pad_ufes_readings.fst_strata`, en `paired_bootstrap.paired_contrast`, con "6 de 1000 remuestras dieron un valor no finito". La causa: dentro de un estrato de fototipo, el bootstrap agrupado por paciente saca remuestras en las que falta alguna clase de la lectura primaria, y ahí la métrica queda indefinida. No se miró el dato de PAD para averiguar qué estrato ni qué métrica. Regla, aprobada por Paula el 2026-09-29 antes de volver a correr (opción b): **solo en los estratos exploratorios de §2.5**, el valor puntual se reporta siempre. Si alguna remuestra da un valor no finito, el IC de esa métrica (por brazo) o de ese contraste pareado, en ese estrato, queda como "no calculable", y se reporta el número exacto de remuestras no finitas como k/1000. No se descarta ninguna remuestra ni se recalcula el IC con las que quedan. Las lecturas primaria, secundaria y exploratoria sobre PAD completo no cambian: ahí una remuestra no finita sigue abortando la evaluación. La tabla generada muestra k/1000 por estrato. La adenda de §7 hereda esta misma regla para sus estratos.
 
-## 7. Adenda descriptiva: control SSL sin consistencia de tono y s44 (registrada el 2026-09-29T09:36Z, sin ver resultados)
+## 7. Adenda descriptiva: Modelo de control y s44 (registrada el 2026-09-29T09:36Z, sin ver resultados)
 
 <!-- registro-pad-adenda-a71-s44:inicio -->
 

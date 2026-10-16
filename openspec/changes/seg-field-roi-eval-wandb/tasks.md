@@ -23,7 +23,7 @@ Strict TDD per task (failing test first). Files at most 300 lines, functions at 
 
 ## WU3 Pipeline wiring, presets, runbook
 
-- [x] 3.1 `run_pipeline.py`: pass `--field <cache>/field.npy` and `max_area_fraction` to pseudo stages; `--eval-set NAME=IMAGES:MASKS` repeatable (keeps `--eval-image-dir/--eval-mask-dir`); `--fst-manifest` for evaluation; new stage `fst` after the last student round; `--wandb-project` exported to child processes with `WANDB_RUN_GROUP=<workdir name>`.
+- [x] 3.1 `run_pipeline.py`: pass `--field <cache>/field.npy` and `max_area_fraction` to pseudo stages; `--eval-set NAME=IMAGES:MASKS` repeatable (keeps `--eval-image-dir/--eval-mask-dir`); `--fst-manifest` for evaluation; new stage `fst` after the last experimento de segmentación round; `--wandb-project` exported to child processes with `WANDB_RUN_GROUP=<workdir name>`.
 - [x] 3.2 `comun/configs/cluster-piloto.json` and `cluster-final.json` with the fields above; no `<...>` placeholders.
 - [x] 3.3 `plan-segmentacion/RUNBOOK_CLUSTER.md`: exact commands for `~/work/proyectonp` (venv with system site packages, data layout, ISIC 2018 Task 1 and HAM10000 mask downloads, smoke, pilot, final, evaluation on both sets, W&B links, nohup logs, resume).
 - [x] 3.4 Update `tests/test_seg_run_pipeline.py` and `tests/test_seg_static.py` allow-lists if a new module legitimately opens images.

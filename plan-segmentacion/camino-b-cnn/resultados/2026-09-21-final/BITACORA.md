@@ -2,7 +2,7 @@
 
 ## Nomenclatura de lectura
 
-**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
 
 Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
 
@@ -50,7 +50,7 @@ Commit: f19ab56 (rama feature/fitzpatrick-domain-adaptation-informe, 4 commits s
 - check_env.py: torch 2.11.0+cu128, cuda 12.8, bf16 y NCCL disponibles, 2x RTX PRO 4000 23.4 GB, work_dir_free_gb 40716, shm_free_mb 64.
 - pytest tests/test_seg_static.py tests/test_seg_field_roi.py tests/test_seg_run_pipeline.py -> 136 passed in 0.51s.
 - Smoke GPU (smoke.sh --nproc-per-node 2), todas las etapas codigo 0:
-  env 3.3s, cache 0.4s, contrastive 8.3s, ccam 5.7s, pseudo_r0 0.4s, experimento de segmentación U-Net, ronda 1 7.2s, pseudo_r1 0.4s, experimento de segmentación U-Net, ronda 2 7.3s, synthetic_eval 0.2s, evaluate_synthetic 3.0s.
+  env 3.3s, cache 0.4s, contrastive 8.3s, ccam 5.7s, pseudo_r0 0.4s, Experimento de segmentación 1 7.2s, pseudo_r1 0.4s, Experimento de segmentación 2 7.3s, synthetic_eval 0.2s, evaluate_synthetic 3.0s.
 - Piloto lanzado con cluster-piloto.json, --nproc-per-node 2, workdir ~/work/proyectonp/salidas/piloto, PID 4392.
   Antes se corrio --dry-run para validar rutas. GPUs en 4 MiB / 0% al lanzar.
   W&B: grupo piloto en https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion
@@ -118,7 +118,7 @@ max_area_fraction 0.6 recorta. Revisar esos casos en los overlays.
 | moco epoca 0 | 269.11 | 212.14 | 8190 MiB | - |
 | moco epocas 1-4 | ~773 | ~73.9 | 8190 MiB | alternante |
 | ccam | ~2878 | ~19.9 | 3528 MiB | 25-27% |
-| experimento de segmentación U-Net, ronda 1 epoca 0 | 700.97 | 72.22 | 3906 MiB | 98% |
+| Experimento de segmentación 1 epoca 0 | 700.97 | 72.22 | 3906 MiB | 98% |
 
 La epoca 0 de cada etapa carga el warmup y no sirve para proyectar. El regimen real de MoCo es 773 img/s,
 no los 269 de la epoca 0.
@@ -147,7 +147,7 @@ Pendientes abiertos para la corrida final (no para ahora):
 ## 2026-09-21 04:15 UTC - PILOTO TERMINADO (commit f19ab56)
 
 9/9 etapas en codigo 0, cero tracebacks. Total 2242.9 s (37.4 min).
-env 3.0 | cache 204.9 | contrastive 528.9 | ccam 121.5 | pseudo_r0 208.9 | experimento de segmentación U-Net, ronda 1 391.1 |
+env 3.0 | cache 204.9 | contrastive 528.9 | ccam 121.5 | pseudo_r0 208.9 | Experimento de segmentación 1 391.1 |
 fst 421.3 | evaluate_isic2018 281.5 | evaluate_ham10000 81.8
 
 La diferencia 281.5 s (2594 img) vs 81.8 s (10015 img) es decodificacion: los JPEG de ISIC2018 son
@@ -263,7 +263,7 @@ mire `kubectl describe pod` (razon OOMKilled / Evicted).
 (contenedor vivo mas de 1 h 06) y la memoria se mantuvo en 7.8 GB usados de 123 GB. Evidencia a favor
 de la presion de recursos y en contra de un max_age duro del hub.
 
-**Gotcha critico del W&experimento SSL con consistencia de tono*: `~/.netrc` vive en el overlay efimero del contenedor, NO en ~/work (NFS).
+**Gotcha critico del W&Proposed sin segmentación*: `~/.netrc` vive en el overlay efimero del contenedor, NO en ~/work (NFS).
 Cada reinicio lo borra y el pipeline arranca SIN tracking, sin fallar: solo imprime una linea
 "aviso: seguimiento W&B deshabilitado". El procedimiento de recuperacion es de TRES pasos:
   1. `wandb login` de nuevo
