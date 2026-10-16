@@ -115,7 +115,7 @@ h1 em { color: var(--moss); font-weight: 500; }
 .interval-chart { display: block; width: 100%; max-width: 620px; margin: 16px auto; }
 .evidence-card { border-color: var(--line); background: var(--surface); color: var(--ink); box-shadow: none; }
 .evidence-card .eyebrow, .evidence-card .result-caveat { color: var(--ink-muted); }
-.result-card .eyebrow { color: #c0c9c4; }
+.result-card:not(.evidence-card) .eyebrow { color: #c0c9c4; }
 .result-model { align-self: center; padding: 6px 10px; border: 1px solid #69746f; border-radius: 999px; color: #d6eee4; font: 9px var(--mono); }
 .result-caveat { margin: 12px 0 15px; color: #c2cbc7; font-size: 11px; }
 .prediction-highlight { display: flex; align-items: center; gap: 11px; padding: 14px; border: 1px solid #4d6259; border-radius: 15px; background: #2b3832; }
@@ -141,7 +141,7 @@ h1 em { color: var(--moss); font-weight: 500; }
 .research-links > p { grid-column: 1 / -1; margin-bottom: 7px; }
 .research-links > a { display: flex; min-height: 35px; align-items: center; justify-content: space-between; gap: 8px; font-size: 10px; text-decoration: none; }
 .research-links > a > span:last-child { color: var(--moss); }
-.footnote { display: flex; justify-content: space-between; gap: 15px; padding: 14px 0 calc(20px + env(safe-area-inset-bottom)); color: #788077; font: 8px var(--mono); letter-spacing: .035em; }
+.footnote { display: flex; justify-content: space-between; gap: 15px; padding: 14px 0 calc(20px + env(safe-area-inset-bottom)); color: var(--ink-muted); font: 8px var(--mono); letter-spacing: .035em; }
 .footnote > span:first-child { white-space: nowrap; }
 .toast { position: fixed; z-index: 5; right: 18px; bottom: calc(16px + env(safe-area-inset-bottom)); left: 18px; max-width: 440px; margin-left: auto; padding: 13px 15px; transform: translateY(9px); border: 1px solid #e5c8b7; border-radius: 7px; background: #fff6f0; color: #68352b; box-shadow: 0 8px 28px #17242219; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 180ms ease, transform 180ms var(--ease-out); }
 .toast[data-visible="true"] { transform: translateY(0); opacity: 1; }
