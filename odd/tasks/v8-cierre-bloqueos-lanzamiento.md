@@ -21,6 +21,16 @@ lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
 
 ## Avance vigente del paso 1 (2026-10-15 UTC)
 
+### Bloqueo de integridad de fuentes (2026-10-16 UTC)
+
+El aplicador candidato se transfirió por ZIP a UNABIA (SHA-256 `1f2cfdeb33870f7af65cd146e717115aee51cba79ffdf902c008b38ca667b10c`) y pasó tres pruebas de contrato allí. El intento real de materializar las 1.917 exclusiones abortó sin salida: las dos copias en UNABIA de `isic2018_exclusion_review_register_20261015.json` tienen 9.271.726 bytes, pero no coinciden con el pin `4b967833559bba375c59b57686b19278301bd6767926fdd3fac215fddd11fecf`. El ZIP v2 local y remoto tiene SHA-256 `87d32a480c6f2b8a9a50b768f070f53ca954c5ae1cd3d26fca39d7852bcd1e42`, distinto del pin de readiness `87d32a480c6f2b8a9a50b768f070f53ca9545cae1cd3d26fca39d7852bcd1e42`; contiene solo `scripts/build_v8_exclusion_review.py` (12.641 bytes), no el registro JSON. Los hashes observados del informe pHash y la cola nearest también devuelven `pin_match=false`. No se inició adjudicación visual ni se congelaron manifiestos. No se ha demostrado la causa de las discrepancias; no se modifican pins para ajustarlos.
+
+- [ ] Recuperar o reconstruir registro, informe pHash y cola nearest con procedencia y hashes verificables; conservar un recibo comprobable de la reconciliación.
+- [ ] Aplicar y verificar las 1.917 exclusiones solo después de reconciliar las fuentes; revisar después todos los pares pHash, no solo la cola nearest.
+- [ ] Antes de aplicar exclusiones a datos reales, incorporar al aplicador el hash del código/helper en el recibo y publicación atómica o invalidación explícita de directorios sin recibo final. Una revisión independiente informada en esta sesión no reportó bloqueo de filtrado ni fuga de datos, pero su dictamen no está persistido como informe auditable en el repositorio.
+
+`base_id_exclusions_materialized=false`, `candidate_adjudication_complete=false`, `manifest_frozen=false`, `execution_enabled=false`, `launch_ready=false`, `training_started=false`; independencia por paciente no acreditada. No hubo entrenamiento. La limpieza sintética permanece justo antes de la primera corrida real.
+
 ### Decisión adoptada y entrega candidata
 
 El usuario aprobó `retrospective_public_benchmark`, manteniendo `patient_independence_accredited=false`. Sustituye las declaraciones históricas posteriores sobre reformulación pendiente de aprobación. El alcance es evaluación retrospectiva pública de 2.594 imágenes/máscaras Task 1; no acredita pacientes nuevos ni test ciego original.
