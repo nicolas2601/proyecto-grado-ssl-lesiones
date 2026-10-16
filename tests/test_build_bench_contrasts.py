@@ -10,6 +10,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
 import build_bench_contrasts as bc  # noqa: E402
+from dermssl.display_nomenclature import display_text  # noqa: E402
 from dermssl.bench import cli, contrasts_doc as D, contrasts_load as L, e2_tables as E2, ft_contrasts as F  # noqa: E402
 
 MD = REPO / cli.OUT / "CONTRASTES_SSL.md"
@@ -79,9 +80,9 @@ def test_an_e3_mcc_cell_stored_as_unavailable_renders_unavailable_from_the_json(
 
 def test_e3b_tables_carry_mcc_like_any_other_metric():
     text = _text()
-    above = text.split("### HAM10000: B71 frente a los 8 baselines")[1].split("###")[0]
+    above = text.split("### HAM10000: Proposed sin segmentación frente a los 8 baselines")[1].split("###")[0]
     assert "(4 variantes × 4 métricas)" in text and above.count("| MCC |") == 32
-    raised = text.split("### HAM10000: F4 sobre cada baseline congelado")[1].split("###")[0]
+    raised = text.split(display_text("### HAM10000: F4 sobre cada baseline congelado"))[1].split("###")[0]
     assert raised.count("| MCC |") == 8
 
 
@@ -95,7 +96,7 @@ def test_no_contrast_is_pending_once_every_result_is_committed():
 
 def test_e2_contrasts_are_listed_with_the_primary_one_first():
     text = _text().split("### D0-D3 (E2): contrastes pareados")[1]
-    assert "predicción primaria registrada" in text and "| D3 | D2 | F1 macro |" in text
+    assert "predicción primaria registrada" in text and display_text("| D3 | D2 | F1 macro |") in text
 
 
 def test_interval_only_table_never_claims_a_pairwise_win():
@@ -120,4 +121,4 @@ def test_the_e3_f4_mcc_reading_is_generated_from_the_cells_and_keeps_f4_explorat
     near = [c for c in hit if min(abs(c["ci95_low"]), abs(c["ci95_high"])) < near_zero]
     text = _text().split("### HAM10000: MCC puntual")[1].split("###")[0]
     assert f"IC que excluye 0 en {len(hit)} de {len(cells)} celdas; {len(near)} con límite inferior ≈ 0" in text
-    assert "F4 sigue siendo exploratorio" in text and "regla de lectura de la robustez" in text
+    assert display_text("F4 sigue siendo exploratorio") in text and "regla de lectura de la robustez" in text

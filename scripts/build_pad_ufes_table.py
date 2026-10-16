@@ -176,6 +176,10 @@ def _header(doc: dict, environment: dict | None, n_resamples: int) -> list[str]:
     ]
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(doc: dict, environment: dict | None = None) -> str:
     n_resamples = doc["bootstrap"]["n_resamples"]
     lines = [*_header(doc, environment, n_resamples), *_readings(doc, n_resamples), *_strata(doc, n_resamples)]

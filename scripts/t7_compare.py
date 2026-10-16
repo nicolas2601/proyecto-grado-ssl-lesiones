@@ -243,6 +243,10 @@ def _dataset_lines(key: str, d: dict) -> list[str]:
     return lines
 
 
+from dermssl.display_nomenclature import segmentation_presentation  # noqa: E402
+
+
+@segmentation_presentation
 def render_markdown(doc: dict) -> str:
     lines = ["# T7 — A2 reentrenado con oscurecimiento y sobremuestreo del tercil oscuro (exploratorio)", "",
              f"Generado por `{SCRIPT}` desde `{JSON_FILE}`; no editar a mano. Registro, predicción y salvedades: "

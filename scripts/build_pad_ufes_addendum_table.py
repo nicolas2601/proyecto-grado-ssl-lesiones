@@ -108,6 +108,10 @@ def _strata(doc: dict, n_resamples: int) -> list[str]:
     return lines
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(doc: dict) -> str:
     n_resamples = doc["bootstrap"]["n_resamples"]
     protocols = [f"- `{role}`: {protocol}" for role, protocol in doc["protocols"].items()]

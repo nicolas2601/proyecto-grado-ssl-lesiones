@@ -151,6 +151,10 @@ def _coverage_rows(doc: dict) -> list[str]:
             for d, c in ((d, cell["coverage"]) for d, cell in doc["datasets"].items())]
 
 
+from dermssl.display_nomenclature import segmentation_presentation  # noqa: E402
+
+
+@segmentation_presentation
 def render_markdown(doc: dict) -> str:
     p = doc["params"]
     return "\n".join([

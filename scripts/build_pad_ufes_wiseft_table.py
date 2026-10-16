@@ -150,6 +150,10 @@ def _agreement(doc: dict) -> list[str]:
     return lines
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(doc: dict) -> str:
     n = doc["bootstrap"]["n_resamples"]
     lines = [

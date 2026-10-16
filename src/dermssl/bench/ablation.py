@@ -13,6 +13,10 @@ INTRO = ("Todos los números son de la partición de val de cada dataset y salen
          "F4 son exploratorios: no cambian el propuesto (B71 sin segmentación). D0-D3 esperan a E2.")
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render_markdown(repo: Path) -> str:
     lines = ["# Banco completo: ablación de nuestros métodos", "", INTRO, "",
              *glossary.preamble(repo, DATASETS, SCRIPT)]
@@ -21,6 +25,7 @@ def render_markdown(repo: Path) -> str:
     return "\n".join(lines)
 
 
+@presentation
 def render_latex(repo: Path) -> str:
     return tables.latex_document(ablation_data.tables(repo), SCRIPT)
 

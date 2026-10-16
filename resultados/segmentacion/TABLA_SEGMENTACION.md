@@ -1,17 +1,17 @@
-# Segmentación: estudiante final y pseudo-máscaras v7
+# Segmentación: experimento de segmentación final y pseudo-máscaras v7
 
 Generado por `scripts/build_segmentation_table.py` desde JSON commiteados. No editar a mano: `--check` lo compara en CI.
 
-## Estudiante final contra las máscaras de referencia
+## Experimento de segmentación final contra las máscaras de referencia
 
 Checkpoint `student_r3/best.pt`, umbral 0,5, resolución 224. HD95 en píxeles a esa resolución. Las máscaras de referencia solo se leen para evaluar. Dirección: Dice ↑ mayor es mejor; IoU ↑ mayor es mejor; HD95 ↓ menor es mejor.
 
 | Variante | Referencia | Dice media [IC 95 %] | Dice mediana | IoU media [IC 95 %] | IoU mediana | HD95 media [IC 95 %] | HD95 mediana | n (Dice / IoU / HD95) |
 |---|---|---|---|---|---|---|---|---:|
-| student_r3 | ISIC 2018 | 0,7177 [0,7090; 0,7260] | 0,7925 | 0,6017 [0,5924; 0,6104] | 0,6563 | 26,05 [25,04; 27,09] | 13,60 | 2.594 / 2.594 / 2.589 |
-| student_r3 | HAM10000 | 0,7847 [0,7812; 0,7883] | 0,8519 | 0,6784 [0,6745; 0,6827] | 0,7420 | 22,44 [21,95; 22,90] | 12,65 | 10.015 / 10.015 / 10.007 |
-| student_r3 + TTA | ISIC 2018 | 0,7180 [0,7094; 0,7263] | 0,7917 | 0,6020 [0,5926; 0,6109] | 0,6552 | 25,74 [24,69; 26,79] | 13,42 | 2.594 / 2.594 / 2.589 |
-| student_r3 + TTA | HAM10000 | 0,7849 [0,7814; 0,7885] | 0,8527 | 0,6788 [0,6748; 0,6832] | 0,7432 | 22,38 [21,89; 22,83] | 12,53 | 10.015 / 10.015 / 10.009 |
+| experimento de segmentación U-Net, ronda final 3 | ISIC 2018 | 0,7177 [0,7090; 0,7260] | 0,7925 | 0,6017 [0,5924; 0,6104] | 0,6563 | 26,05 [25,04; 27,09] | 13,60 | 2.594 / 2.594 / 2.589 |
+| experimento de segmentación U-Net, ronda final 3 | HAM10000 | 0,7847 [0,7812; 0,7883] | 0,8519 | 0,6784 [0,6745; 0,6827] | 0,7420 | 22,44 [21,95; 22,90] | 12,65 | 10.015 / 10.015 / 10.007 |
+| experimento de segmentación U-Net, ronda final 3 + TTA | ISIC 2018 | 0,7180 [0,7094; 0,7263] | 0,7917 | 0,6020 [0,5926; 0,6109] | 0,6552 | 25,74 [24,69; 26,79] | 13,42 | 2.594 / 2.594 / 2.589 |
+| experimento de segmentación U-Net, ronda final 3 + TTA | HAM10000 | 0,7849 [0,7814; 0,7885] | 0,8527 | 0,6788 [0,6748; 0,6832] | 0,7432 | 22,38 [21,89; 22,83] | 12,53 | 10.015 / 10.015 / 10.009 |
 
 ## Pseudo-máscaras v7 contra los umbrales registrados (docs/27, FASE 2)
 

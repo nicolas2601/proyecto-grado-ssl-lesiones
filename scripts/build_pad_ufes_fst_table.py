@@ -92,6 +92,10 @@ def _verdicts(verdicts: dict) -> list[str]:
             f"condiciones): **{verdicts['FST-P2']}**."]
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(doc: dict) -> str:
     matrices = [line for c in fv.CONDITIONS for line in ["", *_confusion(c, doc["metrics"][c]["confusion"])]]
     lines = [

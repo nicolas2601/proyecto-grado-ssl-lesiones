@@ -132,6 +132,10 @@ def cross_sections(cross: dict | None) -> list[str]:
     return parts
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(cells: dict, bootstrap: dict, cross: dict | None = None) -> str:
     not_contrasted = bootstrap.get("not_contrasted", [])
     parts = [

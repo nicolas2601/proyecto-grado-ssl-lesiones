@@ -1,4 +1,4 @@
-# PAD-UFES-20, adenda descriptiva: A71 y semilla 44 (docs/30 §7)
+# PAD-UFES-20, adenda descriptiva: control SSL sin consistencia de tono y semilla 44 (docs/30 §7)
 
 Generado por `scripts/build_pad_ufes_addendum_table.py` desde `pad_ufes_addendum_a71_s44.json`; no editar a mano (`--check` lo compara y `tests/test_build_pad_ufes_addendum_table.py` lo corre en CI). `code_revision` 0c9526fa6707af739a1f1683f2424cce5cd305e4, registro `76aa91e7b68cbfd55bd93aa857f6587efd5717b7`.
 

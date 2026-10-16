@@ -91,7 +91,7 @@ def test_manifest_lists_pending_cells_and_the_missing_diff_figure():
     assert {("HAM10000", "B71-limpio (canónico)"), ("HAM10000", "A71-limpio (canónico)")} <= {(a["dataset"], a["modelo"]) for a in ARTS}
     assert "no comparten partición" in manifest["figura_de_diferencias"]
     readme = (OUT / "confusion" / "README.md").read_text(encoding="utf-8")
-    assert "No se genera figura de diferencias frente a B71" in readme
+    assert "No se genera figura de diferencias frente a Proposed sin segmentación" in readme
     assert not [p for p in (OUT / "confusion").rglob("*") if "dif" in p.name.lower()]
 
 

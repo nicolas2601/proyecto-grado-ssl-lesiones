@@ -4,7 +4,7 @@ Generado por `scripts/t7_r0_tercile_check.py` desde `t7_r0_tercile_check.json`; 
 
 Cobertura: 9822 imágenes con tercil; 193 sin tercil; 0 fuera del pool.
 
-| Tercil | n | excluidas por r0 | Dice r0 (a) binaria | Dice r0 (b) confiable | Dice A2 (mismas imágenes) |
+| Tercil | n | excluidas por r0 | Dice r0 (a) binaria | Dice r0 (b) confiable | Dice experimento de segmentación DINOv2 con pseudo-máscaras CCAM (mismas imágenes) |
 |---|---:|---:|---:|---:|---:|
 | oscuro | 4082 | 299 (0,073) | 0,7376 | 0,7949 | 0,7680 |
 | medio | 4876 | 206 (0,042) | 0,7825 | 0,8395 | 0,8168 |
@@ -14,7 +14,7 @@ Cobertura: 9822 imágenes con tercil; 193 sin tercil; 0 fuera del pool.
 |---|---|
 | G(r0), forma (a) | -0,0531 [-0,0617; -0,0446] |
 | G(r0), forma (b) | -0,0512 [-0,0599; -0,0428] |
-| G(A2), mismas imágenes | -0,0560 [-0,0629; -0,0492] |
-| \|G(A2)\| − \|G(r0)\| (pareado, descriptivo) | +0,0029 [-0,0010; +0,0069] |
+| G(experimento de segmentación DINOv2 con pseudo-máscaras CCAM), mismas imágenes | -0,0560 [-0,0629; -0,0492] |
+| \|G(experimento de segmentación DINOv2 con pseudo-máscaras CCAM)\| − \|G(r0)\| (pareado, descriptivo) | +0,0029 [-0,0010; +0,0069] |
 
-Regla condicional (\|G(r0)\| ≥ \|G(A2)\|, estimaciones puntuales, forma (a)): **no**.
+Regla condicional (\|G(r0)\| ≥ \|G(experimento de segmentación DINOv2 con pseudo-máscaras CCAM)\|, estimaciones puntuales, forma (a)): **no**.

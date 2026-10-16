@@ -104,6 +104,10 @@ def _span(pair: tuple[int, int]) -> str:
     return str(pair[0]) if pair[0] == pair[1] else f"{pair[0]}–{pair[1]}"
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def paragraph(facts: dict) -> str:
     t_a, t_b = facts["threads"]
     j_a, j_b = facts["probe_jobs"]

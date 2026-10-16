@@ -212,6 +212,11 @@ CAVEATS = [
 ]
 
 
+sys.path.insert(0, str(REPO / "src"))
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render() -> str:
     entries = ranked()
     lr = sorted(lrprobe_entries(), key=lambda e: e.macro_f1, reverse=True)

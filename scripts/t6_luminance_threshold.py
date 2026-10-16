@@ -236,6 +236,10 @@ def _contrast_rows(doc: dict) -> list[str]:
     return lines
 
 
+from dermssl.display_nomenclature import segmentation_presentation  # noqa: E402
+
+
+@segmentation_presentation
 def render_markdown(doc: dict) -> str:
     p = doc["params"]
     return "\n".join([

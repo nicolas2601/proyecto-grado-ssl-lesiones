@@ -150,6 +150,10 @@ def _control(flag) -> str:
     return "n/a" if flag is None else _yes(flag)
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render_readme(doc: dict) -> str:
     s = doc["summary"]
     rec = doc["recorded_threads"]

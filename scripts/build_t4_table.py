@@ -66,6 +66,10 @@ def _verdicts(doc: dict) -> list[str]:
     ]
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(doc: dict) -> str:
     counts = doc["tercile_counts"]
     repro = max(abs(x) for per in doc["v71_reproduction_delta"].values() for x in per.values())

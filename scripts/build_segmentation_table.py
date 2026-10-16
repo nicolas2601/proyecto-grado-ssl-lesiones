@@ -206,6 +206,11 @@ def hair_section(cache: dict) -> list[str]:
     return lines + ["", "«—» = el `cache_info.json` de esa variante no registra el conteo."]
 
 
+sys.path.insert(0, str(REPO / "src"))
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(src: dict) -> str:
     lines = ["# Segmentación: estudiante final y pseudo-máscaras v7", "",
              "Generado por `scripts/build_segmentation_table.py` desde JSON commiteados. "

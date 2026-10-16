@@ -110,6 +110,10 @@ def _limitation(facts: dict) -> list[str]:
     return ["", f"## {pbl.TITLE}", "", *pbl.body(facts)]
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(doc: dict, extra: dict | None = None, limitation: dict | None = None) -> str:
     phase2 = doc["selection"]["phase2"]
     mel = ", ".join(f"{arm} {_num(v)}" for arm, v in phase2["mel_sens_at_spec80_holdout"].items())

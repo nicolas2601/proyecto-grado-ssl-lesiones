@@ -9,6 +9,10 @@ from dermssl.bench.confusion import CONDITIONS, NO_DIFF, SSL_MODELS, V71_JSON, r
 CAPTIONS = {"counts": "Conteos", "norm": "Normalizada por fila (recall por clase en la diagonal)"}
 
 
+from dermssl.display_nomenclature import display_text, presentation  # noqa: E402
+
+
+@presentation
 def readme(arts: list[dict], pend: list[dict]) -> str:
     lines = [f"- `{rel_json(a).as_posix()}` (+ `.png`): {a['dataset']}, {a['modelo']}, {a['condicion']}; "
              f"origen: {a['origen']}." for a in arts]
@@ -65,7 +69,7 @@ def write_png(art: dict, path: Path) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(13, 5.6))
     _panel(fig, axes[0], art["conteos"], art["clases"], "counts")
     _panel(fig, axes[1], art["normalizada_por_fila"], art["clases"], "norm")
-    fig.suptitle(f"{art['modelo']}, {art['condicion']}: {art['dataset']} (n = {art['n']})")
+    fig.suptitle(display_text(f"{art['modelo']}, {art['condicion']}: {art['dataset']} (n = {art['n']})"))
     fig.tight_layout()
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=110, metadata={"Software": None})

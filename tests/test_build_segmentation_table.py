@@ -11,6 +11,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
 import build_segmentation_table as bst  # noqa: E402
+from dermssl.display_nomenclature import display_text  # noqa: E402
 
 
 def test_direction_says_hd95_is_lower_is_better():
@@ -85,7 +86,7 @@ def test_every_student_row_shows_hd95_mean_and_median_labelled():
     for variant, refs in src["student"].items():
         for ref, summary in refs.items():
             row = [ln for ln in text.splitlines()
-                   if ln.startswith(f"| {variant} | {bst.REFERENCES[ref]} |")]
+                   if ln.startswith(display_text(f"| {variant} | {bst.REFERENCES[ref]} |"))]
             assert len(row) == 1
             hd95 = summary["metrics"]["hd95"]
             assert bst._num(hd95["median"], 2) in row[0]

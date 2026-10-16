@@ -23,20 +23,20 @@ Settings reproducing every cell: default, 4, 8, 12, 24, 48. Cells gated: 3 of 3.
 
 | cell | setting | resolved threads | bit-equal | max abs delta proba | argmax flips | abs delta macro-F1 |
 |---|---|---|---|---|---|---|
-| student_r3:dinov2_public_vitb14:none | default | 48/24 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:dinov2_public_vitb14:none | 1 | 1 | no | 4.130e-02 | 3 | 3.574e-03 |
-| student_r3:dinov2_public_vitb14:none | 4 | 4 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:dinov2_public_vitb14:none | 8 | 8 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:dinov2_public_vitb14:none | 12 | 12 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:dinov2_public_vitb14:none | 24 | 24 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:dinov2_public_vitb14:none | 48 | 48 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:v7_astar_s42:none | default | 48/24 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:v7_astar_s42:none | 1 | 1 | no | 2.597e-02 | 3 | 1.149e-03 |
-| student_r3:v7_astar_s42:none | 4 | 4 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:v7_astar_s42:none | 8 | 8 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:v7_astar_s42:none | 12 | 12 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:v7_astar_s42:none | 24 | 24 | yes | 0.000e+00 | 0 | 0.000e+00 |
-| student_r3:v7_astar_s42:none | 48 | 48 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:dinov2_public_vitb14:none | default | 48/24 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:dinov2_public_vitb14:none | 1 | 1 | no | 4.130e-02 | 3 | 3.574e-03 |
+| experimento de segmentación U-Net, ronda final 3:dinov2_public_vitb14:none | 4 | 4 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:dinov2_public_vitb14:none | 8 | 8 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:dinov2_public_vitb14:none | 12 | 12 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:dinov2_public_vitb14:none | 24 | 24 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:dinov2_public_vitb14:none | 48 | 48 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:v7_astar_s42:none | default | 48/24 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:v7_astar_s42:none | 1 | 1 | no | 2.597e-02 | 3 | 1.149e-03 |
+| experimento de segmentación U-Net, ronda final 3:v7_astar_s42:none | 4 | 4 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:v7_astar_s42:none | 8 | 8 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:v7_astar_s42:none | 12 | 12 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:v7_astar_s42:none | 24 | 24 | yes | 0.000e+00 | 0 | 0.000e+00 |
+| experimento de segmentación U-Net, ronda final 3:v7_astar_s42:none | 48 | 48 | yes | 0.000e+00 | 0 | 0.000e+00 |
 | a2:v7_bstar_s42:mask_pool | default | 48/24 | yes | 0.000e+00 | 0 | 0.000e+00 |
 | a2:v7_bstar_s42:mask_pool | 1 | 1 | no | 4.987e-02 | 4 | 8.804e-04 |
 | a2:v7_bstar_s42:mask_pool | 4 | 4 | yes | 0.000e+00 | 0 | 0.000e+00 |
@@ -47,6 +47,6 @@ Settings reproducing every cell: default, 4, 8, 12, 24, 48. Cells gated: 3 of 3.
 
 Per cell (the same-count repeat is the control: if it is not bit-equal, no row above means anything):
 
-- student_r3:dinov2_public_vitb14:none: features from gpu_extraction; cell code revision `3f154871dcc62f4e1c83316e8fb60f622e412bc7`; same-count repeat bit-equal: **yes**
-- student_r3:v7_astar_s42:none: features from gpu_extraction; cell code revision `3f154871dcc62f4e1c83316e8fb60f622e412bc7`; same-count repeat bit-equal: **yes**
+- experimento de segmentación U-Net, ronda final 3:dinov2_public_vitb14:none: features from gpu_extraction; cell code revision `3f154871dcc62f4e1c83316e8fb60f622e412bc7`; same-count repeat bit-equal: **yes**
+- experimento de segmentación U-Net, ronda final 3:v7_astar_s42:none: features from gpu_extraction; cell code revision `3f154871dcc62f4e1c83316e8fb60f622e412bc7`; same-count repeat bit-equal: **yes**
 - a2:v7_bstar_s42:mask_pool: features from gpu_extraction; cell code revision `3f154871dcc62f4e1c83316e8fb60f622e412bc7`; same-count repeat bit-equal: **yes**

@@ -210,6 +210,10 @@ def build(repo: Path) -> tuple[list[Table], list[Contrast]]:
     return tabs, e3b_items + f4_items + v71_items + clean_items + isic_items + ft_items + e2_items
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render_markdown(repo: Path) -> str:
     tabs, items = build(repo)
     lines = ["# Contrastes pareados del banco completo", "", INTRO, "",
@@ -217,6 +221,7 @@ def render_markdown(repo: Path) -> str:
     return "\n".join(lines + [line for t in tabs for line in tables.markdown(t)])
 
 
+@presentation
 def render_latex(repo: Path) -> str:
     return tables.latex_document(build(repo)[0], SCRIPT)
 

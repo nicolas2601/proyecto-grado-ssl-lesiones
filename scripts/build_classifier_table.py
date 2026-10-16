@@ -204,6 +204,10 @@ def per_class_section(src: dict) -> list[str]:
     return lines
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(src: dict) -> str:
     pcm.check_class_order(src["bank"]["split"]["classes"])
     check_public_identical(src["docs"], src["probas"])

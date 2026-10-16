@@ -1,5 +1,13 @@
 # 31. T4 (exploratorio): constancia de color Shades of Gray antes de DINOv2
 
+## Nomenclatura de lectura
+
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+
+Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
+
+Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
+
 **Registrado el 2026-09-28, antes de escribir el código que lo corre y antes de ver cualquier número con Shades of Gray.** El bloque entre marcadores no se edita después del commit de registro: `scripts/t4_sog_run.py` compara, contra git, que el bloque en HEAD sea idéntico al del commit de registro y que el script se haya agregado después (mismo mecanismo que docs/30, `dermssl/pad_ufes_guard.py`). Las erratas, si hacen falta, van después del bloque.
 
 <!-- registro-t4-sog:inicio -->
@@ -77,7 +85,7 @@ Razones: A\* y B\* ya vieron SoG y gray-world en el 60 % de las vistas del preen
 ## 11. Limitación: sensibilidad del probe a los hilos BLAS
 
 <!-- limitacion-hilos-blas:inicio -->
-Limitación (no errata): el probe lineal tiene una sensibilidad de implementación de hasta 0,014 de macro-F1 según el número de hilos BLAS por proceso (4 vs 8 hilos; probe_jobs 10 vs 6; cambian 48 de 60 celdas en cada una de las 3 unidades, con hasta 18 imágenes que cambian de clase predicha por celda); con la configuración registrada (4 hilos) reproduce la grilla publicada bit a bit (máx. |Δ| 0). El efecto SSL (A* v7.1 − público con el mismo protocolo, macro-F1 +0,091 [+0,050; +0,132]) es ~6,5× esa sensibilidad. No es falta de convergencia: los 30 ajustes publicados convergen por tolerancia (0/30 alcanzan max_iter=2000; n_iter 165–862); la sensibilidad es de redondeo en punto flotante dentro de la tolerancia del optimizador. En T4 el umbral de P1 (≤ 0,01) está por debajo de esa sensibilidad, así que P1 solo se lee pareado dentro de la misma corrida con hilos fijos. Evidencia: commits 0a691eb (reproducción) y 278efd2 (convergencia).
+Limitación (no errata): el probe lineal tiene una sensibilidad de implementación de hasta 0,014 de macro-F1 según el número de hilos BLAS por proceso (4 vs 8 hilos; probe_jobs 10 vs 6; cambian 48 de 60 celdas en cada una de las 3 unidades, con hasta 18 imágenes que cambian de clase predicha por celda); con la configuración registrada (4 hilos) reproduce la grilla publicada bit a bit (máx. |Δ| 0). El efecto SSL (control SSL sin consistencia de tono − público con el mismo protocolo, macro-F1 +0,091 [+0,050; +0,132]) es ~6,5× esa sensibilidad. No es falta de convergencia: los 30 ajustes publicados convergen por tolerancia (0/30 alcanzan max_iter=2000; n_iter 165–862); la sensibilidad es de redondeo en punto flotante dentro de la tolerancia del optimizador. En T4 el umbral de P1 (≤ 0,01) está por debajo de esa sensibilidad, así que P1 solo se lee pareado dentro de la misma corrida con hilos fijos. Evidencia: commits 0a691eb (reproducción) y 278efd2 (convergencia).
 
 Generado desde `resultados/clasificacion/t4/diagnostico_reproduccion/identity_j10_vs_j10.json`, `identity_j10_vs_j6.json`, `t4/diagnostico_convergencia/probe_convergence.json`, el contraste pareado `A71 − public_A71` de `v71_final_eval.json` y `t4_sog.P1_MAX_ABS_DELTA`; no editar a mano.
 <!-- limitacion-hilos-blas:fin -->

@@ -134,6 +134,10 @@ def load() -> tuple[dict, dict]:
     return docs, probas
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(parity_root: Path | None = None) -> str:
     docs, probas = load()
     values = {

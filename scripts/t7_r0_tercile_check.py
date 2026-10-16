@@ -150,6 +150,10 @@ def _ci(stat: dict) -> str:
             f"{_num(stat['ci95_high'], signed=True)}]")
 
 
+from dermssl.display_nomenclature import segmentation_presentation  # noqa: E402
+
+
+@segmentation_presentation
 def render_markdown(doc: dict) -> str:
     a = doc["analysis"]
     lines = ["# T7 — Chequeo del maestro r0 por tercil de luminancia (HAM10000)", "",

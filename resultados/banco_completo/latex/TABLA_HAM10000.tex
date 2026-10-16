@@ -9,11 +9,11 @@ Modelo & Preent. & FT & Seg. & Trans. & Acc. & Bal. acc. & Prec. & Rec. & F1 & A
 \midrule
 \multicolumn{14}{l}{\textit{congelados (sin fine-tuning)}} \\
 \midrule
-A71 (ablación sin término de tono) & auto-supervisado propio & no & no & no & 0,8398 & 0,7305 & 0,7197 & 0,7305 & 0,7229 & 0,9644 & 0,0154 & 0,6996 & [0,6795; 0,7592] \\
-B71 (propuesto) & auto-supervisado propio & no & no & no & 0,8378 & 0,6964 & 0,7381 & 0,6964 & 0,7141 & 0,9602 & 0,0529 & 0,6901 & [0,6703; 0,7547] \\
+control SSL sin consistencia de tono (ablación sin término de tono) & auto-supervisado propio & no & no & no & 0,8398 & 0,7305 & 0,7197 & 0,7305 & 0,7229 & 0,9644 & 0,0154 & 0,6996 & [0,6795; 0,7592] \\
+Proposed sin segmentación (propuesto) & auto-supervisado propio & no & no & no & 0,8378 & 0,6964 & 0,7381 & 0,6964 & 0,7141 & 0,9602 & 0,0529 & 0,6901 & [0,6703; 0,7547] \\
 DINOv2 público, su mejor protocolo v7.1 & auto-supervisado & no & no & no & 0,8268 & 0,6622 & 0,7226 & 0,6622 & 0,6857 & 0,9598 & 0,0702 & 0,6683 & [0,6412; 0,7208] \\
-DINOv2 público, protocolo de B71 & auto-supervisado & no & no & no & 0,8278 & 0,6659 & 0,7097 & 0,6659 & 0,6837 & 0,9619 & 0,0688 & 0,6712 & [0,6381; 0,7202] \\
-DINOv2 público, protocolo de A71 & auto-supervisado & no & no & no & 0,7959 & 0,6174 & 0,6547 & 0,6174 & 0,6320 & 0,9432 & 0,0806 & 0,6110 & [0,5875; 0,6710] \\
+DINOv2 público, protocolo de Proposed sin segmentación & auto-supervisado & no & no & no & 0,8278 & 0,6659 & 0,7097 & 0,6659 & 0,6837 & 0,9619 & 0,0688 & 0,6712 & [0,6381; 0,7202] \\
+DINOv2 público, protocolo de control SSL sin consistencia de tono & auto-supervisado & no & no & no & 0,7959 & 0,6174 & 0,6547 & 0,6174 & 0,6320 & 0,9432 & 0,0806 & 0,6110 & [0,5875; 0,6710] \\
 DINOv2 ViT-B/14 & auto-supervisado & no & no & no & 0,7468 & 0,6179 & 0,5984 & 0,6179 & 0,5951 & 0,9070 & 0,1617 & 0,5634 & [0,5508; 0,6351] \\
 DINOv2 ViT-S/14 & auto-supervisado & no & no & no & 0,7110 & 0,5753 & 0,5429 & 0,5753 & 0,5474 & 0,9052 & 0,1489 & 0,5137 & [0,5037; 0,5838] \\
 EfficientNet-B0 & supervisado & no & no & no & 0,7344 & 0,5857 & 0,5192 & 0,5857 & 0,5464 & 0,9170 & 0,1245 & 0,5375 & [0,5089; 0,5786] \\
@@ -36,12 +36,12 @@ DINOv2 ViT-B/14 & auto-supervisado & sí & no & no & 0,5929 & 0,5325 & 0,3950 & 
 \midrule
 \multicolumn{14}{l}{\textit{pesos limpios (sensibilidad)}} \\
 \midrule
-B71-limpio (canónico) & auto-supervisado propio & no & no & no & 0,8323 & 0,6936 & 0,7339 & 0,6936 & 0,7104 & 0,9612 & 0,0581 & 0,6790 & [0,6672; 0,7497] \\
-A71-limpio (canónico) & auto-supervisado propio & no & no & no & 0,8428 & 0,7103 & 0,6964 & 0,7103 & 0,7025 & 0,9630 & 0,0156 & 0,7047 & [0,6606; 0,7432] \\
+Proposed sin segmentación, pesos con exclusión de validación (canónico) & auto-supervisado propio & no & no & no & 0,8323 & 0,6936 & 0,7339 & 0,6936 & 0,7104 & 0,9612 & 0,0581 & 0,6790 & [0,6672; 0,7497] \\
+control SSL sin consistencia de tono, pesos con exclusión de validación (canónico) & auto-supervisado propio & no & no & no & 0,8428 & 0,7103 & 0,6964 & 0,7103 & 0,7025 & 0,9630 & 0,0156 & 0,7047 & [0,6606; 0,7432] \\
 \midrule
 \multicolumn{14}{l}{\textit{exploratorio (segmentación, no cambia el propuesto)}} \\
 \midrule
-B71 + F4 (exploratorio) & auto-supervisado propio & no & sí (F4, exploratorio) & no & 0,8633 & 0,7186 & 0,7847 & 0,7186 & 0,7441 & 0,9659 & 0,0483 & 0,7355 & [0,6913; 0,7884] \\
+Proposed con segmentación (exploratorio) & auto-supervisado propio & no & sí (Proposed con segmentación (experimental), exploratorio) & no & 0,8633 & 0,7186 & 0,7847 & 0,7186 & 0,7441 & 0,9659 & 0,0483 & 0,7355 & [0,6913; 0,7884] \\
 \bottomrule
 \end{tabular}
 \caption{Banco completo en HAM10000: particiones de val distintas entre HAM10000 (v6/v7 y Kaggle), ISIC 2019 e ISIC 2020; la comparación entre particiones es solo de intervalos. El fine-tuning elige su época sobre val (optimista). Las filas de sensibilidad usan batch 16 (no canónico) las exploratorias no cambian el propuesto y las de pesos limpios son una sensibilidad posterior, no selección. IC solo donde la fuente lo publica.}

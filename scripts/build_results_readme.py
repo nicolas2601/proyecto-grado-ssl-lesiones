@@ -396,6 +396,11 @@ def render_training(runs: dict[str, dict]) -> str:
     return "\n".join([TRAINING_BEGIN, "", *training_table(runs), "", TRAINING_END])
 
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(bank: dict, strata: dict) -> str:
     lines = [
         BEGIN,

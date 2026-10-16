@@ -291,6 +291,10 @@ def table_weights() -> str:
     return _table(["Modelo", "Checkpoint", "Nota"], body)
 
 
+from dermssl.display_nomenclature import presentation  # noqa: E402
+
+
+@presentation
 def render(bank_dir: Path) -> str:
     rows = rank(load_bank(bank_dir))
     blocks = []
