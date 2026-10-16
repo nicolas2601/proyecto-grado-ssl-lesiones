@@ -19,7 +19,23 @@ Acceso al clúster UNAB autorizado explícitamente por el usuario vía Playwrigh
 (URL: https://unabia.unab.edu.co, ver memoria `infra/unab-cluster-access`). El login
 lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
 
-## Avance vigente del paso 1 (2026-10-15 UTC)
+## Avance vigente del paso 1 (2026-10-16 UTC)
+
+### Comprobación del pin y auditoría de geometría en curso
+
+La comparación programática quedó registrada en `/home/jovyan/work/validation_v8/pin-integrity-recheck-20261016-001/pin_integrity_recheck.json`: `MATCH=false`. El pin histórico y el hash real del register reconciliado siguen siendo distintos; `readiness.review.json` conserva su contenido. Esta excepción no modifica la reconciliación independiente de membresía 583 + 1.334 ni autoriza cambiar gates.
+
+Se preparó y revisó `scripts/audit_v8_evaluation_geometry.py`, publicado en `4511ae8d92a4eff8fe9e4771269487d9d3d7ef35`, SHA-256 de fuente `d7e9066e8f2176340facb454984cc8d26522ef53d97629d53368c7475db06580`. El paquete transferido tiene SHA-256 `561e63285841cb5aa83a6fa85cea47dee6aa6866a9056bd8bdb9bbf30992fcc3`. La ejecución audit-only se lanzó desde la copia canónica identificada por `95a8f60`, con hashes esperados de los ZIP leídos programáticamente del archivo de checksums existente. Inspecciona contenido, correspondencia, dimensiones y máscaras binarias sin extraer miembros ni utilizarlas para aprendizaje; las máscaras vacías o completas son hallazgos de revisión, no exclusiones.
+
+**Estado al registrar este avance: en ejecución, sin resultado final verificado.** El recibo final esperado es `/home/jovyan/work/validation_v8/evaluation-geometry-20261016-001/geometry.audit.json`; el log y el recibo de lanzamiento son `/home/jovyan/work/validation_v8/evaluation-geometry-launch-20261016-001/stdout.log` y `launch.json` en ese mismo directorio. La presencia de un log o de un directorio parcial no acredita éxito. El diagnóstico mantiene `training_consumable=false`, `isolation_global_verified=false` e independencia paciente/lesión sin acreditar.
+
+- [ ] Revisar el recibo final de geometría, su estado, conteos, errores, hallazgos y hashes; no volver a aplicar el filtro provisional ya verificado.
+- [ ] Completar y revisar los cinco recibos exigidos por `common/protocol.py`: `exclusions_verified`, `duplicates_adjudicated`, `mask_content_validated`, `exposure_review_complete` y `evaluation_masks_isolated`. Cada uno debe vincular la misma revisión y los hashes de las cohortes de evaluación, referencias y aprendizaje. El informe de geometría por sí solo no sustituye esos recibos ni acredita aislamiento global.
+- [ ] Resolver la revisión de similitud: excluir conservadoramente 4.195 rutas pHash y 1.917 por ID base no acredita identidad duplicada ni satisface por sí solo `duplicates_adjudicated`; la unión provisional conserva `duplicate_identity_status=unverified`.
+- [ ] Preparar el materializador final después de revisar las evidencias. Entre los puntos de entrada inspeccionados, `apply_v8_exclusion_review.py` produce solo un pool provisional no consumible; falta el materializador de protocolo/manifiestos finales, con hash del código/helper y publicación atómica o rechazo explícito de directorios sin recibo final.
+- [ ] Documentar exposición de cada checkpoint/encoder y productor de pseudo-máscaras mediante revisión, hashes y cohortes originales, contrastados con la reserva. No reutilizar artefactos aprendidos V7/Camino B sin trazabilidad explícita de exposición y aprobación compatible con el protocolo; V7 continúa excluido según la política vigente. El pool filtrado actual no demuestra ausencia de exposición histórica.
+
+No se habilitaron gates ni se entrenó. La cuota individual continúa sin acreditar: las observaciones del almacenamiento y recursos compartidos sirven únicamente como referencia aceptada de planificación; faltan presupuestos por etapa.
 
 ### Bloqueo de integridad de fuentes (2026-10-16 UTC)
 
@@ -169,28 +185,32 @@ descargas, forwards y despliegues ya acreditados no se repiten por sus estados a
 
 ## Estado por tarea
 
-- [x] **Tarea 5 — medir cuotas reales del clúster.** Confirmado en vivo por terminal
+- [~] **Tarea 5 — recursos observados; cuota individual sin acreditar.** Observación histórica por terminal
   (2026-10-14): 48 CPUs, 123 GiB RAM (115 GiB libres), 2× RTX PRO 4000 Blackwell
-  24 GB cada una (0% uso), cgroup CPU/memoria en `max`/`max 100000` (sin límite real
-  impuesto por la plataforma), disco compartido 40T (1% usado). Coincide exactamente
+  24 GB cada una (0% uso), cgroup CPU/memoria en `max`/`max 100000` en esa lectura,
+  disco compartido 40T (1% usado). Esa lectura no acredita cuota individual ni resuelve
+  las discrepancias históricas de `cpu.max`. Los valores quedaron registrados
   con lo ya registrado en `resultados/preparacion_v8/readiness_20261014/readiness.review.json`
-  (bloque `resources`) — no hay deriva, el registro sigue vigente. Pendiente real: NO
-  es volver a medir, es traducir estos números en límites concretos de timeout/RSS/VRAM
-  por etapa para el plan del controlador (tarea 6).
+  (bloque `resources`). Se aceptan como referencia de planificación, sin afirmar
+  disponibilidad actual garantizada. Falta traducirla en límites concretos de
+  timeout/RSS/VRAM por etapa para el plan del controlador (tarea 6); no se repiten
+  mediciones sin un motivo material nuevo.
 
-- [~] **Tarea 1 — congelar manifiesto elegible.** Groundwork completo, construcción
-  bloqueada por falta de datos (no de código). Ver memoria Engram
+- [~] **Tarea 1 — congelar manifiesto elegible.** Descarga y aplicación provisional
+  disponibles; revisión de evidencia y materialización final pendientes. El siguiente
+  detalle conserva el historial de preparación, superado donde se indica. Ver memoria Engram
   `proyecto-grado-ssl-lesiones/v8-manifiesto-elegible` para el detalle completo:
   - Ubicación real de datasets confirmada: `/home/jovyan/work/datos/{ham10000,isic2019_fullres,isic2020}/`
     con sus CSV de metadata y columnas exactas.
   - Contrato exacto de `src/dermssl/segmentation_methods/common/data.py` leído byte
     a byte (ALLOWED/FORBIDDEN, eligibility block, recomputo de SHA-256 en cada carga).
-  - **Bloqueo raíz real encontrado**: la "evaluación anatómica independiente" que
+  - **Bloqueo histórico de adquisición, superado por la descarga**: la "evaluación anatómica independiente" que
     exige docs/39:82 necesita máscaras expertas de referencia (tipo ISIC2017/2018
-    Lesion Boundary Segmentation Challenge). No existe ningún dataset de máscaras
-    expertas descargado en el clúster — solo hay máscaras generadas por U-Net para
-    QA de recorte (`mask_manifest.json`, no son expertas). Esto es un problema de
-    adquisición de datos externos, no de escritura de script.
+    Lesion Boundary Segmentation Challenge). En aquella observación faltaban máscaras
+    expertas y solo se disponía de máscaras U-Net de QA. Posteriormente se descargaron
+    los ZIP oficiales y se verificaron checksums y correspondencia de 2.594 IDs
+    imagen/máscara. La validación completa de contenido/geometría sigue en ejecución;
+    no se presenta esa correspondencia como aislamiento o independencia acreditados.
   - **Decisión del usuario (2026-10-14): descargar ISIC2018 Task 1 oficial.**
     Verificado con HEAD request (sin login, HTTP 200): `ISIC2018_Task1-2_Training_Input.zip`
     y `ISIC2018_Task1_Training_GroundTruth.zip` (27.402.895 B) en
@@ -202,11 +222,11 @@ descargas, forwards y despliegues ya acreditados no se repiten por sus estados a
     **Corrección (2026-10-14, ~13:52 UTC): el Content-Length real del Training Input es
     11.165.358.566 B (~11,2 GB), no 1,1 GB — error de lectura propio en la primera
     verificación (se perdió un dígito). A los ~45 min llevaba 2,1 GB (~19%); a ese ritmo
-    son varias horas, no ~30 minutos.** Pendiente: confirmar `.done`, verificar que
-    `ISIC2018_Task1_Training_GroundTruth.zip` tenga 2594 máscaras
-    `ISIC_<id>_segmentation.png`, y recién ahí diseñar cómo esta reserva se integra al
-    manifiesto elegible (como partición `development` separada y fuera del pool `train`,
-    per docs/39:82).
+    son varias horas, no ~30 minutos.** Ese estado parcial es histórico: la descarga
+    y la correspondencia de 2.594 IDs ya están documentadas. La reserva vigente es
+    de evaluación bajo `retrospective_public_benchmark`, con máscaras separadas del
+    aprendizaje; faltan cierre de geometría, similitud, exposición, aislamiento y
+    protocolo/manifiestos finales. No volver a descargar ni repetir la aplicación provisional.
 
 - [~] **Tarea 2 — resolver SimCLR.** Parcialmente resuelto (2026-10-14):
   - Confirmado (3 vías independientes: API JSON del bucket GCS, ruta de objeto
@@ -324,4 +344,3 @@ reconectar la pestaña existente; una pestaña nueva indicada por el navegador t
 falló con `native credential state cannot be safely resumed`. No se cambió de canal
 para eludir el bloqueo y no se afirma despliegue. Los detalles están en el README de
 `launch-preparation`. Los checkouts, sus cambios y la descarga permanecen preservados.
-
