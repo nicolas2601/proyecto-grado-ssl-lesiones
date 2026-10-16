@@ -36,7 +36,7 @@ etiquetas disponibles. Es el enfoque adecuado cuando hay muchas imágenes pero p
 - HAM10000 es mayoritariamente **piel clara (Fitzpatrick I–III)** → no se puede afirmar rendimiento
   en fototipos IV–VI sin datos regionales. Se declara como limitación + trabajo futuro
   (ver [07 — Fiabilidad y sesgo](07-fiabilidad-y-sesgo.md)).
-- Cómputo actual = GPU de estudiante (Kaggle T4 x2). El entrenamiento definitivo depende de
+- Cómputo actual = GPU de red de segmentación entrenada con pseudo-máscaras (Kaggle T4 x2). El entrenamiento definitivo depende de
   conseguir acceso a las GPUs de la UNAB.
 
 ## Las 7 clases (HAM10000)

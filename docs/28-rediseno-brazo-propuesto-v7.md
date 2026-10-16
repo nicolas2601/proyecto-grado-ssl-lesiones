@@ -1,5 +1,13 @@
 # Rediseño del brazo propuesto (v7) — SimSiam anclado sobre DINOv2 ViT-B
 
+## Nomenclatura de lectura
+
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+
+Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
+
+Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
+
 **Fecha:** 2026-09-27
 **Estado:** especificación registrada antes de correr. Decisión de Nicolás: solo ViT-B, se mantiene SimSiam sobre DINOv2.
 **Base:** resultados de C1 ([resultados/clasificacion/c1](../resultados/clasificacion/c1/README.md)), diagnóstico del pretrain y revisión de literatura (sección 6).
@@ -80,7 +88,7 @@ El término de tono de B1 y B2 es el del mismo crop (§2), no el de crops indepe
 
 **Regla de selección, por oleada:** gana la variante con mayor macro-F1 en el holdout interno. Si `|Δ macro-F1| < 0,005`, gana la de menor ECE. La oleada 2 hereda las anclas de la ganadora de la oleada 1, así que los dos brazos difieren solo en el tono.
 
-**Finales:** A* y B* con `--max-steps 5700` (≈12 GPU-h, el presupuesto de la v6), una GPU cada una, en paralelo, y la evaluación única del punto 3.
+**Finales:** experimento de control SSL sin consistencia de tono y experimento SSL con consistencia de tono con `--max-steps 5700` (≈12 GPU-h, el presupuesto de la v6), una GPU cada una, en paralelo, y la evaluación única del punto 3.
 
 ## 5. Predicciones registradas
 
@@ -118,15 +126,15 @@ Las cifras están en la [tabla combinada de las dos semillas](../resultados/clas
 
 Es otra lectura de val, sobre modelos ya fijados, y se declara como tal: no reemplaza el resultado primario de §5.1.
 
-- **Qué:** la misma grilla de C1 (docs/27): sin máscara, recorte a la caja, fondo gris y pooling en la máscara. Usa las mismas máscaras de student_r3 (el mismo archivo fijado por sha en `c1_mask_provenance`). Los backbones son A\* y B\* con las semillas 42 y 43, más el DINOv2 público. Solo hay extracción y probe `logreg`, sin entrenar backbones.
+- **Qué:** la misma grilla de C1 (docs/27): sin máscara, recorte a la caja, fondo gris y pooling en la máscara. Usa las mismas máscaras de experimento de segmentación U-Net, ronda final 3 (el mismo archivo fijado por sha en `c1_mask_provenance`). Los backbones son A\* y B\* con las semillas 42 y 43, más el DINOv2 público. Solo hay extracción y probe `logreg`, sin entrenar backbones.
 - **Contraste:** bootstrap pareado (1.000 remuestras) de cada condición contra "sin máscara" del mismo backbone, en las cuatro métricas.
 - **Lectura:** la máscara ayuda si alguna condición le gana a "sin máscara" en macro-F1, con el IC por encima de cero, en las dos semillas del mismo brazo. Si pasa en una sola semilla, se reporta como "no robusto a la semilla", con la misma regla de §4.1.
-- **Secundario agregado el 2026-09-28, antes de correr:** la misma grilla con las máscaras de A2 (S4-UNet, docs/27), que pasó a segmentador candidato. Es solo extracción y probe. El resultado primario de esta sección sigue siendo el de las máscaras de student_r3, como estaba registrado. A2 se describe así: "mejora pequeña pero consistente en Dice sobre student_r3 (+0,004 en ISIC 2018 y +0,010 en HAM10000, IC pareado sin cero); HD95 igual en ISIC y mejor en HAM".
+- **Secundario agregado el 2026-09-28, antes de correr:** la misma grilla con las máscaras de A2 (experimento de segmentación DINOv2 con decoder tipo U-Net, docs/27), que pasó a segmentador candidato. Es solo extracción y probe. El resultado primario de esta sección sigue siendo el de las máscaras de experimento de segmentación U-Net, ronda final 3, como estaba registrado. A2 se describe así: "mejora pequeña pero consistente en Dice sobre experimento de segmentación U-Net, ronda final 3 (+0,004 en ISIC 2018 y +0,010 en HAM10000, IC pareado sin cero); HD95 igual en ISIC y mejor en HAM".
 
 **Resultado (2026-09-28).** Datos en `resultados/clasificacion/c1_v7/` (primario en `student_r3/`, secundario en `a2/`, comparación entre segmentadores en `a2_vs_student_cells.json`).
-- **Primario, máscaras de student_r3: la máscara no ayuda.** Ninguna de las 15 celdas le gana a "sin máscara" con el IC del macro-F1 por encima de cero, así que la regla de las dos semillas no llega a aplicarse. El fondo gris empeora en el público (−0,092 [−0,141; −0,041]) y en A\* con las dos semillas (s42 −0,052 [−0,095; −0,011]; s43 −0,058 [−0,101; −0,018]); el pooling en la máscara empeora en B\* s42 (−0,034 [−0,068; −0,004]). El resto no cambia; el mayor Δ puntual es +0,016 (B\* s42, recorte a la caja) con IC que cruza el cero.
+- **Primario, máscaras de experimento de segmentación U-Net, ronda final 3: la máscara no ayuda.** Ninguna de las 15 celdas le gana a "sin máscara" con el IC del macro-F1 por encima de cero, así que la regla de las dos semillas no llega a aplicarse. El fondo gris empeora en el público (−0,092 [−0,141; −0,041]) y en A\* con las dos semillas (s42 −0,052 [−0,095; −0,011]; s43 −0,058 [−0,101; −0,018]); el pooling en la máscara empeora en B\* s42 (−0,034 [−0,068; −0,004]). El resto no cambia; el mayor Δ puntual es +0,016 (B\* s42, recorte a la caja) con IC que cruza el cero.
 - **Secundario, máscaras de A2: mismo patrón.** 0/15 mejoran; el fondo gris empeora en el público (−0,085 [−0,133; −0,034]) y en A\* s43 (−0,044 [−0,089; −0,002]); el resto no cambia.
-- **A2 contra student_r3 en la misma celda** (bootstrap pareado del macro-F1 sobre las mismas predicciones de val): indistinguibles en 15/15. Como dato descriptivo, no como tendencia: 13 de los 15 Δ puntuales favorecen a A2. No estaba pre-registrado y las celdas no son independientes, porque comparten val y backbone.
+- **A2 contra experimento de segmentación U-Net, ronda final 3 en la misma celda** (bootstrap pareado del macro-F1 sobre las mismas predicciones de val): indistinguibles en 15/15. Como dato descriptivo, no como tendencia: 13 de los 15 Δ puntuales favorecen a A2. No estaba pre-registrado y las celdas no son independientes, porque comparten val y backbone.
 
 #### 5.2.1 EXPLORATORIO: C1-v7 estratificado por tono (registrado el 2026-09-28, antes de calcular nada)
 
@@ -138,7 +146,7 @@ La pregunta es de Nicolás: ¿la máscara ayuda a clasificar mejor la piel más 
 - En los dos casos los terciles de color se reportan, pero como descripción del color de la imagen, no como tono de piel validado.
 
 **Qué se calcula (si se cumple la condición).**
-- **Entradas:** las probabilidades por imagen de val (n = 2.004) que C1-v7 ya guardó por celda (`<celda>.proba.npy` más su `manifest.json`). Son 5 backbones × 4 condiciones (`none`, `bbox_crop`, `neutral_bg`, `mask_pool`) para cada uno de los dos segmentadores, student_r3 (primario) y A2 (secundario). Las etiquetas salen del mismo cache del banco que usó la grilla. No se reentrena ni se re-extrae nada. Antes de calcular se verifica que el sha de las probabilidades coincida con el manifiesto de la celda y que el orden de val coincida con `val_order_sha256`.
+- **Entradas:** las probabilidades por imagen de val (n = 2.004) que C1-v7 ya guardó por celda (`<celda>.proba.npy` más su `manifest.json`). Son 5 backbones × 4 condiciones (`none`, `bbox_crop`, `neutral_bg`, `mask_pool`) para cada uno de los dos segmentadores, experimento de segmentación U-Net, ronda final 3 (primario) y A2 (secundario). Las etiquetas salen del mismo cache del banco que usó la grilla. No se reentrena ni se re-extrae nada. Antes de calcular se verifica que el sha de las probabilidades coincida con el manifiesto de la celda y que el orden de val coincida con `val_order_sha256`.
 - **Tono por imagen:** el manifiesto publicado `fst_pseudo_manifest.csv`, que usa el estimador corregido (`c272bdb`) y el estrato `tone_tercile` (`bbd9bab`) sobre las pseudo-máscaras `pseudo_r2`. Supuesto heredado: `pseudo_r2` no registra `region_mode` y se toma `central` (docs/27, «FST con las máscaras de A2»). Se reporta la cobertura: cuántas imágenes de val tienen bucket FST y cuántas tienen tercil. Las que no tienen bucket (`ita_indeterminate`, es decir mediana de b\* < 5, y las que están en cuarentena) quedan fuera del bin, con su n a la vista.
 - **Bins:** FST I, FST II y FST III-VI agrupado; terciles `tone_tercile` claro, medio y oscuro. Aclaración: `tone_tercile` es el tercil de la mediana de L\* de la piel sobre el pool, no un tercil de ITA. Se usa ese porque el ITA solo está definido cuando b\* ≥ 5 (README de camino-b-cnn, «Estimador corregido»). Los terciles son relativos al pool: «oscuro» significa lo más oscuro de un dataset de piel mayormente clara, no un fototipo oscuro.
 - **Métricas por bin:** macro-F1, balanced accuracy y sensibilidad de melanoma (recall de `mel` con argmax). Cada bin informa su n y su número de melanomas.

@@ -1,12 +1,20 @@
 # Proyecto de Grado UNAB — Clasificación de Lesiones Cutáneas con Aprendizaje Autosupervisado (SSL)
 
+## Nomenclatura de lectura
+
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+
+Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
+
+Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](docs/10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
+
 Repositorio de trabajo para investigar la clasificación experimental de lesiones cutáneas (HAM10000) con aprendizaje autosupervisado sobre DINOv2. No es un dispositivo de diagnóstico.
 
 ## Resultado principal (v7)
 
 La tabla principal es la [combinada de las tres semillas](resultados/clasificacion/v7/SEMILLAS.md): cada semilla por separado, la media y el rango (máx − mín). Detrás están las tablas de la [semilla 42](resultados/clasificacion/v7/README.md) y de las réplicas con [semilla 43](resultados/clasificacion/v7/s43/README.md) y [semilla 44](resultados/clasificacion/v7/s44/README.md). Todas se generan desde los `final_eval.json`, y un test falla si alguien edita un número a mano, así que acá no se copia ninguna cifra.
 
-Dos tablas generadas más, con el mismo test: la del [clasificador](resultados/clasificacion/TABLA_CLASIFICADOR.md) (v6, C1 y v7 lado a lado, y por clase: matriz de confusión, F1, recall y sensibilidad y AUC de melanoma) y la de [segmentación](resultados/segmentacion/TABLA_SEGMENTACION.md) (estudiante final contra las máscaras de referencia y pseudo-máscaras v7 contra los umbrales registrados en docs/27).
+Dos tablas generadas más, con el mismo test: la del [clasificador](resultados/clasificacion/TABLA_CLASIFICADOR.md) (v6, C1 y v7 lado a lado, y por clase: matriz de confusión, F1, recall y sensibilidad y AUC de melanoma) y la de [segmentación](resultados/segmentacion/TABLA_SEGMENTACION.md) (red de segmentación entrenada con pseudo-máscaras final contra las máscaras de referencia y pseudo-máscaras v7 contra los umbrales registrados en docs/27).
 
 Compara tres brazos sobre la validación del fold 0 de C1: DINOv2 público, SSL anclado sin tono (A\*) y SSL propuesto con tono (B\*). Usa un probe lineal, una sola evaluación e intervalos bootstrap del 95 %. Las predicciones se registraron antes de correrla ([docs/28 §5](docs/28-rediseno-brazo-propuesto-v7.md)).
 

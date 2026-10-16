@@ -1,5 +1,13 @@
 # 29. Plan v7.1: sacar más de las finales existentes
 
+## Nomenclatura de lectura
+
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+
+Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
+
+Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
+
 **Registrado el 2026-09-28, antes de correr cualquier cosa.** Parte de la revisión de literatura; los papers citados están verificados.
 
 ## 1. Regla central
@@ -12,7 +20,7 @@ Límites que se declaran desde ya:
 
 ## 2. Bloques, en el orden de GPU
 
-Antes van S-diag (docs/27), C1-v7 (docs/28 §5.2) y S4-UNet (docs/27). El costo de cada bloque se envía antes de lanzarlo.
+Antes van S-diag (docs/27), C1-v7 (docs/28 §5.2) y experimento de segmentación DINOv2 con decoder tipo U-Net (docs/27). El costo de cada bloque se envía antes de lanzarlo.
 
 ### 2.1 WiSE-FT y seed soup (Wortsman et al., arXiv:2109.01903 y arXiv:2203.05482)
 

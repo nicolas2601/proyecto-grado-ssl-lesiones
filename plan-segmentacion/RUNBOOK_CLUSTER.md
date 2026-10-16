@@ -1,5 +1,13 @@
 # Runbook del clúster UNABIA
 
+## Nomenclatura de lectura
+
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+
+Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
+
+Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](../docs/10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
+
 Procedimiento completo para correr el Camino B en el pod de JupyterHub del
 clúster UNABIA, desde clonar el repositorio hasta leer los resultados. Los
 comandos se pegan tal cual en una terminal del pod.
@@ -190,7 +198,7 @@ smoke ejercita también las banderas del campo del dermatoscopio
 ## 7. Piloto
 
 El piloto mide velocidad real: una ronda, cinco épocas contrastivas y cinco
-épocas de estudiante. Corre en las dos GPU y se lanza en segundo plano para que
+épocas de red de segmentación entrenada con pseudo-máscaras. Corre en las dos GPU y se lanza en segundo plano para que
 sobreviva a una desconexión del navegador.
 
 ```bash
@@ -236,7 +244,7 @@ Genera una etapa de evaluación independiente por conjunto. Las banderas
 antiguas `--eval-image-dir`, `--eval-mask-dir` y `--eval-name` siguen
 funcionando y equivalen a un único conjunto.
 
-**Atención con la etapa `fst`.** Corre entre la última ronda del estudiante y
+**Atención con la etapa `fst`.** Corre entre la última ronda del red de segmentación entrenada con pseudo-máscaras y
 las evaluaciones, así que si falla ahí, el entrenamiento ya está hecho y no hay
 que repetirlo: se relanza el mismo comando con `--stages fst evaluate`.
 
@@ -288,7 +296,7 @@ https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmenta
 
 Con los tiempos del piloto en la mano se decide si el presupuesto de
 `cluster-final.json` cabe en las horas de GPU disponibles. Tres rondas, veinte
-épocas de estudiante por ronda y treinta épocas contrastivas.
+épocas de red de segmentación entrenada con pseudo-máscaras por ronda y treinta épocas contrastivas.
 
 ```bash
 cd ~/work/proyectonp/repo
@@ -327,7 +335,7 @@ del preset y la evaluación vuelve a salir solo con las métricas rápidas.
 ### Corrida v2: un solo cambio de entrenamiento, mas inferencia con volteos
 
 La corrida final dejo dos hallazgos: el tope de area de candidato (0,6 del
-campo) excluye del entrenamiento las lesiones grandes y el estudiante las
+campo) excluye del entrenamiento las lesiones grandes y el red de segmentación entrenada con pseudo-máscaras las
 subsegmenta, y no hay ninguna ganancia de inferencia aprovechada. La v2 cambia
 exactamente una cosa del entrenamiento y agrega una de inferencia, para que la
 atribucion sea limpia:
@@ -403,7 +411,7 @@ cada cambio aporta por si solo.
 El resultado se lee contra dos pisos que no aprenden nada: SegRNorm y SegXNorm
 (`scripts/run_segnorm_baseline.py`, normalización de color y umbral de Otsu
 dentro del campo circular). Corren en CPU, en paralelo al entrenamiento, y se
-evalúan con el mismo `evaluate_segmentation.py` que el estudiante, así que los
+evalúan con el mismo `evaluate_segmentation.py` que el red de segmentación entrenada con pseudo-máscaras, así que los
 números son comparables fila a fila. No hay techo supervisado: por decisión del
 proyecto nada del trabajo de segmentación entrena con máscaras.
 
@@ -456,7 +464,7 @@ decodificando a resolución nativa en paralelo con la corrida final.
 
 Las máscaras del piso quedan en `$BASE/<set>/masks/<image_id>_<método>.png`. Para
 HAM10000 se puede añadir `--fst-manifest <workdir>/fst/fst_pseudo_manifest.csv`
-a la evaluación externa y obtener el mismo desglose por tono que el estudiante.
+a la evaluación externa y obtener el mismo desglose por tono que el red de segmentación entrenada con pseudo-máscaras.
 
 ### Tabla de resultados y evidencia visual
 

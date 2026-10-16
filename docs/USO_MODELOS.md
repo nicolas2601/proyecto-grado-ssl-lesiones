@@ -1,5 +1,13 @@
 # Uso de los modelos v7 (release)
 
+## Nomenclatura de lectura
+
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+
+Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
+
+Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
+
 Guía paso a paso para usar los clasificadores v7 publicados, en tres formas: **(a)** PyTorch sin `transformers`, **(b)** Hugging Face `transformers` y **(c)** ONNX, en Python o en el navegador. Las tres leen los mismos pesos y dan las mismas probabilidades (ver `parity.json` de cada modelo).
 
 **Uso de investigación, no diagnóstico.** No es un dispositivo médico. Ver `MODEL_CARD.md` (métricas evaluadas y de despliegue, limitaciones y licencias). Los pesos son CC BY-NC 4.0, uso no comercial (`LICENSE-WEIGHTS`); el código es Apache-2.0 (`LICENSE`).

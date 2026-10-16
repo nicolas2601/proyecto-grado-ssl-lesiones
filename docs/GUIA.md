@@ -185,7 +185,7 @@ artefactos que la respaldan.
    HAM10000 quedan reservadas **únicamente para el examen final**, con split anti-fuga por
    `lesion_id` (cero lesiones compartidas entre train y val).
 2. **Pre-entrenamiento SSL (v6)** — dos estrategias compiten con el mismo presupuesto de
-   GPU: **DINO continual** (refinar el DINOv2 público con estudiante/profesor EMA y
+   GPU: **DINO continual** (refinar el DINOv2 público con red de segmentación entrenada con pseudo-máscaras/profesor EMA y
    multi-crop) vs. **SimSiam desde cero** (torres siamesas ResNet-50 con stop-gradient y
    detector de colapso). Ninguna ve una sola etiqueta; tracking con MLflow.
 3. **Evaluación (protocolo v5)** — el backbone se **congela** (`requires_grad=False` +

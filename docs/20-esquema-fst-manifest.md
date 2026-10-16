@@ -21,7 +21,7 @@ en una corrida Kaggle real con GPU).
 | `ita` | float | `[-90, 90]` o `NaN` | Individual Typology Angle en grados, mediana sobre pixeles de piel (`fitzpatrick.ita_degrees`). `NaN` cuando `status != "ok"`. |
 | `fst_bucket` | int (1-6) o string | `1..6` o `"unavailable"` | Bucket de la estimación ITA no validada (no es FST), con los umbrales de Groh et al., o marcador explicito cuando no hay estimacion. |
 | `skin_fraction` | float | `[0, 1]` | Fraccion de pixeles clasificados como piel (no-lesion, no-borde) sobre el total de la imagen. |
-| `mask_source` | string | `"unet"` \| `"otsu_fallback"` | Cual mascara uso realmente `estimate_fst`: la del U-Net (primaria, D3) o el fallback Otsu de `pretrain.lesion_guided` (cuando la del U-Net es degenerada: area fuera de `[MIN_MASK_AREA_FRACTION, MAX_MASK_AREA_FRACTION]`). |
+| `mask_source` | string | `"unet"` \| `"otsu_fallback"` | Cual mascara uso realmente `estimate_fst`: la del U-Net (primaria, experimento de adaptación SSL con imágenes fuente y destino) o el fallback Otsu de `pretrain.lesion_guided` (cuando la del U-Net es degenerada: area fuera de `[MIN_MASK_AREA_FRACTION, MAX_MASK_AREA_FRACTION]`). |
 | `mask_confidence` | float | `[0, 1]` | Certeza media de la salida sigmoide del U-Net respecto al umbral 0.5. |
 | `fallback_used` | bool | `True` \| `False` | Indica que la mascara primaria falto, fue degenerada o quedo bajo el umbral de confianza y se uso Otsu. |
 | `confidence` | float | `[0, 1]` | Confianza heuristica de la estimación ITA no validada (no es FST). Baja con fallback o artefactos; vale 0 si el bucket no esta disponible. No es probabilidad calibrada. |

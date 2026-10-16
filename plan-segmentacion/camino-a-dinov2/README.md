@@ -7,7 +7,7 @@ Idea: DINOv2 (preentrenado sin etiquetas con datos externos) produce pseudo-más
 | Carpeta | Contenido previsto |
 |---|---|
 | `pseudo-mascaras/` | Maestro: DINOv2 ViT-S/14 a 448 px, grafo de afinidad entre parches y bipartición con el vector de Fiedler (TokenCut o Deep Spectral Methods). Se ejecuta una sola vez sobre todo el pool |
-| `entrenamiento/` | Destilación en la U-Net (estudiante de `../comun/estudiante/`), ignorando en la pérdida los píxeles de confianza intermedia (0,3 a 0,7) |
+| `entrenamiento/` | Destilación en la U-Net (red de segmentación entrenada con pseudo-máscaras de `../comun/estudiante/`), ignorando en la pérdida los píxeles de confianza intermedia (0,3 a 0,7) |
 | `resultados/` | Métricas livianas (JSON/CSV) y figuras pequeñas. Los artefactos pesados van en `salidas/` |
 
 Pendientes:

@@ -6,7 +6,7 @@ Aquí viven los argumentos de cada corrida, para no tocar código. El driver
 
 ## Presets disponibles
 
-| Preset | Para qué sirve | Rondas | Épocas contrastivas | Épocas de estudiante por ronda |
+| Preset | Para qué sirve | Rondas | Épocas contrastivas | Épocas de red de segmentación entrenada con pseudo-máscaras por ronda |
 |---|---|---|---|---|
 | `piloto.json` | Prueba local rápida del pipeline completo | 1 | 10 | 10 |
 | `final.json` | Plantilla histórica con marcadores `<...>`; el driver se niega a correrla hasta completarla | — | — | — |

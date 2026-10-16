@@ -9,7 +9,7 @@ Fuentes: USL-Net (Li et al., Biomed. Signal Process. Control 2024, arXiv 2309.13
 | El entrenamiento nunca lee máscaras ni etiquetas | La cache guarda solo imágenes (`cache_info.json` registra `reads_masks_or_labels: false`). `tests/test_seg_static.py` verifica por AST y texto que ningún módulo de entrenamiento nombra máscaras de prueba, y que solo `cache_io.py` y `evaluate_segmentation.py` abren imágenes |
 | Solo la evaluación abre máscaras | `evaluacion/evaluate_segmentation.py`; el driver solo pasa `--mask-dir` a la etapa `evaluate` (el generador sintético del smoke también lo nombra, pero solo escribe) |
 | Sin pesos preentrenados | El backbone parte de inicialización aleatoria. `--init-weights` en `train_moco.py` es opcional y **desvía el escenario puro**; queda registrado en `run_config.json` y en `backbone.pt` |
-| Checkpoint y umbral sin máscaras | Umbral fijo 0,5 (constante, sin flag). El estudiante elige el checkpoint por pérdida de pseudo-validación sobre píxeles confiables, o la última época (`--selection last`) |
+| Checkpoint y umbral sin máscaras | Umbral fijo 0,5 (constante, sin flag). El red de segmentación entrenada con pseudo-máscaras elige el checkpoint por pérdida de pseudo-validación sobre píxeles confiables, o la última época (`--selection last`) |
 | No reusar `train_unet` ni `ISIC2018SegmentationDataset` | Solo se importa la clase `UNet` (base 32, ~7,77 M parámetros); una prueba estática lo exige |
 
 ## Decisiones de ingeniería (clúster)
@@ -35,10 +35,10 @@ Fuentes: USL-Net (Li et al., Biomed. Signal Process. Control 2024, arXiv 2309.13
 | 7 | "Muy lejos del centro" sin valor | Se excluye la muestra si la distancia normalizada supera 0,5 (`--max-center-distance`) | Sin dato en el paper; valor simple y ajustable |
 | 8 | Muestra sin primer plano se excluye | Todos sus píxeles pasan a "ignorar" y se descarta del entrenamiento | Igual intención |
 | 9 | Signo del mapa no descrito | Se voltea el mapa si el borde es más brillante que el centro (`orient_saliency`); normalización mín-máx por imagen | Un mapa agnóstico de clase tiene signo arbitrario; regla sin etiquetas |
-| 10 | Estudiante ResNet50 + FCN | U-Net de `torch_unet.py` (~7,77 M) | El estudiante debe ser idéntico en los caminos A y B |
+| 10 | red de segmentación entrenada con pseudo-máscaras ResNet50 + FCN | U-Net de `torch_unet.py` (~7,77 M) | El red de segmentación entrenada con pseudo-máscaras debe ser idéntico en los caminos A y B |
 | 11 | Pérdida BCE con ponderación (l-0,5)² | BCE + Dice suave, solo sobre píxeles confiables (255 se ignora) | Mismo efecto de ignorar la banda incierta; Dice según el plan |
 | 12 | 5 rondas de 300 épocas | `--rounds` y `--epochs-per-round` separados; piloto 1 ronda de 10 épocas | Presupuesto; con 10 épocas no se reproduce el paper |
-| 13 | Rondas siguientes desde la red | Predicciones del estudiante entran al mismo módulo de incertidumbre, sin normalizar ni orientar; cada ronda reentrena la U-Net desde cero | No especificado; la opción más simple |
+| 13 | Rondas siguientes desde la red | Predicciones del red de segmentación entrenada con pseudo-máscaras entran al mismo módulo de incertidumbre, sin normalizar ni orientar; cada ronda reentrena la U-Net desde cero | No especificado; la opción más simple |
 | 14 | Evaluación a 224 | Igual: la máscara se redimensiona con vecino más cercano a la resolución de entrenamiento | Coincide con el protocolo |
 
 ## Desviaciones respecto a CCAM
@@ -58,4 +58,4 @@ Fuentes: USL-Net (Li et al., Biomed. Signal Process. Control 2024, arXiv 2309.13
 - Sin torch en la máquina de desarrollo original, la verificación se hizo en un entorno CPU aparte (ver el informe). En GPU real quedan sin medir: velocidad, memoria (los lotes del preset pueden requerir reducirse), NCCL y bf16.
 - Las etapas dependen de `dermssl.torch_unet`, que importa `torchvision` y `PIL` al nivel del módulo.
 - Fallos declarados por los autores: manchas de yodo, pelo y sensibilidad a los umbrales 0,35 y 0,65. No hay análisis por tono de piel.
-- Con pesos aleatorios y 10 épocas el mapa CCAM puede ser pobre; si el módulo de incertidumbre excluye demasiadas muestras, `pseudo_masks_stats.json` lo muestra (`excluded_fraction`) y el estudiante falla con un mensaje explícito si no queda ninguna.
+- Con pesos aleatorios y 10 épocas el mapa CCAM puede ser pobre; si el módulo de incertidumbre excluye demasiadas muestras, `pseudo_masks_stats.json` lo muestra (`excluded_fraction`) y el red de segmentación entrenada con pseudo-máscaras falla con un mensaje explícito si no queda ninguna.

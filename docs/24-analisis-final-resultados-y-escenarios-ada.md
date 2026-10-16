@@ -66,7 +66,7 @@ La corrida preliminar de 4 horas-GPU reportaba un resultado favorable al brazo p
 
 ### 4.1 Protocolo final
 
-El preentrenamiento MoCo usa un pool de **58.457 imágenes sin etiquetas**: HAM10000 (10.015), ISIC 2019 sin las imágenes de HAM (15.316) e ISIC 2020 (33.126), deduplicadas por ID. En la última ronda de pseudo-máscaras del estudiante (`pseudo_r2`), 2.508 quedan excluidas (4,2903 %: 877 sin región y 1.631 por área); el total menos las excluidas es 55.949. Es un conteo distinto del exportador de entradas de tono: `resultados/README.md` y los manifests del banco informan 55.034 imágenes/pares elegibles y 3.423 en cuarentena para la transformación de tono. No se deben combinar esos dos filtros como si fueran la misma etapa. El resumen de buckets `plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/fst/fst_summary.json` registra 54.978 con estado `ok` y 3.479 en cuarentena. La diferencia de 56 respecto al exportador de tono no se reconcilia en los artefactos comprometidos; se conserva como discrepancia abierta y no se atribuye a una causa no medida.
+El preentrenamiento MoCo usa un pool de **58.457 imágenes sin etiquetas**: HAM10000 (10.015), ISIC 2019 sin las imágenes de HAM (15.316) e ISIC 2020 (33.126), deduplicadas por ID. En la última ronda de pseudo-máscaras del red de segmentación entrenada con pseudo-máscaras (`pseudo_r2`), 2.508 quedan excluidas (4,2903 %: 877 sin región y 1.631 por área); el total menos las excluidas es 55.949. Es un conteo distinto del exportador de entradas de tono: `resultados/README.md` y los manifests del banco informan 55.034 imágenes/pares elegibles y 3.423 en cuarentena para la transformación de tono. No se deben combinar esos dos filtros como si fueran la misma etapa. El resumen de buckets `plan-segmentacion/camino-b-cnn/resultados/2026-09-21-final/fst/fst_summary.json` registra 54.978 con estado `ok` y 3.479 en cuarentena. La diferencia de 56 respecto al exportador de tono no se reconcilia en los artefactos comprometidos; se conserva como discrepancia abierta y no se atribuye a una causa no medida.
 
 Las máscaras de referencia de ISIC 2018 y HAM10000 se usan solo al evaluar, no al entrenar el pipeline final. La configuración exacta está en `plan-segmentacion/comun/configs/cluster-final.json`.
 
@@ -76,7 +76,7 @@ Las máscaras de referencia de ISIC 2018 y HAM10000 se usan solo al evaluar, no 
 | MoCo v2 | ResNet-50 desde cero, 30 épocas, batch 128 por GPU, AdamW, LR 5e-4, weight decay 1e-4, warm-up 2, cola 16.384, momentum 0,999, temperatura 0,2, split-BN 4. |
 | CCAM | Cabeza 3 × 3 sobre layer3 y layer4 congeladas, 5 épocas, batch 64, LR 1e-3, alpha 0,25. |
 | Pseudo-máscaras | Fondo < 0,35; lesión > 0,65; ignorar valores intermedios; área entre 0,003 y 0,6 del campo; ignorar tinta y brillos. |
-| Estudiante | U-Net, 32 canales base, 7,8 M parámetros; BCE + Dice sobre píxeles confiables; Adam, LR 1e-4; tres rondas de 20 épocas, batch 32 por GPU. |
+| red de segmentación entrenada con pseudo-máscaras | U-Net, 32 canales base, 7,8 M parámetros; BCE + Dice sobre píxeles confiables; Adam, LR 1e-4; tres rondas de 20 épocas, batch 32 por GPU. |
 | Hardware y evaluación | Dos RTX PRO 4000 de 24 GB, DDP, bf16; umbral de máscara 0,5; HD95 y bootstrap de 1.000 remuestreos. |
 
 La corrida final detectó 7.528 campos circulares y 50.929 rectangulares, sin fallback. La exclusión de pseudo-máscaras fue 8,4 % en ronda 0, 4,4 % en ronda 1 y 4,3 % en ronda 2. El proceso completó 16 etapas con código 0 y 9.283 segundos de cómputo en la corrida buena.
@@ -105,7 +105,7 @@ La accuracy de píxel está dominada por el fondo y no debe sustituir Dice/IoU n
 |---|---|---|---|---|---:|---|
 | Piloto | `f19ab56` | Detector de campo v1; sin supresión de tinta/brillos; área mínima de candidato 0,01. | ISIC 2018 | 0,652 [0,643; 0,661] | 38,2 px | Inferior al final. |
 | Piloto | `f19ab56` | Igual. | HAM10000 | 0,759 [0,755; 0,762] | No calculado en esa tabla. | Inferior al final. |
-| Final | `d81a492` | Detector de campo v2; área mínima 0,003; supresión de tinta/brillos; MoCo 30 épocas; tres rondas de estudiante. | ISIC 2018 | 0,718 [0,709; 0,726] | 26,1 px | Configuración principal. |
+| Final | `d81a492` | Detector de campo v2; área mínima 0,003; supresión de tinta/brillos; MoCo 30 épocas; tres rondas de red de segmentación entrenada con pseudo-máscaras. | ISIC 2018 | 0,718 [0,709; 0,726] | 26,1 px | Configuración principal. |
 | Final | `d81a492` | Igual. | HAM10000 | 0,785 [0,781; 0,788] | 22,4 px | Configuración principal. |
 | Ablación v2 | `91814a9` | Solo cambia `pseudo.max_area_fraction` de 0,6 a 0,75. | ISIC 2018 | 0,716; Δ pareado −0,0015 [−0,0027; −0,0004] | Δ −0,22 [−0,58; +0,13] | Pierde ligeramente en Dice; empata en HD95. |
 | Ablación v2 | `91814a9` | Igual. | HAM10000 | 0,783; Δ pareado −0,0021 [−0,0026; −0,0017] | Δ +0,17 [+0,08; +0,27] | Pierde en Dice y HD95. |
@@ -119,7 +119,7 @@ La v2 incluyó 1.087 lesiones grandes adicionales en las pseudo-máscaras de ron
 | HAM10000 − SegRNorm | +0,020 [+0,016; +0,023] | −0,21 [−0,69; +0,28] px | Gana en Dice; empate en HD95. |
 | HAM10000 − SegXNorm | +0,052 [+0,049; +0,056] | −0,51 [−0,98; −0,02] px | Gana en ambas, HD95 por margen pequeño. |
 
-La afirmación correcta no es “el estudiante supera a todos los pisos en todo”: en ISIC 2018 empata con SegRNorm en Dice. El HD95 sí mejora. En HAM10000 el Dice aumenta, pero el percentil 10 de Dice de SegRNorm es 0,530 frente a 0,507 del estudiante.
+La afirmación correcta no es “el red de segmentación entrenada con pseudo-máscaras supera a todos los pisos en todo”: en ISIC 2018 empata con SegRNorm en Dice. El HD95 sí mejora. En HAM10000 el Dice aumenta, pero el percentil 10 de Dice de SegRNorm es 0,530 frente a 0,507 del red de segmentación entrenada con pseudo-máscaras.
 
 ### 4.4 Ablaciones adicionales
 
@@ -350,7 +350,7 @@ Este informe no modifica estos archivos; los identifica como contexto histórico
 | Referencia | Aporte | No permite concluir |
 |---|---|---|
 | Sharma et al., 2025, “Skin lesion segmentation: A systematic review…”, DOI `10.1016/j.compbiomed.2025.110842` | Revisa 108 estudios; organiza FCN, U-Net, atención, GAN, Transformer y Mamba; muestra el uso extendido de U-Net y de pérdidas BCE+Dice. | No es un benchmark controlado entre arquitecturas. Cambian dataset, split, resolución, supervisión y métricas entre estudios. En su sección de métricas, la fórmula bajo “specificity” es la de precision; validar cifras contra artículos originales. |
-| Yu et al., 2023, EIU-Net, DOI `10.1016/j.compbiomed.2023.107081` | Variante supervisada de U-Net con mejoras de extracción/fusión; se reporta Dice 0,902 en ISIC 2018. | No prueba equidad por tono. Sus máscaras supervisadas y protocolo no son comparables directamente con el estudiante pseudo-supervisado del proyecto. |
+| Yu et al., 2023, EIU-Net, DOI `10.1016/j.compbiomed.2023.107081` | Variante supervisada de U-Net con mejoras de extracción/fusión; se reporta Dice 0,902 en ISIC 2018. | No prueba equidad por tono. Sus máscaras supervisadas y protocolo no son comparables directamente con el red de segmentación entrenada con pseudo-máscaras pseudo-supervisado del proyecto. |
 | Bencevic et al., 2024, DOI `10.1016/j.cmpb.2024.108044` | Analiza sesgo en segmentación por color; muestra que balancear muestras y usar CIELAB no garantizan eliminarlo. | No convierte los terciles L* de este proyecto en fototipos clínicos ni resuelve nuestro mecanismo de transformación. |
 | Ye et al., EMBC 2025, DOI `10.1109/EMBC58623.2025.11253341` | ADA activa con dominios objetivo y selección de etiquetas expertas; usa un presupuesto de 10 etiquetas por dominio objetivo. | Es clasificación binaria de melanoma/nevus por dominios de edad/ubicación; no evalúa este banco HAM de siete clases ni establece equidad por tono. |
 | SM3, “Self-supervised multi-modality learning for multi-label skin lesion classification”, PDF local | Explora pares clínico/dermatoscópicos del mismo caso y atributos multimodales de Derm7pt. | Requiere modalidades pareadas y etiquetas compatibles; no se transfiere directamente a un modelo con una sola modalidad. |
@@ -454,7 +454,7 @@ Se enumeraron las 34 corridas de `nmoreno534-universidad-autonoma-de-bucaramanga
 
 El proyecto conserva corridas de piloto y v2 que no representan la configuración final. Por ejemplo, los runs de evaluación de v2 reportan Dice 0,782519 en HAM10000 y 0,716147 en ISIC 2018; no deben sustituir los dos runs finales anteriores. Dos corridas históricas (`e738a433cb08` y `yv7u1el2`) devolvieron HTTP 404 para `wandb-summary.json`; no se usan como evidencia final.
 
-Los resúmenes W&B de los cuatro brazos SSL reportan los mismos conteos de imágenes procesadas que sus manifests y aproximadamente 12 horas-GPU por brazo. Sus valores de `total_loss`/`ssl_loss` son observaciones periódicas, no promedios de ejecución: `torch_loop.py` los registra cada 50 pasos y el manifest calcula el promedio de todos los pasos (`src/dermssl/pretrain/torch_loop.py:350-358, 407-431`). Por eso esos valores no son directamente comparables. En los runs del estudiante, `selected` indica si esa época superó el mejor valor de pseudo-validación; que la última época muestre `false` no significa que se descartó el run. La evaluación final carga `best.pt` (`plan-segmentacion/comun/estudiante/student_engine.py:210-218`, `plan-segmentacion/comun/nucleo/selection.py:23-31`).
+Los resúmenes W&B de los cuatro brazos SSL reportan los mismos conteos de imágenes procesadas que sus manifests y aproximadamente 12 horas-GPU por brazo. Sus valores de `total_loss`/`ssl_loss` son observaciones periódicas, no promedios de ejecución: `torch_loop.py` los registra cada 50 pasos y el manifest calcula el promedio de todos los pasos (`src/dermssl/pretrain/torch_loop.py:350-358, 407-431`). Por eso esos valores no son directamente comparables. En los runs del red de segmentación entrenada con pseudo-máscaras, `selected` indica si esa época superó el mejor valor de pseudo-validación; que la última época muestre `false` no significa que se descartó el run. La evaluación final carga `best.pt` (`plan-segmentacion/comun/estudiante/student_engine.py:210-218`, `plan-segmentacion/comun/nucleo/selection.py:23-31`).
 
 ### Pruebas locales verificadas el 2026-09-23
 

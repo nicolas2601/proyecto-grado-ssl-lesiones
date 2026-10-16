@@ -7,7 +7,7 @@
 - **DINO / DINOv2** — Caron et al. 2021 / Oquab et al. 2023. (Núcleo del anteproyecto; objetivo con
   cómputo real.)
 - **Barlow Twins** — Zbontar et al. 2021. (Alternativa considerada.)
-- **SimCLR** — Chen et al. 2020. (Probado en Práctica 1; pierde desde cero con cómputo de estudiante.)
+- **SimCLR** — Chen et al. 2020. (Probado en Práctica 1; pierde desde cero con cómputo de red de segmentación entrenada con pseudo-máscaras.)
 - **MAE / SimMIM** — He et al. 2022 / Xie et al. 2022. (Masked Image Modeling en 2D; alternativa
   reconstructiva viable si el director quiere explorar MIM — ver evaluación de MambaMIM abajo.)
 

@@ -32,10 +32,10 @@ auto-supervisado; las etiquetas existen unicamente en la evaluacion.
 
 ![DINO continual](../assets/figuras/fig9_v6_dino_continual.png)
 
-Estudiante y profesor comparten arquitectura (DINOv2 ViT-S/14 + cabeza DINO
-384-2048-2048-256 con prototipos 4096). Solo el estudiante recibe gradientes;
-el profesor es un EMA del estudiante con centering + sharpening (la receta
-DINO contra el colapso). El entregable es el backbone del estudiante.
+red de segmentación entrenada con pseudo-máscaras y profesor comparten arquitectura (DINOv2 ViT-S/14 + cabeza DINO
+384-2048-2048-256 con prototipos 4096). Solo el red de segmentación entrenada con pseudo-máscaras recibe gradientes;
+el profesor es un EMA del red de segmentación entrenada con pseudo-máscaras con centering + sharpening (la receta
+DINO contra el colapso). El entregable es el backbone del red de segmentación entrenada con pseudo-máscaras.
 
 ## 4. Estructura de la red v6 - metodo propuesto (SimSiam sobre DINOv2)
 

@@ -1,5 +1,13 @@
 # Informe de avance — Objetivo 2
 
+## Nomenclatura de lectura
+
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+
+Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
+
+Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](docs/10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
+
 **Proyecto de grado:** Clasificación de lesiones cutáneas con aprendizaje autosupervisado (SSL)
 **Autores:** Nicolás Santiago Moreno Monroy · María Paula Saavedra
 **Director:** Andrés Jerez — **Asesora:** Karen Sánchez (KAUST)
@@ -94,7 +102,7 @@ no tenemos.
 
 | Decisión | Qué elegimos | Por qué |
 |---|---|---|
-| Método SSL | **SimSiam** (no DINO/ViT en esta fase) | negative-free → corre en 1 GPU T4; DINO/ViT inviable con cómputo de estudiante. DINOv2 queda para la fase con GPUs UNAB. |
+| Método SSL | **SimSiam** (no DINO/ViT en esta fase) | negative-free → corre en 1 GPU T4; DINO/ViT inviable con cómputo de red de segmentación entrenada con pseudo-máscaras. DINOv2 queda para la fase con GPUs UNAB. |
 | Inicialización | **domain-adaptive desde ImageNet** (nunca desde cero) | probamos SSL desde cero: pierde contra un backbone aleatorio. Requiere millones de imágenes. |
 | Datos SSL | **ISIC 2019 + ISIC 2020 + HAM-train** (~48 k sin etiqueta) | el SSL escala con datos; ampliar el pool fue lo que volvió el empate en victoria. |
 | Split | por **`lesion_id`** (StratifiedGroupKFold) | partir por imagen mete la misma lesión en train/val → métrica inflada (el error del prototipo previo, que daba 0.873 falso). |
@@ -117,7 +125,7 @@ no tenemos.
 3. **Clase `df` (dermatofibroma)** poco fiable (recall 0.36, muy pocas muestras).
 4. **Sesgo por fototipo** — dataset de piel clara (Fitzpatrick I–III); sin base para afirmar
    rendimiento en piel oscura. Plan: test set BOSQUE (Bogotá, con fototipo anotado).
-5. **Cómputo limitado** — T4 de estudiante. El entrenamiento definitivo (más épocas, DINOv2/ViT)
+5. **Cómputo limitado** — T4 de red de segmentación entrenada con pseudo-máscaras. El entrenamiento definitivo (más épocas, DINOv2/ViT)
    requiere **acceso a las GPUs de la UNAB**.
 
 ---

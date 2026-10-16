@@ -22,7 +22,7 @@ Ficha técnica del modelo entrenado, siguiendo el formato *Model Cards* (Mitchel
 | **Descarga** | [Release `modelo-v4-definitiva`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/modelo-v4-definitiva) |
 
 > ⚠️ **Naturaleza preliminar:** estos pesos se obtuvieron con **recursos limitados** (GPU T4 de
-> estudiante, dataset acotado). No son el modelo definitivo; el entrenamiento final (más épocas,
+> red de segmentación entrenada con pseudo-máscaras, dataset acotado). No son el modelo definitivo; el entrenamiento final (más épocas,
 > DINOv2/ViT, validación externa) se hará con las GPUs de la UNAB. Aun así, esta corrida **valida la
 > hipótesis del anteproyecto** (el SSL mejora sobre ImageNet).
 

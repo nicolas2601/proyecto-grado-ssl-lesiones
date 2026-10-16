@@ -1,10 +1,18 @@
 # Camino B: solo CNN, preentrenamiento contrastivo y saliencia CAM
 
+## Nomenclatura de lectura
+
+**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El control SSL sin consistencia de tono no es una tercera propuesta ni la versión segmentada.
+
+Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
+
+Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](../../docs/10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
+
 Estado (2026-09-19): implementado y probado en CPU con torch 2.14; **sin ejecutar aún en la GPU del clúster**. Primer paso obligatorio: el smoke de la sección 1. Las decisiones y desviaciones respecto a USL-Net y CCAM están en [DISENO.md](DISENO.md).
 
 Idea: al estilo de USL-Net (Li et al., 2024). Aprende solo de nuestras ~68k imágenes sin etiquetar (HAM10000, ISIC 2019, ISIC 2020), sin pesos externos (salvo `--init-weights`, opcional y documentado como desviación) y sin máscaras ni etiquetas. Las máscaras de ISIC 2018, PH2 o Dermofit solo las abre la evaluación, después del entrenamiento.
 
-Flujo: `cache` → MoCo v2 (`train_moco.py`) → CCAM y saliencia (`train_ccam.py`) → pseudo-máscaras con módulo de incertidumbre (`make_pseudo_masks.py`) → U-Net estudiante (`train_student.py`) → re-etiquetado con las predicciones y nuevas rondas → evaluación (`evaluate_segmentation.py`).
+Flujo: `cache` → MoCo v2 (`train_moco.py`) → CCAM y saliencia (`train_ccam.py`) → pseudo-máscaras con módulo de incertidumbre (`make_pseudo_masks.py`) → U-Net red de segmentación entrenada con pseudo-máscaras (`train_student.py`) → re-etiquetado con las predicciones y nuevas rondas → evaluación (`evaluate_segmentation.py`).
 
 | Carpeta | Contenido |
 |---|---|
