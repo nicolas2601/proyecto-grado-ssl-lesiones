@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "schema": "v8_similarity_resolution_decision.v1",
+  "decision_date": "2026-10-16",
+  "decision_status": "approved_protocol_deviation",
+  "approval_basis": {
+    "source": "explicit_user_chat",
+    "date": "2026-10-16",
+    "scope": "similarity_risk_eligibility_only"
+  },
+  "protocol_deviation": {
+    "replaces": "manual_visual_adjudication_of_15702_phash_pairs",
+    "adopted_method": "conservative_exclusion",
+    "manual_visual_adjudication": "will_not_be_performed"
+  },
+  "source_audit": {
+    "path": "/home/jovyan/work/validation_v8/learning-pool-isolation-audit-20261016-001/receipt.json",
+    "sha256": "8fe770c15ec22cd067d005f49be7777009d983a0563f3edd4d33955d63b07ac7"
+  },
+  "source_application_receipt": {
+    "path": "/home/jovyan/work/validation_v8/phash-exclusion-application-20261016-001/receipt.json",
+    "sha256": "45d113fc0271543bb11d7d3b415951415beaf0b29798097fa2fcc35906baed1f"
+  },
+  "counts": {
+    "phash_pairs": 15702,
+    "excluded_base_id_paths": 1917,
+    "exact_base_id_paths": 583,
+    "terminal_downsampled_base_id_paths": 1334,
+    "excluded_phash_paths": 4195,
+    "excluded_union_paths": 6112,
+    "pool_before": 40896,
+    "pool_after": 34784,
+    "reserved_evaluation_pairs": 2594
+  },
+  "proposerationale_scope_declarations": {
+    "rationale": "Cero candidatos retenidos y solapamientos residuales de IDs reservados y hashes declarados de imágenes reservadas/máscaras expertas en el inventario declarado.",
+    "scope": "Decisiones guardadas e inventario declarado; pares y rutas son unidades diferentes.",
+    "limitations": [
+      "Sin nueva lectura/hash de los bytes de todas las imágenes de aprendizaje.",
+      "Sin garantía de aislamiento global o ausencia de exposición histórica.",
+      "Duplicados reales y falsos positivos precautorios sin adjudicar; no se asignan conteos.",
+      "Sin resolución alternativa de independencia paciente/lesión."
+    ]
+  },
+  "similarity_adjudication_complete": "resolved_by_conservative_exclusion",
+  "duplicates_identity_verified": false,
+  "duplicate_identity_status": "unverified",
+  "patient_lesion_independence": "unresolved",
+  "patient_independence_accredited": false,
+  "freeze_blocked": true,
+  "freeze_blocked_reason": "clinical_independence_unresolved",
+  "exposure_review_complete": false,
+  "isolation_global_verified": false,
+  "manifest_frozen": false,
+  "training_consumable": false,
+  "execution_ready": false,
+  "execution_enabled": false,
+  "launch_ready": false,
+  "training_started": false,
+  "scientific_gate_receipts_issued": false,
+  "historical_receipts_policy": "Immutable: conservar booleanos false y todos los SHA históricos; este registro no sustituye readiness ni recibos científicos.",
+  "historical_pin_match": false,
+  "remaining_work": [
+    "Resolver por separado independencia clínica paciente/lesión antes de congelación final.",
+    "Revisar linaje y exposición de pesos y productores de pseudo-máscaras.",
+    "Preparar manifiestos no consumibles."
+  ],
+  "geometry_status": "technical_audit_completed_2594_pairs_not_repeated"
+}
