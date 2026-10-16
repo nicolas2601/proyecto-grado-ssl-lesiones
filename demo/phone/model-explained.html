@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f1f2f2">
+    <meta name="description" content="Cómo funcionan los clasificadores experimentales DermSSL y qué evidencia respalda sus resultados.">
+    <title>Cómo piensa el modelo · DermSSL</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <header class="topbar">
+      <a class="wordmark" href="/" aria-label="DermSSL, volver al inicio"><span class="mark" aria-hidden="true">d.</span><span>DERMSSL <small>GUÍA / 02</small></span></a>
+      <a class="back-link" href="/">Volver a la herramienta <span aria-hidden="true">↗</span></a>
+    </header>
+    <main id="main" class="layout explain-layout">
+      <section class="intro explain-intro" aria-labelledby="page-title">
+        <p class="eyebrow">LECTURA DEL SISTEMA <span>·</span> EVIDENCIA Y LÍMITES</p>
+        <h1 id="page-title">Cómo piensa<br><em>el modelo.</em></h1>
+        <ol class="summary-list">
+          <li>Clasifica imágenes dermatoscópicas en siete clases registradas.</li>
+          <li>El preentrenamiento de la representación es sin etiquetas; la sonda se ajusta con etiquetas HAM.</li>
+          <li>A71 y B71 tienen backbones distintos y sondas entrenadas por separado con la misma receta CLS estándar documentada.</li>
+          <li>Los resultados HAM y PAD son experimentales; no validan fotos de celular ni uso clínico.</li>
+          <li>Herramienta auxiliar: no usar para diagnosticar ni tomar decisiones de salud.</li>
+        </ol>
+        <p class="runtime-status">Estado actual del servidor: consulta <a href="https://derm.nicolasmoreno.site/api/report">/api/report</a>. Los resultados de esta guía son evaluación offline documentada, no disponibilidad en vivo.</p>
+      </section>
+
+      <nav class="explain-toc" aria-label="En esta página">
+        <a href="#pipeline">Tubería</a><a href="#classes">Clases HAM</a><a href="#limits">Supuestos</a><a href="#performance">Resultados</a><a href="#pad">PAD</a><a href="#identities">Identidad</a><a href="#equity">Estratos</a><a href="#glossary">Glosario</a><a href="#sources">Fuentes</a>
+      </nav>
+
+      <section class="explain-section" id="pipeline" aria-labelledby="pipeline-title">
+        <div class="explain-heading"><span class="section-number">01</span><div><p class="eyebrow">DEL ARCHIVO A LAS PUNTUACIONES</p><h2 id="pipeline-title">Tubería de una foto</h2></div></div>
+        <ol class="pipeline">
+          <li><span class="pipeline-index">01</span><div><strong>Foto</strong><p>Imagen recibida por el servicio; el teléfono no ejecuta el modelo.</p></div></li>
+          <li><span class="pipeline-index">02</span><div><strong>Preparación</strong><p>RGB → resize 255 → recorte central 224 → tensor y normalización ImageNet.</p></div></li>
+          <li><span class="pipeline-index">03</span><div><strong>Representación</strong><p>ViT-B/14 congelado → vector CLS global de 768 componentes. El backbone no se actualiza en la evaluación de la sonda.</p></div></li>
+          <li><span class="pipeline-index">04</span><div><strong>Origen previo de la representación</strong><p>La adaptación SimSiam se realizó antes de la inferencia, sin etiquetas de diagnóstico HAM para actualizar el backbone. No se entrena al subir una foto.</p></div></li>
+          <li><span class="pipeline-index">05</span><div><strong>Sonda con etiquetas</strong><p>Regresión logística entrenada con etiquetas HAM; escala los features con estadísticos del train y produce siete logits.</p></div></li>
+          <li><span class="pipeline-index">06</span><div><strong>Softmax</strong><p>Convierte logits en siete puntuaciones relativas que suman uno. No son riesgo clínico, certeza ni calibración clínica.</p></div></li>
+        </ol>
+        <p class="evidence-source">La receta medida en los manifests es CLS@224 + regresión logística C=1, sin balanceo y sin TTA. Es una evaluación CLS estándar; no equivale a las configuraciones de investigación registradas cls_attn/cls4 + balanced + TTA.</p>
+      </section>
+
+      <section class="explain-section" id="classes" aria-labelledby="classes-title">
+        <div class="explain-heading"><span class="section-number">02</span><div><p class="eyebrow">HAM10000 · TRAIN DEL PROBE</p><h2 id="classes-title">Siete clases, distribución desigual</h2></div></div>
+        <p>Los manifests verifican 8.011 imágenes train y 2.004 val, separadas por <code>lesion_id</code>. No incluyen conteos train por clase; por eso el gráfico y porcentajes por clase quedan como <strong>no medidos en esta fuente</strong>, sin inventar barras ni atribuir causalidad al desbalance.</p>
+        <div class="class-table-wrap">
+          <table class="class-table">
+            <caption>Clases registradas y conteos disponibles del conjunto</caption>
+            <thead><tr><th scope="col">Código</th><th scope="col">Clase</th><th scope="col">Train HAM</th><th scope="col">Porcentaje</th></tr></thead>
+            <tbody>
+              <tr><th scope="row"><code>akiec</code></th><td>Queratosis actínica / carcinoma intraepitelial</td><td>No medido por clase</td><td>No medido</td></tr>
+              <tr><th scope="row"><code>bcc</code></th><td>Carcinoma basocelular</td><td>No medido por clase</td><td>No medido</td></tr>
+              <tr><th scope="row"><code>bkl</code></th><td>Lesión benigna tipo queratosis</td><td>No medido por clase</td><td>No medido</td></tr>
+              <tr><th scope="row"><code>df</code></th><td>Dermatofibroma</td><td>No medido por clase</td><td>No medido</td></tr>
+              <tr><th scope="row"><code>mel</code></th><td>Melanoma</td><td>No medido por clase</td><td>No medido</td></tr>
+              <tr><th scope="row"><code>nv</code></th><td>Nevus melanocítico</td><td>No medido por clase</td><td>No medido</td></tr>
+              <tr><th scope="row"><code>vasc</code></th><td>Lesión vascular</td><td>No medido por clase</td><td>No medido</td></tr>
+            </tbody>
+            <tfoot><tr><th scope="row">Total train</th><td>HAM10000 · fold 0</td><td>8.011 imágenes</td><td>100 %</td></tr></tfoot>
+          </table>
+        </div>
+        <p class="evidence-source">Fuente: manifests A71/B71. Para distribución detallada se necesita un manifest de IDs por clase con SHA verificable.</p>
+      </section>
+
+      <section class="explain-section" id="limits" aria-labelledby="limits-title">
+        <div class="explain-heading"><span class="section-number">03</span><div><p class="eyebrow">QUÉ SE ASUME</p><h2 id="limits-title">Supuestos y límites</h2></div></div>
+        <div class="evidence-table-wrap">
+          <table class="evidence-table">
+            <caption>Supuestos que condicionan la lectura de resultados</caption>
+            <thead><tr><th scope="col">Supuesto / límite</th><th scope="col">Por qué importa</th><th scope="col">Evidencia y estado</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Train con dermatoscopias HAM, no fotos de celular</th><td>Una foto de teléfono cambia captura, escala, iluminación y distribución de entrada.</td><td>Manifests HAM10000; uso móvil/clínico no validado.</td></tr>
+              <tr><th scope="row">Sonda sin balanceo</th><td>La distribución mayoritaria puede influir en la salida; que cause un error concreto es una hipótesis que requiere análisis.</td><td><code>class_weight: null</code>. Efecto causal específico: hipótesis, no demostrado aquí.</td></tr>
+              <tr><th scope="row">Recorte central 224</th><td>Puede excluir parte de una lesión si queda fuera del centro.</td><td>La transformación está en los manifests; impacto por imagen no medido.</td></tr>
+              <tr><th scope="row">Softmax</th><td>Una puntuación alta no representa certeza ni riesgo clínico.</td><td>Advertencia explícita del manifiesto y del servicio.</td></tr>
+              <tr><th scope="row">Un solo fold de validación HAM</th><td>No mide variación entre particiones y no equivale a prueba independiente.</td><td>Fold 0 de StratifiedGroupKFold; consulta HAM registrada, no validación clínica externa.</td></tr>
+              <tr><th scope="row">Segmentación</th><td>La CLS estándar no produce máscara de lesión.</td><td>Flujo interactivo: segmentación pendiente de receta/golden aprobado.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="explain-section" id="performance" aria-labelledby="performance-title">
+        <div class="explain-heading"><span class="section-number">04</span><div><p class="eyebrow">HAM10000 · VALIDACIÓN DEL PROBE</p><h2 id="performance-title">Resultados consultados, no independientes</h2></div></div>
+        <p class="table-reading">Métricas offline de fold 0, sonda CLS@224 no balanceada; no son validación independiente ni resultados de fotos móviles.</p>
+        <div class="evidence-table-wrap">
+          <table class="evidence-table">
+            <caption>HAM val ya consultado · inferencia float32</caption>
+            <thead><tr><th scope="col">Modelo</th><th scope="col">Macro-F1</th><th scope="col">Exactitud</th><th scope="col">Estado</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">A71</th><td>0,6726</td><td>0,8353</td><td>HAM val consultado</td></tr>
+              <tr><th scope="row">B71</th><td>0,6814</td><td>0,8428</td><td>HAM val consultado</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Macro-F1 y exactitud provienen de los classifier manifests. Recall y precisión por clase, balanced accuracy, matriz 7×7 y comparación independiente actual: <strong>no medido para esta receta</strong>. Las matrices PAD parciales no reemplazan esa evaluación.</p>
+      </section>
+
+      <section class="explain-section" id="pad" aria-labelledby="pad-title">
+        <div class="explain-heading"><span class="section-number">05</span><div><p class="eyebrow">FOTOS DE CELULAR · DESARROLLO</p><h2 id="pad-title">PAD: comparación exploratoria</h2></div></div>
+        <p class="evidence-callout"><strong>Exploratory-dev.</strong> PAD usa un protocolo distinto a HAM y no valida uso clínico. No mezclar los subconjuntos: la comparación H1 BCC/MEL/NEV tiene 568 imágenes de 353 pacientes, incluidas 27 imágenes de melanoma de 18 pacientes; la ficha global PAD contiene 1.141 imágenes de 686 pacientes.</p>
+        <div class="evidence-table-wrap">
+          <table class="evidence-table">
+            <caption>H1 · A71 − D0 en tres clases condicionadas · bootstrap pareado por paciente, 1.000 remuestras</caption>
+            <thead><tr><th scope="col">Métrica</th><th scope="col">Diferencia</th><th scope="col">IC 95 %</th><th scope="col">Lectura del JSON</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Macro-F1</th><td>−0,1002</td><td>[−0,1456; −0,0549]</td><td>D0 mejor</td></tr>
+              <tr><th scope="row">MCC</th><td>−0,1072</td><td>[−0,1720; −0,0422]</td><td>D0 mejor</td></tr>
+              <tr><th scope="row">ECE</th><td>+0,0998</td><td>[+0,0529; +0,1547]</td><td>D0 mejor; menor es mejor</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Estos IC y diferencias corresponden únicamente al resultado condicional de tres clases para H1, no a siete clases, no a B71 y no a cada estrato FST. No permiten atribuir causalidad general al preentrenamiento.</p>
+        <p class="evidence-source">H2 es un diagnóstico supervisado OOF agrupado por paciente (BCC/MEL/NEV), con class_weight balanced. Es otro protocolo y un upper bound diagnóstico; no es una sonda transferida del producto. Sus resultados no se mezclan con H1 ni con HAM.</p>
+      </section>
+
+      <section class="explain-section" id="identities" aria-labelledby="identity-title">
+        <div class="explain-heading"><span class="section-number">06</span><div><p class="eyebrow">RECETAS NO EQUIVALEN A PESOS IDÉNTICOS</p><h2 id="identity-title">A71, B71 y D0</h2></div></div>
+        <div class="evidence-table-wrap">
+          <table class="evidence-table identity-table">
+            <caption>Identidad y receta según manifests verificados</caption>
+            <thead><tr><th scope="col">Brazo</th><th scope="col">Identidad del backbone</th><th scope="col">Receta de sonda medida</th><th scope="col">Evidencia HAM</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">A71</th><td>Uniform soup de A_s42/A_s43; SHA-256 <code>f075194fd84ddaa4041ebd5225ae8e3cad643b41a3195d9b927e2ca27087b12b</code>.</td><td>CLS@224 + C=1 logística, sin balanceo, sin TTA. Probe SHA-256 <code>e593e284c3c3afdf02ea80a794b8d41bc14bf19bf8bd48d7dabb509fd5d8f5c8</code>.</td><td>Macro-F1 0,6726 · exactitud 0,8353.</td></tr>
+              <tr><th scope="row">B71</th><td>v8.0.0-clean/B71, B_s42; SHA-256 <code>a392ebe8eedcc519a6131e3930bed5ea232d4be7084010f82740e55cadbe39c1</code>.</td><td>CLS@224 + C=1 logística, sin balanceo, sin TTA. Probe SHA-256 <code>4c6b158fc8a81aa1755978915ac2e4133148f25fff26901a134292657eb56268</code>.</td><td>Macro-F1 0,6814 · exactitud 0,8428.</td></tr>
+              <tr><th scope="row">D0</th><td>DINOv2 público ViT-B/14; referencia de comparación PAD.</td><td>CLS@224 + C1 logística, comparación pareada sin TTA; no es B71.</td><td>PAD exploratory-dev; no es control clínico.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="method-warning">A71 y B71 usan la misma receta documentada de sonda, pero cada uno tiene coeficientes y artefactos de sonda distintos. No existe sonda balanced promovida a producción: A71/B71 productivos son CLS@224 no balanceados, ajustados con features AMP y servidos en float32. La configuración de investigación cls_attn/cls4 + balanced + TTA es otra receta; las variantes A71b/B71b balanced son experimentales y no promovidas.</p>
+      </section>
+
+      <section class="explain-section" id="equity" aria-labelledby="equity-title">
+        <div class="explain-heading"><span class="section-number">07</span><div><p class="eyebrow">PAD · ESTRATOS FST</p><h2 id="equity-title">Tamaño y estimabilidad</h2></div></div>
+        <p>El JSON H1 informa por estrato las imágenes, pacientes y casos MEL incluidos. Son denominadores descriptivos de PAD H1; no representan equidad demostrada ni deben extrapolarse a HAM.</p>
+        <div class="evidence-table-wrap">
+          <table class="evidence-table">
+            <caption>PAD H1 · denominadores por fototipo Fitzpatrick reportado</caption>
+            <thead><tr><th scope="col">Estrato FST</th><th scope="col">Imágenes</th><th scope="col">Pacientes</th><th scope="col">Imágenes MEL</th><th scope="col">Estimabilidad</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">I</th><td>48</td><td>25</td><td>1</td><td>Sin potencia</td></tr>
+              <tr><th scope="row">II</th><td>289</td><td>176</td><td>22</td><td>Evaluable con cautela</td></tr>
+              <tr><th scope="row">III–VI</th><td>138</td><td>82</td><td>4</td><td>IC amplios; cautela</td></tr>
+              <tr><th scope="row">Sin FST</th><td>93</td><td>70</td><td>0</td><td>Recall MEL no estimable</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>El total de estos cuatro estratos H1 es 568 imágenes y 353 pacientes. Los valores MEL son imágenes, no pacientes. Los IC de recall MEL no son calculables en I y III–VI, y no son estimables sin FST; no afirmar equidad. El JSON H2 no estima equidad para su diagnóstico supervisado.</p>
+      </section>
+
+      <section class="explain-section" id="glossary" aria-labelledby="glossary-title">
+        <div class="explain-heading"><span class="section-number">08</span><div><p class="eyebrow">TÉRMINOS CLAVE</p><h2 id="glossary-title">Glosario</h2></div></div>
+        <dl class="glossary">
+          <div><dt>Macro-F1</dt><dd>Promedio no ponderado del F1 por clase.</dd></div>
+          <div><dt>Recall</dt><dd>Fracción de casos reales de una clase que el modelo recupera.</dd></div>
+          <div><dt>Precisión</dt><dd>Fracción de predicciones de una clase que son correctas.</dd></div>
+          <div><dt>ECE</dt><dd>Error de calibración esperado; menor es mejor, pero no constituye calibración clínica.</dd></div>
+          <div><dt>Softmax</dt><dd>Normaliza logits a una distribución; no los convierte en probabilidad de enfermedad.</dd></div>
+          <div><dt>Sonda</dt><dd>Clasificador logístico sobre representaciones del backbone congelado.</dd></div>
+          <div><dt>IC 95 % pareado</dt><dd>Intervalo bootstrap de la diferencia A71−D0, remuestreando pacientes emparejados.</dd></div>
+        </dl>
+      </section>
+
+      <section class="explain-section" id="sources" aria-labelledby="sources-title">
+        <div class="explain-heading"><span class="section-number">09</span><div><p class="eyebrow">TRAZABILIDAD</p><h2 id="sources-title">Fuentes y pendientes</h2></div></div>
+        <ul class="source-list">
+          <li><code>export/phone_verified/A71_classifier_manifest.json</code> · SHA-256 <code>a9afad2396a85ddb1c48bfe060cb3c6e7054559748d77e16bd6f63cf41f0aa11</code>.</li>
+          <li><code>export/phone_verified/B71_classifier_manifest.json</code> · SHA-256 <code>f8dd37a8b3903f6a354e2c075c74b313eb5cdc3af2023a4f825fed29986e6705</code>.</li>
+          <li><code>export/pad_dev_H1_paired.json</code> · SHA-256 <code>702d086e202cb9045cc159534280efc7d9c70597406453fd6ca68ec9d066dd8e</code>.</li>
+          <li><code>export/pad_dev_H2_diagnostic.json</code> · SHA-256 <code>dbdec2c705abcd3a7adb3ff0d178825f44f888d496c735a43d1e02322693308b</code>.</li>
+          <li>Spec: <code>docs/SPEC_PAGINA_EXPLICACION.md</code>. La matriz 7×7, recall/precisión balanced por clase y porcentajes de train por clase quedan no medidos porque los manifiestos suministrados no los incluyen.</li>
+        </ul>
+        <p>La tabla PAD resumida no sustituye el JSON completo ni vuelve clínica una comparación exploratoria.</p>
+        <a class="api-link" href="https://derm.nicolasmoreno.site/docs">Abrir documentación de la API <span aria-hidden="true">↗</span></a>
+      </section>
+
+      <aside class="safety-panel" aria-label="Límite de uso">
+        <span class="safety-icon" aria-hidden="true">!</span><div><strong>Herramienta auxiliar de investigación.</strong><p>No uses estos resultados para diagnosticar, priorizar atención ni tomar decisiones de salud. No es un dispositivo diagnóstico y no sustituye la valoración de un profesional.</p></div>
+      </aside>
+      <nav class="page-links" aria-label="Más contexto"><a href="/">Volver a la herramienta <span aria-hidden="true">↗</span></a><a href="/architecture/experiment-gates.html">Puertas del experimento <span aria-hidden="true">↗</span></a><a href="/architecture/split-firewall.html">Separación de datos <span aria-hidden="true">↗</span></a></nav>
+      <footer class="footnote"><span>DERMSSL / GUÍA DE INVESTIGACIÓN</span><span>Evidencia versionada · 16 oct 2026</span></footer>
+    </main>
+  </body>
+</html>
