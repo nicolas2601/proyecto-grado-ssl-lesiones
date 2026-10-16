@@ -21,15 +21,17 @@ lo hizo el usuario manualmente (nunca se tipeó una contraseña por el modelo).
 
 ## Avance vigente del paso 1 (2026-10-16 UTC)
 
-### Comprobación del pin y auditoría de geometría en curso
+### Comprobación del pin y auditoría técnica de geometría completada
 
 La comparación programática quedó registrada en `/home/jovyan/work/validation_v8/pin-integrity-recheck-20261016-001/pin_integrity_recheck.json`: `MATCH=false`. El pin histórico y el hash real del register reconciliado siguen siendo distintos; `readiness.review.json` conserva su contenido. Esta excepción no modifica la reconciliación independiente de membresía 583 + 1.334 ni autoriza cambiar gates.
 
 Se preparó y revisó `scripts/audit_v8_evaluation_geometry.py`, publicado en `4511ae8d92a4eff8fe9e4771269487d9d3d7ef35`, SHA-256 de fuente `d7e9066e8f2176340facb454984cc8d26522ef53d97629d53368c7475db06580`. El paquete transferido tiene SHA-256 `561e63285841cb5aa83a6fa85cea47dee6aa6866a9056bd8bdb9bbf30992fcc3`. La ejecución audit-only se lanzó desde la copia canónica identificada por `95a8f60`, con hashes esperados de los ZIP leídos programáticamente del archivo de checksums existente. Inspecciona contenido, correspondencia, dimensiones y máscaras binarias sin extraer miembros ni utilizarlas para aprendizaje; las máscaras vacías o completas son hallazgos de revisión, no exclusiones.
 
-**Estado al registrar este avance: en ejecución, sin resultado final verificado.** El recibo final esperado es `/home/jovyan/work/validation_v8/evaluation-geometry-20261016-001/geometry.audit.json`; el log y el recibo de lanzamiento son `/home/jovyan/work/validation_v8/evaluation-geometry-launch-20261016-001/stdout.log` y `launch.json` en ese mismo directorio. La presencia de un log o de un directorio parcial no acredita éxito. El diagnóstico mantiene `training_consumable=false`, `isolation_global_verified=false` e independencia paciente/lesión sin acreditar.
+**Estado final: completada exclusivamente la auditoría técnica de contenido/geometría.** La ejecución del 2026-10-16 comenzó a las 06:16:21 UTC y terminó a las 06:20:45 UTC. El informe final abierto en JupyterLab registra 2.594 pares comprobados y aprobados, cero errores, cero hallazgos de revisión, sin IDs duplicados ni pares ausentes. Informe: `/home/jovyan/work/validation_v8/evaluation-geometry-20261016-001/geometry.audit.json`, SHA-256 `e871a95705e2dfef32466e1ddb17099603fc4bdd8c518d91fcaa8073a7ce8366`; registros JSONL: SHA-256 `66081d1de33edef8c11d1429d93aa59d1cb7070fa709174c3a4acf93b612b786`.
 
-- [ ] Revisar el recibo final de geometría, su estado, conteos, errores, hallazgos y hashes; no volver a aplicar el filtro provisional ya verificado.
+El recibo `/home/jovyan/work/validation_v8/evaluation-geometry-launch-20261016-001/completion.receipt.json` verificó 12 comprobaciones, incluidos conteo, unicidad, estados, hashes de registros, ZIP de entrada y fuente, conservación de readiness y gates cerrados. El log y el recibo de lanzamiento son `stdout.log` y `launch.json` en ese mismo directorio. La observación intermedia sin recibo final precedió a su publicación; no hubo caída ni repetición de la auditoría. El diagnóstico mantiene `training_consumable=false`, `isolation_global_verified=false` e independencia paciente/lesión sin acreditar. Todavía no existe el recibo final `mask_content_validated` vinculado a las cohortes congeladas; este cierre técnico no lo sustituye.
+
+- [x] Revisar el recibo final de geometría y su comprobación de terminación: 2.594 pares aprobados, cero errores y hallazgos; hashes y readiness verificados. No repetir esta auditoría ni la aplicación del filtro provisional sin un motivo material nuevo.
 - [ ] Completar y revisar los cinco recibos exigidos por `common/protocol.py`: `exclusions_verified`, `duplicates_adjudicated`, `mask_content_validated`, `exposure_review_complete` y `evaluation_masks_isolated`. Cada uno debe vincular la misma revisión y los hashes de las cohortes de evaluación, referencias y aprendizaje. El informe de geometría por sí solo no sustituye esos recibos ni acredita aislamiento global.
 - [ ] Resolver la revisión de similitud: excluir conservadoramente 4.195 rutas pHash y 1.917 por ID base no acredita identidad duplicada ni satisface por sí solo `duplicates_adjudicated`; la unión provisional conserva `duplicate_identity_status=unverified`.
 - [ ] Preparar el materializador final después de revisar las evidencias. Entre los puntos de entrada inspeccionados, `apply_v8_exclusion_review.py` produce solo un pool provisional no consumible; falta el materializador de protocolo/manifiestos finales, con hash del código/helper y publicación atómica o rechazo explícito de directorios sin recibo final.
@@ -69,7 +71,8 @@ El usuario aprobó `retrospective_public_benchmark`, manteniendo `patient_indepe
 - [~] Preparar contrato/evaluador candidatos: protocolo común en config/gate/manifest/export; recibos hash de exclusiones, adjudicación, máscaras, exposición y aislamiento; IDs exactos, `>=0.5`, bootstrap por imagen y fallos en denominador original.
 - [x] Revisión estática y suite nueva de contratos en copia aislada de UNABIA: 15 passed, 2 warnings. No se ejecutaron localmente; no equivale a validación científica ni a habilitación de la corrida.
 - [x] Integrar el recibo audit-only al aplicador y materializar/verificar la unión de 6.112 rutas excluidas en un pool provisional nuevo. Esta aplicación por ruta no acredita identidad duplicada; `similarity_adjudication_complete=false`.
-- [ ] Revisar vínculos de similitud y exposición al aprendizaje; validar contenido/geometría de los 2.594 pares y aislar las máscaras expertas. Después materializar y congelar el protocolo/manifiestos/hashes reales. Independencia paciente/lesión continúa sin acreditar.
+- [x] Validar técnicamente contenido/geometría de los 2.594 pares oficiales y revisar el recibo final de auditoría; evidencia y límites en la sección vigente superior.
+- [ ] Revisar vínculos de similitud y exposición al aprendizaje y aislar las máscaras expertas. Después materializar y congelar el protocolo/manifiestos/hashes reales y sus cinco recibos vinculados a las cohortes, incluido `mask_content_validated`. Independencia paciente/lesión continúa sin acreditar.
 - [ ] Preparar pseudo-máscaras, planes seriales y presupuestos medidos. No copiar épocas/recursos V7.
 - [ ] Limpiar pruebas sintéticas justo antes de la corrida real, conservando recibos.
 
@@ -209,7 +212,7 @@ descargas, forwards y despliegues ya acreditados no se repiten por sus estados a
     Lesion Boundary Segmentation Challenge). En aquella observación faltaban máscaras
     expertas y solo se disponía de máscaras U-Net de QA. Posteriormente se descargaron
     los ZIP oficiales y se verificaron checksums y correspondencia de 2.594 IDs
-    imagen/máscara. La validación completa de contenido/geometría sigue en ejecución;
+    imagen/máscara. La auditoría técnica completa de contenido/geometría aprobó los 2.594 pares;
     no se presenta esa correspondencia como aislamiento o independencia acreditados.
   - **Decisión del usuario (2026-10-14): descargar ISIC2018 Task 1 oficial.**
     Verificado con HEAD request (sin login, HTTP 200): `ISIC2018_Task1-2_Training_Input.zip`
@@ -225,7 +228,7 @@ descargas, forwards y despliegues ya acreditados no se repiten por sus estados a
     son varias horas, no ~30 minutos.** Ese estado parcial es histórico: la descarga
     y la correspondencia de 2.594 IDs ya están documentadas. La reserva vigente es
     de evaluación bajo `retrospective_public_benchmark`, con máscaras separadas del
-    aprendizaje; faltan cierre de geometría, similitud, exposición, aislamiento y
+    aprendizaje; faltan recibo de geometría ligado a cohortes, similitud, exposición, aislamiento y
     protocolo/manifiestos finales. No volver a descargar ni repetir la aplicación provisional.
 
 - [~] **Tarea 2 — resolver SimCLR.** Parcialmente resuelto (2026-10-14):
