@@ -36,7 +36,15 @@ def validate_manifest_document(document, *, need_pseudos=False, sources=1, train
     if protocol is not None:
         groups_ok=(proof.get('patient_independence_accredited') is False
                    and proof.get('patient_lesion_groups_preserved') is False)
-    if proof.get('verified') is not True or proof.get('excludes_target_test') is not True or not groups_ok or proof.get('deduplication_preserved') is not True:
+    dedup_ok=proof.get('deduplication_preserved') is True
+    accepted=protocol is not None and protocol.get('accepted_data_policy') is not None
+    if accepted:
+        dedup_ok=(proof.get('deduplication_preserved') is False
+                  and proof.get('duplicates_identity_verified') is False
+                  and proof.get('exposure_review_complete') is False
+                  and proof.get('global_clinical_identity_complete') is False
+                  and proof.get('conservative_exclusion_status') == 'accepted_conservative_eligibility')
+    if proof.get('verified') is not True or proof.get('excludes_target_test') is not True or not groups_ok or not dedup_ok:
         raise ValueError('Explicit verified eligibility, exclusions and preserved groups required')
     for key in ('source_manifest_sha256','exclusions_sha256','verification_revision'):
         if not isinstance(proof.get(key),str) or not proof[key]: raise ValueError('Eligibility provenance incomplete')
@@ -44,6 +52,8 @@ def validate_manifest_document(document, *, need_pseudos=False, sources=1, train
     if not rows or document.get('count')!=len(rows) or len({r.get('image_id') for r in rows})!=len(rows):
         raise ValueError('Nonempty fixed count and unique original IDs required')
     for r in rows:
+        if accepted and not need_pseudos and set(r)!={'image_id','dataset','image_path','image_sha256'}:
+            raise ValueError('Accepted original-image manifest requires exact image-only fields')
         if reserved and set(r)-{'image_id','dataset','image_path','image_sha256'}:
             raise ValueError('Reserved prediction manifest permits original images only; no expert masks or pseudos')
         if set(r)-ALLOWED or not {'image_id','dataset','image_path','image_sha256'}<=set(r):
@@ -63,6 +73,8 @@ def validate_manifest_document(document, *, need_pseudos=False, sources=1, train
                 if origin.get('uses_expert_masks') is not False or origin.get('uses_diagnoses') is not False:
                     raise ValueError('Expert/diagnostic supervision prohibited in W3')
                 if not origin.get('producer_revision') or not origin.get('method'):raise ValueError('Pseudo producer identity missing')
+    if accepted and len({r['image_sha256'] for r in rows}) != len(rows):
+        raise ValueError('Duplicate original-image bytes in accepted cohort')
     if reserved and cohort_digest(rows)!=protocol['evaluation_cohort_sha256']:
         raise ValueError('Evaluation cohort differs from the frozen protocol')
     if protocol is not None and not reserved:
