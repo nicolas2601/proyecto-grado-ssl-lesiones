@@ -147,3 +147,32 @@ test('inference cannot overlap and a late result cannot cross model selection', 
   assert.equal(await first, null);
   assert.equal(context.testApi.state.liveBusy, false);
 });
+
+for (const melanomaScore of [0.01, 0.3]) {
+  test(`results keep seven scores, top three and a separate melanoma score (${melanomaScore})`, () => {
+    const source = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+    const { context, elements } = loadApp();
+    vm.runInContext(source.replace(/\n  loadReport\(\);\n\}\)\(\);\s*$/, '\n  globalThis.renderPrediction = renderPrediction;\n})();'), context);
+    const probs = { nv: 0.4, bcc: 0.2, bkl: 0.15, mel: melanomaScore, df: 0.02, akiec: 0.02, vasc: 0.21 - melanomaScore };
+    if (melanomaScore === 0.3) { probs.bcc = 0.1; probs.bkl = 0.1; probs.vasc = 0.06; }
+    context.renderPrediction({ classes: Object.keys(probs), probs, pred: 'nv' }, 'B71');
+    assert.equal(elements.get('#probability-list').children.length, 7);
+    const expected = Object.entries(probs).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([code]) => code);
+    assert.deepEqual(elements.get('#top-three').children.map((row) => row.dataset.code), expected);
+    assert.equal(elements.get('#melanoma-score').textContent, `${(melanomaScore * 100).toFixed(1).replace('.', ',')} %`);
+    const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+    assert.match(html, /Puede confundir melanoma con nevus; no descarta melanoma/);
+    assert.match(html, /puntuación del modelo, no riesgo clínico/i);
+  });
+}
+
+test('results reject missing melanoma and unknown prediction instead of showing an invalid score', () => {
+  const source = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+  const { context } = loadApp();
+  vm.runInContext(source.replace(/\n  loadReport\(\);\n\}\)\(\);\s*$/, '\n  globalThis.renderPrediction = renderPrediction;\n})();'), context);
+  const probs = { nv: 0.4, bcc: 0.2, bkl: 0.1, df: 0.1, akiec: 0.1, vasc: 0.05, unknown: 0.05 };
+  assert.throws(() => context.renderPrediction({ classes: Object.keys(probs), probs, pred: 'nv' }, 'B71'), /incompleta/);
+  probs.mel = probs.unknown;
+  delete probs.unknown;
+  assert.throws(() => context.renderPrediction({ classes: Object.keys(probs), probs, pred: 'unknown' }, 'B71'), /incompleta/);
+});

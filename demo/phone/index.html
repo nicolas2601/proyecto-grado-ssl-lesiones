@@ -28,7 +28,7 @@
         <p class="eyebrow">LABORATORIO PORTÁTIL <span>·</span> PROTOTIPO DE INVESTIGACIÓN</p>
         <h1 id="title">Una imagen.<br><em>Siete hipótesis.</em></h1>
         <p class="lede">Explora una clasificación experimental de lesiones cutáneas desde tu teléfono.</p>
-        <p class="warning"><span aria-hidden="true">!</span><span><strong>Herramienta auxiliar.</strong> No ofrece diagnóstico ni reemplaza la valoración de un profesional de salud.</span></p>
+        <p class="warning"><span aria-hidden="true">!</span><span><strong>Herramienta auxiliar.</strong> Puede confundir melanoma con nevus; no descarta melanoma. No ofrece diagnóstico ni reemplaza la valoración de un profesional de salud.</span></p>
       </section>
       <section class="workspace" aria-label="Análisis de imagen">
         <div class="capture-card">
@@ -68,7 +68,11 @@
         <div class="result-heading"><div><p class="eyebrow">03 / RESULTADO EXPERIMENTAL</p><h2 id="result-title">Distribución de clases</h2></div><span class="result-model" id="result-model"></span></div>
         <p class="cycle-note" id="cycle-note" hidden></p>
         <p class="result-caveat">Puntuaciones softmax del clasificador; no representan probabilidad clínica ni nivel de certeza diagnóstica.</p>
+        <p class="result-caveat">Puede confundir melanoma con nevus; no descarta melanoma.</p>
         <div class="prediction-highlight"><span class="prediction-symbol" aria-hidden="true">↗</span><div><span class="eyebrow">CLASE CON MAYOR PUNTUACIÓN</span><strong id="prediction-name"></strong></div><span class="prediction-score" id="prediction-score"></span></div>
+        <p class="result-caveat">Tres clases con mayor puntuación</p>
+        <ol id="top-three" aria-label="Tres puntuaciones más altas del modelo"></ol>
+        <p class="result-caveat">Melanoma: <strong id="melanoma-score">—</strong> · puntuación del modelo, no riesgo clínico. Una puntuación baja no descarta melanoma.</p>
         <div class="probability-list" id="probability-list" aria-label="Siete puntuaciones del clasificador"></div>
         <div class="identity-line"><span>IDENTIDAD DEL MODELO</span><span id="model-identity">—</span></div>
       </section>

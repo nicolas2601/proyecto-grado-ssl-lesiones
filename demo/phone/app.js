@@ -127,7 +127,9 @@
   }
 
   function renderPrediction(data, model, live = false) {
-    if (!Array.isArray(data.classes) || data.classes.length !== 7 || !data.probs || typeof data.pred !== 'string') {
+    if (!Array.isArray(data.classes) || data.classes.length !== 7 || !data.probs || typeof data.pred !== 'string'
+      || new Set(data.classes).size !== 7 || data.classes.some((code) => !Object.hasOwn(classNames, code))
+      || !data.classes.includes(data.pred)) {
       throw new Error('Respuesta de clasificación incompleta.');
     }
     const scores = data.classes.map((code) => ({ code, score: Number(data.probs[code]) }));
@@ -135,6 +137,15 @@
       throw new Error('El servidor devolvió puntuaciones inválidas.');
     }
     scores.sort((left, right) => right.score - left.score);
+    const topThree = $('#top-three');
+    topThree.replaceChildren();
+    scores.slice(0, 3).forEach(({ code, score }) => {
+      const item = document.createElement('li');
+      item.dataset.code = code;
+      item.textContent = `${classNames[code] || code} · ${(score * 100).toFixed(1).replace('.', ',')} %`;
+      topThree.append(item);
+    });
+    $('#melanoma-score').textContent = `${(Number(data.probs.mel) * 100).toFixed(1).replace('.', ',')} %`;
     $('#result-model').textContent = `${model} · ${data.mode || 'base'}`;
     $('#prediction-name').textContent = classNames[data.pred] || data.pred;
     const leadingScore = Number(data.probs[data.pred]);
