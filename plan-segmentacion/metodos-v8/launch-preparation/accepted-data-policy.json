@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "policy_id": "v8_conservative_retrospective_20261016",
+  "scope": "accepted_retrospective_benchmark",
+  "accepted_by": "user",
+  "acceptance_source": "user_chat_2026-10-16",
+  "duplicates_identity_verified": false,
+  "exposure_review_complete": false,
+  "patient_independence_accredited": false,
+  "global_clinical_identity_complete": false,
+  "accepted_counts": {
+    "excluded_paths": 6112,
+    "excluded_pairs": 15702,
+    "learning_images": 34784,
+    "evaluation_images": 2594,
+    "official_patient_ids_present": 390,
+    "official_lesion_ids_present": 1098
+  }
+}
