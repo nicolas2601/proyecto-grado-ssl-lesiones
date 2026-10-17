@@ -450,3 +450,45 @@ para eludir el bloqueo y no se afirma despliegue. Los detalles están en el READ
 Estos pasos de implementación no acreditan validación ejecutada ni habilitan
 entrenamiento. Los recibos históricos y los gates de ejecución permanecen como
 evidencia de sus observaciones originales.
+
+
+## Preparación acotada USL-Net con referencias congeladas (2026-10-16)
+
+Los dos primeros trabajos de contrato y congelación de datos conservan su cierre histórico.
+Se agregaron referencias `evaluation_protocol` a los configs deshabilitados USL-Net/CCAM
+y pins informativos de manifiesto (34.784 registros), recibo y banco ya conectado.
+Estado: `bound_pending_runtime_gates`.
+El detalle de hashes, comandos de comprobación y dependencias está en
+`plan-segmentacion/metodos-v8/launch-preparation/usl-net-readiness.md`.
+
+El preflight de candidatos en UNABIA aprobó `validate_binding(config, learning_document)`
+para ambos configs, con hashes, cohorte y guard de fuentes; verificó además el hash del JSON
+del banco. Recibo: `/home/jovyan/work/validation_v8/usl-config-binding-20261016-001/metadata-preflight.json`.
+Las dos comprobaciones CLI de identidad sin manifiesto terminaron con salida 0 usando
+`/home/jovyan/work/proyectonp/.venv/bin/python`. Por esa evidencia `manifest_bound=true`;
+`gate_bound=false`, `resource_caps_measured=false` y `execution_enabled=false`.
+El recibo de datos mantiene `training_consumable=false`; el manifiesto requiere `--manifest`.
+Se observaron dos GPU RTX PRO 4000 Blackwell y metadatos PyTorch/CUDA compatibles
+(`2.11.0+cu128`, CUDA 12.8, `sm_120`, capacidad 12.0), sin kernels ni smoke del método
+ni medición de memoria pico. No se revalidaron bytes de imágenes ni se cargaron tensores.
+La comprobación final de los dos configs instalados en `repo_v8_canonical` aprobó
+el enlace al documento congelado de 34.784 registros, el pin del banco y ambas identidades
+CLI (salida 0, sin manifiesto). Recibo
+`/home/jovyan/work/validation_v8/usl-config-binding-20261016-001/final-preflight.json`,
+SHA-256 `54eee39336b5743092db10d200395b6c00397dd8c77831397855b690662b76a5`:
+`status=usl_configs_bound_runtime_blocked`, `metadata_and_identity_checks_passed=true`,
+`initial_ccam_can_start=false`. Los tres checkpoints y sus tres procedencias estaban
+presentes; se reutilizó evidencia histórica CPU, sin cargar pesos ni probar el modelo.
+Los hashes finales de configs están en `usl-net-readiness.md`. Readiness y recibo
+congelado permanecieron sin cambios.
+No se puede confirmar inicio de entrenamiento esta noche con esta evidencia.
+
+Para CCAM faltan épocas, timeout y almacenamiento medidos, gate real `usl_ccam`
+vinculado a config/manifiesto/datos/recursos/pesos/smoke y las limitaciones retrospectivas,
+smoke CUDA del método verificado,
+limpieza sintética y revisión del usuario antes de habilitar o lanzar. El checkpoint CCAM
+con sidecar/hash/linaje y el manifiesto completo de pseudomáscaras son dependencias
+posteriores del estudiante; los cinco ciclos requieren orquestación explícita.
+No se hicieron nuevas pruebas de banco, smoke, forward ni entrenamiento en esta edición.
+Alcance documental y de configuración exclusivo de USL-Net; SLED, RPI-Net y TriDermNet-HAGO
+quedan fuera de este avance.
