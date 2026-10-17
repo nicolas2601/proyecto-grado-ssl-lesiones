@@ -1,5 +1,7 @@
 # Informe académico integrado
 
+> **Informe histórico (septiembre de 2026).** Refleja el estado del trabajo en esa fecha: algunas cosas que aquí figuran como pendientes ya se hicieron y sus resultados están en el [README](README.md) y en `resultados/`. Se conserva como registro de cómo avanzó el proyecto.
+
 ## Nomenclatura de lectura
 
 **Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
@@ -41,7 +43,7 @@ históricas anteriores. No reemplaza sus cifras ni su procedencia.
 
 | Momento | Usa etiquetas o máscaras | Lectura científica |
 |---|---|---|
-| Contraste contrastivo | No | Usa imágenes crudas; no consume máscaras clínicas, etiquetas de diagnóstico, etiquetas FST ni máscaras ground-truth de ISIC2018 |
+| Aprendizaje contrastivo | No | Usa imágenes crudas; no consume máscaras clínicas, etiquetas de diagnóstico, etiquetas FST ni máscaras ground-truth de ISIC2018 |
 | CCAM y generación de pseudo-máscaras | No | Usa imágenes/features del pipeline y produce pseudo-máscaras; no consume esas etiquetas o máscaras ground-truth |
 | Entrenamiento del modelo de segmentación r1/r2 | Sí, solo pseudo-máscaras generadas | El modelo de segmentación consume las pseudo-máscaras generadas por el pipeline, no máscaras clínicas, etiquetas de diagnóstico, etiquetas FST ni máscaras ground-truth de ISIC2018 |
 | Evaluación | Sí, cuando están disponibles | Las máscaras reales se leen únicamente para medir Dice, IoU, ITA/FST y cobertura |

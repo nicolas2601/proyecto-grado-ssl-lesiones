@@ -9,7 +9,7 @@ Este documento explica, en lenguaje sencillo, qué es cada nombre que aparece en
 3. **Punto de partida.** Se parte de un modelo público llamado DINOv2, que ya sabe "ver" imágenes en general, y se adapta a imágenes de piel.
 4. **Propuesta.** Adaptar el modelo de forma cuidadosa (sin que olvide lo que ya sabía) y, además, enseñarle a ser coherente cuando cambia el tono de la imagen. Ese es el modelo que llamamos **Proposed**.
 5. **Comparaciones.** Cada propuesta se mide contra un **modelo de control** (el mismo método sin una de las piezas) y contra modelos de la literatura, siempre sobre las mismas imágenes y con intervalos de confianza.
-6. **Lo que se puede y no se puede afirmar.** El aporte demostrado es la adaptación autosupervisada. El ajuste de tono no mostró un aporte demostrable, y la versión con segmentación sigue siendo exploratoria. Las cifras de un conjunto de datos no se trasladan automáticamente a otro.
+6. **Lo que se puede y no se puede afirmar.** La adaptación autosupervisada mejora al DINOv2 público en los conjuntos de dermatoscopía. La propuesta completa (con ajuste de tono) no mostró una ventaja demostrable sobre el modelo de control, y la versión con segmentación sigue siendo exploratoria. Las cifras de un conjunto de datos no se trasladan automáticamente a otro.
 
 ## 2. Los modelos, con sus nombres
 
@@ -81,6 +81,10 @@ Antes de mirar los resultados se escribieron predicciones que luego se contrasta
 | Predicción de tono | El ajuste de tono mejora la calibración sin empeorar la clasificación. | `P2` |
 | Predicción de objetivo | Proposed no pierde frente a DINOv2 público; y si el intervalo lo respalda, le gana. | `P3`, y `P3-IC` para la versión con intervalo |
 
+La Prueba de constancia de color (`T4`) tiene sus propias tres predicciones, también llamadas `P1`, `P2` y `P3` en `docs/31`: que afirman que corregir el color casi no cambia el F1 macro de los modelos adaptados (`P1`), que el modelo público, que nunca vio ese filtro, se mueve más que ellos (`P2`) y que la brecha entre grupos de luminancia casi no cambia (`P3`). No son las predicciones de anclaje, tono y objetivo de arriba.
+
+**Pau** es María Paula Saavedra, coautora del trabajo; cuando un documento dice "pedido de Pau" se refiere a ella.
+
 ## 5. Condiciones en que se midió
 
 | Nombre | Qué significa | Código antiguo |
@@ -95,66 +99,77 @@ Antes de mirar los resultados se escribieron predicciones que luego se contrasta
 
 - **Ablación:** experimento que quita o cambia una sola pieza para ver si esa pieza aporta.
 - **Abstención:** que el modelo diga "no sé, mejor que lo vea un especialista" en lugar de arriesgar una respuesta.
+- **ADA (adaptación activa de dominio):** técnica de la literatura que pide a expertos etiquetar imágenes escogidas. El proyecto no la usa porque exige etiquetas en la etapa de preentrenamiento.
+- **Anclaje:** obligar al modelo que se está adaptando a no alejarse demasiado de DINOv2 original, tanto en sus pesos como en lo que "ve" en las imágenes. Así se adapta a la piel sin olvidar lo que ya sabía.
 - **AUC:** mide qué tan bien el modelo ordena los casos (pone lo sospechoso arriba), sin fijar un umbral. 0,5 es azar y 1 es perfecto.
 - **AUPRC:** parecido al AUC, pero más fiable cuando hay muy pocos casos positivos, como el melanoma en ISIC 2020.
+- **Autocast (precisión mixta):** hacer parte de los cálculos con menos decimales para ir más rápido.
+- **b\*:** una de las tres coordenadas de color (L\*, a\*, b\*); b\* va del azul al amarillo. Se usa para saber si la estimación de tono es fiable.
 - **Backbone:** la parte del modelo que "entiende" la imagen y la convierte en números. El clasificador se pone encima.
+- **Baseline (modelo de comparación):** modelo de la literatura contra el que se compara el proyecto.
 - **Bootstrap:** técnica que repite el cálculo muchas veces con imágenes tomadas al azar para estimar cuánto puede variar el resultado.
 - **Brazo:** una de las familias de entrenamiento que se comparan (por ejemplo, con y sin ajuste de tono).
 - **Calibración (ECE):** que cuando el modelo diga "80 % seguro" acierte de verdad cerca del 80 % de las veces. El ECE mide cuánto se aleja; menor es mejor.
+- **Camino A y Camino B (segmentación):** dos líneas de trabajo. El Camino A segmenta usando DINOv2; el Camino B usa una red convolucional propia entrenada con pseudo-máscaras.
 - **CCAM:** método que dibuja un mapa de atención de la imagen y sirve para crear máscaras iniciales sin humanos.
 - **Checkpoint:** archivo con los pesos de un modelo guardado en un momento del entrenamiento.
+- **CIRCLe:** método de la literatura que enseña al modelo a dar la misma respuesta aunque cambie el tono de la imagen; inspira la enseñanza de coherencia frente al tono de Proposed.
+- **Clases de HAM10000:** `nv` = nevo (lunar benigno); `mel` = melanoma; `bkl` = lesión benigna parecida a una queratosis; `bcc` = carcinoma basocelular; `akiec` = queratosis actínica o enfermedad de Bowen; `vasc` = lesión vascular; `df` = dermatofibroma.
+- **Cobertura:** qué fracción de la imagen ocupa la máscara que predice el modelo.
 - **Cómputo canónico:** la forma de cálculo que se declara oficial (lote 64) para que todas las cifras sean comparables.
 - **Contraste pareado:** comparar dos modelos sobre las mismas imágenes y mirar la diferencia. Si el intervalo de la diferencia incluye el cero, no se puede afirmar que uno sea mejor.
+- **Cuarentena:** imágenes apartadas de un cálculo porque presentan algún problema; se cuentan aparte para no esconderlas.
 - **Dice e IoU:** miden cuánto se parece una máscara predicha a la máscara de referencia. Van de 0 a 1; mayor es mejor.
 - **DINOv2:** modelo público de visión por computador. Aquí es el punto de partida.
 - **Domain-adaptive:** tomar un modelo que ya sabe ver imágenes normales y acostumbrarlo a un tipo concreto de imágenes, como las de piel.
 - **Época:** una pasada completa por todas las imágenes de entrenamiento.
+- **Equidad entre grupos (fairness):** revisar si el modelo rinde parecido en grupos distintos, por ejemplo por luminancia de la imagen. Un rendimiento parecido no demuestra por sí solo ausencia de sesgo.
+- **Estudiante (student) y maestro (teacher):** el maestro es un modelo grande que guía a uno más pequeño, el estudiante. En la segmentación, el "estudiante" es la red que aprende de pseudo-máscaras (experimentos de segmentación 1 a 3). En los textos viejos, "recursos de estudiante" significa los recursos de un estudiante universitario (por ejemplo, una GPU prestada).
 - **F1 macro:** promedio del rendimiento por clase, sin dar más peso a las clases con más fotos. Es la métrica principal porque hay clases muy grandes y otras muy pequeñas. Mayor es mejor.
 - **Fine-tuning (afinado):** reentrenar el modelo completo con las etiquetas. Lo contrario de dejarlo congelado.
 - **Fitzpatrick:** escala clínica de tonos de piel (I a VI) según cómo reacciona al sol. No es lo mismo que el color de una fotografía.
-- **Grad-CAM:** mapa de calor que muestra dónde está mirando el modelo.
+- **FST:** abreviatura de "tipo de piel de Fitzpatrick".
 - **Fuga de datos (leakage):** hacer trampa sin querer, por ejemplo si la misma lesión aparece en entrenamiento y en evaluación.
+- **Gate (compuerta):** condición que debe cumplirse para que el proceso continúe al paso siguiente.
+- **Grad-CAM:** mapa de calor que muestra dónde está mirando el modelo.
+- **HAM10000, ISIC 2018, 2019 y 2020, PAD-UFES-20:** conjuntos públicos de imágenes de lesiones de piel. HAM10000 e ISIC son imágenes dermatoscópicas (tomadas con una lupa especial); PAD-UFES-20 son fotos clínicas tomadas con un celular.
 - **HD95:** mide cuánto se aleja el borde de la máscara predicha del borde real. Menor es mejor.
 - **Holdout:** subconjunto reservado para elegir configuraciones sin tocar el conjunto con el que se evalúa al final.
 - **Intervalo de confianza (IC 95 %):** rango en el que probablemente cae el valor real. Si dos intervalos se solapan, no se puede afirmar que uno gane.
 - **ITA:** fórmula que estima un grupo de tono a partir del color de la piel en la imagen. **No es** fototipo ni se debe presentar como tal.
+- **Kaggle y UNABIA:** Kaggle es una plataforma pública de cómputo; UNABIA es el cluster de GPU de la universidad.
+- **kNN:** clasificador que decide según los ejemplos de entrenamiento más parecidos.
 - **Lote (batch):** cuántas imágenes se procesan a la vez.
+- **Luminancia (L*):** qué tan clara u oscura es la imagen, medida sobre la piel. Se usa para agrupar imágenes sin hablar de tono de piel.
 - **MCC:** resume en un número la matriz de confusión; va de -1 a 1 y 0 es azar.
 - **Melanoma / nevo:** el melanoma es un cáncer de piel; el nevo es un lunar benigno. Distinguirlos es la tarea más importante del proyecto.
 - **MoCo:** otra receta de aprendizaje autosupervisado, usada para la segmentación.
 - **Modelo congelado:** sus pesos no cambian mientras se ajusta el clasificador.
+- **Otsu:** método clásico que separa fondo y objeto según el brillo; se usa como alternativa sencilla cuando no hay máscara.
+- **PCA:** técnica que resume muchas medidas en unas pocas.
 - **Pesos:** los números internos que definen lo que aprendió el modelo.
+- **Pool:** conjunto de imágenes sin etiquetas que se usa para el preentrenamiento.
 - **Probe (clasificador lineal):** un clasificador sencillo que se coloca sobre el modelo congelado. Mide qué tan buenas son las características que aprendió el modelo.
+- **Prueba rápida de funcionamiento (smoke):** corrida con muy pocos datos para comprobar que todo arranca. No es un resultado.
 - **Pseudo-máscara:** máscara de lesión generada automáticamente, no dibujada por una persona.
+- **Regresión logística (logreg):** el tipo de clasificador lineal que se coloca sobre el modelo congelado.
+- **ROI perilesional (anillo):** franja de piel que rodea la lesión; se usa para estimar el tono de la piel sin que la lesión lo distorsione.
 - **Segmentación:** marcar dónde está la lesión. No dice qué es la lesión.
+- **SegRNorm y SegXNorm ("pisos"):** métodos sencillos de segmentación que no se entrenan; sirven de piso de comparación, porque una red entrenada debería superarlos.
 - **Semilla:** número que fija el azar de un entrenamiento. Cambiarla produce una repetición distinta.
 - **Sensibilidad de melanoma:** de todos los melanomas reales, cuántos detecta el modelo. Mayor es mejor.
 - **SimSiam:** receta de aprendizaje autosupervisado que compara dos versiones deformadas de la misma foto y pide al modelo que las vea parecidas.
 - **Sopa de pesos:** promediar los pesos de dos entrenamientos para obtener un modelo único.
 - **SSL (aprendizaje autosupervisado):** enseñar al modelo a entender imágenes sin darle la respuesta.
-- **TTA:** al predecir, mirar la imagen de varias formas (volteada, girada) y promediar.
-- **Luminancia (L*):** qué tan clara u oscura es la imagen, medida sobre la piel. Se usa para agrupar imágenes sin hablar de tono de piel.
 - **Tercil de luminancia:** se ordenan las imágenes de un conjunto de la más oscura a la más clara y se dividen en tres grupos iguales. **No es** tono de piel.
+- **Tono (tres sentidos):** (1) el color de la imagen, que se corrige o se modifica; (2) la estimación de tono de piel a partir del color (ITA), que no está validada; (3) la "coherencia frente al tono", una pieza del entrenamiento de Proposed. Cada texto debe aclarar cuál de los tres usa.
 - **Transductivo:** el modelo vio las imágenes de evaluación, sin etiquetas, durante el preentrenamiento. Debe declararse porque la evaluación deja de ser totalmente independiente.
-- **U-Net:** tipo de red usada para segmentar imágenes.
+- **TTA:** al predecir, mirar la imagen de varias formas (volteada, girada) y promediar.
 - **Umbral de screening:** en tamizaje se baja el umbral de decisión para no dejar pasar cánceres, aceptando más falsas alarmas.
-
-### Más términos que aparecen en los informes
-
-- **Autocast (precisión mixta):** hacer parte de los cálculos con menos decimales para ir más rápido.
-- **Camino A y Camino B (segmentación):** dos líneas de trabajo. El Camino A segmenta usando DINOv2; el Camino B usa una red convolucional propia entrenada con pseudo-máscaras.
-- **Clases de HAM10000:** `nv` = nevo (lunar benigno); `mel` = melanoma; `bkl` = lesión benigna parecida a una queratosis; `bcc` = carcinoma basocelular; `akiec` = queratosis actínica o enfermedad de Bowen; `vasc` = lesión vascular; `df` = dermatofibroma.
-- **Cobertura:** qué fracción de la imagen ocupa la máscara que predice el modelo.
-- **Cuarentena:** imágenes apartadas de un cálculo porque presentan algún problema; se cuentan aparte para no esconderlas.
-- **Equidad entre grupos (fairness):** revisar si el modelo rinde parecido en grupos distintos, por ejemplo por luminancia de la imagen. Un rendimiento parecido no demuestra por sí solo ausencia de sesgo.
-- **Gate (compuerta):** condición que debe cumplirse para que el proceso continúe al paso siguiente.
-- **Kaggle y UNABIA:** Kaggle es una plataforma pública de cómputo; UNABIA es el cluster de GPU de la universidad.
-- **Otsu:** método clásico que separa fondo y objeto según el brillo; se usa como alternativa sencilla cuando no hay máscara.
-- **Prueba rápida de funcionamiento (smoke):** corrida con muy pocos datos para comprobar que todo arranca. No es un resultado.
-- **ROI perilesional (anillo):** franja de piel que rodea la lesión; se usa para estimar el tono de la piel sin que la lesión lo distorsione.
-- **Regresión logística (logreg):** el tipo de clasificador lineal que se coloca sobre el modelo congelado.
+- **U-Net:** tipo de red usada para segmentar imágenes.
 - **USL-Net:** método de la literatura para segmentar lesiones sin máscaras dibujadas por personas, en el que se basa el Camino B.
 - **Validación y prueba:** la validación sirve para elegir configuraciones; la prueba se lee una sola vez al final para medir sin haber ajustado nada contra ella. Un *pliegue (fold)* es una de las particiones en que se reparten las imágenes.
+- **ViT:** Vision Transformer, el tipo de red que usa DINOv2.
 
 ## 7. Qué viene de la literatura y qué aportamos
 

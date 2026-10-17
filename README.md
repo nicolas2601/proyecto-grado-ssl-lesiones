@@ -9,7 +9,7 @@ La idea central es no depender de miles de etiquetas hechas por médicos. Primer
 ## Cómo leer este repositorio
 
 1. Lee este resumen y el [glosario](docs/10-glosario-eli5.md): explica cada nombre y sigla en lenguaje sencillo.
-2. Mira el [resultado principal](#resultado-principal-v7) y la sección [Qué no se puede afirmar](resultados/README.md#7-que-no-se-puede-afirmar).
+2. Mira el [resultado principal](#resultado-principal-v7) y la sección [Qué no se puede afirmar](#qué-no-se-puede-afirmar).
 3. Si quieres el detalle, sigue el [índice de documentos](docs/README.md) y las [tablas de resultados](resultados/README.md).
 
 ### Los nombres que vas a ver
@@ -38,11 +38,19 @@ Lectura al 2026-09-29, con las tres repeticiones y sin elegir ninguna (regla en 
 - Proposed sin segmentación y el modelo de control no se distinguen entre sí, y Proposed no calibra mejor que el control.
 - La variación entre repeticiones es del orden del efecto medido.
 
+## Qué no se puede afirmar
+
+- **Esto no es un dispositivo médico** y no diagnostica: es un trabajo de investigación.
+- **El ajuste de tono no mostró una ventaja demostrable** sobre el modelo de control, y **Proposed con segmentación** es experimental.
+- **El tono estimado por color (ITA) no es el fototipo de Fitzpatrick** y las agrupaciones por luminancia no son tono de piel; no se puede concluir que el modelo sea más o menos justo según el tono de piel.
+- **Los resultados de un conjunto de datos no se trasladan solos a otro:** en las fotos clínicas de PAD-UFES-20 la ventaja de los modelos adaptados sobre DINOv2 público se invierte.
+- **Una cifra aislada no demuestra superioridad:** hay que mirarla con su intervalo de confianza, sus repeticiones y su conjunto de datos. Más detalle en [resultados/README.md, sección 7](resultados/README.md#7-que-no-se-puede-afirmar).
+
 ## Objetivos específicos
 
 1. Caracterizar conjuntos de datos de imágenes dermatológicas representativos de lesiones cutáneas relevantes para el contexto clínico del departamento de Santander. Estado: completado. Ver [datasets](docs/02-datasets.md) y [contexto](docs/01-contexto-y-objetivos.md).
 2. Diseñar un algoritmo de clasificación de lesiones cutáneas basado en aprendizaje autosupervisado. Estado: completado; diseño vigente en [docs/28](docs/28-rediseno-brazo-propuesto-v7.md).
-3. Evaluar el desempeño del algoritmo con métricas de la literatura de análisis de imágenes médicas. Estado: evaluación única v7 hecha; réplica de semilla en curso ([plan v7](docs/27-plan-v7-mejoras-ssl.md)).
+3. Evaluar el desempeño del algoritmo con métricas de la literatura de análisis de imágenes médicas. Estado: evaluación única v7 hecha y repetida con tres repeticiones (42, 43 y 44) ([plan v7](docs/27-plan-v7-mejoras-ssl.md)).
 
 ## Mapa del repositorio
 
@@ -59,7 +67,17 @@ Lectura al 2026-09-29, con las tres repeticiones y sin elegir ninguna (regla en 
 | [`demo/`](demo/README.md) | Demo del modelo. |
 | `results/` | Bancos de versiones anteriores (histórico). |
 
-## Cómo reproducir la evaluación v7
+## Equipo
+
+| Nombre | Rol |
+|---|---|
+| Nicolás Santiago Moreno Monroy | Autor |
+| María Paula Saavedra | Autora |
+| Andrés Jerez | Director |
+| Karen Sánchez — KAUST | Asesora |
+| UNAB — Ingeniería de Sistemas | Institución |
+
+## Para quien quiera reproducir la evaluación v7 (requiere conocimientos técnicos)
 
 Requiere HAM10000 en `~/work/datos/ham10000`, los backbones finales Modelo de control y Proposed sin segmentación con su `run.json`, y el holdout y la lista de exclusión de C1. El script se niega a correr sobre validación si el árbol de git está sucio, si los ids de train o de val no coinciden con C1 o si la salida ya existe.
 
@@ -75,13 +93,3 @@ python scripts/build_final_eval_table.py resultados/clasificacion/v7/final_eval.
 ```
 
 Tests y lint: `pytest -q` y `ruff check .`
-
-## Equipo
-
-| Nombre | Rol |
-|---|---|
-| Nicolás Santiago Moreno Monroy | Autor |
-| María Paula Saavedra | Autora |
-| Andrés Jerez | Director |
-| Karen Sánchez — KAUST | Asesora |
-| UNAB — Ingeniería de Sistemas | Institución |

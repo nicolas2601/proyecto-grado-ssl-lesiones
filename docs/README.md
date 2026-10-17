@@ -57,6 +57,8 @@ Otros documentos:
 | Documento | Tema |
 |---|---|
 | [GUIA.md](GUIA.md) | Guía del repositorio y arquitectura del sistema. |
+| [INFORME.md](../INFORME.md) | Informe de avance del Objetivo 2 (versión 4, histórico). |
+| [INFORME_ACADEMICO.md](../INFORME_ACADEMICO.md) | Informe académico integrado (septiembre de 2026, histórico). |
 | [plan-segmentacion-sin-etiquetas.md](plan-segmentacion-sin-etiquetas.md) | Plan ejecutivo de pruebas de segmentación no supervisada por tono. |
 | [superpowers/plans/](superpowers/plans/) | Planes de ejecución. |
 | [figuras_analisis/](figuras_analisis/) | Figuras de análisis. |
