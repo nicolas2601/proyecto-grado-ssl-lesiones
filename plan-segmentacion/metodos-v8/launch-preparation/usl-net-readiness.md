@@ -1,6 +1,13 @@
 # Preparación de USL-Net con datos congelados
 
-Estado vigente observado a `2026-10-17T15:44:57.251626Z`: CCAM `002` en curso, dos de cinco épocas completadas según el JSONL real, con 34.784 muestras cada una. Checkpoint y recibo final de salida ausentes; W&B `running` a `15:43:51.526199Z`. El intento `001` falló antes del método y se conserva separado.
+Estado vigente: CCAM `002` completó cinco épocas reales, 34.784 muestras por época,
+con salida 0 a `2026-10-17T15:58:01.028389Z` y checkpoint presente. Fuente:
+`resultados/preparacion_v8/usl_ccam_launch_20261017/completion.snapshot.json` y
+su registro de corrida. No fue una prueba sintética ni una prueba planificada.
+Cinco épocas fue un supuesto operativo, no una duración científica V8 validada
+por convergencia. El checkpoint queda candidato pendiente de revisar ese criterio;
+no se promueve aún a pseudomáscaras ni se inicia otro entrenamiento. El intento
+`001` falló antes del método y se conserva separado.
 Las secciones de preparación siguientes conservan sus observaciones históricas, incluidos sus configs y gates deshabilitados; no representan el estado posterior de una corrida autorizada.
 El presupuesto y el smoke CUDA de preparación ya están revisados. El estudiante USL-Net, sus pseudomáscaras y sus ciclos seriales siguen pendientes.
 
