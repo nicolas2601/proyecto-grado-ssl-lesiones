@@ -124,7 +124,7 @@ La epoca 0 de cada etapa carga el warmup y no sirve para proyectar. El regimen r
 no los 269 de la epoca 0.
 
 **Proyeccion del preset final (lado entrenamiento)**: MoCo 30 epocas ~39 min + CCAM pocos minutos +
-red de segmentación entrenada con pseudo-máscaras 3 rondas x 20 epocas x ~72 s ~72 min = **~1 h 55 min**. Falta estimar la etapa evaluate con
+modelo de segmentación 3 rondas x 20 epocas x ~72 s ~72 min = **~1 h 55 min**. Falta estimar la etapa evaluate con
 hausdorff true (2594 + 10015 imagenes); el piloto la tiene apagada, asi que no hay muestra. Esa es la
 incognita del presupuesto.
 
@@ -134,11 +134,11 @@ Tres evidencias independientes cierran la causa raiz del problema de vineta:
 1. excluded_no_field = 0 en pseudo_masks_stats.json: el detector de campo no excluyo ni una imagen.
 2. Polaridad: mediana de ratio pseudo/GT = 0.96 sobre 20 imagenes de HAM, ningun caso con ratio > 2.
    Capturar el campo daria ratios de 3-5; el maximo observado es 1.73.
-3. El red de segmentación entrenada con pseudo-máscaras entrena saturando las dos GPUs (98% util) sobre esas pseudo-mascaras.
+3. El modelo de segmentación entrena saturando las dos GPUs (98% util) sobre esas pseudo-mascaras.
 
 Pendientes abiertos para la corrida final (no para ahora):
 - 6244 exclusiones por area (10.7%) con cap 0.6. Las lesiones grandes (GT 0.42-0.74) quedan fuera del
-  entrenamiento del red de segmentación entrenada con pseudo-máscaras, asi que puede subsegmentar lesiones grandes. Al leer la evaluacion del
+  entrenamiento del modelo de segmentación, asi que puede subsegmentar lesiones grandes. Al leer la evaluacion del
   piloto: revisar si los peores Dice son mayoritariamente de GT grande. Si es asi, subir el cap a 0.75
   en el final (una mascara de campo entero sigue en 0.9-1.0, asi que el cap la sigue atrapando).
 - Medir HD95 antes de lanzar el final: correr evaluate_segmentation.py a mano con --hausdorff solo sobre
@@ -179,14 +179,14 @@ Decision: max_area_fraction se queda en 0.6.
 
 **Modo de falla real** (overlays/worst.png): las 12 peores de ISIC2018 tienen dice = 0.000 exacto.
 No subsegmentan: predicen en otro lado. Marcas de tinta quirurgica violeta, burbujas de gel, reglas
-graduadas y brillos especulares. El red de segmentación entrenada con pseudo-máscaras rodea cada marca de tinta e ignora el nevo palido.
+graduadas y brillos especulares. El modelo de segmentación rodea cada marca de tinta e ignora el nevo palido.
 Aprendio "lo oscuro y contrastado del centro" y la tinta cumple ese criterio mejor que la lesion.
 
 Fixes acordados para el final (bundle 3, todos sin etiquetas):
 1. Supresion de artefactos en la pseudo-mascara: tinta violeta (B > R con saturacion alta) y
    especulares (casi blancos sin saturacion) pasan a IGNORE. Es un prior de color, no una etiqueta.
 2. min_area_fraction baja de 0.01 a 0.003: hoy ninguna lesion menor al 1% del cuadro entra como
-   candidata, asi que el red de segmentación entrenada con pseudo-máscaras nunca vio lesiones pequenas. Explica el dice 0.464 en la banda
+   candidata, asi que el modelo de segmentación nunca vio lesiones pequenas. Explica el dice 0.464 en la banda
    [0, 0.10), que es el 41% de ISIC2018.
 3. Detector de campo v2 (esquinas por croma, 3 de 4): los falsos circulares de HAM e ISIC2020 pasan
    a full_frame y los verdaderos siguen circulares.
@@ -221,7 +221,7 @@ Verificacion de desacople (lo que fallo con los pisos):
 TT = ? y SID = PID = PGID: sesion propia, sin terminal controlante. Sobrevive a la caida de la
 terminal de Jupyter, del navegador y de la sesion del agente.
 
-Proyeccion: ~2 h de entrenamiento (MoCo 30 epocas ~39 min + red de segmentación entrenada con pseudo-máscaras 3 rondas x 20 epocas ~72 min
+Proyeccion: ~2 h de entrenamiento (MoCo 30 epocas ~39 min + modelo de segmentación 3 rondas x 20 epocas ~72 min
 + CCAM unos minutos) + ~6 min de evaluacion con hausdorff encendido (medido: HD95 no agrega costo,
 el tiempo de evaluate es decodificacion de JPEG).
 Grupo en W&B: "final" (nombre del workdir).
@@ -297,20 +297,20 @@ mismas imagenes en ambos brazos, que es el test correcto y mas potente que compa
 Dice (mas alto es mejor):
 | comparacion | n | diferencia | IC 95% | veredicto |
 |-------------|---|------------|--------|-----------|
-| isic2018 red de segmentación entrenada con pseudo-máscaras - rnorm | 2594 | +0.0015 | [-0.0076, +0.0107] | INCLUYE 0: empate |
-| isic2018 red de segmentación entrenada con pseudo-máscaras - xnorm | 2594 | +0.0223 | [+0.0127, +0.0318] | gana el red de segmentación entrenada con pseudo-máscaras |
-| ham10000 red de segmentación entrenada con pseudo-máscaras - rnorm | 10015 | +0.0197 | [+0.0164, +0.0231] | gana el red de segmentación entrenada con pseudo-máscaras |
-| ham10000 red de segmentación entrenada con pseudo-máscaras - xnorm | 10015 | +0.0521 | [+0.0485, +0.0556] | gana el red de segmentación entrenada con pseudo-máscaras |
+| isic2018 modelo de segmentación - rnorm | 2594 | +0.0015 | [-0.0076, +0.0107] | INCLUYE 0: empate |
+| isic2018 modelo de segmentación - xnorm | 2594 | +0.0223 | [+0.0127, +0.0318] | gana el modelo de segmentación |
+| ham10000 modelo de segmentación - rnorm | 10015 | +0.0197 | [+0.0164, +0.0231] | gana el modelo de segmentación |
+| ham10000 modelo de segmentación - xnorm | 10015 | +0.0521 | [+0.0485, +0.0556] | gana el modelo de segmentación |
 
-HD95 (mas bajo es mejor, negativo = gana el red de segmentación entrenada con pseudo-máscaras):
+HD95 (mas bajo es mejor, negativo = gana el modelo de segmentación):
 | comparacion | n | diferencia | IC 95% | veredicto |
 |-------------|---|------------|--------|-----------|
-| isic2018 red de segmentación entrenada con pseudo-máscaras - rnorm | 2589 | -7.37 px | [-8.60, -6.12] | gana el red de segmentación entrenada con pseudo-máscaras |
-| isic2018 red de segmentación entrenada con pseudo-máscaras - xnorm | 2589 | -6.95 px | [-8.18, -5.73] | gana el red de segmentación entrenada con pseudo-máscaras |
-| ham10000 red de segmentación entrenada con pseudo-máscaras - rnorm | 10007 | -0.21 px | [-0.69, +0.28] | INCLUYE 0: empate |
-| ham10000 red de segmentación entrenada con pseudo-máscaras - xnorm | 10007 | -0.51 px | [-0.98, -0.02] | gana el red de segmentación entrenada con pseudo-máscaras |
+| isic2018 modelo de segmentación - rnorm | 2589 | -7.37 px | [-8.60, -6.12] | gana el modelo de segmentación |
+| isic2018 modelo de segmentación - xnorm | 2589 | -6.95 px | [-8.18, -5.73] | gana el modelo de segmentación |
+| ham10000 modelo de segmentación - rnorm | 10007 | -0.21 px | [-0.69, +0.28] | INCLUYE 0: empate |
+| ham10000 modelo de segmentación - xnorm | 10007 | -0.51 px | [-0.98, -0.02] | gana el modelo de segmentación |
 
-**Lectura honesta**: el red de segmentación entrenada con pseudo-máscaras NO le gana a rnorm en Dice medio sobre ISIC2018 (el IC pareado
+**Lectura honesta**: el modelo de segmentación NO le gana a rnorm en Dice medio sobre ISIC2018 (el IC pareado
 incluye el 0). Pero sobre el MISMO conjunto le gana en HD95 por 7.4 px con IC que excluye el 0, y en
 p10 (0.402 contra 0.348). En HAM la relacion se invierte: gana en Dice (+0.0197, IC excluye 0) y
 empata en HD95. Contra xnorm gana en las cuatro comparaciones.

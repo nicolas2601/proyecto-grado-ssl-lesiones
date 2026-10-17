@@ -77,10 +77,10 @@ campo, sin aprendizaje), pareado por imagen:
 
 | Diferencia | Dice | HD95 |
 |---|---|---|
-| ISIC 2018, red de segmentación entrenada con pseudo-máscaras menos SegRNorm | +0,002 [-0,007, +0,011], empate | -7,4 px [-8,6, -6,1], gana |
-| ISIC 2018, red de segmentación entrenada con pseudo-máscaras menos SegXNorm | +0,022 [+0,013, +0,032], gana | -7,0 px [-8,2, -5,7], gana |
-| HAM10000, red de segmentación entrenada con pseudo-máscaras menos SegRNorm | +0,020 [+0,016, +0,023], gana | -0,2 px [-0,7, +0,3], empate |
-| HAM10000, red de segmentación entrenada con pseudo-máscaras menos SegXNorm | +0,052 [+0,049, +0,056], gana | -0,5 px [-1,0, 0,0], gana por poco |
+| ISIC 2018, modelo de segmentación menos SegRNorm | +0,002 [-0,007, +0,011], empate | -7,4 px [-8,6, -6,1], gana |
+| ISIC 2018, modelo de segmentación menos SegXNorm | +0,022 [+0,013, +0,032], gana | -7,0 px [-8,2, -5,7], gana |
+| HAM10000, modelo de segmentación menos SegRNorm | +0,020 [+0,016, +0,023], gana | -0,2 px [-0,7, +0,3], empate |
+| HAM10000, modelo de segmentación menos SegXNorm | +0,052 [+0,049, +0,056], gana | -0,5 px [-1,0, 0,0], gana por poco |
 
 Lectura: el metodo aprendido mejora el borde y los fallos catastroficos en
 ISIC 2018 y el solapamiento en HAM10000; "supera a los pisos" a secas seria
@@ -265,7 +265,7 @@ comparacion valida es la interna entre sus tres backbones.
    flag apenas mueve nada: escala la perdida entera y AdamW es casi invariante
    a la escala, asi que barrerlo no es el experimento barato que parece.
 5. **Pseudo-mascaras de la ronda 3.** Las usadas son las de la ronda 2; el
-   red de segmentación entrenada con pseudo-máscaras final no exporta predicciones sobre el pool. Exportarlas es
+   modelo de segmentación final no exporta predicciones sobre el pool. Exportarlas es
    trabajo mecanico y mejora la entrada de todo lo demas.
 6. **Resolucion.** Todo se materializa a 224 para no transformar ISIC 2020 en
    resolucion nativa. Subirla eleva el techo, a costa de espacio y computo.
@@ -293,7 +293,7 @@ Si el contenedor muere: levantarlo y repetir exactamente esa linea.
 1. Pod UNABIA, venv `~/work/proyectonp/.venv` (Python 3.13, torch 2.11
    cu128, wandb). `export TORCH_HOME=$HOME/work/.torch`.
 2. Etapa 1 y 2: `plan-segmentacion/RUNBOOK_CLUSTER.md`, secciones 5 a 9
-   (cache, MoCo, CCAM, pseudo-mascaras, red de segmentación entrenada con pseudo-máscaras, `fst`, `evaluate` con
+   (cache, MoCo, CCAM, pseudo-mascaras, modelo de segmentación, `fst`, `evaluate` con
    `--strata-column tone_tercile`).
 3. Etapas 3 a 5: seccion 12 del mismo runbook.
 4. Tests sin GPU: `python -m pytest tests/test_seg_*.py tests/test_fitzpatrick.py tests/test_cluster_frozen_bank.py tests/test_pretrain_tracking.py -q`.
@@ -311,7 +311,7 @@ Si el contenedor muere: levantarlo y repetir exactamente esa linea.
   misma fuente, asi que la comparacion es justa, pero el techo absoluto puede
   subir con mas resolucion.
 - Las pseudo-mascaras usadas en la etapa 3 son las de la ronda 2 (las que
-  alimentaron el manifiesto de tono); el red de segmentación entrenada con pseudo-máscaras de la ronda 3 no exporta
+  alimentaron el manifiesto de tono); el modelo de segmentación de la ronda 3 no exporta
   predicciones sobre el pool. Exportarlas es una mejora directa.
 - Palancas abiertas: presupuesto de GPU del preentrenamiento, peso de la
   consistencia, desplazamiento de tono variable por imagen (Corbin y

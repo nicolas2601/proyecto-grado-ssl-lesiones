@@ -44,13 +44,13 @@ Por qué importa la máscara: se usa solo para excluir la lesión antes de calcu
 
 ## 2. Diseño experimental
 
-Dos caminos, con el mismo red de segmentación entrenada con pseudo-máscaras, de modo que la **única variable sea la fuente de pseudo-etiquetas**.
+Dos caminos, con el mismo modelo de segmentación, de modo que la **única variable sea la fuente de pseudo-etiquetas**.
 
 | | Camino A | Camino B |
 |---|---|---|
 | Fuente de pseudo-máscaras | Maestro DINOv2 (métodos espectrales tipo TokenCut o Deep Spectral Methods) | Solo CNN: preentrenamiento contrastivo y saliencia por CAM al estilo USL-Net |
 | Conocimiento externo | Sí: DINOv2 viene preentrenado con datos ajenos | No: aprende solo de nuestras ~68k imágenes |
-| red de segmentación entrenada con pseudo-máscaras | U-Net | U-Net |
+| modelo de segmentación | U-Net | U-Net |
 | Se compara después | DoubleU-Net, si el resultado lo justifica | DoubleU-Net, si el resultado lo justifica |
 
 Referencias de comparación (pisos y techo):
@@ -64,7 +64,7 @@ Referencias de comparación (pisos y techo):
 1. Características de SimCLR, MoCo v1 y MoCo v2 (ResNet50) concatenadas.
 2. Mapa de saliencia con CCAM (mapas de activación contrastivos, sin etiquetas).
 3. Módulo de incertidumbre: saliencia menor a 0,35 es fondo, mayor a 0,65 es lesión, y lo intermedio se ignora en la pérdida. Se conserva la componente conexa más grande y más central.
-4. red de segmentación entrenada con pseudo-máscaras ResNet50+FCN a 224x224, con rondas de re-etiquetado (5 rondas de 300 épocas en el paper).
+4. modelo de segmentación ResNet50+FCN a 224x224, con rondas de re-etiquetado (5 rondas de 300 épocas en el paper).
 5. Umbral de inferencia 0,5.
 
 Fallos declarados por los autores: manchas de yodo, pelo, y sensibilidad a los umbrales 0,35 y 0,65. No hay análisis por tono de piel.
@@ -178,7 +178,7 @@ Son test sets distintos, no comparables uno a uno, solo sirven como escala.
 
 Solo una lista de candidatos. No se movió ni se modificó nada todavía.
 
-- `src/dermssl/torch_unet.py`: arquitectura U-Net de ~7,77 M de parámetros, reutilizable como red de segmentación entrenada con pseudo-máscaras. Su bucle de entrenamiento es supervisado y no sirve tal cual.
+- `src/dermssl/torch_unet.py`: arquitectura U-Net de ~7,77 M de parámetros, reutilizable como modelo de segmentación. Su bucle de entrenamiento es supervisado y no sirve tal cual.
 - `src/dermssl/pretrain/lesion_guided.py`: fallback de Otsu, candidato para el piso clásico.
 - `src/dermssl/fitzpatrick.py`: estimación de FST a partir de una máscara.
 - `src/dermssl/mask_manifest.py` y `scripts/kaggle_fst_manifest.py`: manifiesto de máscaras.

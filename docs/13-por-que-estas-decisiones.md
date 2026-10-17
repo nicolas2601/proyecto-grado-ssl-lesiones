@@ -2,7 +2,7 @@
 
 Este documento responde en cristiano **por qué elegimos lo que elegimos**: por qué ResNet-50, por qué
 SimSiam, por qué no un Transformer, por qué domain-adaptive, etc. Cada decisión tiene un porqué
-técnico **y** un porqué de recursos (somos redes de segmentación entrenadas con pseudo-máscaras con una GPU prestada, no un laboratorio).
+técnico **y** un porqué de recursos (somos estudiantes con una GPU prestada, no un laboratorio).
 
 ---
 
@@ -75,7 +75,7 @@ aprende qué hace que "una lesión sea esa lesión" sin que nadie le diga la cla
 viene pre-entrenado en ImageNet, adaptándolo al dominio dermatoscópico con SimSiam sobre HAM+ISIC.
 
 **Por qué:** en la **Práctica 1** probamos SSL **desde cero** (backbone aleatorio) con cómputo de
-red de segmentación entrenada con pseudo-máscaras. Resultado: F1 0.285, **peor que un backbone totalmente aleatorio** (0.318). No es un bug
+estudiante. Resultado: F1 0.285, **peor que un backbone totalmente aleatorio** (0.318). No es un bug
 — es lo esperado: el SSL desde cero necesita **millones** de imágenes y batches enormes para
 despegar. Con nuestros recursos, la jugada correcta es **partir de ImageNet y especializar**. Esta
 lección está grabada: **SSL nunca desde cero** en régimen de bajos recursos.
@@ -126,7 +126,7 @@ aun así dejar pasar melanomas. Por eso medimos:
 
 ## 8. Resumen en una frase
 
-**Elegimos las herramientas más fuertes que *de verdad* corren con una GPU T4 de red de segmentación entrenada con pseudo-máscaras**
+**Elegimos las herramientas más fuertes que *de verdad* corren con una GPU T4 de estudiante**
 (ResNet-50 + SimSiam domain-adaptive), medimos con rigor clínico, y documentamos honestamente el
 techo que se alcanza así — dejando el camino trazado para escalar (ViT/DINOv2, más datos, validación
 externa) cuando tengamos mejores equipos.

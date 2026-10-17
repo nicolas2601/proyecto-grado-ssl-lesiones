@@ -1,5 +1,7 @@
 # 19. Resultados de los bancos congelados y como leerlos
 
+> **Documento histórico.** Describe una etapa anterior del proyecto y fue superado. Los resultados vigentes están en el [README](../README.md) y en los documentos 27 a 33. Se conserva para mostrar cómo se llegó al diseño actual.
+
 Cierra la etapa de comparadores del Objetivo 2: ocho backbones congelados sobre
 HAM10000, ISIC 2020 e ISIC 2019, con el mismo protocolo y la misma semilla. Las
 tablas viven en el README principal y se generan con

@@ -1,5 +1,7 @@
 # 16. Plan v6: pre-entrenamiento SSL en GPU con trazabilidad MLflow
 
+> **Documento histórico.** Describe una etapa anterior del proyecto y fue superado. Los resultados vigentes están en el [README](../README.md) y en los documentos 27 a 33. Se conserva para mostrar cómo se llegó al diseño actual.
+
 Documento de decision para la fase v6 del Objetivo 2. Escrito para lectura sin
 contexto previo; los terminos tecnicos estan en el glosario (documento 10) y la
 auditoria que motiva esta fase es el documento 15.

@@ -48,7 +48,7 @@ El proyecto es de aprendizaje **auto-supervisado**. Ningún experimento de la v7
 
 ## 2. De dónde partimos
 
-- **Segmentación**: USL-Net (MoCo v2 → CCAM → incertidumbre → U-Net red de segmentación entrenada con pseudo-máscaras, 3 rondas). Dice 0,718 en ISIC 2018 (externo) y 0,785 en HAM10000 (dentro del pool). Detalle en [docs/26 §1](26-plan-correccion-segmentacion-y-clasificador.md).
+- **Segmentación**: USL-Net (MoCo v2 → CCAM → incertidumbre → U-Net entrenada con pseudo-máscaras, 3 rondas). Dice 0,718 en ISIC 2018 (externo) y 0,785 en HAM10000 (dentro del pool). Detalle en [docs/26 §1](26-plan-correccion-segmentacion-y-clasificador.md).
 - **Clasificación**: 6 backbones congelados (2 DINOv2 públicos, 2 plain, 2 propuestos), banco en HAM10000 fold-0, probe `logreg`, bootstrap pareado de 1000 remuestras. Tablas en [resultados/README.md §4](../resultados/README.md).
 - **Demo**: FastAPI + probe exportado, verificado end-to-end (golden 7/7 en GPU y CPU). Ver [docs/23](23-modelo-descargable-y-uso.md).
 
@@ -66,7 +66,7 @@ El proyecto es de aprendizaje **auto-supervisado**. Ningún experimento de la v7
 
 ### 3.2 Segmentación
 
-1. **DINO como maestro, U-Net como red de segmentación entrenada con pseudo-máscaras** (destilación) → experimento **S5**. Coincide con la Opción B de Pau.
+1. **DINO como maestro, U-Net como modelo de segmentación** (destilación) → experimento **S5**. Coincide con la Opción B de Pau.
 2. **DINO segmenta directamente** → experimentos **S-diag** (sin entrenar) y **S4** (con cabeza entrenada). Coincide con la Opción A de Pau.
 3. **Pasar la máscara al clasificador** para que ayude a clasificar → es el mismo **C1**.
 
@@ -132,7 +132,7 @@ Cada ficha tiene: qué es, por qué, chequeo SSL, costo, **predicción registrad
 - **Predicción registrada:** DINO sin entrenar alcanza o supera la cobertura de CCAM (~0,15), porque no tiene el filtro de región única que corta las lesiones fragmentadas. El Dice puede quedar por debajo del U-Net, que sí pasó por 3 rondas de refinamiento.
 - **Criterio:** si la cobertura se acerca a la referencia (~0,21-0,27), se justifica S4 (entrenar la cabeza). Si no, DINO no rescata la saliencia de origen.
 - **Método de S-diag (registrado el 2026-09-28, antes de escribir el código y de correr).**
-  - **Primario:** ViT-B/14 a 224, tokens de parche de la última capa (16×16) normalizados L2. Por imagen se hace PCA sobre sus 256 tokens y se toma la primera componente. El signo se fija de modo que los 4×4 parches centrales tengan la proyección media mayor. Se umbraliza con Otsu y el mapa binario se reescala a la resolución de la referencia por vecino más cercano, igual que en la evaluación del red de segmentación entrenada con pseudo-máscaras. La lesión es la componente conexa que contiene el centro de la imagen, o la más cercana al centro si ninguna lo contiene. Esta regla es fija y no se ajusta después.
+  - **Primario:** ViT-B/14 a 224, tokens de parche de la última capa (16×16) normalizados L2. Por imagen se hace PCA sobre sus 256 tokens y se toma la primera componente. El signo se fija de modo que los 4×4 parches centrales tengan la proyección media mayor. Se umbraliza con Otsu y el mapa binario se reescala a la resolución de la referencia por vecino más cercano, igual que en la evaluación del modelo de segmentación. La lesión es la componente conexa que contiene el centro de la imagen, o la más cercana al centro si ninguna lo contiene. Esta regla es fija y no se ajusta después.
   - **Secundaria 1:** k-means con k = 2 sobre los mismos tokens y la misma regla de la componente central.
   - **Secundaria 2:** la misma PCA a 448 (32×32 parches). A 224, los parches de 16 px castigan el Dice por resolución y no por el método.
   - **Pesos:** DINOv2 público, Modelo de control semilla 42 y Proposed sin segmentación semilla 42. Todos están ya fijados; no se entrena nada.
@@ -148,7 +148,7 @@ Cada ficha tiene: qué es, por qué, chequeo SSL, costo, **predicción registrad
 | S2(a) | 0,13328 |
 | S2' | 0,13119 |
 
-Ninguna se acerca, así que se activa la Opción A de docs/26 §5.1. La Opción B (destilar a un red de segmentación entrenada con pseudo-máscaras liviano) queda anotada como no activada: docs/26 §5.3 la condiciona a que el despliegue liviano sea un requisito, y eso no está confirmado.
+Ninguna se acerca, así que se activa la Opción A de docs/26 §5.1. La Opción B (destilar a un modelo de segmentación liviano) queda anotada como no activada: docs/26 §5.3 la condiciona a que el despliegue liviano sea un requisito, y eso no está confirmado.
 
 **Segmentador DINOv2 — DINOv2 en la segmentación (Opción A de docs/26 §5.1 y pedido explícito del profesor; registrado el 2026-09-28, antes de correr).** Dos variantes, que separan el efecto de la saliencia del efecto del encoder.
 - **Experimento de segmentación 4, la de docs/26:** DINOv2 reemplaza a MoCo→CCAM como generador de saliencia. La saliencia training-free de S-diag, sin binarizar, entra al MISMO `uncertainty_module.py` (umbrales 0,35/0,65 y selección de región central) y produce pseudo-máscaras DINO. Con ellas se entrena el decoder descrito abajo. Se reportan además las stats de estas pseudo-máscaras (cobertura, sin región, por área) contra las de r0, que es la métrica que definió Pau.
@@ -160,11 +160,11 @@ Ninguna se acerca, así que se activa la Opción A de docs/26 §5.1. La Opción 
 - **Autorización:** se lanza sin esperar si el costo medido es ≤ 4 GPU-h por variante; si es mayor, se consulta antes. Orden de GPU: S-diag, A1/A2, C1-v7, v7.1, semilla 44, PAD.
 - **Notas de implementación (2026-09-28, sin cambiar el método).** Código: `src/dermssl/torch_s4_unet.py`, `scripts/s4_unet_train.py` (+ `s4_unet_loop.py`) y `scripts/s4_dino_saliency.py`; los comandos del pod están en sus docstrings.
   - *Presupuesto:* una ronda de Experimento de segmentación 3 de `cluster-final.json`: 20 épocas, 32 imágenes por GPU en 2 GPU, Adam 1e-4, 1 época de calentamiento, coseno, selección por pérdida de pseudo-validación, bf16, semilla 42. Experimento de segmentación 5 no tiene rondas de re-etiquetado, así que se compara con el presupuesto de UNA ronda (el que tuvo Experimento de segmentación 3), no con las 60 épocas de la cadena.
-  - *Protocolo:* la pérdida (BCE + Dice suave solo en píxeles confiables), las exclusiones del módulo de incertidumbre, la partición de pseudo-validación, el aumento de datos, el muestreo y el selector se importan del red de segmentación entrenada con pseudo-máscaras; solo cambia el modelo. El pool es la caché de Experimento de segmentación 3 (58.457 imágenes, `run.json` guarda el sha256 del manifiesto).
-  - *Decoder:* estilo DPT, mapas a 4×, 2×, 1× y 0,5× de la grilla 16×16, anchos (48, 96, 192, 384), 128 canales de fusión: 5,0 M parámetros, menos que los 7,77 M del U-Net red de segmentación entrenada con pseudo-máscaras. Se guarda solo el decoder; el backbone se reconstruye y, si no es el público, se verifica su sha256.
+  - *Protocolo:* la pérdida (BCE + Dice suave solo en píxeles confiables), las exclusiones del módulo de incertidumbre, la partición de pseudo-validación, el aumento de datos, el muestreo y el selector se importan del modelo de segmentación; solo cambia el modelo. El pool es la caché de Experimento de segmentación 3 (58.457 imágenes, `run.json` guarda el sha256 del manifiesto).
+  - *Decoder:* estilo DPT, mapas a 4×, 2×, 1× y 0,5× de la grilla 16×16, anchos (48, 96, 192, 384), 128 canales de fusión: 5,0 M parámetros, menos que los 7,77 M del U-Net entrenada con pseudo-máscaras. Se guarda solo el decoder; el backbone se reconstruye y, si no es el público, se verifica su sha256.
   - *Experimento de segmentación 4, pesos de la saliencia (fijado el 2026-09-28, con el resultado de S-diag ya conocido):* la saliencia sale del DINOv2 **público**, que es lo que describía docs/26 §5.1. Se deja escrito que la decisión se tomó después de ver S-diag (el público segmentó mejor que Modelo de control / Proposed sin segmentación, docs/28 §5.3), por transparencia; coincide con la descripción original, no la cambia.
   - *Experimento de segmentación 4:* la saliencia es el mapa PCA de S-diag primario (`dermssl.s_diag`, sin binarizar), repetido de 16×16 a 224×224 por vecino más cercano (la regla de reescalado de S-diag), en float16 como `ccam/saliency.npy`. Entra a `make_pseudo_masks.py --source dino` con las banderas exactas de r0: normaliza min-max por imagen pero NO re-orienta el signo, porque S-diag ya lo fijó con su bloque central y la orientación borde-centro de CCAM podría invertirlo.
-  - *Evaluación:* `evaluate_segmentation.py --checkpoint` reconoce el checkpoint S4 y usa el mismo código de binarización (0,5), métricas y reporte que Experimento de segmentación 3. Régimen: transductivo sin etiquetas, igual que el red de segmentación entrenada con pseudo-máscaras.
+  - *Evaluación:* `evaluate_segmentation.py --checkpoint` reconoce el checkpoint S4 y usa el mismo código de binarización (0,5), métricas y reporte que Experimento de segmentación 3. Régimen: transductivo sin etiquetas, igual que el modelo de segmentación.
   - *Costo medido en CPU local (arquitectura real ViT-B/14, pesos aleatorios):* 0,8-2,3 s por imagen por proceso para la saliencia de Experimento de segmentación 4, del orden de 0,4-1,2 h con 32 procesos sobre las 58.457 imágenes. El costo de GPU de A1/A2 sale del `--timing-smoke` en el pod antes de lanzar.
 
 Errata (2026-09-29): el rótulo 'FST' en este bloque se refiere a la estimación ITA no validada (ver docs/20, PMC13459198), y 'terciles de tono' se lee como 'terciles de luminancia'
@@ -302,7 +302,7 @@ Errata (2026-09-29): el rótulo 'FST' en este bloque se refiere a la estimación
 - **SSL:** preprocesamiento clásico (morfología e inpainting sin entrenar) y lógica de selección. Cumple.
 - **Predicción registrada (reformulada el 2026-09-27, antes de correr S1):** S1 sube `mean_foreground_fraction` hacia 0,21-0,27 sin empeorar el Dice contra la referencia en ISIC 2018. S2 mejora sobre todo los casos con pelo visible.
 - **Por qué se reformuló:** la versión anterior predecía que S1 bajaba `excluded_no_region`, y eso es imposible por construcción. Una imagen queda sin región cuando ninguna región pasa el filtro de área y el de centralidad, y la región que hoy se elige ya es la de menor distancia al centro, así que con la unión queda sin región exactamente en los mismos casos (`tests/test_seg_uncertainty_module.py::test_union_and_central_agree_on_what_is_empty`). S1 solo puede cambiar qué píxeles se pintan cuando ya hay al menos una región válida.
-- **Resultado S1 (2026-09-27): predicción no cumplida.** La cobertura sube +0,0033 (0,13045 → 0,13376). Las imágenes sin región siguen en 670 en los dos modos. El cuello está en la saliencia de CCAM, no en la selección de región (docs/26 §2.5). Por eso no se calcula el Dice ni se reentrena el red de segmentación entrenada con pseudo-máscaras. Pseudo-máscaras r0 (CCAM, 58.457 imágenes, mismos parámetros que la corrida publicada, `--region-mode`):
+- **Resultado S1 (2026-09-27): predicción no cumplida.** La cobertura sube +0,0033 (0,13045 → 0,13376). Las imágenes sin región siguen en 670 en los dos modos. El cuello está en la saliencia de CCAM, no en la selección de región (docs/26 §2.5). Por eso no se calcula el Dice ni se reentrena el modelo de segmentación. Pseudo-máscaras r0 (CCAM, 58.457 imágenes, mismos parámetros que la corrida publicada, `--region-mode`):
 
   | Modo | Excluidas | Sin región | Por área | Cobertura media | Imágenes con 2+ regiones |
   |---|---:|---:|---:|---:|---:|
@@ -346,7 +346,7 @@ Errata (2026-09-29): el rótulo 'FST' en este bloque se refiere a la estimación
 ### FASE 4 — arquitecturas más pesadas (condicionales)
 
 **S4 — DINO + cabeza de decodificación entrenada** (Opción A completa). Solo si S-diag muestra promesa.
-**S5 — DINO maestro → U-Net red de segmentación entrenada con pseudo-máscaras** (pedido 3.2.1, Opción B). Solo si S-diag, S1 y S2 no alcanzan la cobertura de referencia, o si se necesita un modelo liviano para desplegar.
+**S5 — DINO maestro → U-Net entrenada con pseudo-máscaras** (pedido 3.2.1, Opción B). Solo si S-diag, S1 y S2 no alcanzan la cobertura de referencia, o si se necesita un modelo liviano para desplegar.
 **T — Rediseño del objetivo de tono** (3 vistas, λ_tone real que sí escala su término, desplazamiento de tono con signo aleatorio). Ahora con la causa raíz identificada (`consistency_weight = 1.0` era la identidad).
 - **SSL:** DINO congelado como maestro auto-supervisado, U-Net entrenado solo con pseudo-etiquetas del maestro, y el objetivo de tono es SSL. Cumple.
 

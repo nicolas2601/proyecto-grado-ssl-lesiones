@@ -1,4 +1,4 @@
-# red de segmentación entrenada con pseudo-máscaras (U-Net) y bucle de entrenamiento
+# modelo de segmentación (U-Net) y bucle de entrenamiento
 
 ## Nomenclatura de lectura
 
@@ -12,7 +12,7 @@ Estado: pendiente.
 
 Alcance previsto:
 
-- U-Net de 4 etapas (32/64/128/256 canales, cerca de 7,77 M de parámetros) como red de segmentación entrenada con pseudo-máscaras único de los dos caminos.
+- U-Net de 4 etapas (32/64/128/256 canales, cerca de 7,77 M de parámetros) como modelo de segmentación único de los dos caminos.
 - DoubleU-Net solo si el resultado del piloto lo justifica.
 - Entrenamiento con Adam, umbral 0,5, BCE más Dice suave, y argumentos parametrizados (épocas, rondas, resolución, batch), para que Nicolás corra el final con el mismo script.
 - Inferencia segura desde un checkpoint existente: `python train_student.py --cache-dir salidas/cache224 --output-dir salidas/student_r2 --predict-only --preload`. Requiere `student_r2/best.pt`, no entrena y no reemplaza `predictions.npy` salvo con `--overwrite-predictions`.

@@ -12,7 +12,7 @@ Estado (2026-09-19): implementado y probado en CPU con torch 2.14; **sin ejecuta
 
 Idea: al estilo de USL-Net (Li et al., 2024). Aprende solo de nuestras ~68k imágenes sin etiquetar (HAM10000, ISIC 2019, ISIC 2020), sin pesos externos (salvo `--init-weights`, opcional y documentado como desviación) y sin máscaras ni etiquetas. Las máscaras de ISIC 2018, PH2 o Dermofit solo las abre la evaluación, después del entrenamiento.
 
-Flujo: `cache` → MoCo v2 (`train_moco.py`) → CCAM y saliencia (`train_ccam.py`) → pseudo-máscaras con módulo de incertidumbre (`make_pseudo_masks.py`) → U-Net red de segmentación entrenada con pseudo-máscaras (`train_student.py`) → re-etiquetado con las predicciones y nuevas rondas → evaluación (`evaluate_segmentation.py`).
+Flujo: `cache` → MoCo v2 (`train_moco.py`) → CCAM y saliencia (`train_ccam.py`) → pseudo-máscaras con módulo de incertidumbre (`make_pseudo_masks.py`) → U-Net entrenada con pseudo-máscaras (`train_student.py`) → re-etiquetado con las predicciones y nuevas rondas → evaluación (`evaluate_segmentation.py`).
 
 | Carpeta | Contenido |
 |---|---|

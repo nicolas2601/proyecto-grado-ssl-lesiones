@@ -1,5 +1,7 @@
 # 05 — Pipeline del Objetivo 2 (notebook `v4`)
 
+> **Documento histórico.** Describe una etapa anterior del proyecto y fue superado. Los resultados vigentes están en el [README](../README.md) y en los documentos 27 a 33. Se conserva para mostrar cómo se llegó al diseño actual.
+
 Archivo: [`notebooks/proyecto_ssl_lesiones_v4.ipynb`](../notebooks/proyecto_ssl_lesiones_v4.ipynb)
 Entorno: Kaggle, GPU **T4 x2**, 28 celdas.
 

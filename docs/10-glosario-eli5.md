@@ -1,157 +1,189 @@
 # 10 — Glosario y nomenclatura del proyecto
 
-## Nombres cortos para presentar el trabajo
+Este documento explica, en lenguaje sencillo, qué es cada nombre que aparece en el repositorio. Está pensado para leerse en orden, de arriba hacia abajo, sin conocer el código. Al final hay una tabla de equivalencias con los códigos antiguos, que solo sirve para ubicar archivos y reproducir resultados.
 
-El nombre identifica el caso; la explicación técnica va en otra columna, no dentro del nombre.
+## 1. El proyecto en seis frases
 
-| Nombre visible | Explicación sencilla | Correspondencia técnica |
+1. **Problema.** A partir de una fotografía de una lesión de piel, un programa ayuda a distinguir de qué tipo de lesión se trata (por ejemplo, nevo o melanoma). Es una herramienta de investigación; no es un dispositivo médico ni diagnostica.
+2. **Idea.** En lugar de enseñarle al programa con miles de etiquetas hechas por médicos, primero se le deja "mirar" muchas imágenes sin etiquetas para que aprenda a reconocer patrones de la piel (aprendizaje autosupervisado, SSL). Después se le enseña a clasificar con pocas etiquetas.
+3. **Punto de partida.** Se parte de un modelo público llamado DINOv2, que ya sabe "ver" imágenes en general, y se adapta a imágenes de piel.
+4. **Propuesta.** Adaptar el modelo de forma cuidadosa (sin que olvide lo que ya sabía) y, además, enseñarle a ser coherente cuando cambia el tono de la imagen. Ese es el modelo que llamamos **Proposed**.
+5. **Comparaciones.** Cada propuesta se mide contra un **modelo de control** (el mismo método sin una de las piezas) y contra modelos de la literatura, siempre sobre las mismas imágenes y con intervalos de confianza.
+6. **Lo que se puede y no se puede afirmar.** El aporte demostrado es la adaptación autosupervisada. El ajuste de tono no mostró un aporte demostrable, y la versión con segmentación sigue siendo exploratoria. Las cifras de un conjunto de datos no se trasladan automáticamente a otro.
+
+## 2. Los modelos, con sus nombres
+
+| Nombre en los documentos | Qué es, en palabras simples | Código antiguo |
 |---|---|---|
-| Proposed sin segmentación | Clasifica la foto sin localizar previamente la lesión con una máscara. | Configuración registrada `B71`. |
-| Proposed con segmentación | Usa la foto, la zona de lesión y datos de su forma y color. | Variante experimental `B71 + F4`; no tiene mejora robusta demostrada. |
-| Modelo de control | Permite comparar qué cambia al añadir el ajuste de tono. | Brazo `A*` y configuración `A71`; conservar el protocolo de cada fila. No usa segmentación. |
-| Experimento de segmentación 1 | Primera ronda de aprendizaje de la red U-Net. | `student_r1`. |
-| Experimento de segmentación 2 | Segunda ronda de aprendizaje de la misma red U-Net. | `student_r2`. |
-| Experimento de segmentación 3 | Tercera ronda de aprendizaje de la misma red U-Net. | `student_r3`; máscaras usadas en la variante con segmentación. |
-| Experimento de segmentación 4 | Prueba DINOv2 con máscaras iniciales obtenidas de su saliencia. | `S4-A1`. |
-| Experimento de segmentación 5 | Prueba DINOv2 con máscaras iniciales obtenidas de CCAM. | `S4-A2`. |
+| **Proposed sin segmentación** | La propuesta del proyecto. Mira la fotografía completa y decide la clase. No usa ninguna máscara que marque dónde está la lesión. Incluye la enseñanza de coherencia frente al tono. | `B71` (modelo) y `B*` (la familia de entrenamientos) |
+| **Proposed con segmentación** | La misma propuesta, pero además usa la zona de la lesión (un recorte) y datos de su forma y color. Es **experimental**: su ventaja no fue estable al repetir el cálculo, así que no se presenta como mejora confirmada. | `B71 + F4` |
+| **Modelo de control** | El mismo método de adaptación pero **sin** la enseñanza de coherencia frente al tono. Sirve para saber si esa pieza aporta algo. No usa segmentación. | `A71` (modelo) y `A*` (la familia de entrenamientos) |
+| **DINOv2 público** | El modelo original de la literatura, sin adaptar a piel. Es la referencia con la que se compara. | `public`, `PUBLIC_*` |
+| **Pesos limpios** | Versión de los modelos anteriores entrenada **sin** las imágenes que luego se usan para evaluar en ISIC. Así la evaluación es más honesta. Los pesos "originales" sí vieron esas imágenes (sin etiquetas) y se marcan como transductivos. | `*-limpio`, `clean` |
 
-Los números 1–5 son etiquetas de presentación de esta documentación: no cambian los identificadores de las corridas. Los experimentos 1–3 son rondas de la misma arquitectura, no tres arquitecturas diferentes. Los experimentos 4 y 5 comparan el origen de las pseudo-máscaras. Solo las dos primeras filas son versiones de Proposed.
+Solo las dos primeras filas son versiones de la propuesta. El modelo de control no es una "tercera propuesta" ni una versión segmentada: es un punto de comparación.
 
-**Pesos limpios** significa que se excluyeron imágenes de validación del preentrenamiento. **Semilla** identifica una repetición del entrenamiento. Ambos son detalles de la condición evaluada, no nombres de propuestas nuevas.
+## 3. Los experimentos de segmentación
 
-## Nombres oficiales de las dos versiones
+Segmentar es marcar dónde está la lesión dentro de la imagen. Se probaron varias redes que lo hacen **sin usar máscaras dibujadas por personas**: aprenden de máscaras generadas automáticamente (pseudo-máscaras).
 
-Esta nomenclatura describe las entradas del sistema, no cambia los experimentos ni sus resultados. Solo hay dos nombres de presentación:
-
-| Nombre de presentación | Explicación sencilla | Definición técnica y correspondencia histórica |
+| Nombre en los documentos | Qué se probó | Código antiguo |
 |---|---|---|
-| **Proposed sin segmentación** | Clasifica la fotografía completa, sin usar una máscara para localizar la lesión. | Configuración registrada Proposed sin segmentación: adaptación SSL con consistencia de tono sobre DINOv2, extracción de características y clasificador lineal. Proposed sin segmentación es un identificador de trazabilidad, no el nombre público. |
-| **Proposed con segmentación** | Usa la fotografía completa y la región de lesión localizada por un segmentador; agrega información de su forma y color. | Variante experimental Proposed con segmentación de E3: combina características de imagen completa y recorte con margen, más descriptores derivados de la máscara de lesión de la configuración `student_r3`. No clasifica únicamente la máscara. |
+| **Experimento de segmentación 1** | Una red U-Net aprendiendo de pseudo-máscaras, primera ronda. | `student_r1` |
+| **Experimento de segmentación 2** | La misma red, segunda ronda: se vuelve a entrenar con las máscaras que ella misma predijo en la primera. | `student_r2` |
+| **Experimento de segmentación 3** | La misma red, tercera ronda. Es la que se publicó y la que se usa en Proposed con segmentación. | `student_r3` |
+| **Experimento de segmentación 4** | DINOv2 congelado más una pieza final que decide la máscara, entrenada con máscaras iniciales sacadas de su propia atención. Resultó peor que el 3. | `S4-A1` |
+| **Experimento de segmentación 5** | DINOv2 congelado más la misma pieza final, entrenada con máscaras iniciales de otro método (CCAM). Quedó como candidato a segmentador y es ligeramente mejor que el 3. | `S4-A2` |
 
-**Estado de la evidencia:** la versión con segmentación es exploratoria. El registro de docs/33 retiró su adopción como mejora confirmada porque la ventaja no fue robusta al cómputo. El nombre de presentación no convierte ese resultado en una mejora demostrada ni reemplaza el resultado principal sin segmentación. Tampoco garantiza desempeño clínico.
+Los experimentos 1, 2 y 3 son rondas de **la misma red**, no tres redes distintas. La palabra "estudiante" (student) en los documentos viejos se refería a esa red: aprende de las máscaras que otro paso del proceso le da. Los números 1 a 5 son etiquetas de esta documentación y no cambian los nombres internos de las corridas.
 
-**No son dos nombres nuevos para Modelo de control y Proposed sin segmentación:** Modelo de control no usa segmentación en su configuración registrada. Es un experimento de control de adaptación SSL sin el término de consistencia de tono; Proposed sin segmentación sí incluye ese término. Comparar Modelo de control contra Proposed sin segmentación no aísla el efecto de segmentar y sus protocolos seleccionados también difieren. Para estudiar segmentación se consulta la comparación pareada de Proposed con segmentación contra Proposed sin segmentación bajo el mismo protocolo de E3.
+## 4. Las pruebas realizadas
 
-### Experimentos, no propuestas adicionales
+Cada prueba responde una pregunta. Aquí están todas con su nombre y su pregunta.
 
-Los códigos se conservan para localizar archivos y reproducir resultados. No son marcas de modelos ni versiones adicionales llamadas Proposed.
+### 4.1 Pruebas del banco completo
 
-| Código histórico | Nombre descriptivo del experimento | Qué identifica y qué no identifica |
+| Nombre | Pregunta que responde | Código antiguo |
 |---|---|---|
-| Modelo de control, Modelo de control | Control de adaptación SSL sin consistencia de tono | Modelo de control es el brazo de entrenamiento; Modelo de control es su configuración de evaluación seleccionada en v7.1. No es la versión con segmentación. |
-| Proposed sin segmentación, Proposed sin segmentación | Adaptación SSL con consistencia de tono | Proposed sin segmentación identifica el brazo de entrenamiento y Proposed sin segmentación su configuración seleccionada. Proposed sin segmentación corresponde a Proposed sin segmentación, no a cualquier ejecución Proposed sin segmentación. |
-| Modelo de control / Proposed sin segmentación originales y limpios | Condiciones de procedencia del preentrenamiento | Los limpios excluyen imágenes de validación ISIC del pool SSL. No son arquitecturas nuevas ni propuestas adicionales. Los originales en ISIC requieren declarar su carácter transductivo. |
-| `student_r1`, `student_r2`, `student_r3` | Experimento de segmentación U-Net, rondas de aprendizaje 1, 2 y 3 | Son etapas del aprendizaje con pseudo-máscaras y re-etiquetado; no tres arquitecturas distintas. La configuración publicada es la tercera ronda. `r0` en pseudo-máscaras identifica la generación inicial, no un cuarto modelo final. |
-| S4-A1 | Experimento de segmentación con pseudo-máscaras de saliencia DINOv2 | Encoder DINOv2 congelado y decoder tipo U-Net; no confundir A1 de segmentación con A1 del piloto de clasificación. |
-| Experimento de segmentación 5 | Experimento de segmentación con pseudo-máscaras iniciales CCAM | Encoder DINOv2 congelado y decoder tipo U-Net. Es candidato de segmentación evaluado por separado; no reemplaza automáticamente `student_r3` en E3/F4. |
-| F1–F5, E3 | Experimentos de integración de segmentación en clasificación | F1 combina imagen y recorte; F2 cambia la resolución de origen del recorte; F3 usa vistas guiadas por máscara; Proposed con segmentación (experimental) agrega forma y color a F1; F5 agrega anillo perilesional a F1. Son condiciones, no cinco propuestas finales. |
-| Modelo de referencia–Adaptación al nuevo conjunto, E2 | Experimentos de transferencia a fotografías clínicas PAD-UFES-20 | Modelo de referencia: referencia pública; Adaptación inicial: adaptación Modelo de control limpia; Control de entrenamiento: continuación en fuente como control de cómputo; Adaptación al nuevo conjunto: continuación con imágenes fuente y destino sin etiquetas del destino. No son versiones con/sin segmentación. |
-| s42, s43, s44 | Repeticiones con semillas aleatorias distintas | Evalúan variabilidad del entrenamiento. No se elige la semilla que dé el mejor resultado después de ver evaluación. |
-| v6, v7, v7.1 | Etapas históricas del protocolo | No son arquitecturas; un resultado conserva su versión, partición, pesos y receta de evaluación. |
-| C, S, T, E y números asociados | Identificadores locales de pruebas | Su significado depende del documento que los registra. S1 de un plan experimental no tiene por qué ser Figura S1; T5 de una figura tampoco renombra automáticamente otro experimento. Siempre indicar el contexto. |
+| Prueba de pesos limpios | ¿Cambian los resultados si el entrenamiento previo no ve las imágenes de validación? | `E1` |
+| Prueba de adaptación a fotos clínicas | Si se adapta el modelo, ¿mejora en fotos tomadas con celular (PAD-UFES-20)? Compara cuatro modelos: referencia, adaptación inicial, control de entrenamiento y adaptación al nuevo conjunto. | `E2` y `D0`–`D3` |
+| Prueba con segmentación | ¿Ayuda dar al clasificador la zona de la lesión? Se probaron cinco variantes: imagen y recorte, recorte de resolución original, vistas de la lesión, forma y color de la máscara, y piel alrededor. | `E3` y `F1`–`F5` |
+| Prueba con segmentación en los modelos de comparación | Si una variante ayudara, ¿ayudaría también a los modelos de la literatura? Quedó condicionada a que antes ayudara. | `E3b` |
+| Prueba de matrices de confusión | ¿Qué clases se confunden entre sí? Incluye además MCC y AUPRC. | `E4` |
+| Prueba descriptiva del tono de piel | ¿Cómo se reparte el tono (estimado por color) en cada conjunto de datos? Es solo descripción. | `E5` |
 
-### Qué viene de la literatura y qué aportamos
+### 4.2 Pruebas de segmentación y tono
 
-- **Referencias de la literatura (baselines):** arquitecturas y métodos publicados usados para comparar. Se mantienen sus nombres, por ejemplo DINOv2, SimSiam y U-Net. Que una técnica forme parte de Proposed no significa que la hayamos inventado.
-- **Aporte del proyecto:** diseño, integración y evaluación de la adaptación SSL, la consistencia de tono y la variante que incorpora segmentación y descriptores, con los límites documentados. No presentamos como propia la arquitectura base de la literatura.
-- **Arquitectura:** estructura de la red. **Receta de entrenamiento:** cómo aprende. **Checkpoint:** pesos de una ejecución. **Pipeline:** cadena completa de procesamiento, extracción y clasificación. No usar estas cuatro palabras como sinónimos.
-- **Student (experimento de segmentación):** red entrenada con pseudo-etiquetas en estos experimentos. **Pseudo-máscara:** región de lesión estimada automáticamente, no anotación de especialista. **Teacher (maestro):** fuente de supervisión automática cuando el método la tenga; no asumir que todas las etapas usan una arquitectura teacher–experimento de segmentación explícita.
-- **Backbone congelado:** sus pesos no cambian al ajustar el clasificador. **Fine-tuning supervisado:** actualiza pesos con etiquetas diagnósticas. SSL describe el aprendizaje de la representación sin esas etiquetas; la sonda lineal posterior sí usa etiquetas de entrenamiento.
-- **Segmentación:** estima dónde está la lesión; no determina por sí sola qué diagnóstico tiene. **Clasificación:** asigna una categoría diagnóstica. No llamar sensibilidad diagnóstica al Dice de una máscara.
-- **Transformación de tono:** modifica luminosidad/apariencia en la región indicada por la máscara; no crea evidencia de un fototipo clínico distinto ni demuestra una mejora por sí sola.
-- **ITA y terciles de L*:** estimaciones de color y agrupaciones de luminosidad, respectivamente. No equivalen a fototipo Fitzpatrick ni prueban sesgo causal por tono de piel.
-- **Fitzpatrick:** clasificación clínica de respuesta de la piel al sol; no es una etiqueta deducible de forma fiable solo por oscurecer una fotografía.
-- **Partición (split):** separación de entrenamiento, ajuste y evaluación. **Holdout:** subconjunto reservado para selección. **Transductivo:** imágenes de evaluación estuvieron disponibles en SSL sin etiquetas; debe declararse y no presentarse como evaluación completamente independiente.
-- **Sensibilidad MEL, F1 macro, Dice e IoU:** mayor es mejor. **ECE y HD95:** menor es mejor. La comparación requiere la misma población y protocolo; un valor aislado no demuestra superioridad.
-- **Intervalo de confianza y contraste pareado:** cuantifican incertidumbre y diferencia sobre las mismas imágenes. Que dos intervalos individuales se solapen no demuestra equivalencia; para el contraste pareado se interpreta el intervalo de la diferencia y su regla registrada.
+| Nombre | Pregunta que responde | Código antiguo |
+|---|---|---|
+| Prueba de segmentación como entrada del clasificador | ¿Mejora clasificar si se le da la máscara al clasificador? Seis modelos por cuatro condiciones: sin máscara, recorte alrededor de la lesión, fondo gris y solo la lesión. | `C1` |
+| Comparación emparejada con una condición ideal | ¿Cuánto del resultado se debe al ajuste de tono? Compara el modelo de control con Proposed bajo una condición ideal ("oráculo"). | `C3` |
+| Prueba de segmentación sin entrenamiento | ¿Puede DINOv2 marcar la lesión sin entrenar nada? | `S-diag` |
+| Mejora de máscaras: unir regiones | ¿Mejoran las máscaras si se aceptan varias regiones y no solo una? | `S1` |
+| Mejora de máscaras: quitar pelo | ¿Mejoran si se elimina el pelo de la imagen antes de segmentar? (y su variante con filtro de forma) | `S2`, `S2'` |
+| Mejora de máscaras: usar la confianza del tono | ¿Sirve usar el nivel de confianza de la estimación de tono? | `S3` |
+| Segmentación con DINO y cabezal entrenado | ¿Funciona DINOv2 con una pieza final entrenada? (son los experimentos 4 y 5) | `S4` |
+| Segmentación con red entrenada con pseudo-máscaras | ¿Se puede pasar el conocimiento de DINO a una red pequeña? | `S5` |
+| Prueba de segmentación por luminancia | ¿Segmentan peor las imágenes más oscuras? | `T2` |
+| Prueba de clasificación por luminancia | ¿Ayuda la máscara al clasificar las imágenes más oscuras? | `T3` |
+| Prueba de constancia de color | ¿Cambia algo si se corrige el color de la imagen antes de analizarla? | `T4` (método Shades of Gray) |
+| Prueba de umbral de máscara por luminancia | ¿Mejora la máscara si cada grupo de luminancia usa su propio umbral? | `T6` |
+| Prueba de oscurecimiento | ¿Mejora la red si se entrena con imágenes artificialmente oscurecidas y más imágenes oscuras? | `T7` |
+| Prueba del estimador de tono | ¿Coincide el tono estimado por color con el fototipo registrado por médicos en PAD-UFES-20? No coincide bien, por eso no se usa como fototipo. | `T1` |
 
-### Regla de lectura de todo el repositorio
+### 4.3 Predicciones registradas
 
-En textos de presentación se usan los dos nombres oficiales. En registros históricos, tablas generadas, comandos, rutas, nombres de pesos y claves de resultados se conservan los códigos originales para no romper la reproducción. Esos códigos se interpretan con las tablas anteriores, no como más propuestas. Los registros conservan lo que se sabía en su fecha; sus predicciones no se convierten en resultados por cambiar la nomenclatura.
+Antes de mirar los resultados se escribieron predicciones que luego se contrastaron.
 
-Las tablas generadas y las matrices de confusión se regeneran con la nueva nomenclatura en la capa de presentación. Sus JSON, claves internas, cifras y nombres de archivo no se modifican. Las celdas de código de notebooks quedan intactas; las celdas Markdown sí se actualizan. Los documentos binarios y gráficos históricos sin estos códigos conservan su contenido original. Los códigos que aparecen dentro de rutas, comandos o identificadores literales siguen siendo necesarios para reproducir resultados.
+| Nombre | Qué afirmaba | Código antiguo |
+|---|---|---|
+| Predicción de anclaje | Adaptar con anclaje no empeora respecto a DINOv2 público. | `P1`, y `P1-NI` para la versión estricta |
+| Predicción de tono | El ajuste de tono mejora la calibración sin empeorar la clasificación. | `P2` |
+| Predicción de objetivo | Proposed no pierde frente a DINOv2 público; y si el intervalo lo respalda, le gana. | `P3`, y `P3-IC` para la versión con intervalo |
 
-## Conceptos generales e históricos
+## 5. Condiciones en que se midió
 
-Los ejemplos siguientes pertenecen a etapas anteriores del proyecto; no sustituyen las definiciones ni los protocolos de las dos versiones anteriores.
+| Nombre | Qué significa | Código antiguo |
+|---|---|---|
+| **Repetición 42, 43, 44** | Un mismo entrenamiento repetido con distinta semilla aleatoria. Sirve para saber cuánto cambia el resultado solo por azar. No se elige la repetición que salga mejor. | `s42`, `s43`, `s44` |
+| **Lote 16**, **lote 64**, **lote 64 en precisión completa** | Cuántas imágenes se procesan a la vez al extraer características. Cambia el cálculo en la tercera cifra decimal. El **lote 64** es el que se reporta como oficial. | `S0`, `S1`, `S2` en las tablas del banco |
+| **Versión 4, 5, 6, 7, 7.1, 8** | Etapas del proyecto. v4: modelo de ResNet-50 entrenado en Kaggle (superado); v5: evaluación con el modelo congelado; v6: preentrenamiento con GPU; v7: rediseño con anclaje y tono; v7.1: el clasificador final se elige con un conjunto separado; v8: pesos limpios. | `v4` … `v8` |
+| **Partición base de HAM10000** | Cómo se reparten las imágenes: 8.011 para entrenar y 2.004 para validar, sin que la misma lesión quede en ambos lados. La definió la prueba `C1`, por eso comparte código con ella. | `C1` |
+| **Ronda 0, 1, 2, 3** | En la segmentación, cuántas veces se reentrenó la red con sus propias máscaras. | `r0` … `r3` |
 
-- **SSL (aprendizaje autosupervisado):** enseñarle al modelo a entender imágenes de piel **sin
-  decirle la respuesta**, poniéndolo a resolver rompecabezas con las imágenes mismas. Después,
-  con pocas etiquetas, aprende a clasificar mucho más rápido.
+## 6. Palabras técnicas, en orden alfabético
 
-- **Domain-adaptive:** agarrar un modelo que ya sabe "ver" imágenes normales (entrenado en ImageNet)
-  y **acostumbrarlo al mundo de la piel** con fotos dermatológicas sin etiqueta.
+- **Ablación:** experimento que quita o cambia una sola pieza para ver si esa pieza aporta.
+- **Abstención:** que el modelo diga "no sé, mejor que lo vea un especialista" en lugar de arriesgar una respuesta.
+- **AUC:** mide qué tan bien el modelo ordena los casos (pone lo sospechoso arriba), sin fijar un umbral. 0,5 es azar y 1 es perfecto.
+- **AUPRC:** parecido al AUC, pero más fiable cuando hay muy pocos casos positivos, como el melanoma en ISIC 2020.
+- **Backbone:** la parte del modelo que "entiende" la imagen y la convierte en números. El clasificador se pone encima.
+- **Bootstrap:** técnica que repite el cálculo muchas veces con imágenes tomadas al azar para estimar cuánto puede variar el resultado.
+- **Brazo:** una de las familias de entrenamiento que se comparan (por ejemplo, con y sin ajuste de tono).
+- **Calibración (ECE):** que cuando el modelo diga "80 % seguro" acierte de verdad cerca del 80 % de las veces. El ECE mide cuánto se aleja; menor es mejor.
+- **CCAM:** método que dibuja un mapa de atención de la imagen y sirve para crear máscaras iniciales sin humanos.
+- **Checkpoint:** archivo con los pesos de un modelo guardado en un momento del entrenamiento.
+- **Cómputo canónico:** la forma de cálculo que se declara oficial (lote 64) para que todas las cifras sean comparables.
+- **Contraste pareado:** comparar dos modelos sobre las mismas imágenes y mirar la diferencia. Si el intervalo de la diferencia incluye el cero, no se puede afirmar que uno sea mejor.
+- **Dice e IoU:** miden cuánto se parece una máscara predicha a la máscara de referencia. Van de 0 a 1; mayor es mejor.
+- **DINOv2:** modelo público de visión por computador. Aquí es el punto de partida.
+- **Domain-adaptive:** tomar un modelo que ya sabe ver imágenes normales y acostumbrarlo a un tipo concreto de imágenes, como las de piel.
+- **Época:** una pasada completa por todas las imágenes de entrenamiento.
+- **F1 macro:** promedio del rendimiento por clase, sin dar más peso a las clases con más fotos. Es la métrica principal porque hay clases muy grandes y otras muy pequeñas. Mayor es mejor.
+- **Fine-tuning (afinado):** reentrenar el modelo completo con las etiquetas. Lo contrario de dejarlo congelado.
+- **Fitzpatrick:** escala clínica de tonos de piel (I a VI) según cómo reacciona al sol. No es lo mismo que el color de una fotografía.
+- **Grad-CAM:** mapa de calor que muestra dónde está mirando el modelo.
+- **Fuga de datos (leakage):** hacer trampa sin querer, por ejemplo si la misma lesión aparece en entrenamiento y en evaluación.
+- **HD95:** mide cuánto se aleja el borde de la máscara predicha del borde real. Menor es mejor.
+- **Holdout:** subconjunto reservado para elegir configuraciones sin tocar el conjunto con el que se evalúa al final.
+- **Intervalo de confianza (IC 95 %):** rango en el que probablemente cae el valor real. Si dos intervalos se solapan, no se puede afirmar que uno gane.
+- **ITA:** fórmula que estima un grupo de tono a partir del color de la piel en la imagen. **No es** fototipo ni se debe presentar como tal.
+- **Lote (batch):** cuántas imágenes se procesan a la vez.
+- **MCC:** resume en un número la matriz de confusión; va de -1 a 1 y 0 es azar.
+- **Melanoma / nevo:** el melanoma es un cáncer de piel; el nevo es un lunar benigno. Distinguirlos es la tarea más importante del proyecto.
+- **MoCo:** otra receta de aprendizaje autosupervisado, usada para la segmentación.
+- **Modelo congelado:** sus pesos no cambian mientras se ajusta el clasificador.
+- **Pesos:** los números internos que definen lo que aprendió el modelo.
+- **Probe (clasificador lineal):** un clasificador sencillo que se coloca sobre el modelo congelado. Mide qué tan buenas son las características que aprendió el modelo.
+- **Pseudo-máscara:** máscara de lesión generada automáticamente, no dibujada por una persona.
+- **Segmentación:** marcar dónde está la lesión. No dice qué es la lesión.
+- **Semilla:** número que fija el azar de un entrenamiento. Cambiarla produce una repetición distinta.
+- **Sensibilidad de melanoma:** de todos los melanomas reales, cuántos detecta el modelo. Mayor es mejor.
+- **SimSiam:** receta de aprendizaje autosupervisado que compara dos versiones deformadas de la misma foto y pide al modelo que las vea parecidas.
+- **Sopa de pesos:** promediar los pesos de dos entrenamientos para obtener un modelo único.
+- **SSL (aprendizaje autosupervisado):** enseñar al modelo a entender imágenes sin darle la respuesta.
+- **TTA:** al predecir, mirar la imagen de varias formas (volteada, girada) y promediar.
+- **Luminancia (L*):** qué tan clara u oscura es la imagen, medida sobre la piel. Se usa para agrupar imágenes sin hablar de tono de piel.
+- **Tercil de luminancia:** se ordenan las imágenes de un conjunto de la más oscura a la más clara y se dividen en tres grupos iguales. **No es** tono de piel.
+- **Transductivo:** el modelo vio las imágenes de evaluación, sin etiquetas, durante el preentrenamiento. Debe declararse porque la evaluación deja de ser totalmente independiente.
+- **U-Net:** tipo de red usada para segmentar imágenes.
+- **Umbral de screening:** en tamizaje se baja el umbral de decisión para no dejar pasar cánceres, aceptando más falsas alarmas.
 
-- **SimSiam:** una receta de SSL que compara **dos versiones deformadas de la misma foto** y le pide
-  al modelo que las vea parecidas. No necesita ejemplos "negativos" → funciona con una sola GPU.
+### Más términos que aparecen en los informes
 
-- **Fine-tune (afinado):** después del SSL, entrenar el modelo con las etiquetas reales (7 clases)
-  para que dé el diagnóstico de apoyo.
+- **Autocast (precisión mixta):** hacer parte de los cálculos con menos decimales para ir más rápido.
+- **Camino A y Camino B (segmentación):** dos líneas de trabajo. El Camino A segmenta usando DINOv2; el Camino B usa una red convolucional propia entrenada con pseudo-máscaras.
+- **Clases de HAM10000:** `nv` = nevo (lunar benigno); `mel` = melanoma; `bkl` = lesión benigna parecida a una queratosis; `bcc` = carcinoma basocelular; `akiec` = queratosis actínica o enfermedad de Bowen; `vasc` = lesión vascular; `df` = dermatofibroma.
+- **Cobertura:** qué fracción de la imagen ocupa la máscara que predice el modelo.
+- **Cuarentena:** imágenes apartadas de un cálculo porque presentan algún problema; se cuentan aparte para no esconderlas.
+- **Equidad entre grupos (fairness):** revisar si el modelo rinde parecido en grupos distintos, por ejemplo por luminancia de la imagen. Un rendimiento parecido no demuestra por sí solo ausencia de sesgo.
+- **Gate (compuerta):** condición que debe cumplirse para que el proceso continúe al paso siguiente.
+- **Kaggle y UNABIA:** Kaggle es una plataforma pública de cómputo; UNABIA es el cluster de GPU de la universidad.
+- **Otsu:** método clásico que separa fondo y objeto según el brillo; se usa como alternativa sencilla cuando no hay máscara.
+- **Prueba rápida de funcionamiento (smoke):** corrida con muy pocos datos para comprobar que todo arranca. No es un resultado.
+- **ROI perilesional (anillo):** franja de piel que rodea la lesión; se usa para estimar el tono de la piel sin que la lesión lo distorsione.
+- **Regresión logística (logreg):** el tipo de clasificador lineal que se coloca sobre el modelo congelado.
+- **USL-Net:** método de la literatura para segmentar lesiones sin máscaras dibujadas por personas, en el que se basa el Camino B.
+- **Validación y prueba:** la validación sirve para elegir configuraciones; la prueba se lee una sola vez al final para medir sin haber ajustado nada contra ella. Un *pliegue (fold)* es una de las particiones en que se reparten las imágenes.
 
-- **LP-FT (Linear Probe → Fine-Tune):** una forma **cuidadosa** de afinar. Primero se entrena solo el
-  clasificador de arriba con el resto del modelo **congelado** (LP), y recién después se descongela
-  todo con pasos chiquitos (FT). ¿Por qué? Porque afinar de golpe **borra** lo bueno que aprendió el
-  SSL (Kumar 2022). LP-FT lo preserva → es una de las razones por las que el SSL termina ganando.
+## 7. Qué viene de la literatura y qué aportamos
 
-- **LLRD (decaimiento de learning rate por capa):** darle **pasos más grandes a las capas de arriba**
-  (las que deciden la clase) y más chiquitos a las de abajo (bordes, texturas, que ya son buenas). Así
-  el afinado no destruye lo que ya estaba bien.
+- **De la literatura:** DINOv2, SimSiam, U-Net, MoCo, CCAM y la mayoría de las métricas. Mantienen su nombre.
+- **Aporte del proyecto:** la forma de adaptar DINOv2 a piel sin que olvide lo que sabía, la enseñanza de coherencia frente al tono, la comparación con un modelo de control y la evaluación con pesos limpios.
+- **Cuatro palabras que no son sinónimos:** *arquitectura* (la estructura de la red), *receta de entrenamiento* (cómo aprende), *checkpoint* (los pesos guardados) y *pipeline* (la cadena completa de procesamiento).
 
-- **Ablación:** experimento para **aislar el efecto** de una sola cosa. Aquí: entrenar dos modelos
-  idénticos que solo se diferencian en el punto de partida (ImageNet vs SSL) para ver si el SSL
-  realmente aporta.
+## 8. Equivalencias con los códigos antiguos
 
-- **Multi-semilla (seeds) y "fuera del ruido":** entrenar varias veces cambiando la **semilla
-  aleatoria** y reportar el promedio ± la variación. Si la diferencia entre SSL e ImageNet es **mucho
-  más grande que esa variación** (aquí ~5×), no es suerte: es un resultado real. Un tribunal lo exige.
+Los nombres de archivo, carpetas, claves de los resultados y comandos conservan estos códigos para no romper la reproducción. En los textos se usan los nombres de este glosario.
 
-- **AUC-ROC:** mide qué tan bien el modelo **ordena** los casos (pone lo sospechoso arriba), sin
-  depender de un umbral fijo. 0.5 = azar, 1.0 = perfecto. El nuestro ~0.94 = muy bueno.
+| Nombre actual | Código antiguo |
+|---|---|
+| Proposed sin segmentación | `B71`, `B*`, `B_s42…` |
+| Proposed con segmentación | `B71 + F4` |
+| Modelo de control | `A71`, `A*`, `A_soup…` |
+| DINOv2 público con el protocolo del modelo de control / de Proposed | `public_A71`, `public_B71` |
+| Experimento de segmentación 1, 2, 3 | `student_r1`, `student_r2`, `student_r3` |
+| Experimento de segmentación 4, 5 | `S4-A1`, `S4-A2` |
+| Prueba de pesos limpios, adaptación, segmentación, matrices, tono | `E1`, `E2`, `E3` (y `E3b`), `E4`, `E5` |
+| Imagen y recorte; recorte original; vistas de la lesión; forma y color; piel alrededor | `F1`, `F2`, `F3`, `F4`, `F5` |
+| Modelo de referencia; adaptación inicial; control de entrenamiento; adaptación al nuevo conjunto | `D0`, `D1`, `D2`, `D3` |
+| Predicción de anclaje; de tono; de objetivo | `P1`, `P2`, `P3` |
+| Repetición 42, 43, 44 | `s42`, `s43`, `s44` |
+| Lote 16; lote 64; lote 64 en precisión completa | `S0`, `S1`, `S2` (tablas del banco) |
 
-- **Umbral de screening:** en tamizaje de melanoma no se usa la decisión normal (argmax); se **baja el
-  umbral** para no dejar pasar cánceres, aceptando más falsas alarmas. Es el trade-off correcto en
-  medicina de tamizaje.
+## 9. Reglas de lectura
 
-- **Linear probe:** congelar el modelo y ponerle encima un clasificador chiquito. Mide **qué tan
-  buenas son las características** que aprendió, sin dejar que el afinado las tape.
-
-- **Leakage (fuga de datos):** hacer trampa sin querer. Si la misma lesión aparece en entrenamiento
-  y en prueba, el modelo "ya la vio" → el número sale inflado. Se evita partiendo por `lesion_id`.
-
-- **macro-F1:** promedio justo del rendimiento **por clase**. Importa porque hay clases con miles de
-  fotos y otras con cien. La accuracy engañaría; macro-F1 no.
-
-- **Sensibilidad de melanoma:** de todos los melanomas reales, **cuántos detecta**. En tamizaje es
-  lo más importante: no dejar pasar un cáncer.
-
-- **Calibración / ECE:** que cuando el modelo diga "80% seguro", acierte de verdad ~80% de las veces.
-  Un modelo médico sobreconfiado es peligroso.
-
-- **Temperature scaling:** un ajuste que **calma la sobreconfianza** del modelo sin cambiar sus
-  decisiones.
-
-- **Abstención:** que el modelo diga **"no sé, mejor que lo vea un especialista"** cuando duda, en
-  vez de arriesgar una respuesta.
-
-- **Grad-CAM:** un mapa de calor que muestra **dónde está mirando** el modelo. Queremos que mire la
-  lesión, no un pelo ni una regla de medir.
-
-- **Shortcut learning:** cuando el modelo **hace trampa** aprendiendo una pista tonta (ej. "si hay
-  regla, es melanoma") en vez de la lesión de verdad.
-
-- **BN drift (BatchNorm):** si entrenás a un tamaño de imagen (128px) y evaluás a otro (224px), unas
-  estadísticas internas del modelo no coinciden → los números se desajustan. Se arregla usando el
-  mismo tamaño en todo.
-
-- **Fitzpatrick:** clasificación de respuesta de la piel al sol; no es equivalente a ITA ni a luminosidad de una fotografía. No podemos prometer rendimiento equivalente entre grupos sin evaluación apropiada.
-
-## Dónde leer las tablas con códigos históricos
-
-Los generadores aplican los nombres visibles de este glosario; las claves y referencias a archivos siguen usando los códigos originales. Cada tabla se verifica contra su generador y sus JSON de origen:
-
-- [Configuraciones de evaluación v7.1](../resultados/clasificacion/v71/README.md): Modelo de control corresponde al control Modelo de control; Proposed sin segmentación corresponde a Proposed sin segmentación (Proposed sin segmentación).
-- [Banco HAM10000](../resultados/banco_completo/TABLA_HAM10000.md), [ISIC 2019](../resultados/banco_completo/TABLA_ISIC2019.md) e [ISIC 2020](../resultados/banco_completo/TABLA_ISIC2020.md): distinguir controles, referencias de literatura y procedencia de pesos; no colapsar filas diferentes bajo una cifra única.
-- [Experimentos de integración y ablaciones](../resultados/banco_completo/TABLA_ABLACION.md): Proposed con segmentación (experimental) corresponde a Proposed con segmentación; las otras condiciones siguen como experimentos, no como propuestas adicionales.
-- [Resultados de segmentación](../resultados/segmentacion/TABLA_SEGMENTACION.md): los estudiantes son configuraciones del experimento de segmentación, no clasificadores diagnósticos.
-
-La simplificación a dos nombres no elimina controles, repeticiones ni resultados desfavorables. Toda cifra debe conservar su dataset, partición, protocolo, semilla y estado exploratorio cuando corresponda.
+- Los registros fechados (predicciones y protocolos escritos antes de calcular) conservan su texto original; lo que se sabía en esa fecha no se reescribe.
+- Las cifras viven en archivos JSON y las tablas se generan desde ellos; no se editan a mano.
+- Una cifra solo se interpreta junto a su conjunto de datos, su partición, su protocolo, su repetición y su estado (oficial o exploratorio).
+- La simplificación de nombres no elimina controles, repeticiones ni resultados desfavorables.

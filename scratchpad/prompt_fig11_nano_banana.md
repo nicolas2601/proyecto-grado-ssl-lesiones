@@ -23,7 +23,7 @@ CRITICAL RULES:
 - The red dashed arrow labeled "etiquetas SOLO en evaluación" must go from the
   "HAM10000 etiquetado" card down the right margin into the "Métricas" card,
   without crossing any other card.
-- The purple dashed arrow labeled "EMA" goes from "red de segmentación entrenada con pseudo-máscaras ViT-S/14" down to
+- The purple dashed arrow labeled "EMA" goes from "modelo de segmentación ViT-S/14" down to
   "Profesor (EMA)".
 - No typos. No extra decorative text. No watermarks. No photorealistic elements.
 
@@ -40,10 +40,10 @@ Band 2 — "2 · PRE-ENTRENAMIENTO SSL (v6) — 100 % sin etiquetas · igual
 presupuesto GPU por brazo · MLflow + checkpoint por época" (green accent),
 two sub-panels fed by two arrows from "Transformación":
 Left "Brazo A — DINO continual": "Multi-crop" (2 globales 224 px / 6 locales
-96 px) → "red de segmentación entrenada con pseudo-máscaras ViT-S/14" (init: DINOv2 público / cabeza MLP · 65 536
+96 px) → "modelo de segmentación ViT-S/14" (init: DINOv2 público / cabeza MLP · 65 536
 proto / ve TODOS los crops / recibe gradientes) —EMA→ "Profesor (EMA)" (copia
-EMA del red de segmentación entrenada con pseudo-máscaras / solo crops globales / centering + sharpening / sin
-gradientes); both feed "Loss DINO — cross-entropy" (red de segmentación entrenada con pseudo-máscaras → profesor ·
+EMA del estudiante / solo crops globales / centering + sharpening / sin
+gradientes); both feed "Loss DINO — cross-entropy" (modelo de segmentación → profesor ·
 stop-grad).
 Right "Brazo B — SimSiam desde cero": "2 vistas aumentadas" (augmentation
 aleatoria independiente) → "ResNet-50 + projector" (init ALEATORIA / (cero
@@ -86,7 +86,7 @@ Forget the layout of the previous versions. You are a senior scientific illustra
 VISUAL LANGUAGE (mandatory):
 - Rich illustrated elements with soft isometric 3D depth, not plain rectangles:
   • Band 1 (DATOS): a stack of circular dermatoscopy photo thumbnails (realistic skin-lesion crops), a database cylinder, and a 6-step Fitzpatrick skin-tone scale bar; an augmentation strip showing one lesion image transformed 4 ways (flip, color-jitter, crop, blur).
-  • Band 2 (PRE-ENTRENAMIENTO SSL): two illustrated neural towers — left, a Vision Transformer drawn as a 3D stack of translucent slabs (like classic CNN architecture figures) for "red de segmentación entrenada con pseudo-máscaras ViT-S/14", with a ghosted twin tower for "Profesor (EMA)" connected by a purple dashed EMA arrow; right, two siamese ResNet-50 towers sharing weights, with projector/predictor drawn as smaller stacked blocks and a clear stop-gradient cut mark on the target branch. Each arm ends in a glowing loss node.
+  • Band 2 (PRE-ENTRENAMIENTO SSL): two illustrated neural towers — left, a Vision Transformer drawn as a 3D stack of translucent slabs (like classic CNN architecture figures) for "modelo de segmentación ViT-S/14", with a ghosted twin tower for "Profesor (EMA)" connected by a purple dashed EMA arrow; right, two siamese ResNet-50 towers sharing weights, with projector/predictor drawn as smaller stacked blocks and a clear stop-gradient cut mark on the target branch. Each arm ends in a glowing loss node.
   • Band 3 (EVALUACIÓN): the trained backbone shown FROZEN (ice-blue tint + snowflake + padlock), emitting a feature-vector ribbon of small colored cells that fans into 3 probe chips (kNN, linear, prototipos) and ends in a mini metrics dashboard with tiny bar/gauge charts.
 - Big stat callouts in huge bold numerals: "~48-70k", "10 015", "7 clases", "65 536", "k=20", "7 baselines".
 - Numbered badges ① ② ③ per band, left accent bars: deep indigo, emerald, amber.
@@ -96,7 +96,7 @@ VISUAL LANGUAGE (mandatory):
 TEXT (Spanish, reproduce EXACTLY, no translation, no inventions, no typos):
 Title: "Arquitectura completa del sistema — datos, pre-entrenamiento SSL y evaluación". Subtitle: "propuesta full SSL: el extractor jamás ve una etiqueta; las etiquetas entran únicamente en la evaluación".
 Band 1 "1 · DATOS": card "Pool SSL — SIN etiquetas": ~48-70k imágenes · HAM10000 (train) + ISIC 2020 · dermatoscopia de piel · cero labels al extractor. Card "Transformación": skin tone (Fitzpatrick) · constancia de color · crops por lesión · flips · color-jitter · blur. Card "HAM10000 etiquetado": 10 015 img · 7 clases · split StratifiedGroupKFold por lesion_id · assert: 0 lesiones compartidas. Red note: "las etiquetas NUNCA tocan el pre-entrenamiento".
-Band 2 "2 · PRE-ENTRENAMIENTO SSL (v6) — 100 % sin etiquetas": left "Brazo A — DINO continual": Multi-crop: 2 globales 224 px · 6 locales 96 px; red de segmentación entrenada con pseudo-máscaras ViT-S/14: init: DINOv2 público · cabeza MLP · 65 536 proto · ve TODOS los crops · recibe gradientes; Profesor (EMA): copia EMA del red de segmentación entrenada con pseudo-máscaras · solo crops globales · centering + sharpening · sin gradientes; Loss DINO — cross-entropy: red de segmentación entrenada con pseudo-máscaras → profesor · stop-grad. Right "Brazo B — SimSiam desde cero": 2 vistas aumentadas · augmentation aleatoria independiente; ResNet-50 + projector: init ALEATORIA (cero pesos externos) · projector MLP 3 capas · compartido entre vistas; Predictor / stop-grad: predictor MLP 2 capas (rama activa) · stop-grad en rama objetivo; Loss — cos. negativa simétrica + detector de colapso (std embeddings). Footer line: "igual presupuesto de GPU-horas por brazo · MLflow · checkpoint por época".
+Band 2 "2 · PRE-ENTRENAMIENTO SSL (v6) — 100 % sin etiquetas": left "Brazo A — DINO continual": Multi-crop: 2 globales 224 px · 6 locales 96 px; estudiante ViT-S/14: init: DINOv2 público · cabeza MLP · 65 536 proto · ve TODOS los crops · recibe gradientes; Profesor (EMA): copia EMA del estudiante · solo crops globales · centering + sharpening · sin gradientes; Loss DINO — cross-entropy: red de segmentación entrenada con pseudo-máscaras → profesor · stop-grad. Right "Brazo B — SimSiam desde cero": 2 vistas aumentadas · augmentation aleatoria independiente; ResNet-50 + projector: init ALEATORIA (cero pesos externos) · projector MLP 3 capas · compartido entre vistas; Predictor / stop-grad: predictor MLP 2 capas (rama activa) · stop-grad en rama objetivo; Loss — cos. negativa simétrica + detector de colapso (std embeddings). Footer line: "igual presupuesto de GPU-horas por brazo · MLflow · checkpoint por época".
 Band 3 "3 · EVALUACIÓN (protocolo v5) — backbone congelado": Backbone congelado: requires_grad = False · model.eval() · assert trainable == 0; Features: GAP / token CLS · L2-norm coseno · cache en disco; 3 probes: kNN coseno k=20 · linear (logreg) · prototipos; Métricas: balanced acc · F1 macro · precision · recall macro · AUC OvR · acc · ECE. Wide footer card: "Comparación contra 7 baselines congelados": AlexNet · VGG19 · EfficientNet-B0 · ResNet-50 · ViT-B/16 · SimSiam · DINOv2 — "mismo split, mismos probes, mismas métricas → la diferencia es atribuible al backbone".
 A red dashed arrow labeled "etiquetas SOLO en evaluación" runs from "HAM10000 etiquetado" down the RIGHT MARGIN (touching nothing) into "Métricas".
 

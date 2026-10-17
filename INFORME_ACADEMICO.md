@@ -43,13 +43,13 @@ históricas anteriores. No reemplaza sus cifras ni su procedencia.
 |---|---|---|
 | Contraste contrastivo | No | Usa imágenes crudas; no consume máscaras clínicas, etiquetas de diagnóstico, etiquetas FST ni máscaras ground-truth de ISIC2018 |
 | CCAM y generación de pseudo-máscaras | No | Usa imágenes/features del pipeline y produce pseudo-máscaras; no consume esas etiquetas o máscaras ground-truth |
-| Entrenamiento del red de segmentación entrenada con pseudo-máscaras r1/r2 | Sí, solo pseudo-máscaras generadas | El red de segmentación entrenada con pseudo-máscaras consume las pseudo-máscaras generadas por el pipeline, no máscaras clínicas, etiquetas de diagnóstico, etiquetas FST ni máscaras ground-truth de ISIC2018 |
+| Entrenamiento del modelo de segmentación r1/r2 | Sí, solo pseudo-máscaras generadas | El modelo de segmentación consume las pseudo-máscaras generadas por el pipeline, no máscaras clínicas, etiquetas de diagnóstico, etiquetas FST ni máscaras ground-truth de ISIC2018 |
 | Evaluación | Sí, cuando están disponibles | Las máscaras reales se leen únicamente para medir Dice, IoU, ITA/FST y cobertura |
 
 Las máscaras ground-truth de ISIC2018 solo pueden describirse como insumo de
 una segmentación auxiliar histórica de U-Net; no forman parte del reclamo de
 entrenamiento SSL/Camino B de la tesis. Confundir la evaluación o la
-segmentación auxiliar con el entrenamiento del red de segmentación entrenada con pseudo-máscaras sería una afirmación
+segmentación auxiliar con el entrenamiento del modelo de segmentación sería una afirmación
 rechazada por el protocolo.
 
 ### Camino B r1/r2 y cuarentena ITA/FST
@@ -324,11 +324,11 @@ Lecturas que sostienen las cifras:
 - Pisos no supervisados con el mismo evaluador (normalización de color y Otsu
   dentro del campo, sin aprendizaje): SegRNorm da Dice 0,716 en ISIC 2018 y
   0,765 en HAM10000; SegXNorm 0,695 y 0,733. Comparación pareada por imagen:
-  en ISIC 2018 el red de segmentación entrenada con pseudo-máscaras empata con SegRNorm en Dice (+0,002, IC
+  en ISIC 2018 el modelo de segmentación empata con SegRNorm en Dice (+0,002, IC
   [-0,007, +0,011]) pero mejora el borde (HD95 -7,4 px, IC [-8,6, -6,1]) y el
   decil peor (p10 0,40 frente a 0,35); en HAM10000 mejora el Dice (+0,020, IC
   [+0,016, +0,023]) y empata en HD95. Contra SegXNorm gana en todo. El único
-  indicador donde un piso supera al red de segmentación entrenada con pseudo-máscaras es el p10 de HAM10000. No hay
+  indicador donde un piso supera al modelo de segmentación es el p10 de HAM10000. No hay
   techo supervisado por decisión del proyecto.
 
 ## 5. Representaciones SSL y baselines

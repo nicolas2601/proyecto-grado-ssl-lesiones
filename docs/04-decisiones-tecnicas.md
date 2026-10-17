@@ -21,9 +21,9 @@ Basado en deep research con 141 referencias verificadas.
 
 **Por qué la divergencia con D-01:**
 - SimSiam es **negative-free** (no necesita batch de miles ni cola de memoria) → corre en **1 GPU T4**.
-- DINO/ViT-B con el presupuesto de red de segmentación entrenada con pseudo-máscaras (T4 x2) es inviable de entrenar bien.
+- DINO/ViT-B con el presupuesto de estudiante (T4 x2) es inviable de entrenar bien.
 - La **Práctica 1** demostró empíricamente que entrenar SSL *desde cero* pierde contra un backbone
-  random con cómputo de red de segmentación entrenada con pseudo-máscaras → la estrategia correcta es **continuar** un backbone
+  random con cómputo de estudiante → la estrategia correcta es **continuar** un backbone
   pre-entrenado (ImageNet), no partir de cero.
 
 **Consecuencia honesta:** cuando se consiga cómputo real (GPUs UNAB), se podrá escalar a
@@ -92,7 +92,7 @@ porque entrenaba ImageNet primero y moría por OOM antes del SSL. En v4 se corri
 (SSL primero) y la **memoria** (persistent_workers off + gc entre brazos), y se **reusó el backbone
 SSL** ya entrenado (skip del pretrain de ~6h).
 
-**Naturaleza:** ⚠️ modelo **preliminar** — el techo con recursos de red de segmentación entrenada con pseudo-máscaras (T4). El definitivo se
+**Naturaleza:** ⚠️ modelo **preliminar** — el techo con recursos de estudiante (T4). El definitivo se
 entrenará con GPUs de la UNAB.
 
 ---

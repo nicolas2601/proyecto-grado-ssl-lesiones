@@ -164,7 +164,7 @@ epoca, mas los hiperparametros de cada corrida como tarjeta de texto. No
 requiere servidor ni cuenta: son archivos en disco.
 
 Esta es la razon de que exista ademas de MLflow. El MLflow de la plataforma de
-la UNAB es uno solo compartido por todos los redes de segmentación entrenadas con pseudo-máscaras; TensorBoard escribe
+la UNAB es uno solo compartido por todos los estudiantes; TensorBoard escribe
 en el scratch de quien corre el banco y no se publica a nadie mas.
 
 ## 3c. Comparar el cluster contra Kaggle

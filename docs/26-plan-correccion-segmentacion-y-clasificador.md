@@ -1,5 +1,7 @@
 # Plan de corrección: ruido de segmentación y ruta de decisión del clasificador
 
+> **Documento histórico.** Describe una etapa anterior del proyecto y fue superado. Los resultados vigentes están en el [README](../README.md) y en los documentos 27 a 33. Se conserva para mostrar cómo se llegó al diseño actual.
+
 **Fecha:** 2026-09-26
 **Propósito:** documentar, con causa raíz y fuentes, los fixes acordados para el pipeline de pseudo-máscaras (`camino-b-cnn`) y la ruta de experimentación recomendada para decidir si la fuga de máscaras explica la caída del clasificador `proposed` vs `plain`. Este documento junta lo ya registrado en `docs/25-diagnostico-mascaras-clasificador.md` con la exploración de código y de literatura hecha para decidir los fixes concretos.
 
@@ -19,7 +21,7 @@ MoCo v2 (backbone, sin preentrenar)
    -> rondas de auto-entrenamiento (el estudiante reetiqueta con sus propias predicciones)
 ```
 
-Las máscaras reales de HAM10000/ISIC2018 **solo se usan para evaluar** (`evaluate_segmentation.py`), nunca para entrenar (`DISENO.md:9`). Esto es intencional (evita etiquetado manual masivo) pero significa que cualquier sesgo del generador de saliencia se hereda directo por el red de segmentación entrenada con pseudo-máscaras.
+Las máscaras reales de HAM10000/ISIC2018 **solo se usan para evaluar** (`evaluate_segmentation.py`), nunca para entrenar (`DISENO.md:9`). Esto es intencional (evita etiquetado manual masivo) pero significa que cualquier sesgo del generador de saliencia se hereda directo por el modelo de segmentación.
 
 ---
 
@@ -74,9 +76,9 @@ El filtro existe para **rechazar sombras de viñeta en el borde de la imagen**, 
 2. Filtrar por `max_center_distance` sobre todas ellas (no solo sobre la ganadora).
 3. Marcar como foreground la unión (OR lógico) de las regiones que pasan ambos filtros.
 4. Si el conjunto resultante es vacío, mantener la lógica de exclusión existente (`REASON_NO_REGION`).
-5. Registrar en `pseudo_masks_stats.json` cuántas imágenes pasaron de 1 región a 2+ regiones aceptadas, para poder medir el efecto sin necesidad de reentrenar el red de segmentación entrenada con pseudo-máscaras todavía.
+5. Registrar en `pseudo_masks_stats.json` cuántas imágenes pasaron de 1 región a 2+ regiones aceptadas, para poder medir el efecto sin necesidad de reentrenar el modelo de segmentación todavía.
 
-**Validación antes de tocar el red de segmentación entrenada con pseudo-máscaras:** regenerar solo la etapa de pseudo-máscaras (`make_pseudo_masks.py`) con el fix, y comparar `mean_foreground_fraction` y `excluded_no_region` contra la tabla de la sección 2.1. Si no se mueven, el problema está más en la saliencia de origen (CCAM) que en la selección de región.
+**Validación antes de tocar el modelo de segmentación:** regenerar solo la etapa de pseudo-máscaras (`make_pseudo_masks.py`) con el fix, y comparar `mean_foreground_fraction` y `excluded_no_region` contra la tabla de la sección 2.1. Si no se mueven, el problema está más en la saliencia de origen (CCAM) que en la selección de región.
 
 ---
 
@@ -175,14 +177,14 @@ Hay dos variantes distintas, no una sola "opción DINO". Se documentan ambas por
 
 ### 5.2 Opción B — DINO-teacher → U-Net-student (destilación de conocimiento)
 
-**Qué es:** usar un modelo DINO grande y congelado como "maestro" que nunca se despliega, y transferir su conocimiento a un U-Net pequeño ("red de segmentación entrenada con pseudo-máscaras") que sí se usa en producción/inferencia — el U-Net final queda liviano, pero entrenado con supervisión de un modelo mucho más capaz.
+**Qué es:** usar un modelo DINO grande y congelado como "maestro" que nunca se despliega, y transferir su conocimiento a un U-Net pequeño ("estudiante") que sí se usa en producción/inferencia — el U-Net final queda liviano, pero entrenado con supervisión de un modelo mucho más capaz.
 
 **Validación en literatura:**
-- **Foundational Knowledge Distillation (FKD)** — trabajo muy reciente (2025-2026) que usa **DINOv3 congelado como "maestro semántico externo no sesgado"** para destilar representaciones robustas hacia un red de segmentación entrenada con pseudo-máscaras de segmentación. El argumento central de los autores es exactamente el problema que tenemos: las representaciones de DINO no están atadas a ningún dataset ni distribución de clases particular, así que evitan que el red de segmentación entrenada con pseudo-máscaras herede los sesgos del propio dataset de entrenamiento (relevante para nuestro caso, donde el generador de pseudo-etiquetas hoy hereda el sesgo de subcobertura de su propia saliencia).
-- **Validación general del paradigma maestro-red de segmentación entrenada con pseudo-máscaras en segmentación de piel específicamente:** Dzieniszewska et al. (*Cancers*, 2024) — "Improving Skin Lesion Segmentation with Self-Training" — implementaron un ciclo Noisy Student de 4 pasos (maestro en datos etiquetados → pseudo-etiquetas → red de segmentación entrenada con pseudo-máscaras con datos reales+pseudo → segundo red de segmentación entrenada con pseudo-máscaras) con DeepLabV3 como maestro y red de segmentación entrenada con pseudo-máscaras, logrando mIoU 88,0 % en ISIC2018 y 87,54 % en PH2. No usa DINO, pero valida que el ciclo maestro-red de segmentación entrenada con pseudo-máscaras funciona bien en este dominio exacto.
-- **Validación general en imagen médica (no específico de piel):** KD multi-maestro para segmentación de vasos retinianos (2025) mejoró el U-Net base hasta +8,44 puntos de F1 y +10,42 de IoU; MSKD (destilación estructurada) y destilación de forma-intensidad (2024) muestran que un U-Net red de segmentación entrenada con pseudo-máscaras liviano puede absorber conocimiento de un maestro más fuerte sin perder eficiencia de despliegue.
+- **Foundational Knowledge Distillation (FKD)** — trabajo muy reciente (2025-2026) que usa **DINOv3 congelado como "maestro semántico externo no sesgado"** para destilar representaciones robustas hacia un modelo de segmentación. El argumento central de los autores es exactamente el problema que tenemos: las representaciones de DINO no están atadas a ningún dataset ni distribución de clases particular, así que evitan que el modelo de segmentación herede los sesgos del propio dataset de entrenamiento (relevante para nuestro caso, donde el generador de pseudo-etiquetas hoy hereda el sesgo de subcobertura de su propia saliencia).
+- **Validación general del paradigma maestro-estudiante en segmentación de piel específicamente:** Dzieniszewska et al. (*Cancers*, 2024) — "Improving Skin Lesion Segmentation with Self-Training" — implementaron un ciclo Noisy Student de 4 pasos (maestro en datos etiquetados → pseudo-etiquetas → estudiante con datos reales+pseudo → segundo estudiante) con DeepLabV3 como maestro y estudiante, logrando mIoU 88,0 % en ISIC2018 y 87,54 % en PH2. No usa DINO, pero valida que el ciclo maestro-estudiante funciona bien en este dominio exacto.
+- **Validación general en imagen médica (no específico de piel):** KD multi-maestro para segmentación de vasos retinianos (2025) mejoró el U-Net base hasta +8,44 puntos de F1 y +10,42 de IoU; MSKD (destilación estructurada) y destilación de forma-intensidad (2024) muestran que un U-Net entrenada con pseudo-máscaras liviano puede absorber conocimiento de un maestro más fuerte sin perder eficiencia de despliegue.
 
-**Cómo se implementaría:** el DINO congelado (maestro) genera las pseudo-máscaras/features objetivo (reemplazando o complementando la saliencia de CCAM); el U-Net red de segmentación entrenada con pseudo-máscaras actual (`comun/estudiante/student_engine.py`) se mantiene como arquitectura de despliegue, pero su señal de entrenamiento pasa a venir del maestro DINO en vez de (o además de) las rondas de auto-entrenamiento actuales. La lógica de incertidumbre/exclusión de `uncertainty_module.py` se puede conservar tal cual, aplicada sobre la salida del maestro en vez de sobre CCAM.
+**Cómo se implementaría:** el DINO congelado (maestro) genera las pseudo-máscaras/features objetivo (reemplazando o complementando la saliencia de CCAM); el U-Net entrenada con pseudo-máscaras actual (`comun/estudiante/student_engine.py`) se mantiene como arquitectura de despliegue, pero su señal de entrenamiento pasa a venir del maestro DINO en vez de (o además de) las rondas de auto-entrenamiento actuales. La lógica de incertidumbre/exclusión de `uncertainty_module.py` se puede conservar tal cual, aplicada sobre la salida del maestro en vez de sobre CCAM.
 
 **Trade-off vs. Opción A:** más complejo de implementar (hay un paso de destilación real, no solo una cabeza nueva), pero el resultado final es un modelo pequeño y rápido para desplegar — relevante si el prototipo clínico necesita corres en hardware limitado. La Opción A es más simple pero el modelo final es más pesado (aunque el backbone esté congelado, sigue siendo parte del pipeline de inferencia salvo que se destile después de todos modos).
 

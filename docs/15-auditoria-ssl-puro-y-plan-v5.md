@@ -1,5 +1,7 @@
 # 15 — Auditoría del pipeline y plan v5: hacia una evaluación 100 % auto-supervisada
 
+> **Documento histórico.** Describe una etapa anterior del proyecto y fue superado. Los resultados vigentes están en el [README](../README.md) y en los documentos 27 a 33. Se conserva para mostrar cómo se llegó al diseño actual.
+
 _Fecha: 2026-07-29. Autor: Nicolás Moreno. Destinatarios: Karen Sánchez (asesora, KAUST),
 Andrés Jerez (director), equipo del proyecto._
 
@@ -21,7 +23,7 @@ archivo y la celda concreta, de modo que cualquiera pueda verificarlas.
 4. Se implementó **v5**, una evaluación en la que **ninguna etiqueta toca el extractor de
    características**: red congelada más clasificadores diminutos encima.
 5. v5 está construido, verificado con 101 pruebas automáticas que corren sin GPU, y listo para
-   ejecutarse en Kaggle con una GPU de red de segmentación entrenada con pseudo-máscaras. El pre-entrenamiento continuo sobre imágenes
+   ejecutarse en Kaggle con una GPU de estudiante. El pre-entrenamiento continuo sobre imágenes
    dermatoscópicas —la etapa que sí necesita el clúster— es el paso siguiente y consumirá
    exactamente estas mismas características y probes.
 
@@ -448,7 +450,7 @@ correr nada) y `probe_grid_v5.csv`.
 
 **v5 no necesita el clúster.** ViT-S/14 congelado entra en una T4 de sobra, porque no se entrena.
 Es una propiedad deliberada: el resultado auto-supervisado más limpio se puede obtener con
-recursos de red de segmentación entrenada con pseudo-máscaras, y el clúster se reserva para la etapa que de verdad lo necesita.
+recursos de estudiante, y el clúster se reserva para la etapa que de verdad lo necesita.
 
 ---
 

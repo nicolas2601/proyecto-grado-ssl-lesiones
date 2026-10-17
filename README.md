@@ -1,28 +1,42 @@
 # Proyecto de Grado UNAB — Clasificación de Lesiones Cutáneas con Aprendizaje Autosupervisado (SSL)
 
-## Nomenclatura de lectura
+## Qué es este proyecto
 
-**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
+Un programa de computador que, a partir de una fotografía de una lesión de piel, ayuda a distinguir de qué tipo es (por ejemplo, un lunar benigno o un melanoma). Es una herramienta de investigación para un trabajo de grado; **no es un dispositivo médico y no diagnostica**.
 
-Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
+La idea central es no depender de miles de etiquetas hechas por médicos. Primero se deja que el programa "mire" muchas imágenes sin etiquetas para aprender patrones de la piel (aprendizaje autosupervisado, SSL), y después se le enseña a clasificar con pocas etiquetas. El punto de partida es DINOv2, un modelo público que ya sabe ver imágenes en general.
 
-Ver [nombres, equivalencias y explicación para lectores técnicos y no técnicos](docs/10-glosario-eli5.md). Los registros históricos conservan sus cifras, predicciones y limitaciones.
+## Cómo leer este repositorio
 
-Repositorio de trabajo para investigar la clasificación experimental de lesiones cutáneas (HAM10000) con aprendizaje autosupervisado sobre DINOv2. No es un dispositivo de diagnóstico.
+1. Lee este resumen y el [glosario](docs/10-glosario-eli5.md): explica cada nombre y sigla en lenguaje sencillo.
+2. Mira el [resultado principal](#resultado-principal-v7) y la sección [Qué no se puede afirmar](resultados/README.md#7-que-no-se-puede-afirmar).
+3. Si quieres el detalle, sigue el [índice de documentos](docs/README.md) y las [tablas de resultados](resultados/README.md).
+
+### Los nombres que vas a ver
+
+- **Proposed sin segmentación:** la propuesta del proyecto. Mira la fotografía completa y decide la clase.
+- **Proposed con segmentación:** la misma propuesta, pero además usa la zona de la lesión. Es **experimental**: no mostró una mejora estable.
+- **Modelo de control:** el mismo método pero sin la enseñanza de coherencia frente al tono. Sirve para saber si esa pieza aporta algo; no es una tercera propuesta.
+- **Experimento de segmentación 1 a 5:** pruebas de redes que marcan dónde está la lesión sin usar máscaras dibujadas por personas.
+- **Prueba de …:** cada pregunta que se evaluó (por ejemplo, "Prueba de pesos limpios").
+- **Repetición 42, 43, 44:** el mismo entrenamiento repetido con distinto azar, para saber cuánto cambia el resultado solo por casualidad.
+
+Los códigos antiguos (B71, A71, student, E1, T7, s42…) siguen existiendo únicamente en nombres de archivo y en registros fechados; el glosario tiene la tabla de equivalencias.
 
 ## Resultado principal (v7)
 
-La tabla principal es la [combinada de las tres semillas](resultados/clasificacion/v7/SEMILLAS.md): cada semilla por separado, la media y el rango (máx − mín). Detrás están las tablas de la [semilla 42](resultados/clasificacion/v7/README.md) y de las réplicas con [semilla 43](resultados/clasificacion/v7/s43/README.md) y [semilla 44](resultados/clasificacion/v7/s44/README.md). Todas se generan desde los `final_eval.json`, y un test falla si alguien edita un número a mano, así que acá no se copia ninguna cifra.
+La tabla principal es la [combinada de las tres repeticiones](resultados/clasificacion/v7/SEMILLAS.md): cada repetición por separado, la media y el rango (máximo menos mínimo). Detrás están las tablas de la [repetición 42](resultados/clasificacion/v7/README.md), la [43](resultados/clasificacion/v7/s43/README.md) y la [44](resultados/clasificacion/v7/s44/README.md). Todas se generan desde archivos de resultados guardados, y una prueba automática falla si alguien edita un número a mano, así que aquí no se copia ninguna cifra.
 
-Dos tablas generadas más, con el mismo test: la del [clasificador](resultados/clasificacion/TABLA_CLASIFICADOR.md) (v6, C1 y v7 lado a lado, y por clase: matriz de confusión, F1, recall y sensibilidad y AUC de melanoma) y la de [segmentación](resultados/segmentacion/TABLA_SEGMENTACION.md) (red de segmentación entrenada con pseudo-máscaras final contra las máscaras de referencia y pseudo-máscaras v7 contra los umbrales registrados en docs/27).
+Dos tablas generadas más: la del [clasificador](resultados/clasificacion/TABLA_CLASIFICADOR.md) (versiones 6 y 7 lado a lado, con la matriz de confusión, F1, recall, sensibilidad y AUC de melanoma por clase) y la de [segmentación](resultados/segmentacion/TABLA_SEGMENTACION.md) (qué tan bien coinciden las máscaras del modelo con las de referencia).
 
-Compara tres brazos sobre la validación del fold 0 de C1: DINOv2 público, SSL anclado sin tono (Modelo de control) y SSL propuesto con tono (Proposed sin segmentación). Usa un probe lineal, una sola evaluación e intervalos bootstrap del 95 %. Las predicciones se registraron antes de correrla ([docs/28 §5](docs/28-rediseno-brazo-propuesto-v7.md)).
+Se comparan tres modelos sobre las mismas imágenes de validación: DINOv2 público, el modelo de control y Proposed sin segmentación. Se usa un clasificador lineal, una sola evaluación y intervalos de confianza del 95 %. Las predicciones se escribieron antes de correr la evaluación ([docs/28 §5](docs/28-rediseno-brazo-propuesto-v7.md)).
 
-Lectura al 2026-09-29, con las tres semillas y sin elegir ninguna (regla en [docs/28 §4.1](docs/28-rediseno-brazo-propuesto-v7.md), extendida a tres semillas en [docs/29 §2.5](docs/29-plan-v7.1.md)):
-- Proposed sin segmentación le gana al DINOv2 público en macro-F1 en las tres semillas, con intervalos que excluyen el cero.
-- Modelo de control no pierde contra el público en ninguna (P1). La no inferioridad estricta (P1-NI) se cumple en s43 y s44 pero no en s42: no es robusta a la semilla.
-- Proposed sin segmentación y Modelo de control no se distinguen entre sí, y Proposed sin segmentación no calibra mejor que Modelo de control.
-- La variación entre semillas es del orden del efecto medido.
+Lectura al 2026-09-29, con las tres repeticiones y sin elegir ninguna (regla en [docs/28 §4.1](docs/28-rediseno-brazo-propuesto-v7.md), extendida a tres repeticiones en [docs/29 §2.5](docs/29-plan-v7.1.md)):
+
+- Proposed sin segmentación le gana al DINOv2 público en F1 macro en las tres repeticiones, con intervalos que excluyen el cero.
+- El modelo de control no pierde contra el público en ninguna (predicción de anclaje). La versión estricta de esa predicción se cumple en las repeticiones 43 y 44 pero no en la 42: no es robusta al azar del entrenamiento.
+- Proposed sin segmentación y el modelo de control no se distinguen entre sí, y Proposed no calibra mejor que el control.
+- La variación entre repeticiones es del orden del efecto medido.
 
 ## Objetivos específicos
 
@@ -37,7 +51,7 @@ Lectura al 2026-09-29, con las tres semillas y sin elegir ninguna (regla en [doc
 | [`src/dermssl/`](src/dermssl/) | Librería del proyecto: preentrenamiento SSL (`pretrain/`), probes, métricas, bootstrap pareado, evaluación final, procedencia de corridas. |
 | [`scripts/`](scripts/) | Puntos de entrada: preentrenamiento, selección de variantes, evaluación final y generadores de tablas (`build_*`). |
 | [`resultados/`](resultados/README.md) | Resultados versionados: C1, v7 y bancos congelados. Las tablas se generan desde JSON. |
-| [`docs/`](docs/README.md) | Documentación numerada 00-28, con índice y estado de cada documento. |
+| [`docs/`](docs/README.md) | Documentación numerada, con índice y estado de cada documento. |
 | [`plan-segmentacion/`](plan-segmentacion/README.md) | Segmentación sin etiquetas (CCAM, pseudo-máscaras, remoción de pelo). |
 | [`tests/`](tests/) | Suite de pytest; corre sin GPU. |
 | [`openspec/`](openspec/) | Especificaciones de cambios (OpenSpec). |

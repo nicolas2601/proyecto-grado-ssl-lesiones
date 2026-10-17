@@ -43,9 +43,14 @@ Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Redise
 | [24](24-analisis-final-resultados-y-escenarios-ada.md) | Análisis de resultados v6 y escenarios ADA. | Superado por el resultado v7 |
 | 25 | No existe: el número quedó sin usar. | — |
 | [26](26-plan-correccion-segmentacion-y-clasificador.md) | Plan de corrección de segmentación y clasificador. | Superado por 27 |
-| [27](27-plan-v7-mejoras-ssl.md) | Plan v7: segmentación (S1, S2, S2'), C1 y comparativa justa. | Vigente |
+| [27](27-plan-v7-mejoras-ssl.md) | Plan v7: mejoras de máscaras (unir regiones, quitar pelo), la segmentación como entrada del clasificador y la comparación justa. | Vigente |
 | [28](28-rediseno-brazo-propuesto-v7.md) | Rediseño v7 del brazo propuesto, predicciones registradas y réplica de semilla. | Vigente |
-| [30](30-pad-ufes-zero-shot.md) | PAD-UFES-20: licencia, protocolo y predicción de la prueba externa sin entrenar. | Registrado, sin correr |
+| [29](29-plan-v7.1.md) | Plan v7.1: cómo se elige el clasificador final con un conjunto separado y se lee la validación una sola vez. | Vigente |
+| [30](30-pad-ufes-zero-shot.md) | PAD-UFES-20 (fotos clínicas): licencia, protocolo, predicciones y resultados de la prueba externa. | Vigente |
+| [31](31-t4-shades-of-gray.md) | Prueba de constancia de color (Shades of Gray) antes de analizar la imagen. | Vigente |
+| 32 | No existe: el número quedó sin usar. | — |
+| [33](33-banco-completo-multidataset.md) | Banco completo: todas las pruebas sobre HAM10000, ISIC 2019, ISIC 2020 y PAD-UFES-20 (pesos limpios, segmentación, matrices de confusión, tono). | Vigente |
+| [34](34-entorno-cluster.md) | Entorno del cluster: versiones y comandos para reproducir las corridas. | Vigente |
 
 Otros documentos:
 

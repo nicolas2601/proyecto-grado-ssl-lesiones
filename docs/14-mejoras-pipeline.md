@@ -1,5 +1,7 @@
 # 14 — Mejoras del pipeline (para que el SSL gane)
 
+> **Documento histórico.** Describe una etapa anterior del proyecto y fue superado. Los resultados vigentes están en el [README](../README.md) y en los documentos 27 a 33. Se conserva para mostrar cómo se llegó al diseño actual.
+
 Investigación del estado del arte (2024-2026) + cambios concretos aplicados al notebook para que el
 **SSL supere** al baseline ImageNet, no solo lo iguale.
 

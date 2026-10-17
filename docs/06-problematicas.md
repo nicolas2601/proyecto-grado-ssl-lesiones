@@ -30,7 +30,7 @@ Con split honesto (por `lesion_id`) el número real baja a ~0.74. **El 0.873 est
 
 ## 🟢 RESUELTA (conceptual) — SSL desde cero pierde
 
-Práctica 1: SimCLR entrenado desde cero (cómputo de red de segmentación entrenada con pseudo-máscaras) dio F1 0.285, **peor que un
+Práctica 1: SimCLR entrenado desde cero (cómputo de estudiante) dio F1 0.285, **peor que un
 backbone random** (0.318). No es un bug — es lo esperado. SSL desde cero necesita millones de
 imágenes + batches enormes. **Conclusión:** nunca desde cero; siempre continuar un backbone
 pre-entrenado (domain-adaptive).
@@ -55,7 +55,7 @@ trabajo futuro. Ver [07](07-fiabilidad-y-sesgo.md).
 - **MCP de Kaggle no autoriza** en Claude Code (cliente incompatible). Se corre a mano.
 - **`math.so` corrupto** en `~/Descargas`: rompe `import math` de Python si el cwd es esa carpeta.
   Correr scripts desde otro directorio.
-- **Cómputo limitado:** T4 de red de segmentación entrenada con pseudo-máscaras. El entrenamiento definitivo depende de las GPUs de la UNAB.
+- **Cómputo limitado:** T4 de estudiante. El entrenamiento definitivo depende de las GPUs de la UNAB.
 - **Sesión de Kaggle:** para runs largos usar **Save & Run All (Commit)**, no draft (evita que se
   muera al cerrar el navegador).
 

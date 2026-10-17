@@ -1,11 +1,13 @@
 # 11 — Resultados finales (corrida definitiva v4 · 2026-07-12)
 
+> **Documento histórico.** Describe una etapa anterior del proyecto y fue superado. Los resultados vigentes están en el [README](../README.md) y en los documentos 27 a 33. Se conserva para mostrar cómo se llegó al diseño actual.
+
 > Corrida completa en Kaggle (T4 x2), 30 épocas de SSL a 224 px sobre el pool ~48 k imágenes
 > (ISIC 2019 + ISIC 2020 + HAM-train, sin etiqueta) + fine-tune **LP-FT + LLRD** + **ablación
 > multi-semilla (2 semillas)** + evaluación clínica de fiabilidad. Datos crudos en
 > [`data/RESULTS_SUMMARY.json`](../data/RESULTS_SUMMARY.json).
 
-> ⚠️ **Naturaleza de estos resultados.** Siguen siendo obtenidos con **recursos de red de segmentación entrenada con pseudo-máscaras**
+> ⚠️ **Naturaleza de estos resultados.** Siguen siendo obtenidos con **recursos de estudiante**
 > (GPU T4, dataset acotado). El entrenamiento final (más épocas, DINOv2/ViT, validación externa
 > multiclase) escalará con las GPUs de la UNAB. Aun así, esta corrida **valida la hipótesis central**.
 
@@ -241,7 +243,7 @@ Clasificación correcta con alta confianza y `mel_alert=True` disparado. Funció
 **El bit (asunción del anteproyecto):** el SSL domain-adaptive mejora la clasificación de lesiones
 sobre transfer learning ImageNet.
 
-**Lo que muestran los datos (v4):** con **cómputo de red de segmentación entrenada con pseudo-máscaras** (T4 x2) y un pool de **~48 k**
+**Lo que muestran los datos (v4):** con **cómputo de estudiante** (T4 x2) y un pool de **~48 k**
 imágenes sin etiqueta (HAM-train + ISIC 2019 + ISIC 2020), el SSL SimSiam/ResNet-50 **SUPERA a
 ImageNet** en macro-F1 (0.6907 vs 0.6614, Δ +0.0294, ~5× la desviación entre semillas → fuera del
 ruido) y también en AUC (fine-tune y linear probe en todos los regímenes). **La hipótesis del
@@ -271,6 +273,6 @@ SSL debería mostrar su mayor ventaja, y es el next-step #1.
 3. **Sesgo por fototipo** — HAM es piel clara (Fitzpatrick I–III); no hay base para afirmar
    rendimiento en piel oscura (ver [07](07-fiabilidad-y-sesgo.md)).
 4. **`df` con recall 0.36** — clase de muy pocas muestras; el modelo no la aprende bien.
-5. **Cómputo limitado** — T4 de red de segmentación entrenada con pseudo-máscaras; el entrenamiento definitivo depende de las GPUs UNAB.
+5. **Cómputo limitado** — T4 de estudiante; el entrenamiento definitivo depende de las GPUs UNAB.
 6. **Sensibilidad de melanoma en argmax baja (0.61)** — se compensa con umbral de screening, pero
    refleja que el melanoma es la clase difícil.
