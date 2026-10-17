@@ -1,0 +1,165 @@
+{
+  "capture_kind": "parsed_remote_resource_review_gate_and_launch_snapshot",
+  "source_log": "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/resource-review.log",
+  "note": "Los hashes corresponden a los archivos originales de UNABIA; esta captura usa otra serializacion. No representa ejecucion de entrenamiento.",
+  "report": {
+    "schema_version": 1,
+    "created_at": "2026-10-17T08:27:12.782259+00:00",
+    "status": "operational_budget_reviewed_pending_user_approval",
+    "training_started": false,
+    "execution_enabled": false,
+    "new_model_execution": false,
+    "new_optimizer_execution": false,
+    "source_hashes": {
+      "src/dermssl/segmentation_methods/usl_net/model.py": "89c2eb2b9bfca78ff4cf17a994610fd5e519e759aafe481b0fdbc408228d268b",
+      "src/dermssl/segmentation_methods/usl_net/ccam.py": "7a153d945590e80eb107ba906ee911e83dcbf709ddc0d13a5c486ca23f91d2dc",
+      "src/dermssl/segmentation_methods/common/bank.py": "1bcb9105af5877dbde83638a952a7b18362c44cbcb76940c15e939db6cce7be2",
+      "src/dermssl/segmentation_methods/common/networks.py": "26cbb7ccacd63e1e05895a993e2652f7171187242231ae7865e7b67b144b1984",
+      "src/dermssl/segmentation_methods/common/checkpoints.py": "fd8acb3e6f0719e2726b6695e5be65aa3f4cc25c6629996ba82056286c76c049",
+      "src/dermssl/segmentation_methods/common/protocol.py": "e5407abecf5c03f6d2f89472e83d709370aaa769d78173af270b6de715ec9ba0",
+      "src/dermssl/segmentation_methods/common/data.py": "4bc00a237973f22b49eafec289b628b2b11df9347e6cfa4da9f2d3e5dfff6590",
+      "src/dermssl/w3_usl_models.py": "e0fd82749674d9dd0c85cc2726276bb49f9a695da70c535d2abb515c8ceb98e5",
+      "plan-segmentacion/camino-b-cnn/pseudo-mascaras/ccam_engine.py": "3250cf52d60e7c3ebaab437c764148c8a88843f497f2df624e9430b4792c06a7"
+    },
+    "review_script_sha256": "b758f4b1dbdc29370112e35c2384678cbf400d87e821c1bde28866f06cac046c",
+    "reviewed_metadata_consumer_sources": {
+      "src/dermssl/segmentation_methods/common/training.py": "6e06e6efb96b698921fc2e6ca7e311a6db2c63a9b91ec1a0339eef906558108d",
+      "src/dermssl/segmentation_methods/usl_net/seeds.py": "43aa1c02fed85615b7b83b95ea0b5766aae8419c8bc3a0ebc8d3699cdcf8de28",
+      "scripts/run_segmentation_v8.py": "0e66a5b7e4ef7be190b3203e857e261e18e7fb9a98f7ec5496c24b6eb1805bbe"
+    },
+    "config": {
+      "path": "/home/jovyan/work/proyectonp/repo_v8_canonical/plan-segmentacion/metodos-v8/launch-preparation/configs/usl_ccam.draft.json",
+      "sha256": "f8a3589613b4608ea68d7efe5a08dfaf70d8467d2805c143c0ea18064082e792",
+      "canonical_sha256": "ab39bcd07294f8a3d0f1237b812a216e645eb6b5628a864ec04a0dd3822b1664"
+    },
+    "historical_smoke": {
+      "receipt": "/home/jovyan/work/validation_v8/usl-ccam-preparation-20261017-003/receipt.json",
+      "receipt_sha256": "ed7275b299a2a8cf237c31d25375148de60b41ac5b9f4e7c42c6726e0cf30d84",
+      "gate": "/home/jovyan/work/validation_v8/usl-ccam-preparation-20261017-003/ccam.gate.json",
+      "gate_sha256": "bcb9f329dbc0ff9acde28fe9e06f1853fc6a2f67022bd3d1fd74ce411cd16264"
+    },
+    "observed": {
+      "batch_seconds": 0.42740897089242935,
+      "elapsed_seconds": 5.20580586604774,
+      "model_load_seconds": 0.9624998359940946,
+      "rss_peak_mib": 1721.578125,
+      "cuda_peak_allocated_mib": 396.95263671875,
+      "cuda_peak_reserved_mib": 452,
+      "finite_gradient_tensors": 2
+    },
+    "modeled_not_measured": {
+      "head_fp32_parameters": 9217,
+      "head_parameter_bytes": 36868,
+      "adamw_two_moment_bytes": 73736,
+      "adamw_two_moment_mib": 0.07032012939453125,
+      "optimizer_temporary_allowance_mib": 16,
+      "temporary_allowance_basis": "conservative assumption, over 450 times FP32 head bytes",
+      "gpu_reserved_plus_modeled_allowance_mib": 468.07032012939453,
+      "batches_per_epoch": 17392,
+      "epochs": 5,
+      "linear_batch_seconds": 37167.48410880566,
+      "timeout_to_linear_estimate_ratio": 2.3246125496971763,
+      "time_estimate_excludes": [
+        "model_loading",
+        "image_loading",
+        "optimizer_step",
+        "filesystem_io",
+        "full_dataset_variability"
+      ],
+      "output_cap_mib": 1024,
+      "output_size_measured": false,
+      "output_basis": "existing_runner_ccam_storage_precheck_1024_MiB"
+    },
+    "resource_review_definition": "observed representative forward/loss/backward plus explicit modeled optimizer allowance; not full-run measurement",
+    "optimizer_memory_measured": false,
+    "full_dataset_runtime_measured": false,
+    "historical_training_consumable_false_is_runtime_blocker": false,
+    "historical_freeze_preserved": true,
+    "readiness_modified": false,
+    "patient_independence_accredited": false,
+    "remaining_before_launch": [
+      "user_review",
+      "synthetic_cleanup_with_preserved_receipts",
+      "enabled_config_and_regenerated_hash_bound_gate"
+    ]
+  },
+  "report_sha256": "6e3d896e59b473d075e1e81cfeda08755230fa7068df609c72f2a15c601eb2c9",
+  "gate": {
+    "method": "usl_ccam",
+    "input_manifest_sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+    "config_sha256": "ab39bcd07294f8a3d0f1237b812a216e645eb6b5628a864ec04a0dd3822b1664",
+    "config_file_sha256": "f8a3589613b4608ea68d7efe5a08dfaf70d8467d2805c143c0ea18064082e792",
+    "evaluation_protocol": {
+      "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/protocol.json",
+      "sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03",
+      "protocol_id": "v8_conservative_retrospective_20261016"
+    },
+    "verification_revision": "95a8f602b2fb49304dbbb9a78a18edc43cc3ebba",
+    "data_verified": true,
+    "weights_provenance_verified": true,
+    "smoke_passed": true,
+    "resource_budget_measured": true,
+    "resource_measurement_scope": "observed representative forward/loss/backward plus explicit modeled optimizer allowance; not full-run measurement",
+    "optimizer_memory_measured": false,
+    "full_dataset_runtime_measured": false,
+    "patient_independence_accredited": false,
+    "retrospective_protocol_reviewed": true,
+    "preparation_only": true,
+    "training_authorized": false,
+    "execution_enabled": false,
+    "authorization_note": "gate_report does not enforce these informational authorization flags; disabled configuration is the effective execution guard",
+    "resource_review": {
+      "path": "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/resource-review.json",
+      "sha256": "6e3d896e59b473d075e1e81cfeda08755230fa7068df609c72f2a15c601eb2c9"
+    },
+    "historical_smoke_receipt": {
+      "path": "/home/jovyan/work/validation_v8/usl-ccam-preparation-20261017-003/receipt.json",
+      "sha256": "ed7275b299a2a8cf237c31d25375148de60b41ac5b9f4e7c42c6726e0cf30d84"
+    }
+  },
+  "gate_sha256": "2f8e644680aacf5eaeca90561a6d0f7a16655632e50020e022e4b8f55aa6b062",
+  "gate_consumer_metadata_validation_passed": true,
+  "launch": {
+    "status": "pending_user_approval_not_executed",
+    "execution_enabled": false,
+    "cwd": "/home/jovyan/work/proyectonp/repo_v8_canonical",
+    "requires_gate_regeneration_after_any_config_change": true,
+    "effective_guard": "current config execution_enabled=false",
+    "environment": {
+      "PYTHONPATH": "src",
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "WANDB_ENTITY": "nmoreno534-universidad-autonoma-de-bucaramanga",
+      "WANDB_MODE": "online"
+    },
+    "argv": [
+      "/home/jovyan/work/proyectonp/.venv/bin/python",
+      "scripts/run_segmentation_v8.py",
+      "--method",
+      "usl_net",
+      "--stage",
+      "ccam",
+      "--config",
+      "/home/jovyan/work/proyectonp/repo_v8_canonical/plan-segmentacion/metodos-v8/launch-preparation/configs/usl_ccam.draft.json",
+      "--manifest",
+      "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
+      "--gate",
+      "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/ccam.gate.json",
+      "--out",
+      "/home/jovyan/work/proyectonp/salidas/segmentation_v8/usl_ccam_20261017_001",
+      "--wandb-project",
+      "dermssl-segmentacion"
+    ],
+    "remaining_before_launch": [
+      "user_review",
+      "synthetic_cleanup_with_preserved_receipts",
+      "enabled_config_and_regenerated_hash_bound_gate"
+    ],
+    "downstream_usl_student_ready": false,
+    "downstream_pending": [
+      "CCAM_checkpoint_and_lineage",
+      "pseudo_mask_manifest",
+      "student_and_serial_cycle_execution_plan"
+    ]
+  },
+  "launch_sha256": "e44e0d7e6f2aae3855d4e1def8890a8d2c95d6ef8d1f0a1348ae92304960267d"
+}
