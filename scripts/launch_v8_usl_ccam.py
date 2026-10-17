@@ -21,8 +21,8 @@ DRAFT = BASE / 'usl_ccam.draft.json'
 CONFIG = BASE / 'usl_ccam.run-20261017.json'
 MANIFEST = Path('/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json')
 REVIEW = Path('/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001')
-RECEIPT_DIR = Path('/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-001')
-OUT = Path('/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-001')
+RECEIPT_DIR = Path('/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002')
+OUT = Path('/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002')
 TRACKING = OUT.parent / (OUT.name + '-tracking')
 GATE = RECEIPT_DIR / 'ccam.gate.json'
 STOP = False
@@ -208,6 +208,8 @@ def supervise():
             pin(ROOT / relative, expected_hash)
         config = json.loads(CONFIG.read_text())
         env = os.environ.copy()
+        # SDK 0.30.0 stores a parent-owned ephemeral IPC address here, not credentials.
+        env.pop('WANDB_SERVICE', None)
         env.update(PYTHONUNBUFFERED='1', PYTHONPATH=str(ROOT / 'src'),
                    CUBLAS_WORKSPACE_CONFIG=':4096:8', WANDB_MODE='online',
                    WANDB_ENTITY=record['wandb_entity'], WANDB_PROJECT='dermssl-segmentacion')
@@ -284,10 +286,12 @@ def main():
     parser.add_argument('--wandb-entity', required=True)
     args = parser.parse_args()
     prepare(args)
+    supervisor_env = os.environ.copy()
+    supervisor_env.pop('WANDB_SERVICE', None)
     with (RECEIPT_DIR / 'supervisor.log').open('xb') as log:
         process = subprocess.Popen([str(PYTHON), '-u', str(Path(__file__).resolve()), '--_supervise'],
                                    cwd=ROOT, stdin=subprocess.DEVNULL, stdout=log,
-                                   stderr=subprocess.STDOUT, start_new_session=True)
+                                   stderr=subprocess.STDOUT, start_new_session=True, env=supervisor_env)
     write_new(RECEIPT_DIR / 'submission.json', {'submitted_at': now(),
               'supervisor_pid': process.pid, 'status': 'submitted_training_unconfirmed'})
     print(json.dumps({'status': 'submitted_training_unconfirmed', 'supervisor_pid': process.pid,
