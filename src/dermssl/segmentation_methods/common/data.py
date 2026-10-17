@@ -73,8 +73,10 @@ def validate_manifest_document(document, *, need_pseudos=False, sources=1, train
                 if origin.get('uses_expert_masks') is not False or origin.get('uses_diagnoses') is not False:
                     raise ValueError('Expert/diagnostic supervision prohibited in W3')
                 if not origin.get('producer_revision') or not origin.get('method'):raise ValueError('Pseudo producer identity missing')
-    if accepted and len({r['image_sha256'] for r in rows}) != len(rows):
-        raise ValueError('Duplicate original-image bytes in accepted cohort')
+    if accepted and not reserved and document['partition']!='train':
+        raise ValueError('Accepted learning cohort is frozen only for training')
+    if accepted and reserved and len({r['image_sha256'] for r in rows}) != len(rows):
+        raise ValueError('Duplicate original-image bytes in accepted evaluation cohort')
     if reserved and cohort_digest(rows)!=protocol['evaluation_cohort_sha256']:
         raise ValueError('Evaluation cohort differs from the frozen protocol')
     if protocol is not None and not reserved:
