@@ -63,7 +63,7 @@ def test_e3b_mcc_has_real_paired_contrasts_and_the_note_says_what_exists():
     assert "NO es un contraste" not in text and "no traen contrastes" not in text
     assert "contraste pareado" in text and "IC 95 %" in text and "40 contrastes" in text
     assert "los 120 registros previos" in text and "idénticos" in text  # the count comes from the summary's rebuild block
-    assert re.search(r"E3 final: \d+ contrastes de MCC en los JSON, 0 no disponibles", text)  # refit on the pod, all reproduced
+    assert re.search(r"Prueba con segmentación final: \d+ contrastes de MCC en los JSON, 0 no disponibles", text)  # refit on the pod, all reproduced
 
 
 def test_an_e3_mcc_cell_stored_as_unavailable_renders_unavailable_from_the_json(tmp_path):
@@ -95,7 +95,7 @@ def test_no_contrast_is_pending_once_every_result_is_committed():
 
 
 def test_e2_contrasts_are_listed_with_the_primary_one_first():
-    text = _text().split("### D0-D3 (E2): contrastes pareados")[1]
+    text = _text().split(display_text("### D0-D3 (E2): contrastes pareados", context="bench", code_labels=True))[1]
     assert "predicción primaria registrada" in text and display_text("| D3 | D2 | F1 macro |") in text
 
 

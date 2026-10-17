@@ -27,14 +27,14 @@ Veredictos registrados (docs/30 §3), copiados del JSON:
 
 | Predicción | Semilla | Contraste | Métrica | Δ puntual | IC 95 % pareado | Lectura |
 |---|---|---|---|---:|---|---|
-| PAD-P1 | s42 | `proposed_s42` − `public` | Macro-F1 | -0,1070 | [-0,1350; -0,0789] | a favor de `public` (IC excluye 0) |
-| PAD-P1 | s43 | `proposed_s43` − `public` | Macro-F1 | -0,1312 | [-0,1628; -0,0984] | a favor de `public` (IC excluye 0) |
-| PAD-P2 | s42 | `plain_s42` − `public` | Macro-F1 | -0,0859 | [-0,1112; -0,0572] | a favor de `public` (IC excluye 0) |
-| PAD-P2 | s43 | `plain_s43` − `public` | Macro-F1 | -0,1085 | [-0,1351; -0,0825] | a favor de `public` (IC excluye 0) |
-| PAD-P3 | s42 | `proposed_s42` − `public` | ECE | 0,1128 | [0,0797; 0,1453] | a favor de `public` (IC excluye 0) |
-| PAD-P3 | s43 | `proposed_s43` − `public` | ECE | 0,0978 | [0,0637; 0,1307] | a favor de `public` (IC excluye 0) |
-| PAD-P4 | s42 | `proposed_s42` − `plain_s42` | Macro-F1 | -0,0212 | [-0,0456; 0,0007] | indistinguible |
-| PAD-P4 | s43 | `proposed_s43` − `plain_s43` | Macro-F1 | -0,0227 | [-0,0437; -0,0005] | a favor de `plain_s43` (IC excluye 0) |
+| PAD-P1 | repetición 42 | `proposed_s42` − `public` | Macro-F1 | -0,1070 | [-0,1350; -0,0789] | a favor de `public` (IC excluye 0) |
+| PAD-P1 | repetición 43 | `proposed_s43` − `public` | Macro-F1 | -0,1312 | [-0,1628; -0,0984] | a favor de `public` (IC excluye 0) |
+| PAD-P2 | repetición 42 | `plain_s42` − `public` | Macro-F1 | -0,0859 | [-0,1112; -0,0572] | a favor de `public` (IC excluye 0) |
+| PAD-P2 | repetición 43 | `plain_s43` − `public` | Macro-F1 | -0,1085 | [-0,1351; -0,0825] | a favor de `public` (IC excluye 0) |
+| PAD-P3 | repetición 42 | `proposed_s42` − `public` | ECE | 0,1128 | [0,0797; 0,1453] | a favor de `public` (IC excluye 0) |
+| PAD-P3 | repetición 43 | `proposed_s43` − `public` | ECE | 0,0978 | [0,0637; 0,1307] | a favor de `public` (IC excluye 0) |
+| PAD-P4 | repetición 42 | `proposed_s42` − `plain_s42` | Macro-F1 | -0,0212 | [-0,0456; 0,0007] | indistinguible |
+| PAD-P4 | repetición 43 | `proposed_s43` − `plain_s43` | Macro-F1 | -0,0227 | [-0,0437; -0,0005] | a favor de `plain_s43` (IC excluye 0) |
 
 Mejora robusta a la semilla (IC excluye 0 a favor del brazo con las dos semillas, según el JSON):
 
@@ -99,14 +99,14 @@ Veredictos registrados (docs/30 §3), copiados del JSON:
 
 | Predicción | Semilla | Contraste | Métrica | Δ puntual | IC 95 % pareado | Lectura |
 |---|---|---|---|---:|---|---|
-| PAD-P1 | s42 | `proposed_s42` − `public` | Macro-F1 | -0,0711 | [-0,0921; -0,0525] | a favor de `public` (IC excluye 0) |
-| PAD-P1 | s43 | `proposed_s43` − `public` | Macro-F1 | -0,0865 | [-0,1087; -0,0669] | a favor de `public` (IC excluye 0) |
-| PAD-P2 | s42 | `plain_s42` − `public` | Macro-F1 | -0,0660 | [-0,0855; -0,0481] | a favor de `public` (IC excluye 0) |
-| PAD-P2 | s43 | `plain_s43` − `public` | Macro-F1 | -0,0433 | [-0,0631; -0,0248] | a favor de `public` (IC excluye 0) |
-| PAD-P3 | s42 | `proposed_s42` − `public` | ECE | 0,0295 | [0,0073; 0,0539] | a favor de `public` (IC excluye 0) |
-| PAD-P3 | s43 | `proposed_s43` − `public` | ECE | 0,0114 | [-0,0100; 0,0348] | indistinguible |
-| PAD-P4 | s42 | `proposed_s42` − `plain_s42` | Macro-F1 | -0,0051 | [-0,0214; 0,0099] | indistinguible |
-| PAD-P4 | s43 | `proposed_s43` − `plain_s43` | Macro-F1 | -0,0432 | [-0,0599; -0,0267] | a favor de `plain_s43` (IC excluye 0) |
+| PAD-P1 | repetición 42 | `proposed_s42` − `public` | Macro-F1 | -0,0711 | [-0,0921; -0,0525] | a favor de `public` (IC excluye 0) |
+| PAD-P1 | repetición 43 | `proposed_s43` − `public` | Macro-F1 | -0,0865 | [-0,1087; -0,0669] | a favor de `public` (IC excluye 0) |
+| PAD-P2 | repetición 42 | `plain_s42` − `public` | Macro-F1 | -0,0660 | [-0,0855; -0,0481] | a favor de `public` (IC excluye 0) |
+| PAD-P2 | repetición 43 | `plain_s43` − `public` | Macro-F1 | -0,0433 | [-0,0631; -0,0248] | a favor de `public` (IC excluye 0) |
+| PAD-P3 | repetición 42 | `proposed_s42` − `public` | ECE | 0,0295 | [0,0073; 0,0539] | a favor de `public` (IC excluye 0) |
+| PAD-P3 | repetición 43 | `proposed_s43` − `public` | ECE | 0,0114 | [-0,0100; 0,0348] | indistinguible |
+| PAD-P4 | repetición 42 | `proposed_s42` − `plain_s42` | Macro-F1 | -0,0051 | [-0,0214; 0,0099] | indistinguible |
+| PAD-P4 | repetición 43 | `proposed_s43` − `plain_s43` | Macro-F1 | -0,0432 | [-0,0599; -0,0267] | a favor de `plain_s43` (IC excluye 0) |
 
 Mejora robusta a la semilla (IC excluye 0 a favor del brazo con las dos semillas, según el JSON):
 

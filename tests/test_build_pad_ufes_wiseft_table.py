@@ -6,6 +6,7 @@ is checked against the committed JSON once the pod run exists.
 
 from __future__ import annotations
 
+from dermssl.display_nomenclature import display_text
 import json
 import re
 from pathlib import Path
@@ -77,7 +78,7 @@ def test_pipes_inside_cells_are_escaped_so_every_row_keeps_its_columns(document)
 
 def test_the_ham_side_says_s43_has_no_curve(document):
     text = bt.render(document)
-    assert document["ham_holdout"]["curves"]["A_s43"]["note"] in text
+    assert display_text(document["ham_holdout"]["curves"]["A_s43"]["note"]) in text
     ham = document["ham_holdout"]["curves"]["A_soup"]["points"]["0.8"]["macro_f1"]
     assert bt.num(ham) in text
 

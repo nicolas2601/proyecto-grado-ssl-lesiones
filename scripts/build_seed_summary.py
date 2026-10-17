@@ -90,10 +90,10 @@ def _sources_sentence(seed_list: list[int]) -> str:
     return f"Generado desde {seeds.join_es(parts)}. "
 
 
-from dermssl.display_nomenclature import presentation  # noqa: E402
+from dermssl.display_nomenclature import context_presentation  # noqa: E402
 
 
-@presentation
+@context_presentation("v7")
 def render(docs: dict[int, dict]) -> str:
     seed_list = sorted(docs)
     base, tags = docs[seed_list[0]], [f"s{s}" for s in seed_list]

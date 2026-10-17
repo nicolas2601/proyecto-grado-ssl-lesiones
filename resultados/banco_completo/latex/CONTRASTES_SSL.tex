@@ -206,7 +206,7 @@ Proposed con segmentación (TTA) & Recall de melanoma & 2/8 & 4/8 \\
 Proposed con segmentación (TTA) & MCC & 8/8 & 8/8 \\
 \bottomrule
 \end{tabular}}
-\caption{E3b: baselines que quedan por debajo de Proposed sin segmentación con IC que excluye 0, por versión}\label{tab:contrast-e3b-versions}
+\caption{Prueba con segmentación en los modelos de comparación: baselines que quedan por debajo de Proposed sin segmentación con IC que excluye 0, por versión}\label{tab:contrast-e3b-versions}
 \end{table}
 
 \begin{table}[ht]
@@ -227,7 +227,7 @@ DINOv2 ViT-S/14 & 0,5250 & 0,5810 & +0,0559 [+0,0269; +0,0854] & sí \\
 DINOv2 ViT-B/14 & 0,5649 & 0,5741 & +0,0092 [-0,0204; +0,0380] & no \\
 \bottomrule
 \end{tabular}}
-\caption{HAM10000: MCC puntual de los baselines sin y con Proposed con segmentación (experimental) y su contraste pareado (E3b)}\label{tab:contrast-e3b-mcc}
+\caption{HAM10000: MCC puntual de los baselines sin y con Proposed con segmentación (experimental) y su contraste pareado (Prueba con segmentación en los modelos de comparación)}\label{tab:contrast-e3b-mcc}
 \end{table}
 
 \begin{table}[ht]
@@ -248,7 +248,7 @@ Proposed con segmentación (experimental) (tercil L* más oscuro) & Proposed sin
 Proposed con segmentación (experimental) (tercil L* más oscuro) & Proposed sin segmentación & MCC & +0,0593 [+0,0259; +0,0939] & sí & Proposed con segmentación (experimental) (tercil L* más oscuro) mejor (el IC excluye 0) \\
 \bottomrule
 \end{tabular}}
-\caption{HAM10000: Proposed con segmentación (experimental) $-$ Proposed sin segmentación, cómputo S0: batch 16 + autocast}\label{tab:contrast-f4-s0}
+\caption{HAM10000: Proposed con segmentación (experimental) $-$ Proposed sin segmentación, cómputo lote 16: batch 16 + autocast}\label{tab:contrast-f4-s0}
 \end{table}
 
 \begin{table}[ht]
@@ -269,7 +269,7 @@ Proposed con segmentación (experimental) (tercil L* más oscuro) & Proposed sin
 Proposed con segmentación (experimental) (tercil L* más oscuro) & Proposed sin segmentación & MCC & +0,0494 [+0,0146; +0,0849] & sí & Proposed con segmentación (experimental) (tercil L* más oscuro) mejor (el IC excluye 0) \\
 \bottomrule
 \end{tabular}}
-\caption{HAM10000: Proposed con segmentación (experimental) $-$ Proposed sin segmentación, cómputo S1: batch 64 + autocast (canónico, el de v7.1)}\label{tab:contrast-f4-s1}
+\caption{HAM10000: Proposed con segmentación (experimental) $-$ Proposed sin segmentación, cómputo lote 64: batch 64 + autocast (canónico, el de v7.1)}\label{tab:contrast-f4-s1}
 \end{table}
 
 \begin{table}[ht]
@@ -290,7 +290,7 @@ Proposed con segmentación (experimental) (tercil L* más oscuro) & Proposed sin
 Proposed con segmentación (experimental) (tercil L* más oscuro) & Proposed sin segmentación & MCC & +0,0550 [+0,0205; +0,0920] & sí & Proposed con segmentación (experimental) (tercil L* más oscuro) mejor (el IC excluye 0) \\
 \bottomrule
 \end{tabular}}
-\caption{HAM10000: Proposed con segmentación (experimental) $-$ Proposed sin segmentación, cómputo S2: batch 64, fp32}\label{tab:contrast-f4-s2}
+\caption{HAM10000: Proposed con segmentación (experimental) $-$ Proposed sin segmentación, cómputo lote 64 en precisión completa: batch 64, fp32}\label{tab:contrast-f4-s2}
 \end{table}
 
 \begin{table}[ht]
@@ -311,7 +311,7 @@ Proposed con segmentación (experimental) (tercil L* más oscuro) & Proposed sin
 Proposed con segmentación (experimental) (tercil L* más oscuro) & Proposed sin segmentación & MCC & +0,0494 [+0,0146; +0,0849] & sí & Proposed con segmentación (experimental) (tercil L* más oscuro) mejor (el IC excluye 0) \\
 \bottomrule
 \end{tabular}}
-\caption{HAM10000: Proposed con segmentación (experimental) $-$ Proposed sin segmentación, semilla de Proposed sin segmentación 42 (= cómputo canónico S1)}\label{tab:contrast-f4-seed42}
+\caption{HAM10000: Proposed con segmentación (experimental) $-$ Proposed sin segmentación, semilla de Proposed sin segmentación 42 (= cómputo canónico lote 64)}\label{tab:contrast-f4-seed42}
 \end{table}
 
 \begin{table}[ht]
@@ -681,7 +681,7 @@ DINOv2 ViT-B/14 (fine-tuning) & MCC & +0,1318 [+0,0415; +0,2197] & sí & Propose
 
 \begingroup\scriptsize
 \begin{longtable}{@{}llllll@{}}
-\caption{D0-D3 (E2): contrastes pareados}\label{tab:e2-contrasts} \\
+\caption{D0-D3 (Prueba de adaptación a fotos clínicas): contrastes pareados}\label{tab:e2-contrasts} \\
 \toprule
 Brazo & Control & Métrica & $\Delta$ (brazo $-$ control) [IC 95 \%] & El IC excluye 0 & Lectura \\
 \midrule

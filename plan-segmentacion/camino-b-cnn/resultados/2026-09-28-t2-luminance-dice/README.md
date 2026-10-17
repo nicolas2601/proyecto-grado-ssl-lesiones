@@ -1,6 +1,6 @@
-# T2 — Dice por tercil de luminancia (exploratorio)
+# Prueba de segmentación por luminancia — Dice por tercil de luminancia (exploratorio)
 
-Generado por `scripts/t2_luminance_dice.py` desde `t2_luminance_dice.json`; no editar a mano. Registro, predicción y salvedades: docs/27, bloque T2.
+Generado por `scripts/t2_luminance_dice.py` desde `t2_luminance_dice.json`; no editar a mano. Registro, predicción y salvedades: docs/27, bloque Prueba de segmentación por luminancia.
 
 Los bins son terciles de la mediana de L\* de la piel sobre el pool (`tone_tercile` del manifiesto publicado, sha256 `57df1e65e88d…`): luminancia, no es tono de piel. La luminancia está confundida con el diagnóstico, el tamaño de la lesión, el dermatoscopio y la iluminación, así que ningún contraste se atribuye a una causa.
 

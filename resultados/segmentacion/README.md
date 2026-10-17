@@ -75,7 +75,7 @@ semilla 42, dos GPU con `torchrun`, bf16.
 | Contrastivo (MoCo v2) | ResNet-50 desde cero, 30 epocas, batch 128 por GPU, AdamW lr 5e-4, wd 1e-4, warmup 2, cola 16 384, momento 0,999, temperatura 0,2, split-BN 4 |
 | CCAM | cabeza 3 x 3 sobre layer3 + layer4 congeladas, 5 epocas, batch 64, lr 1e-3, alpha 0,25 |
 | Pseudo-mascaras | fondo < 0,35, lesion > 0,65, ignorar entre medio; region mas central; area minima 0,003 y maxima 0,6 del campo; distancia maxima al centro 0,5; tinta y brillos ignorados |
-| red de segmentación entrenada con pseudo-máscaras (U-Net) | 32 canales base (7,8 M parametros), BCE + Dice sobre pixeles confiables, Adam lr 1e-4, warmup 1, batch 32 por GPU, 3 rondas x 20 epocas, checkpoint por perdida de pseudo-validacion |
+| modelo de segmentación (U-Net) | 32 canales base (7,8 M parametros), BCE + Dice sobre pixeles confiables, Adam lr 1e-4, warmup 1, batch 32 por GPU, 3 rondas x 20 epocas, checkpoint por perdida de pseudo-validacion |
 | Evaluacion | umbral fijo 0,5, 224 x 224, Hausdorff-95, bootstrap de 1 000 remuestreos |
 
 Augmentacion en GPU: recorte aleatorio, volteos, jitter de color fuerte,
@@ -116,29 +116,29 @@ Mismo evaluador, mismas imagenes, mismas mascaras de referencia. Artefactos en
 
 | Metodo | Conjunto | Dice medio [IC 95 %] | Dice mediana | Dice p10 | IoU | Sens. | Espec. | HD95 medio |
 |---|---|---|---|---|---|---|---|---|
-| red de segmentación entrenada con pseudo-máscaras final | ISIC 2018 | 0,718 [0,709, 0,726] | 0,792 | 0,402 | 0,602 | 0,783 | 0,973 | 26,1 px |
+| modelo de segmentación final | ISIC 2018 | 0,718 [0,709, 0,726] | 0,792 | 0,402 | 0,602 | 0,783 | 0,973 | 26,1 px |
 | rnorm | ISIC 2018 | 0,716 [0,707, 0,724] | 0,789 | 0,348 | 0,600 | 0,722 | 0,961 | 33,5 px |
 | xnorm | ISIC 2018 | 0,695 [0,687, 0,704] | 0,768 | 0,318 | 0,575 | 0,686 | 0,963 | 33,1 px |
-| red de segmentación entrenada con pseudo-máscaras final | HAM10000 | 0,785 [0,781, 0,788] | 0,852 | 0,507 | 0,678 | 0,777 | 0,982 | 22,4 px |
+| modelo de segmentación final | HAM10000 | 0,785 [0,781, 0,788] | 0,852 | 0,507 | 0,678 | 0,777 | 0,982 | 22,4 px |
 | rnorm | HAM10000 | 0,765 [0,762, 0,768] | 0,819 | 0,530 | 0,645 | 0,684 | 0,983 | 22,7 px |
 | xnorm | HAM10000 | 0,733 [0,729, 0,736] | 0,788 | 0,485 | 0,604 | 0,636 | 0,985 | 23,0 px |
 
-Comparacion pareada por imagen (bootstrap de la diferencia red de segmentación entrenada con pseudo-máscaras menos
+Comparacion pareada por imagen (bootstrap de la diferencia modelo de segmentación menos
 piso, 5 000 remuestreos, semilla fija; el script del cluster con 10 000
 remuestreos da los mismos intervalos a la tercera cifra):
 
 | Diferencia | Dice | HD95 |
 |---|---|---|
-| ISIC 2018, red de segmentación entrenada con pseudo-máscaras menos rnorm | +0,002 [-0,007, +0,011], empate | -7,4 px [-8,6, -6,1], gana el red de segmentación entrenada con pseudo-máscaras |
-| ISIC 2018, red de segmentación entrenada con pseudo-máscaras menos xnorm | +0,022 [+0,013, +0,032], gana el red de segmentación entrenada con pseudo-máscaras | -7,0 px [-8,2, -5,7], gana el red de segmentación entrenada con pseudo-máscaras |
-| HAM10000, red de segmentación entrenada con pseudo-máscaras menos rnorm | +0,020 [+0,016, +0,023], gana el red de segmentación entrenada con pseudo-máscaras | -0,2 px [-0,7, +0,3], empate |
-| HAM10000, red de segmentación entrenada con pseudo-máscaras menos xnorm | +0,052 [+0,049, +0,056], gana el red de segmentación entrenada con pseudo-máscaras | -0,5 px [-1,0, 0,0], gana por poco |
+| ISIC 2018, modelo de segmentación menos rnorm | +0,002 [-0,007, +0,011], empate | -7,4 px [-8,6, -6,1], gana el modelo de segmentación |
+| ISIC 2018, modelo de segmentación menos xnorm | +0,022 [+0,013, +0,032], gana el modelo de segmentación | -7,0 px [-8,2, -5,7], gana el modelo de segmentación |
+| HAM10000, modelo de segmentación menos rnorm | +0,020 [+0,016, +0,023], gana el modelo de segmentación | -0,2 px [-0,7, +0,3], empate |
+| HAM10000, modelo de segmentación menos xnorm | +0,052 [+0,049, +0,056], gana el modelo de segmentación | -0,5 px [-1,0, 0,0], gana por poco |
 
 Lectura honesta: en ISIC 2018 el metodo aprendido no mejora el solapamiento
 medio frente a rnorm, pero produce bordes mejores (7 px menos de HD95) y menos
 fallos catastroficos (p10 0,40 frente a 0,35); en HAM10000 mejora el
 solapamiento y empata en bordes. Contra xnorm gana en todo. El unico indicador
-en que un piso supera al red de segmentación entrenada con pseudo-máscaras es el p10 de HAM10000 (rnorm 0,530 frente a
+en que un piso supera al modelo de segmentación es el p10 de HAM10000 (rnorm 0,530 frente a
 0,507). "Supera a los pisos" a secas seria una afirmacion incorrecta.
 
 Piloto frente a final, pareado: +0,066 [+0,059, +0,072] en ISIC 2018 y
@@ -276,7 +276,7 @@ El area minima de candidato 0,003 resolvio las lesiones pequenas (41 % de
 ISIC 2018) y la correlacion Dice-tamano paso de +0,52 a +0,11 en ISIC 2018 y
 de +0,40 a -0,20 en HAM10000. El cuello de botella se movio a las lesiones
 grandes: el cap de area de candidato (0,6 del campo) excluye del entrenamiento
-las lesiones que llenan el cuadro, y el red de segmentación entrenada con pseudo-máscaras las subsegmenta (cobertura
+las lesiones que llenan el cuadro, y el modelo de segmentación las subsegmenta (cobertura
 predicha 0,17 frente a 0,21 de referencia en ISIC 2018). Es el cambio con mas
 retorno para una corrida siguiente: subir el cap a 0,75 manteniendo el resto.
 
@@ -298,7 +298,7 @@ retorno para una corrida siguiente: subir el cap a 0,75 manteniendo el resto.
   0,68 % de los pixeles y quedan ignorados en la perdida.
 - Modo de fallo restante (`overlays/worst.png`): marcas de tinta violeta,
   cabello denso, gel y reglas siguen atrayendo predicciones aisladas cuando la
-  lesion es palida; el red de segmentación entrenada con pseudo-máscaras no aprende a rechazarlas porque esos pixeles
+  lesion es palida; el modelo de segmentación no aprende a rechazarlas porque esos pixeles
   se ignoran en vez de marcarse como fondo.
 - Reproducibilidad: 16 etapas con codigo 0, 9 283 s de computo, sin
   reinicios del pod durante la corrida buena. Dos corridas anteriores del
@@ -381,11 +381,11 @@ Por retorno esperado, todo sin etiquetas:
 
 1. Tope de area de candidato 0,75: probado el 2026-09-21 (corrida v2), no
    mejora; ver la ablacion arriba. Palanca cerrada.
-2. Tinta y brillos como fondo en lugar de ignorados. Hoy el red de segmentación entrenada con pseudo-máscaras no
+2. Tinta y brillos como fondo en lugar de ignorados. Hoy el modelo de segmentación no
    aprende a rechazarlos; marcarlos como fondo lo obliga. Riesgo: si la regla
    de color toca una lesion azulada, la castiga. Verificar con los peores casos.
 3. Inferencia con volteos (test-time augmentation) y promedio de las tres
-   rondas del red de segmentación entrenada con pseudo-máscaras. Suele dar decimas de Dice sin reentrenar.
+   rondas del modelo de segmentación. Suele dar decimas de Dice sin reentrenar.
 4. Resolucion 320 en lugar de 224 para lesiones pequenas y bordes; cuesta
    el doble de tiempo por epoca.
 5. Piso adicional zero-shot con SAM y prompt central, previsto en el plan,

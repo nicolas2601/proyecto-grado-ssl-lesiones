@@ -19,6 +19,7 @@ import build_closing_table as ct  # noqa: E402
 import closing_rows_limitations as lim  # noqa: E402
 
 from dermssl import probe_blas_limitation as pbl  # noqa: E402
+from dermssl.display_nomenclature import display_text  # noqa: E402
 
 
 def _rendered() -> str:
@@ -46,12 +47,12 @@ def _text(title_fragment: str, root: Path = REPO) -> str:
 
 def test_the_section_follows_the_closing_table_and_precedes_the_sdiag_detail():
     text = _rendered()
-    assert text.index("## Tabla de cierre") < text.index(lim.HEADING) < text.index("## Detalle de S-diag")
+    assert text.index("## Tabla de cierre") < text.index(lim.HEADING) < text.index(display_text("## Detalle de S-diag", context="segmentation"))
 
 
 def test_the_blas_row_is_the_shared_note_verbatim():
     facts = pbl.load_facts(REPO / lim.T4_DIR, json.loads((REPO / lim.V71_EVAL).read_text(encoding="utf-8")))
-    assert ct._cell(pbl.paragraph(facts)) in _rendered()
+    assert ct._cell(display_text(pbl.paragraph(facts), context="segmentation", code_labels=True)) in _rendered()
 
 
 def test_the_convergence_row_reads_its_json(tmp_path):

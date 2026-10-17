@@ -105,7 +105,7 @@ def test_table_is_generated_and_check_detects_drift(tmp_path):
     doc.write_text(json.dumps(_document()), encoding="utf-8")
     assert bt.main([str(doc), "--out", str(out)]) == 0
     text = out.read_text(encoding="utf-8")
-    assert "P1" in text and "cumplida" in text and "No editar a mano" in text
+    assert "Predicción de anclaje" in text and "cumplida" in text and "No editar a mano" in text
     assert bt.main([str(doc), "--out", str(out), "--check"]) == 0
     out.write_text(text + "edit\n", encoding="utf-8")
     assert bt.main([str(doc), "--out", str(out), "--check"]) == 1

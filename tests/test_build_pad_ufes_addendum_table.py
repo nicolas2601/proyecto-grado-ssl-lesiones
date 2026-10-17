@@ -6,6 +6,7 @@ is checked against the committed JSON once the pod run exists.
 
 from __future__ import annotations
 
+from dermssl.display_nomenclature import display_text
 import json
 import re
 from pathlib import Path
@@ -50,7 +51,7 @@ def test_every_reading_stratum_and_model_is_in_the_table(document):
     for name in pu.FST_BINS:
         assert f"### {name}" in text
     for role in pa.roles():
-        assert f"`{role}`" in text
+        assert display_text(f"`{role}`", code_labels=True) in text
 
 
 def test_the_strata_show_k_over_the_resamples(document):

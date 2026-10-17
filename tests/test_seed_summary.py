@@ -46,8 +46,8 @@ def test_three_seeds_give_mean_and_range_not_a_difference():
     assert plain["range"] == pytest.approx(0.06) and "diff" not in plain
     text = bs.render(docs)
     assert "# v7: las tres semillas" in text and "Rango (máx − mín)" in text
-    assert "| s42 | s43 | s44 |" in text and "(semilla 44)" in text
-    assert "P3-IC con las tres semillas: robusto a la semilla." in text
+    assert "| repetición 42 | repetición 43 | repetición 44 |" in text and "(semilla 44)" in text
+    assert "Predicción de objetivo (intervalo de confianza) con las tres semillas: robusto a la semilla." in text
 
 
 def test_one_seed_that_misses_p3_ic_breaks_robustness_across_three():
@@ -58,5 +58,5 @@ def test_one_seed_that_misses_p3_ic_breaks_robustness_across_three():
 
 def test_render_lists_verdicts_per_seed_and_marks_generated():
     text = bs.render({42: _doc(0.64, 0.66, 0.01, "cumplida"), 43: _doc(0.68, 0.66, 0.01, "cumplida")})
-    assert "No editar a mano" in text and "P3-IC" in text and "robusto a la semilla" in text
-    assert "s43 − s42" in text
+    assert "No editar a mano" in text and "Predicción de objetivo (intervalo de confianza)" in text and "robusto a la semilla" in text
+    assert "repetición 43 − repetición 42" in text

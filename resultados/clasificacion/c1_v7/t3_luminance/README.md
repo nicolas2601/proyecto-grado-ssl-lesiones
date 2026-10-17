@@ -1,6 +1,6 @@
-# T3 — C1-v7 por tercil de luminancia (exploratorio)
+# Prueba de clasificación por luminancia — C1-v7 por tercil de luminancia (exploratorio)
 
-Generado por `scripts/t3_c1_luminance.py` desde `t3_c1_luminance.json`; no editar a mano. Registro, predicción y salvedades: docs/28, bloque T3.
+Generado por `scripts/t3_c1_luminance.py` desde `t3_c1_luminance.json`; no editar a mano. Registro, predicción y salvedades: docs/28, bloque Prueba de clasificación por luminancia.
 
 Los bins son terciles de la mediana de L\* de la piel sobre el pool (`tone_tercile`, manifiesto sha256 `57df1e65e88d…`): luminancia, no es tono de piel. Está confundida con el diagnóstico, el dermatoscopio y la iluminación; ningún Δ se atribuye al tono.
 

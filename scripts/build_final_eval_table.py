@@ -32,10 +32,10 @@ def _ci(low: float, high: float) -> str:
     return f"[{_num(low)}; {_num(high)}]"
 
 
-from dermssl.display_nomenclature import presentation  # noqa: E402
+from dermssl.display_nomenclature import context_presentation  # noqa: E402
 
 
-@presentation
+@context_presentation("v7")
 def render(doc: dict) -> str:
     arms = doc["arms"]
     lines = [

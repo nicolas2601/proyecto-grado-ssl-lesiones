@@ -9,10 +9,10 @@ from dermssl.bench.confusion import CONDITIONS, NO_DIFF, SSL_MODELS, V71_JSON, r
 CAPTIONS = {"counts": "Conteos", "norm": "Normalizada por fila (recall por clase en la diagonal)"}
 
 
-from dermssl.display_nomenclature import display_text, presentation  # noqa: E402
+from dermssl.display_nomenclature import context_presentation, display_text  # noqa: E402
 
 
-@presentation
+@context_presentation("bench")
 def readme(arts: list[dict], pend: list[dict]) -> str:
     lines = [f"- `{rel_json(a).as_posix()}` (+ `.png`): {a['dataset']}, {a['modelo']}, {a['condicion']}; "
              f"origen: {a['origen']}." for a in arts]

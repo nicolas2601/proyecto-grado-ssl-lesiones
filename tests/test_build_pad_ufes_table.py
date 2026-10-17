@@ -7,6 +7,7 @@ checked against the committed JSON once the pod run exists.
 
 from __future__ import annotations
 
+from dermssl.display_nomenclature import display_text
 import copy
 import json
 import re
@@ -84,7 +85,7 @@ def test_the_verdict_rows_show_the_per_seed_deltas_used(document):
     for seed in pr.SEEDS:
         row = _row(primary, pr.role("proposed", seed), pr.PUBLIC, "ece")
         delta = f"{row['point_delta']:.4f}".replace(".", ",")
-        assert f"| PAD-P3 | s{seed} | `{row['arm']}` − `{row['control']}` | ECE | {delta} |" in text
+        assert display_text(f"| PAD-P3 | s{seed} | `{row['arm']}` − `{row['control']}` | ECE | {delta} |", code_labels=True) in text
 
 
 def test_every_reading_stratum_and_model_is_in_the_table(document):

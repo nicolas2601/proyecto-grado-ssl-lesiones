@@ -63,10 +63,10 @@ def block_section(rows: list[Row], block: str) -> list[str]:
             "", *metrics_table(mine), ""]
 
 
-from dermssl.display_nomenclature import presentation  # noqa: E402
+from dermssl.display_nomenclature import context_presentation  # noqa: E402
 
 
-@presentation
+@context_presentation("bench")
 def render_markdown(repo: Path, ds: Dataset) -> str:
     rows, facts = dataset_rows(repo, ds), glossary.dataset_facts(repo, ds)
     return "\n".join([

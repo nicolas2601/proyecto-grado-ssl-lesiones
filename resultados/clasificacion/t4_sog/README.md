@@ -1,4 +1,4 @@
-# T4 — Shades of Gray (p = 6) antes del extractor, lectura única de val
+# Prueba de constancia de color — Shades of Gray (p = 6) antes del extractor, lectura única de val
 
 Generado por `scripts/build_t4_table.py` desde `t4_final_eval.json`; no editar a mano. Registro, predicciones y salvedades: docs/31. Los terciles son terciles de luminancia, no tono de piel.
 

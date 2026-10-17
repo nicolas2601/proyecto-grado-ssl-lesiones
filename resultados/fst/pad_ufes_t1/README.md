@@ -1,4 +1,4 @@
-# T1: la estimación ITA del proyecto contra el `fitspatrick` de PAD-UFES-20 (docs/30 §5)
+# Prueba del estimador de tono: la estimación ITA del proyecto contra el `fitspatrick` de PAD-UFES-20 (docs/30 §5)
 
 Generado por `scripts/build_pad_ufes_fst_table.py` desde `pad_ufes_fst_validation.json`; no editar a mano (`--check` lo compara, y `tests/test_build_pad_ufes_fst_table.py` lo corre en CI). Exploratorio. `code_revision` 57a28d2f0ff9cd34dd821c1d32c3b29de812c825, registro `d351f36df4a525b27661eced45eefaca38c888b2`. 2.298 imágenes, 804 sin fototipo válido.
 

@@ -2,7 +2,7 @@
 
 Generado desde `final_eval.json` (semilla 42), `s43/final_eval.json` (semilla 43) y `s44/final_eval.json` (semilla 44). No editar a mano: `--check` lo compara en CI. Regla de lectura en docs/28 §4.1.
 
-| Brazo | Métrica | s42 | s43 | s44 | Media | Rango (máx − mín) |
+| Brazo | Métrica | repetición 42 | repetición 43 | repetición 44 | Media | Rango (máx − mín) |
 |---|---|---|---|---|---|---|
 | Modelo de control | Macro-F1 | 0,6464 | 0,6850 | 0,6843 | 0,6719 | +0,0386 |
 | Modelo de control | Bal-acc | 0,6021 | 0,6457 | 0,6445 | 0,6308 | +0,0436 |
@@ -17,7 +17,7 @@ Generado desde `final_eval.json` (semilla 42), `s43/final_eval.json` (semilla 43
 | DINOv2 público | AUC | 0,9257 | 0,9257 | 0,9257 | 0,9257 | 0,0000 |
 | DINOv2 público | ECE | 0,1307 | 0,1307 | 0,1307 | 0,1307 | 0,0000 |
 
-| Contraste | Métrica | s42 [IC 95 %] | s43 [IC 95 %] | s44 [IC 95 %] | Media |
+| Contraste | Métrica | repetición 42 [IC 95 %] | repetición 43 [IC 95 %] | repetición 44 [IC 95 %] | Media |
 |---|---|---|---|---|---|
 | Modelo de control − DINOv2 público | Macro-F1 | +0,0306 [-0,0137; +0,0744] | +0,0692 [+0,0292; +0,1125] | +0,0684 [+0,0245; +0,1105] | +0,0561 |
 | Modelo de control − DINOv2 público | Bal-acc | +0,0097 [-0,0346; +0,0549] | +0,0533 [+0,0167; +0,0952] | +0,0521 [+0,0096; +0,0943] | +0,0384 |
@@ -32,12 +32,12 @@ Generado desde `final_eval.json` (semilla 42), `s43/final_eval.json` (semilla 43
 | Proposed sin segmentación − Modelo de control | AUC | +0,0010 [-0,0045; +0,0063] | -0,0039 [-0,0074; -0,0003] | +0,0004 [-0,0049; +0,0065] | -0,0008 |
 | Proposed sin segmentación − Modelo de control | ECE | +0,0190 [+0,0003; +0,0270] | -0,0024 [-0,0152; +0,0141] | -0,0034 [-0,0180; +0,0136] | +0,0044 |
 
-| Predicción | s42 | s43 | s44 |
+| Predicción | repetición 42 | repetición 43 | repetición 44 |
 |---|---|---|---|
-| P1 | cumplida | cumplida | cumplida |
-| P2 | no cumplida | no cumplida | no cumplida |
-| P3 | cumplida | cumplida | cumplida |
-| P1-NI | no cumplida | cumplida | cumplida |
-| P3-IC | cumplida | cumplida | cumplida |
+| Predicción de anclaje | cumplida | cumplida | cumplida |
+| Predicción de tono | no cumplida | no cumplida | no cumplida |
+| Predicción de objetivo | cumplida | cumplida | cumplida |
+| Predicción de anclaje (no inferioridad estricta) | no cumplida | cumplida | cumplida |
+| Predicción de objetivo (intervalo de confianza) | cumplida | cumplida | cumplida |
 
-P3-IC con las tres semillas: robusto a la semilla.
+Predicción de objetivo (intervalo de confianza) con las tres semillas: robusto a la semilla.

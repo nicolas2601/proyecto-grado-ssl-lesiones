@@ -231,10 +231,10 @@ def _dataset(key: str, d: dict | None) -> list[str]:
     return [*out, *_terciles(d["report"]["terciles"])]
 
 
-from dermssl.display_nomenclature import presentation  # noqa: E402
+from dermssl.display_nomenclature import context_presentation  # noqa: E402
 
 
-@presentation
+@context_presentation("bench")
 def render(documents: dict[str, dict]) -> str:
     """The whole FITZPATRICK.md from the checked documents found so far."""
     lines = ["# Banco completo: Fitzpatrick descriptivo (E5)", "",

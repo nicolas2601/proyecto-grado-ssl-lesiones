@@ -173,6 +173,10 @@ def _rows(doc: dict, only_key: bool) -> list[str]:
     return lines
 
 
+from dermssl.display_nomenclature import segmentation_presentation  # noqa: E402
+
+
+@segmentation_presentation
 def render_markdown(doc: dict) -> str:
     p, pred, mult, cov = doc["params"], doc["prediction"], doc["multiplicity"], doc["coverage"]
     header = ["| Segmentador | Backbone | Tercil | Condición | n | n mel | "

@@ -16,11 +16,11 @@ Probe `logreg`, n = 2004, `code_revision` 1d1109eaf2c8382fab1b0e5ed7aae9f5de356a
 
 | Predicción (docs/28 §5) | Criterio | Veredicto |
 |---|---|---|
-| P1 | macro-F1 Modelo de control - público >= -0.01 | cumplida |
-| P2 | ECE Proposed sin segmentación - Modelo de control < 0 con IC que excluye el cero y macro-F1 >= -0.01 | no cumplida |
-| P3 | macro-F1 Proposed sin segmentación - público >= 0 y ECE Proposed sin segmentación - público < 0 con IC que excluye el cero | cumplida |
-| P1-NI | límite inferior IC macro-F1 Modelo de control - público >= -0.01 | cumplida |
-| P3-IC | límite inferior IC macro-F1 Proposed sin segmentación - público > 0 (permite decir que le gana) | cumplida |
+| Predicción de anclaje | macro-F1 Modelo de control - público >= -0.01 | cumplida |
+| Predicción de tono | ECE Proposed sin segmentación - Modelo de control < 0 con IC que excluye el cero y macro-F1 >= -0.01 | no cumplida |
+| Predicción de objetivo | macro-F1 Proposed sin segmentación - público >= 0 y ECE Proposed sin segmentación - público < 0 con IC que excluye el cero | cumplida |
+| Predicción de anclaje (no inferioridad estricta) | límite inferior IC macro-F1 Modelo de control - público >= -0.01 | cumplida |
+| Predicción de objetivo (intervalo de confianza) | límite inferior IC macro-F1 Proposed sin segmentación - público > 0 (permite decir que le gana) | cumplida |
 
 ## ECE con IC basic (lectura secundaria)
 
@@ -35,7 +35,7 @@ IC basic (reverse-percentile) de ECE, lectura secundaria. El ECE remuestreado ti
 | Proposed sin segmentación − DINOv2 público | -0,1103 | [-0,1328; -0,0988] | no |
 | Proposed sin segmentación − Modelo de control | -0,0034 | [-0,0205; 0,0112] | no |
 
-P2 leída con el IC basic: no cumplida (el veredicto primario no cambia).
+Predicción de tono leída con el IC basic: no cumplida (el veredicto primario no cambia).
 
 ## Procedencia
 

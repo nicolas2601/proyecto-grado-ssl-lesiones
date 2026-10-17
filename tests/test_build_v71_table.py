@@ -93,9 +93,9 @@ def _extra() -> dict:
 
 def test_the_extra_tables_render_from_their_json():
     text = bt.render(_doc(), _extra())
-    for heading in ("umbral propio", "Melanomas clasificados como nevus", "v7 s43"):
+    for heading in ("umbral propio", "Melanomas clasificados como nevus", "v7 repetición 43"):
         assert heading in text
-    assert "la sopa contiene s43" in text and "solo si excluye el 0" in text
+    assert display_text("la sopa contiene s43") in text and "solo si excluye el 0" in text
     assert display_text(f"| {bt.LABELS['A_v7_s43']} | 90 | 0,4054 |") in text
     assert display_text("| A* v7.1 − A* v7 s43 | Macro-F1 | 0,7000 | 0,6700 | 0,0300 | [-0,0100; 0,0700] | no |") in text
     assert "| sí |" in text
@@ -112,7 +112,7 @@ def test_main_reads_the_sibling_extra_json(tmp_path):
     doc_path.write_text(json.dumps(_doc()), encoding="utf-8")
     (tmp_path / "extra_contrasts.json").write_text(json.dumps(_extra()), encoding="utf-8")
     assert bt.main([str(doc_path), "--out", str(out)]) == 0
-    assert "la sopa contiene s43" in out.read_text(encoding="utf-8")
+    assert display_text("la sopa contiene s43") in out.read_text(encoding="utf-8")
 
 
 @pytest.mark.skipif(not (V71_DIR / "extra_contrasts.json").exists(), reason="extra contrasts not written")
@@ -132,8 +132,8 @@ def test_the_blas_limitation_section_renders_the_shared_note():
 
     text = bt.render(_doc(), _extra(), limitation=_facts())
     assert f"## {pbl.TITLE}" in text
-    assert display_text("\n".join(pbl.body(_facts()))) in text
-    assert text.index("v7 s43") < text.index(pbl.TITLE)  # appended after everything else
+    assert display_text("\n".join(pbl.body(_facts())), context="v7", code_labels=True) in text
+    assert text.index("v7 repetición 43") < text.index(pbl.TITLE)  # appended after everything else
     assert bt.render(_doc(), _extra()) == text[:text.index(f"\n\n## {pbl.TITLE}")] + "\n"
 
 
@@ -154,7 +154,7 @@ def test_main_reads_the_t4_diagnostics_next_to_the_v71_directory(tmp_path):
         shutil.copytree(real_t4 / rel, t4 / rel)
     out = v71 / "README.md"
     assert bt.main([str(v71 / "v71_final_eval.json"), "--out", str(out)]) == 0
-    assert display_text(pbl.paragraph(pbl.load_facts(t4, doc))) in out.read_text(encoding="utf-8")
+    assert display_text(pbl.paragraph(pbl.load_facts(t4, doc)), context="v7", code_labels=True) in out.read_text(encoding="utf-8")
 
 
 @pytest.mark.skipif(not (V71_DIR / "v71_final_eval.json").exists(), reason="v7.1 not run on the pod yet")
@@ -164,4 +164,4 @@ def test_committed_readme_carries_the_blas_limitation():
     from dermssl import probe_blas_limitation as pbl
 
     facts = pbl.load_facts(V71_DIR.parent / "t4", json.loads((V71_DIR / "v71_final_eval.json").read_text("utf-8")))
-    assert display_text(pbl.paragraph(facts)) in (V71_DIR / "README.md").read_text(encoding="utf-8")
+    assert display_text(pbl.paragraph(facts), context="v7", code_labels=True) in (V71_DIR / "README.md").read_text(encoding="utf-8")

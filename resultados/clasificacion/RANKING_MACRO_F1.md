@@ -13,8 +13,8 @@ Generado por `scripts/build_ranking_table.py` desde los JSON del repositorio. No
 
 | # | Modelo | Familia | Macro-F1 [IC 95 %] | Frente al 1.º | Val | Fuente |
 |---|---|---|---|---|---|---|
-| 1 | Modelo de control (sopa Modelo de control s42+s43, cls_attn, la0.5, TTA) | propio | 0,7229 [0,6795; 0,7592] | referencia (1.º) | v6/v7, val n = 2004 | `resultados/clasificacion/v71/v71_final_eval.json` |
-| 2 | Proposed sin segmentación (Proposed sin segmentación s42, cls4, balanced, TTA) | propio | 0,7141 [0,6703; 0,7547] | IC se solapa | v6/v7, val n = 2004 | `resultados/clasificacion/v71/v71_final_eval.json` |
+| 1 | Modelo de control (sopa Modelo de control repetición 42+repetición 43, cls_attn, la0.5, TTA) | propio | 0,7229 [0,6795; 0,7592] | referencia (1.º) | v6/v7, val n = 2004 | `resultados/clasificacion/v71/v71_final_eval.json` |
+| 2 | Proposed sin segmentación (Proposed sin segmentación repetición 42, cls4, balanced, TTA) | propio | 0,7141 [0,6703; 0,7547] | IC se solapa | v6/v7, val n = 2004 | `resultados/clasificacion/v71/v71_final_eval.json` |
 | 3 | ViT-B/16 fine-tuning | fine-tuning supervisado | 0,7058 [0,6593; 0,7431] | IC se solapa | Kaggle, val n = 2014 | `results/finetune/ham10000/results_vit_b16_ft.json` |
 | 4 | ResNet-50 fine-tuning | fine-tuning supervisado | 0,6867 [0,6476; 0,7226] | IC se solapa | Kaggle, val n = 2014 | `results/finetune/ham10000/results_resnet50_ft.json` |
 | 5 | DINOv2 público, su mejor protocolo v7.1 | congelado (pesos públicos) | 0,6857 [0,6412; 0,7208] | IC se solapa | v6/v7, val n = 2004 | `resultados/clasificacion/v71/v71_final_eval.json` |
@@ -46,7 +46,7 @@ Generado por `scripts/build_ranking_table.py` desde los JSON del repositorio. No
 
 ## Lectura
 
-- 1.º: Modelo de control (sopa Modelo de control s42+s43, cls_attn, la0.5, TTA), 0,7229 [0,6795; 0,7592].
+- 1.º: Modelo de control (sopa Modelo de control repetición 42+repetición 43, cls_attn, la0.5, TTA), 0,7229 [0,6795; 0,7592].
 - Mejor supervisado: ViT-B/16 fine-tuning, 0,7058 [0,6593; 0,7431]. Los IC del 1.º y del mejor supervisado se solapan: empate estadístico, no victoria.
 - Modelos externos con IC separado del 1.º (15): DINOv2 público con el protocolo de Modelo de control, VGG19 fine-tuning, DINOv2 público, probe v7 base, DINOv2 ViT-B/14 congelado + logreg, AlexNet fine-tuning, DINOv2 ViT-S/14 congelado + logreg, EfficientNet-B0 congelado + logreg, ViT-B/16 congelado + logreg, SimSiam ResNet-50 fine-tuning, ResNet-50 congelado + logreg, DINOv2 ViT-S/14 fine-tuning, AlexNet congelado + logreg, DINOv2 ViT-B/14 fine-tuning, VGG19 congelado + logreg, SimSiam ResNet-50 congelado + logreg.
 

@@ -14,7 +14,7 @@ Generado por `scripts/build_bench_tables.py` desde los JSON del repositorio. No 
 - **IC 95 %:** intervalo de confianza por bootstrap, tal como lo publica cada fuente. Si los IC de dos modelos se solapan, no se puede afirmar que uno gane: es empate.
 - **Congelado (sin fine-tuning):** la red no se toca; solo se entrena el clasificador lineal de encima (regresión logística).
 - **Fine-tuning:** se reentrena toda la red con las etiquetas del dataset.
-- **Segmentación:** uso de máscaras de lesión como entrada. La columna dice «no» en todas las filas salvo en el bloque exploratorio de HAM10000 (variante Proposed con segmentación (experimental) del bloque E3 de docs/33), que no cambia el propuesto.
+- **Segmentación:** uso de máscaras de lesión como entrada. La columna dice «no» en todas las filas salvo en el bloque exploratorio de HAM10000 (variante Proposed con segmentación (experimental) del bloque Prueba con segmentación de docs/33), que no cambia el propuesto.
 - **Transductivo:** el pool de preentrenamiento auto-supervisado contenía las imágenes de val (sin etiquetas). Solo aplica a Proposed sin segmentación / Modelo de control originales en ISIC 2019 e ISIC 2020.
 - **Cómputo canónico:** extracción de features con batch 64 y autocast CUDA (el de v7.1). El batch 16 mueve las cifras unas milésimas (orden de reducción en fp16) y se reporta solo como **sensibilidad**.
 - **Pesos limpios (sensibilidad):** Proposed sin segmentación / Modelo de control re-preentrenados con un pool SSL sin las imágenes de val de ISIC (docs/33, sección 2). En HAM10000 son un análisis posterior que se lee al lado de la fila registrada de **pesos originales (selección)**; no es selección y no reemplaza al propuesto.

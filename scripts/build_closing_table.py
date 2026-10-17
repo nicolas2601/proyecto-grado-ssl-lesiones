@@ -84,10 +84,10 @@ def rules() -> list[str]:
     ]
 
 
-from dermssl.display_nomenclature import presentation  # noqa: E402
+from dermssl.display_nomenclature import context_presentation  # noqa: E402
 
 
-@presentation
+@context_presentation("segmentation")
 def render(rows: list[Row], root: Path = REPO) -> str:
     detail = segrows.sdiag_detail({p: json.loads((root / p).read_text(encoding="utf-8"))
                                    for p in segrows.SDIAG_ALL + tuple(segrows.STUDENT.values())})

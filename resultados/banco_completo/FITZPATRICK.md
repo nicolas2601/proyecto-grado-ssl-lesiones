@@ -1,6 +1,6 @@
-# Banco completo: Fitzpatrick descriptivo (E5)
+# Banco completo: Fitzpatrick descriptivo (Prueba descriptiva del tono de piel)
 
-Generado por `scripts/build_fitzpatrick_table.py` desde los JSON de `resultados/banco_completo/e5/`. No editar a mano. Plan y reglas: `docs/33-banco-completo-multidataset.md` (E5).
+Generado por `scripts/build_fitzpatrick_table.py` desde los JSON de `resultados/banco_completo/e5/`. No editar a mano. Plan y reglas: `docs/33-banco-completo-multidataset.md` (Prueba descriptiva del tono de piel).
 
 > **Aviso.** FST estimado por ITA, NO validado (22,9 % en PAD), pseudo-máscaras automáticas. Descriptivo y NO está validado: los buckets I-VI son la salida del estimador ITA con umbrales fijos, no el fototipo Fitzpatrick. Ese estimador acierta 22,9 % frente a 51,3 % de la baseline de mayoría en PAD-UFES-20 (Alipour et al., Skin Research and Technology 32(8):e70374, 2026, PMC13459198; docs/20, docs/30) y 28,5-30,8 % frente a 32,9 % en Fitzpatrick17k-C. Los terciles de L* son luminancia (mediana de L* de la piel), no es tono de piel, y son relativos a cada dataset: «oscuro» en uno no equivale a «oscuro» en otro. Ningún conteo de este archivo cambia el resultado primario del banco (docs/33, sección 5).
 
@@ -25,7 +25,7 @@ Generado por `scripts/build_fitzpatrick_table.py` desde los JSON de `resultados/
 - Que dos estimadores coincidan (cuadro Otsu × ROI) no los valida: dos estimadores no validados pueden coincidir y equivocarse juntos. Es acuerdo, no exactitud.
 - Los splits son los que ya existen en cada dataset (no se unifican, docs/33, sección 1): HAM10000 la partición de C1 agrupada por `lesion_id`, ISIC 2019 `StratifiedKFold` y ISIC 2020 agrupada por `patient_id`; «val» es el primer fold de cada una.
 - ISIC 2020: split reproducible solo con scikit-learn 1.7.2 (guard en el loader).
-- E5 no cambia el resultado primario del banco (docs/33, sección 5).
+- Prueba descriptiva del tono de piel no cambia el resultado primario del banco (docs/33, sección 5).
 
 ## HAM10000
 

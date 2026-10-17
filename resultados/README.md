@@ -100,7 +100,7 @@ en las dos direcciones, esta en la seccion 7.
 ## 2. Segmentacion sin mascaras ni etiquetas
 
 Commit `d81a492`, preset `cluster-final`. MoCo v2 sobre el pool, saliencia
-CCAM, modulo de incertidumbre y U-Net experimento de segmentación con re-etiquetado en tres
+CCAM, modulo de incertidumbre y U-Net entrenada con pseudo-máscaras con re-etiquetado en tres
 rondas.
 
 | Conjunto | Papel | n | Dice medio [IC 95 %] | Dice mediana | IoU | HD95 mediana |
@@ -392,7 +392,7 @@ antes de que cerrara el banco).
   al metodo es exactamente la seleccion que invalida una comparacion. Que el
   veredicto cambie con el probe es, en si mismo, evidencia de que la
   diferencia es chica.
-- **El experimento de segmentación de segmentacion no supera al piso mas fuerte** en
+- **El modelo de segmentación no supera al piso mas fuerte** en
   solapamiento medio sobre ISIC 2018; gana en borde y en fallos
   catastroficos.
 

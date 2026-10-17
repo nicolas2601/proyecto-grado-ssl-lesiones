@@ -80,8 +80,8 @@ Melanomas verdaderos cuyo argmax es nv (probe del train completo), sobre el tota
 | Proposed sin segmentación, protocolo v7 (primario) | 75 | 0,3378 |
 | Público v7 (primario) | 87 | 0,3919 |
 | Público, su mejor protocolo | 68 | 0,3063 |
-| Modelo de control, protocolo v7 s43 | 90 | 0,4054 |
-| Proposed sin segmentación, protocolo v7 s43 | 98 | 0,4414 |
+| Modelo de control, protocolo v7 repetición 43 | 90 | 0,4054 |
+| Proposed sin segmentación, protocolo v7 repetición 43 | 98 | 0,4414 |
 
 | Contraste | Métrica | Brazo | Control | Δ | IC 95 % | Excluye 0 |
 |---|---|---|---|---|---|---|
@@ -90,27 +90,27 @@ Melanomas verdaderos cuyo argmax es nv (probe del train completo), sobre el tota
 | Modelo de control − Modelo de control, protocolo v7 (primario) | Tasa mel→nv | 0,2793 | 0,3874 | -0,1081 | [-0,1650; -0,0538] | sí |
 | Proposed sin segmentación − Proposed sin segmentación, protocolo v7 (primario) | Tasa mel→nv | 0,3018 | 0,3378 | -0,0360 | [-0,0923; 0,0197] | no |
 
-### Contra los primarios v7 s42 y v7 s43
+### Contra los primarios v7 repetición 42 y v7 repetición 43
 
-Modelo de control es la sopa de los pesos s42 y s43, asi que su contraste contra Modelo de control, protocolo v7 s43 no es independiente de s43; Proposed sin segmentación usa solo s42. Las filas contra A_v7/B_v7 son s42 y repiten las publicadas.
+Modelo de control es la sopa de los pesos repetición 42 y repetición 43, asi que su contraste contra Modelo de control, protocolo v7 repetición 43 no es independiente de repetición 43; Proposed sin segmentación usa solo repetición 42. Las filas contra A_v7/B_v7 son repetición 42 y repiten las publicadas.
 
 | Contraste | Métrica | Brazo | Control | Δ | IC 95 % | Excluye 0 |
 |---|---|---|---|---|---|---|
 | Modelo de control − Modelo de control, protocolo v7 (primario) | Macro-F1 | 0,7229 | 0,6464 | 0,0765 | [0,0362; 0,1215] | sí |
 | Modelo de control − Modelo de control, protocolo v7 (primario) | Bal-acc | 0,7305 | 0,6021 | 0,1284 | [0,0864; 0,1737] | sí |
-| Modelo de control − Modelo de control, protocolo v7 s43 | Macro-F1 | 0,7229 | 0,6850 | 0,0378 | [0,0023; 0,0761] | sí |
-| Modelo de control − Modelo de control, protocolo v7 s43 | Bal-acc | 0,7305 | 0,6457 | 0,0848 | [0,0471; 0,1231] | sí |
-| Modelo de control − Proposed sin segmentación, protocolo v7 s43 | Macro-F1 | 0,7229 | 0,6638 | 0,0591 | [0,0200; 0,1009] | sí |
-| Modelo de control − Proposed sin segmentación, protocolo v7 s43 | Bal-acc | 0,7305 | 0,6119 | 0,1186 | [0,0759; 0,1612] | sí |
+| Modelo de control − Modelo de control, protocolo v7 repetición 43 | Macro-F1 | 0,7229 | 0,6850 | 0,0378 | [0,0023; 0,0761] | sí |
+| Modelo de control − Modelo de control, protocolo v7 repetición 43 | Bal-acc | 0,7305 | 0,6457 | 0,0848 | [0,0471; 0,1231] | sí |
+| Modelo de control − Proposed sin segmentación, protocolo v7 repetición 43 | Macro-F1 | 0,7229 | 0,6638 | 0,0591 | [0,0200; 0,1009] | sí |
+| Modelo de control − Proposed sin segmentación, protocolo v7 repetición 43 | Bal-acc | 0,7305 | 0,6119 | 0,1186 | [0,0759; 0,1612] | sí |
 | Proposed sin segmentación − Proposed sin segmentación, protocolo v7 (primario) | Macro-F1 | 0,7141 | 0,6606 | 0,0535 | [0,0105; 0,0913] | sí |
 | Proposed sin segmentación − Proposed sin segmentación, protocolo v7 (primario) | Bal-acc | 0,6964 | 0,6327 | 0,0637 | [0,0166; 0,1054] | sí |
-| Proposed sin segmentación − Proposed sin segmentación, protocolo v7 s43 | Macro-F1 | 0,7141 | 0,6638 | 0,0503 | [0,0051; 0,0903] | sí |
-| Proposed sin segmentación − Proposed sin segmentación, protocolo v7 s43 | Bal-acc | 0,6964 | 0,6119 | 0,0845 | [0,0379; 0,1281] | sí |
-| Proposed sin segmentación − Modelo de control, protocolo v7 s43 | Macro-F1 | 0,7141 | 0,6850 | 0,0291 | [-0,0104; 0,0673] | no |
-| Proposed sin segmentación − Modelo de control, protocolo v7 s43 | Bal-acc | 0,6964 | 0,6457 | 0,0507 | [0,0130; 0,0901] | sí |
+| Proposed sin segmentación − Proposed sin segmentación, protocolo v7 repetición 43 | Macro-F1 | 0,7141 | 0,6638 | 0,0503 | [0,0051; 0,0903] | sí |
+| Proposed sin segmentación − Proposed sin segmentación, protocolo v7 repetición 43 | Bal-acc | 0,6964 | 0,6119 | 0,0845 | [0,0379; 0,1281] | sí |
+| Proposed sin segmentación − Modelo de control, protocolo v7 repetición 43 | Macro-F1 | 0,7141 | 0,6850 | 0,0291 | [-0,0104; 0,0673] | no |
+| Proposed sin segmentación − Modelo de control, protocolo v7 repetición 43 | Bal-acc | 0,6964 | 0,6457 | 0,0507 | [0,0130; 0,0901] | sí |
 
 ## Limitación: sensibilidad del probe a los hilos BLAS
 
-Limitación (no errata): el probe lineal tiene una sensibilidad de implementación de hasta 0,014 de macro-F1 según el número de hilos BLAS por proceso (4 vs 8 hilos; probe_jobs 10 vs 6; cambian 48 de 60 celdas en cada una de las 3 unidades, con hasta 18 imágenes que cambian de clase predicha por celda); con la configuración registrada (4 hilos) reproduce la grilla publicada bit a bit (máx. |Δ| 0). El efecto SSL (Modelo de control − público con el mismo protocolo, macro-F1 +0,091 [+0,050; +0,132]) es ~6,5× esa sensibilidad. No es falta de convergencia: los 30 ajustes publicados convergen por tolerancia (0/30 alcanzan max_iter=2000; n_iter 165–862); la sensibilidad es de redondeo en punto flotante dentro de la tolerancia del optimizador. En T4 el umbral de P1 (≤ 0,01) está por debajo de esa sensibilidad, así que P1 solo se lee pareado dentro de la misma corrida con hilos fijos. Evidencia: commits 0a691eb (reproducción) y 278efd2 (convergencia).
+Limitación (no errata): el probe lineal tiene una sensibilidad de implementación de hasta 0,014 de macro-F1 según el número de hilos BLAS por proceso (4 vs 8 hilos; probe_jobs 10 vs 6; cambian 48 de 60 celdas en cada una de las 3 unidades, con hasta 18 imágenes que cambian de clase predicha por celda); con la configuración registrada (4 hilos) reproduce la grilla publicada bit a bit (máx. |Δ| 0). El efecto SSL (Modelo de control − público con el mismo protocolo, macro-F1 +0,091 [+0,050; +0,132]) es ~6,5× esa sensibilidad. No es falta de convergencia: los 30 ajustes publicados convergen por tolerancia (0/30 alcanzan max_iter=2000; n_iter 165–862); la sensibilidad es de redondeo en punto flotante dentro de la tolerancia del optimizador. En Prueba de constancia de color el umbral de Predicción de anclaje (≤ 0,01) está por debajo de esa sensibilidad, así que Predicción de anclaje solo se lee pareado dentro de la misma corrida con hilos fijos. Evidencia: commits 0a691eb (reproducción) y 278efd2 (convergencia).
 
 Generado desde `resultados/clasificacion/t4/diagnostico_reproduccion/identity_j10_vs_j10.json`, `identity_j10_vs_j6.json`, `t4/diagnostico_convergencia/probe_convergence.json`, el contraste pareado `A71 − public_A71` de `v71_final_eval.json` y `t4_sog.P1_MAX_ABS_DELTA`; no editar a mano.

@@ -20,7 +20,7 @@ Este documento lista 491 contrastes (el IC excluye 0 en 299) **sin corrección p
 - **IC 95 %:** intervalo de confianza por bootstrap, tal como lo publica cada fuente. Si los IC de dos modelos se solapan, no se puede afirmar que uno gane: es empate.
 - **Congelado (sin fine-tuning):** la red no se toca; solo se entrena el clasificador lineal de encima (regresión logística).
 - **Fine-tuning:** se reentrena toda la red con las etiquetas del dataset.
-- **Segmentación:** uso de máscaras de lesión como entrada. La columna dice «no» en todas las filas salvo en el bloque exploratorio de HAM10000 (variante Proposed con segmentación (experimental) del bloque E3 de docs/33), que no cambia el propuesto.
+- **Segmentación:** uso de máscaras de lesión como entrada. La columna dice «no» en todas las filas salvo en el bloque exploratorio de HAM10000 (variante Proposed con segmentación (experimental) del bloque Prueba con segmentación de docs/33), que no cambia el propuesto.
 - **Transductivo:** el pool de preentrenamiento auto-supervisado contenía las imágenes de val (sin etiquetas). Solo aplica a Proposed sin segmentación / Modelo de control originales en ISIC 2019 e ISIC 2020.
 - **Cómputo canónico:** extracción de features con batch 64 y autocast CUDA (el de v7.1). El batch 16 mueve las cifras unas milésimas (orden de reducción en fp16) y se reporta solo como **sensibilidad**.
 - **Pesos limpios (sensibilidad):** Proposed sin segmentación / Modelo de control re-preentrenados con un pool SSL sin las imágenes de val de ISIC (docs/33, sección 2). En HAM10000 son un análisis posterior que se lee al lado de la fila registrada de **pesos originales (selección)**; no es selección y no reemplaza al propuesto.
@@ -45,7 +45,7 @@ Particiones de val de este banco (no son la misma partición):
 
 ### HAM10000: Proposed sin segmentación frente a los 8 baselines congelados (4 variantes × 4 métricas)
 
-E3b, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap pareado por `lesion_id`. Fuente: `resultados/banco_completo/e3b_bs64/e3b_summary.json`. Solo baselines CONGELADOS re-evaluados sobre la partición v6/v7.
+Prueba con segmentación en los modelos de comparación, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap pareado por `lesion_id`. Fuente: `resultados/banco_completo/e3b_bs64/e3b_summary.json`. Solo baselines CONGELADOS re-evaluados sobre la partición v6/v7.
 
 | Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura |
 |---|---|---|---|---|---|
@@ -180,7 +180,7 @@ E3b, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap
 
 ### HAM10000: Proposed con segmentación (experimental) sobre cada baseline congelado (exploratorio)
 
-E3b, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap pareado por `lesion_id`. Fuente: `resultados/banco_completo/e3b_bs64/e3b_summary.json`. Solo baselines CONGELADOS re-evaluados sobre la partición v6/v7.
+Prueba con segmentación en los modelos de comparación, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap pareado por `lesion_id`. Fuente: `resultados/banco_completo/e3b_bs64/e3b_summary.json`. Solo baselines CONGELADOS re-evaluados sobre la partición v6/v7.
 
 | Brazo | Control | Métrica | Δ (brazo − control) [IC 95 %] | El IC excluye 0 | Lectura |
 |---|---|---|---|---|---|
@@ -217,7 +217,7 @@ E3b, cómputo canónico (batch 64 + autocast), HAM10000 val n = 2.004, bootstrap
 | DINOv2 ViT-B/14 + Proposed con segmentación (experimental) | DINOv2 ViT-B/14 | Recall de melanoma | -0,0811 [-0,1449; -0,0189] | sí | DINOv2 ViT-B/14 mejor (el IC excluye 0) |
 | DINOv2 ViT-B/14 + Proposed con segmentación (experimental) | DINOv2 ViT-B/14 | MCC | +0,0092 [-0,0204; +0,0380] | no | sin diferencia demostrable (el IC incluye 0) |
 
-### E3b: baselines que quedan por debajo de Proposed sin segmentación con IC que excluye 0, por versión
+### Prueba con segmentación en los modelos de comparación: baselines que quedan por debajo de Proposed sin segmentación con IC que excluye 0, por versión
 
 Resumen de 8 baselines por celda; el detalle del canónico está arriba.
 
@@ -240,9 +240,9 @@ Resumen de 8 baselines por celda; el detalle del canónico está arriba.
 | Proposed con segmentación (TTA) | Recall de melanoma | 2/8 | 4/8 |
 | Proposed con segmentación (TTA) | MCC | 8/8 | 8/8 |
 
-### HAM10000: MCC puntual de los baselines sin y con Proposed con segmentación (experimental) y su contraste pareado (E3b)
+### HAM10000: MCC puntual de los baselines sin y con Proposed con segmentación (experimental) y su contraste pareado (Prueba con segmentación en los modelos de comparación)
 
-E3b, cómputo canónico (batch 64 + autocast): 40 contrastes pareados de MCC (8 de Proposed con segmentación (experimental) sobre cada baseline, 32 de Proposed sin segmentación frente a los baselines), recomputados con el código actual desde las probabilidades commiteadas (`e3b_probas.npz`), con el mismo bootstrap (1.000 remuestras, semilla 20260923, por `lesion_id`); los 120 registros previos (F1 macro, exactitud balanceada, recall de melanoma) se reprodujeron idénticos antes de escribir. La última columna es el contraste pareado de Proposed con segmentación (experimental) sobre el baseline (Δ MCC [IC 95 %]). E3 final: 10 contrastes de MCC en los JSON, 0 no disponibles. IC que excluye 0 en 9 de 10 celdas; 2 con límite inferior ≈ 0 (a menos de 0,0025 de 0). Proposed con segmentación (experimental) sigue siendo exploratorio: el MCC no cambia la regla de lectura de la robustez a la semilla (errata de docs/33).
+Prueba con segmentación en los modelos de comparación, cómputo canónico (batch 64 + autocast): 40 contrastes pareados de MCC (8 de Proposed con segmentación (experimental) sobre cada baseline, 32 de Proposed sin segmentación frente a los baselines), recomputados con el código actual desde las probabilidades commiteadas (`e3b_probas.npz`), con el mismo bootstrap (1.000 remuestras, semilla 20260923, por `lesion_id`); los 120 registros previos (F1 macro, exactitud balanceada, recall de melanoma) se reprodujeron idénticos antes de escribir. La última columna es el contraste pareado de Proposed con segmentación (experimental) sobre el baseline (Δ MCC [IC 95 %]). Prueba con segmentación final: 10 contrastes de MCC en los JSON, 0 no disponibles. IC que excluye 0 en 9 de 10 celdas; 2 con límite inferior ≈ 0 (a menos de 0,0025 de 0). Proposed con segmentación (experimental) sigue siendo exploratorio: el MCC no cambia la regla de lectura de la robustez a la semilla (errata de docs/33).
 
 | Baseline | MCC sin Proposed con segmentación (experimental) | MCC con Proposed con segmentación (experimental) | Contraste pareado: Δ MCC [IC 95 %] | El IC excluye 0 |
 |---|---|---|---|---|
@@ -255,7 +255,7 @@ E3b, cómputo canónico (batch 64 + autocast): 40 contrastes pareados de MCC (8 
 | DINOv2 ViT-S/14 | 0,5250 | 0,5810 | +0,0559 [+0,0269; +0,0854] | sí |
 | DINOv2 ViT-B/14 | 0,5649 | 0,5741 | +0,0092 [-0,0204; +0,0380] | no |
 
-### HAM10000: Proposed con segmentación (experimental) − Proposed sin segmentación, cómputo S0: batch 16 + autocast
+### HAM10000: Proposed con segmentación (experimental) − Proposed sin segmentación, cómputo lote 16: batch 16 + autocast
 
 Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo/e3/e3_final_eval.json`.
 
@@ -270,7 +270,7 @@ Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo
 | Proposed con segmentación (experimental) (tercil L* más oscuro) | Proposed sin segmentación | Recall de melanoma | +0,0303 [-0,0617; +0,1081] | no | sin diferencia demostrable (el IC incluye 0) |
 | Proposed con segmentación (experimental) (tercil L* más oscuro) | Proposed sin segmentación | MCC | +0,0593 [+0,0259; +0,0939] | sí | Proposed con segmentación (experimental) (tercil L* más oscuro) mejor (el IC excluye 0) |
 
-### HAM10000: Proposed con segmentación (experimental) − Proposed sin segmentación, cómputo S1: batch 64 + autocast (canónico, el de v7.1)
+### HAM10000: Proposed con segmentación (experimental) − Proposed sin segmentación, cómputo lote 64: batch 64 + autocast (canónico, el de v7.1)
 
 Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo/e3/robustez/e3_s1_bs64_autocast/e3_final_eval.json`.
 
@@ -285,7 +285,7 @@ Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo
 | Proposed con segmentación (experimental) (tercil L* más oscuro) | Proposed sin segmentación | Recall de melanoma | -0,0101 [-0,1068; +0,0714] | no | sin diferencia demostrable (el IC incluye 0) |
 | Proposed con segmentación (experimental) (tercil L* más oscuro) | Proposed sin segmentación | MCC | +0,0494 [+0,0146; +0,0849] | sí | Proposed con segmentación (experimental) (tercil L* más oscuro) mejor (el IC excluye 0) |
 
-### HAM10000: Proposed con segmentación (experimental) − Proposed sin segmentación, cómputo S2: batch 64, fp32
+### HAM10000: Proposed con segmentación (experimental) − Proposed sin segmentación, cómputo lote 64 en precisión completa: batch 64, fp32
 
 Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo/e3/robustez/e3_s2_bs64_fp32/e3_final_eval.json`.
 
@@ -300,7 +300,7 @@ Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo
 | Proposed con segmentación (experimental) (tercil L* más oscuro) | Proposed sin segmentación | Recall de melanoma | +0,0303 [-0,0617; +0,1081] | no | sin diferencia demostrable (el IC incluye 0) |
 | Proposed con segmentación (experimental) (tercil L* más oscuro) | Proposed sin segmentación | MCC | +0,0550 [+0,0205; +0,0920] | sí | Proposed con segmentación (experimental) (tercil L* más oscuro) mejor (el IC excluye 0) |
 
-### HAM10000: Proposed con segmentación (experimental) − Proposed sin segmentación, semilla de Proposed sin segmentación 42 (= cómputo canónico S1)
+### HAM10000: Proposed con segmentación (experimental) − Proposed sin segmentación, semilla de Proposed sin segmentación 42 (= cómputo canónico lote 64)
 
 Bootstrap pareado por `lesion_id`, n = 2.004. Fuente: `resultados/banco_completo/e3/robustez/e3_s1_bs64_autocast/e3_final_eval.json`.
 
@@ -641,7 +641,7 @@ Sección: análisis posterior a la ejecución (post-hoc), no parte del registro 
 | DINOv2 ViT-S/14 (fine-tuning) | MCC | +0,0884 [+0,0099; +0,1647] | sí | Proposed sin segmentación (pesos limpios) (canónico) mejor (el IC excluye 0) | 0,0280 | 0,1960 |
 | DINOv2 ViT-B/14 (fine-tuning) | MCC | +0,1318 [+0,0415; +0,2197] | sí | Proposed sin segmentación (pesos limpios) (canónico) mejor (el IC excluye 0) | 0,0060 | 0,0480 |
 
-### D0-D3 (E2): contrastes pareados
+### D0-D3 (Prueba de adaptación a fotos clínicas): contrastes pareados
 
 Adaptación al nuevo conjunto − Control de entrenamiento es la predicción primaria registrada; los demás son descriptivos. Predicción primaria registrada (Adaptación al nuevo conjunto − Control de entrenamiento, F1 macro > 0 con IC que excluye 0): cumplida = sí (`prediction_d3_minus_d2_met` del JSON); Δ +0,0816 [+0,0525; +0,1085].
 

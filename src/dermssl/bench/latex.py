@@ -48,10 +48,10 @@ def _blocks(rows: list[Row]) -> list[str]:
     return out
 
 
-from dermssl.display_nomenclature import presentation  # noqa: E402
+from dermssl.display_nomenclature import context_presentation  # noqa: E402
 
 
-@presentation
+@context_presentation("bench")
 def render_latex(repo: Path, ds: Dataset) -> str:
     rows = dataset_rows(repo, ds)
     header = ["Modelo", "Preent.", "FT", "Seg.", "Trans.", *(HEADERS[m] for m in METRICS), r"IC 95\,\% F1"]
