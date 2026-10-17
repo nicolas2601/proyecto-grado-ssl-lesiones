@@ -1,0 +1,60 @@
+{
+  "capture_kind": "parsed_completed_real_ccam_training_evidence",
+  "source_log": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002/completion-observation-001.log",
+  "scientific_budget_acceptance": "pending_review; epochs=5 was an operational assumption, not a convergence-validated final recipe",
+  "original_run_intent": "real_initial_ccam_training_not_synthetic_or_planned_test",
+  "exit": {
+    "checkpoint_sha256": "82f821843a88a1a03165481dc5d6be3d6fcc872d519bb0fd378afd481b44432d",
+    "completed_epoch_records": 5,
+    "elapsed_seconds": 1652.0628845961764,
+    "ended_at": "2026-10-17T15:58:01.028389+00:00",
+    "exit_code": 0,
+    "output": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002",
+    "provenance_sha256": "e8988ca9b5af26839716cc7299f0c7bce2b304377ce2f271221d1a302ee504c6",
+    "runner_pid": 252265,
+    "started_at": "2026-10-17T15:30:28.968518+00:00",
+    "status": "completed",
+    "stop_reason": null,
+    "supervisor_pid": 252264,
+    "training_started": true
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "mean_ccam_loss": 11.906631771180344,
+      "sample_count": 34784
+    },
+    {
+      "epoch": 2,
+      "mean_ccam_loss": 13.675825077666804,
+      "sample_count": 34784
+    },
+    {
+      "epoch": 3,
+      "mean_ccam_loss": 13.71262835921324,
+      "sample_count": 34784
+    },
+    {
+      "epoch": 4,
+      "mean_ccam_loss": 9.441131869576042,
+      "sample_count": 34784
+    },
+    {
+      "epoch": 5,
+      "mean_ccam_loss": 2.424127668683805,
+      "sample_count": 34784
+    }
+  ],
+  "artifacts": {
+    "ccam.pt": {
+      "path": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002/ccam.pt",
+      "exists": true,
+      "sha256": "82f821843a88a1a03165481dc5d6be3d6fcc872d519bb0fd378afd481b44432d"
+    },
+    "ccam.pt.json": {
+      "path": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002/ccam.pt.json",
+      "exists": true,
+      "sha256": "e8988ca9b5af26839716cc7299f0c7bce2b304377ce2f271221d1a302ee504c6"
+    }
+  }
+}
