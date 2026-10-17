@@ -1,0 +1,55 @@
+{
+  "capture_kind": "parsed_actual_training_epoch_progress",
+  "source_receipt": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002/epoch-progress.json",
+  "note": "El hash de metrics_snapshot_sha256 corresponde a los bytes JSONL capturados en UNABIA; no a esta serializacion.",
+  "observed_at": "2026-10-17T15:44:57.251626+00:00",
+  "metrics_path": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002/metrics.jsonl",
+  "metrics_snapshot_sha256": "7fb45206fe204e9b77e3ce1731c8cd812e4a1e5351e4598f2c2b43d78c35e67a",
+  "epochs": [
+    {
+      "epoch": 1,
+      "mean_ccam_loss": 11.906631771180344,
+      "sample_count": 34784
+    },
+    {
+      "epoch": 2,
+      "mean_ccam_loss": 13.675825077666804,
+      "sample_count": 34784
+    }
+  ],
+  "completed_epoch_count": 2,
+  "configured_epochs": 5,
+  "checkpoint_exists": false,
+  "exit_record_exists": false,
+  "source": "actual_metrics_jsonl_not_estimate",
+  "final_integrity": {
+    "observed_at": "2026-10-17T15:43:51.526199+00:00",
+    "runner_alive": true,
+    "exit_record_exists": false,
+    "runner_pid": 252265,
+    "gpu_compute_processes": "252317, /home/jovyan/work/proyectonp/.venv/bin/python, 792\n",
+    "documents": {
+      "plan-segmentacion/metodos-v8/launch-preparation/usl-net-readiness.md": "64246a17de464c9ddc06ed172db949ea451bcbdd77b5f8e2d84ab9c1a8ea841e",
+      "odd/tasks/v8-cierre-bloqueos-lanzamiento.md": "812c58bdcbc5bc7b5026f5214158a8a14b01382316d72dc6d3ebac516e633438",
+      "resultados/preparacion_v8/usl_ccam_launch_20261017/run_record.md": "dbf04b7fdfb9566af2a9c94d2577b24942f7681e0af72eea314534644a0119b1",
+      "resultados/preparacion_v8/usl_ccam_launch_20261017/state.snapshot.json": "bc321b94f9aca7d2706e982ae4dd1e67c3c0e629df6ea33bc1326fd41aeac55e"
+    },
+    "other_methods_execution_enabled": {
+      "sled": false,
+      "rpi_net": false,
+      "rpi_later_phase": false,
+      "tridermnet_hago": false
+    },
+    "github_commit": "934ab71717adb15535536cb123024cb7ceb41eb5",
+    "historical_readiness_unchanged": true,
+    "method_code_modified": false,
+    "task_reconciliation": "intentional_document_update_after_full_diff_and_backup_not_hash_equivalence",
+    "wandb": {
+      "id": "db7da6c1e784",
+      "state": "running",
+      "url": "https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/db7da6c1e784"
+    },
+    "completed_epoch_count": 2,
+    "status": "active_run_and_documentation_synced"
+  }
+}
