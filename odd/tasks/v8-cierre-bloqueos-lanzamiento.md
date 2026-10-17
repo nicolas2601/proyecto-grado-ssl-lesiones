@@ -2,15 +2,20 @@
 
 ## Estado vigente CCAM (2026-10-17)
 
-CCAM `002` está en curso según observación a `2026-10-17T15:33:04.679888Z`
-(10:33:04, America/Bogota): worker descendiente activo en GPU y
+CCAM `002` está en curso según observación a `2026-10-17T15:44:57.251626Z`
+(10:44:57, America/Bogota): dos de cinco épocas completas según el JSONL real,
+con 34.784 muestras cada una. La observación de tracking a `15:43:51.526199Z` muestra
 [W&B `db7da6c1e784`](https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/db7da6c1e784)
-en estado `running`. No hay época completada ni checkpoint acreditados. La limpieza
+en estado `running`. No hay checkpoint ni recibo de salida final. La limpieza
 operativa terminó preservando procedencia, con un residuo de historial de servicio
 W&B declarado (`all_remote_objects_removed=false`). Los demás métodos siguen
 deshabilitados, sin lanzamiento automático. El intento `001` fallido se conserva;
 el registro y los hashes vigentes están en la sección final y en
 `resultados/preparacion_v8/usl_ccam_launch_20261017/run_record.md`.
+La [copia local del progreso](../../resultados/preparacion_v8/usl_ccam_launch_20261017/epoch-progress.snapshot.json)
+conserva las épocas reales y el hash de captura del JSONL; no es una estimación
+ni acredita evaluación anatómica o finalización. Las observaciones históricas
+sin épocas que aparecen abajo conservan el alcance de su fecha/hora original.
 
 ### Presupuesto revisado y autorización vigente (2026-10-17)
 
