@@ -666,3 +666,24 @@ RPI y dependencias SLED de TriDerm. Todos siguen deshabilitados, sin lanzamiento
 automático.
 No se cambia `readiness.review.json`, el recibo de congelación ni las limitaciones
 clínicas aceptadas.
+
+## Revisión científica del presupuesto USL-Net/CCAM (2026-10-17)
+
+Estado actualizado: CCAM `usl_ccam-20261017-002` terminó con salida 0 y cinco
+épocas reales. Se conserva como candidato de presupuesto limitado; no se acredita
+convergencia ni se promueve automáticamente para producir pseudomáscaras.
+La [revisión del protocolo](../../plan-segmentacion/metodos-v8/launch-preparation/training-protocol-review.md)
+separa los antecedentes ejecutados (MoCo 30, CCAM 5 y tres estudiantes distintos
+de 20 épocas) de la receta publicada USL-Net (cinco ciclos de 300 épocas del
+estudiante). Las pérdidas CCAM actuales todavía caen al finalizar y la equivalencia
+de épocas no es válida entre implementaciones con batch/objetivo distintos.
+
+El siguiente trabajo se consolida en una sola propuesta: política científica de
+batch/presupuesto/parada/selección, recuperación completa y observación CCAM dentro
+de la corrida, y plan serial explícito hasta el refinamiento del estudiante.
+El checkpoint actual no permite continuación exacta; iniciar desde sus pesos
+sería una etapa nueva. No se fijan nuevos números como aprobados ni se usan las
+2.594 máscaras expertas reservadas para ajustar esta política. No se repiten
+pruebas operativas, no se relanza y no se modifican configs, gates, manifiestos,
+`readiness.review.json` ni los otros métodos. Esta revisión no certifica que
+USL-Net completo esté listo para entrenar.
