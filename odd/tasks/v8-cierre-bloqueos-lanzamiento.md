@@ -2,10 +2,43 @@
 
 ## Estado vigente CCAM (2026-10-17)
 
-Una única pasada real GPU de preparación terminó sin errores ni OOM; existe gate ligado
-a config y manifiesto. `resource_budget_measured=false`, `training_authorized=false`
-y ejecución deshabilitada: siguen pendientes limpieza sintética y revisión del usuario.
-No comenzó entrenamiento. Los recibos y las mediciones están en la sección final.
+CCAM `002` completó cinco épocas reales, 34.784 muestras por época, con salida 0
+a `2026-10-17T15:58:01.028389Z` (10:58:01, America/Bogota) y checkpoint presente.
+Fuente: [copia local de finalización](../../resultados/preparacion_v8/usl_ccam_launch_20261017/completion.snapshot.json).
+Fue entrenamiento real inicial CCAM, no una prueba sintética ni una prueba planificada.
+Las cinco épocas fueron un supuesto operativo, no una duración científica final
+validada por convergencia. El checkpoint queda candidato: revisar ese criterio
+antes de promoverlo a pseudomáscaras, sin nuevas épocas ni entrenamiento automático.
+La corrida es [W&B `db7da6c1e784`](https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/db7da6c1e784);
+el estado final del servicio W&B no se infiere del código de salida local. La limpieza
+operativa terminó preservando procedencia, con un residuo de historial de servicio
+W&B declarado (`all_remote_objects_removed=false`). Los demás métodos siguen
+deshabilitados, sin lanzamiento automático. El intento `001` fallido se conserva;
+el registro y los hashes vigentes están en la sección final y en
+`resultados/preparacion_v8/usl_ccam_launch_20261017/run_record.md`.
+La [copia local del progreso](../../resultados/preparacion_v8/usl_ccam_launch_20261017/epoch-progress.snapshot.json)
+conserva el progreso histórico y el hash de aquella captura del JSONL; no es una estimación
+ni acredita evaluación anatómica. La finalización técnica de CCAM no equivale a
+completar USL-Net, sus pseudomáscaras o sus ciclos. Las observaciones históricas
+sin épocas que aparecen abajo conservan el alcance de su fecha/hora original.
+
+### Presupuesto revisado y autorización vigente (2026-10-17)
+
+La revisión operativa documentada usa la evidencia de
+`/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/`
+(`resource-review.json`, `ccam.gate.json`, `launch-review.json`): medición real
+(no sintética) de un forward+loss+backward sobre `batch_size=2`/resolución 224,
+que coincide con la config de producción; `cuda_peak_reserved_mib=452` sobre GPUs
+de 24GB; `optimizer_memory_measured=false`; runtime de 5 épocas (37.167,5 s)
+extrapolado linealmente, no medido con el optimizador real ni con el dataset
+completo.
+
+La solicitud humana vigente autoriza avanzar para lanzar la etapa CCAM y preparar
+los demás métodos mientras se ejecuta. El estado observado se registra al inicio
+de este documento y en el registro de corrida. Se retira una cita de aprobación
+que figuraba en una edición local previa y cuya fuente no pudo acreditarse; no
+se utiliza como evidencia de autorización. Los recibos históricos de preparación
+permanecen intactos.
 
 ## Objetivo
 Completar los pendientes documentados en docs/46, docs/49 y docs/51 para habilitar
@@ -591,3 +624,66 @@ La [copia local parseada de la revisión](../../resultados/preparacion_v8/usl_cc
 conserva resultados y hashes de origen; su serialización no sustituye los bytes
 originales de UNABIA. Los hashes del config revisado y la explicación completa
 quedan en `plan-segmentacion/metodos-v8/launch-preparation/usl-net-readiness.md`.
+
+## Lanzamiento inicial CCAM autorizado: registro operativo (2026-10-17)
+
+El usuario autorizó avanzar al lanzamiento inicial CCAM y preparar los demás
+métodos durante su ejecución. El [registro de corrida](../../resultados/preparacion_v8/usl_ccam_launch_20261017/run_record.md)
+conserva intentos y limitaciones; la autorización no prueba inicio ni finalización.
+
+- Limpieza operativa comunicada por el operador: recibo
+  `/home/jovyan/work/validation_v8/pre-real-run-cleanup-20261017-002/cleanup.receipt.json`,
+  SHA-256 `c1542226a2e724e0e0deb0ecc42e66300f93374d54c71727578e2b4cadc14290`.
+  Se preservó el archivo de procedencia del intento parcial `001`. Permanece una
+  excepción explícita W&B de historial de servicio; `all_remote_objects_removed=false`.
+- Intento de lanzamiento `001`: fallido con salida 1 a
+  `2026-10-17T15:27:18.589037Z`, 25,0153 s, antes de ejecutar el método y sin épocas.
+  Directorio de recibos:
+  `/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-001/`.
+  El runner rechazó tracking por un IPC W&B heredado en `WANDB_SERVICE`.
+- Recuperación `002`: en curso según observación
+  `2026-10-17T15:33:04.679888Z`, con worker GPU `252317`, descendiente de runner
+  `252265` y supervisor `252264`, GPU 0 a 802 MiB/39% y W&B `db7da6c1e784`
+  en estado `running`. No hay época completada ni checkpoint acreditados.
+  Se saneó exclusivamente `WANDB_SERVICE` al separar procesos; no se repitió
+  el smoke CUDA. `launch.json` SHA-256:
+  `70c8e16eac23e2d1607d71bf75f68b8eb50ef2f4995c66b0ebca3d4091193179`.
+- Preparación de los otros métodos: cuatro configs deshabilitados instalados y
+  comprobados solo como metadata; recibo
+  `/home/jovyan/work/validation_v8/other-methods-preparation-20261017-001/metadata-verification.json`,
+  SHA-256 `e2261a526ee956bbb8069fd0549bc8f53dbda33dae0f772a33326324d2129819`.
+  Faltan perfiles, gates y dependencias de pseudomáscaras por método. No están
+  listos para lanzamiento por esa comprobación.
+
+Se revisó la [copia JSON local parseada](../../resultados/preparacion_v8/usl_ccam_launch_20261017/state.snapshot.json)
+de los recibos y de la confirmación viva; sus bytes no sustituyen los originales
+de UNABIA. El recibo inmutable previo al arranque conserva `training_started=false`;
+la observación posterior acredita actividad GPU y tracking por separado, sin editarlo.
+Siguen pendientes conservar código de salida, checkpoint y linaje al terminar
+CCAM, generar pseudomáscaras y materializar el plan serial del estudiante.
+Para los otros métodos siguen perfil CPU/gate y cobertura SLED, perfil GPU/gates
+RPI y dependencias SLED de TriDerm. Todos siguen deshabilitados, sin lanzamiento
+automático.
+No se cambia `readiness.review.json`, el recibo de congelación ni las limitaciones
+clínicas aceptadas.
+
+## Revisión científica del presupuesto USL-Net/CCAM (2026-10-17)
+
+Estado actualizado: CCAM `usl_ccam-20261017-002` terminó con salida 0 y cinco
+épocas reales. Se conserva como candidato de presupuesto limitado; no se acredita
+convergencia ni se promueve automáticamente para producir pseudomáscaras.
+La [revisión del protocolo](../../plan-segmentacion/metodos-v8/launch-preparation/training-protocol-review.md)
+separa los antecedentes ejecutados (MoCo 30, CCAM 5 y tres estudiantes distintos
+de 20 épocas) de la receta publicada USL-Net (cinco ciclos de 300 épocas del
+estudiante). Las pérdidas CCAM actuales todavía caen al finalizar y la equivalencia
+de épocas no es válida entre implementaciones con batch/objetivo distintos.
+
+El siguiente trabajo se consolida en una sola propuesta: política científica de
+batch/presupuesto/parada/selección, recuperación completa y observación CCAM dentro
+de la corrida, y plan serial explícito hasta el refinamiento del estudiante.
+El checkpoint actual no permite continuación exacta; iniciar desde sus pesos
+sería una etapa nueva. No se fijan nuevos números como aprobados ni se usan las
+2.594 máscaras expertas reservadas para ajustar esta política. No se repiten
+pruebas operativas, no se relanza y no se modifican configs, gates, manifiestos,
+`readiness.review.json` ni los otros métodos. Esta revisión no certifica que
+USL-Net completo esté listo para entrenar.

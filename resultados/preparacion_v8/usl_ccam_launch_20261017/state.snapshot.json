@@ -1,0 +1,289 @@
+{
+  "capture_kind": "parsed_remote_launch_and_cleanup_evidence",
+  "note": "Las copias JSON son capturas parseadas; los hashes declarados corresponden a los archivos originales indicados. No se acredita una epoca completada ni un checkpoint.",
+  "sources": {
+    "cleanup": "/home/jovyan/work/validation_v8/pre-real-run-cleanup-20261017-002/cleanup.receipt.json",
+    "other_methods": "/home/jovyan/work/validation_v8/other-methods-preparation-20261017-001/metadata-verification.json",
+    "failed_observation": "/home/jovyan/work/validation_v8/usl-ccam-launch-deployment-20261017-001/runtime-observation-002.json",
+    "live_observation": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002/runtime-confirmation.json"
+  },
+  "cleanup": {
+    "path": "/home/jovyan/work/validation_v8/pre-real-run-cleanup-20261017-002/cleanup.receipt.json",
+    "exists": true,
+    "report": {
+      "all_remote_objects_removed": false,
+      "archive": "/home/jovyan/work/validation_v8/pre-real-run-cleanup-20261017-001/preserved-provenance",
+      "archive_manifest_sha256": "24b7ffd2feabea2e6d04efcf3102defd461c4aa266ae7a63a1f73f5f79628306",
+      "cleanup_complete": true,
+      "created_at": "2026-10-17T15:23:15.554257+00:00",
+      "custom_artifact": {
+        "path": "nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/usl-net-synthetic-forward-20261014:v0",
+        "verified_absent_before_recovery": true
+      },
+      "evidence_preserved": true,
+      "finished_at": "2026-10-17T15:23:17.883840+00:00",
+      "operational_cleanup_complete": true,
+      "parent_receipt": "/home/jovyan/work/validation_v8/pre-real-run-cleanup-20261017-001/cleanup.receipt.json",
+      "parent_receipt_sha256": "1d68eb8741895403d6a95fe8c9a550bfbdea26fab2b716394c3a857527844f24",
+      "protected": [
+        "real datasets",
+        "public weights",
+        "historical audit receipts"
+      ],
+      "recovery_script_sha256": "65f43c00513c1e3f53eecf51da8f1cf3c1bd6e46218f3cae806d6c5ab77484df",
+      "removed_local_paths": [
+        "/home/jovyan/work/public_ssl_v8_preparation/usl-net-synthetic-forward-20261014.json",
+        "/home/jovyan/work/validation_v8/f1dc0d2-20261014/controller_dryrun"
+      ],
+      "removed_wandb_runs": [
+        "nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/g8us8pz9"
+      ],
+      "residual_remote_objects": [
+        {
+          "digest": "9cff0b03bdb1db0b19bc6d0961d3fbad",
+          "id": "QXJ0aWZhY3Q6NDAxNTQ2MzQwMg==",
+          "name": "run-g8us8pz9-history:v0",
+          "path": "nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/run-g8us8pz9-history:v0",
+          "size": 1054,
+          "type": "wandb-history"
+        }
+      ],
+      "schema_version": 1,
+      "service_managed_retention_limitation": true,
+      "status": "completed",
+      "system_managed_history": {
+        "direct_delete_retried": false,
+        "limitation": "W&B retains the service-managed history artifact; the owning synthetic run is removed. No direct-delete retry was attempted.",
+        "observed_status": "retained_system_managed_not_directly_deletable",
+        "owning_run_verified_absent": true,
+        "path": "nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/run-g8us8pz9-history:v0"
+      },
+      "wandb_cleanup_complete": true,
+      "wandb_cleanup_confirmed": true,
+      "wandb_cleanup_scope": "synthetic_run_and_user_validation_artifact; service_managed_history_explicitly_observed"
+    },
+    "sha256": "c1542226a2e724e0e0deb0ecc42e66300f93374d54c71727578e2b4cadc14290"
+  },
+  "other_methods": {
+    "path": "/home/jovyan/work/validation_v8/other-methods-preparation-20261017-001/metadata-verification.json",
+    "exists": true,
+    "report": {
+      "status": "disabled_configs_metadata_verified",
+      "configs": {
+        "sled": {
+          "sha256": "301bf4337e6e017911192109081d032b66463c13ff7fdb0d1e0c3350c6e54c24",
+          "protocol_binding_verified": true,
+          "execution_enabled": false,
+          "resource_caps_measured": false,
+          "gate_bound": false,
+          "source_bank_exists": null
+        },
+        "rpi_net": {
+          "sha256": "555fb359b2184556f671060e72ce6de94fca77b93eb695be0aa14c39f2b2e148",
+          "protocol_binding_verified": true,
+          "execution_enabled": false,
+          "resource_caps_measured": false,
+          "gate_bound": false,
+          "source_bank_exists": true
+        },
+        "rpi_later_phase": {
+          "sha256": "f09d1e889feb980b117fe5a6e19738328ccba26dbc0a1caf9efb8e9f93f6c71c",
+          "protocol_binding_verified": true,
+          "execution_enabled": false,
+          "resource_caps_measured": false,
+          "gate_bound": false,
+          "source_bank_exists": true
+        },
+        "tridermnet_hago": {
+          "sha256": "4e8f60e0fc465fdfca43a6c18b9971c031c511f976dbd0facdf7eaaa5a608b05",
+          "protocol_binding_verified": true,
+          "execution_enabled": false,
+          "resource_caps_measured": false,
+          "gate_bound": false,
+          "source_bank_exists": null
+        }
+      },
+      "no_images_or_model_executed": true
+    },
+    "sha256": "e2261a526ee956bbb8069fd0549bc8f53dbda33dae0f772a33326324d2129819"
+  },
+  "failed_attempt_001": {
+    "status": {
+      "checkpoint_sha256": null,
+      "completed_epoch_records": 0,
+      "elapsed_seconds": 25.015311147086322,
+      "ended_at": "2026-10-17T15:27:18.589037+00:00",
+      "exit_code": 1,
+      "output": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-001",
+      "provenance_sha256": null,
+      "runner_pid": 251855,
+      "started_at": "2026-10-17T15:26:53.576876+00:00",
+      "status": "failed",
+      "stop_reason": null,
+      "supervisor_pid": 251854,
+      "training_started": null
+    },
+    "exit": {
+      "checkpoint_sha256": null,
+      "completed_epoch_records": 0,
+      "elapsed_seconds": 25.015311147086322,
+      "ended_at": "2026-10-17T15:27:18.589037+00:00",
+      "exit_code": 1,
+      "output": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-001",
+      "provenance_sha256": null,
+      "runner_pid": 251855,
+      "started_at": "2026-10-17T15:26:53.576876+00:00",
+      "status": "failed",
+      "stop_reason": null,
+      "supervisor_pid": 251854,
+      "training_started": null
+    },
+    "launch_json_sha256": "992e075ee9d000d7a1cb25c0915d99f90eb71c28dd136e4fa7d18c3f49df7171",
+    "output_exists": false,
+    "method_not_started_error": "RuntimeError: Tracking unavailable; no method execution started",
+    "wandb_run_confirmed": false
+  },
+  "launch_preparation_record": {
+    "ccam_resume_supported": false,
+    "checkout": "/home/jovyan/work/proyectonp/repo_v8_canonical",
+    "checkout_revision": "95a8f602b2fb49304dbbb9a78a18edc43cc3ebba",
+    "cleanup_receipt": "/home/jovyan/work/validation_v8/pre-real-run-cleanup-20261017-002/cleanup.receipt.json",
+    "cleanup_receipt_sha256": "c1542226a2e724e0e0deb0ecc42e66300f93374d54c71727578e2b4cadc14290",
+    "command": [
+      "/home/jovyan/work/proyectonp/.venv/bin/python",
+      "-u",
+      "/home/jovyan/work/proyectonp/repo_v8_canonical/scripts/run_segmentation_v8.py",
+      "--method",
+      "usl_net",
+      "--stage",
+      "ccam",
+      "--config",
+      "/home/jovyan/work/proyectonp/repo_v8_canonical/plan-segmentacion/metodos-v8/launch-preparation/configs/usl_ccam.run-20261017.json",
+      "--manifest",
+      "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
+      "--gate",
+      "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002/ccam.gate.json",
+      "--out",
+      "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002",
+      "--wandb-project",
+      "dermssl-segmentacion"
+    ],
+    "config": {
+      "path": "/home/jovyan/work/proyectonp/repo_v8_canonical/plan-segmentacion/metodos-v8/launch-preparation/configs/usl_ccam.run-20261017.json",
+      "sha256": "0547355805167a54d918d06fb490599bd9b5a5d24a41876e612c5e616681def6"
+    },
+    "created_at": "2026-10-17T15:30:28.874295+00:00",
+    "expected_wandb_run_id": "db7da6c1e784",
+    "expected_wandb_url": "https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/db7da6c1e784",
+    "gate": {
+      "path": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002/ccam.gate.json",
+      "sha256": "03a86e16611f0d38ded16538784527ac9207b85994cdd68c2f01edd21ccde7df"
+    },
+    "launcher_sha256": "22b7cc957ad9bb18d38d34edb41acfd944d610603d848cad881f0fc30c611927",
+    "manifest": {
+      "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
+      "sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff"
+    },
+    "method": "usl_net",
+    "other_methods_automatic": false,
+    "output": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002",
+    "seed": 42,
+    "source_hashes": {
+      "plan-segmentacion/camino-b-cnn/pseudo-mascaras/ccam_engine.py": "3250cf52d60e7c3ebaab437c764148c8a88843f497f2df624e9430b4792c06a7",
+      "scripts/run_segmentation_v8.py": "0e66a5b7e4ef7be190b3203e857e261e18e7fb9a98f7ec5496c24b6eb1805bbe",
+      "src/dermssl/segmentation_methods/common/bank.py": "1bcb9105af5877dbde83638a952a7b18362c44cbcb76940c15e939db6cce7be2",
+      "src/dermssl/segmentation_methods/common/checkpoints.py": "fd8acb3e6f0719e2726b6695e5be65aa3f4cc25c6629996ba82056286c76c049",
+      "src/dermssl/segmentation_methods/common/data.py": "4bc00a237973f22b49eafec289b628b2b11df9347e6cfa4da9f2d3e5dfff6590",
+      "src/dermssl/segmentation_methods/common/networks.py": "26cbb7ccacd63e1e05895a993e2652f7171187242231ae7865e7b67b144b1984",
+      "src/dermssl/segmentation_methods/common/protocol.py": "e5407abecf5c03f6d2f89472e83d709370aaa769d78173af270b6de715ec9ba0",
+      "src/dermssl/segmentation_methods/common/training.py": "6e06e6efb96b698921fc2e6ca7e311a6db2c63a9b91ec1a0339eef906558108d",
+      "src/dermssl/segmentation_methods/usl_net/ccam.py": "7a153d945590e80eb107ba906ee911e83dcbf709ddc0d13a5c486ca23f91d2dc",
+      "src/dermssl/segmentation_methods/usl_net/model.py": "89c2eb2b9bfca78ff4cf17a994610fd5e519e759aafe481b0fdbc408228d268b",
+      "src/dermssl/segmentation_methods/usl_net/seeds.py": "43aa1c02fed85615b7b83b95ea0b5766aae8419c8bc3a0ebc8d3699cdcf8de28",
+      "src/dermssl/w3_usl_models.py": "e0fd82749674d9dd0c85cc2726276bb49f9a695da70c535d2abb515c8ceb98e5"
+    },
+    "stage": "ccam",
+    "status": "prepared_not_started",
+    "tracking": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002-tracking",
+    "training_started": false,
+    "wandb_entity": "nmoreno534-universidad-autonoma-de-bucaramanga",
+    "wandb_identity_verified_absent": true,
+    "wandb_project": "dermssl-segmentacion"
+  },
+  "launch_json_sha256": "70c8e16eac23e2d1607d71bf75f68b8eb50ef2f4995c66b0ebca3d4091193179",
+  "live_confirmation": {
+    "observed_at": "2026-10-17T15:33:04.679888+00:00",
+    "status": "gpu_active_with_running_tracking",
+    "launch_json_sha256": "70c8e16eac23e2d1607d71bf75f68b8eb50ef2f4995c66b0ebca3d4091193179",
+    "gate_sha256": "03a86e16611f0d38ded16538784527ac9207b85994cdd68c2f01edd21ccde7df",
+    "config_sha256": "0547355805167a54d918d06fb490599bd9b5a5d24a41876e612c5e616681def6",
+    "runner_pid": 252265,
+    "supervisor_pid": 252264,
+    "process_tree": {
+      "252265": {
+        "cmdline": "/home/jovyan/work/proyectonp/.venv/bin/python -u /home/jovyan/work/proyectonp/repo_v8_canonical/scripts/run_segmentation_v8.py --method usl_net --stage ccam --config /home/jovyan/work/proyectonp/repo_v8_canonical/plan-segmentacion/metodos-v8/launch-preparation/configs/usl_ccam.run-20261017.json --manifest /home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json --gate /home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002/ccam.gate.json --out /home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002 --wandb-project dermssl-segmentacion ",
+        "status": [
+          "Name:\tpython",
+          "State:\tS (sleeping)",
+          "VmRSS:\t  544752 kB",
+          "Threads:\t48"
+        ],
+        "io": "rchar: 2268939789\nwchar: 4\nsyscr: 108730\nsyscw: 1\nread_bytes: 0\nwrite_bytes: 4096\ncancelled_write_bytes: 0\n"
+      },
+      "252317": {
+        "cmdline": "/home/jovyan/work/proyectonp/.venv/bin/python /home/jovyan/work/proyectonp/repo_v8_canonical/scripts/run_segmentation_v8.py --method usl_net --stage ccam --config /home/jovyan/work/proyectonp/repo_v8_canonical/plan-segmentacion/metodos-v8/launch-preparation/configs/usl_ccam.run-20261017.json --manifest /home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json --gate /home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002/ccam.gate.json --out /home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002 --wandb-project dermssl-segmentacion --_worker ",
+        "status": [
+          "Name:\tpython",
+          "State:\tR (running)",
+          "VmRSS:\t 1888920 kB",
+          "Threads:\t78"
+        ],
+        "io": "rchar: 6623039533\nwchar: 16652\nsyscr: 276013\nsyscw: 47\nread_bytes: 544768\nwrite_bytes: 53248\ncancelled_write_bytes: 8192\n"
+      },
+      "252371": {
+        "cmdline": "/home/jovyan/work/proyectonp/.venv/lib/python3.13/site-packages/wandb/bin/wandb-core --port-filename /tmp/tmp7krg8m6c/port-252317.txt --pid 252317 ",
+        "status": [
+          "Name:\twandb-core",
+          "State:\tS (sleeping)",
+          "VmRSS:\t   57080 kB",
+          "Threads:\t23"
+        ],
+        "io": "rchar: 1337678\nwchar: 97679\nsyscr: 1504\nsyscw: 559\nread_bytes: 782336\nwrite_bytes: 73728\ncancelled_write_bytes: 0\n"
+      }
+    },
+    "gpu_processes": "252317, /home/jovyan/work/proyectonp/.venv/bin/python, 792\n",
+    "gpu_snapshot": "0, 802, 39\n1, 4, 0\n",
+    "owned_gpu_pids": [
+      252317
+    ],
+    "wandb": {
+      "id": "db7da6c1e784",
+      "state": "running",
+      "url": "https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/db7da6c1e784",
+      "name": "usl_ccam-20261017-002"
+    },
+    "exit_record_exists": false,
+    "output_exists": true,
+    "completed_epoch_metrics": [],
+    "training_progress_scope": "live descendant worker CUDA activity and running W&B verified; no completed epoch or checkpoint claimed",
+    "historical_status_file": {
+      "output": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002",
+      "runner_pid": 252265,
+      "started_at": "2026-10-17T15:30:28.968518+00:00",
+      "status": "runner_process_started_training_unconfirmed",
+      "supervisor_pid": 252264,
+      "training_started": null
+    }
+  },
+  "wandb_browser_observed": {
+    "observed_state": "Running",
+    "run_id": "db7da6c1e784",
+    "url": "https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/db7da6c1e784"
+  },
+  "service_incident": {
+    "sdk_version": "0.30.0",
+    "environment_key": "WANDB_SERVICE",
+    "fix": "Remove inherited local service connection at supervisor and runner subprocess boundaries; preserve authentication",
+    "restored_tracking_module_sha256": "63110620b0d78b2b33e65846c8cb8b839ef85dd036875d9399ffa0bff6627c73"
+  }
+}

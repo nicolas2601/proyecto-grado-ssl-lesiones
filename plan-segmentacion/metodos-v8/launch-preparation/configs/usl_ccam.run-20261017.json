@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "method": "usl_net",
+  "execution_enabled": true,
+  "stages": [
+    "check",
+    "ccam"
+  ],
+  "resolution": 224,
+  "seed": 42,
+  "device": "cuda:0",
+  "epochs": 5,
+  "batch_size": 2,
+  "learning_rate": 0.001,
+  "weight_decay": 0.01,
+  "resources": {
+    "timeout_seconds": 86400,
+    "max_rss_mb": 65536,
+    "max_output_mb": 1024,
+    "max_gpu_memory_mb": 18432,
+    "gpu_reserve_mb": 4096,
+    "shutdown_grace_seconds": 120
+  },
+  "source_bank": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
+  "checkpoint": null,
+  "checkpoint_provenance": null,
+  "comparison": "common eligible originals; all masks evaluated separately; same downstream student budget",
+  "ccam_checkpoint": null,
+  "ccam_provenance": null,
+  "usl_policy": {
+    "min_area": 500,
+    "connectivity": 4,
+    "max_centroid_distance": null
+  },
+  "native_recipe": {
+    "cycles": 5,
+    "epochs_per_cycle": 300
+  },
+  "preparation_review": {
+    "status": "pending_operational_resource_review_and_user_approval",
+    "resource_review_path": "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/resource-review.json",
+    "candidate_gate_path": "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/ccam.gate.json",
+    "weight_decay_basis": "matches_existing_fit_ccam_AdamW_default_0.01; trainer_does_not_read_config_weight_decay",
+    "resource_caps_measured": false,
+    "manifest_bound": true,
+    "gate_bound": false,
+    "required_gate_method": "usl_ccam",
+    "ccam_epoch_budget_frozen": true,
+    "budget_basis": "operational_assumption: five initial CCAM epochs; historical reference, not paper-equivalence; 86400-second ceiling and 1024-MiB output ceiling are planning limits, not measurements",
+    "learning_manifest": {
+      "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
+      "sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+      "record_count": 34784,
+      "binding": "informational_pin_requires_cli_manifest_argument"
+    },
+    "frozen_receipt": {
+      "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/freeze.receipt.json",
+      "sha256": "70adc1177b70da13b0a0a98bfdb1ab8d3456b0dc5d39056d0fc53a6ce1bab548",
+      "training_consumable": false
+    },
+    "source_bank_manifest_sha256": "306136b3abd29ae32ac8be2a1456cf411c3f1422f93b39f05d46636141cce6f6",
+    "binding_scope": "verified_metadata_cohort_source_guard_protocol_binding; learning_manifest_requires_cli_manifest_argument"
+  },
+  "evaluation_protocol": {
+    "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/protocol.json",
+    "sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03",
+    "protocol_id": "v8_conservative_retrospective_20261016"
+  }
+}
