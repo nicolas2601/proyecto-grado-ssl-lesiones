@@ -2,19 +2,24 @@
 
 ## Estado vigente CCAM (2026-10-17)
 
-CCAM `002` está en curso según observación a `2026-10-17T15:44:57.251626Z`
-(10:44:57, America/Bogota): dos de cinco épocas completas según el JSONL real,
-con 34.784 muestras cada una. La observación de tracking a `15:43:51.526199Z` muestra
-[W&B `db7da6c1e784`](https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/db7da6c1e784)
-en estado `running`. No hay checkpoint ni recibo de salida final. La limpieza
+CCAM `002` completó cinco épocas reales, 34.784 muestras por época, con salida 0
+a `2026-10-17T15:58:01.028389Z` (10:58:01, America/Bogota) y checkpoint presente.
+Fuente: [copia local de finalización](../../resultados/preparacion_v8/usl_ccam_launch_20261017/completion.snapshot.json).
+Fue entrenamiento real inicial CCAM, no una prueba sintética ni una prueba planificada.
+Las cinco épocas fueron un supuesto operativo, no una duración científica final
+validada por convergencia. El checkpoint queda candidato: revisar ese criterio
+antes de promoverlo a pseudomáscaras, sin nuevas épocas ni entrenamiento automático.
+La corrida es [W&B `db7da6c1e784`](https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/db7da6c1e784);
+el estado final del servicio W&B no se infiere del código de salida local. La limpieza
 operativa terminó preservando procedencia, con un residuo de historial de servicio
 W&B declarado (`all_remote_objects_removed=false`). Los demás métodos siguen
 deshabilitados, sin lanzamiento automático. El intento `001` fallido se conserva;
 el registro y los hashes vigentes están en la sección final y en
 `resultados/preparacion_v8/usl_ccam_launch_20261017/run_record.md`.
 La [copia local del progreso](../../resultados/preparacion_v8/usl_ccam_launch_20261017/epoch-progress.snapshot.json)
-conserva las épocas reales y el hash de captura del JSONL; no es una estimación
-ni acredita evaluación anatómica o finalización. Las observaciones históricas
+conserva el progreso histórico y el hash de aquella captura del JSONL; no es una estimación
+ni acredita evaluación anatómica. La finalización técnica de CCAM no equivale a
+completar USL-Net, sus pseudomáscaras o sus ciclos. Las observaciones históricas
 sin épocas que aparecen abajo conservan el alcance de su fecha/hora original.
 
 ### Presupuesto revisado y autorización vigente (2026-10-17)
