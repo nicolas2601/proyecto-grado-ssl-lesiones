@@ -1,0 +1,158 @@
+{
+  "capture_kind": "parsed_remote_receipt_and_gate_snapshot",
+  "source_log": "/home/jovyan/work/validation_v8/usl-ccam-preparation-20261017-003/receipt.log",
+  "note": "Los SHA-256 report_sha256 y gate_sha256 corresponden a los archivos originales en UNABIA, no a esta serializacion de captura.",
+  "report_sha256": "ed7275b299a2a8cf237c31d25375148de60b41ac5b9f4e7c42c6726e0cf30d84",
+  "report": {
+    "schema_version": 1,
+    "method": "usl_ccam",
+    "created_at": "2026-10-17T08:17:53.279808+00:00",
+    "status": "smoke_passed_preparation_only",
+    "training_started": false,
+    "optimizer_created": false,
+    "optimizer_steps": 0,
+    "learned_checkpoint_written": false,
+    "tracking_started": false,
+    "diagnostic_scope": "one_real_learning_batch_forward_loss_backward_no_update",
+    "diagnostic_timeout_seconds": 600,
+    "script_sha256": "ce3e9ac7a3d41e4fda59c6f9ce2fe62379b8070df62ae815a3eae0fce491b16e",
+    "errors": [],
+    "inputs": {
+      "config": {
+        "path": "/home/jovyan/work/proyectonp/repo_v8_canonical/plan-segmentacion/metodos-v8/launch-preparation/configs/usl_ccam.draft.json",
+        "sha256": "37fae7fdcdf52c91d1f2207922620f6146aa82e0030e8f665747fa4a70ac4159",
+        "canonical_sha256": "fa6ad6a4c201998509fa00013dd3da9dd834a640f1f5df509a6db93ec05a2202"
+      },
+      "manifest": {
+        "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
+        "sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+        "record_count": 34784,
+        "binding": "informational_pin_requires_cli_manifest_argument"
+      },
+      "freeze_receipt": {
+        "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/freeze.receipt.json",
+        "sha256": "70adc1177b70da13b0a0a98bfdb1ab8d3456b0dc5d39056d0fc53a6ce1bab548",
+        "training_consumable": false
+      },
+      "protocol": {
+        "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/protocol.json",
+        "sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03",
+        "protocol_id": "v8_conservative_retrospective_20261016"
+      },
+      "source_bank": {
+        "path": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
+        "sha256": "306136b3abd29ae32ac8be2a1456cf411c3f1422f93b39f05d46636141cce6f6"
+      }
+    },
+    "checkout": {
+      "cwd": "/home/jovyan/work/proyectonp/repo_v8_canonical",
+      "git_head": "95a8f602b2fb49304dbbb9a78a18edc43cc3ebba",
+      "note": "Working source hashes, not git HEAD alone, identify deployed code"
+    },
+    "source_hashes": {
+      "src/dermssl/segmentation_methods/usl_net/model.py": "89c2eb2b9bfca78ff4cf17a994610fd5e519e759aafe481b0fdbc408228d268b",
+      "src/dermssl/segmentation_methods/usl_net/ccam.py": "7a153d945590e80eb107ba906ee911e83dcbf709ddc0d13a5c486ca23f91d2dc",
+      "src/dermssl/segmentation_methods/common/bank.py": "1bcb9105af5877dbde83638a952a7b18362c44cbcb76940c15e939db6cce7be2",
+      "src/dermssl/segmentation_methods/common/networks.py": "26cbb7ccacd63e1e05895a993e2652f7171187242231ae7865e7b67b144b1984",
+      "src/dermssl/segmentation_methods/common/checkpoints.py": "fd8acb3e6f0719e2726b6695e5be65aa3f4cc25c6629996ba82056286c76c049",
+      "src/dermssl/segmentation_methods/common/protocol.py": "e5407abecf5c03f6d2f89472e83d709370aaa769d78173af270b6de715ec9ba0",
+      "src/dermssl/segmentation_methods/common/data.py": "4bc00a237973f22b49eafec289b628b2b11df9347e6cfa4da9f2d3e5dfff6590",
+      "src/dermssl/w3_usl_models.py": "e0fd82749674d9dd0c85cc2726276bb49f9a695da70c535d2abb515c8ceb98e5",
+      "plan-segmentacion/camino-b-cnn/pseudo-mascaras/ccam_engine.py": "3250cf52d60e7c3ebaab437c764148c8a88843f497f2df624e9430b4792c06a7"
+    },
+    "runtime": {
+      "python": "3.13.15 | packaged by conda-forge | (main, Sep  2 2026, 22:01:58) [GCC 15.3.0]",
+      "torch": "2.11.0+cu128",
+      "cuda": "12.8",
+      "device": "cuda:0",
+      "gpu_name": "NVIDIA RTX PRO 4000 Blackwell",
+      "capability": [
+        12,
+        0
+      ],
+      "gpu_total_mib": 23985.875,
+      "gpu_free_before_mib": 23485.25
+    },
+    "sampled_originals": [
+      {
+        "dataset": "isic2019",
+        "image_id": "ISIC_0000010",
+        "image_path": "/home/jovyan/work/proyectonp/salidas/tone/inputs/originals/isic2019/ISIC_0000010.png",
+        "image_sha256": "0539edb4c48ce07c5747b63c4781e50f4d5302bc65e6f977fba13ee7a8a68d01"
+      },
+      {
+        "dataset": "isic2019",
+        "image_id": "ISIC_0000118_downsampled",
+        "image_path": "/home/jovyan/work/proyectonp/salidas/tone/inputs/originals/isic2019/ISIC_0000118_downsampled.png",
+        "image_sha256": "216df731e5da03b3339eacb480e51159478e2cce2ada2d26e9dda2fe404c2bd1"
+      }
+    ],
+    "model_load_seconds": 0.9624998359940946,
+    "batch_seconds": 0.42740897089242935,
+    "loss": 4.4416823387146,
+    "features_shape": [
+      2,
+      9216,
+      14,
+      14
+    ],
+    "foreground_shape": [
+      2,
+      1,
+      14,
+      14
+    ],
+    "finite_gradient_tensors": 2,
+    "state_before_sha256": "4f10c6fc00fadf37157fb09fee2720858161f2a5c63eb294066e5bc4ed5a2050",
+    "state_after_sha256": "4f10c6fc00fadf37157fb09fee2720858161f2a5c63eb294066e5bc4ed5a2050",
+    "model_state_unchanged": true,
+    "planning": {
+      "epochs": 5,
+      "batches_per_epoch": 17392,
+      "cold_batch_linear_seconds": 37167.48410880566,
+      "estimate_is_not_validated_runtime": true,
+      "optimizer_memory_measured": false,
+      "full_dataset_runtime_measured": false,
+      "output_budget_measured": false,
+      "scope_limit": "Peak includes model and one forward/backward, excludes AdamW states and optimizer step; first-batch extrapolation includes cold kernels"
+    },
+    "elapsed_seconds": 5.20580586604774,
+    "rss_peak_mib": 1721.578125,
+    "cuda_peak_allocated_mib": 396.95263671875,
+    "cuda_peak_reserved_mib": 452
+  },
+  "gate_path": "/home/jovyan/work/validation_v8/usl-ccam-preparation-20261017-003/ccam.gate.json",
+  "gate_sha256": "bcb9f329dbc0ff9acde28fe9e06f1853fc6a2f67022bd3d1fd74ce411cd16264",
+  "gate": {
+    "method": "usl_ccam",
+    "input_manifest_sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+    "config_sha256": "fa6ad6a4c201998509fa00013dd3da9dd834a640f1f5df509a6db93ec05a2202",
+    "config_file_sha256": "37fae7fdcdf52c91d1f2207922620f6146aa82e0030e8f665747fa4a70ac4159",
+    "evaluation_protocol": {
+      "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/protocol.json",
+      "sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03",
+      "protocol_id": "v8_conservative_retrospective_20261016"
+    },
+    "verification_revision": "95a8f602b2fb49304dbbb9a78a18edc43cc3ebba",
+    "data_verified": true,
+    "data_verification_scope": "reuse_pinned_frozen_manifest_and_receipt; only_two_original_bytes_rechecked_here",
+    "weights_provenance_verified": true,
+    "smoke_passed": true,
+    "resource_budget_measured": false,
+    "resource_measurement_scope": "one_forward_backward_without_optimizer; incomplete_training_envelope",
+    "patient_independence_accredited": false,
+    "retrospective_protocol_reviewed": true,
+    "training_authorized": false,
+    "preparation_only": true,
+    "execution_enabled": false,
+    "blocked_reasons": [
+      "optimizer_and_full_run_resource_envelope_not_measured",
+      "frozen_receipt_training_consumable_false",
+      "user_review_and_pre_real_run_cleanup_pending"
+    ],
+    "diagnostic_receipt": {
+      "path": "/home/jovyan/work/validation_v8/usl-ccam-preparation-20261017-003/receipt.json",
+      "sha256": "ed7275b299a2a8cf237c31d25375148de60b41ac5b9f4e7c42c6726e0cf30d84"
+    }
+  }
+}
