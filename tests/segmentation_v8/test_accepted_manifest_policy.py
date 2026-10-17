@@ -22,14 +22,21 @@ def accepted(tmp_path):
 
     policy = json.loads((Path(__file__).resolve().parents[2] /
         'plan-segmentacion/metodos-v8/launch-preparation/accepted-data-policy.json').read_text())
-    policy['accepted_counts']['learning_images'] = 1
+    policy['accepted_counts']['learning_images'] = 2
     policy['accepted_counts']['evaluation_images'] = 1
     image = tmp_path / 'image.jpg'
     image.write_bytes(b'original reserved bytes')
     rows = [{'image_id': 'ISIC_0000001', 'image_path': str(image),
              'image_sha256': file_digest(image), 'dataset': 'isic2018_task1'}]
-    learning = [{'image_id': 'ISIC_0000002', 'image_sha256': 'e' * 64}]
-    pool_ref = write('pool.jsonl', learning[0])
+    learning = []
+    for identifier in ('ISIC_0000002', 'ISIC_0000003'):
+        path = tmp_path / (identifier + '.jpg')
+        path.write_bytes(b'accepted repeated learning content')
+        learning.append({'image_id': identifier, 'image_sha256': file_digest(path),
+                         'image_path': str(path), 'dataset': 'fixture_learning'})
+    pool_path = tmp_path / 'pool.jsonl'
+    pool_path.write_text('\n'.join(json.dumps(row) for row in learning) + '\n')
+    pool_ref = {'path': str(pool_path), 'sha256': file_digest(pool_path)}
     geometry_ref = write('geometry.jsonl', {'image_id': rows[0]['image_id'], 'status': 'passed',
         'image': {'sha256': rows[0]['image_sha256']}, 'mask': {'sha256': 'c' * 64}})
     sources = {
@@ -87,6 +94,32 @@ def test_accepted_policy_allows_honest_conservative_manifest(accepted):
                 'records': rows, 'eligibility': proof, 'evaluation_protocol': bind()}
     assert validate_manifest_document(document, purpose='predict') is document
     assert protocol['duplicates_identity_verified'] is False
+
+
+def test_source_bound_train_preserves_distinct_ids_with_equal_bytes(accepted):
+    _, protocol, bind, _, proof = accepted
+    application = json.loads(Path(protocol['source_evidence']['application']['path']).read_text())
+    rows = [json.loads(line) for line in Path(application['outputs']['filtered_pool']['path']).read_text().splitlines()]
+    assert len({row['image_sha256'] for row in rows}) == 1
+    assert len({row['image_id'] for row in rows}) == 2
+    document = {'schema_version': 1, 'partition': 'train', 'count': 2,
+                'records': rows, 'eligibility': proof, 'evaluation_protocol': bind()}
+    assert validate_manifest_document(document, training=True) is document
+    document['partition'] = 'development'
+    with pytest.raises(ValueError, match='frozen only for training'):
+        validate_manifest_document(document)
+
+
+def test_learning_rejects_reserved_content_even_with_different_id(accepted):
+    _, protocol, _, reserved, proof = accepted
+    rows = [dict(reserved[0], image_id='ISIC_9999999')]
+    protocol['learning_cohort_sha256s'] = [cohort_digest(rows)]
+    # Isolate the reader's reserved-byte guard; source-binding itself is
+    # independently covered by the cohort-substitution regression below.
+    with patch('dermssl.segmentation_methods.common.data.validate_binding', return_value=protocol):
+        with pytest.raises(ValueError, match='Reserved image ID or identical content'):
+            validate_manifest_document({'schema_version': 1, 'partition': 'train', 'count': 1,
+                'records': rows, 'eligibility': proof}, training=True)
 
 
 @pytest.mark.parametrize('field', ['duplicates_identity_verified', 'exposure_review_complete',
