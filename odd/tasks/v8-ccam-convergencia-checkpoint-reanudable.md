@@ -1,9 +1,9 @@
 # V8 — CCAM: política de convergencia y checkpoint reanudable
 
 ## Objetivo
-Cerrar el hallazgo de Codex del 2026-10-17: CCAM corrió 5 épocas fijas derivadas
-del presupuesto de tiempo del smoke test, no de un criterio de convergencia.
-Solo guarda la cabeza final (no reanudable). Hay que dejar CCAM con: (1) un
+Cerrar el hallazgo de Codex del 2026-10-17: CCAM corrió 5 épocas fijas sin un
+criterio de convergencia acreditado. La ejecución histórica solo guardó la
+cabeza final (no reanudable). Hay que dejar CCAM con: (1) un
 checkpoint reanudable completo (modelo + optimizador + scheduler + estado RNG,
 igual de robusto que `fit()` en `common/training.py`), y (2) señales de
 convergencia reales trackeadas por época (curva de pérdida completa +
@@ -113,11 +113,50 @@ evidencia en la tesis en qué época conviene detenerse.
       la suite — es una dependencia de desarrollo reversible, no toca UNABIA
       ni ningún entorno de cluster.
 
-## Pendiente, fuera de este cierre
-- No se relanzó CCAM en UNABIA (fuera de alcance, como se pidió).
-- El `probe_images` de estabilidad usa las primeras N imágenes de
-  entrenamiento (no un split reservado) — es una señal de monitoreo, no de
-  validación; declarado así a propósito.
-- `select_candidate_epoch`/`RECOMMENDED_EPOCH_CEILING` quedan como utilidades
-  documentadas; nadie los invocó todavía contra una corrida con datos reales,
-  porque esta tarea no relanzó entrenamiento.
+## Configuración y recuperación integradas (2026-10-17, posterior a la sincronización)
+
+- Implementación local preparada, sin pruebas ni entrenamiento en este avance:
+  el CLI pasa los hashes reales del código a la identidad de recuperación;
+  su mapa recorre `segmentation_methods/`, incluido `usl_net/seeds.py`.
+  También se vinculan el hash del manifiesto del banco y las rutas/hashes de
+  los tres checkpoints y sus sidecars reales; se comprueban antes y después
+  de cargarlos. Una recuperación exige
+  identidad idéntica: no admite los checkpoints antiguos sin este vínculo.
+- `resume.pt` se confirma atómicamente antes de publicar métricas. Conserva
+  los registros completos por época y la cabeza seleccionada; `metrics.jsonl`
+  se reconstruye atómicamente desde esos registros al recuperar. Así el archivo
+  local tiene una fila por época confirmada, aunque una interrupción haya
+  dejado métricas atrasadas. W&B recibe el número lógico `epoch`, pero no hay
+  transacción distribuida: una interrupción antes de enviar puede dejar una
+  fila ausente allí; no se promete entrega externa exactamente una vez.
+- El borrador sigue con `execution_enabled=false`: 30 épocas fijas, batch 2,
+  AdamW LR 0,001 y weight decay explícito 0,01. Las 30 épocas se anclan al
+  precedente MoCo y no a una convergencia medida de CCAM. No hay parada temprana.
+- `ccam_selection` conecta la primera época con Pearson >= 0,98. La cabeza
+  de esa época se conserva dentro de `resume.pt` y al completar se exporta
+  a `selected.ccam.pt` con sidecar y época real. `ccam.pt` conserva la cabeza
+  final de presupuesto, explícitamente no seleccionada. `selection.json`
+  registra ambos hashes; si no se cruza el umbral, declara
+  `threshold_not_reached`, sin candidato seleccionado ni promoción automática.
+  Las exportaciones son recuperables desde el estado confirmado y rechazan
+  sobrescribir archivos pertenecientes a otra identidad.
+- El probe son las primeras ocho imágenes del pool de aprendizaje, dentro de
+  muestra. El umbral es una heurística técnica, no una regla del artículo ni
+  evidencia de calidad anatómica. Batch 2 conserva un único positivo de otra
+  imagen; esa limitación científica sigue declarada.
+- Se conservan los límites de planificación de 86.400 s y 1.024 MiB. Las cinco
+  épocas previas duraron 1.652,062884596 s; la extrapolación lineal a 30 da
+  9.912,377307576 s, sin acreditar una medición de 30 épocas. Los archivos de
+  cabeza/optimizador y métricas previstos caben holgadamente en el límite
+  planificado; no se presenta ese límite como consumo medido.
+
+## Pendiente inmediato
+
+Revisar el cambio completo, preparar ZIP y desplegar en UNABIA. El gate anterior
+está vinculado al config anterior: `gate_bound=false` y presupuesto no congelado
+hasta revisar el nuevo vínculo. No se alteraron gates ni `readiness.review.json`.
+La corrida real de cinco épocas permanece intacta; no se recupera exactamente
+desde su cabeza sin optimizador/RNG. No se relanza ni se habilita nada con esta
+preparación. El plan serial del estudiante y sus refinamientos sigue pendiente.
+La evidencia de pruebas de la sección anterior corresponde al commit previo;
+no valida estos cambios nuevos.

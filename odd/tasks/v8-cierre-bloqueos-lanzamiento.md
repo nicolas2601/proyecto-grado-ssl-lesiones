@@ -687,3 +687,28 @@ sería una etapa nueva. No se fijan nuevos números como aprobados ni se usan la
 pruebas operativas, no se relanza y no se modifican configs, gates, manifiestos,
 `readiness.review.json` ni los otros métodos. Esta revisión no certifica que
 USL-Net completo esté listo para entrenar.
+
+## CCAM: configuración integrada después de sincronizar la rama (2026-10-17)
+
+Se actualizó únicamente el borrador CCAM deshabilitado a 30 épocas fijas,
+batch 2, LR 0,001 y weight decay 0,01. El techo deriva del precedente MoCo,
+no de una convergencia medida de CCAM. Se mantienen los límites de planificación
+de 86.400 s y 1.024 MiB; no son mediciones de una ejecución de 30 épocas.
+
+La recuperación incorpora hashes del código, manifiesto del banco y checkpoints/
+sidecars reales de sus tres orígenes, comprobados antes y después de cargarlos; confirma `resume.pt`
+antes de publicar y reconstruye `metrics.jsonl` desde su historial. La selección
+conectada conserva la primera cabeza con estabilidad Pearson >= 0,98 sobre ocho
+imágenes fijas de aprendizaje en `selected.ccam.pt`, con época/linaje propios.
+`ccam.pt` sigue siendo la cabeza final de presupuesto, no el seleccionado.
+No hay parada temprana ni aceptación automática; `selection.json` distingue
+un candidato de estabilidad de `threshold_not_reached`. La heurística no acredita
+calidad anatómica y batch 2 mantiene su limitación contrastiva.
+
+Estado: implementación/config locales preparados, sin pruebas ni entrenamiento
+en este avance. Falta revisión conjunta, ZIP a UNABIA y gate vinculado a los
+hashes nuevos; el gate anterior no habilita este config. Después sigue el plan
+serial del estudiante/refinamientos. La corrida histórica de cinco épocas,
+manifiestos congelados, `readiness.review.json`, gates y demás métodos permanecen
+intactos. Detalle en [la tarea CCAM](v8-ccam-convergencia-checkpoint-reanudable.md)
+y la [revisión del protocolo](../../plan-segmentacion/metodos-v8/launch-preparation/training-protocol-review.md).

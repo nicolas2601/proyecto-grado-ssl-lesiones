@@ -9,10 +9,14 @@
   "resolution": 224,
   "seed": 42,
   "device": "cuda:0",
-  "epochs": 5,
+  "epochs": 30,
   "batch_size": 2,
   "learning_rate": 0.001,
   "weight_decay": 0.01,
+  "ccam_selection": {
+    "rule": "first_stability_threshold",
+    "threshold": 0.98
+  },
   "resources": {
     "timeout_seconds": 86400,
     "max_rss_mb": 65536,
@@ -37,16 +41,18 @@
     "epochs_per_cycle": 300
   },
   "preparation_review": {
-    "status": "pending_operational_resource_review_and_user_approval",
+    "status": "disabled_updated_config_pending_cluster_deployment_and_hash_bound_gate_review",
     "resource_review_path": "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/resource-review.json",
     "candidate_gate_path": "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/ccam.gate.json",
-    "weight_decay_basis": "matches_existing_fit_ccam_AdamW_default_0.01; trainer_does_not_read_config_weight_decay",
+    "weight_decay_basis": "explicit_AdamW_weight_decay_0.01; unchanged_from_previous_effective_default",
     "resource_caps_measured": false,
     "manifest_bound": true,
     "gate_bound": false,
     "required_gate_method": "usl_ccam",
-    "ccam_epoch_budget_frozen": true,
-    "budget_basis": "operational_assumption: five initial CCAM epochs; historical reference, not paper-equivalence; 86400-second ceiling and 1024-MiB output ceiling are planning limits, not measurements",
+    "ccam_epoch_budget_frozen": false,
+    "budget_basis": "fixed_30_epoch_ceiling_from_project_MoCo_precedent_not_measured_CCAM_convergence; 1652.062884596_seconds_for_previous_5_epochs_implies_9912.377307576_seconds_by_linear_extrapolation_only; unchanged_86400_second_and_1024_MiB_caps_are_planning_limits_not_measurements",
+    "selection_basis": "first_Pearson_stability_at_least_0.98_on_first_8_fixed_learning_images; technical_heuristic_not_paper_requirement_or_anatomical_validation; no_early_stop; selected_head_separate_from_budget_final_head",
+    "batch_basis": "inherited_batch_2_retained; one_other_image_positive_per_image_remains_a_scientific_limitation_not_resolved_by_more_epochs",
     "learning_manifest": {
       "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
       "sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",

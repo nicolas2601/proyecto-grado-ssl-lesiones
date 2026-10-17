@@ -198,7 +198,7 @@ def main():
         elif args.stage=='ccam':
             from dermssl.segmentation_methods.usl_net.seeds import fit_ccam
             fit_ccam(args.manifest,config['source_bank'],args.out,config,args.gate,revision=revision,sink=sink,
-                     resume=args.resume,tracking_run_id=getattr(sink._run,'id',None))
+                     resume=args.resume,tracking_run_id=getattr(sink._run,'id',None),source_hashes=source_hashes)
         else:
             from dermssl.segmentation_methods.common.inference import export
             export(args.method,args.stage,args.manifest,args.out,config,args.gate,revision=revision,sink=sink)

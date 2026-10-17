@@ -60,7 +60,10 @@ consultada no establece un presupuesto CCAM de cinco épocas ni justifica el
 batch o el optimizador usados aquí. Los valores 5×300 son una referencia del
 protocolo publicado, no una aprobación automática del presupuesto local.
 
-## Propuesta coherente para la siguiente ejecución
+## Propuesta original y actualización de implementación
+
+Los párrafos siguientes conservan el diagnóstico anterior al checkpoint
+reanudable; el estado vigente se precisa al final de esta sección.
 
 La siguiente unidad de trabajo debe resolver conjuntamente política científica,
 recuperación y observación dentro de una misma corrida, en lugar de encadenar
@@ -92,13 +95,47 @@ son `src/dermssl/segmentation_methods/usl_net/seeds.py` (CCAM),
 `src/dermssl/segmentation_methods/common/training.py` (estudiante), los configs
 USL-Net/CCAM y el plan serial del controlador. No se implementan cambios aquí.
 
-El CCAM actual guarda únicamente la cabeza final y su linaje: no permite una
+El CCAM de la ejecución histórica de cinco épocas guarda únicamente la cabeza final y su linaje: no permite una
 reanudación exacta con AdamW/RNG/contadores. Una futura carga de esa cabeza sería
 un inicio desde pesos previos de una etapa nueva, no continuación exacta. El
 estudiante sí tiene recuperación completa, pero la identidad incluye los hashes
 de config, gate y código: cambiar `epochs` invalida la reanudación. Debe fijarse
 el presupuesto total antes de dividirlo en sesiones de ejecución recuperables.
 Una sesión recuperada y un nuevo ciclo de autoaprendizaje son operaciones distintas.
+
+### Estado vigente después de integrar la configuración (2026-10-17)
+
+El código local ya tiene recuperación CCAM por época con cabeza, AdamW, RNG,
+historial y cabeza seleccionada. La identidad vincula hashes de código,
+config, manifiesto del banco, checkpoints/sidecars reales de los tres orígenes,
+manifiesto de datos, gate y revisión. Los activos del banco se comparan antes y
+después de cargarlos. Cambiar esos insumos no es una
+recuperación idéntica. Los checkpoints anteriores sin esta identidad no se
+aceptan como recuperables por la versión nueva.
+
+El config CCAM deshabilitado fija 30 épocas como techo operativo tomado del
+precedente MoCo, explícitamente no medido para CCAM. Mantiene batch 2, LR 0,001,
+weight decay 0,01 y límites de 86.400 s/1.024 MiB como planificación. El dato
+medido de 1.652,062884596 s para cinco épocas solo permite una extrapolación
+lineal de 9.912,377307576 s para 30, no una garantía temporal. La limitación
+contrastiva de batch 2 permanece; esta configuración no la resuelve.
+
+Se ejecutaría el presupuesto fijo completo, sin parada temprana. Se conserva
+como candidato la primera cabeza con Pearson >= 0,98 entre saliencias de
+épocas consecutivas sobre las primeras ocho imágenes de aprendizaje. Se exporta
+como `selected.ccam.pt`, separado del `ccam.pt` final de presupuesto. Ambos
+conservan época y linaje; `selection.json` declara si hubo candidato o el umbral
+nunca se alcanzó. Ese umbral es una heurística de estabilidad dentro de muestra,
+no una prescripción del artículo, ni evidencia de convergencia científica o
+calidad anatómica. No se usa el holdout experto para elegirlo.
+
+Las métricas locales se reconstruyen desde el historial del checkpoint confirmado
+antes de publicar. W&B conserva `epoch` como referencia lógica, sin garantía de
+entrega exactamente una vez: una interrupción puede dejar filas externas ausentes.
+El siguiente paso es revisar y transportar el ZIP a UNABIA y revisar el gate
+contra el nuevo config. El gate antiguo no sirve para este config distinto.
+No se habilita, prueba ni ejecuta entrenamiento en esta actualización. El plan
+serial del estudiante y la política de continuidad entre ciclos siguen pendientes.
 
 ## Separación científica y alcance de esta revisión
 
