@@ -548,3 +548,46 @@ y los otros métodos no se modifican.
 La [copia local de la evidencia parseada](../../resultados/preparacion_v8/usl_ccam_cuda_20261017/diagnostic.snapshot.json) permite revisar recibo y gate
 con sus hashes de origen. Su serialización local difiere de los bytes originales del clúster;
 no sustituye esos hashes de origen.
+
+## Revisión operativa única CCAM, sin lanzamiento (2026-10-17)
+
+Se ejecutó una vez `scripts/review_v8_usl_ccam_resources.py` para reutilizar recibo
+y gate CUDA `003`, sin repetir smoke, optimizador ni entrenamiento. Su salida está en
+`/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/`.
+Estado: `operational_budget_reviewed_pending_user_approval`; pasó la verificación
+de metadata del consumidor real `gate_report` en el primer intento.
+SHA-256 de `resource-review.json`:
+`6e3d896e59b473d075e1e81cfeda08755230fa7068df609c72f2a15c601eb2c9`;
+de `ccam.gate.json`:
+`2f8e644680aacf5eaeca90561a6d0f7a16655632e50020e022e4b8f55aa6b062`;
+y de `launch-review.json`:
+`e44e0d7e6f2aae3855d4e1def8890a8d2c95d6ef8d1f0a1348ae92304960267d`.
+
+Se separan mediciones y supuestos: 452 MiB reservados observados, 73.736 bytes
+modelados para dos momentos AdamW y 16 MiB de provisión temporal conservadora,
+frente a un tope de 18.432 MiB y reserva adicional de 4.096 MiB. No se presenta
+el optimizador ni la duración del conjunto completo como medidos. Las cinco épocas,
+24 horas y 1.024 MiB son límites operativos. El config declara `weight_decay=0.01`
+para coincidir con el AdamW efectivo existente; no se modifica el entrenamiento.
+Total GPU modelado: 468,070320129 MiB; extrapolación de batches: 37.167,4841088 s
+(10,3243 h), excluyendo carga, I/O, optimización y variación del conjunto completo.
+La relación techo/estimación es 2,32461255, sin garantía de duración total.
+
+Se corrigen dos bloqueos descritos anteriormente: el recibo histórico
+`training_consumable=false` no es un guard consultado por el runner, y medir una
+corrida completa no es un requisito para revisar un presupuesto operativo inicial.
+El recibo de congelamiento y el gate `003` permanecen intactos. El nuevo gate
+declara el alcance representativo más la provisión modelada, no una medición total.
+
+El guard efectivo permanece en `execution_enabled=false`; los campos informativos
+`training_authorized` y `preparation_only` del gate no bloquean por sí solos.
+Antes de ejecutar faltan revisión del usuario, limpieza sintética conservando recibos
+y regenerar el gate para el hash del config cuando se autorice habilitarlo. No se
+realiza limpieza ni lanzamiento en este avance. La etapa inicial CCAM no equivale a
+USL-Net completo: checkpoint/linaje, pseudomáscaras y plan del estudiante siguen
+pendientes. Los otros métodos y `readiness.review.json` permanecen fuera del alcance.
+
+La [copia local parseada de la revisión](../../resultados/preparacion_v8/usl_ccam_operational_review_20261017/resource-review.snapshot.json)
+conserva resultados y hashes de origen; su serialización no sustituye los bytes
+originales de UNABIA. Los hashes del config revisado y la explicación completa
+quedan en `plan-segmentacion/metodos-v8/launch-preparation/usl-net-readiness.md`.
