@@ -97,7 +97,7 @@ def main():
             print(json.dumps({'manifest_count':document['count'],'partition':document['partition']}))
         return 0
     if not args.out:raise ValueError('Explicit output directory required')
-    if args.resume and args.stage!='fit':raise ValueError('--resume is currently supported only for fit')
+    if args.resume and args.stage not in ('fit','ccam'):raise ValueError('--resume is currently supported only for fit and ccam')
     if args.resume:
         if not args.out.is_dir() or not (args.out/'resume.pt').is_file():raise ValueError('--resume requires an existing fit directory with resume.pt')
     elif args.out.exists():raise ValueError('New output directory required; existing outputs are never overwritten')
@@ -197,7 +197,8 @@ def main():
             local_pretrain(args.ssl_origin,args.manifest,args.out,config,args.gate,revision=revision,sink=sink)
         elif args.stage=='ccam':
             from dermssl.segmentation_methods.usl_net.seeds import fit_ccam
-            fit_ccam(args.manifest,config['source_bank'],args.out,config,args.gate,revision=revision,sink=sink)
+            fit_ccam(args.manifest,config['source_bank'],args.out,config,args.gate,revision=revision,sink=sink,
+                     resume=args.resume,tracking_run_id=getattr(sink._run,'id',None))
         else:
             from dermssl.segmentation_methods.common.inference import export
             export(args.method,args.stage,args.manifest,args.out,config,args.gate,revision=revision,sink=sink)

@@ -83,7 +83,7 @@ def _state_hash(state):
     return h.hexdigest()
 
 
-def _rng_state(loader_generator):
+def rng_state(loader_generator):
     ns=np.random.get_state()
     return {'python':random.getstate(),'numpy':{'name':ns[0],'keys':torch.from_numpy(ns[1].copy()),
             'position':int(ns[2]),'has_gauss':int(ns[3]),'cached_gaussian':float(ns[4])},
@@ -92,7 +92,7 @@ def _rng_state(loader_generator):
             'loader':loader_generator.get_state()}
 
 
-def _restore_rng(state,loader_generator):
+def restore_rng(state,loader_generator):
     random.setstate(tuple(state['python']))
     ns=state['numpy']
     np.random.set_state((ns['name'],ns['keys'].cpu().numpy().astype(np.uint32),int(ns['position']),
@@ -102,7 +102,7 @@ def _restore_rng(state,loader_generator):
     loader_generator.set_state(state['loader'].cpu())
 
 
-def _atomic_checkpoint(path,payload):
+def atomic_checkpoint(path,payload):
     path=Path(path);tmp=path.with_name(path.name+'.tmp')
     torch.save(payload,tmp)
     os.replace(tmp,path)
@@ -192,16 +192,16 @@ def fit(method,manifest_path,out,config,gate_path,*,sink=None,initial=None,revis
             if payload.get('hago_step_number') is None:raise ValueError('HAGO state missing from resume checkpoint')
             hago.step_number=int(payload['hago_step_number'])
         epoch=int(payload['epoch']);global_step=int(payload['global_step'])
-        sampler.load_state_dict(payload['sampler']);_restore_rng(payload['rng'],loader_generator)
+        sampler.load_state_dict(payload['sampler']);restore_rng(payload['rng'],loader_generator)
         losses=list(payload.get('epoch_losses',[]));results=list(payload.get('results',[]));hago_metrics=list(payload.get('hago_metrics',[]))
         if epoch<0 or epoch>epochs:raise ValueError('Checkpoint epoch exceeds configured budget')
     else:
         out.mkdir(parents=True);(out/'config.json').write_text(json.dumps(config,indent=2)+'\n')
         epoch=0;global_step=0;losses=[];results=[];hago_metrics=[]
     def save_resume():
-        _atomic_checkpoint(resume_path,{'identity':identity,'model':model.state_dict(),'optimizer':optimizer.state_dict(),
+        atomic_checkpoint(resume_path,{'identity':identity,'model':model.state_dict(),'optimizer':optimizer.state_dict(),
             'epoch':epoch,'global_step':global_step,'sampler':sampler.state_dict(),'epoch_losses':losses,
-            'results':results,'hago_metrics':hago_metrics,'rng':_rng_state(loader_generator),
+            'results':results,'hago_metrics':hago_metrics,'rng':rng_state(loader_generator),
             'hago_step_number':None if hago is None else hago.step_number})
     if not resume:
         sampler.set_epoch(epoch)
