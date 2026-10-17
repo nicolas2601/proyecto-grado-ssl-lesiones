@@ -1,0 +1,37 @@
+{
+  "observed_at_utc": "2026-10-17T23:20:53.276878+00:00",
+  "status": {
+    "output": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003",
+    "runner_pid": 264264,
+    "started_at": "2026-10-17T23:16:02.889029+00:00",
+    "status": "runner_process_started_training_unconfirmed",
+    "supervisor_pid": 264263,
+    "training_started": null
+  },
+  "exit": null,
+  "completed_epoch_records": 0,
+  "latest_epochs": [],
+  "metrics_file_exists": true,
+  "resume_checkpoint_exists": false,
+  "wandb_run_id": "2761bbcd828a",
+  "launch_sha256": "d5f8f9718fdb8e62d191a2cf3662f56444e73f0f9e81e21c04e04f832aeeebb4",
+  "active_config_sha256": "30fd4ad9e870f86009e1b591fab05cb84226f66621297912d8349c43bed7756c",
+  "active_gate_sha256": "d98c73c022d7809ae0b3d4fe94b16aea0ef3f92d6bdf1ef9b96b7ac953189bd0",
+  "cleanup_receipt_sha256": "0ca336b90aecf3fd999c9b03f7a83b5cc95d961c55650a78cdac091a470922ab",
+  "cleanup": {
+    "cleanup_complete": true,
+    "evidence_preserved": true,
+    "wandb_cleanup_complete": true,
+    "scope": "Only four reviewed recovery diagnostic directories and four fixture JSON files",
+    "archive": "/home/jovyan/work/validation_v8/usl-ccam-recovery-verification-6c5627d-20261017-001/archived-before-run003/reviewed-diagnostics.tar.gz",
+    "archive_sha256": "edefc6d2b67361a2adedf8113cc02457eed42cc3a3d6e61f69a73e2306e99772"
+  },
+  "archived_file_count": 27,
+  "gpu0": "NVIDIA RTX PRO 4000 Blackwell, 34, 802, 24467",
+  "gpu_processes": "264315, 792",
+  "source": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/runtime-confirmation-003.log",
+  "wandb_ui_observation": {
+    "state": "Running",
+    "url": "https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/2761bbcd828a"
+  }
+}

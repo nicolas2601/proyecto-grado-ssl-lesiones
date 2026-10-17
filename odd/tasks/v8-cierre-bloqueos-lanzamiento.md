@@ -760,3 +760,21 @@ alcance, limpieza tardía preservando evidencia y activación con gate productiv
 ligado; `passed=null` refleja campo ausente, no fallo ni aprobación. La línea
 completa USL-Net no está habilitada: pseudomáscaras y plan del estudiante siguen
 pendientes. [Registro y hashes](../../resultados/preparacion_v8/usl_ccam_launch_preparation_20261017/run_record.md).
+
+## CCAM 003: envío autorizado y observación inicial (2026-10-17)
+
+Tras la autorización «si lanza la corrida», se archivaron/verificaron 27 archivos
+diagnósticos del alcance revisado, preservando recibos y la corrida real 002.
+Se creó config/gate activo separado y se envió una sola ejecución CCAM de 30
+épocas, semilla 42 desde cero, batch 2, resolución 224 y candidato Pearson >= 0,98
+sin parada temprana. Salida: `/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003`;
+W&B: `2761bbcd828a`. A las 23:20:53 UTC el runner y su hijo CUDA seguían presentes,
+W&B mostraba `Running` y GPU usaba 792 MiB para ese proceso. Seguían cero épocas
+completas, sin checkpoint de recuperación ni código de salida: estado fuente
+`runner_process_started_training_unconfirmed`, `training_started=null`.
+No se acredita aún progreso del optimizador ni se declara finalización. Los
+manifiestos y readiness histórico no cambiaron. No se ejecutan automáticamente
+pseudomáscaras, estudiante ni otros métodos; su preparación debe preservar la
+copia de código activa. Sigue incorporar la primera época o error real y,
+al terminar, revisar historial/checkpoints antes de promover pseudomáscaras.
+[Registro, hashes y límites](../../resultados/preparacion_v8/usl_ccam_launch_20261017_003/run_record.md).

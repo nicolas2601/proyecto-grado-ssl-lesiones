@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "observed_remote_initial_runtime_snapshot",
+  "remote_source": "/home/jovyan/work/validation_v8/usl-ccam-launch-preparation-4a6832c-20261017-001/review/approved-submission/runtime-probe-001.log",
+  "log_decoration_removed": true,
+  "observed_at_utc": "2026-10-17T23:17:49.345015+00:00",
+  "base_exists": true,
+  "output_exists": true,
+  "status.json": {
+    "output": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003",
+    "runner_pid": 264264,
+    "started_at": "2026-10-17T23:16:02.889029+00:00",
+    "status": "runner_process_started_training_unconfirmed",
+    "supervisor_pid": 264263,
+    "training_started": null
+  },
+  "exit.json": null,
+  "submission.json": {
+    "supervisor_pid": 264263,
+    "training_started": null
+  },
+  "runner_alive": true,
+  "runner_command": "/home/jovyan/work/proyectonp/.venv/bin/python -u /home/jovyan/work/proyectonp/repo_v8_canonical/scripts/run_segmentation_v8.py --method usl_net --stage ccam --config /home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/ccam.run.approved.json --manifest /home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json --gate /home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/ccam.gate.json --out /home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003 --wandb-project dermssl-segmentacion ",
+  "runner_memory": [
+    "State:\tS (sleeping)",
+    "VmHWM:\t  592924 kB",
+    "VmRSS:\t  544612 kB"
+  ],
+  "gpu0": "NVIDIA RTX PRO 4000 Blackwell, 39, 802, 24467",
+  "gpu_processes": "264315, 792",
+  "completed_epoch_records": 0,
+  "supervisor.log_tail": [],
+  "runner.log_tail": [
+    "wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.",
+    "wandb: Currently logged in as: paulasaavedra1101 (nmoreno534-universidad-autonoma-de-bucaramanga) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin",
+    "wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.",
+    "wandb: setting up run 2761bbcd828a",
+    "wandb: Tracking run with wandb version 0.30.0",
+    "wandb: Run data is saved locally in /home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003-tracking/wandb/run-20261017_231619-2761bbcd828a",
+    "wandb: Run `wandb offline` to turn off syncing.",
+    "wandb: Syncing run usl_ccam-20261017-003",
+    "wandb:  View project at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion",
+    "wandb:  View run at https://wandb.ai/nmoreno534-universidad-autonoma-de-bucaramanga/dermssl-segmentacion/runs/2761bbcd828a"
+  ],
+  "launch_summary": {
+    "ccam_resume_supported": true,
+    "cleanup_receipt": "/home/jovyan/work/validation_v8/usl-ccam-launch-preparation-4a6832c-20261017-001/review/approved-submission/cleanup.receipt.json",
+    "cleanup_receipt_sha256": "0ca336b90aecf3fd999c9b03f7a83b5cc95d961c55650a78cdac091a470922ab",
+    "command": [
+      "/home/jovyan/work/proyectonp/.venv/bin/python",
+      "-u",
+      "/home/jovyan/work/proyectonp/repo_v8_canonical/scripts/run_segmentation_v8.py",
+      "--method",
+      "usl_net",
+      "--stage",
+      "ccam",
+      "--config",
+      "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/ccam.run.approved.json",
+      "--manifest",
+      "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
+      "--gate",
+      "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/ccam.gate.json",
+      "--out",
+      "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003",
+      "--wandb-project",
+      "dermssl-segmentacion"
+    ],
+    "config": {
+      "path": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/ccam.run.approved.json",
+      "sha256": "30fd4ad9e870f86009e1b591fab05cb84226f66621297912d8349c43bed7756c"
+    },
+    "created_at": "2026-10-17T23:16:02.795243+00:00",
+    "expected_wandb_run_id": "2761bbcd828a",
+    "fresh_start_seed": 42,
+    "gate": {
+      "path": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/ccam.gate.json",
+      "sha256": "d98c73c022d7809ae0b3d4fe94b16aea0ef3f92d6bdf1ef9b96b7ac953189bd0"
+    },
+    "launcher_sha256": "eec913d64af777dc6e5483c795777cbd00a27e52258de47274a5b1358df43fd7",
+    "manifest": {
+      "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
+      "sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff"
+    },
+    "method": "usl_net",
+    "other_methods_automatic": false,
+    "output": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003",
+    "resume_requested": false,
+    "seed": 42,
+    "stage": "ccam",
+    "status": "prepared_not_started",
+    "tracking": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003-tracking",
+    "training_started": false,
+    "wandb_entity": "nmoreno534-universidad-autonoma-de-bucaramanga"
+  },
+  "launch_sha256": "d5f8f9718fdb8e62d191a2cf3662f56444e73f0f9e81e21c04e04f832aeeebb4",
+  "config_summary": {
+    "execution_enabled": true,
+    "epochs": 30,
+    "batch_size": 2,
+    "resolution": 224,
+    "seed": 42,
+    "ccam_selection": {
+      "rule": "first_stability_threshold",
+      "threshold": 0.98
+    }
+  }
+}
