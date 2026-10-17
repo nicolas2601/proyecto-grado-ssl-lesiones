@@ -12,9 +12,9 @@ deshabilitados, sin lanzamiento automático. El intento `001` fallido se conserv
 el registro y los hashes vigentes están en la sección final y en
 `resultados/preparacion_v8/usl_ccam_launch_20261017/run_record.md`.
 
-### Revisión histórica del usuario: gate de presupuesto de CCAM aprobado (2026-10-17)
+### Presupuesto revisado y autorización vigente (2026-10-17)
 
-El usuario revisó la evidencia verificada de forma independiente de
+La revisión operativa documentada usa la evidencia de
 `/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/`
 (`resource-review.json`, `ccam.gate.json`, `launch-review.json`): medición real
 (no sintética) de un forward+loss+backward sobre `batch_size=2`/resolución 224,
@@ -23,17 +23,12 @@ de 24GB; `optimizer_memory_measured=false`; runtime de 5 épocas (37.167,5 s)
 extrapolado linealmente, no medido con el optimizador real ni con el dataset
 completo.
 
-Con esa evidencia presentada, el usuario respondió textualmente: "No pues
-aprobemoslo, si lo ves bien y que termine con la otra parte que hace falta" —
-aprobando explícitamente el gate de presupuesto operativo de CCAM. Aclaración
-posterior del propio usuario: esta aprobación cubre específicamente la limpieza
-sintética y habilitar/regenerar el gate del config; **no cubre lanzar el
-entrenamiento real**, que queda pendiente de autorización aparte, explícita y
-separada, antes de ejecutar el comando de lanzamiento.
-
-Esta revisión corresponde a la etapa anterior a la autorización posterior de
-lanzamiento. El estado vigente al inicio de este documento registra el avance
-autorizado y observado; no modifica los recibos históricos de preparación.
+La solicitud humana vigente autoriza avanzar para lanzar la etapa CCAM y preparar
+los demás métodos mientras se ejecuta. El estado observado se registra al inicio
+de este documento y en el registro de corrida. Se retira una cita de aprobación
+que figuraba en una edición local previa y cuya fuente no pudo acreditarse; no
+se utiliza como evidencia de autorización. Los recibos históricos de preparación
+permanecen intactos.
 
 ## Objetivo
 Completar los pendientes documentados en docs/46, docs/49 y docs/51 para habilitar
