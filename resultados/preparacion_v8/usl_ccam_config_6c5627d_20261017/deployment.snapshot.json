@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "observed_remote_deployment_brief",
+  "remote_source": "/home/jovyan/work/validation_v8/usl-ccam-config-6c5627d-20261017-001/deployment/deployment-brief.log",
+  "status": "deployed_disabled_candidate",
+  "payload_commit": "6c5627d30eea56d916bdb941395cd77b4df122b1",
+  "canonical_git_log": "95a8f602b2fb49304dbbb9a78a18edc43cc3ebba add scripts/audit_v8_official_group_metadata.py @ fb7f806, previously untracked",
+  "git_commit_not_changed": true,
+  "candidate_gate_path": "/home/jovyan/work/validation_v8/usl-ccam-config-6c5627d-20261017-001/deployment/ccam.gate.json",
+  "candidate_gate_sha256": "a1fa4b2d4772a71b0f2d3080f2fa0212e85b2fa4709d5467c7f0b620d01ef2cf",
+  "tests_executed": false,
+  "model_imported": false,
+  "training_started": false,
+  "execution_enabled": false,
+  "source_file_count": 55,
+  "receipt_sha256": "2e10da1c435958d9c527f4cc7bf3fe039cc6493ca0576244c503753badfa90fe",
+  "config_file_sha256": "b8a4836dde5e09dee80398e0a06196758aaa62fe903f037e3c7a8e50e59a13be",
+  "config_canonical_sha256": "94466c9d9e2d02e06b6b535676334c225f68178671e8f6c3e8c076079c42011d",
+  "historical_unchanged": true,
+  "actions": [
+    {
+      "path": "odd/tasks/v8-ccam-convergencia-checkpoint-reanudable.md",
+      "action": "replace"
+    },
+    {
+      "path": "odd/tasks/v8-cierre-bloqueos-lanzamiento.md",
+      "action": "replace"
+    },
+    {
+      "path": "plan-segmentacion/metodos-v8/launch-preparation/configs/usl_ccam.draft.json",
+      "action": "replace"
+    },
+    {
+      "path": "plan-segmentacion/metodos-v8/launch-preparation/training-protocol-review.md",
+      "action": "replace"
+    },
+    {
+      "path": "resultados/preparacion_v8/ccam_local_review_20261017.md",
+      "action": "replace"
+    },
+    {
+      "path": "scripts/run_segmentation_v8.py",
+      "action": "replace"
+    },
+    {
+      "path": "src/dermssl/segmentation_methods/common/training.py",
+      "action": "replace"
+    },
+    {
+      "path": "src/dermssl/segmentation_methods/usl_net/seeds.py",
+      "action": "replace"
+    },
+    {
+      "path": "tests/segmentation_v8/test_usl_ccam_fit.py",
+      "action": "replace"
+    }
+  ],
+  "action_keys": [
+    "action",
+    "before_sha256",
+    "path",
+    "payload_sha256",
+    "previous_identity"
+  ],
+  "checked_pin_count": 4,
+  "transport_bundle_sha256": "85fb84a48c63bb8bc5378f4e3d9fbacab3f155f716250753aadf4aa1071b41cd",
+  "payload_zip_sha256": "cf8ed63485d388934650d6ed17fa807507c3cef7af3b3ab7d88ffd249be3f617"
+}

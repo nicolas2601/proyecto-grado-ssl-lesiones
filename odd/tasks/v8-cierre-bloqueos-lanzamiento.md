@@ -712,3 +712,21 @@ serial del estudiante/refinamientos. La corrida histórica de cinco épocas,
 manifiestos congelados, `readiness.review.json`, gates y demás métodos permanecen
 intactos. Detalle en [la tarea CCAM](v8-ccam-convergencia-checkpoint-reanudable.md)
 y la [revisión del protocolo](../../plan-segmentacion/metodos-v8/launch-preparation/training-protocol-review.md).
+
+## CCAM: ZIP desplegado y candidato deshabilitado en UNABIA (2026-10-17)
+
+Actualización posterior al estado local anterior: se desplegaron y comprobaron
+los nueve archivos Git de `6c5627d` en `repo_v8_canonical`; el HEAD del checkout
+permanece en `95a8f60` porque la transferencia fue por ZIP. El gate nuevo está en
+`/home/jovyan/work/validation_v8/usl-ccam-config-6c5627d-20261017-001/deployment/ccam.gate.json`
+y sigue deshabilitado (`passed=false`, `smoke_passed=false`,
+`resource_budget_measured=false`). No se ejecutaron pruebas, código de modelo ni
+entrenamiento; los pines históricos y sus artefactos permanecieron iguales.
+
+El pendiente inmediato es acordar y autorizar una verificación acotada del nuevo
+flujo de reanudación/selección y medir el código actualizado en UNABIA, antes de
+aceptar evidencia para el gate y revisar una eventual habilitación. No implica
+una corrida automática de 30 épocas ni reabrir auditorías de cuotas, pesos o
+datasets. Los indicadores genéricos pendientes del candidato no son nuevos
+hallazgos negativos sobre los datos o pesos ya revisados. Evidencia, hashes y
+rutas completas en el [registro del despliegue](../../resultados/preparacion_v8/usl_ccam_config_6c5627d_20261017/run_record.md).
