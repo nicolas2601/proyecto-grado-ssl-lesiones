@@ -747,3 +747,16 @@ diagnósticos. No hubo corrida de 30 épocas ni cambios de gates protegidos.
 Sigue vincular el gate/inventario al código corregido, revisar salidas/tracking
 y limpieza tardía registrada, y presentar habilitación al usuario. No se
 reabren pesos/datos/cuotas. [Evidencia y límites](../../resultados/preparacion_v8/usl_ccam_recovery_verification_20261017/run_record.md).
+
+## CCAM: propuesta concreta de lanzamiento deshabilitada (2026-10-17)
+
+Se materializó en UNABIA `usl-ccam-launch-preparation-4a6832c-20261017-001/review/`:
+config deshabilitado, gate candidato ligado, inventario de 55 fuentes del CLI
+y 57 efectivas, recursos y manifiesto de aprobación. Solo CCAM: 30 épocas,
+inicio nuevo semilla 42, batch 2, resolución 224, primer candidato Pearson >= 0,98
+sin parada temprana; límites de 24 horas y 1.024 MiB de salida/tracking/logs.
+No hubo entrenamiento, W&B, limpieza ni prueba GPU nueva. Sigue aprobación del
+alcance, limpieza tardía preservando evidencia y activación con gate productivo
+ligado; `passed=null` refleja campo ausente, no fallo ni aprobación. La línea
+completa USL-Net no está habilitada: pseudomáscaras y plan del estudiante siguen
+pendientes. [Registro y hashes](../../resultados/preparacion_v8/usl_ccam_launch_preparation_20261017/run_record.md).
