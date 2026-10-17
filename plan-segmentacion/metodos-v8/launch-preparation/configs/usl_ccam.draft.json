@@ -12,7 +12,7 @@
   "epochs": 5,
   "batch_size": 2,
   "learning_rate": 0.001,
-  "weight_decay": 0.00001,
+  "weight_decay": 0.01,
   "resources": {
     "timeout_seconds": 86400,
     "max_rss_mb": 65536,
@@ -37,7 +37,10 @@
     "epochs_per_cycle": 300
   },
   "preparation_review": {
-    "status": "bound_pending_runtime_gates",
+    "status": "pending_operational_resource_review_and_user_approval",
+    "resource_review_path": "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/resource-review.json",
+    "candidate_gate_path": "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/ccam.gate.json",
+    "weight_decay_basis": "matches_existing_fit_ccam_AdamW_default_0.01; trainer_does_not_read_config_weight_decay",
     "resource_caps_measured": false,
     "manifest_bound": true,
     "gate_bound": false,
