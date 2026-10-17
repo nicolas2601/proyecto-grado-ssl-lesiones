@@ -1,6 +1,6 @@
 # Preparación de USL-Net con datos congelados
 
-Estado vigente observado a `2026-10-17T15:33:04.679888Z`: CCAM `002` en curso, con worker activo en GPU y W&B `running`. No hay épocas completadas ni checkpoint acreditados. El intento `001` falló antes del método y se conserva separado.
+Estado vigente observado a `2026-10-17T15:44:57.251626Z`: CCAM `002` en curso, dos de cinco épocas completadas según el JSONL real, con 34.784 muestras cada una. Checkpoint y recibo final de salida ausentes; W&B `running` a `15:43:51.526199Z`. El intento `001` falló antes del método y se conserva separado.
 Las secciones de preparación siguientes conservan sus observaciones históricas, incluidos sus configs y gates deshabilitados; no representan el estado posterior de una corrida autorizada.
 El presupuesto y el smoke CUDA de preparación ya están revisados. El estudiante USL-Net, sus pseudomáscaras y sus ciclos seriales siguen pendientes.
 
@@ -270,5 +270,13 @@ El recibo inmutable de preparación conserva `training_started=false`, con alcan
 anterior al arranque; la observación viva posterior se registra por separado.
 La salida es `/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002`.
 El estudiante y los otros métodos no se lanzan automáticamente.
+La observación anterior de `15:33:04Z` no acreditaba épocas; el avance posterior
+sí registra dos de cinco, a `15:44:57.251626Z`, en la
+[copia local del progreso](../../../resultados/preparacion_v8/usl_ccam_launch_20261017/epoch-progress.snapshot.json).
+La fuente es `metrics.jsonl` real bajo la salida `002`, con 34.784 muestras por
+época y SHA-256 de la captura
+`7fb45206fe204e9b77e3ce1731c8cd812e4a1e5351e4598f2c2b43d78c35e67a`.
+No hay checkpoint ni código de salida final; no se interpreta la loss como
+resultado de segmentación o evaluación independiente.
 No se modifican `readiness.review.json` ni el recibo congelado. La independencia
 paciente/lesión permanece sin acreditar, como limitación aceptada.
