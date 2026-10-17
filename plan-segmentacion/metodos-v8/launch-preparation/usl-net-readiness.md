@@ -1,8 +1,8 @@
 # Preparación de USL-Net con datos congelados
 
-Estado vigente (2026-10-17): una pasada CCAM real en GPU completada; gate exclusivo de preparación, ejecución deshabilitada.
-Preparación exclusiva de USL-Net; SLED, RPI-Net y TriDermNet-HAGO quedan fuera del alcance de este artefacto.
-No hay autorización de entrenamiento. El presupuesto CCAM tiene valores concretos; el recibo GPU y el gate de preparación se documentan al final. El presupuesto del estudiante, la limpieza sintética y la revisión del usuario siguen pendientes. No comenzó entrenamiento.
+Estado vigente observado a `2026-10-17T15:33:04.679888Z`: CCAM `002` en curso, con worker activo en GPU y W&B `running`. No hay épocas completadas ni checkpoint acreditados. El intento `001` falló antes del método y se conserva separado.
+Las secciones de preparación siguientes conservan sus observaciones históricas, incluidos sus configs y gates deshabilitados; no representan el estado posterior de una corrida autorizada.
+El presupuesto y el smoke CUDA de preparación ya están revisados. El estudiante USL-Net, sus pseudomáscaras y sus ciclos seriales siguen pendientes.
 
 ## Referencias fijadas
 
@@ -240,3 +240,35 @@ acreditarse, como limitación retrospectiva aceptada.
 La [copia local parseada de la revisión](../../../resultados/preparacion_v8/usl_ccam_operational_review_20261017/resource-review.snapshot.json)
 conserva el resultado y sus hashes de origen. Su serialización local no sustituye
 los bytes ni los hashes originales de los tres archivos en UNABIA.
+
+## Lanzamiento autorizado y estado operativo (2026-10-17)
+
+El [registro de corrida](../../../resultados/preparacion_v8/usl_ccam_launch_20261017/run_record.md)
+distingue autorización, limpieza operativa y ejecución efectiva. Según la evidencia
+comunicada por el operador, el intento `001` terminó con salida 1 antes de ejecutar
+el método, por una referencia IPC W&B heredada en `WANDB_SERVICE`. Se preparó una
+corrección acotada del entorno de supervisor/runner y rutas nuevas `002`, manteniendo
+config científico y datos. La [copia local del estado](../../../resultados/preparacion_v8/usl_ccam_launch_20261017/state.snapshot.json)
+acredita posteriormente el worker `252317` descendiente del runner `252265` y
+supervisor `252264`, GPU 0 a 802 MiB/39% de utilización y W&B `db7da6c1e784`
+en estado `running`, a `2026-10-17T15:33:04.679888Z`. Son observaciones puntuales,
+sin época completada, checkpoint, resultado de evaluación ni código de salida final.
+
+La limpieza operativa tiene recibo en
+`/home/jovyan/work/validation_v8/pre-real-run-cleanup-20261017-002/cleanup.receipt.json`,
+SHA-256 `c1542226a2e724e0e0deb0ecc42e66300f93374d54c71727578e2b4cadc14290`.
+Se preservó procedencia fuera de resultados reales. Existe una excepción residual
+W&B de historial de servicio: `all_remote_objects_removed=false`, sin equivalencia
+de contenido acreditada. No se afirma que todos los objetos remotos desaparecieron.
+
+Se revisó la copia JSON local parseada de los recibos y del estado posterior.
+Los bytes originales permanecen en UNABIA: `launch.json` de `002` tiene SHA-256
+`70c8e16eac23e2d1607d71bf75f68b8eb50ef2f4995c66b0ebca3d4091193179`;
+gate `03a86e16611f0d38ded16538784527ac9207b85994cdd68c2f01edd21ccde7df`;
+config `0547355805167a54d918d06fb490599bd9b5a5d24a41876e612c5e616681def6`.
+El recibo inmutable de preparación conserva `training_started=false`, con alcance
+anterior al arranque; la observación viva posterior se registra por separado.
+La salida es `/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002`.
+El estudiante y los otros métodos no se lanzan automáticamente.
+No se modifican `readiness.review.json` ni el recibo congelado. La independencia
+paciente/lesión permanece sin acreditar, como limitación aceptada.
