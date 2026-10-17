@@ -1,6 +1,6 @@
 # Banco completo: ablación de nuestros métodos
 
-Todos los números son de la partición de val de cada dataset y salen de un JSON del repositorio. F1-F5 y Proposed con segmentación (experimental) son exploratorios: no cambian el propuesto (Proposed sin segmentación sin segmentación). D0-D3 esperan a Prueba de adaptación a fotos clínicas.
+Todos los números son de la partición de val de cada dataset y salen de un JSON del repositorio. las cinco variantes con segmentación y Proposed con segmentación (experimental) son exploratorios: no cambian el propuesto (Proposed sin segmentación). Las cuatro condiciones de adaptación (D0-D3) tienen resultados en la prueba de adaptación (Prueba de adaptación a fotos clínicas).
 
 Generado por `scripts/build_bench_ablation.py` desde los JSON del repositorio. No editar a mano. Plan y reglas: `docs/33-banco-completo-multidataset.md`.
 
@@ -119,13 +119,13 @@ Análisis de sensibilidad posterior, no es selección: configuración y umbrales
 | Proposed sin segmentación (pesos limpios) | Modelo de control (pesos limpios) | AUC de melanoma | -0,0147 [-0,0318; +0,0024] | no | sin diferencia demostrable (el IC incluye 0) |
 | Proposed sin segmentación (pesos limpios) | Modelo de control (pesos limpios) | MCC | -0,0257 [-0,0551; +0,0028] | no | sin diferencia demostrable (el IC incluye 0) |
 
-### F1-F5 con segmentación (Prueba con segmentación): holdout
+### Las cinco variantes con segmentación (Prueba con segmentación): holdout
 
-Selección SOLO en el holdout de HAM. Regla registrada: `macro_f1 >= best no-mask macro_f1 - 0.01 on the holdout AND delta > 0 vs the reference in melanoma recall OR in the macro-F1 of the darkest L* tercile (docs/33 E3)`. Ganadora por la regla: Proposed con segmentación (experimental); las 5 variantes adoptables están dentro de 0,0055 de F1 macro entre sí, con IC solapados: no hay ganadora clara. Exploratorio (docs/33, erratas).
+Selección SOLO en el holdout de HAM. Regla registrada: `macro_f1 >= best no-mask macro_f1 - 0.01 on the holdout AND delta > 0 vs the reference in melanoma recall OR in the macro-F1 of the darkest L* tercile (docs/33 E3)`. Variante que cumple la regla: Proposed con segmentación (experimental); sin embargo, las 5 variantes adoptables están dentro de 0,0055 de F1 macro entre sí, con IC solapados, así que ninguna se destaca con claridad. Exploratorio (docs/33, erratas).
 
 | Variante | Descripción | F1 macro holdout [IC 95 %] | F1 macro, tercil L* oscuro | Recall de melanoma | Cumple la regla | Adoptable |
 |---|---|---|---|---|---|---|
-| Proposed sin segmentación | Referencia: Proposed sin segmentación sin segmentación | 0,7725 [0,7328; 0,8062] | 0,7533 | 0,5955 | — | — |
+| Proposed sin segmentación | Referencia: Proposed sin segmentación | 0,7725 [0,7328; 0,8062] | 0,7533 | 0,5955 | — | — |
 | Imagen y recorte | concat(features de la imagen completa, features del recorte con margen 10 %) | 0,7859 [0,7486; 0,8165] | 0,7754 | 0,6180 | sí | sí |
 | Recorte original | F1 con el recorte tomado de la resolución original | 0,7819 [0,7464; 0,8117] | 0,7868 | 0,5899 | sí | sí |
 | Recorte a 448 píxeles | F2 con el recorte a 448 px (`crop_orig448`) | 0,7858 [0,7460; 0,8168] | 0,7643 | 0,6236 | sí | sí |

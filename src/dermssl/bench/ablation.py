@@ -10,7 +10,7 @@ from dermssl.bench.rows import DATASETS
 SCRIPT = "scripts/build_bench_ablation.py"
 NAME = "TABLA_ABLACION"
 INTRO = ("Todos los números son de la partición de val de cada dataset y salen de un JSON del repositorio. F1-F5 y "
-         "F4 son exploratorios: no cambian el propuesto (B71 sin segmentación). D0-D3 esperan a E2.")
+         "F4 son exploratorios: no cambian el propuesto (B71 sin segmentación). Las cuatro condiciones de adaptación (D0-D3) tienen resultados en la prueba de adaptación (E2).")
 
 
 from dermssl.display_nomenclature import context_presentation  # noqa: E402

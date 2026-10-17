@@ -46,7 +46,7 @@ def test_three_seeds_give_mean_and_range_not_a_difference():
     assert plain["range"] == pytest.approx(0.06) and "diff" not in plain
     text = bs.render(docs)
     assert "# v7: las tres semillas" in text and "Rango (máx − mín)" in text
-    assert "| repetición 42 | repetición 43 | repetición 44 |" in text and "(semilla 44)" in text
+    assert "| repetición 42 | repetición 43 | repetición 44 |" in text and "(repetición 44)" in text
     assert "Predicción de objetivo (intervalo de confianza) con las tres semillas: robusto a la semilla." in text
 
 

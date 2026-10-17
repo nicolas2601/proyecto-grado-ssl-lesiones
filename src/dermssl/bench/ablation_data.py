@@ -101,9 +101,9 @@ def registered_prediction(repo: Path) -> str:
 def selection_table(repo: Path) -> Table:
     doc = _load(repo, SELECTION)
     adopted = [doc["rows"][k]["macro_f1"] for k in doc["adoption"]["adopted"]]
-    note = (f"Selección SOLO en el holdout de HAM. Regla registrada: `{doc['rule']}`. Ganadora por la regla: "
-            f"{doc['winner']}; las {len(adopted)} variantes adoptables están dentro de {num(max(adopted) - min(adopted))} "
-            "de F1 macro entre sí, con IC solapados: no hay ganadora clara. Exploratorio (docs/33, erratas).")
+    note = (f"Selección SOLO en el holdout de HAM. Regla registrada: `{doc['rule']}`. Variante que cumple la regla: "
+            f"{doc['winner']}; sin embargo, las {len(adopted)} variantes adoptables están dentro de {num(max(adopted) - min(adopted))} "
+            "de F1 macro entre sí, con IC solapados, así que ninguna se destaca con claridad. Exploratorio (docs/33, erratas).")
     rows = [_selection_row(doc, k, label) for k, label in VARIANTS]
     return Table("F1-F5 con segmentación (E3): holdout", ["Variante", "Descripción", "F1 macro holdout [IC 95 %]",
                  "F1 macro, tercil L* oscuro", "Recall de melanoma", "Cumple la regla", "Adoptable"], rows, note,

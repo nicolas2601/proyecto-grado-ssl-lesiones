@@ -103,7 +103,7 @@ Proposed sin segmentación (pesos limpios) & Modelo de control (pesos limpios) &
 \toprule
 Variante & Descripción & F1 macro holdout [IC 95 \%] & F1 macro, tercil L* oscuro & Recall de melanoma & Cumple la regla & Adoptable \\
 \midrule
-Proposed sin segmentación & Referencia: Proposed sin segmentación sin segmentación & 0,7725 [0,7328; 0,8062] & 0,7533 & 0,5955 & — & — \\
+Proposed sin segmentación & Referencia: Proposed sin segmentación & 0,7725 [0,7328; 0,8062] & 0,7533 & 0,5955 & — & — \\
 F1 & concat(features de la imagen completa, features del recorte con margen 10 \%) & 0,7859 [0,7486; 0,8165] & 0,7754 & 0,6180 & sí & sí \\
 F2 & F1 con el recorte tomado de la resolución original & 0,7819 [0,7464; 0,8117] & 0,7868 & 0,5899 & sí & sí \\
 F2\_448 & F2 con el recorte a 448 px (crop\_orig448) & 0,7858 [0,7460; 0,8168] & 0,7643 & 0,6236 & sí & sí \\
@@ -112,7 +112,7 @@ Proposed con segmentación (experimental) & F1 + descriptores de forma y color d
 F5 & F1 + anillo perilesional & 0,7812 [0,7440; 0,8126] & 0,7849 & 0,5955 & sí & sí \\
 \bottomrule
 \end{tabular}}
-\caption{F1-F5 con segmentación (Prueba con segmentación): holdout}\label{tab:ablation-e3-holdout}
+\caption{Las cinco variantes con segmentación (Prueba con segmentación): holdout}\label{tab:ablation-e3-holdout}
 \end{table}
 
 \begin{table}[ht]

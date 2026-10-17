@@ -60,7 +60,7 @@ def test_f4_sensitivity_and_seed_reading_follow_the_registered_rules():
 def test_e3_holdout_table_lists_f1_to_f5_and_val_only_b71_and_f4():
     text = _text()
     for variant in ("F1", "F2", "F2_448", "F3", "F4", "F5"):
-        assert display_text(f"| {variant} |") in text.split("### F1-F5")[1].split(display_text("### F4 frente"))[0]
+        assert display_text(f"| {variant} |") in text.split(display_text("### F1-F5 con segmentación", context="bench"))[1].split(display_text("### F4 frente"))[0]
     assert "por diseño" in text
 
 

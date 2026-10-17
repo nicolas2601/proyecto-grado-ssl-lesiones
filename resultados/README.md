@@ -15,7 +15,7 @@ clasificador. Que gano, que perdio, y como mejorarlo.
 | v7: réplica con semilla 43 (registrada en docs/28 §4.1) | [clasificacion/v7/s43/README.md](clasificacion/v7/s43/README.md) | `clasificacion/v7/s43/final_eval.json` | Vigente |
 | v7: réplica con semilla 44 (registrada en docs/29 §2.5), con su procedencia (control s42 y arranque abortado) | [clasificacion/v7/s44/README.md](clasificacion/v7/s44/README.md) | `clasificacion/v7/s44/final_eval.json`, `clasificacion/v7/s44/eval_provenance.json` | Vigente |
 | Clasificador: v6, C1 y v7 lado a lado, con matriz de confusión, F1 y recall por clase y melanoma | [clasificacion/TABLA_CLASIFICADOR.md](clasificacion/TABLA_CLASIFICADOR.md) | `clasificacion/bank.json`, `clasificacion/c1/c1_cells.json`, los tres `final_eval.json` y `final_eval.probas.npz` | Vigente |
-| Segmentación: experimento de segmentación final (Dice, IoU, HD95) y pseudo-máscaras v7 contra los umbrales de docs/27 | [segmentacion/TABLA_SEGMENTACION.md](segmentacion/TABLA_SEGMENTACION.md) | `summary.json` y `*_stats.json` de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
+| Segmentación: Experimento de segmentación 3, el publicado (Dice, IoU, HD95) y pseudo-máscaras v7 contra los umbrales de docs/27 | [segmentacion/TABLA_SEGMENTACION.md](segmentacion/TABLA_SEGMENTACION.md) | `summary.json` y `*_stats.json` de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
 | Cierre: pedidos del profesor y plan de Pau → qué se hizo → resultado, con veredicto por regla | [TABLA_CIERRE.md](TABLA_CIERRE.md) | los JSON de `clasificacion/` y de `plan-segmentacion/camino-b-cnn/resultados/` | Vigente |
 | C1: grilla de condiciones de máscara por backbone | [clasificacion/c1/README.md](clasificacion/c1/README.md) | `clasificacion/c1/*.json` | Vigente |
 | v6: bancos congelados y bootstrap pareado | Secciones 4 a 7 de este documento | `clasificacion/bank.json`, `clasificacion/bootstrap.json` | Superado por v7 |
@@ -170,6 +170,8 @@ fototipo oscuro clinico. El pool es mayoritariamente piel clara.
 ---
 
 ## 4. Clasificacion: los seis backbones
+
+> **Etapa v6 (superada).** Las secciones 4, 5 y 6 describen la evaluación de la versión 6. El resultado vigente es el de la versión 7, en el [README principal](../README.md).
 
 **Datos.** Los backbones se preentrenan sin etiquetas sobre el pool (HAM10000
 + ISIC 2019 sin HAM + ISIC 2020, ver seccion 1). La evaluacion de
@@ -377,7 +379,7 @@ antes de que cerrara el banco).
   de consistencia en 1,0, que es la identidad — el brazo "propuesto" entreno con
   la perdida del control sin escalar. Con el defecto corregido y el triple de
   presupuesto, la direccion se invierte.
-- **DINOv2 publico no queda batido en todo, pero tampoco batido.** En balanced
+- **Ni DINOv2 publico ni los adaptados ganan en todas las metricas.** En balanced
   accuracy DINOv2 ViT-B supera a los adaptados de forma afirmable (vs
   `ssl_plain_vitb14`: d=-0,0495, IC [-0,0938, -0,0034]). En macro-F1 la
   diferencia contra `ssl_plain_vitb14` **no se distingue del ruido** (d=-0,0302,
@@ -439,7 +441,7 @@ antes de que cerrara el banco).
 
 En orden de retorno esperado:
 
-1. **Bootstrap pareado sobre el test** (en curso). No mejora el modelo, pero
+1. **Bootstrap pareado sobre el test** (hecho: ver la seccion 4, "Contrastes con intervalo de confianza"). No mejora el modelo, pero
    decide cuales de las diferencias de arriba existen. Es lo primero porque
    cambia el verbo de cada frase de las secciones 5 y 6.
 2. **Un objetivo con dos terminos de verdad.** Hoy el brazo propuesto usa una
@@ -456,7 +458,7 @@ En orden de retorno esperado:
    trabajo mecanico y mejora la entrada de todo lo demas.
 5. **Resolucion.** Todo se materializa a 224 para no transformar ISIC 2020 en
    resolucion nativa. Subirla eleva el techo, a costa de espacio y computo.
-6. **Validacion externa en fototipos altos**, sin la cual la seccion de
+6. **Validacion externa en pieles de tono oscuro (sin tono validado)**, sin la cual la seccion de
    equidad no puede extrapolarse fuera de este pool.
 7. **Agrupacion por paciente en ISIC 2019**, que el release no trae y por eso
    sus cifras cargan sesgo optimista.

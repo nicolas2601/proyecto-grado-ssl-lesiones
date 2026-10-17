@@ -1,6 +1,6 @@
 # v7: las tres semillas
 
-Generado desde `final_eval.json` (semilla 42), `s43/final_eval.json` (semilla 43) y `s44/final_eval.json` (semilla 44). No editar a mano: `--check` lo compara en CI. Regla de lectura en docs/28 §4.1.
+Generado desde `final_eval.json` (repetición 42), `s43/final_eval.json` (repetición 43) y `s44/final_eval.json` (repetición 44). No editar a mano: `--check` lo compara en CI. Regla de lectura en docs/28 §4.1.
 
 | Brazo | Métrica | repetición 42 | repetición 43 | repetición 44 | Media | Rango (máx − mín) |
 |---|---|---|---|---|---|---|

@@ -125,3 +125,12 @@ def test_slash_separated_repetitions_are_plain_too():
 
     assert display_text("media s42/s43/s44") == "media repeticiones 42, 43 y 44"
     assert display_text("media s42/s43") == "media repeticiones 42 y 43"
+
+
+def test_ranges_and_spelled_out_seeds_are_plain_too():
+    from dermssl.display_nomenclature import display_text
+
+    assert display_text("bloques T1–T7 y variantes F1-F5") == (
+        "bloques las pruebas exploratorias de tono y luminancia y variantes las cinco variantes con segmentación"
+    )
+    assert display_text("semilla 43 y B71 sin segmentación") == "repetición 43 y Proposed sin segmentación"

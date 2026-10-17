@@ -5,6 +5,15 @@ import re
 from functools import wraps
 
 NAMES = {
+    "F1-F5 con segmentación": "Las cinco variantes con segmentación",
+    "B71 sin segmentación": "Proposed sin segmentación",
+    "T1–T7": "las pruebas exploratorias de tono y luminancia",
+    "T1-T7": "las pruebas exploratorias de tono y luminancia",
+    "F1–F5": "las cinco variantes con segmentación",
+    "F1-F5": "las cinco variantes con segmentación",
+    "semilla 42": "repetición 42",
+    "semilla 43": "repetición 43",
+    "semilla 44": "repetición 44",
     "E3b": "Prueba con segmentación en los modelos de comparación",
     "E1": "Prueba de pesos limpios",
     "E2": "Prueba de adaptación a fotos clínicas",
