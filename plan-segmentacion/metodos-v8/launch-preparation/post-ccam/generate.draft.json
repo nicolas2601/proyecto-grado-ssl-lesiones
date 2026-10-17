@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "method": "usl_net",
+  "execution_enabled": false,
+  "resolution": 224,
+  "seed": 42,
+  "device": "cuda:0",
+  "batch_size": 2,
+  "source_bank": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
+  "usl_policy": {
+    "min_area": 500,
+    "connectivity": 4,
+    "max_centroid_distance": null
+  },
+  "evaluation_protocol": {
+    "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/protocol.json",
+    "sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03",
+    "protocol_id": "v8_conservative_retrospective_20261016"
+  },
+  "preparation_review": {
+    "status": "proposal_not_authorized_for_execution",
+    "resource_caps_measured": false,
+    "gate_bound": false
+  },
+  "stages": [
+    "generate"
+  ],
+  "resources": {
+    "timeout_seconds": 86400,
+    "max_rss_mb": 65536,
+    "max_output_mb": 65536,
+    "max_gpu_memory_mb": 18432,
+    "gpu_reserve_mb": 4096,
+    "shutdown_grace_seconds": 120
+  },
+  "ccam_checkpoint": null,
+  "ccam_provenance": null,
+  "ccam_checkpoint_sha256": null,
+  "ccam_checkpoint_provenance_sha256": null,
+  "ccam_checkpoint_lineage": null
+}

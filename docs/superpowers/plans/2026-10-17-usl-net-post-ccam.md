@@ -82,6 +82,20 @@ documentarse como tal; no presentarla como reproducción del presupuesto nativo.
 
 ## Brechas reales y cierre
 
+### Preparación materializada (2026-10-17)
+
+Se prepararon cinco configs deshabilitados y la secuencia condicionada en
+`plan-segmentacion/metodos-v8/launch-preparation/post-ccam/README.md`.
+Incluyen generación, fit ciclo 1, predicción de aprendizaje, refinamiento y
+predicción reservada. El evaluador se documenta con su CLI real separado, sin
+inventar config ni etapa del controlador. Se propone para revisión tres ciclos
+de 20 épocas con reinicialización aleatoria y selección final por presupuesto
+fijo; no se considera aprobado ni réplica del presupuesto 5×300 publicado.
+Los límites y el cálculo de almacenamiento están documentados como planificación:
+64 GiB por export de aprendizaje, 16 GiB por refinado y 320 GiB libres propuestos
+para la retención completa. No hay gates creados, hashes futuros fabricados,
+despliegue ni pruebas adicionales; CCAM 003 conserva su copia activa.
+
 La brecha inmediata es materializar artefactos y configuración por etapa, no
 reescribir los operadores ya implementados. Sigue pendiente una revisión
 operativa del estudiante con su presupuesto propio: el consumo de entrenar solo

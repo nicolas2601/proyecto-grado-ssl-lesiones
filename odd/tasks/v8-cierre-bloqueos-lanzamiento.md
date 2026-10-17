@@ -778,3 +778,22 @@ pseudomáscaras, estudiante ni otros métodos; su preparación debe preservar la
 copia de código activa. Sigue incorporar la primera época o error real y,
 al terminar, revisar historial/checkpoints antes de promover pseudomáscaras.
 [Registro, hashes y límites](../../resultados/preparacion_v8/usl_ccam_launch_20261017_003/run_record.md).
+
+## Preparación posterior a CCAM, sin ejecución (2026-10-17)
+
+Se materializaron cinco configs deshabilitados en
+`plan-segmentacion/metodos-v8/launch-preparation/post-ccam/`: generate, fit del
+ciclo 1, predict de aprendizaje, refine y predict reservado. Su README registra
+dependencias, comandos reales y linaje pendiente, presupuesto por etapa y
+retención. No se fabrican hashes de checkpoints futuros ni gates; el evaluador
+queda separado porque el controlador no ofrece una etapa evaluate.
+
+Propuesta pendiente de aprobación: tres estudiantes nuevos de 20 épocas,
+semilla 42, mismo batch/resolución y AdamW del borrador, checkpoint final de
+presupuesto fijo; no selección con máscaras expertas ni reproducción 5×300.
+Se documentan caps operativos no medidos y 320 GiB libres propuestos para toda
+la cadena retenida; faltan mediciones propias del estudiante y supervisión de
+salida/tracking. La preparación no cambia readiness, gates, otros métodos ni
+el runtime de CCAM 003; no se ejecutaron pruebas o entrenamientos adicionales.
+Sigue el cierre real de CCAM, aprobar presupuesto, promover cabeza con linaje
+real, producir pseudomáscaras completas y materializar cada tramo revisado.
