@@ -1,5 +1,12 @@
 # V8 — Cierre de bloqueos de lanzamiento (punch list de docs 46/51)
 
+## Estado vigente CCAM (2026-10-17)
+
+Una única pasada real GPU de preparación terminó sin errores ni OOM; existe gate ligado
+a config y manifiesto. `resource_budget_measured=false`, `training_authorized=false`
+y ejecución deshabilitada: siguen pendientes limpieza sintética y revisión del usuario.
+No comenzó entrenamiento. Los recibos y las mediciones están en la sección final.
+
 ## Objetivo
 Completar los pendientes documentados en docs/46, docs/49 y docs/51 para habilitar
 `execution_enabled=true` y lanzar los 4 métodos de segmentación (SLED, USL-Net,
@@ -452,7 +459,7 @@ entrenamiento. Los recibos históricos y los gates de ejecución permanecen como
 evidencia de sus observaciones originales.
 
 
-## Preparación acotada USL-Net con referencias congeladas (2026-10-16)
+## Preparación histórica acotada USL-Net con referencias congeladas (2026-10-16)
 
 Los dos primeros trabajos de contrato y congelación de datos conservan su cierre histórico.
 Se agregaron referencias `evaluation_protocol` a los configs deshabilitados USL-Net/CCAM
@@ -492,3 +499,52 @@ posteriores del estudiante; los cinco ciclos requieren orquestación explícita.
 No se hicieron nuevas pruebas de banco, smoke, forward ni entrenamiento en esta edición.
 Alcance documental y de configuración exclusivo de USL-Net; SLED, RPI-Net y TriDermNet-HAGO
 quedan fuera de este avance.
+
+## Presupuesto y diagnóstico CCAM acotado (2026-10-16)
+
+Avance exclusivo de CCAM, con ejecución deshabilitada y prohibición expresa de entrenamiento esta noche.
+Se fijaron cinco épocas como supuesto operativo histórico, timeout de 86.400 s y salida máxima
+de 1.024 MiB. El tope GPU es 18.432 MiB con reserva de 4.096 MiB; RSS conserva 65.536 MiB.
+Son límites de planificación, no mediciones ni garantía de convergencia o tiempo total.
+El config del estudiante no se modifica. Detalle en
+`plan-segmentacion/metodos-v8/launch-preparation/usl-net-readiness.md`.
+
+Se preparó una sola pasada GPU útil de forward/loss/backward con batch 2 de originales
+de aprendizaje reales, sin optimizador, actualizaciones, checkpoints aprendidos ni tracking.
+El intento `usl-ccam-preparation-20261016-001` abortó antes de CUDA por una dependencia
+histórica ausente en el checkout parcial; se conserva su recibo y se restauró por ZIP
+`ccam_engine.py` sin cambios (SHA-256
+`3250cf52d60e7c3ebaab437c764148c8a88843f497f2df624e9430b4792c06a7`).
+El intento `002` también se detuvo antes del modelo: el presupuesto anterior de 20.000 MiB
+más reserva excedía la memoria libre real (24.096 > 23.723 MiB), con asignación CUDA pico cero.
+Su recibo SHA-256 es `466fbe655dccad8bb19b9ae5e540e738ce08b7c0cfe4c0bfefc90d936b0dbbb6`.
+Se ajustó solo el tope a 18.432 MiB (22.528 MiB incluida la reserva), con 1.195 MiB
+adicionales respecto a la disponibilidad observada de GPU 0.
+La única pasada real GPU completada corresponde a
+`/home/jovyan/work/validation_v8/usl-ccam-preparation-20261017-003/receipt.json`,
+SHA-256 `ed7275b299a2a8cf237c31d25375148de60b41ac5b9f4e7c42c6726e0cf30d84`.
+El gate `ccam.gate.json` del mismo directorio tiene SHA-256
+`bcb9f329dbc0ff9acde28fe9e06f1853fc6a2f67022bd3d1fd74ce411cd16264`.
+El batch 2 usó los originales reales `ISIC_0000010` y `ISIC_0000118_downsampled`
+a resolución 224: features `[2, 9216, 14, 14]`, loss 4,4416823387146,
+dos tensores de gradiente finitos, sin errores ni OOM. Carga: 0,962499836 s;
+batch: 0,427408971 s; total: 5,205805866 s; RSS pico: 1.721,578125 MiB;
+CUDA pico asignado/reservado: 396,95263671875/452 MiB.
+El hash del estado antes/después fue idéntico:
+`4f10c6fc00fadf37157fb09fee2720858161f2a5c63eb294066e5bc4ed5a2050`.
+No hubo optimizador, pasos, checkpoints aprendidos, tracking ni entrenamiento.
+
+El gate real queda ligado al config final y al manifiesto congelado de 34.784 registros;
+registra `smoke_passed=true`, `resource_budget_measured=false`, `preparation_only=true`,
+`training_authorized=false` y ejecución deshabilitada. No mide estados del optimizador
+ni la ejecución completa. Cinco épocas se basan en `cluster-final.json`/doc 24 con otro
+head/batch; 1.024 MiB provienen de la estimación del precheck y 24 horas son un techo
+operativo, no duración medida. Los hashes finales de config/script y el entorno y memoria
+con sus ámbitos separados quedan en `usl-net-readiness.md`.
+El recibo de datos conserva `training_consumable=false`; limpieza sintética y revisión
+del usuario siguen pendientes. `readiness.review.json`, la limitación paciente/lesión
+y los otros métodos no se modifican.
+
+La [copia local de la evidencia parseada](../../resultados/preparacion_v8/usl_ccam_cuda_20261017/diagnostic.snapshot.json) permite revisar recibo y gate
+con sus hashes de origen. Su serialización local difiere de los bytes originales del clúster;
+no sustituye esos hashes de origen.
