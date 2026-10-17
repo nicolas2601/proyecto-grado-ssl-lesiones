@@ -177,3 +177,66 @@ siguen pendientes antes de habilitar una corrida real. Los otros métodos no se 
 La [copia local de la evidencia parseada](../../../resultados/preparacion_v8/usl_ccam_cuda_20261017/diagnostic.snapshot.json) permite revisar recibo y gate
 con sus hashes de origen. Su serialización local difiere de los bytes originales del clúster;
 no sustituye esos hashes de origen.
+
+## Revisión operativa del presupuesto CCAM (2026-10-17)
+
+Se completó una revisión única de metadata mediante
+`scripts/review_v8_usl_ccam_resources.py`, reutilizando la pasada CUDA `003`.
+No se repitió el modelo ni se creó un optimizador. El resultado real quedó en
+`/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/`.
+Estado: `operational_budget_reviewed_pending_user_approval`; la validación de metadata
+del consumidor real `gate_report` pasó en el primer intento.
+
+| Artefacto de revisión operativa | SHA-256 |
+|---|---|
+| `resource-review.json` | `6e3d896e59b473d075e1e81cfeda08755230fa7068df609c72f2a15c601eb2c9` |
+| `ccam.gate.json` | `2f8e644680aacf5eaeca90561a6d0f7a16655632e50020e022e4b8f55aa6b062` |
+| `launch-review.json` | `e44e0d7e6f2aae3855d4e1def8890a8d2c95d6ef8d1f0a1348ae92304960267d` |
+| Config CCAM, bytes | `f8a3589613b4608ea68d7efe5a08dfaf70d8467d2805c143c0ea18064082e792` |
+| Config CCAM, JSON canónico | `ab39bcd07294f8a3d0f1237b812a216e645eb6b5628a864ec04a0dd3822b1664` |
+
+La revisión separa la medición histórica de la estimación operativa: pico reservado de
+452 MiB más dos momentos AdamW para 9.217 parámetros FP32 (73.736 bytes,
+0,07032012939453125 MiB) y una provisión temporal conservadora de 16 MiB.
+Esta provisión supera 450 veces los bytes del head; es un supuesto, no memoria
+medida del optimizador. El total modelado de 468,070320129 MiB queda por debajo
+del tope de 18.432 MiB; la
+reserva adicional de 4.096 MiB se conserva. La disponibilidad se comprueba de nuevo
+en el runner cuando eventualmente se autorice una ejecución.
+
+La extrapolación del batch medido a cinco épocas y 17.392 batches por época
+no incluye carga de imágenes, I/O, pasos del optimizador ni variación del conjunto
+completo. El techo de 86.400 s y la salida máxima de 1.024 MiB son límites
+operativos, no mediciones de duración ni tamaño final. El runner limita el proceso
+y conserva evidencia parcial si se excede el presupuesto.
+La extrapolación dio 37.167,4841088 s (10,3243 h), con una relación
+techo/estimación de 2,32461255; esa holgura no garantiza el tiempo total.
+
+El config CCAM declara `weight_decay=0.01` para reflejar el valor efectivo del
+AdamW ya implementado en `fit_ccam`, que no lee ese campo del config. No cambia
+el algoritmo ni el config del estudiante. Se corrige así una discrepancia declarativa.
+
+Corrección del diagnóstico previo: `training_consumable=false` pertenece al recibo
+histórico de congelamiento y no es consultado como guard de ejecución por el runner.
+Se conserva sin editar. Tampoco se exige medir una corrida completa para revisar un
+presupuesto inicial: se acepta un presupuesto operativo basado en la pasada medida
+y en provisiones explícitas. El nuevo gate declara ese alcance, sin afirmar medición
+del optimizador o del conjunto completo. El gate `003` permanece inmutable.
+
+`training_authorized=false` y `preparation_only=true` son campos informativos;
+`gate_report` no los usa para bloquear. El guard efectivo sigue siendo
+`execution_enabled=false` en el config. Habilitar ese campo cambia su hash canónico
+y exige regenerar el gate vinculado: el gate preparado ahora no corresponde a un
+config habilitado. La revisión del usuario y la limpieza sintética con conservación
+de recibos siguen pendientes justo antes de lanzar. No se ejecuta entrenamiento.
+
+El descriptor generado `launch-review.json` registra el comando CCAM pendiente de
+aprobación y el proyecto W&B existente `dermssl-segmentacion`; no inicia tracking.
+Esto prepara la etapa inicial CCAM, no completa USL-Net: siguen por producirse
+checkpoint y linaje CCAM, pseudomáscaras y su manifiesto, y el plan ejecutable del
+estudiante con sus ciclos seriales. La independencia paciente/lesión continúa sin
+acreditarse, como limitación retrospectiva aceptada.
+
+La [copia local parseada de la revisión](../../../resultados/preparacion_v8/usl_ccam_operational_review_20261017/resource-review.snapshot.json)
+conserva el resultado y sus hashes de origen. Su serialización local no sustituye
+los bytes ni los hashes originales de los tres archivos en UNABIA.
