@@ -1,9 +1,12 @@
 # Registro de lanzamiento inicial CCAM de USL-Net V8
 
-Estado observado a `2026-10-17T15:33:04.679888Z` (10:33:04, America/Bogota):
-CCAM `002` en curso, con worker descendiente activo en GPU y W&B `running`.
-El intento `001` falló antes de ejecutar el método. No se acredita ninguna época
-completada, checkpoint ni evaluación terminada. La fuente local revisada es
+Estado observado a `2026-10-17T15:44:57.251626Z` (10:44:57, America/Bogota):
+CCAM `002` en curso, con dos de cinco épocas completadas según el JSONL real,
+34.784 muestras en cada una. No existe checkpoint ni recibo de salida final en
+esa observación. W&B estaba `running` a `15:43:51.526199Z`. El intento `001`
+falló antes de ejecutar el método. La [copia local de progreso](epoch-progress.snapshot.json)
+registra las épocas y sus fuentes; no se interpreta la loss como eficacia de
+segmentación ni se afirma finalización. La fuente de la observación anterior es
 [state.snapshot.json](state.snapshot.json), copia parseada de evidencia original
 del clúster; sus bytes no sustituyen los hashes originales declarados.
 
@@ -96,7 +99,7 @@ directorio de recibos. Se restauró `wandb_logging.py` sin cambios mediante ZIP,
 SHA-256 `63110620b0d78b2b33e65846c8cb8b839ef85dd036875d9399ffa0bff6627c73`.
 No se repitió el smoke CUDA por estos errores operativos.
 
-## Entorno y resultados
+## Entorno y observación histórica anterior al cierre de épocas
 
 La evidencia previa local de preparación registra Python 3.13.15, PyTorch
 `2.11.0+cu128`, CUDA 12.8 y RTX PRO 4000 Blackwell. No se presentan como una
@@ -141,6 +144,21 @@ Tracking local:
 `/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002-tracking`.
 Los bytes originales siguen en UNABIA. Este registro revisa únicamente su copia
 JSON local parseada; no opera el clúster ni acredita finalización.
+
+## Progreso efectivo posterior (2026-10-17)
+
+Se revisó [epoch-progress.snapshot.json](epoch-progress.snapshot.json), copia
+parseada del recibo
+`/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002/epoch-progress.json`.
+A `2026-10-17T15:44:57.251626Z`, el archivo real
+`/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002/metrics.jsonl`
+contiene dos épocas completas, cada una con `sample_count=34784`, de cinco
+configuradas. El SHA-256 de los bytes JSONL capturados es
+`7fb45206fe204e9b77e3ce1731c8cd812e4a1e5351e4598f2c2b43d78c35e67a`;
+no es el hash de la serialización local ni fija las escrituras posteriores del log.
+Checkpoint y `exit.json` siguen ausentes. La corrida permanece en curso; las
+losses se conservan en el JSON fuente sin interpretarlas como calidad anatómica,
+evaluación independiente o éxito final.
 
 ## Pendientes después del inicio
 
