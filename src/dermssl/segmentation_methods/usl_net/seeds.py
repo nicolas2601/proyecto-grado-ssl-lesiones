@@ -108,12 +108,14 @@ def fit_ccam(manifest_path,bank_path,out,config,gate_path,*,revision,sink=None,r
         probe_images=torch.stack([torch.from_numpy(rgb_tensor_array(document['records'][i],size))
                                   for i in range(probe_count)]).to(device)
     if resume:
-        payload=torch.load(resume_path,map_location=device,weights_only=True)
+        # RNG states must remain CPU ByteTensors; loaders move model/optimizer state.
+        payload=torch.load(resume_path,map_location='cpu',weights_only=True)
         if payload.get('identity')!=identity:raise ValueError('Resume checkpoint identity mismatch: code, config, gate, data or revision changed')
         model.ccam.load_state_dict(payload['ccam']);optimizer.load_state_dict(payload['optimizer'])
         start_epoch=int(payload['epoch']);loss_history=list(payload.get('loss_history',[]))
         stability_history=list(payload.get('stability_history',[]))
         previous_saliency=payload.get('previous_saliency')
+        if previous_saliency is not None:previous_saliency=previous_saliency.to(device)
         records=list(payload['epoch_records']);selected=payload.get('selected_candidate')
         restore_rng(payload['rng'],loader_generator)
     else:

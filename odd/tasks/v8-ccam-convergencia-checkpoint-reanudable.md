@@ -160,3 +160,21 @@ desde su cabeza sin optimizador/RNG. No se relanza ni se habilita nada con esta
 preparación. El plan serial del estudiante y sus refinamientos sigue pendiente.
 La evidencia de pruebas de la sección anterior corresponde al commit previo;
 no valida estos cambios nuevos.
+
+## Actualización: diagnóstico real GPU de recuperación (2026-10-17)
+
+La comprobación acotada autorizada detectó un fallo RNG de CUDA en la base
+`6c5627d`; se corrigió únicamente `seeds.py`, cargando el payload en CPU y
+trasladando la saliencia al dispositivo. Se preservó el recibo fallido. Con
+ese overlay, la repetición en UNABIA terminó con código 0 y estado
+`passed_diagnostic_only`: cabeza, optimizador, RNG, registros, pérdidas,
+estabilidad, saliencia anterior y candidato coincidieron exactamente entre
+referencia continua y recuperación; las métricas reconstruidas no se duplicaron.
+Se midieron 9,222 s de worker, RSS 2154,914 MiB y CUDA asignado/reservado
+548,459/676 MiB. Son dos épocas sobre ocho originales, no la corrida completa.
+La exportación se ejercitó con umbral diagnóstico `-1`; el `0.98` de producción
+no se cambió ni se cruzó, y no se demuestra retención frente a épocas posteriores.
+Pendiente: vincular gate/inventario al overlay, revisar preparación final y
+limpieza tardía antes de someter habilitación/lanzamiento a revisión del usuario.
+No se modificaron gates, readiness, manifiestos ni la corrida histórica.
+[Registro, hashes y limitaciones](../../resultados/preparacion_v8/usl_ccam_recovery_verification_20261017/run_record.md).

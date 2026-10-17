@@ -730,3 +730,20 @@ una corrida automática de 30 épocas ni reabrir auditorías de cuotas, pesos o
 datasets. Los indicadores genéricos pendientes del candidato no son nuevos
 hallazgos negativos sobre los datos o pesos ya revisados. Evidencia, hashes y
 rutas completas en el [registro del despliegue](../../resultados/preparacion_v8/usl_ccam_config_6c5627d_20261017/run_record.md).
+
+## CCAM: recuperación GPU comprobada con alcance diagnóstico (2026-10-17)
+
+La verificación autorizada se ejecutó en UNABIA sobre ocho originales de
+aprendizaje. Detectó un fallo real de restauración RNG al cargar el payload en
+CUDA; se conserva el recibo fallido y se desplegó una corrección limitada a
+`seeds.py` (carga CPU y traslado explícito de la saliencia). La segunda pasada
+terminó con `passed_diagnostic_only`, código 0: referencia y recuperación
+coincidieron exactamente en ocho componentes; métricas `[1, 2]` sin duplicados
+y exportación seleccionada cargable. Worker: 9,222 s; RSS pico: 2154,914 MiB;
+CUDA asignado/reservado: 548,459/676 MiB, medidos por allocator.
+El umbral diagnóstico `-1` no valida el `0.98` de producción ni convergencia.
+No verifica lanzador/gate completo; los controles de entrada del harness son
+diagnósticos. No hubo corrida de 30 épocas ni cambios de gates protegidos.
+Sigue vincular el gate/inventario al código corregido, revisar salidas/tracking
+y limpieza tardía registrada, y presentar habilitación al usuario. No se
+reabren pesos/datos/cuotas. [Evidencia y límites](../../resultados/preparacion_v8/usl_ccam_recovery_verification_20261017/run_record.md).
