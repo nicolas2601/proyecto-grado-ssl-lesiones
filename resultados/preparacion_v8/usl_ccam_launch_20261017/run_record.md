@@ -1,14 +1,14 @@
 # Registro de lanzamiento inicial CCAM de USL-Net V8
 
-Estado observado a `2026-10-17T15:44:57.251626Z` (10:44:57, America/Bogota):
-CCAM `002` en curso, con dos de cinco épocas completadas según el JSONL real,
-34.784 muestras en cada una. No existe checkpoint ni recibo de salida final en
-esa observación. W&B estaba `running` a `15:43:51.526199Z`. El intento `001`
-falló antes de ejecutar el método. La [copia local de progreso](epoch-progress.snapshot.json)
-registra las épocas y sus fuentes; no se interpreta la loss como eficacia de
-segmentación ni se afirma finalización. La fuente de la observación anterior es
-[state.snapshot.json](state.snapshot.json), copia parseada de evidencia original
-del clúster; sus bytes no sustituyen los hashes originales declarados.
+Estado vigente: CCAM `002` completó sus cinco épocas con salida 0 a
+`2026-10-17T15:58:01.028389Z` (10:58:01, America/Bogota), con 34.784 muestras
+en cada época y checkpoint presente. Fue entrenamiento real inicial CCAM, no
+una prueba sintética ni una prueba planificada. El presupuesto de cinco épocas
+era un supuesto operativo, no una receta V8 final validada por convergencia;
+el checkpoint queda como candidato pendiente de revisión del presupuesto científico.
+La [copia local de finalización](completion.snapshot.json) conserva la evidencia
+parseada del clúster; no constituye evaluación anatómica ni finalización de USL-Net.
+Las observaciones históricas siguientes conservan el alcance de su fecha.
 
 ## Identidad y alcance
 
@@ -142,8 +142,8 @@ Resultados:
 `/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002`.
 Tracking local:
 `/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002-tracking`.
-Los bytes originales siguen en UNABIA. Este registro revisa únicamente su copia
-JSON local parseada; no opera el clúster ni acredita finalización.
+Los bytes originales siguen en UNABIA. Este registro revisa sus copias JSON
+locales parseadas; no opera el clúster.
 
 ## Progreso efectivo posterior (2026-10-17)
 
@@ -160,12 +160,37 @@ Checkpoint y `exit.json` siguen ausentes. La corrida permanece en curso; las
 losses se conservan en el JSON fuente sin interpretarlas como calidad anatómica,
 evaluación independiente o éxito final.
 
-## Pendientes después del inicio
+## Finalización técnica y límite del presupuesto (2026-10-17)
 
-Al finalizar CCAM, conservar código de salida,
-checkpoint, sidecar, hashes y linaje. Después corresponde generar pseudomáscaras
-y su manifiesto completo y preparar el plan serial y los gates del estudiante.
-No se afirma que USL-Net completo haya comenzado ni terminado.
+Fuente revisada: [completion.snapshot.json](completion.snapshot.json), captura
+parseada de `/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-002/completion-observation-001.log`.
+El supervisor registra `status=completed`, `exit_code=0`, inicio
+`2026-10-17T15:30:28.968518Z`, fin `2026-10-17T15:58:01.028389Z` y
+`elapsed_seconds=1652.0628845961764`. El JSONL contiene cinco registros de época,
+todos con `sample_count=34784`. Las losses quedan en el JSON fuente: no prueban
+convergencia, calidad de segmentación ni suficiencia científica del presupuesto.
+
+Checkpoint: `/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-002/ccam.pt`,
+SHA-256 `82f821843a88a1a03165481dc5d6be3d6fcc872d519bb0fd378afd481b44432d`.
+Sidecar en la misma carpeta: `ccam.pt.json`, SHA-256
+`e8988ca9b5af26839716cc7299f0c7bce2b304377ce2f271221d1a302ee504c6`.
+Ambos hashes proceden de la comprobación real registrada en la captura.
+
+La elección de cinco épocas fue un supuesto de planificación operativa apoyado
+en una referencia histórica de otro head/batch; no estaba validada como duración
+científica definitiva de CCAM V8. La finalización técnica no corrige esa carencia.
+No se reclasifica retrospectivamente la corrida como prueba planificada. La
+referencia humana a pruebas anteriores de ocho a diez épocas requiere identificar
+su receta y etapa antes de utilizarla como presupuesto comparable.
+
+## Pendientes después de la finalización
+
+Revisar primero el criterio científico de duración y selección de CCAM, sin
+elegir nuevas épocas ni reentrenar automáticamente. Hasta esa revisión, conservar
+el checkpoint candidato sin promoverlo a exportación de pseudomáscaras. Después
+corresponderán las pseudomáscaras, su manifiesto y los gates del estudiante.
+USL-Net completo y sus ciclos no han terminado. No se modifican configs ni gates
+por esta actualización documental.
 
 La preparación paralela de los demás métodos tiene únicamente alcance de
 metadata: recibo copiado localmente desde
