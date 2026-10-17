@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from contextlib import ExitStack
 import csv
 from datetime import datetime, timezone
@@ -125,8 +126,16 @@ def materialize(args, staging, final, tracked):
     fields = {'image_id', 'dataset', 'image_path', 'image_sha256', 'bytes', 'height', 'width'}
     require(all(isinstance(row, dict) and set(row) == fields for row in pool), 'Learning inventory schema mismatch')
     require(len({canonical(row['image_id']) for row in pool}) == len(pool)
-            and len({row['image_sha256'] for row in pool}) == len(pool)
-            and len({row['image_path'] for row in pool}) == len(pool), 'Duplicate learning identity/content/path')
+            and len({row['image_path'] for row in pool}) == len(pool), 'Duplicate learning identity/path')
+    hash_multiplicity = Counter(row['image_sha256'] for row in pool)
+    repeated_counts = [count for count in hash_multiplicity.values() if count > 1]
+    learning_content_multiplicity = {
+        'unique_image_sha256s': len(hash_multiplicity),
+        'duplicate_hash_groups': len(repeated_counts),
+        'affected_rows': sum(repeated_counts),
+        'excess_rows': sum(count - 1 for count in repeated_counts),
+        'maximum_multiplicity': max(hash_multiplicity.values()),
+    }
     records = [json.loads(line) for line in load(geometry['records'], tracked).read_text().splitlines() if line.strip()]
     require(len(records) == 2594 and len({row['image_id'] for row in records}) == 2594,
             'Geometry requires exact unique evaluation IDs')
@@ -230,6 +239,9 @@ def materialize(args, staging, final, tracked):
         'training_started': False, 'training_consumable': False,
         'duplicates_identity_verified': False, 'exposure_review_complete': False,
         'patient_independence_accredited': False, 'global_clinical_identity_complete': False,
+        'learning_content_multiplicity': learning_content_multiplicity,
+        'limitations': ['Learning inventory preserves accepted image-level sampling multiplicity.',
+                        'Equal byte hashes do not certify clinical identity or deduplication.'],
         'learned_artifact_lineage': 'pending_before_runtime_execution',
         'created_at': datetime.now(timezone.utc).isoformat()})
 
