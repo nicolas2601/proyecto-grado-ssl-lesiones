@@ -27,12 +27,25 @@ class USLTextCCAM(nn.Module):
     Caller supplies concatenated contrastive features. This head alone does not
     recreate contrastive pretraining or the original CCAM objective.
     """
-    def __init__(self, in_channels: int):
+    def __init__(self, in_channels: int, *, normalize_logits: bool = False, spatial_epsilon: float = 1e-6):
         super().__init__()
+        if spatial_epsilon <= 0:
+            raise ValueError('Spatial logit epsilon must be positive')
+        self.normalize_logits = normalize_logits
+        self.spatial_epsilon = float(spatial_epsilon)
         self.background = nn.Conv2d(in_channels, 1, kernel_size=1)
 
+    def logits(self, features: torch.Tensor) -> torch.Tensor:
+        logits = self.background(features)
+        if self.normalize_logits:
+            logits = logits.float()
+            mean = logits.mean(dim=(2, 3), keepdim=True)
+            variance = logits.var(dim=(2, 3), unbiased=False, keepdim=True)
+            logits = (logits - mean) / (variance + self.spatial_epsilon).sqrt()
+        return logits
+
     def forward(self, features: torch.Tensor, output_size: tuple[int, int] = (224, 224)) -> torch.Tensor:
-        background = torch.sigmoid(self.background(features))
+        background = torch.sigmoid(self.logits(features))
         return 1 - F.interpolate(background, size=output_size, mode='bilinear', align_corners=False)
 
 

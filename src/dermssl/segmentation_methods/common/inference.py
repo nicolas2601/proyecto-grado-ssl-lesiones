@@ -14,9 +14,27 @@ from dermssl.w3_components import DegenerateCase,USLTextPolicy,usl_text_pseudola
 
 def _usl_generator(config):
     from ..usl_net.model import USLSeedGenerator,ContrastiveFusion
-    model=USLSeedGenerator(ContrastiveFusion(source_bank(config['source_bank'],('simclr','mocov1','mocov2'))))
+    profile=config.get('ccam_variant','legacy_v8')
+    if profile=='ccam_stabilized_v1':
+        if digest(config['source_bank'])!=config.get('source_bank_sha256'):
+            raise ValueError('Stabilized USL source bank differs from the configured checkpoint profile')
+        if config.get('fusion_rms_epsilon')!=1e-6:
+            raise ValueError('Stabilized USL fusion epsilon differs from the checkpoint profile')
+        if (config.get('fusion_profile',{}).get('kind')!='per_image_block_rms'
+                or config.get('fusion_profile',{}).get('epsilon')!=1e-6
+                or config.get('head_profile',{}).get('kind')!='per_image_spatial_logit_standardization'
+                or config.get('head_profile',{}).get('epsilon')!=1e-6
+                or config.get('head_profile',{}).get('variance_unbiased') is not False):
+            raise ValueError('Stabilized USL normalization profile differs from the checkpoint contract')
+    fusion=ContrastiveFusion(source_bank(config['source_bank'],('simclr','mocov1','mocov2')),
+                             profile=profile, rms_epsilon=config.get('fusion_rms_epsilon',1e-6))
+    model=USLSeedGenerator(fusion,profile=profile)
+    expected_extra=({'adaptation_profile':profile,
+                     'source_bank_manifest_sha256':config['source_bank_sha256'],
+                     'fusion_rms_epsilon':config['fusion_rms_epsilon']}
+                    if profile=='ccam_stabilized_v1' else None)
     load_reviewed(model.ccam,config['ccam_checkpoint'],config['ccam_provenance'],expected_method='usl_ccam',
-                  **checkpoint_requirements(config,'ccam_checkpoint'))
+                  expected_extra=expected_extra, **checkpoint_requirements(config,'ccam_checkpoint'))
     return model
 
 

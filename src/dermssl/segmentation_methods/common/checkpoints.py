@@ -113,13 +113,19 @@ def checkpoint_identity(path,provenance_path,*,expected_lineage=None,expected_ch
 
 
 def load_reviewed(model,path,provenance_path,*,expected_method=None,required_protocol=None,device='cpu',
-                  expected_lineage=None,expected_checkpoint_sha256=None,expected_provenance_sha256=None):
+                  expected_lineage=None,expected_checkpoint_sha256=None,expected_provenance_sha256=None,
+                  expected_extra=None):
     origin,payload=checkpoint_identity(path,provenance_path,device=device,
                     expected_lineage=expected_lineage,expected_checkpoint_sha256=expected_checkpoint_sha256,
                     expected_provenance_sha256=expected_provenance_sha256)
     if expected_method is not None and origin.get('method')!=expected_method:raise ValueError('Wrong checkpoint method')
     if required_protocol is not None and origin.get('protocol')!=required_protocol:
         raise ValueError('Checkpoint does not carry the required training protocol lineage')
+    if expected_extra is not None:
+        extra = payload.get('extra', {})
+        if any(extra.get(key) != value or origin.get(key) != value
+               for key, value in expected_extra.items()):
+            raise ValueError('Checkpoint adaptation profile differs from reviewed configuration')
     model.load_state_dict(payload['model'],strict=True)
     return origin
 

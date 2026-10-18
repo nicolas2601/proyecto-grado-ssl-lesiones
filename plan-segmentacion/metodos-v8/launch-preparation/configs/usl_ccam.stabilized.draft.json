@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "method": "usl_net",
+  "execution_enabled": false,
+  "stages": ["check", "ccam"],
+  "resolution": 224,
+  "seed": 42,
+  "device": "cuda:0",
+  "epochs": 30,
+  "ccam_variant": "ccam_stabilized_v1",
+  "fusion_rms_epsilon": 1e-6,
+  "fusion_profile": {
+    "kind": "per_image_block_rms",
+    "blocks": "simclr_stage3,simclr_stage4,mocov1_stage3,mocov1_stage4,mocov2_stage3,mocov2_stage4",
+    "axes": [1, 2, 3],
+    "epsilon": 1e-6
+  },
+  "head_profile": {
+    "kind": "per_image_spatial_logit_standardization",
+    "axes": [2, 3],
+    "variance_unbiased": false,
+    "epsilon": 1e-6,
+    "affine": false,
+    "running_statistics": false,
+    "head": "existing_1x1_convolution"
+  },
+  "effective_batch_size": 64,
+  "encoder_micro_batch_size": 2,
+  "ccam_alpha": 0.25,
+  "learning_rate": 0.001,
+  "weight_decay": 0.01,
+  "ccam_selection": {
+    "rule": "three_consecutive_eligible_stable_epochs",
+    "global_pearson_threshold": 0.98,
+    "required_consecutive_epochs": 3,
+    "monitor_images": 8,
+    "candidate_eligibility": {
+      "all_monitor_images_have_foreground_component_min_area": 500,
+      "all_monitor_images_have_nonzero_background": true,
+      "no_all_constant_maps": true,
+      "no_all_maps_exactly_saturated": true
+    },
+    "selection_is_technical_heuristic_not_anatomical_validation": true
+  },
+  "collapse_guard": {
+    "warmup_epochs": 5,
+    "global_pearson_threshold": 0.98,
+    "exact_saturation_fraction": 0.99,
+    "all_monitor_images_abstain": true,
+    "required_consecutive_epochs": 3,
+    "stop_status": "stopped_non_success",
+    "is_normal_convergence_early_stop": false
+  },
+  "resources": {
+    "timeout_seconds": 86400,
+    "max_rss_mb": 65536,
+    "max_output_mb": 1024,
+    "max_gpu_memory_mb": 18432,
+    "gpu_reserve_mb": 4096,
+    "shutdown_grace_seconds": 120
+  },
+  "source_bank": "/home/jovyan/work/public_ssl_v8_preparation/source-bank.usl-net.reviewed-candidate.json",
+  "source_bank_sha256": "306136b3abd29ae32ac8be2a1456cf411c3f1422f93b39f05d46636141cce6f6",
+  "checkpoint": null,
+  "checkpoint_provenance": null,
+  "ccam_checkpoint": null,
+  "ccam_provenance": null,
+  "usl_policy": {
+    "min_area": 500,
+    "connectivity": 4,
+    "max_centroid_distance": null
+  },
+  "training_manifest": {
+    "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
+    "sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+    "record_count": 34784
+  },
+  "evaluation_protocol": {
+    "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/protocol.json",
+    "sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03"
+  },
+  "admission_waiver": {
+    "id": "ccam_stabilized_v1_authorized_20261017",
+    "scope": {
+      "method": "usl_net",
+      "stage": "ccam",
+      "variant": "ccam_stabilized_v1"
+    },
+    "waived_checks": ["resource_budget_measured", "smoke_passed"],
+    "authorization_note": "User explicitly authorized the integrated stabilized CCAM fix and a fresh training run on 2026-10-17; prior CCAM resource caps are planning limits, not measurements for this variant.",
+    "resource_basis": "reused prior CCAM planning caps; unmeasured for this profile",
+    "smoke_basis": "not run by explicit user constraint; static review only",
+    "other_gate_requirements_waived": false
+  },
+  "adaptation_disclosure": {
+    "objective_reference": "https://github.com/CVI-SZU/CCAM/blob/master/CUSTOM/core/loss.py",
+    "objective_semantics": "pairwise cosine similarities include diagonal; positive ranking includes self-pairs; clamp cosine to [0.0005,0.9995]; mean reduction over B squared pairs",
+    "architecture_difference": "USL-Net retains its reviewed 1x1 head and pooled foreground/background descriptors; this is not the reference 3x3 convolution plus BatchNorm architecture",
+    "not_paper_exact_reproduction": true
+  },
+  "preparation_review": {
+    "status": "draft_disabled_awaiting_static_review_and_cluster_activation",
+    "prior_ccam_resource_review": "/home/jovyan/work/validation_v8/usl-ccam-resource-review-20261017-001/resource-review.json",
+    "prior_ccam_run": "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003",
+    "prior_ccam_recovery_may_be_reused": false,
+    "optimizer_updates_per_epoch": 544,
+    "effective_batch_last_partial_size": 32,
+    "drop_last": false,
+    "estimated_optimizer_updates_total": 16320,
+    "execution_enabled": false,
+    "training_started": false,
+    "scientific_convergence_verified": false,
+    "anatomical_quality_verified": false
+  }
+}

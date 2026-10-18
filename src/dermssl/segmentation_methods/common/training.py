@@ -43,6 +43,7 @@ def gate_report(path,method,manifest_path,*,training=True,config=None,stage=None
     if report.get('method')!=method or report.get('input_manifest_sha256')!=digest(manifest_path):
         raise ValueError('Gate evidence does not match method and manifest')
     required=('data_verified','independent_anatomical_evaluation_resolved','resource_budget_measured','weights_provenance_verified','smoke_passed')
+    waiver = None
     if protocol is not None:
         if config is None:
             raise ValueError('Retrospective gate requires explicit reviewed configuration')
@@ -53,8 +54,25 @@ def gate_report(path,method,manifest_path,*,training=True,config=None,stage=None
         required=tuple(k for k in required if k!='independent_anatomical_evaluation_resolved')
         if config is not None and report.get('config_sha256')!=_json_hash(config):
             raise ValueError('Gate does not bind the reviewed configuration')
+    if (training and method == 'usl_ccam' and stage == 'ccam' and config is not None
+            and config.get('ccam_variant') == 'ccam_stabilized_v1'):
+        declared = config.get('admission_waiver')
+        waiver = report.get('admission_waiver')
+        if (not isinstance(declared, dict) or waiver != declared
+                or declared.get('scope') != {'method': 'usl_net', 'stage': 'ccam',
+                                              'variant': 'ccam_stabilized_v1'}
+                or declared.get('waived_checks') != ['resource_budget_measured', 'smoke_passed']
+                or not isinstance(declared.get('authorization_note'), str)
+                or not declared['authorization_note'].strip()):
+            raise ValueError('Explicit CCAM stabilized v1 admission waiver required')
+        # These are scoped waivers, never evidence that the checks passed.
+        required = tuple(key for key in required
+                         if key not in {'resource_budget_measured', 'smoke_passed'})
     if not training:required=tuple(k for k in required if k!='independent_anatomical_evaluation_resolved')
     if any(report.get(k) is not True for k in required):raise ValueError('Real training remains gated: '+','.join(k for k in required if report.get(k) is not True))
+    if waiver is not None:
+        if report.get('resource_budget_measured') is True or report.get('smoke_passed') is True:
+            raise ValueError('Waived checks must remain explicitly unverified in the gate')
     if not report.get('verification_revision'):raise ValueError('Gate evidence revision required')
     return report
 

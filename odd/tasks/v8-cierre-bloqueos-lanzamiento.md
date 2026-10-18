@@ -875,3 +875,15 @@ monitor de degeneración. No cambiar simultáneamente LR, batch y arquitectura;
 no aumentar épocas ni bajar el área mínima para forzar máscaras. No hay código
 corregido ni reentrenamiento en esta revisión. Pseudo-máscaras y estudiante siguen
 bloqueados, y readiness/gates permanecen intactos.
+
+## CCAM stabilized v1: implementación integrada (2026-10-17)
+
+Se implementó en alcance USL-Net una variante opt-in `ccam_stabilized_v1`; la ruta legacy permanece como default y `ccam_engine.py`, SLED, RPI-Net, TriDermNet y los indicadores históricos no se modificaron. La fusión RMS por mapa y la estandarización espacial de logits de la cabeza 1x1 quedan enlazadas al perfil de checkpoint y se recrean al generar. El objetivo separado registra términos positivos/negativos conforme a la formulación pública de CCAM (diagonal incluida, clamp y ranking), con la diferencia arquitectónica USL-Net documentada.
+
+La nueva dinámica usa batch efectivo 64 con extracción de encoder congelado en bloques 2, conserva el remanente de 32 muestras y registra 544 actualizaciones por época. Se implementaron recuperación atómica ligada al perfil/config/fuentes, monitoreo de ocho sondas y selección por tres épocas consecutivas elegibles; la protección por abstención estable detiene como no-éxito, no como convergencia. No se usaron máscaras expertas.
+
+El gate contiene un waiver explícito limitado a `usl_net/ccam/ccam_stabilized_v1` para `resource_budget_measured` y `smoke_passed`; ambos se mantienen falsos, no se presentan como pruebas. El config borrador sigue con `execution_enabled=false`; no se desplegó ni inició una corrida. Los topes operativos existentes se reutilizan como límites de planificación, no mediciones de esta variante. La recuperación anterior no se puede reutilizar.
+
+Pendiente: revisión estática del paquete/config/gates y hashes en la copia aislada del clúster; preparar recibos nuevos para `/runs_v8/usl_ccam-20261018-004` y `/validation_v8/usl-ccam-stabilized-launch-20261018-004/`; activación y lanzamiento quedan a cargo del orquestador después de esa revisión. Sin tests, lint, compilación, GPU o acceso remoto en esta implementación por instrucción explícita.
+
+[Plan compacto de implementación](../../plan-segmentacion/metodos-v8/launch-preparation/ccam-stabilized-v1-implementation-plan.md).
