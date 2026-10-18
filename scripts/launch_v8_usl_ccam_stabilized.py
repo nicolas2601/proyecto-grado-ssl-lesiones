@@ -13,8 +13,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_ROOT = Path('/home/jovyan/work/proyectonp/repo_v8_ccam_stabilized_004')
 PYTHON = Path('/home/jovyan/work/proyectonp/.venv/bin/python')
-RECEIPTS = Path('/home/jovyan/work/validation_v8/usl-ccam-stabilized-launch-20261018-004')
-OUT = Path('/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261018-004')
+RECEIPTS = Path('/home/jovyan/work/validation_v8/usl-ccam-stabilized-launch-20261018-005')
+OUT = Path('/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261018-005')
 CONFIG = RECEIPTS / 'ccam.run.approved.json'
 GATE = RECEIPTS / 'ccam.gate.json'
 DRAFT = ROOT / 'plan-segmentacion/metodos-v8/launch-preparation/configs/usl_ccam.stabilized.draft.json'

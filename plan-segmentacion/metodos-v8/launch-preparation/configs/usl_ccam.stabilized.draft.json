@@ -77,7 +77,8 @@
   },
   "evaluation_protocol": {
     "path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/protocol.json",
-    "sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03"
+    "sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03",
+    "protocol_id": "v8_conservative_retrospective_20261016"
   },
   "admission_waiver": {
     "id": "ccam_stabilized_v1_authorized_20261017",
