@@ -4,6 +4,13 @@ Fecha: 2026-10-17. Estado: propuesta preparada, sin ejecución ni despliegue.
 Los cinco configs de esta carpeta tienen `execution_enabled=false`. No se
 modifica CCAM 003, readiness, gates históricos ni los otros métodos.
 
+Revisión siguiente: [recuperación, observabilidad y política de abstenciones del
+estudiante](student-readiness-review.md). Identifica lo implementado y las
+brechas antes de una única comprobación GPU futura en UNABIA. Se propone conservar
+la parada estricta ante abstenciones; no se aprobó excluir un subconjunto ni
+forzar pseudo-máscaras para completar el denominador. Los cambios de código
+descritos allí están pendientes; esta documentación no los implementa.
+
 ## Presupuesto científico propuesto para revisar
 
 Se propone **tres estudiantes nuevos de 20 épocas cada uno**, inicialización

@@ -797,3 +797,25 @@ salida/tracking. La preparación no cambia readiness, gates, otros métodos ni
 el runtime de CCAM 003; no se ejecutaron pruebas o entrenamientos adicionales.
 Sigue el cierre real de CCAM, aprobar presupuesto, promover cabeza con linaje
 real, producir pseudomáscaras completas y materializar cada tramo revisado.
+
+## Estudiante USL-Net: revisión previa y abstenciones (2026-10-17)
+
+Se completó lectura estática del fit, recuperación, BCE en píxeles utilizables,
+generación y refinamiento. El estudiante ya guarda modelo/AdamW/sampler/RNG y
+progreso parcial, pero no registra cobertura de píxeles ni estabilidad propia.
+Quedan comprobación específica de RNG CUDA y consistencia de métricas tras
+interrupción entre checkpoint/JSONL; no se declaran fallos GPU reproducidos.
+El tiempo de época reanudada no acumula sesiones previas.
+
+Se documentó como propuesta mantener parada estricta ante abstenciones por caso
+y batches totalmente inciertos, preservando el denominador y las razones.
+La incertidumbre de píxel se ignora en BCE; nunca se fuerza a fondo. Excluir casos
+requeriría decisión explícita, manifiesto hijo/recibo y contratos compatibles con
+el protocolo congelado, sin modificar el padre ni las 2.594 referencias reservadas.
+No se implementó esa exclusión ni se aprobó el presupuesto 3×20.
+
+Sigue implementar en preparación aislada la observabilidad/consistencia mínima,
+aceptar CCAM y pseudos reales y agrupar medición de recursos/recuperación en un
+único diagnóstico representativo futuro en UNABIA. Esta revisión no ejecutó
+pruebas, no desplegó código y no cambió configs, readiness o gates.
+[Hallazgos, contratos y secuencia](../../plan-segmentacion/metodos-v8/launch-preparation/post-ccam/student-readiness-review.md).
