@@ -851,3 +851,27 @@ lectura de bytes los hashes del candidato y final declarados en la selección,
 además de sus sidecars, métricas y checkpoint de recuperación. Los recursos pico
 no están registrados en el inventario; no se infieren de los caps.
 [Registro y evidencia del cierre](../../resultados/preparacion_v8/usl_ccam_completion_20261017_003/run_record.md).
+
+## CCAM 003: mecanismo próximo de las abstenciones documentado (2026-10-17)
+
+La [revisión causal](../../resultados/preparacion_v8/usl_ccam_causal_review_20261017_003/run_record.md)
+usa tres snapshots reales emitidos en UNABIA, ocho monitores de aprendizaje,
+57 fuentes del runtime verificadas y cero actualizaciones de optimizador.
+Los RGB y features son finitos y diversos. En el candidato, 195/196 posiciones
+por imagen saturan en fondo exactamente 1 y queda foreground solo en `[0,13]`;
+el final tiene seis mapas nulos y dos con esa esquina. Los gradientes de batch 2
+son diminutos; una norma float32 cero no implica entradas todas nulas.
+
+Queda identificado el mecanismo próximo de las abstenciones, no el disparador
+inicial del entrenamiento. Dominancia de escala del bloque SimCLR etapa 3,
+ranking positivo sin alternativas con batch 2 y diferencias del objetivo frente
+a CCAM son observaciones a resolver; no prueban corrupción de pesos ni una causa
+única. La normalización de entrada está correctamente conectada. La cabeza 1×1
+corresponde a USL-Net; no se propone añadir BatchNorm por analogía.
+
+Próximo trabajo: definir la correspondencia de pérdida/ranking con la referencia,
+y proponer una única variante justificada de control de escala, acompañada de
+monitor de degeneración. No cambiar simultáneamente LR, batch y arquitectura;
+no aumentar épocas ni bajar el área mínima para forzar máscaras. No hay código
+corregido ni reentrenamiento en esta revisión. Pseudo-máscaras y estudiante siguen
+bloqueados, y readiness/gates permanecen intactos.

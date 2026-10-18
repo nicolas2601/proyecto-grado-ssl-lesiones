@@ -147,3 +147,13 @@ relanzar entrenamiento, cambiar umbrales para forzar elegibilidad, adoptar
 5×300 ni seleccionar otra época retrospectivamente. No usar máscaras expertas
 para resolver el ajuste. La generación completa y el estudiante siguen sin
 ejecutarse; ninguna bandera de ejecución se modifica por este diagnóstico.
+
+## Revisión causal posterior (17 de octubre local)
+
+La [revisión causal acotada](../usl_ccam_causal_review_20261017_003/run_record.md)
+ya documenta tres snapshots reales de UNABIA, con cero actualizaciones de pesos.
+Confirma saturación de la cabeza y supervivencia de una esquina en el candidato;
+los RGB y features conservan diversidad. Los gradientes observados son diminutos.
+Esto explica el fallo próximo, pero no aísla el disparador inicial ni acredita
+que aumentar batch o modificar escalas lo resuelva. La revisión no cambia el
+estado operativo completado ni desbloquea pseudo-máscaras o estudiante.
