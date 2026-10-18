@@ -1,0 +1,287 @@
+{
+  "directories": {
+    "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003": [
+      {
+        "name": "ccam.pt",
+        "is_file": true,
+        "bytes": 48101,
+        "sha256": "443e4c170451f68811d5dab533f57b511754acb446045200d2e6666c38639802"
+      },
+      {
+        "name": "ccam.pt.json",
+        "is_file": true,
+        "bytes": 7811,
+        "sha256": "8b7f1f210cc5e1d88eee425128c92cc7ca6079087ad00a942883af420e59e273"
+      },
+      {
+        "name": "metrics.jsonl",
+        "is_file": true,
+        "bytes": 3461,
+        "sha256": "4992b25ed5de3e86acb040f152144f518bc5fee7ab586cfa59bfaab34564c68a"
+      },
+      {
+        "name": "resume.pt",
+        "is_file": true,
+        "bytes": 1786975,
+        "sha256": "f61e94b63c68a7002696f0f23d0bb38528e40c9d07d99a2e9eaa597afec01c2a"
+      },
+      {
+        "name": "selected.ccam.pt",
+        "is_file": true,
+        "bytes": 48109,
+        "sha256": "83bcf068ef91e6b989a5b71b6ac4231368e91a842d6874397c4555f6619edfec"
+      },
+      {
+        "name": "selected.ccam.pt.json",
+        "is_file": true,
+        "bytes": 7804,
+        "sha256": "c6a112fecb36116c1b1d513d06465ba2701c3716b66c28462be99f57a7c20b1f"
+      },
+      {
+        "name": "selection.json",
+        "is_file": true,
+        "bytes": 580,
+        "sha256": "975fb72514de23cf4fdd172df876f34e94043d38f14660897d13a367cec924c2"
+      }
+    ],
+    "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003": [
+      {
+        "name": ".ipynb_checkpoints",
+        "is_file": false
+      },
+      {
+        "name": "ccam-completion-review.zip",
+        "is_file": true,
+        "bytes": 1841
+      },
+      {
+        "name": "ccam.gate.json",
+        "is_file": true,
+        "bytes": 9512,
+        "sha256": "d98c73c022d7809ae0b3d4fe94b16aea0ef3f92d6bdf1ef9b96b7ac953189bd0"
+      },
+      {
+        "name": "ccam.run.approved.json",
+        "is_file": true,
+        "bytes": 3415,
+        "sha256": "30fd4ad9e870f86009e1b591fab05cb84226f66621297912d8349c43bed7756c"
+      },
+      {
+        "name": "exit.json",
+        "is_file": true,
+        "bytes": 580,
+        "sha256": "3788fc4fc81db5b5717d2d73b4af2d5092c07f15e75ca078dadcf7aa2886f873"
+      },
+      {
+        "name": "launch.json",
+        "is_file": true,
+        "bytes": 9280,
+        "sha256": "d5f8f9718fdb8e62d191a2cf3662f56444e73f0f9e81e21c04e04f832aeeebb4"
+      },
+      {
+        "name": "runner.log",
+        "is_file": true,
+        "bytes": 2324,
+        "sha256": "38feee88c65b453b68f5934aec9e6e8f31418db5cb114a000ce7a6ef9d29ccca"
+      },
+      {
+        "name": "runtime-confirmation-003.log",
+        "is_file": true,
+        "bytes": 1384,
+        "sha256": "3a8b6af0f06653b6ec0d9d89b1bd5b3535f70120d68d2073f67476874e95f613"
+      },
+      {
+        "name": "runtime-observation-001.json",
+        "is_file": true,
+        "bytes": 25616,
+        "sha256": "89aaaebb4834fa7bedb002c53978d8f94ea103f5981f8633784cb2665c93411b"
+      },
+      {
+        "name": "runtime-observation-001.log",
+        "is_file": true,
+        "bytes": 3055,
+        "sha256": "aa63d0ccd4bfcfa8837fbfbc5d29808203226d91fcdc1560b43c92e24c0e8d7d"
+      },
+      {
+        "name": "status.json",
+        "is_file": true,
+        "bytes": 580,
+        "sha256": "3788fc4fc81db5b5717d2d73b4af2d5092c07f15e75ca078dadcf7aa2886f873"
+      },
+      {
+        "name": "submission.json",
+        "is_file": true,
+        "bytes": 59,
+        "sha256": "b8de28d3a9d8c2d863ec566645fb245e0feb09caf62acdc79e0493b342a73135"
+      },
+      {
+        "name": "supervisor.log",
+        "is_file": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003-tracking": [
+      {
+        "name": "wandb",
+        "is_file": false
+      }
+    ]
+  },
+  "doc_keys": {
+    "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003/ccam.pt.json": [
+      "method",
+      "protocol",
+      "producer_revision",
+      "input_manifest_sha256",
+      "uses_expert_masks",
+      "uses_diagnoses",
+      "input_normalization",
+      "epoch",
+      "selection_status",
+      "source_hashes",
+      "lineage",
+      "patient_independence_accredited",
+      "checkpoint_sha256"
+    ],
+    "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003/selected.ccam.pt.json": [
+      "method",
+      "protocol",
+      "producer_revision",
+      "input_manifest_sha256",
+      "uses_expert_masks",
+      "uses_diagnoses",
+      "input_normalization",
+      "epoch",
+      "selection_status",
+      "source_hashes",
+      "lineage",
+      "patient_independence_accredited",
+      "checkpoint_sha256"
+    ],
+    "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003/selection.json": [
+      "rule",
+      "threshold",
+      "budget_epochs",
+      "stopping_reason",
+      "early_stopping",
+      "selected_epoch",
+      "status",
+      "final_checkpoint",
+      "selected_checkpoint",
+      "scientific_convergence_verified",
+      "anatomical_quality_verified"
+    ],
+    "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/ccam.gate.json": [
+      "authorization_note",
+      "config_file_sha256",
+      "config_sha256",
+      "data_verified",
+      "evaluation_protocol",
+      "execution_enabled",
+      "full_dataset_runtime_measured",
+      "historical_smoke_receipt",
+      "input_manifest_sha256",
+      "method",
+      "optimizer_memory_measured",
+      "parent_gate_sha256",
+      "patient_independence_accredited",
+      "preparation_only",
+      "recovery_verification",
+      "resource_budget_measured",
+      "resource_measurement_scope",
+      "resource_review",
+      "retrospective_protocol_reviewed",
+      "smoke_passed",
+      "source_hashes",
+      "source_review_status",
+      "synthetic_cleanup_receipt",
+      "synthetic_cleanup_receipt_sha256",
+      "training_authorized",
+      "verification_revision",
+      "weights_provenance_verified"
+    ],
+    "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/ccam.run.approved.json": [
+      "batch_size",
+      "ccam_checkpoint",
+      "ccam_provenance",
+      "ccam_selection",
+      "checkpoint",
+      "checkpoint_provenance",
+      "comparison",
+      "device",
+      "epochs",
+      "evaluation_protocol",
+      "execution_enabled",
+      "learning_rate",
+      "method",
+      "native_recipe",
+      "preparation_review",
+      "resolution",
+      "resources",
+      "schema_version",
+      "seed",
+      "source_bank",
+      "stages",
+      "usl_policy",
+      "weight_decay"
+    ],
+    "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/exit.json": [
+      "checkpoint_sha256",
+      "completed_epoch_records",
+      "elapsed_seconds",
+      "ended_at",
+      "exit_code",
+      "output",
+      "provenance_sha256",
+      "runner_pid",
+      "started_at",
+      "status",
+      "stop_reason",
+      "supervisor_pid",
+      "training_started"
+    ],
+    "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/runtime-observation-001.json": [
+      "observed_at_utc",
+      "launch",
+      "status",
+      "exit",
+      "submission",
+      "output_exists",
+      "metrics",
+      "completed_epoch_records",
+      "runner_alive",
+      "runner_command",
+      "runner_memory",
+      "gpu_compute",
+      "gpu0",
+      "wandb_url",
+      "launch_sha256",
+      "config",
+      "gate",
+      "cleanup_receipt_path",
+      "cleanup_summary",
+      "runner_log_tail"
+    ],
+    "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/status.json": [
+      "checkpoint_sha256",
+      "completed_epoch_records",
+      "elapsed_seconds",
+      "ended_at",
+      "exit_code",
+      "output",
+      "provenance_sha256",
+      "runner_pid",
+      "started_at",
+      "status",
+      "stop_reason",
+      "supervisor_pid",
+      "training_started"
+    ],
+    "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/submission.json": [
+      "supervisor_pid",
+      "training_started"
+    ]
+  },
+  "resources": {}
+}

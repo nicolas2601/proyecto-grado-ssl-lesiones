@@ -1,0 +1,52 @@
+{
+  "sidecars": {
+    "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003/ccam.pt.json": {
+      "method": "usl_ccam",
+      "protocol": "w3-four-methods-v8",
+      "producer_revision": "95a8f602b2fb49304dbbb9a78a18edc43cc3ebba",
+      "input_manifest_sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+      "uses_expert_masks": false,
+      "uses_diagnoses": false,
+      "input_normalization": "unit_rgb",
+      "epoch": 30,
+      "selection_status": "budget_final_not_selected",
+      "lineage": {
+        "protocol_sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03",
+        "training_manifest_sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+        "training_gate_sha256": "d98c73c022d7809ae0b3d4fe94b16aea0ef3f92d6bdf1ef9b96b7ac953189bd0",
+        "training_cohort_sha256": "c9b179aef6325b2cf97027ed2214ddd77c71c86ee9178af5b63f4b55b1f708ae"
+      },
+      "patient_independence_accredited": false,
+      "checkpoint_sha256": "443e4c170451f68811d5dab533f57b511754acb446045200d2e6666c38639802"
+    },
+    "/home/jovyan/work/proyectonp/runs_v8/usl_ccam-20261017-003/selected.ccam.pt.json": {
+      "method": "usl_ccam",
+      "protocol": "w3-four-methods-v8",
+      "producer_revision": "95a8f602b2fb49304dbbb9a78a18edc43cc3ebba",
+      "input_manifest_sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+      "uses_expert_masks": false,
+      "uses_diagnoses": false,
+      "input_normalization": "unit_rgb",
+      "epoch": 6,
+      "selection_status": "stability_candidate",
+      "lineage": {
+        "protocol_sha256": "f4836405a7cbb8309f1757a3488e34ab4fa4f4f02f785b4f72bae79b9d349b03",
+        "training_manifest_sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+        "training_gate_sha256": "d98c73c022d7809ae0b3d4fe94b16aea0ef3f92d6bdf1ef9b96b7ac953189bd0",
+        "training_cohort_sha256": "c9b179aef6325b2cf97027ed2214ddd77c71c86ee9178af5b63f4b55b1f708ae"
+      },
+      "patient_independence_accredited": false,
+      "checkpoint_sha256": "83bcf068ef91e6b989a5b71b6ac4231368e91a842d6874397c4555f6619edfec"
+    }
+  },
+  "log_findings": {
+    "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/runner.log": [
+      "wandb:          completed 1",
+      "wandb:    elapsed_seconds 9630.16702",
+      "wandb:              epoch 30",
+      "wandb: saliency_stability 1.0"
+    ]
+  },
+  "source": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/completion-lineage-run003-001.log",
+  "decorative_log_lines_omitted": true
+}

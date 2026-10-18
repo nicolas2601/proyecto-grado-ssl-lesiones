@@ -93,3 +93,14 @@ Python/PyTorch del proceso real: no registrados en este snapshot inicial.
 - Revisar curvas y candidato antes de promover pseudomáscaras. Preparar los otros
   métodos en una copia separada, sin alterar la fuente activa; el plan serial del
   estudiante y refinamientos sigue pendiente y no arranca automáticamente.
+
+## Cierre posterior observado
+
+El estado inicial anterior se conserva como observación histórica. La revisión
+posterior registra 30 épocas completas y código de salida 0, con candidato de la
+época 6 según la regla predeclarada. El historial, límites y fuentes del cierre
+están en el [registro de finalización](../usl_ccam_completion_20261017_003/run_record.md).
+Completar CCAM no acredita calidad anatómica ni habilita automáticamente las
+siguientes etapas. La inspección posterior de ocho originales de aprendizaje
+registró abstención en 8/8 tanto para el candidato como para el final; el cierre
+documenta el bloqueo de promoción y conserva su alcance acotado.

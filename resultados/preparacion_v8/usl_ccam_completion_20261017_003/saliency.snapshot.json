@@ -1,0 +1,309 @@
+{
+  "kind": "bounded_observational_saliency_review",
+  "observed_utc": "2026-10-18T02:55:10.490802+00:00",
+  "manifest_path": "/home/jovyan/work/validation_v8/accepted-manifests-20261016-002/learning.manifest.json",
+  "manifest_sha256": "7749471410aa98a76dd978cca2ef58f9642d14404530c98e534484ba40a7a6ff",
+  "source_bank_sha256": "306136b3abd29ae32ac8be2a1456cf411c3f1422f93b39f05d46636141cce6f6",
+  "scope": "first_8_learning_records_only; no_expert_masks; no_training; no_gate_changes; no_checkpoint_reselection",
+  "policy": {
+    "low": 0.35,
+    "high": 0.65,
+    "min_area": 500,
+    "connectivity": 4
+  },
+  "checkpoint_pins": {
+    "selected.ccam.pt": [
+      "83bcf068ef91e6b989a5b71b6ac4231368e91a842d6874397c4555f6619edfec",
+      "c6a112fecb36116c1b1d513d06465ba2701c3716b66c28462be99f57a7c20b1f",
+      6
+    ],
+    "ccam.pt": [
+      "443e4c170451f68811d5dab533f57b511754acb446045200d2e6666c38639802",
+      "8b7f1f210cc5e1d88eee425128c92cc7ca6079087ad00a942883af420e59e273",
+      30
+    ]
+  },
+  "observations": {
+    "selected.ccam.pt": {
+      "epoch": 6,
+      "records": [
+        {
+          "image_id": "ISIC_0000010",
+          "min": 0,
+          "max": 1,
+          "mean": 0.005102040711790323,
+          "std": 0.05928141251206398,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000118_downsampled",
+          "min": 0,
+          "max": 1,
+          "mean": 0.005102040711790323,
+          "std": 0.05928141251206398,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000237",
+          "min": 0,
+          "max": 1,
+          "mean": 0.005102040711790323,
+          "std": 0.05928141251206398,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000333",
+          "min": 0,
+          "max": 1,
+          "mean": 0.005102040711790323,
+          "std": 0.05928141251206398,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000445_downsampled",
+          "min": 0,
+          "max": 1,
+          "mean": 0.005102040711790323,
+          "std": 0.05928141251206398,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000452_downsampled",
+          "min": 0,
+          "max": 0.9999998807907104,
+          "mean": 0.005102040246129036,
+          "std": 0.05928140506148338,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000467",
+          "min": 0,
+          "max": 0.9998691082000732,
+          "mean": 0.005101372487843037,
+          "std": 0.05927364528179169,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000475",
+          "min": 0,
+          "max": 1,
+          "mean": 0.005102040711790323,
+          "std": 0.05928141251206398,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        }
+      ]
+    },
+    "ccam.pt": {
+      "epoch": 30,
+      "records": [
+        {
+          "image_id": "ISIC_0000010",
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "std": 0,
+          "background_fraction": 1,
+          "uncertain_fraction": 0,
+          "foreground_fraction": 0,
+          "eligible_components": 0,
+          "largest_component_pixels": 0,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000118_downsampled",
+          "min": 0,
+          "max": 1,
+          "mean": 0.005102040711790323,
+          "std": 0.05928141251206398,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000237",
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "std": 0,
+          "background_fraction": 1,
+          "uncertain_fraction": 0,
+          "foreground_fraction": 0,
+          "eligible_components": 0,
+          "largest_component_pixels": 0,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000333",
+          "min": 0,
+          "max": 1,
+          "mean": 0.005102040711790323,
+          "std": 0.05928141251206398,
+          "background_fraction": 0.9941206951530612,
+          "uncertain_fraction": 0.002311862244897959,
+          "foreground_fraction": 0.003567442602040816,
+          "eligible_components": 0,
+          "largest_component_pixels": 179,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000445_downsampled",
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "std": 0,
+          "background_fraction": 1,
+          "uncertain_fraction": 0,
+          "foreground_fraction": 0,
+          "eligible_components": 0,
+          "largest_component_pixels": 0,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000452_downsampled",
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "std": 0,
+          "background_fraction": 1,
+          "uncertain_fraction": 0,
+          "foreground_fraction": 0,
+          "eligible_components": 0,
+          "largest_component_pixels": 0,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000467",
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "std": 0,
+          "background_fraction": 1,
+          "uncertain_fraction": 0,
+          "foreground_fraction": 0,
+          "eligible_components": 0,
+          "largest_component_pixels": 0,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        },
+        {
+          "image_id": "ISIC_0000475",
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "std": 0,
+          "background_fraction": 1,
+          "uncertain_fraction": 0,
+          "foreground_fraction": 0,
+          "eligible_components": 0,
+          "largest_component_pixels": 0,
+          "abstained": true,
+          "reason": "USL-Net has no eligible foreground region"
+        }
+      ]
+    }
+  },
+  "candidate_final_comparisons": [
+    {
+      "image_id": "ISIC_0000010",
+      "pearson_candidate_vs_final": null
+    },
+    {
+      "image_id": "ISIC_0000118_downsampled",
+      "pearson_candidate_vs_final": 1
+    },
+    {
+      "image_id": "ISIC_0000237",
+      "pearson_candidate_vs_final": null
+    },
+    {
+      "image_id": "ISIC_0000333",
+      "pearson_candidate_vs_final": 1
+    },
+    {
+      "image_id": "ISIC_0000445_downsampled",
+      "pearson_candidate_vs_final": null
+    },
+    {
+      "image_id": "ISIC_0000452_downsampled",
+      "pearson_candidate_vs_final": null
+    },
+    {
+      "image_id": "ISIC_0000467",
+      "pearson_candidate_vs_final": null
+    },
+    {
+      "image_id": "ISIC_0000475",
+      "pearson_candidate_vs_final": null
+    }
+  ],
+  "elapsed_seconds": 1.3958822302520275,
+  "cuda_peak_allocated_mib": 464.2099609375,
+  "cuda_peak_reserved_mib": 608,
+  "limitations": "Eight existing monitoring cases are not representative of the full learning pool; correlations do not measure anatomical quality.",
+  "remote_source": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/saliency-review-run003-002.log",
+  "remote_source_sha256": "167bd7b550853e3d881c7eb595a29e574729a5de473deb7caa07d134e9f4275f",
+  "analysis_script_sha256": "c95a98122e8ee79fbbed39a4bef2c767e68003fce8817a183ebc8fc8d5345422",
+  "prior_helper_attempt": {
+    "log": "/home/jovyan/work/validation_v8/usl-ccam-launch-20261017-003/saliency-analysis-execution-001.log",
+    "error": "RuntimeError: Invalid device argument at reset_peak_memory_stats before CUDA initialization",
+    "inference_executed": false,
+    "scientific_runtime_modified": false
+  }
+}

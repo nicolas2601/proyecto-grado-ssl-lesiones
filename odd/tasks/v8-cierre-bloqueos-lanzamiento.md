@@ -819,3 +819,35 @@ aceptar CCAM y pseudos reales y agrupar medición de recursos/recuperación en u
 único diagnóstico representativo futuro en UNABIA. Esta revisión no ejecutó
 pruebas, no desplegó código y no cambió configs, readiness o gates.
 [Hallazgos, contratos y secuencia](../../plan-segmentacion/metodos-v8/launch-preparation/post-ccam/student-readiness-review.md).
+
+## CCAM 003: cierre operativo y promoción bloqueada por saliencias (2026-10-17)
+
+La observación de UNABIA del 18 de octubre, 02:47 UTC (17 de octubre local),
+registra 30 épocas completas, 30 filas con `sample_count=34784`, valores finitos y
+`exit_code=0`; duración total 9.650,812952 s. Ese conteo no es una auditoría de
+decodificación individual de imágenes. W&B fue observado como `Finished`.
+`selection.json` conserva el primer cruce Pearson >= 0,98: época 6, candidato
+`selected.ccam.pt`, distinto de `ccam.pt` final de época 30. Los cruces en 6,
+14 y 30 son aislados; la pérdida oscila tras su mínimo de época 6. No se afirma
+convergencia sostenida ni calidad anatómica: ambas verificaciones científicas
+siguen en `false` en la selección real. El cierre operativo no cambia gates.
+
+La inspección posterior GPU sobre ocho originales de aprendizaje ya terminó:
+abstención en 8/8 para el candidato de época 6 (región mayor de 179 píxeles,
+menor que el mínimo vigente de 500; foreground aproximado de 0,3567%) y 8/8
+para el final de época 30 (seis mapas nulos y otros dos con región mayor de 179).
+Las estadísticas del candidato son muy similares; no se afirma identidad de
+matrices píxel a píxel. No se extrapola la tasa al pool completo, pero estos
+contraejemplos bastan para bloquear ambos checkpoints bajo la política de cero
+abstenciones. No promover a generación completa ni estudiante. Sigue análisis
+causal de cabeza, pérdida y dinámica con batch 2, sin relanzar, cambiar umbrales,
+reseleccionar épocas ni consultar máscaras expertas. Siguen pendientes el
+estudiante, su observabilidad/recuperación, medición propia y presupuesto.
+Los picos CUDA del análisis (464,2099609375/608 MiB asignado/reservado) y su
+duración de 1,395882 s no describen la corrida de 30 épocas. El primer helper
+abortó antes de inferencia por inicialización CUDA; corregirlo no modificó el
+runtime científico. No se lanzan etapas posteriores. El inventario confirma por
+lectura de bytes los hashes del candidato y final declarados en la selección,
+además de sus sidecars, métricas y checkpoint de recuperación. Los recursos pico
+no están registrados en el inventario; no se infieren de los caps.
+[Registro y evidencia del cierre](../../resultados/preparacion_v8/usl_ccam_completion_20261017_003/run_record.md).
