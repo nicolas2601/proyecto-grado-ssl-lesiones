@@ -60,7 +60,9 @@ redefine los splits históricos de clasificación descritos arriba.
   `002af9db83ce16e567a2b339f65a4ff06eea71e91dde155d492a4b9ba37e5cf4`.
 - Para la clasificación, deduplicar HAM, ISIC2019 e ISIC2020 antes de combinarlos. Mantener los
   IDs de paciente/lesión disponibles para separar los conjuntos de entrenamiento y evaluación; el
-  manifiesto v8 todavía no acredita independencia cruzada por paciente.
+  manifiesto v8 todavía no acredita independencia cruzada por paciente. Las 1.511 exclusiones
+  pHash son específicas del pool de segmentación v8; no se deben copiar como filtro de clasificación
+  sin volver a cruzarlas contra los splits y holdouts de esa tarea.
 
 ### Derm1M como posible expansión futura
 
