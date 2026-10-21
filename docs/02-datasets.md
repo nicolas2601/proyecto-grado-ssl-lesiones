@@ -44,7 +44,9 @@ redefine los splits históricos de clasificación descritos arriba.
   no listados por la fuente, cuyo origen sigue sin determinarse. El filtro pHash conservador
   (DCT 8×8, distancia de Hamming ≤4) excluyó una unión de 1.511 IDs ISIC2020 frente al pool
   ISIC2019, las 2.594 imágenes oficiales de evaluación ISIC2018, HAM residual y PH2. El pHash
-  identifica candidatos similares, no confirma por sí solo que sean la misma imagen.
+  identifica candidatos similares, no confirma por sí solo que sean la misma imagen. La asignación
+  exclusiva de esas exclusiones fue: 944 frente al pool ISIC2019, 424 adicionales frente a ISIC2018,
+  143 adicionales frente a HAM residual y cero frente a PH2.
 - El manifiesto candidato resultante contiene **53.756 imágenes**: 22.574 de ISIC2019 y 31.182 de
   ISIC2020. No incorpora `target`, diagnósticos ni `lesion_id`; conserva `patient_id` de ISIC2020.
   `patient_independence_accredited`, `historical_ssl_exposure_independence_verified`,
@@ -53,7 +55,9 @@ redefine los splits históricos de clasificación descritos arriba.
   `~/work/dermlip_slic_v8/preflight/isic2019-isic2020-pool-candidate-20261021T162138Z/manifest.json`.
   SHA-256: `60775b56e0f636ebc2d861a20b429c2f01bc55e74232582f56c3ebdff5e480ee`.
   El recibo está en la misma carpeta; su SHA-256 es
-  `178809f412552d367b1bcfea475f213b40da4d99dbec758225ff8b0d8894f2cf`.
+  `178809f412552d367b1bcfea475f213b40da4d99dbec758225ff8b0d8894f2cf`. El registro de
+  exclusiones `exclusions.jsonl` tiene SHA-256
+  `002af9db83ce16e567a2b339f65a4ff06eea71e91dde155d492a4b9ba37e5cf4`.
 - Para la clasificación, deduplicar HAM, ISIC2019 e ISIC2020 antes de combinarlos. Mantener los
   IDs de paciente/lesión disponibles para separar los conjuntos de entrenamiento y evaluación; el
   manifiesto v8 todavía no acredita independencia cruzada por paciente.
