@@ -4,7 +4,7 @@ Todo lo que produjo el proyecto, en un solo lugar: segmentacion sin
 etiquetas, tono de piel, los cuatro brazos de preentrenamiento y el
 clasificador. Que gano, que perdio, y como mejorarlo.
 
-> Navegación: [README principal](../README.md) · [análisis final](../docs/24-analisis-final-resultados-y-escenarios-ada.md) · [fuentes y ramas](../docs/00-fuentes-y-ramas.md) · [demo](../demo/README.md).
+> Navegación: [README principal](../README.md) · [análisis final](../docs/24-analisis-final-resultados-y-escenarios-ada.md) · [fuentes y ramas](../docs/00-fuentes-y-ramas.md).
 
 ## Dónde está cada resultado
 
