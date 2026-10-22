@@ -25,6 +25,7 @@ from .model_service import (
 )
 from .report import ReportDataError, build_report
 from .request_limits import InferenceLimits
+from .v9_service import V9ModelService, V9ServiceError
 
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
@@ -81,25 +82,34 @@ def _build_golden_index(repo_root: Path) -> dict[str, dict[str, str]]:
 def create_app(repo_root: Path | None = None, service: ModelService | None = None,
                public_service: ModelService | None = None) -> FastAPI:
     root = repo_root or Path(__file__).resolve().parents[2]
+    v9_bundle_dir = os.getenv("DEMO_V9_MODEL_DIR")
+    if v9_bundle_dir and os.getenv("DEMO_API_ONLY") != "1":
+        raise RuntimeError("DEMO_V9_MODEL_DIR requires DEMO_API_ONLY=1")
     frontend = Path(os.getenv("DEMO_FRONTEND_DIR", root / "demo" / "phone"))
     try:
-        report = build_report(root)
+        report = ({"source": {"release": "v9.0.0", "scope": "current_inference_runtime"},
+                   "disclaimer": "Research only; model scores are not clinical probabilities."}
+                  if v9_bundle_dir else build_report(root))
     except ReportDataError as exc:
         raise RuntimeError(str(exc)) from exc
-    model_service = service or ModelService.from_environment(root)
-    public_root = Path(os.getenv("PUBLIC_MODEL_DIR", root / "demo" / "models" / "public"))
-    public_manifest = public_root / "dinov2_public_vitb14_classifier_manifest.json"
-    services = {"legacy": model_service, "public": public_service or ModelService(
-        public_root / "dinov2_public_vitb14_backbone.pt", public_manifest,
-        public_root / "dinov2_public_vitb14_probe.npz", classifier_manifest_path=public_manifest)}
-    proposed_root = Path(os.getenv("PROPOSED_MODEL_DIR", root / "demo" / "models" / "proposed"))
-    for arm, backbone_file in (("A71", "A71_backbone.pt"), ("B71", "B71_clean_Bstar_s42_backbone.pt")):
-        manifest = proposed_root / f"{arm}_classifier_manifest.json"
-        services[arm] = ModelService(proposed_root / backbone_file, manifest,
-                                     proposed_root / f"{arm}_probe.npz", classifier_manifest_path=manifest)
     api_only = os.getenv("DEMO_API_ONLY") == "1"
-    if api_only:
-        services = {key: services[key] for key in ("A71", "B71")}
+    if v9_bundle_dir:
+        services = {arm: V9ModelService(Path(v9_bundle_dir) / arm, expected_arm=arm)
+                    for arm in ("A71", "B71")}
+    else:
+        model_service = service or ModelService.from_environment(root)
+        public_root = Path(os.getenv("PUBLIC_MODEL_DIR", root / "demo" / "models" / "public"))
+        public_manifest = public_root / "dinov2_public_vitb14_classifier_manifest.json"
+        services = {"legacy": model_service, "public": public_service or ModelService(
+            public_root / "dinov2_public_vitb14_backbone.pt", public_manifest,
+            public_root / "dinov2_public_vitb14_probe.npz", classifier_manifest_path=public_manifest)}
+        proposed_root = Path(os.getenv("PROPOSED_MODEL_DIR", root / "demo" / "models" / "proposed"))
+        for arm, backbone_file in (("A71", "A71_backbone.pt"), ("B71", "B71_clean_Bstar_s42_backbone.pt")):
+            manifest = proposed_root / f"{arm}_classifier_manifest.json"
+            services[arm] = ModelService(proposed_root / backbone_file, manifest,
+                                         proposed_root / f"{arm}_probe.npz", classifier_manifest_path=manifest)
+        if api_only:
+            services = {key: services[key] for key in ("A71", "B71")}
     model_lock = threading.Lock()
     default_model = os.getenv("DEMO_DEFAULT_MODEL", "B71" if api_only else "legacy")
     model_pattern = "^(A71|B71)$" if api_only else "^(legacy|public|A71|B71)$"
@@ -111,19 +121,21 @@ def create_app(repo_root: Path | None = None, service: ModelService | None = Non
 
     def run_model(key, method, *args):
         with model_lock:
-            for other_key, other in services.items():
-                if other_key != key and isinstance(other, ModelService):
+            for other in services.values():
+                if isinstance(other, V9ModelService) and other is not services[key]:
+                    other.unload()
+                elif isinstance(other, ModelService) and other is not services[key]:
                     other._backbone = None
             return getattr(services[key], method)(*args)
 
     app = FastAPI(
         title="DermSSL research API",
-        version="2.0.0",
+        version="9.0.0" if v9_bundle_dir else "2.0.0",
         description="Experimental A71/B71 image classification. Research only, not a diagnostic device.",
         docs_url=None,
     )
     app.state.report = report
-    app.state.model_service = model_service
+    app.state.model_service = services[default_model]
     app.state.model_services = services
     app.state.golden_index = _build_golden_index(root)
     app.add_middleware(InferenceLimits)
@@ -179,6 +191,8 @@ def create_app(repo_root: Path | None = None, service: ModelService | None = Non
 
     @app.post("/api/features", response_model=None)
     async def extract_features(file: UploadFile = File(...)) -> dict[str, Any] | JSONResponse:
+        if v9_bundle_dir:
+            return _error(501, "FEATURES_UNSUPPORTED", "V9 entrega probabilidades de clasificación, no vectores CLS.")
         image = await _read_image(file)
         if isinstance(image, JSONResponse):
             return image
@@ -220,6 +234,9 @@ def create_app(repo_root: Path | None = None, service: ModelService | None = Non
         except (ModelUnavailableError, ProbeArtifactError) as exc:
             del exc
             return _error(503, "MODEL_NOT_READY", "El modelo no esta listo para clasificar.")
+        except V9ServiceError as exc:
+            del exc
+            return _error(503, "MODEL_NOT_READY", "El bundle V9 no esta listo para clasificar.")
         except ModelServiceError as exc:
             del exc
             return _error(422, "PREDICTION_FAILED", "No se pudo procesar la imagen.")

@@ -299,3 +299,7 @@ class ModelService:
 
     def predict_tta(self, image: Image.Image) -> dict[str, Any]:
         return self.predict(image, mode="tta")
+
+    def unload(self) -> None:
+        with self._inference_lock:
+            self._backbone = None
