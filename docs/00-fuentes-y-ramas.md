@@ -35,8 +35,8 @@ Fitzpatrick; no se podaron ni se borraron.
 - Para los bancos históricos: [`../results/README.md`](../results/README.md) y
   [`19-resultados-bancos-congelados.md`](19-resultados-bancos-congelados.md).
 - Para la segmentación: [`../plan-segmentacion/camino-b-cnn/resultados/README.md`](../plan-segmentacion/camino-b-cnn/resultados/README.md).
-- Para el demo: [`../demo/README.md`](../demo/README.md) y los tests
-  [`../tests/test_demo_api.py`](../tests/test_demo_api.py).
+- Para la app de demostración: [nicolas2601/lupa](https://github.com/nicolas2601/lupa); el servicio de
+  inferencia V9 está en la rama [`phone-web`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/tree/phone-web/demo/backend).
 
 ## Worktrees auditados
 

@@ -64,7 +64,7 @@ Lectura al 2026-09-29, con las tres repeticiones y sin elegir ninguna (regla en 
 | [`tests/`](tests/) | Suite de pytest; corre sin GPU. |
 | [`openspec/`](openspec/) | Especificaciones de cambios (OpenSpec). |
 | [`cluster/`](cluster/README.md) | Operación del cluster UNABIA. |
-| [`demo/`](demo/README.md) | Demo del modelo. |
+| App de demostración | Vive en su propio repositorio: [nicolas2601/lupa](https://github.com/nicolas2601/lupa). El servicio de inferencia V9 está en la rama [`phone-web`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/tree/phone-web/demo/backend). |
 | `results/` | Bancos de versiones anteriores (histórico). |
 
 ## Equipo

@@ -3,7 +3,7 @@
 ## Navegación de la rama consolidada
 
 Esta rama se llama `proyecto-de-grado` y consolida el snapshot de
-`proposed-cluster` con el demo local, los catálogos y la trazabilidad de ramas.
+`proposed-cluster` con los catálogos y la trazabilidad de ramas.
 
 | Necesito... | Ir a... |
 |---|---|
@@ -11,7 +11,7 @@ Esta rama se llama `proyecto-de-grado` y consolida el snapshot de
 | Entender qué rama produjo cada cosa | [`docs/00-fuentes-y-ramas.md`](00-fuentes-y-ramas.md) |
 | Encontrar una decisión | [`docs/README.md`](README.md), [`docs/04`](04-decisiones-tecnicas.md) y [`docs/13`](13-por-que-estas-decisiones.md) |
 | Ver resultados históricos/baselines | [`results/README.md`](../results/README.md) y las tablas generadas de este README |
-| Abrir el demo | [`demo/README.md`](../demo/README.md) |
+| Abrir la app de demostración | [nicolas2601/lupa](https://github.com/nicolas2601/lupa) |
 | Encontrar figuras | [`assets/README.md`](../assets/README.md) |
 
 > Las tablas extensas de este README se conservan porque los tests de frescura
@@ -115,7 +115,7 @@ tabla apuntan a artefactos versionados, no a texto transcrito manualmente.
 | Banco de fine-tuning del cluster | [cluster/finetune/README.md](../cluster/finetune/README.md) |
 | Worktrees y ramas | [docs/00-fuentes-y-ramas.md](00-fuentes-y-ramas.md) |
 
-### Resultados, imágenes y demo
+### Resultados e imágenes
 
 | Área | Enlace |
 |---|---|
@@ -123,15 +123,14 @@ tabla apuntan a artefactos versionados, no a texto transcrito manualmente.
 | Clasificación final | [resultados/clasificacion/](../resultados/clasificacion) |
 | Banco JSON | [bank.json](../resultados/clasificacion/bank.json) |
 | Bootstrap pareado | [bootstrap.json](../resultados/clasificacion/bootstrap.json) |
-| Datos del sitio/demo | [site_data.json](../resultados/site_data.json) |
+| Datos del sitio | [site_data.json](../resultados/site_data.json) |
 | Segmentación final | [resultados/segmentacion/](../resultados/segmentacion) |
 | Tono y estratos | [resultados/tono/](../resultados/tono) |
 | Resumen de la corrida v4 | [data/RESULTS_SUMMARY.json](../data/RESULTS_SUMMARY.json) |
 | Figuras publicables | [assets/README.md](../assets/README.md) |
 | Figuras de análisis | [docs/figuras_analisis/](figuras_analisis) |
-| Demo local | [demo/README.md](../demo/README.md) |
-| Imágenes golden | [demo/models/golden_images/](../demo/models/golden_images) |
-| Tests del demo | [test_demo_api.py](../tests/test_demo_api.py), [test_demo_model_service.py](../tests/test_demo_model_service.py), [test_demo_report.py](../tests/test_demo_report.py) |
+| App de demostración | [nicolas2601/lupa](https://github.com/nicolas2601/lupa) |
+| Servicio de inferencia V9 | [rama phone-web](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/tree/phone-web/demo/backend) |
 ## Reproducción local
 
 ### Dependencias de desarrollo
@@ -149,19 +148,14 @@ pytest -q
 ```
 
 La suite completa verifica contratos, builders, tablas, segmentación, FST,
-orquestación, resultados y demo. Los tests que requieren GPU real se marcan y
+orquestación y resultados. Los tests que requieren GPU real se marcan y
 se ejecutan en el entorno correspondiente del cluster.
 
-### Demo local
+### App de demostración
 
-```bash
-pip install -r demo/requirements-cpu.txt
-uvicorn demo.backend.app:app --host 127.0.0.1 --port 8765
-```
-
-Abrir <http://127.0.0.1:8765>. El demo requiere el checkpoint externo para
-inferencia real, pero puede cargar el reporte y los fixtures sin subir pesos al
-repositorio. Consulta [demo/README.md](../demo/README.md).
+La app y su servicio de inferencia viven fuera de esta rama: la app en
+[nicolas2601/lupa](https://github.com/nicolas2601/lupa) y el servicio V9 en la rama
+[`phone-web`](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/tree/phone-web/demo/backend).
 
 ### Experimentos de cluster
 
