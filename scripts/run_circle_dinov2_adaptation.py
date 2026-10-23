@@ -217,13 +217,12 @@ def extract_features_with_circle(
             seg_res = pipeline.segment_image(img_rgb)
 
             # 2. Apply CIRCLe shift strictly to healthy perilesional skin
-            if seg_res["is_admissible"]:
-                shifted_rgb, meta = pipeline.apply_circle_shift(
-                    img_rgb, seg_res, shift_buckets=shift_buckets
-                )
+            shifted_rgb, was_shifted = pipeline.apply_circle_shift(
+                img_rgb, seg_res, shift_buckets=shift_buckets
+            )
+            if was_shifted:
                 qa_summary["admissible_shifts"] += 1
             else:
-                shifted_rgb = img_rgb.copy()
                 qa_summary["qa_fallbacks"] += 1
 
             # 3. Extract DINOv2 representations
@@ -386,7 +385,7 @@ def run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
         # Load DINOv2 & DermLIP-SLIC
         backbone = load_dinov2_backbone(args.backbone, args.backbone_weights, device)
         seg_pipeline = DermLIPCirclePipeline(
-            model_checkpoint=str(args.segmenter_checkpoint),
+            checkpoint_path=str(args.segmenter_checkpoint),
             device=str(device),
         )
 
@@ -432,7 +431,11 @@ def run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
         )
         LOGGER.info("Feature bundle saved successfully to: %s", bundle_path)
 
-    n_classes = len(np.unique(y_train))
+    unique_classes, y_train_mapped = np.unique(y_train, return_inverse=True)
+    n_classes = len(unique_classes)
+    class_map = {int(c): i for i, c in enumerate(unique_classes)}
+    y_val_mapped = np.array([class_map.get(int(c), 0) for c in y_val], dtype=np.int64)
+
     epochs = 2 if args.smoke else args.epochs
 
     # 2. Train the 3 Comparative Probe Heads
@@ -450,7 +453,7 @@ def run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
         probe = train_linear_probe(
             x_orig=x_train_orig,
             x_shift=x_train_shift,
-            y=y_train,
+            y=y_train_mapped,
             mode=variant,
             n_classes=n_classes,
             epochs=epochs,
@@ -462,7 +465,7 @@ def run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
             device=device,
         )
 
-        eval_metrics = evaluate_probe(probe, x_val, y_val, n_classes, device)
+        eval_metrics = evaluate_probe(probe, x_val, y_val_mapped, n_classes, device)
         LOGGER.info("Variant '%s' Results: Macro-F1: %.4f | Balanced Acc: %.4f | Acc: %.4f",
                     variant, eval_metrics["macro_f1"], eval_metrics["balanced_accuracy"], eval_metrics["accuracy"])
         results["probes"][variant] = eval_metrics

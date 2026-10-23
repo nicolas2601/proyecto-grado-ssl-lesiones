@@ -50,6 +50,9 @@ class PipelineMaskResult:
     qa_passed: bool
     fallback_reason: Optional[str] = None
 
+    def __getitem__(self, item: str) -> Any:
+        return getattr(self, item)
+
 
 def select_bio_admissible_component(
     pred_binary: np.ndarray,
