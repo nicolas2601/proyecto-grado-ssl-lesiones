@@ -394,15 +394,50 @@ def run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
         if not all_imgs:
             raise FileNotFoundError(f"No images found in {args.images_dir}")
 
-        # Deterministic stratified split (80% train, 20% val)
+        # Load real clinical labels and lesion/patient IDs from metadata CSV
+        image_to_label: Dict[str, int] = {}
+        image_to_group: Dict[str, str] = {}
+        ham_classes = ("akiec", "bcc", "bkl", "df", "mel", "nv", "vasc")
+        class_to_idx = {c: i for i, c in enumerate(ham_classes)}
+
+        if args.metadata_csv and Path(args.metadata_csv).is_file():
+            import csv
+            with open(args.metadata_csv, "r", encoding="utf-8") as csv_f:
+                reader = csv.DictReader(csv_f)
+                for row in reader:
+                    img_id = row.get("image_id", "").strip()
+                    dx = row.get("dx", row.get("diagnostic", row.get("label", ""))).strip().lower()
+                    group_id = row.get("lesion_id", row.get("patient_id", img_id)).strip()
+                    if dx in class_to_idx:
+                        image_to_label[img_id] = class_to_idx[dx]
+                        image_to_group[img_id] = group_id
+
+        # Filter and align images with verified labels
+        valid_items = []
+        for p in all_imgs:
+            stem = p.stem
+            if stem in image_to_label:
+                valid_items.append((p, image_to_label[stem], image_to_group[stem]))
+
+        if not valid_items:
+            if not args.smoke:
+                raise ValueError(
+                    f"Metadata CSV ({args.metadata_csv}) did not match any image IDs in {args.images_dir}. "
+                    "For valid thesis evaluation, verified clinical labels are mandatory."
+                )
+            LOGGER.warning("No matched metadata in smoke mode; falling back to diagnostic index assignment.")
+            valid_items = [(p, i % len(ham_classes), p.stem) for i, p in enumerate(all_imgs)]
+
+        # Group-aware (lesion_id disjoint) deterministic split
         rng = np.random.RandomState(args.seed)
-        dummy_labels = [i % 7 for i in range(len(all_imgs))]  # fallback if metadata omitted
-        perm = rng.permutation(len(all_imgs))
-        train_n = int(0.8 * len(all_imgs))
-        train_imgs = [all_imgs[p] for p in perm[:train_n]]
-        train_labels = [dummy_labels[p] for p in perm[:train_n]]
-        val_imgs = [all_imgs[p] for p in perm[train_n:]]
-        val_labels = [dummy_labels[p] for p in perm[train_n:]]
+        unique_groups = sorted(list(set(item[2] for item in valid_items)))
+        rng.shuffle(unique_groups)
+
+        train_groups = set(unique_groups[:int(0.8 * len(unique_groups))])
+        train_imgs = [item[0] for item in valid_items if item[2] in train_groups]
+        train_labels = [item[1] for item in valid_items if item[2] in train_groups]
+        val_imgs = [item[0] for item in valid_items if item[2] not in train_groups]
+        val_labels = [item[1] for item in valid_items if item[2] not in train_groups]
 
         smoke_limit = 16 if args.smoke else None
         smoke_val = 8 if args.smoke else None
