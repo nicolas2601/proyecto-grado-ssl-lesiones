@@ -4,7 +4,7 @@ Computes:
 1. Overlap metrics: Mean Dice (F1), Mean IoU (Jaccard).
 2. Diagnostic metrics: Sensitivity (Recall), Specificity, Accuracy.
 3. Boundary metrics: 95th Percentile Symmetric Hausdorff Distance (HD95 in pixels).
-4. Subgroup breakdown: Full benchmark (2,594 cases) vs. Verified clean disjoint holdout (2,011 cases).
+4. Subgroup breakdown: Full benchmark (2,594 cases) vs. provisional clean cohort candidates (2,011 cases).
 """
 from __future__ import annotations
 
@@ -261,7 +261,7 @@ def refine_diffuse_mask_with_slic(
     compactness: float = 12.0,
     saturation_threshold: float = 0.75,
 ) -> np.ndarray:
-    """Refine diffuse/saturated probabilities using TiSage-inspired SLIC superpixel contrast.
+    """Refine diffuse/saturated probabilities with local SLIC superpixel contrast.
 
     When a U-Net is globally saturated (> 75% coverage or low dynamic range),
     pixel-wise thresholding floods the field. SLIC superpixels group local coherent
@@ -532,6 +532,115 @@ def summarize_metric_aggregates(
     return summary_metrics, bootstrap_ci, denominators
 
 
+def load_reference_cases(
+    path: Path, metric_keys: List[str]
+) -> tuple[Dict[str, Dict[str, Optional[float]]], Dict[str, Any]]:
+    """Load a reference cases JSONL strictly and return content provenance."""
+    requested_path = Path(path)
+    resolved_path = requested_path.resolve()
+    if not resolved_path.is_file():
+        raise FileNotFoundError(f"reference cases file does not exist: {resolved_path}")
+
+    raw_bytes = resolved_path.read_bytes()
+    try:
+        text = raw_bytes.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"reference cases file is not valid UTF-8 JSONL: {resolved_path}") from exc
+
+    lines = text.splitlines()
+    if not lines:
+        raise ValueError(f"reference cases file is empty JSONL: {resolved_path}")
+
+    def reject_nonstandard_json_constant(token: str) -> None:
+        raise ValueError(f"non-standard JSON constant {token}")
+
+    cases: Dict[str, Dict[str, Optional[float]]] = {}
+    seen_ids: set[str] = set()
+    skipped_ids: set[str] = set()
+    skipped_records = 0
+    for line_number, line in enumerate(lines, start=1):
+        if not line.strip():
+            raise ValueError(f"reference cases contains empty JSONL line {line_number}")
+        try:
+            entry = json.loads(line, parse_constant=reject_nonstandard_json_constant)
+        except ValueError as exc:
+            raise ValueError(
+                f"reference cases contains invalid JSONL at line {line_number}"
+            ) from exc
+        if not isinstance(entry, dict):
+            raise ValueError(f"reference cases line {line_number} must contain a JSON object")
+
+        image_id = entry.get("image_id")
+        if not isinstance(image_id, str) or not image_id.strip() or image_id != image_id.strip():
+            raise ValueError(
+                f"reference cases line {line_number} must have a nonempty image_id without surrounding whitespace"
+            )
+        if image_id in seen_ids:
+            raise ValueError(f"reference cases contains duplicate image_id: {image_id}")
+        seen_ids.add(image_id)
+
+        status = entry.get("status", "ok")
+        if status == "skipped":
+            skipped_ids.add(image_id)
+            skipped_records += 1
+            continue
+        if status != "ok":
+            raise ValueError(f"reference cases line {line_number} has unsupported status: {status}")
+
+        metrics: Dict[str, Optional[float]] = {}
+        for key in metric_keys:
+            if key not in entry:
+                continue
+            value = entry[key]
+            if value is None:
+                metrics[key] = None
+                continue
+            if isinstance(value, bool) or not isinstance(value, (int, float, np.number)):
+                raise ValueError(
+                    f"reference cases line {line_number} must have a numeric metric {key!r} or null"
+                )
+            metrics[key] = float(value)
+        if not metrics:
+            raise ValueError(
+                f"reference cases line {line_number} has no parseable requested metric values"
+            )
+        cases[image_id] = metrics
+
+    provenance = {
+        "path_requested": str(path),
+        "path_resolved": str(resolved_path),
+        "sha256": hashlib.sha256(raw_bytes).hexdigest(),
+        "total_lines": len(lines),
+        "valid_records": len(cases),
+        "unique_ids": len(seen_ids),
+        "skipped_records": skipped_records,
+        "_skipped_image_ids": sorted(skipped_ids),
+    }
+    return cases, provenance
+
+
+_METRIC_IMPROVEMENT_DIRECTIONS = {
+    "dice": "higher",
+    "iou": "higher",
+    "sensitivity": "higher",
+    "specificity": "higher",
+    "accuracy": "higher",
+    "hd95": "lower",
+}
+
+
+def _validate_metric_case_mapping(
+    cases: Dict[str, Dict[str, Any]], label: str
+) -> None:
+    if not isinstance(cases, dict):
+        raise ValueError(f"{label} cases must be a mapping of image_id to metric mapping")
+    for image_id, metrics in cases.items():
+        if not isinstance(image_id, str) or not image_id.strip() or image_id != image_id.strip():
+            raise ValueError(f"{label} cases must have nonempty image_id values without surrounding whitespace")
+        if not isinstance(metrics, dict):
+            raise ValueError(f"{label} case {image_id} must contain a metric mapping")
+
+
 def compute_paired_bootstrap(
     sample_a: Dict[str, Dict[str, float]],
     sample_b: Dict[str, Dict[str, float]],
@@ -539,8 +648,10 @@ def compute_paired_bootstrap(
     n_bootstraps: int = 1000,
     ci_level: float = 0.95,
     seed: int = 42,
+    *,
+    reference_provenance: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """Compute non-parametric paired bootstrap differences: Delta = Method_A - Method_B.
+    """Compute descriptive paired bootstrap intervals: Delta = Method_A - Method_B.
 
     Args:
         sample_a: Dict mapping image_id -> dict of metric values for Method A (proposed).
@@ -551,55 +662,145 @@ def compute_paired_bootstrap(
         seed: Random seed for reproducibility.
 
     Returns:
-        Dict with mean_delta, ci_lower, ci_upper, p_value, and statistical significance flag.
+        Versioned descriptive contrast with per-metric denominators and exclusions.
     """
-    common_ids = sorted(set(sample_a.keys()).intersection(set(sample_b.keys())))
-    if len(common_ids) < 2:
-        return {"error": f"Insufficient paired cases for comparison: {len(common_ids)} common IDs"}
+    _validate_metric_case_mapping(sample_a, "sample_a")
+    _validate_metric_case_mapping(sample_b, "sample_b")
+    if n_bootstraps < 1:
+        raise ValueError("n_bootstraps must be positive")
+    if not 0.0 < ci_level < 1.0:
+        raise ValueError("ci_level must be between 0 and 1")
 
+    common_ids = sorted(set(sample_a.keys()).intersection(set(sample_b.keys())))
+    skipped_reference_ids = set(
+        (reference_provenance or {}).get("_skipped_image_ids", [])
+    )
+    skipped_common_ids = len(set(sample_a).intersection(skipped_reference_ids))
+    sample_a_only_ids = len(set(sample_a) - set(sample_b))
     rng = np.random.RandomState(seed)
-    results: Dict[str, Any] = {"common_cases": len(common_ids)}
+    results: Dict[str, Any] = {
+        "schema_version": 2,
+        "method": "paired_percentile_bootstrap",
+        "estimand": "mean_delta=A-B",
+        "evaluation_unit": "image_id",
+        "interval_interpretation": "descriptive",
+        "patient_independence_accredited": False,
+        "ci_level": ci_level,
+        "n_bootstraps_requested": n_bootstraps,
+        "seed": seed,
+        "common_cases": len(common_ids),
+        "common_ids": len(common_ids) + skipped_common_ids,
+        "unique_case_counts": {
+            "sample_a": len(sample_a),
+            "sample_b": len(sample_b),
+        },
+        "unmatched_case_counts": {
+            "sample_a_only": sample_a_only_ids - skipped_common_ids,
+            "sample_a_reference_skipped": skipped_common_ids,
+            "sample_b_only": len(set(sample_b) - set(sample_a)),
+        },
+        "metrics": {},
+    }
+    if reference_provenance is not None:
+        public_reference_provenance = {
+            key: value
+            for key, value in reference_provenance.items()
+            if not key.startswith("_")
+        }
+        results["reference_cases_provenance"] = {
+            **public_reference_provenance,
+            "common_ids": len(common_ids) + skipped_common_ids,
+            "common_scored_ids": len(common_ids),
+            "common_skipped_ids": skipped_common_ids,
+            "unmatched_ids": results["unmatched_case_counts"],
+        }
     alpha = (1.0 - ci_level) / 2.0
 
     for key in metric_keys:
         pairs = []
-        for cid in common_ids:
-            va = sample_a[cid].get(key)
-            vb = sample_b[cid].get(key)
-            if va is not None and vb is not None and not math.isnan(va) and not math.isnan(vb):
-                pairs.append((va, vb))
-
-        if len(pairs) < 2:
-            continue
-
-        arr_a = np.array([p[0] for p in pairs], dtype=np.float64)
-        arr_b = np.array([p[1] for p in pairs], dtype=np.float64)
-        deltas = arr_a - arr_b
-        mean_delta = float(np.mean(deltas))
-
-        boot_deltas = np.empty(n_bootstraps, dtype=np.float64)
-        m = len(deltas)
-        for b in range(n_bootstraps):
-            indices = rng.choice(m, size=m, replace=True)
-            boot_deltas[b] = np.mean(deltas[indices])
-
-        ci_lower = float(np.percentile(boot_deltas, alpha * 100.0))
-        ci_upper = float(np.percentile(boot_deltas, (1.0 - alpha) * 100.0))
-
-        # Empirical one-sided p-value: fraction of resamples where proposed is not better
-        p_val_superior = float(np.mean(boot_deltas <= 0.0))
-        # Two-sided p-value
-        p_val_two_sided = float(2.0 * min(np.mean(boot_deltas <= 0.0), np.mean(boot_deltas >= 0.0)))
-
-        results[key] = {
-            "mean_delta": mean_delta,
-            "ci_lower": ci_lower,
-            "ci_upper": ci_upper,
-            "ci_level": ci_level,
-            "p_value_one_sided": p_val_superior,
-            "p_value_two_sided": min(1.0, p_val_two_sided),
-            "statistically_significant_improvement": bool(ci_lower > 0.0),
+        exclusions = {
+            label: {
+                reason: 0
+                for reason in (
+                    "missing_metric_key",
+                    "none",
+                    "nan",
+                    "positive_infinity",
+                    "negative_infinity",
+                )
+            }
+            for label in ("sample_a", "sample_b")
         }
+        for cid in common_ids:
+            values = {}
+            valid = True
+            for label, sample in (("sample_a", sample_a), ("sample_b", sample_b)):
+                case_metrics = sample[cid]
+                if key not in case_metrics:
+                    exclusions[label]["missing_metric_key"] += 1
+                    valid = False
+                    continue
+                value = case_metrics[key]
+                if value is None:
+                    exclusions[label]["none"] += 1
+                    valid = False
+                    continue
+                if isinstance(value, bool) or not isinstance(value, (int, float, np.number)):
+                    raise ValueError(f"Metric {key!r} for {label} case {cid} must be numeric or null")
+                numeric_value = float(value)
+                if math.isnan(numeric_value):
+                    exclusions[label]["nan"] += 1
+                    valid = False
+                elif math.isinf(numeric_value):
+                    reason = "positive_infinity" if numeric_value > 0 else "negative_infinity"
+                    exclusions[label][reason] += 1
+                    valid = False
+                else:
+                    values[label] = numeric_value
+            if valid:
+                pairs.append((values["sample_a"], values["sample_b"]))
+
+        metric_result: Dict[str, Any] = {
+            "status": "ok" if len(pairs) >= 2 else "insufficient_pairs",
+            "n_pairs": len(pairs),
+            "excluded_pairs": len(common_ids) - len(pairs),
+            "exclusions": exclusions,
+            "improvement_direction": _METRIC_IMPROVEMENT_DIRECTIONS.get(key, "unspecified"),
+            "n_bootstraps_effective": 0,
+        }
+        if pairs:
+            deltas = np.asarray([a - b for a, b in pairs], dtype=np.float64)
+            metric_result["mean_delta"] = float(np.mean(deltas))
+        else:
+            deltas = np.asarray([], dtype=np.float64)
+            metric_result["mean_delta"] = None
+
+        metric_result["ci_level"] = ci_level
+        metric_result["ci_lower"] = None
+        metric_result["ci_upper"] = None
+        if len(pairs) >= 2:
+            boot_deltas = np.empty(n_bootstraps, dtype=np.float64)
+            for bootstrap_index in range(n_bootstraps):
+                indices = rng.choice(len(deltas), size=len(deltas), replace=True)
+                boot_deltas[bootstrap_index] = np.mean(deltas[indices])
+            finite_boot_deltas = boot_deltas[np.isfinite(boot_deltas)]
+            metric_result["n_bootstraps_effective"] = int(len(finite_boot_deltas))
+            if len(finite_boot_deltas):
+                metric_result["ci_lower"] = float(np.percentile(finite_boot_deltas, alpha * 100.0))
+                metric_result["ci_upper"] = float(
+                    np.percentile(finite_boot_deltas, (1.0 - alpha) * 100.0)
+                )
+                direction = metric_result["improvement_direction"]
+                if direction == "higher":
+                    metric_result["interval_favors_a_descriptively"] = (
+                        metric_result["ci_lower"] > 0.0
+                    )
+                elif direction == "lower":
+                    metric_result["interval_favors_a_descriptively"] = (
+                        metric_result["ci_upper"] < 0.0
+                    )
+
+        results["metrics"][key] = metric_result
 
     return results
 
@@ -691,7 +892,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         "--reference-cases",
         type=Path,
         default=None,
-        help="Optional path to reference baseline cases.jsonl (e.g. SLED Run 05) for paired bootstrap significance testing.",
+        help="Optional strict JSONL path for a descriptive paired percentile bootstrap contrast.",
     )
     parser.add_argument(
         "--hair-removal",
@@ -709,9 +910,11 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         help="Apply circular Field of View (FOV) vignette detection to mask black camera corners.",
     )
     parser.add_argument(
+        "--slic-contrast-refinement",
         "--tisage-slic",
+        dest="slic_contrast_refinement_enabled",
         action="store_true",
-        help="Apply TiSage-inspired SLIC superpixel contrast refinement for diffuse/saturated erythema.",
+        help="Apply local SLIC superpixel contrast refinement; --tisage-slic remains a deprecated alias.",
     )
     parser.add_argument(
         "--largest-component",
@@ -727,6 +930,16 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         "--fill-holes",
         action="store_true",
         help="Fill internal lacunae in the predicted mask (bridges flash glare and central hypopigmentation).",
+    )
+    parser.add_argument(
+        "--adaptive-hair-rescue",
+        action="store_true",
+        help="Apply directional hair removal when hair fraction exceeds 18 percent.",
+    )
+    parser.add_argument(
+        "--micro-lesion-rescue",
+        action="store_true",
+        help="Fallback to micro-lesion candidate when predicted mask area is under 0.2 percent.",
     )
     parser.add_argument(
         "--max-samples",
@@ -771,6 +984,17 @@ def load_model(checkpoint_path: Path, device: str, component: str) -> torch.nn.M
 def evaluate_dataset(args: argparse.Namespace) -> Dict[str, Any]:
     eval_manifest_path = Path(args.eval_manifest).resolve()
     ref_manifest_path = Path(args.references_manifest).resolve()
+    paired_metric_keys = ["dice", "iou", "sensitivity", "specificity", "accuracy"]
+    if getattr(args, "hausdorff", False):
+        paired_metric_keys.append("hd95")
+    reference_cases = None
+    reference_cases_provenance = None
+    reference_cases_path = getattr(args, "reference_cases", None)
+    if reference_cases_path is not None:
+        reference_cases, reference_cases_provenance = load_reference_cases(
+            reference_cases_path, paired_metric_keys
+        )
+
     eval_doc = json.loads(eval_manifest_path.read_text(encoding="utf-8"))
     full_pair_receipt = None
     is_full_pair_manifest = (
@@ -958,8 +1182,16 @@ def evaluate_dataset(args: argparse.Namespace) -> Dict[str, Any]:
         arr_u8 = np.asarray(input_pil)
         hair_fraction = 0.0
         if getattr(args, "hair_removal", False):
-            from dermssl.segmentation_methods.common.hair import remove_hair
-            arr_u8, hair_fraction = remove_hair(arr_u8, shaped=getattr(args, "hair_shaped", False))
+            if getattr(args, "adaptive_hair_rescue", False):
+                from dermssl.segmentation_methods.common.hair import remove_hair, remove_hair_directional
+                arr_u8_std, hair_frac = remove_hair(arr_u8, shaped=getattr(args, "hair_shaped", False))
+                if hair_frac > 0.18:
+                    arr_u8, hair_fraction = remove_hair_directional(arr_u8)
+                else:
+                    arr_u8, hair_fraction = arr_u8_std, hair_frac
+            else:
+                from dermssl.segmentation_methods.common.hair import remove_hair
+                arr_u8, hair_fraction = remove_hair(arr_u8, shaped=getattr(args, "hair_shaped", False))
         img_arr = arr_u8.astype(np.float32) / 255.0
         img_t = torch.from_numpy(np.transpose(img_arr, (2, 0, 1))).unsqueeze(0).to(device)
 
@@ -982,7 +1214,11 @@ def evaluate_dataset(args: argparse.Namespace) -> Dict[str, Any]:
         else:
             valid_fov = np.ones((orig_h, orig_w), dtype=bool)
 
-        if getattr(args, "tisage_slic", False):
+        if getattr(
+            args,
+            "slic_contrast_refinement_enabled",
+            getattr(args, "tisage_slic", False),
+        ):
             pred_binary = refine_diffuse_mask_with_slic(
                 np.asarray(img_pil), prob_orig, valid_fov
             )
@@ -997,6 +1233,14 @@ def evaluate_dataset(args: argparse.Namespace) -> Dict[str, Any]:
 
         if getattr(args, "fill_holes", False) and pred_binary.any():
             pred_binary = ndimage.binary_fill_holes(pred_binary)
+
+        if getattr(args, "micro_lesion_rescue", False) and pred_binary.mean() < 0.002:
+            from dermssl.segmentation_methods.common.rescue import rescue_micro_lesion_candidate
+            micro_cand = rescue_micro_lesion_candidate(prob_orig, valid_fov, min_prob_peak=0.35)
+            if micro_cand is not None:
+                pred_binary = micro_cand
+                if getattr(args, "fill_holes", False):
+                    pred_binary = ndimage.binary_fill_holes(pred_binary)
 
         if masks_out_dir is not None:
             pred_png = Image.fromarray((pred_binary * 255).astype(np.uint8), mode="L")
@@ -1057,27 +1301,19 @@ def evaluate_dataset(args: argparse.Namespace) -> Dict[str, Any]:
         metrics_accumulator, n_bootstraps=1000
     )
 
-    # Optional paired bootstrap significance test against reference baseline cases
+    # Optional descriptive paired bootstrap contrast against reference cases
     paired_comparison = None
-    if args.reference_cases and Path(args.reference_cases).is_file():
-        ref_path = Path(args.reference_cases).resolve()
-        LOGGER.info("Computing paired bootstrap comparison against reference: %s", ref_path)
-        ref_cases: Dict[str, Dict[str, float]] = {}
-        for line in ref_path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            entry = json.loads(line)
-            if entry.get("status") == "ok" and "image_id" in entry:
-                ref_cases[entry["image_id"]] = {
-                    k: entry[k] for k in metrics_accumulator if k in entry
-                }
-
+    if reference_cases is not None:
+        LOGGER.info(
+            "Computing descriptive paired bootstrap contrast against reference: %s",
+            reference_cases_provenance["path_resolved"],
+        )
         paired_comparison = compute_paired_bootstrap(
             evaluated_cases_dict,
-            ref_cases,
+            reference_cases,
             metric_keys=list(metrics_accumulator.keys()),
             n_bootstraps=1000,
+            reference_provenance=reference_cases_provenance,
         )
 
     report = {
@@ -1103,6 +1339,11 @@ def evaluate_dataset(args: argparse.Namespace) -> Dict[str, Any]:
         **{f"n_{name}": count for name, count in metric_denominators.items()},
         "bootstrap_ci_95": bootstrap_ci_95,
         "paired_bootstrap_comparison": paired_comparison,
+        "slic_contrast_refinement_enabled": getattr(
+            args,
+            "slic_contrast_refinement_enabled",
+            getattr(args, "tisage_slic", False),
+        ),
         "clean_only": args.clean_only,
         "clean_manifest_sha256": clean_manifest_digest,
         "clean_receipt_hash_match": bool(args.clean_only and clean_manifest_digest),
@@ -1136,15 +1377,15 @@ def evaluate_dataset(args: argparse.Namespace) -> Dict[str, Any]:
         bootstrap_ci_95["iou"]["ci_lower"],
         bootstrap_ci_95["iou"]["ci_upper"],
     )
-    if paired_comparison and "dice" in paired_comparison:
-        d_info = paired_comparison["dice"]
+    if paired_comparison and "dice" in paired_comparison["metrics"]:
+        d_info = paired_comparison["metrics"]["dice"]
         LOGGER.info(
-            "Paired Delta Dice: %+.4f (95%% CI [%+.4f, %+.4f], p_val=%.4f, significant=%s)",
+            "Descriptive paired Delta Dice: %s (bootstrap interval [%s, %s], n_pairs=%d, interval_favors_a=%s)",
             d_info["mean_delta"],
             d_info["ci_lower"],
             d_info["ci_upper"],
-            d_info["p_value_one_sided"],
-            d_info["statistically_significant_improvement"],
+            d_info["n_pairs"],
+            d_info.get("interval_favors_a_descriptively", "unspecified"),
         )
     if "mean_hd95" in summary_metrics and summary_metrics["mean_hd95"] is not None:
         LOGGER.info(
