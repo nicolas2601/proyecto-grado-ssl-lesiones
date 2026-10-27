@@ -1331,6 +1331,12 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         help="Student/Teacher segmentation encoder-decoder backbone (default: 'scratch').",
     )
     parser.add_argument(
+        "--flat-lr",
+        action="store_true",
+        help="Use a flat AdamW learning rate (no differential encoder/decoder LR, no cosine schedule) "
+        "regardless of backbone, for controlled single-factor ablations.",
+    )
+    parser.add_argument(
         "--soft-kl-weight",
         type=float,
         default=0.0,
@@ -2020,6 +2026,8 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
             "pilot_samples": args.pilot_samples,
             "allow_self_consistency_pilot": bool(args.allow_self_consistency_pilot),
             "perceptual_hash_distance_threshold": 4,
+            "backbone": getattr(args, "backbone", "scratch"),
+            "flat_lr": bool(getattr(args, "flat_lr", False)),
         },
     }
     if v2_pool and not execute:
@@ -2195,7 +2203,7 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
         copy_paste_prob=getattr(args, "copy_paste_prob", 0.0),
         use_fp_dropout=getattr(args, "fp_dropout", False),
     )
-    if hasattr(trainer.student, "get_parameter_groups"):
+    if hasattr(trainer.student, "get_parameter_groups") and not getattr(args, "flat_lr", False):
         optimizer = torch.optim.AdamW(
             trainer.student.get_parameter_groups(args.lr, weight_decay=1e-4)
         )
