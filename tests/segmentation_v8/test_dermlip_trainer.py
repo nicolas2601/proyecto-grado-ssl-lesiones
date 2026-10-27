@@ -2288,4 +2288,57 @@ def test_uncertainty_band_pseudo_label_masking():
     assert not torch.isclose(grad[0, 0, 0, 2], torch.tensor(0.0), atol=1e-5)
 
 
+def test_resnet_unet_and_v9_copy_paste_soft_kl_step():
+    """Verify DermLIPResNetUNet, Scale-Jittered Copy-Paste, Log-Linear Fusion, and Soft KL distillation."""
+    from dermssl.segmentation_methods.dermlip_slic.trainer import (
+        DermLIPResNetUNet,
+        build_segmentation_model,
+    )
+
+    student = build_segmentation_model(backbone="resnet34", pretrained=False)
+    assert isinstance(student, DermLIPResNetUNet)
+    param_groups = student.get_parameter_groups(base_lr=1e-4)
+    assert len(param_groups) == 2
+    assert param_groups[0]["lr"] == pytest.approx(5e-5)
+    assert param_groups[1]["lr"] == pytest.approx(2e-4)
+
+    trainer = TeacherStudentTrainer(
+        student=student,
+        device="cpu",
+        ema_decay=0.95,
+        gamma_semantic=0.5,
+        pseudo_label_threshold_high=0.60,
+        pseudo_label_threshold_low=0.40,
+        soft_kl_weight=0.5,
+        use_log_linear_fusion=True,
+        copy_paste_prob=1.0,
+        use_fp_dropout=True,
+    )
+
+    # Create a labeled batch with a clear central lesion (32x32)
+    imgs_l = torch.full((2, 3, 64, 64), 0.2)
+    masks_l = torch.zeros((2, 1, 64, 64))
+    masks_l[:, :, 16:48, 16:48] = 1.0  # 25% area lesion
+
+    imgs_u_weak = torch.full((2, 3, 64, 64), 0.7)
+    imgs_u_strong = torch.full((2, 3, 64, 64), 0.65)
+    sem_probs_u = torch.full((2, 1, 64, 64), 0.2)
+
+    step_res = trainer.training_step(
+        (imgs_l, masks_l),
+        (imgs_u_weak, imgs_u_strong, sem_probs_u),
+        lambda_u=1.0,
+    )
+    assert torch.isfinite(step_res["total_loss"])
+    step_res["total_loss"].backward()
+
+    # Verify soft_kl_weight > 0 provides non-zero gradient in transition zone (p=0.5)
+    teacher_logits = torch.tensor([[[[-1.3863, 0.05, 1.3863]]]])
+    student_logits = torch.tensor([[[[0.0, 0.0, 0.0]]]], requires_grad=True)
+    loss_u, _, _ = trainer.unsupervised_loss(student_logits, teacher_logits, None)
+    loss_u.backward()
+    assert not torch.isclose(student_logits.grad[0, 0, 0, 1], torch.tensor(0.0), atol=1e-6)
+
+
+
 

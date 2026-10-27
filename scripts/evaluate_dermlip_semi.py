@@ -28,7 +28,10 @@ _SRC_DIR = str(Path(__file__).resolve().parent.parent / "src")
 if _SRC_DIR not in sys.path:
     sys.path.insert(0, _SRC_DIR)
 
-from dermssl.segmentation_methods.dermlip_slic.trainer import DermLIPSegmentationUNet
+from dermssl.segmentation_methods.dermlip_slic.trainer import (
+    DermLIPSegmentationUNet,
+    build_segmentation_model,
+)
 
 
 def validate_manifest_case_ids(records: list[dict], label: str) -> set[str]:
@@ -974,6 +977,21 @@ def load_model(checkpoint_path: Path, device: str, component: str) -> torch.nn.M
     if recorded_component is not None and recorded_component != component:
         raise ValueError(
             f"Checkpoint component is '{recorded_component}', not requested '{component}'"
+        )
+    backbone = str(ckpt.get("backbone", "")).strip()
+    if not backbone:
+        if any(k.startswith("stem_full.") or k.startswith("enc0.") for k in state_dict):
+            dec4_w = state_dict.get("dec4.conv.0.weight")
+            backbone = "resnet50" if (dec4_w is not None and dec4_w.shape[1] > 1024) else "resnet34"
+        else:
+            backbone = "scratch"
+    if backbone not in {"scratch", "unet", "unet_scratch"}:
+        model = build_segmentation_model(
+            backbone=backbone,
+            in_channels=3,
+            num_classes=1,
+            base_channels=16,
+            pretrained=False,
         )
     model.load_state_dict(state_dict)
     model.to(device)

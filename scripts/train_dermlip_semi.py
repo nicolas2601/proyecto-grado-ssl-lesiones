@@ -527,8 +527,8 @@ for _candidate in [
 
 from dermssl.segmentation_methods.dermlip_slic.calibrator import DermLIPSuperpixelCalibrator
 from dermssl.segmentation_methods.dermlip_slic.trainer import (
-    DermLIPSegmentationUNet,
     TeacherStudentTrainer,
+    build_segmentation_model,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -853,12 +853,14 @@ class PH2Dataset(Dataset):
         target_size: Tuple[int, int] = DERMLIP_INPUT_SIZE,
         max_samples: Optional[int] = None,
         hair_removal: bool = False,
+        augment: bool = False,
     ) -> None:
         self.manifest_path = Path(manifest_path).resolve()
         self.base_dir = self.manifest_path.parent
         self.split = split
         self.target_size = target_size
         self.hair_removal = hair_removal
+        self.augment = bool(augment and split == "train")
 
         doc = json.loads(self.manifest_path.read_text(encoding="utf-8"))
         source_kind = doc.get("source_kind")
@@ -1076,6 +1078,28 @@ class PH2Dataset(Dataset):
             arr_u8 = np.asarray(img, dtype=np.uint8)
             clean_u8, _ = remove_hair(arr_u8, shaped=False)
             img = Image.fromarray(clean_u8)
+
+        if self.augment:
+            if np.random.rand() > 0.5:
+                img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+                mask = mask.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            if np.random.rand() > 0.5:
+                img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                mask = mask.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            rot_k = int(np.random.randint(0, 4))
+            if rot_k == 1:
+                img = img.transpose(Image.Transpose.ROTATE_90)
+                mask = mask.transpose(Image.Transpose.ROTATE_90)
+            elif rot_k == 2:
+                img = img.transpose(Image.Transpose.ROTATE_180)
+                mask = mask.transpose(Image.Transpose.ROTATE_180)
+            elif rot_k == 3:
+                img = img.transpose(Image.Transpose.ROTATE_270)
+                mask = mask.transpose(Image.Transpose.ROTATE_270)
+            factor_b = float(np.random.uniform(0.88, 1.12))
+            factor_c = float(np.random.uniform(0.88, 1.12))
+            img = ImageEnhance.Brightness(img).enhance(factor_b)
+            img = ImageEnhance.Contrast(img).enhance(factor_c)
 
         # To normalized tensor [0, 1]
         img_t = pil_to_tensor(img)
@@ -1298,6 +1322,45 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         type=float,
         default=0.35,
         help="Lower probability threshold for confident background pseudo-labels (default: 0.35).",
+    )
+    parser.add_argument(
+        "--backbone",
+        type=str,
+        default="scratch",
+        choices=["scratch", "resnet34", "resnet50"],
+        help="Student/Teacher segmentation encoder-decoder backbone (default: 'scratch').",
+    )
+    parser.add_argument(
+        "--soft-kl-weight",
+        type=float,
+        default=0.0,
+        help="Weight for continuous entropy-weighted Soft KL / Bernoulli distillation (default: 0.0).",
+    )
+    parser.add_argument(
+        "--log-linear-fusion",
+        action="store_true",
+        help="Use log-linear Product-of-Experts fusion between teacher and semantic prior.",
+    )
+    parser.add_argument(
+        "--copy-paste-prob",
+        type=float,
+        default=0.0,
+        help="Probability of Scale-Jittered Copy-Paste / BCP augmentation per labeled image (default: 0.0).",
+    )
+    parser.add_argument(
+        "--fp-dropout",
+        action="store_true",
+        help="Enable UniMatch feature-level perturbation dropout consistency stream.",
+    )
+    parser.add_argument(
+        "--calibrate-ph2-prototypes",
+        action="store_true",
+        help="Calibrate DermLIP foreground/background prototypes using PH2 labeled visual tokens.",
+    )
+    parser.add_argument(
+        "--ph2-geom-aug",
+        action="store_true",
+        help="Apply synchronized random flips, 90-degree rotations, and photometric jitter on PH2 train split.",
     )
     parser.add_argument(
         "--device",
@@ -1835,12 +1898,14 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
             split="train",
             max_samples=args.pilot_samples,
             hair_removal=args.hair_removal,
+            augment=bool(getattr(args, "ph2_geom_aug", False)),
         )
         ds_val_l = PH2Dataset(
             ph2_manifest_path,
             split="val",
             max_samples=args.pilot_samples,
             hair_removal=args.hair_removal,
+            augment=False,
         )
     except Exception as exc:
         records = ph2_doc.get("records", [])
@@ -2098,7 +2163,24 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
             checkpoint_sha256=resume_contract["checkpoint_sha256"],
         )
 
-    student_net = DermLIPSegmentationUNet(in_channels=3, num_classes=1, base_channels=16)
+    if calibrator is not None and getattr(args, "calibrate_ph2_prototypes", False):
+        LOGGER.info("Calibrating DermLIP visual-textual prototypes on PH2 train split...")
+        prev_aug = ds_train_l.augment
+        ds_train_l.augment = False
+        try:
+            proto_stats = calibrator.fit_labeled_prototypes(ds_train_l)
+            LOGGER.info("PH2 prototype calibration completed: %s", proto_stats)
+        finally:
+            ds_train_l.augment = prev_aug
+
+    backbone_name = getattr(args, "backbone", "scratch")
+    student_net = build_segmentation_model(
+        backbone=backbone_name,
+        in_channels=3,
+        num_classes=1,
+        base_channels=16,
+        pretrained=True,
+    )
     trainer = TeacherStudentTrainer(
         student=student_net,
         device=device,
@@ -2108,8 +2190,21 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
         superpixel_affinity_weight=getattr(args, "superpixel_affinity_weight", 0.0),
         pseudo_label_threshold_high=getattr(args, "pseudo_label_threshold_high", 0.65),
         pseudo_label_threshold_low=getattr(args, "pseudo_label_threshold_low", 0.35),
+        soft_kl_weight=getattr(args, "soft_kl_weight", 0.0),
+        use_log_linear_fusion=getattr(args, "log_linear_fusion", False),
+        copy_paste_prob=getattr(args, "copy_paste_prob", 0.0),
+        use_fp_dropout=getattr(args, "fp_dropout", False),
     )
-    optimizer = torch.optim.AdamW(trainer.student.parameters(), lr=args.lr, weight_decay=1e-4)
+    if hasattr(trainer.student, "get_parameter_groups"):
+        optimizer = torch.optim.AdamW(
+            trainer.student.get_parameter_groups(args.lr, weight_decay=1e-4)
+        )
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=max(1, args.epochs), eta_min=args.lr * 0.05
+        )
+    else:
+        optimizer = torch.optim.AdamW(trainer.student.parameters(), lr=args.lr, weight_decay=1e-4)
+        scheduler = None
 
     best_student_val_dice = -1.0
     best_teacher_val_dice = -1.0
@@ -2203,6 +2298,9 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
             losses_sp.append(step_res["loss_sp"].item() if "loss_sp" in step_res else 0.0)
             alphas.append(step_res["mean_alpha"].item())
 
+        if scheduler is not None:
+            scheduler.step()
+
         # Validation step
         val_metrics = trainer.evaluate(loader_val_l)
         epoch_dur = time.time() - epoch_start
@@ -2249,6 +2347,7 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
                         "identity_fingerprint": identity_fingerprint,
                         "identity": identity_payload,
                         "checkpoint_component": component,
+                        "backbone": backbone_name,
                         "epoch": epoch,
                         f"{component}_state_dict": getattr(trainer, component).state_dict(),
                         "optimizer_state_dict": optimizer.state_dict(),
@@ -2279,6 +2378,7 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
                 "run_id": run_id,
                 "identity_fingerprint": identity_fingerprint,
                 "identity": identity_payload,
+                "backbone": backbone_name,
                 "epoch": epoch,
                 "teacher_state_dict": trainer.teacher.state_dict(),
                 "student_state_dict": trainer.student.state_dict(),
