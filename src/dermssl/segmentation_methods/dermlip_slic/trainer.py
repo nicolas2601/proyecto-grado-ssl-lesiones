@@ -110,6 +110,8 @@ class TeacherStudentTrainer:
         supervised_weight: float = 1.0,
         unsupervised_weight: float = 1.0,
         superpixel_affinity_weight: float = 0.0,
+        pseudo_label_threshold_high: float = 0.65,
+        pseudo_label_threshold_low: float = 0.35,
     ) -> None:
         self.device = device
         self.student = student.to(device)
@@ -130,6 +132,8 @@ class TeacherStudentTrainer:
         self.unsupervised_weight = unsupervised_weight
         self.superpixel_affinity_weight = superpixel_affinity_weight
         self.superpixel_affinity_loss_fn = SuperpixelAffinityLoss()
+        self.pseudo_label_threshold_high = pseudo_label_threshold_high
+        self.pseudo_label_threshold_low = pseudo_label_threshold_low
 
     def update_teacher(self, step: Optional[int] = None) -> None:
         """Update teacher model parameters and BatchNorm running statistics via EMA.
@@ -173,14 +177,31 @@ class TeacherStudentTrainer:
         """
         eps = 1e-6
         with torch.no_grad():
-            fused_logits = teacher_logits_weak
-            if semantic_probs is not None:
-                # Project semantic probabilities into logit space
-                sem_clamped = torch.clamp(semantic_probs, eps, 1.0 - eps)
-                sem_logits = torch.log(sem_clamped / (1.0 - sem_clamped))
-                fused_logits = fused_logits + self.gamma_semantic * sem_logits
-
-            calibrated_probs = torch.sigmoid(fused_logits)
+            teacher_probs = torch.sigmoid(teacher_logits_weak)
+            has_active_semantic = (
+                semantic_probs is not None
+                and self.gamma_semantic > 0.0
+                and bool((semantic_probs - 0.5).abs().max().item() > 1e-4)
+            )
+            if has_active_semantic and semantic_probs is not None:
+                sem_clamped = torch.clamp(semantic_probs, 1e-4, 1.0 - 1e-4)
+                # Pixel-wise teacher confidence in [0, 1]
+                teacher_conf = (2.0 * (teacher_probs - 0.5).abs()).clamp(0.0, 1.0)
+                # Confidence-gated semantic fusion: blend stronger where teacher is uncertain
+                gate_weight = (self.gamma_semantic * (1.0 - 0.5 * teacher_conf)).clamp(0.0, 1.0)
+                fused_probs = (1.0 - gate_weight) * teacher_probs + gate_weight * sem_clamped
+                # Peripheral ring / FOV background anchor suppression against over-segmentation.
+                # Attenuate teacher false alarms whenever the peripheral calibrated semantic prior indicates background.
+                bg_suppress_mask = (sem_clamped < 0.35) & (teacher_probs > 0.50)
+                fused_probs = torch.where(
+                    bg_suppress_mask,
+                    0.30 * teacher_probs + 0.70 * sem_clamped,
+                    fused_probs,
+                )
+                fused_logits = torch.logit(fused_probs.clamp(1e-4, 1.0 - 1e-4))
+                calibrated_probs = torch.sigmoid(fused_logits)
+            else:
+                calibrated_probs = teacher_probs
 
             # Binary Shannon entropy in base 2: H_2(p) = -p log2(p) - (1-p) log2(1-p) in [0, 1].
             # At p=0.5 (maximum clinical uncertainty), H_2(0.5) = 1.0.
@@ -192,15 +213,31 @@ class TeacherStudentTrainer:
             # Confidence weighting: alpha(x) = exp(-H_2(x) / kappa)
             alpha_weights = torch.exp(-entropy / self.kappa_uncertainty)
 
-            # Hard pseudo-label threshold at 0.5
-            pseudo_targets = (calibrated_probs > 0.5).float()
+            # Confident pseudo-label thresholding with uncertainty band masking:
+            # Confident foreground (p >= tau_high) -> 1.0
+            # Confident background (p <= tau_low)  -> 0.0
+            # Ambiguous boundary band (tau_low < p < tau_high) -> weight zeroed out to prevent halo inflation
+            confident_fg = calibrated_probs >= self.pseudo_label_threshold_high
+            confident_bg = calibrated_probs <= self.pseudo_label_threshold_low
+            confident_mask = confident_fg | confident_bg
 
-        # Weighted pixel-wise BCE loss
+            pseudo_targets = confident_fg.float()
+            effective_weights = alpha_weights * confident_mask.float()
+
+        # 1. Confidence-weighted pixel-wise BCE loss (masked out on uncertain transition band)
         bce_pixel = F.binary_cross_entropy_with_logits(
             student_logits_strong, pseudo_targets, reduction="none"
         )
-        weighted_loss = (alpha_weights * bce_pixel).mean()
-        return weighted_loss, alpha_weights.mean(), pseudo_targets
+        bce_unsup = (effective_weights * bce_pixel).mean()
+
+        # 2. Confidence-weighted Soft Dice loss for global overlap & small lesion sensitivity
+        student_probs_strong = torch.sigmoid(student_logits_strong)
+        inter_u = (student_probs_strong * pseudo_targets * effective_weights).sum(dim=(1, 2, 3))
+        union_u = ((student_probs_strong + pseudo_targets) * effective_weights).sum(dim=(1, 2, 3))
+        dice_u = 1.0 - ((2.0 * inter_u + 1e-5) / (union_u + 1e-5)).mean()
+
+        weighted_loss = 0.5 * bce_unsup + 0.5 * dice_u
+        return weighted_loss, effective_weights.mean(), pseudo_targets
 
     def training_step(
         self,
@@ -224,9 +261,44 @@ class TeacherStudentTrainer:
         student_logits_l = self.student(images_l)
         loss_sup = self.supervised_loss(student_logits_l, masks_l)
 
-        # 2. Unsupervised forward on unlabeled images
+        # 2. Unsupervised forward on unlabeled images with CutMix consistency (when B >= 2)
         with torch.no_grad():
             teacher_logits_w = self.teacher(images_u_weak)
+
+        slic_labels_mixed: Optional[Union[torch.Tensor, np.ndarray]] = unlabeled_slic_labels
+        batch_u, _, h_u, w_u = images_u_strong.shape
+        if batch_u >= 2 and h_u >= 4 and w_u >= 4 and teacher_logits_w.shape[-2:] == (h_u, w_u):
+            area_ratio = float(torch.empty(1).uniform_(0.25, 0.50).item())
+            cut_h = max(1, min(h_u - 1, int(round(h_u * (area_ratio ** 0.5)))))
+            cut_w = max(1, min(w_u - 1, int(round(w_u * (area_ratio ** 0.5)))))
+            cy = int(torch.randint(0, h_u - cut_h + 1, (1,)).item())
+            cx = int(torch.randint(0, w_u - cut_w + 1, (1,)).item())
+
+            cutmix_mask = torch.zeros((batch_u, 1, h_u, w_u), device=self.device, dtype=images_u_strong.dtype)
+            cutmix_mask[:, :, cy : cy + cut_h, cx : cx + cut_w] = 1.0
+
+            images_u_strong = (
+                (1.0 - cutmix_mask) * images_u_strong
+                + cutmix_mask * torch.roll(images_u_strong, shifts=1, dims=0)
+            )
+            teacher_logits_w = (
+                (1.0 - cutmix_mask) * teacher_logits_w
+                + cutmix_mask * torch.roll(teacher_logits_w, shifts=1, dims=0)
+            )
+            if sem_probs_u is not None and sem_probs_u.shape[-2:] == (h_u, w_u):
+                sem_probs_u = (
+                    (1.0 - cutmix_mask) * sem_probs_u
+                    + cutmix_mask * torch.roll(sem_probs_u, shifts=1, dims=0)
+                )
+            if unlabeled_slic_labels is not None:
+                if isinstance(unlabeled_slic_labels, np.ndarray):
+                    slic_t = torch.from_numpy(unlabeled_slic_labels).to(device=self.device, dtype=torch.long)
+                else:
+                    slic_t = unlabeled_slic_labels.to(device=self.device, dtype=torch.long)
+                if slic_t.shape == (batch_u, h_u, w_u):
+                    slic_offset = int(slic_t.max().item()) + 1 if slic_t.numel() > 0 else 1000
+                    slic_rolled = torch.roll(slic_t, shifts=1, dims=0) + slic_offset
+                    slic_labels_mixed = torch.where(cutmix_mask.squeeze(1) > 0.5, slic_rolled, slic_t)
 
         student_logits_s = self.student(images_u_strong)
         loss_unsup, mean_alpha, _ = self.unsupervised_loss(
@@ -235,9 +307,9 @@ class TeacherStudentTrainer:
 
         # 3. Superpixel affinity loss (differentiable boundary inductive bias)
         loss_sp = torch.tensor(0.0, device=self.device)
-        if self.superpixel_affinity_weight > 0.0 and unlabeled_slic_labels is not None:
+        if self.superpixel_affinity_weight > 0.0 and slic_labels_mixed is not None:
             student_probs_s = torch.sigmoid(student_logits_s)
-            loss_sp = self.superpixel_affinity_loss_fn(student_probs_s, unlabeled_slic_labels)
+            loss_sp = self.superpixel_affinity_loss_fn(student_probs_s, slic_labels_mixed)
 
         total_loss = (
             self.supervised_weight * loss_sup
@@ -295,3 +367,6 @@ class TeacherStudentTrainer:
             "teacher_iou": t_iou_mean,
             "ph2_validation_cases": validation_cases,
         }
+
+
+DermLIPMeanTeacherTrainer = TeacherStudentTrainer

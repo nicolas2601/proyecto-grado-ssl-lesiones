@@ -856,6 +856,7 @@ class PH2Dataset(Dataset):
     ) -> None:
         self.manifest_path = Path(manifest_path).resolve()
         self.base_dir = self.manifest_path.parent
+        self.split = split
         self.target_size = target_size
         self.hair_removal = hair_removal
 
@@ -1096,12 +1097,18 @@ class UnlabeledDermDataset(Dataset):
         max_samples: Optional[int] = None,
         failure_ledger_path: Optional[Path] = None,
         hair_removal: bool = False,
+        return_slic: bool = False,
+        n_segments: int = 150,
+        compactness: float = 10.0,
     ) -> None:
         self.image_paths = image_paths[:max_samples] if max_samples is not None else image_paths
         self.target_size = target_size
         self.calibrator = calibrator
         self.failure_ledger_path = Path(failure_ledger_path) if failure_ledger_path else None
         self.hair_removal = hair_removal
+        self.return_slic = return_slic
+        self.n_segments = n_segments
+        self.compactness = compactness
 
     def __len__(self) -> int:
         return len(self.image_paths)
@@ -1119,6 +1126,7 @@ class UnlabeledDermDataset(Dataset):
         path = self.image_paths[idx]
         try:
             with Image.open(path) as source_image:
+                source_image.draft("RGB", (self.target_size[0] * 2, self.target_size[1] * 2))
                 pil_img = source_image.convert("RGB").resize(self.target_size, Image.Resampling.BILINEAR)
         except Exception as exc:
             self._record_failure(path, f"image_decode:{type(exc).__name__}")
@@ -1159,6 +1167,20 @@ class UnlabeledDermDataset(Dataset):
 
         weak_t = pil_to_tensor(weak_img)
         strong_t = pil_to_tensor(strong_img)
+
+        if self.return_slic:
+            from skimage.segmentation import slic
+            arr_rgb = np.asarray(weak_img, dtype=np.uint8)
+            slic_map = slic(
+                arr_rgb,
+                n_segments=self.n_segments,
+                compactness=self.compactness,
+                start_label=0,
+                max_num_iter=5,
+            )
+            slic_t = torch.from_numpy(slic_map).long()
+            return weak_t, strong_t, sem_prob, slic_t
+
         return weak_t, strong_t, sem_prob
 
     def _record_failure(self, path: Path, reason: str) -> None:
@@ -1264,6 +1286,18 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         type=float,
         default=0.0,
         help="Weight for differentiable superpixel affinity loss (L_sp) during student training (default: 0.0).",
+    )
+    parser.add_argument(
+        "--pseudo-label-threshold-high",
+        type=float,
+        default=0.65,
+        help="Upper probability threshold for confident foreground pseudo-labels (default: 0.65).",
+    )
+    parser.add_argument(
+        "--pseudo-label-threshold-low",
+        type=float,
+        default=0.35,
+        help="Lower probability threshold for confident background pseudo-labels (default: 0.35).",
     )
     parser.add_argument(
         "--device",
@@ -1888,6 +1922,8 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
             None if runtime_config is not None else Path(args.out_dir).resolve() / "input_failures.jsonl"
         ),
         hair_removal=args.hair_removal,
+        return_slic=(getattr(args, "superpixel_affinity_weight", 0.0) > 0.0),
+        n_segments=150,
     )
     if len(ds_train_l) < args.batch_size or len(ds_unlabeled) < args.batch_size:
         raise ValueError("Labeled and unlabeled datasets must each contain at least one full training batch")
@@ -2070,6 +2106,8 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
         gamma_semantic=args.gamma_semantic,
         kappa_uncertainty=args.kappa_uncertainty,
         superpixel_affinity_weight=getattr(args, "superpixel_affinity_weight", 0.0),
+        pseudo_label_threshold_high=getattr(args, "pseudo_label_threshold_high", 0.65),
+        pseudo_label_threshold_low=getattr(args, "pseudo_label_threshold_low", 0.35),
     )
     optimizer = torch.optim.AdamW(trainer.student.parameters(), lr=args.lr, weight_decay=1e-4)
 
@@ -2115,33 +2153,54 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
             pool_provenance=v2_pool_provenance,
         )
 
+    u_iter = iter(loader_unlabeled)
+    max_steps_arg = getattr(args, "max_steps", None)
+    steps_per_epoch = int(max_steps_arg) if max_steps_arg is not None else len(loader_train_l)
+
     for epoch in range(start_epoch, args.epochs + 1):
         epoch_start = time.time()
         trainer.student.train()
-        losses_sup, losses_unsup, alphas = [], [], []
+        losses_sup, losses_unsup, losses_sp, alphas = [], [], [], []
 
         # Ramp up unsupervised consistency weight from 0 to 1 over first 5 epochs
         lambda_u = float(np.clip(epoch / 5.0, 0.0, 1.0))
 
-        u_iter = iter(loader_unlabeled)
-        for batch_idx, labeled_batch in enumerate(loader_train_l):
+        l_iter = iter(loader_train_l)
+        for batch_idx in range(steps_per_epoch):
+            try:
+                labeled_batch = next(l_iter)
+            except StopIteration:
+                l_iter = iter(loader_train_l)
+                labeled_batch = next(l_iter)
+
             try:
                 unlabeled_batch = next(u_iter)
             except StopIteration:
                 u_iter = iter(loader_unlabeled)
                 unlabeled_batch = next(u_iter)
 
-            step_res = trainer.training_step(labeled_batch, unlabeled_batch, lambda_u=lambda_u)
+            if len(unlabeled_batch) == 4:
+                images_u_weak, images_u_strong, sem_probs_u, slic_u = unlabeled_batch
+                unlabeled_batch_core = (images_u_weak, images_u_strong, sem_probs_u)
+                step_res = trainer.training_step(
+                    labeled_batch,
+                    unlabeled_batch_core,
+                    lambda_u=lambda_u,
+                    unlabeled_slic_labels=slic_u.to(device),
+                )
+            else:
+                step_res = trainer.training_step(labeled_batch, unlabeled_batch, lambda_u=lambda_u)
 
             optimizer.zero_grad()
             step_res["total_loss"].backward()
             optimizer.step()
 
-            global_step = (epoch - 1) * len(loader_train_l) + batch_idx
+            global_step = (epoch - 1) * steps_per_epoch + batch_idx
             trainer.update_teacher(step=global_step)
 
             losses_sup.append(step_res["loss_sup"].item())
             losses_unsup.append(step_res["loss_unsup"].item())
+            losses_sp.append(step_res["loss_sp"].item() if "loss_sp" in step_res else 0.0)
             alphas.append(step_res["mean_alpha"].item())
 
         # Validation step
@@ -2150,12 +2209,14 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
 
         mean_sup = float(np.mean(losses_sup)) if losses_sup else 0.0
         mean_unsup = float(np.mean(losses_unsup)) if losses_unsup else 0.0
+        mean_sp = float(np.mean(losses_sp)) if losses_sp else 0.0
         mean_alpha = float(np.mean(alphas)) if alphas else 0.0
 
         entry = {
             "epoch": epoch,
             "loss_sup": round(mean_sup, 4),
             "loss_unsup": round(mean_unsup, 4),
+            "loss_sp": round(mean_sp, 4),
             "mean_alpha": round(mean_alpha, 4),
             "student_dice": round(val_metrics["student_dice"], 4),
             "student_iou": round(val_metrics["student_iou"], 4),
@@ -2190,6 +2251,7 @@ def run_training(args: argparse.Namespace) -> Dict[str, Any]:
                         "checkpoint_component": component,
                         "epoch": epoch,
                         f"{component}_state_dict": getattr(trainer, component).state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
                         "ph2_validation_dice": component_dice,
                         "ph2_validation_iou": val_metrics[f"{component}_iou"],
                         "ph2_validation_cases": val_metrics.get("ph2_validation_cases", len(ds_val_l)),
