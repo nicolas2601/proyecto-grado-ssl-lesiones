@@ -155,13 +155,66 @@ dataset completo; no alcanza con que el dataset los declare en su publicación.
 
 ---
 
+## 2bis. Independencia por paciente: medida, y el resultado es «no medible»
+
+Se intentó cerrar el bloqueo con los metadatos del archivo ISIC que ya están en el clúster
+(`scripts/audit_patient_independence_v8.py`). **No se cerró, y el motivo importa más que el
+intento.**
+
+### Por qué el primer resultado era falso
+
+El cruce inicial devolvió **cero pacientes compartidos** entre el pool de 34.330 y el split
+de 2.594, con cobertura de `patient_id` del 99,5 % sobre el pool. Leído así parecía
+acreditación.
+
+Es vacío. `/datos/isic2019/train-metadata.csv` trae `patient_id` como **`dummy_0`,
+`dummy_1`, `dummy_2`…**: **25.331 identificadores distintos para 25.331 filas**, uno por
+imagen. Un identificador que no agrupa nada no puede refutar una fuga — el cero está
+garantizado por construcción. Y los 772 identificadores del split salían **todos** de ahí.
+
+El script ahora **se niega** a producir ese resultado: clasifica cada columna antes de
+contar y marca `INSERVIBLE` la que no agrupa, con `patient_comparison_status:
+not_measurable`.
+
+### Lo que queda después de descartar los rellenos
+
+| Fuente | Identificadores distintos / filas | Veredicto |
+|---|---|---|
+| `isic2019/train-metadata.csv` → `patient_id` | 25.331 / 25.331 (100 %) | **inservible**, uno por imagen |
+| `isic2020/train-metadata.csv` → `patient_id` | 2.056 / 33.126 (6,2 %) | usable |
+| `isic2019_fullres/…Metadata.csv` → `lesion_id` | 11.847 / 23.247 (51,0 %) | usable |
+
+Cobertura real sobre el split de evaluación, ya sin rellenos:
+
+- `patient_id`: **0 de 2.594 (0,0 %)**. Los únicos `patient_id` reales son los de ISIC 2020,
+  y **no cubren ni una imagen** del split.
+- `lesion_id`: **1 de 2.594**. Los 772 casos del split sí figuran en el CSV de ISIC 2019,
+  pero **771 tienen el campo vacío**; las claves que sí traen `lesion_id` son otro
+  subconjunto (sufijo `_downsampled`). No es un desajuste de formato de clave: el dato no
+  está.
+
+### Conclusión
+
+**La independencia por paciente no es medible con los metadatos disponibles.** No es
+«verificada y limpia»: es no medible. El control que sí pasa es la disjunción por caso
+(solapamiento directo de `image_id` = 0), que ya estaba.
+
+Consecuencia práctica: **no se cierra con corridas ni con IMA++** (que cubre `patient_id` en
+el 15 % del split, ver sección 2) **ni con estos metadatos**. Es una limitación a declarar
+en el texto, y declararla no es prudencia: los recibos ya la declaran en forma legible por
+máquina (`patient_independence_accredited: false`, `run_type: …_patient_unverified`,
+`role: post_run_evaluation_only_candidate`). Afirmar independencia clínica en la tesis
+contradiría a su propia evidencia.
+
+---
+
 ## 3. Lo que esta validación NO cierra
 
 1. **Independencia por paciente.** Sigue en `patient_independence_accredited: false`, con
    `run_type: dermlip_guided_semi_supervised_case_disjoint_patient_unverified` y el
    manifiesto de los 2.594 como `post_run_evaluation_only_candidate`. Ninguna cifra de los
    2.594 puede presentarse como evaluación independiente acreditada. El filtro CIELAB no
-   toca este bloqueo.
+   toca este bloqueo, y la sección 2bis documenta por qué los metadatos disponibles tampoco.
 2. **Independencia visual del pool completo.** `verification.json` lo declara explícito:
    `visual_screening_scope` cubre pHash contra el benchmark, no el pool completo.
    `known_groups.metadata_complete` es `False`.
