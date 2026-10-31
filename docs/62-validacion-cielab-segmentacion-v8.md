@@ -193,11 +193,97 @@ Cobertura real sobre el split de evaluación, ya sin rellenos:
   subconjunto (sufijo `_downsampled`). No es un desajuste de formato de clave: el dato no
   está.
 
+### Verificación contra la fuente autoritativa (archivo ISIC)
+
+Los metadatos locales son espejos. Para no apoyar una acreditación en un espejo, se
+consultó el **archivo ISIC** imagen por imagen (`scripts/fetch_isic_archive_identity.py`,
+`https://api.isic-archive.com/api/v2/images/`), registrando el hash de cada respuesta y
+distinguiendo tres estados que no se pueden colapsar: `present`, `absent_in_archive`
+(el archivo responde y el campo no está) y `request_failed` (hecho sobre nuestro acceso,
+no sobre el dato).
+
+Resultado sobre los 2.594, consulta completa:
+
+| Campo | Presente | Ausente en el archivo |
+|---|---:|---:|
+| `patient_id` | **390 (15,0 %)** | **2.204 (85,0 %)** |
+| `lesion_id` | **1.098 (42,3 %)** | **1.496 (57,7 %)** |
+
+Estas cifras **confirman exactamente** las que reportó la sesión de Codex (2.204 y 1.496).
+Las obtenidas antes vía el volcado de IMA++ (388 y 1.058) eran de un espejo y quedan
+superadas. **La carencia es del archivo, no nuestra**: ningún repositorio, espejo de
+Hugging Face ni diccionario de datos puede aportar un identificador que la fuente no tiene.
+
+Nota estructural: la cobertura **correlaciona con el rango de `isic_id`**. Las primeras
+1.200 imágenes del split en orden de ID devuelven 0 % en los dos campos; la cobertura
+aparece en los rangos altos. Cualquier medición sobre un prefijo del split queda sesgada.
+
+### El bloqueo real no es la cobertura: es el puente entre namespaces
+
+Aun con `lesion_id` para el 42,3 % del split, **no se puede cruzar contra el pool**, porque
+los identificadores viven en sistemas distintos:
+
+| Lado | Namespace de `lesion_id` | Origen |
+|---|---|---|
+| Split de evaluación (vía archivo ISIC) | `IL_*` | archivo ISIC |
+| Pool de entrenamiento (CSV local) | `HAM_*` (10.015), `BCN_*` (12.413), `MSK4_*` (819) | por dataset contribuyente |
+
+Comparar `IL_1447065` contra `HAM_0000118` da **cero por construcción**. Es la misma
+trampa del `patient_id` dummy, un nivel más arriba: un cero sin puente no es independencia.
+
+**Y hay salida, verificada.** El archivo ISIC devuelve `IL_*` y `IP_*` también para las
+imágenes del pool (comprobado en 8 de 8 muestreadas, ISIC2019 e ISIC2020). **El archivo es
+el namespace común que faltaba.** Por eso se lanzó
+`scripts/snapshot_isic_archive_identity.py`, que pagina el archivo completo (553.019
+imágenes, 100 por página con cursor) y deja un snapshot hasheado de `patient_id` y
+`lesion_id` para **todas** las exposiciones en un solo namespace.
+
+### Garantía que sí quedó cerrada hoy: duplicado exacto de contenido
+
+Los manifiestos ya traen `sha256` por imagen, así que el cruce por contenido era gratis y
+nadie lo había hecho. Cubre **selection y refit**, como corresponde:
+
+| Conjunto | Imágenes | `sha256` únicos | Duplicados internos | Colisión de contenido con el eval |
+|---|---:|---:|---:|---:|
+| Evaluación | 2.594 | 2.594 | 0 | — |
+| `selection` | 34.330 | 34.330 | 0 | **0** |
+| `refit` | 42.977 | 42.977 | 0 | **0** |
+
+Esto descarta el modo de fuga más crudo —la misma imagen bajo otro `isic_id`— a nivel de
+byte. **No** descarta otra foto de la misma lesión, que es el modo que requiere los
+identificadores o un hash perceptual.
+
+### El gate, implementado
+
+`scripts/gate_clinical_independence_v8.py` evalúa el grafo combinado de paciente y lesión
+sobre todas las exposiciones y **bloquea por defecto**. Acredita solo si: ninguna imagen
+queda sin identidad verificable, todo namespace tiene puente documentado, todo manifiesto
+declarado existe y está fijado por hash, y ningún grupo de identidad cruza entrenamiento y
+evaluación. Probado con tres casos sintéticos: acredita el limpio, bloquea el grupo cruzado
+señalando la imagen afectada, y bloquea el manifiesto sin hash.
+
+Los identificadores se comparan **cualificados por namespace** (`namespace::valor`), así
+que un no-match entre sistemas distintos nunca se cuenta como ausencia de colisión.
+
+### Lo que dice CLAIM, y lo que sí podemos afirmar hoy
+
+CLAIM 2024 ítem 20, texto verificado: *«Describe the level at which the partitions are
+disjoint (eg, patient-, series-, image-level). Sets of medical images generally should be
+disjoint at the patient level or higher…»*. El ítem obliga a **describir el nivel**, y el
+ítem 12 cubre cómo reportar los datos faltantes.
+
+Por lo tanto la vía conforme, sin fabricar nada, es declarar: **partición disjunta a nivel
+de imagen/caso, verificada también por contenido (`sha256`); independencia a nivel de
+paciente no acreditada, con el 85,0 % del split sin `patient_id` en la fuente autoritativa
+y el namespace de lesión sin puente al del pool.** Eso cumple el ítem 20 por descripción
+honesta, no por acreditación inventada.
+
 ### Conclusión
 
 **La independencia por paciente no es medible con los metadatos disponibles.** No es
-«verificada y limpia»: es no medible. El control que sí pasa es la disjunción por caso
-(solapamiento directo de `image_id` = 0), que ya estaba.
+«verificada y limpia»: es no medible. Lo que sí pasa es la disjunción por caso
+(solapamiento directo de `image_id` = 0) **y ahora también la disjunción por contenido**
+(cero colisiones de `sha256` contra `selection` y `refit`).
 
 Consecuencia práctica: **no se cierra con corridas ni con IMA++** (que cubre `patient_id` en
 el 15 % del split, ver sección 2) **ni con estos metadatos**. Es una limitación a declarar
