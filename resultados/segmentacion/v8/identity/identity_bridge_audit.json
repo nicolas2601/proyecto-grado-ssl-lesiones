@@ -1,0 +1,138 @@
+{
+  "snapshot_records": 522500,
+  "snapshot_complete": false,
+  "crosses": [
+    {
+      "field": "lesion_id",
+      "pool_size": 34330,
+      "pool_with_id": 34212,
+      "pool_coverage": 0.9965627730847655,
+      "eval_size": 2594,
+      "eval_with_id": 1098,
+      "eval_coverage": 0.42328450269853507,
+      "shared_identities": 3,
+      "eval_images_affected": 3,
+      "pool_images_affected": 3,
+      "eval_examples": [
+        "ISIC_0013813",
+        "ISIC_0014222",
+        "ISIC_0014238"
+      ],
+      "measurable": true,
+      "pool": "selection_ids",
+      "pool_images_missing_from_snapshot": 0
+    },
+    {
+      "field": "patient_id",
+      "pool_size": 34330,
+      "pool_with_id": 19935,
+      "pool_coverage": 0.580687445383047,
+      "eval_size": 2594,
+      "eval_with_id": 390,
+      "eval_coverage": 0.15034695451040864,
+      "shared_identities": 3,
+      "eval_images_affected": 6,
+      "pool_images_affected": 3,
+      "eval_examples": [
+        "ISIC_0014851",
+        "ISIC_0014920",
+        "ISIC_0014921",
+        "ISIC_0014992",
+        "ISIC_0015019",
+        "ISIC_0015476"
+      ],
+      "measurable": true,
+      "pool": "selection_ids",
+      "pool_images_missing_from_snapshot": 0
+    },
+    {
+      "field": "lesion_id",
+      "pool_size": 42977,
+      "pool_with_id": 42842,
+      "pool_coverage": 0.996858784931475,
+      "eval_size": 2594,
+      "eval_with_id": 1098,
+      "eval_coverage": 0.42328450269853507,
+      "shared_identities": 3,
+      "eval_images_affected": 3,
+      "pool_images_affected": 3,
+      "eval_examples": [
+        "ISIC_0013813",
+        "ISIC_0014222",
+        "ISIC_0014238"
+      ],
+      "measurable": true,
+      "pool": "refit_ids",
+      "pool_images_missing_from_snapshot": 0
+    },
+    {
+      "field": "patient_id",
+      "pool_size": 42977,
+      "pool_with_id": 24943,
+      "pool_coverage": 0.5803802033645904,
+      "eval_size": 2594,
+      "eval_with_id": 390,
+      "eval_coverage": 0.15034695451040864,
+      "shared_identities": 5,
+      "eval_images_affected": 8,
+      "pool_images_affected": 5,
+      "eval_examples": [
+        "ISIC_0014683",
+        "ISIC_0014851",
+        "ISIC_0014920",
+        "ISIC_0014921",
+        "ISIC_0014992",
+        "ISIC_0015019",
+        "ISIC_0015153",
+        "ISIC_0015476"
+      ],
+      "measurable": true,
+      "pool": "refit_ids",
+      "pool_images_missing_from_snapshot": 0
+    }
+  ],
+  "bridge": {
+    "bridge_observations": 22431,
+    "archive_lesions_bridged": 11049,
+    "contributor_lesions_bridged": 11049,
+    "archive_id_mapping_to_multiple_contributor_ids": 0,
+    "contributor_id_mapping_to_multiple_archive_ids": 0,
+    "contributor_prefixes": {
+      "BCN": 12413,
+      "HAM": 10015,
+      "MSK4": 819
+    },
+    "one_to_one": true,
+    "examples_ambiguous_reverse": {}
+  },
+  "id_range_interleaving": {
+    "selection_ids": {
+      "in_eval_id_range": 216,
+      "adjacent_within_2": 189,
+      "examples": [
+        "ISIC_0000002",
+        "ISIC_0000010",
+        "ISIC_0000130",
+        "ISIC_0000174",
+        "ISIC_0000195",
+        "ISIC_0000237",
+        "ISIC_0000289",
+        "ISIC_0000302"
+      ]
+    },
+    "refit_ids": {
+      "in_eval_id_range": 250,
+      "adjacent_within_2": 221,
+      "examples": [
+        "ISIC_0000002",
+        "ISIC_0000010",
+        "ISIC_0000130",
+        "ISIC_0000174",
+        "ISIC_0000195",
+        "ISIC_0000237",
+        "ISIC_0000289",
+        "ISIC_0000302"
+      ]
+    }
+  }
+}

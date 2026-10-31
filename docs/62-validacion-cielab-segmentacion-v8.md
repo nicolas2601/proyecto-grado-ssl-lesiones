@@ -265,6 +265,60 @@ señalando la imagen afectada, y bloquea el manifiesto sin hash.
 Los identificadores se comparan **cualificados por namespace** (`namespace::valor`), así
 que un no-match entre sistemas distintos nunca se cuenta como ausencia de colisión.
 
+### El puente construido: el cruce ya es medible, y está medido
+
+El puente no hubo que negociarlo con nadie: se **construye** desde las imágenes que llevan
+identificador en los dos sistemas. `scripts/audit_identity_bridge_v8.py` lo hace y además
+cruza las dos partes dentro del namespace del archivo.
+
+**El puente es biyectivo.** Con **22.431 observaciones** (BCN 12.413, HAM 10.015, MSK4 819):
+cero casos de un `IL_*` que mapee a varios identificadores de contribuyente y cero del
+sentido inverso. Los dos sistemas inducen **exactamente la misma agrupación**, así que los
+identificadores de contribuyente quedan validados y son usables tras el puente.
+
+Y el snapshot del archivo eleva la cobertura del pool de forma decisiva:
+
+| | Cobertura pool | Cobertura eval | Identidades compartidas | Imágenes del eval afectadas |
+|---|---:|---:|---:|---:|
+| `lesion_id` vs `selection` | **99,7 %** | 42,3 % | 3 | **3 (0,12 %)** |
+| `patient_id` vs `selection` | 58,1 % | 15,0 % | 3 | **6 (0,23 %)** |
+| `lesion_id` vs `refit` | **99,7 %** | 42,3 % | 3 | **3 (0,12 %)** |
+| `patient_id` vs `refit` | 58,0 % | 15,0 % | **5** | **8 (0,31 %)** |
+
+La cobertura del pool pasó de 41,4 % (CSV local) a **99,7 %** (archivo). **El cuello de
+botella ya no es el pool: es el eval.**
+
+Unión de los cuatro cruces: **11 casos del split están vinculados** a imágenes de
+entrenamiento por paciente o por lesión. Estas cifras **confirman de forma independiente**
+las que reportó la sesión de Codex (cinco grupos de paciente, tres de lesión, 11 casos).
+
+Los 11: `ISIC_0013813`, `ISIC_0014222`, `ISIC_0014238`, `ISIC_0014683`, `ISIC_0014851`,
+`ISIC_0014920`, `ISIC_0014921`, `ISIC_0014992`, `ISIC_0015019`, `ISIC_0015153`,
+`ISIC_0015476`.
+
+### Por qué la fuga es plausible y no hipotética: los rangos se entrelazan
+
+El split ocupa el rango `isic_id` 0–16.072. Dentro de ese mismo rango hay **216 imágenes de
+`selection` y 250 de `refit`**, y de ellas **189 y 221 respectivamente están a distancia ≤ 2
+de un `isic_id` del split**. Pool y evaluación están intercalados en lotes consecutivos del
+archivo, del mismo contribuyente. Las 11 colisiones caen justamente en esa zona
+(13.800–15.500). No es coincidencia: es el mecanismo.
+
+### Sensibilidad: retirar los 11 no mueve la cifra
+
+| Run | Dice 2.594 | Dice 2.583 (sin vinculados) | Δ |
+|---|---:|---:|---:|
+| 019 | 0,8259 | 0,8256 | −0,0002 |
+| 020 | 0,8282 | 0,8281 | −0,0001 |
+| 021 | 0,8218 | 0,8216 | −0,0002 |
+| 022 | 0,8264 | 0,8262 | −0,0002 |
+| 023 | 0,8416 | 0,8415 | −0,0001 |
+
+Los 11 vinculados puntúan algo **por encima** de la media (0,85–0,88 contra 0,82–0,84), que
+es la dirección que cabría esperar de una ventaja por fuga, pero pesan 0,42 % del conjunto y
+el efecto se diluye. **La fuga conocida no altera materialmente el Dice reportado**, y eso
+ahora es una afirmación cuantificada, no una esperanza.
+
 ### Lo que dice CLAIM, y lo que sí podemos afirmar hoy
 
 CLAIM 2024 ítem 20, texto verificado: *«Describe the level at which the partitions are
