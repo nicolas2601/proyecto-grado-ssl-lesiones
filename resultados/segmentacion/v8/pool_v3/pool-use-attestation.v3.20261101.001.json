@@ -1,0 +1,130 @@
+{
+  "bindings": {
+    "holdout_novelty": false,
+    "model": {
+      "license": "CC-BY-NC-ND-4.0"
+    },
+    "patient_independence_accredited": false,
+    "ph2": {
+      "eligible_count": 195,
+      "excluded_count": 5,
+      "train_count": 156,
+      "validation_count": 39
+    },
+    "pool_root": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/",
+    "preflight_receipt": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/receipt.json",
+      "sha256": "0587b0077ac9d22da58ea55b00a50d911c33380cca03a38fd000f50bb28bd84f"
+    },
+    "source_artifacts": {
+      "dermlip_model_manifest_sha256": "f1bcc6e2f5c5eb102f2565bbb920c0298e0356cc1db575e5dc5f7203fa6ec45f",
+      "evaluation_manifest_receipt_sha256": "25f42c626ba6c4db8583b0220dcbd2f0450665fbbe3c62133741859988dc35a8",
+      "evaluation_manifest_sha256": "53009a68073d6ae1048063a9328a6e7bc6b9ef34cdf0096d64ebaa866fe0f179",
+      "ph2_exclusions_sha256": "b3253b3c1748f4057b497b8e2ceea6bfb4aa91344bba932b4c63d22253e9c09e",
+      "ph2_manifest_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+      "refit_source_manifest_sha256": "21903961c680cf8cc3bdffeb8be394e2e32aec2ca93b295eea47eeb859d0bea0",
+      "selection_source_manifest_sha256": "331457804f6bde1b65c4f184a1a529d9a6e4802b0349f6aebc9f2ab6d1945dc8",
+      "terms_acceptance_sha256": "5f6ef7d4cf7e810bddb053058bcd5dfaa9c56181e97ffcd62eb9356c47c598a9"
+    },
+    "stages": {
+      "refit": {
+        "cohort_sha256": "baff6ca6a6c6ab784f426f8dcaba2bf638f6387644161af659fad6c6e02c5c53",
+        "dataset_counts": {
+          "ISIC2019": 17804,
+          "ISIC2020": 24924
+        },
+        "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/refit.manifest.json",
+        "record_count": 42728,
+        "sha256": "a50b082064968ac5f12d83e65ae8b055c19e1c79be98b0433fe1151bd771c168"
+      },
+      "selection": {
+        "cohort_sha256": "326f7316fcf2095a39122e3a198c6b0189a2bdafc43d7f137f6f5872f2aa2ae8",
+        "dataset_counts": {
+          "ISIC2019": 14196,
+          "ISIC2020": 19919
+        },
+        "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/selection.manifest.json",
+        "record_count": 34115,
+        "sha256": "2a87cb506741e770bf0cbe78745527733af28d1aa71a7a547f743e66cf1cd149"
+      }
+    }
+  },
+  "derivation": {
+    "authorized_by": "Maria Paula Saavedra (project author), 2026-11-01",
+    "is_new_human_attestation": false,
+    "kind": "mechanical_re_derivation",
+    "note": "The consumption policy is unchanged from v2. Only the pinned pool artifacts move, because the pool was re-frozen under the recorded exclusion rule. patient_independence_accredited stays false: source cohort disjointness is a different property and does not accredit it.",
+    "policy_changed": false,
+    "rule": "Exclude every pool image belonging to a source cohort that also contributes images to the ISIC 2018 Task 1 evaluation split (SONIC, MSK-1..5, UDA-1). HAM10000 and BCN20000 are untouched: they contribute zero evaluation images.",
+    "what_changed": "pool_root, preflight_receipt, stages, stage_manifests"
+  },
+  "freeze_semantics": "sha_identity_pinned_filesystem_immutability_not_claimed",
+  "generated_from": {
+    "evaluation_manifest_relative_path": "resultados/preparacion_v8/isic2018_eval_2594_20261022/manifest.json",
+    "evaluation_manifest_sha256": "53009a68073d6ae1048063a9328a6e7bc6b9ef34cdf0096d64ebaa866fe0f179",
+    "evaluation_receipt_relative_path": "resultados/preparacion_v8/isic2018_eval_2594_20261022/manifest.receipt.json",
+    "evaluation_receipt_sha256": "25f42c626ba6c4db8583b0220dcbd2f0450665fbbe3c62133741859988dc35a8",
+    "generator_relative_path": "scripts/build_pool_use_attestation_successor.py",
+    "generator_sha256": "2e7949cdeaa2e99e64f4c6993fb874ef1499658e56977b09c85ce6306749353d",
+    "source_attestation_relative_path": "plan-segmentacion/metodos-v8/launch-preparation/pool-use-attestation.v2.20261022.json",
+    "source_attestation_sha256": "2ce69314b16779a0016ca08e80137032a90a0d665700eb7c596275c575277730"
+  },
+  "holdout_novelty": false,
+  "method_scopes": [
+    "dermlip_semi_supervised",
+    "sled"
+  ],
+  "patient_independence_accredited": false,
+  "pool_manifest_frozen": true,
+  "preflight_receipt": {
+    "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/receipt.json",
+    "sha256": "0587b0077ac9d22da58ea55b00a50d911c33380cca03a38fd000f50bb28bd84f"
+  },
+  "schema": "v2_method_pool_use_attestation.v1",
+  "schema_fields": [
+    "image_id",
+    "dataset",
+    "image_path",
+    "image_sha256"
+  ],
+  "selection_policy": {
+    "checkpoint_selection_metric": "PH2 validation Dice",
+    "external_evaluation_datasets": [
+      "ISIC2018",
+      "PAD"
+    ],
+    "external_evaluation_use": "evaluation_only_never_select_or_train"
+  },
+  "source_cohort_disjoint_from_evaluation": true,
+  "stage": "selection_and_refit",
+  "stage_manifests": {
+    "refit": {
+      "cohort_sha256": "baff6ca6a6c6ab784f426f8dcaba2bf638f6387644161af659fad6c6e02c5c53",
+      "dataset_counts": {
+        "ISIC2019": 17804,
+        "ISIC2020": 24924
+      },
+      "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/refit.manifest.json",
+      "record_count": 42728,
+      "sha256": "a50b082064968ac5f12d83e65ae8b055c19e1c79be98b0433fe1151bd771c168"
+    },
+    "selection": {
+      "cohort_sha256": "326f7316fcf2095a39122e3a198c6b0189a2bdafc43d7f137f6f5872f2aa2ae8",
+      "dataset_counts": {
+        "ISIC2019": 14196,
+        "ISIC2020": 19919
+      },
+      "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/selection.manifest.json",
+      "record_count": 34115,
+      "sha256": "2a87cb506741e770bf0cbe78745527733af28d1aa71a7a547f743e66cf1cd149"
+    }
+  },
+  "status": "pool_consumption_attested_execution_disabled",
+  "supersedes": {
+    "path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/pool-use-attestation.v2.20261022.002.json",
+    "sha256": "aeaa24beae7857472ad07ca6b5e9e92478b7bbc66d1eb98ad7be1bb7c6f5385b",
+    "version": "20261022-v2"
+  },
+  "training_consumable": true,
+  "version": "20261101-v3"
+}

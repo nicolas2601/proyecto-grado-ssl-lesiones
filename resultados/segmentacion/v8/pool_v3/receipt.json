@@ -1,0 +1,33 @@
+{
+  "schema": "dermlip_source_disjoint_pool_receipt.v1",
+  "created_at_utc": "2026-11-01T06:18:36Z",
+  "derived_from": "/home/jovyan/work/dermlip_slic_v8/preflight/shared-segmentation-pools-v2-20261022-001/receipt.json",
+  "derived_from_sha256": "dafaaa005b6352c0b786f91e1cdf9575b74e816f172fbd7bcd3b7c5e9929d265",
+  "exclusion_rule": "Exclude every pool image belonging to a source cohort that also contributes images to the ISIC 2018 Task 1 evaluation split (SONIC, MSK-1..5, UDA-1). HAM10000 and BCN20000 are untouched: they contribute zero evaluation images.",
+  "exclusion_receipt": {
+    "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/source_disjoint_pool.receipt.json",
+    "sha256": "abb9d5e7086dc57bfe39496188df84b031fc7c718b7a702000e6f563de66c9ff"
+  },
+  "source_cohort_disjoint_from_evaluation": true,
+  "patient_independence_accredited": false,
+  "stages": {
+    "selection": {
+      "record_count": 34115,
+      "dataset_counts": {
+        "ISIC2019": 14196,
+        "ISIC2020": 19919
+      },
+      "cohort_sha256": "326f7316fcf2095a39122e3a198c6b0189a2bdafc43d7f137f6f5872f2aa2ae8",
+      "sha256": "2a87cb506741e770bf0cbe78745527733af28d1aa71a7a547f743e66cf1cd149"
+    },
+    "refit": {
+      "record_count": 42728,
+      "dataset_counts": {
+        "ISIC2019": 17804,
+        "ISIC2020": 24924
+      },
+      "cohort_sha256": "baff6ca6a6c6ab784f426f8dcaba2bf638f6387644161af659fad6c6e02c5c53",
+      "sha256": "a50b082064968ac5f12d83e65ae8b055c19e1c79be98b0433fe1151bd771c168"
+    }
+  }
+}
