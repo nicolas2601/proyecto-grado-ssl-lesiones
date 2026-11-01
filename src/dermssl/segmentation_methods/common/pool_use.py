@@ -525,10 +525,10 @@ def write_resume_attempt_receipt(
 
 
 # --- v3: source-cohort-disjoint pool (additive; v2 above is unchanged) ---
-# Attestation: C:\Users\mpaul\Documents\ProyectoDeGrado\resultados\segmentacion\v8\pool_v3\pool-use-attestation.v3.20261101.001.json
+# Attestation: /home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/pool-use-attestation.v3.20261101.006.json
 # Derivation: mechanical re-derivation of v2, policy unchanged;
 # patient_independence_accredited stays False.
-V3_POOL_USE_ATTESTATION_SHA256 = "74c6e98a9db8491c6a111f4010165764c9bbc61c02176b0f46895560a2e59d1d"
+V3_POOL_USE_ATTESTATION_SHA256 = "9bb5503ef40975aad99d006fe7d7ea0977d8613c7f0a078fac558b862a6ec8ad"
 V3_POOL_USE_BINDINGS = {
     "holdout_novelty": False,
     "model": {
@@ -541,10 +541,10 @@ V3_POOL_USE_BINDINGS = {
         "train_count": 156,
         "validation_count": 39
     },
-    "pool_root": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/",
+    "pool_root": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/",
     "preflight_receipt": {
-        "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/receipt.json",
-        "sha256": "0587b0077ac9d22da58ea55b00a50d911c33380cca03a38fd000f50bb28bd84f"
+        "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/receipt.json",
+        "sha256": "933b5af709f56e3fbd72a1593b3f2f50f5619e12fcd32edc63136d7c2e63ded4"
     },
     "source_artifacts": {
         "dermlip_model_manifest_sha256": "f1bcc6e2f5c5eb102f2565bbb920c0298e0356cc1db575e5dc5f7203fa6ec45f",
@@ -563,9 +563,9 @@ V3_POOL_USE_BINDINGS = {
                 "ISIC2019": 17804,
                 "ISIC2020": 24924
             },
-            "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/refit.manifest.json",
+            "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/refit.manifest.json",
             "record_count": 42728,
-            "sha256": "a50b082064968ac5f12d83e65ae8b055c19e1c79be98b0433fe1151bd771c168"
+            "sha256": "3b9992aba46dd78df3f1b4094a3a03a812985098f02fd98065a8521df5e89e80"
         },
         "selection": {
             "cohort_sha256": "326f7316fcf2095a39122e3a198c6b0189a2bdafc43d7f137f6f5872f2aa2ae8",
@@ -573,9 +573,9 @@ V3_POOL_USE_BINDINGS = {
                 "ISIC2019": 14196,
                 "ISIC2020": 19919
             },
-            "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-001/selection.manifest.json",
+            "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/selection.manifest.json",
             "record_count": 34115,
-            "sha256": "2a87cb506741e770bf0cbe78745527733af28d1aa71a7a547f743e66cf1cd149"
+            "sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d"
         }
     }
 }

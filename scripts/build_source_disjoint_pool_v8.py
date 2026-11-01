@@ -102,6 +102,40 @@ def main() -> None:
         new_data["source_cohort_disjoint_from_evaluation"] = True
         new_data["excluded_image_ids"] = sorted(dropped)
         new_data["supersedes_manifest"] = str(manifest_path)
+
+        # pool_contract carries its own copy of the stage pins. Copying it verbatim
+        # would leave a manifest whose top-level count says 34115 while its contract
+        # still says 34330, with the v2 cohort digest. The library validator does not
+        # check these fields, so the inconsistency would survive into a gate.
+        from dermssl.segmentation_methods.common.protocol import cohort_digest
+
+        contract = dict(new_data["pool_contract"])
+        dataset_counts: dict[str, int] = {}
+        for record in kept:
+            dataset_counts[record["dataset"]] = dataset_counts.get(record["dataset"], 0) + 1
+        contract["stage_count"] = len(kept)
+        contract["stage_cohort_sha256"] = cohort_digest(kept)
+        contract["stage_dataset_counts"] = dataset_counts
+        # Recorded, not silently rewritten: the contract describes disjointness
+        # against a 1822-image evaluation manifest, while every run evaluates on
+        # 2594. That mismatch is inherited from v2 and is not ours to assert away.
+        contract["evaluation_reference_caveat"] = {
+            "contract_evaluation_count": data["pool_contract"].get("evaluation_count"),
+            "contract_evaluation_manifest_sha256": data["pool_contract"].get(
+                "evaluation_manifest_sha256"
+            ),
+            "exclusion_computed_against_evaluation_count": len(eval_ids),
+            "note": (
+                "The source-cohort exclusion in this manifest was computed against "
+                "the 2594-image ISIC 2018 Task 1 split actually used for evaluation. "
+                "The inherited contract pins a different, 1822-image evaluation "
+                "manifest. The contract's disjointness statement therefore does not "
+                "cover the evaluation split in use, and this manifest does not claim "
+                "that it does."
+            ),
+        }
+        new_data["pool_contract"] = contract
+
         payload = json.dumps(new_data, indent=1).encode("utf-8")
         out_path.write_bytes(payload)
 
@@ -118,6 +152,59 @@ def main() -> None:
             f"{name}: {len(records)} -> {len(kept)} "
             f"(excluidas {len(dropped)}, {len(dropped) / len(records):.2%})"
         )
+
+    # Persist the per-image attribution. Without it the disjointness claim rests on
+    # aggregates computed in a session that is gone, and "HAM10000 and BCN20000
+    # contribute zero evaluation images" is unverifiable from the receipts.
+    attribution: dict[str, dict[str, list[str]]] = {"evaluation": {}, "pool_excluded": {}}
+    unattributed = set(eval_ids)
+    for cohort, ids in membership.items():
+        # Challenge partitions aggregate source cohorts; attributing by them would
+        # double count, so only source cohorts are used for attribution.
+        if cohort.startswith("Challenge"):
+            continue
+        hit = sorted(set(ids) & eval_ids)
+        if hit:
+            attribution["evaluation"][cohort] = hit
+            unattributed -= set(hit)
+        dropped_here = sorted(set(ids) & excluded_union)
+        if dropped_here:
+            attribution["pool_excluded"][cohort] = dropped_here
+
+    cohort_map = {
+        "schema": "dermlip_source_cohort_attribution.v1",
+        "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "collections_source": receipt["collections_source"],
+        "evaluation_split_size": len(eval_ids),
+        "evaluation_attributed": len(eval_ids) - len(unattributed),
+        "evaluation_unattributed": sorted(unattributed),
+        "shared_cohorts": list(SHARED_COHORTS),
+        "eval_only_cohorts": sorted(
+            c
+            for c, hit in attribution["evaluation"].items()
+            if c not in SHARED_COHORTS and hit
+        ),
+        "attribution": attribution,
+    }
+    cohort_map_path = args.out_dir / "source_cohort_attribution.json"
+    cohort_map_payload = json.dumps(cohort_map, indent=1).encode("utf-8")
+    cohort_map_path.write_bytes(cohort_map_payload)
+    receipt["source_cohort_attribution"] = {
+        "path": str(cohort_map_path),
+        "sha256": sha256_bytes(cohort_map_payload),
+        "evaluation_attributed": cohort_map["evaluation_attributed"],
+        "evaluation_unattributed": len(unattributed),
+        "eval_only_cohorts": cohort_map["eval_only_cohorts"],
+    }
+    if unattributed:
+        raise SystemExit(
+            f"{len(unattributed)} evaluation images have no source cohort; "
+            "the disjointness claim cannot be made without complete attribution"
+        )
+    print(
+        f"atribucion de cohorte: {cohort_map['evaluation_attributed']}/{len(eval_ids)} "
+        f"del eval | cohortes solo-eval: {cohort_map['eval_only_cohorts']}"
+    )
 
     receipt_path = args.out_dir / "source_disjoint_pool.receipt.json"
     receipt_payload = json.dumps(receipt, indent=2).encode("utf-8")

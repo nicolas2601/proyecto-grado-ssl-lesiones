@@ -56,7 +56,15 @@ def main() -> None:
     pool_dir = args.pool_dir.resolve()
 
     # 1. The receipt the validator looks for beside the manifests.
+    #
+    # If one is already there, it is read and NOT overwritten. The trainer requires
+    # this file to use the v2 bridge schema (see derive_pool_v3_bridge_receipt.py);
+    # an earlier version of this script wrote its own shape here and clobbered it,
+    # which the trainer rejected with "receipt schema or source artifact pins
+    # mismatch". Deriving the attestation must not redefine its own inputs.
     receipt_path = pool_dir / "receipt.json"
+    reuse_existing = receipt_path.is_file()
+
     receipt = {
         "schema": "dermlip_source_disjoint_pool_receipt.v1",
         "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -79,10 +87,14 @@ def main() -> None:
             for stage, pin in pins.items()
         },
     }
-    receipt_bytes = json.dumps(receipt, indent=2).encode("utf-8")
-    receipt_path.write_bytes(receipt_bytes)
-    receipt_sha = hashlib.sha256(receipt_bytes).hexdigest()
-    print(f"receipt.json sha256: {receipt_sha}")
+    if reuse_existing:
+        receipt_sha = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+        print(f"receipt.json already present, reused unchanged: {receipt_sha}")
+    else:
+        receipt_bytes = json.dumps(receipt, indent=2).encode("utf-8")
+        receipt_path.write_bytes(receipt_bytes)
+        receipt_sha = hashlib.sha256(receipt_bytes).hexdigest()
+        print(f"receipt.json written: {receipt_sha}")
 
     # 2. Bindings: v2 verbatim, with only the pool-identity fields moved.
     bindings = json.loads(json.dumps(v2["bindings"]))
