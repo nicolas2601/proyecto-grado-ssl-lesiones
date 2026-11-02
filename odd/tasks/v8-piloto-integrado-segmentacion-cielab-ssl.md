@@ -47,14 +47,15 @@ resultados de clasificación del piloto.
 - [x] Terminan 030 y 031 con 300 épocas y concluye la evaluación del lote 026–031.
 - [x] Se cotejan las identidades, los hashes de checkpoints y los pares de casos
       entre brazos; se documentan los logs truncados y los intentos rechazados.
-- [ ] Se revisa la procedencia de las 100 imágenes IMA++ y sus exclusiones.
-      Un Dice alto no cierra ese punto.
-- [ ] Se elige y congela el segmentador usando sus datos de selección y controles
+- [ ] Se revisa la procedencia de las 100 imágenes IMA++ y sus exclusiones antes
+      de habilitar un brazo IMA++. Un Dice alto no cierra ese punto. La referencia
+      026 no usa ese cohorte supervisado adicional.
+- [x] Se elige y congela el segmentador usando sus datos de selección y controles
       de máscara, sin optimizarlo con macro-F1 de PAD. El checkpoint debe cargar
       con la arquitectura ResNet34 correcta.
-- [ ] Se prueba el loader del encoder de Nicolás y se conserva su preprocesamiento
+- [x] Se prueba el loader del encoder de Nicolás y se conserva su preprocesamiento
       exacto, la correspondencia de clases y los hashes de pesos y manifiestos.
-- [ ] Se define una transformación CIELAB precisa, con parámetros y QA congelados.
+- [x] Se define una transformación CIELAB precisa, con parámetros y QA congelados.
       No se confunde medir color en CIELAB con validar fototipo ni equidad clínica.
 - [ ] Se define QA aplicable sin referencia experta: una contaminación calculada
       contra la máscara experta de ISIC no puede usarse directamente como filtro
@@ -121,3 +122,28 @@ El clasificador candidato sigue siendo MoCo-v3-style, semilla 42, con encoder
 congelado. Antes de ejecutar faltan QA sin referencia experta para PAD y los
 adaptadores compatibles con ResNet34 y el protocolo clínico de Nicolás.
 **El piloto no se ha iniciado y permanece deshabilitado.**
+
+## Adaptadores y QA técnico — 2026-11-02
+
+Implementación: `src/dermssl/pilot_adapters.py`. No modifica el pipeline legado.
+El segmentador carga el teacher ResNet34 de 026 con estado estricto, hash de
+checkpoint, identidad de corrida y hash del código del modelo. Reproduce la
+inferencia cruda evaluada, sin añadir SLIC, rescate ni selección de componentes.
+
+El encoder MoCo-v3-style conserva el preprocesamiento original y CLS normalizado
+de 768 dimensiones, sin TTA. También se fija el hash del checkout offline de
+DINOv2. No hay descarga automática de pesos ni carga insegura con pickle.
+
+El QA implementado es **técnico y heurístico**: valida RGB, forma de máscaras,
+campo válido, cobertura de lesión y disponibilidad de piel predicha. Si falla,
+la transformación devuelve la imagen original y conserva el caso. No certifica
+que la región predicha sea piel pura; por eso el gate de QA clínico anterior
+permanece pendiente. La transformación de ejemplo es una perturbación fija de
+L* sobre piel predicha, no una normalización ni un cambio de fototipo validados.
+
+La [validación aislada en CPU](../../resultados/auditoria_v8/pilot_adapters_20261102/README.md)
+usa checkpoints reales y una imagen sintética, sin imágenes de pacientes.
+No equivale al piloto de diez casos. El lector clínico tampoco se ejecutó:
+las probabilidades OOF antiguas pertenecen a las imágenes originales; el nuevo
+conjunto de features CIELAB requiere recalcular el lector sobre los mismos folds
+por paciente, manteniendo A0 como referencia.

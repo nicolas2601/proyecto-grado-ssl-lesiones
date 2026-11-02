@@ -1,0 +1,14 @@
+{
+  "segmenter": {
+    "path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/best_teacher_model.pt",
+    "sha256": "f4fcee05cd4e4f884d31bb6a9bc08fc7225817d2529c8fa22eb1b2ab261462f4",
+    "run_id": "7cbcd3d7-b79e-4e3d-be5e-2abaf5088f27"
+  },
+  "encoder": {
+    "path": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/moco-v3-s42-full-20261029/simsiam_dinov2_backbone_final.pt",
+    "sha256": "5dffe8dae8f1f623242861f0b6d00dfc38d3d47f19afcc7e8f1748abc4cccd1a",
+    "hub_directory": "/home/jovyan/.cache/torch/hub/facebookresearch_dinov2_main",
+    "implementation_sha256": "4a5a3cfbd4185dd4955c1de2f2f26e3b4ba3fa88cccae503b9f93ceb08fed818",
+    "source_files": 156
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-02T16:51:40.183196+00:00",
+  "synthetic_validation_only": true,
+  "real_patient_images_used": false,
+  "pilot_started": false,
+  "device": "cpu",
+  "rng_seed": 20261102,
+  "adapter_source_sha256": "bbe0721b9f877162a1660f1721e2eef375d748244ebda2619534ac7a43ec992c",
+  "validator_source_sha256": "b4d570e542f8b03c2e301a08290d4f83ba107f281e05e8679656cf3ce094b793",
+  "preprocess_max_abs_error_vs_torchvision": 0.0,
+  "cls_max_abs_error_vs_reference": 0.0,
+  "feature_shape": [
+    2,
+    768
+  ],
+  "finite_features": true,
+  "segmenter": {
+    "checkpoint_sha256": "f4fcee05cd4e4f884d31bb6a9bc08fc7225817d2529c8fa22eb1b2ab261462f4",
+    "run_id": "7cbcd3d7-b79e-4e3d-be5e-2abaf5088f27",
+    "identity_fingerprint": "1662c51e8154c9ad8887cc84ab7b65ef0adb6de3e56fac451ee28dff4df1d0c0",
+    "backbone": "resnet34",
+    "implementation_sha256": "97dbe298bd090421b67dcda8d6c632d0b0501989168884b95ac3b4d94b147f6d",
+    "profile": "raw_v8_standard_hair_224_prob8_threshold050"
+  },
+  "encoder": {
+    "checkpoint_sha256": "5dffe8dae8f1f623242861f0b6d00dfc38d3d47f19afcc7e8f1748abc4cccd1a",
+    "features": "x_norm_clstoken",
+    "dimensions": 768,
+    "resize_shorter": 256,
+    "interpolation": "bicubic",
+    "center_crop": 224,
+    "tta": false,
+    "implementation_sha256": "4a5a3cfbd4185dd4955c1de2f2f26e3b4ba3fa88cccae503b9f93ceb08fed818",
+    "torch_version": "2.11.0+cu128"
+  },
+  "technical_qa": {
+    "checkpoint_sha256": "f4fcee05cd4e4f884d31bb6a9bc08fc7225817d2529c8fa22eb1b2ab261462f4",
+    "run_id": "7cbcd3d7-b79e-4e3d-be5e-2abaf5088f27",
+    "identity_fingerprint": "1662c51e8154c9ad8887cc84ab7b65ef0adb6de3e56fac451ee28dff4df1d0c0",
+    "backbone": "resnet34",
+    "implementation_sha256": "97dbe298bd090421b67dcda8d6c632d0b0501989168884b95ac3b4d94b147f6d",
+    "profile": "raw_v8_standard_hair_224_prob8_threshold050",
+    "hair_fraction": 0.8505460778061225,
+    "field": {
+      "method": "full_frame",
+      "field_fraction": 0.9351811958447029,
+      "valid_fraction": 1.0,
+      "threshold": 0.396078431372549
+    },
+    "technical_qa_passed": true,
+    "technical_qa_policy": {
+      "min_lesion_fraction": 0.005,
+      "max_lesion_fraction": 0.9,
+      "min_healthy_skin_fraction": 0.05,
+      "coverage_denominator": "full_frame"
+    },
+    "clinical_skin_purity_verified": false,
+    "reference_mask_used": false,
+    "fallback_reason": null
+  },
+  "color_transform": {
+    "method": "predicted_skin_Lstar_perturbation",
+    "shift_steps": 1,
+    "requested_Lstar_delta": -8.0,
+    "clinical_fototype_used": false
+  },
+  "shift_applied": true,
+  "lesion_and_outside_fov_pixels_preserved": true,
+  "reader_evaluated": false,
+  "input_config_sha256": "6d8b27044e531afce2361377555d5a70d97062ba61ea5705826294770ab784e6"
+}
