@@ -1,0 +1,10 @@
+{
+  "schema": "dermlip_execution_claim.v1",
+  "gate_sha256": "a578fba404361c25a90b72c5180b0628871b703f6204d7c35bb1cc40e446e19a",
+  "run_id": "71651eda-9036-488a-beaf-be92813ad6e1",
+  "identity_fingerprint": "202eca237aba3d0285e733f2b19d6c8756ccafe096df8c97698e15f831e085f2",
+  "method": "dermlip_semi_supervised",
+  "stage": "selection",
+  "output_dir": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl028-resnet34-ph2cp-ima0-s43/selection",
+  "timestamp_utc": "2026-11-01T21:41:03.271120Z"
+}

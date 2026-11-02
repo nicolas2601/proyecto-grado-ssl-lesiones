@@ -1,0 +1,281 @@
+{
+  "retrieved_at_utc": "2026-11-02T16:16:17.729834+00:00",
+  "checkpoint_verification": {
+    "026": {
+      "checkpoint_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/best_teacher_model.pt",
+      "actual_sha256": "f4fcee05cd4e4f884d31bb6a9bc08fc7225817d2529c8fa22eb1b2ab261462f4",
+      "summary_sha256_match": true
+    },
+    "027": {
+      "checkpoint_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl027-resnet34-ph2cp-ima6-s42/selection/best_teacher_model.pt",
+      "actual_sha256": "93dee03bd75cd623e94dd06328d0910e0b0bd7033d6f5b5c873ef88a051ce417",
+      "summary_sha256_match": true
+    },
+    "028": {
+      "checkpoint_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl028-resnet34-ph2cp-ima0-s43/selection/best_teacher_model.pt",
+      "actual_sha256": "f4ba91e5eecf6d2d9654d90e8ba52feef7fa6350a3a7eb5da8c87db39459dd6b",
+      "summary_sha256_match": true
+    },
+    "029": {
+      "checkpoint_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl029-resnet34-ph2cp-ima6-s43/selection/best_teacher_model.pt",
+      "actual_sha256": "d3ec24f8a22739fa7337678166ed565216a62cd3bc5c43a6e50e2c7addb00654",
+      "summary_sha256_match": true
+    },
+    "030": {
+      "checkpoint_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl030-resnet34-ph2cp-ima0-s44/selection/best_teacher_model.pt",
+      "actual_sha256": "554e6222a34c74d91e0b07fafe95842641f05ebcfdb8d8d73c6e564a060553fa",
+      "summary_sha256_match": true
+    },
+    "031": {
+      "checkpoint_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl031-resnet34-ph2cp-ima6-s44/selection/best_teacher_model.pt",
+      "actual_sha256": "d4650b7fe3353006f7b2c418cd2c36dc8b52656ba383c7eeb4e9d01fabe3929e",
+      "summary_sha256_match": true
+    }
+  },
+  "files": {
+    "upstream/ima_ablation_paired_delta.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/ima_ablation_026_031/ima_ablation_paired_delta.json",
+      "sha256": "48e97715d32ac7a7b17b70306f4678ccbf782da54ec33dba760f98e56e19f971"
+    },
+    "026/cases.jsonl": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/026/f4fcee05cd4e4f88/cruda/cases.jsonl",
+      "sha256": "0b4569015c188a2be5dd02872732a1da74a6f5f15ee4e6f6d3538fadfae286cb"
+    },
+    "026/evaluation_report.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/026/f4fcee05cd4e4f88/cruda/evaluation_report.json",
+      "sha256": "1a461736023dfd1c87224c4272862aac0903c9c36264f960c531b92df7eceea7"
+    },
+    "026/comparison.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/026/f4fcee05cd4e4f88/comparacion.json",
+      "sha256": "9c9ac8fc5c6df0d69bb033c92e6c0d809165c8f8e2524b48128443e0d18cd50b"
+    },
+    "026/cielab_filter.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/cielab_case_filter_tau020_026.json",
+      "sha256": "1b0879a2c44e90b72f02343698f34440a0fd70904204ef464b83e1790d1ef16b"
+    },
+    "026/ph2_benchmark.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/ph2_val_3groups_benchmark_20261027/eval_026_ima0_s42_3groups.json",
+      "sha256": "b56110693d05e035cc98bca7404b8ff92a0ed3197f8c46a277d97fd67ee8cced"
+    },
+    "026/summary.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/summary.json",
+      "sha256": "85689f71fcb6d88ea36c10f86ac66ace0a6402a32b9d75404ce43ea16081f07c"
+    },
+    "026/run_identity.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/run_identity.json",
+      "sha256": "f910a49c65474ce875a5e59f210e8dccd441e89f5fa22894be9c783646dd31e1"
+    },
+    "026/input_validation.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/input_validation.json",
+      "sha256": "dca7bc990a43b86affa8fb8b64412737301708cbd790b49fbcb6bfa7431a61b8"
+    },
+    "026/claims/dermlip-selection-20261101-026.selection.claim.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/claims/dermlip-selection-20261101-026.selection.claim.json",
+      "sha256": "11b878c1bd4b203a82da6fded495fd84975cd4306a975572146919ac5d196551"
+    },
+    "026/runtime_config.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/plan-segmentacion/metodos-v8/launch-preparation/configs/dermlip.selection.runtime.20261101.026.json",
+      "sha256": "fc7c25ca0725f6eda00f46d2e9d6296d04ac5e06100a05d816abcde6b350d1b3"
+    },
+    "027/cases.jsonl": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/027/93dee03bd75cd623/cruda/cases.jsonl",
+      "sha256": "8ae25952c16a4f8a89ee3e9c76948c6b44eb8ae56adf8a457883cbf3ea960b80"
+    },
+    "027/evaluation_report.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/027/93dee03bd75cd623/cruda/evaluation_report.json",
+      "sha256": "47e69da280f3a7f658777853dcaccb5a4851bb70a2ac0723196ca202101cdf08"
+    },
+    "027/comparison.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/027/93dee03bd75cd623/comparacion.json",
+      "sha256": "e2521b2693526b1f63c75a5fe8d327f2452c6dbc3892db6a34af8780a3bdf0f3"
+    },
+    "027/cielab_filter.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/cielab_case_filter_tau020_027.json",
+      "sha256": "55877cf66670350ddd41cd7fc4fe6eb793310a9bbb95db5c745b12e4d3411e8f"
+    },
+    "027/ph2_benchmark.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/ph2_val_3groups_benchmark_20261027/eval_027_ima6_s42_3groups.json",
+      "sha256": "daaaad5be4d0d91b9f9b64830a2bf86ea6b55ff01e15af1a063c66f743fa2384"
+    },
+    "027/summary.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl027-resnet34-ph2cp-ima6-s42/selection/summary.json",
+      "sha256": "54f83f1fd49df07dfebaca946cdd57e3296e50ade97ab27f3d858ce9db515dad"
+    },
+    "027/run_identity.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl027-resnet34-ph2cp-ima6-s42/selection/run_identity.json",
+      "sha256": "34b4b2f464abac0d837165c703f1e5ed59d5b23c95b0c082c4ad92f00e38c067"
+    },
+    "027/input_validation.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl027-resnet34-ph2cp-ima6-s42/selection/input_validation.json",
+      "sha256": "dca7bc990a43b86affa8fb8b64412737301708cbd790b49fbcb6bfa7431a61b8"
+    },
+    "027/claims/dermlip-selection-20261101-027.selection.claim.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl027-resnet34-ph2cp-ima6-s42/selection/claims/dermlip-selection-20261101-027.selection.claim.json",
+      "sha256": "c83b7fbb029c7a7328b9e2f3c75bcbf8b9d433566ec7eee658dde2968bd1ac2d"
+    },
+    "027/runtime_config.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/plan-segmentacion/metodos-v8/launch-preparation/configs/dermlip.selection.runtime.20261101.027.json",
+      "sha256": "2ba89f31d31f975269eebf1b6bca8362de747900fe80dcf08baea38adb67b286"
+    },
+    "028/cases.jsonl": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/028/f4ba91e5eecf6d2d/cruda/cases.jsonl",
+      "sha256": "c63002309c53b64432858c9ac9f92613d606e404a82a87419c3f84094be9658c"
+    },
+    "028/evaluation_report.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/028/f4ba91e5eecf6d2d/cruda/evaluation_report.json",
+      "sha256": "19087ac478623ccbcb2c49195e8c2dd4c98b75b34b418d1fc1a40191e5824075"
+    },
+    "028/comparison.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/028/f4ba91e5eecf6d2d/comparacion.json",
+      "sha256": "0bc7de8f22f7e473076793837e18a0abda80ca922f138dbe1713a3464076e013"
+    },
+    "028/cielab_filter.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/cielab_case_filter_tau020_028.json",
+      "sha256": "813712b214e869c0ee0d2771d2c45936e03145df65d7746c19539865d6d92fed"
+    },
+    "028/ph2_benchmark.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/ph2_val_3groups_benchmark_20261027/eval_028_ima0_s43_3groups.json",
+      "sha256": "a2d757cb0a02bb3d7a3724e1714cc0ca875e64bfe1586381947ea48145efa8bf"
+    },
+    "028/summary.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl028-resnet34-ph2cp-ima0-s43/selection/summary.json",
+      "sha256": "50e06ebb4eb5b757bfe66e0d336501459ddf44ccb668d1a21df6420079cf4895"
+    },
+    "028/run_identity.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl028-resnet34-ph2cp-ima0-s43/selection/run_identity.json",
+      "sha256": "3c5881ea1b474fe6529c75cc132f5332ad3195965aed11caa8dab1888ffe3bbb"
+    },
+    "028/input_validation.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl028-resnet34-ph2cp-ima0-s43/selection/input_validation.json",
+      "sha256": "dca7bc990a43b86affa8fb8b64412737301708cbd790b49fbcb6bfa7431a61b8"
+    },
+    "028/claims/dermlip-selection-20261101-028.selection.claim.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl028-resnet34-ph2cp-ima0-s43/selection/claims/dermlip-selection-20261101-028.selection.claim.json",
+      "sha256": "8efd1a3ab2da89a1cd694a0a0aaf99cdbfaafe0eb4c50645623f5d5f55925a28"
+    },
+    "028/runtime_config.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/plan-segmentacion/metodos-v8/launch-preparation/configs/dermlip.selection.runtime.20261101.028.json",
+      "sha256": "bbfda915f55ee6c9a25dc509f2e4f7a6493c1de3a9dc70462260901f6e9bb78e"
+    },
+    "029/cases.jsonl": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/029/d3ec24f8a22739fa/cruda/cases.jsonl",
+      "sha256": "d1464c1546183f33923e6063195a87dccf64680e52f1d17268ca1fd5bf136c17"
+    },
+    "029/evaluation_report.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/029/d3ec24f8a22739fa/cruda/evaluation_report.json",
+      "sha256": "117912ee4ea3a2a014a1766d2a1a57b59ed94700e951134308b3d05999c2e995"
+    },
+    "029/comparison.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/029/d3ec24f8a22739fa/comparacion.json",
+      "sha256": "b50a8736c5805b95adbeb4a717220168e85a67502e91f338c932baec2f627384"
+    },
+    "029/cielab_filter.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/cielab_case_filter_tau020_029.json",
+      "sha256": "ba94515cc2a08995fb57369781462e2e089d9ff08b4077d4c074cce149f95b9d"
+    },
+    "029/ph2_benchmark.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/ph2_val_3groups_benchmark_20261027/eval_029_ima6_s43_3groups.json",
+      "sha256": "a1e51c37e72743f6b537b0f50ef94230698ead53e8f0a227646f59993f12e659"
+    },
+    "029/summary.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl029-resnet34-ph2cp-ima6-s43/selection/summary.json",
+      "sha256": "7e7b849def8f955f1cb7e52b2fca3dbc675575f58120bdd21f9a8368fc2e11d2"
+    },
+    "029/run_identity.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl029-resnet34-ph2cp-ima6-s43/selection/run_identity.json",
+      "sha256": "47168e4cbb2527910b5eb16b4fe781a6a8122657b07dda50bf5946be465c01a3"
+    },
+    "029/input_validation.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl029-resnet34-ph2cp-ima6-s43/selection/input_validation.json",
+      "sha256": "dca7bc990a43b86affa8fb8b64412737301708cbd790b49fbcb6bfa7431a61b8"
+    },
+    "029/claims/dermlip-selection-20261101-029.selection.claim.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl029-resnet34-ph2cp-ima6-s43/selection/claims/dermlip-selection-20261101-029.selection.claim.json",
+      "sha256": "fbf6b2e3622044e0c501df070da0977599c174e4e0cc6cf0e5efecc2aa98805b"
+    },
+    "029/runtime_config.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/plan-segmentacion/metodos-v8/launch-preparation/configs/dermlip.selection.runtime.20261101.029.json",
+      "sha256": "ef10f37586e5a96fcf806bc51f172039b14a55daf9032e04ceb880e1037b5a10"
+    },
+    "030/cases.jsonl": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/030/554e6222a34c74d9/cruda/cases.jsonl",
+      "sha256": "ccf327c0a7beb75951e7775b0c6aceb29b935ac79db1a811a51fb06312a01991"
+    },
+    "030/evaluation_report.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/030/554e6222a34c74d9/cruda/evaluation_report.json",
+      "sha256": "79f8f2b8cbbb619a854ce9bc9d51a133bb6c2535d50544546a74a81f80374721"
+    },
+    "030/comparison.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/030/554e6222a34c74d9/comparacion.json",
+      "sha256": "b3cb5c87d32b943db4bc6c5eecc048faa7a50df76fb646caadebf916169aee0f"
+    },
+    "030/cielab_filter.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/cielab_case_filter_tau020_030.json",
+      "sha256": "35392b9a36189cdd09acf740ec0daecaae82b010d530e730ec097e50e57e5cd7"
+    },
+    "030/ph2_benchmark.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/ph2_val_3groups_benchmark_20261027/eval_030_ima0_s44_3groups.json",
+      "sha256": "0f1e7c7c74486270a3e319c5fddd195613530d1722b895a26d1d16040ea40fb3"
+    },
+    "030/summary.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl030-resnet34-ph2cp-ima0-s44/selection/summary.json",
+      "sha256": "230f9677b5a04f58c4cc13ea9adf3f9bab53bc05ee1ecf21790531800daccb37"
+    },
+    "030/run_identity.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl030-resnet34-ph2cp-ima0-s44/selection/run_identity.json",
+      "sha256": "64009775d7bb025a8202540a93cabefddde73b8886eceb0456d7d07ad285cdf6"
+    },
+    "030/input_validation.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl030-resnet34-ph2cp-ima0-s44/selection/input_validation.json",
+      "sha256": "dca7bc990a43b86affa8fb8b64412737301708cbd790b49fbcb6bfa7431a61b8"
+    },
+    "030/claims/dermlip-selection-20261101-030.selection.claim.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl030-resnet34-ph2cp-ima0-s44/selection/claims/dermlip-selection-20261101-030.selection.claim.json",
+      "sha256": "bad9e60853a70d014dfc440d3c0db830363560b25b6e3f93155e81ca0f69ffb4"
+    },
+    "030/runtime_config.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/plan-segmentacion/metodos-v8/launch-preparation/configs/dermlip.selection.runtime.20261101.030.json",
+      "sha256": "f51ff72e030b4ab3e89864a4eef60d552581c21326a9214f0995b3190ccf484d"
+    },
+    "031/cases.jsonl": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/031/d4650b7fe3353006/cruda/cases.jsonl",
+      "sha256": "dbc3acb3c576b7cf8b647d189de752d48c9ca2b492f1141fa690f9e45a801ebf"
+    },
+    "031/evaluation_report.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/031/d4650b7fe3353006/cruda/evaluation_report.json",
+      "sha256": "58c5e7814c435897b52010159b18a7b62185f64bc5168f899f242d0c5c0aebef"
+    },
+    "031/comparison.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/paired-raw-morph-20261027/031/d4650b7fe3353006/comparacion.json",
+      "sha256": "2a295c64c4bd4bb7a40d037a06a66f3b373427145de94a0f3636cde2d6c21613"
+    },
+    "031/cielab_filter.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/cielab_case_filter_tau020_031.json",
+      "sha256": "c36be2e93d70428e6af59403196c0cd78ccbc6fe0521e56342714ca6cf0bbc57"
+    },
+    "031/ph2_benchmark.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/evaluations/ph2_val_3groups_benchmark_20261027/eval_031_ima6_s44_3groups.json",
+      "sha256": "a8bdb7b3496aaad03abba3c64d32a7d0167d8632a64777a84400c7a44b92bc5f"
+    },
+    "031/summary.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl031-resnet34-ph2cp-ima6-s44/selection/summary.json",
+      "sha256": "56e954c90df1757ba7b79504d9dc5bebc37a89c54f73b026e47d5a50c8c61d41"
+    },
+    "031/run_identity.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl031-resnet34-ph2cp-ima6-s44/selection/run_identity.json",
+      "sha256": "c49f4714b80cec8198a38f64f79750a5750c05164f5907f4514c56b115012abc"
+    },
+    "031/input_validation.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl031-resnet34-ph2cp-ima6-s44/selection/input_validation.json",
+      "sha256": "dca7bc990a43b86affa8fb8b64412737301708cbd790b49fbcb6bfa7431a61b8"
+    },
+    "031/claims/dermlip-selection-20261101-031.selection.claim.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl031-resnet34-ph2cp-ima6-s44/selection/claims/dermlip-selection-20261101-031.selection.claim.json",
+      "sha256": "6156d77d2e5693077f99026dc959225e1ec6e2a3b7449a93539cb2de23f1797c"
+    },
+    "031/runtime_config.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/plan-segmentacion/metodos-v8/launch-preparation/configs/dermlip.selection.runtime.20261101.031.json",
+      "sha256": "cb3b5f45374d1541a05d08b1e37a4a23a94b50fcf1a37652965ddddfc48debe2"
+    }
+  }
+}

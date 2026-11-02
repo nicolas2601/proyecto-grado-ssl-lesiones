@@ -1,0 +1,91 @@
+{
+  "schema": "dermlip_selection_runtime_gate.v1",
+  "gate_id": "dermlip-selection-runtime-20261101-026",
+  "status": "execution_authorized",
+  "method": "dermlip_semi_supervised",
+  "stage": "selection",
+  "runtime_config_relative_path": "plan-segmentacion/metodos-v8/launch-preparation/configs/dermlip.selection.runtime.20261101.026.json",
+  "runtime_config_sha256": "fc7c25ca0725f6eda00f46d2e9d6296d04ac5e06100a05d816abcde6b350d1b3",
+  "bindings": {
+    "ph2_manifest": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/preflight/ph2-curator-exclusions-20261022-001/manifest.json",
+      "sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+      "record_count": 195
+    },
+    "pool_manifest": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/selection.manifest.json",
+      "sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+      "cohort_sha256": "326f7316fcf2095a39122e3a198c6b0189a2bdafc43d7f137f6f5872f2aa2ae8",
+      "record_count": 34115,
+      "dataset_counts": {
+        "ISIC2019": 14196,
+        "ISIC2020": 19919
+      },
+      "stage": "selection"
+    },
+    "pool_use_attestation": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/pool-use-attestation.v3.20261101.006.json",
+      "sha256": "9bb5503ef40975aad99d006fe7d7ea0977d8613c7f0a078fac558b862a6ec8ad"
+    },
+    "dermlip_model_manifest": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/models/dermlip_model_manifest.json",
+      "sha256": "f1bcc6e2f5c5eb102f2565bbb920c0298e0356cc1db575e5dc5f7203fa6ec45f"
+    },
+    "terms_acceptance": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/models/terms-acceptance.json",
+      "sha256": "5f6ef7d4cf7e810bddb053058bcd5dfaa9c56181e97ffcd62eb9356c47c598a9"
+    },
+    "evaluation_manifest": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/preflight/isic2018-task1-eval-2594-v2/manifest.json",
+      "sha256": "53009a68073d6ae1048063a9328a6e7bc6b9ef34cdf0096d64ebaa866fe0f179",
+      "receipt_path": "/home/jovyan/work/dermlip_slic_v8/preflight/isic2018-task1-eval-2594-v2/manifest.receipt.json",
+      "receipt_sha256": "25f42c626ba6c4db8583b0220dcbd2f0450665fbbe3c62133741859988dc35a8",
+      "pair_count": 2594,
+      "role": "post_run_evaluation_only_candidate"
+    }
+  },
+  "profile": {
+    "epochs": 300,
+    "batch_size": 16,
+    "learning_rate": 0.0001,
+    "ema_decay": 0.99,
+    "gamma_semantic": 0.5,
+    "kappa_uncertainty": 0.693147,
+    "seed": 42,
+    "device": "cuda:0",
+    "guidance_enabled": true,
+    "hair_removal": true,
+    "pilot_samples": null,
+    "allow_self_consistency_pilot": false,
+    "execution_claim_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/claims/dermlip-selection-20261101-026.selection.claim.json",
+    "stage": "selection",
+    "ima_batch": 0
+  },
+  "execution_enabled": true,
+  "launch_ready": true,
+  "training_started": false,
+  "verified_for_use": false,
+  "patient_independence_accredited": false,
+  "blockers": [],
+  "execution_ready": true,
+  "execution_claim_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/claims/dermlip-selection-20261101-026.selection.claim.json",
+  "gpu_preflight": {
+    "observed_at_nvidia_smi": "2026-11-01 18:35:29",
+    "cuda_visible_devices": "0,1",
+    "selected_logical_device": "cuda:0",
+    "selected_physical_gpu_index": 0,
+    "utilization_percent": 0,
+    "memory_used_mib": 2,
+    "memory_total_mib": 24467,
+    "memory_free_mib": 24465,
+    "temperature_c": 24,
+    "listed_processes_on_selected_gpu": 0
+  },
+  "evaluation_scope": {
+    "manifest_role": "post_run_evaluation_only_candidate",
+    "patient_independence_accredited": false,
+    "holdout_independence_claimed": false
+  },
+  "pool_manifest_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+  "pool_use_attestation_sha256": "9bb5503ef40975aad99d006fe7d7ea0977d8613c7f0a078fac558b862a6ec8ad"
+}

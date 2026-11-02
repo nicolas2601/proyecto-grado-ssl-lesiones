@@ -1,0 +1,127 @@
+{
+  "observed_at_utc": "2026-11-02T16:17:30.025957+00:00",
+  "files": {
+    "026/execution_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-execution-gate-v3-20261101-026.json",
+      "sha256": "af8cd84cd7d52f9bb7b326da3f4fd3b187ecde8770bd97fc935db433e797ff2c"
+    },
+    "026/selection_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-runtime-gate-v3-20261101-026.json",
+      "sha256": "d3a2432227f87d164138a73dccd4e0f6e359f230786dcf7eef1e9aaba86384af"
+    },
+    "027/execution_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-execution-gate-v3-20261101-027.json",
+      "sha256": "02680fde15e4a0fc0615a5db9fdee9930e5a397f657d769a8b891a198ab0d465"
+    },
+    "027/selection_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-runtime-gate-v3-20261101-027.json",
+      "sha256": "e47a5c31fecd18b9ee8ef7e7d586bf5421c51a6e36268ddf57f7aa135d836814"
+    },
+    "028/execution_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-execution-gate-v3-20261101-028.json",
+      "sha256": "a578fba404361c25a90b72c5180b0628871b703f6204d7c35bb1cc40e446e19a"
+    },
+    "028/selection_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-runtime-gate-v3-20261101-028.json",
+      "sha256": "81f2ca410e5f38658672eda8f38996cffd69d35637341858a2fc0cead358ea0d"
+    },
+    "029/execution_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-execution-gate-v3-20261101-029.json",
+      "sha256": "dd481c6acea4c9677e187890c16bf4db73bcac9aa2ed259075a87c73fcfae7a3"
+    },
+    "029/selection_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-runtime-gate-v3-20261101-029.json",
+      "sha256": "f325ccc894d59f240615384924c66b7d8a5207e02d391169c6600481adfc4cd3"
+    },
+    "030/execution_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-execution-gate-v3-20261101-030.json",
+      "sha256": "1b25c07a9f5f4c4d049ed8de386c560c429652d3ce45776952a37b56274330c4"
+    },
+    "030/selection_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-runtime-gate-v3-20261101-030.json",
+      "sha256": "a232bf068783ac25d0eb42d66a4cd99e492f097aeede383c17ae2a2840e14341"
+    },
+    "031/execution_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-execution-gate-v3-20261101-031.json",
+      "sha256": "84869b50519ecd7b7524550e4003c6a7ab4f8ae9bcfc7caa9a40c07a9212ba1e"
+    },
+    "031/selection_gate.json": {
+      "source_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-runtime-gate-v3-20261101-031.json",
+      "sha256": "56fd00e129d5e41acff48c0a6e9b47e97e27ceea5b384a9fbdf375fb249e578f"
+    }
+  },
+  "runs": {
+    "026": {
+      "pool_manifest": {
+        "actual_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "expected_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "matches": true
+      },
+      "ph2_manifest": {
+        "actual_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "expected_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "matches": true
+      }
+    },
+    "027": {
+      "pool_manifest": {
+        "actual_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "expected_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "matches": true
+      },
+      "ph2_manifest": {
+        "actual_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "expected_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "matches": true
+      }
+    },
+    "028": {
+      "pool_manifest": {
+        "actual_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "expected_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "matches": true
+      },
+      "ph2_manifest": {
+        "actual_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "expected_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "matches": true
+      }
+    },
+    "029": {
+      "pool_manifest": {
+        "actual_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "expected_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "matches": true
+      },
+      "ph2_manifest": {
+        "actual_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "expected_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "matches": true
+      }
+    },
+    "030": {
+      "pool_manifest": {
+        "actual_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "expected_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "matches": true
+      },
+      "ph2_manifest": {
+        "actual_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "expected_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "matches": true
+      }
+    },
+    "031": {
+      "pool_manifest": {
+        "actual_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "expected_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+        "matches": true
+      },
+      "ph2_manifest": {
+        "actual_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "expected_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "matches": true
+      }
+    }
+  }
+}

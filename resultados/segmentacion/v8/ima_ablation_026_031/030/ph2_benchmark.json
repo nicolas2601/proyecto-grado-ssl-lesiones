@@ -1,0 +1,367 @@
+{
+  "checkpoint_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl030-resnet34-ph2cp-ima0-s44/selection/best_teacher_model.pt",
+  "checkpoint_sha256": "554e6222a34c74d91e0b07fafe95842641f05ebcfdb8d8d73c6e564a060553fa",
+  "group1_ph2_val_original_39": {
+    "segmentation": {
+      "count": 39,
+      "dice_mean": 0.9344531928026932,
+      "dice_median": 0.9542547614887297,
+      "precision_mean": 0.9401943994972547,
+      "sensitivity_mean": 0.9427511398020142,
+      "median_area_ratio_pred_gt": 0.9831228608521185,
+      "zero_overlap_count": 0,
+      "empty_pred_count": 0,
+      "mislocalized_zero_count": 0,
+      "cases_with_repaired_hole_spill": 0
+    },
+    "cielab_real_skin_safety": {
+      "median_avail_skin_fov_frac": 0.8085339604591837,
+      "min_avail_skin_fov_frac": 0.20475924744897958,
+      "median_unprotected_lesion_frac_of_gt": 0.04446707399864223,
+      "mean_unprotected_lesion_frac_of_gt": 0.05724886019798562,
+      "max_lesion_contamination_in_skin_pool": 0.7805862178286307,
+      "circle_degenerate_mask_count": 0
+    }
+  },
+  "group2_ph2_val_synthetic_trios_75": {
+    "Note": "25 non-independent host trios (75 images total); fixed host, donor, and position within each trio.",
+    "overall_75": {
+      "count": 75,
+      "dice_mean": 0.8766000121625861,
+      "dice_median": 0.9558541266794626,
+      "precision_mean": 0.8584514047317445,
+      "sensitivity_mean": 0.9578110071080488,
+      "median_area_ratio_pred_gt": 1.0249017038007864,
+      "zero_overlap_count": 0,
+      "empty_pred_count": 0,
+      "mislocalized_zero_count": 0,
+      "cases_with_repaired_hole_spill": 44
+    },
+    "by_bin": {
+      "bin_0.5_1.0": {
+        "count": 25,
+        "dice_mean": 0.8487410785635059,
+        "dice_median": 0.9420654911838791,
+        "precision_mean": 0.8290593006160278,
+        "sensitivity_mean": 0.9519101001472131,
+        "median_area_ratio_pred_gt": 1.0423280423280423,
+        "zero_overlap_count": 0,
+        "empty_pred_count": 0,
+        "mislocalized_zero_count": 0,
+        "cases_with_repaired_hole_spill": 12
+      },
+      "bin_1.0_2.0": {
+        "count": 25,
+        "dice_mean": 0.8731856741108959,
+        "dice_median": 0.9644012944983819,
+        "precision_mean": 0.8557936699233007,
+        "sensitivity_mean": 0.9578747197295151,
+        "median_area_ratio_pred_gt": 1.0266311584553929,
+        "zero_overlap_count": 0,
+        "empty_pred_count": 0,
+        "mislocalized_zero_count": 0,
+        "cases_with_repaired_hole_spill": 15
+      },
+      "bin_2.0_5.0": {
+        "count": 25,
+        "dice_mean": 0.9078732838133564,
+        "dice_median": 0.9781757134862898,
+        "precision_mean": 0.8905012436559051,
+        "sensitivity_mean": 0.963648201447418,
+        "median_area_ratio_pred_gt": 1.0106263982102908,
+        "zero_overlap_count": 0,
+        "empty_pred_count": 0,
+        "mislocalized_zero_count": 0,
+        "cases_with_repaired_hole_spill": 17
+      }
+    }
+  },
+  "group3_ph2_val_repaired_backgrounds_25": {
+    "count": 25,
+    "cases_with_any_fp_pixels": 7,
+    "cases_with_fp_inside_repair_zone": 6,
+    "mean_repair_zone_fp_rate": 0.035099532076661194,
+    "max_repair_zone_fp_rate": 0.29344550477147163,
+    "mean_outside_repair_fp_rate": 0.007932182649347197,
+    "mean_prob_inside_repair": 0.04273830114863813,
+    "mean_prob_outside_repair": 0.012985457172617317,
+    "max_prob_inside_repair_across_25": 0.9998996257781982,
+    "per_host": [
+      {
+        "host_id": "IMD003",
+        "pred_px_total": 13,
+        "pred_area_frac_total": 0.00025908801020408165,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.00034202425741271806,
+        "max_prob_in_repair": 0.007158879656344652,
+        "mean_prob_in_repair": 0.004916156176477671,
+        "mean_prob_outside_repair": 0.006350744049996138
+      },
+      {
+        "host_id": "IMD020",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.020102551206946373,
+        "mean_prob_in_repair": 0.010481867007911205,
+        "mean_prob_outside_repair": 0.00608290359377861
+      },
+      {
+        "host_id": "IMD027",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.024230485782027245,
+        "mean_prob_in_repair": 0.009079302661120892,
+        "mean_prob_outside_repair": 0.005481203086674213
+      },
+      {
+        "host_id": "IMD048",
+        "pred_px_total": 195,
+        "pred_area_frac_total": 0.0038863201530612247,
+        "pred_px_in_repair": 63,
+        "repair_zone_fp_rate": 0.006009156810377719,
+        "outside_repair_fp_rate": 0.003663715340420217,
+        "max_prob_in_repair": 0.9805733561515808,
+        "mean_prob_in_repair": 0.0117226867005229,
+        "mean_prob_outside_repair": 0.008431081660091877
+      },
+      {
+        "host_id": "IMD078",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.04833217337727547,
+        "mean_prob_in_repair": 0.008350078016519547,
+        "mean_prob_outside_repair": 0.004783488344401121
+      },
+      {
+        "host_id": "IMD085",
+        "pred_px_total": 9,
+        "pred_area_frac_total": 0.0001793686224489796,
+        "pred_px_in_repair": 9,
+        "repair_zone_fp_rate": 0.0005955926146515784,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.5426413416862488,
+        "mean_prob_in_repair": 0.028557144105434418,
+        "mean_prob_outside_repair": 0.010572977364063263
+      },
+      {
+        "host_id": "IMD092",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.018057771027088165,
+        "mean_prob_in_repair": 0.0056768362410366535,
+        "mean_prob_outside_repair": 0.004230451304465532
+      },
+      {
+        "host_id": "IMD105",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.013190444558858871,
+        "mean_prob_in_repair": 0.005649074446409941,
+        "mean_prob_outside_repair": 0.0044194962829351425
+      },
+      {
+        "host_id": "IMD107",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.004243009258061647,
+        "mean_prob_in_repair": 0.0035807418171316385,
+        "mean_prob_outside_repair": 0.0032213092781603336
+      },
+      {
+        "host_id": "IMD125",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.006702764891088009,
+        "mean_prob_in_repair": 0.003702460089698434,
+        "mean_prob_outside_repair": 0.0032594511285424232
+      },
+      {
+        "host_id": "IMD139",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.01574011519551277,
+        "mean_prob_in_repair": 0.009184680879116058,
+        "mean_prob_outside_repair": 0.005152950529009104
+      },
+      {
+        "host_id": "IMD143",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.020089756697416306,
+        "mean_prob_in_repair": 0.00883064791560173,
+        "mean_prob_outside_repair": 0.0038114830385893583
+      },
+      {
+        "host_id": "IMD168",
+        "pred_px_total": 10308,
+        "pred_area_frac_total": 0.20543686224489796,
+        "pred_px_in_repair": 4674,
+        "repair_zone_fp_rate": 0.29344550477147163,
+        "outside_repair_fp_rate": 0.18335068992449882,
+        "max_prob_in_repair": 0.9992497563362122,
+        "mean_prob_in_repair": 0.3127833902835846,
+        "mean_prob_outside_repair": 0.1971805989742279
+      },
+      {
+        "host_id": "IMD177",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.0060602701269090176,
+        "mean_prob_in_repair": 0.005113278981298208,
+        "mean_prob_outside_repair": 0.004436260089278221
+      },
+      {
+        "host_id": "IMD198",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.004288710653781891,
+        "mean_prob_in_repair": 0.003414168953895569,
+        "mean_prob_outside_repair": 0.0031588864512741566
+      },
+      {
+        "host_id": "IMD203",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.0044645084999501705,
+        "mean_prob_in_repair": 0.003751157084479928,
+        "mean_prob_outside_repair": 0.0032741231843829155
+      },
+      {
+        "host_id": "IMD204",
+        "pred_px_total": 832,
+        "pred_area_frac_total": 0.016581632653061226,
+        "pred_px_in_repair": 364,
+        "repair_zone_fp_rate": 0.09311844461499105,
+        "outside_repair_fp_rate": 0.010948136711348165,
+        "max_prob_in_repair": 0.9607297778129578,
+        "mean_prob_in_repair": 0.10725628584623337,
+        "mean_prob_outside_repair": 0.015972798690199852
+      },
+      {
+        "host_id": "IMD278",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.00596249895170331,
+        "mean_prob_in_repair": 0.004594927188009024,
+        "mean_prob_outside_repair": 0.00395909184589982
+      },
+      {
+        "host_id": "IMD312",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.006018445361405611,
+        "mean_prob_in_repair": 0.004490947816520929,
+        "mean_prob_outside_repair": 0.003726002760231495
+      },
+      {
+        "host_id": "IMD328",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.021953972056508064,
+        "mean_prob_in_repair": 0.008981973864138126,
+        "mean_prob_outside_repair": 0.005110506433993578
+      },
+      {
+        "host_id": "IMD380",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.01703602820634842,
+        "mean_prob_in_repair": 0.008943416178226471,
+        "mean_prob_outside_repair": 0.005079407244920731
+      },
+      {
+        "host_id": "IMD386",
+        "pred_px_total": 2601,
+        "pred_area_frac_total": 0.051837531887755105,
+        "pred_px_in_repair": 2529,
+        "repair_zone_fp_rate": 0.27904667328699106,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.9998996257781982,
+        "mean_prob_in_repair": 0.282401442527771,
+        "mean_prob_outside_repair": 0.005204582586884499
+      },
+      {
+        "host_id": "IMD390",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.0049118902534246445,
+        "mean_prob_in_repair": 0.003989380784332752,
+        "mean_prob_outside_repair": 0.003510201582685113
+      },
+      {
+        "host_id": "IMD430",
+        "pred_px_total": 2805,
+        "pred_area_frac_total": 0.05590322066326531,
+        "pred_px_in_repair": 2764,
+        "repair_zone_fp_rate": 0.2052729298180468,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.9996658563613892,
+        "mean_prob_in_repair": 0.20843486487865448,
+        "mean_prob_outside_repair": 0.004763500764966011
+      },
+      {
+        "host_id": "IMD434",
+        "pred_px_total": 0,
+        "pred_area_frac_total": 0.0,
+        "pred_px_in_repair": 0,
+        "repair_zone_fp_rate": 0.0,
+        "outside_repair_fp_rate": 0.0,
+        "max_prob_in_repair": 0.018806036561727524,
+        "mean_prob_in_repair": 0.004570618271827698,
+        "mean_prob_outside_repair": 0.003462929045781493
+      }
+    ]
+  }
+}

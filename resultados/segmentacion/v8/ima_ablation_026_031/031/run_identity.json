@@ -1,0 +1,138 @@
+{
+  "run_id": "e69b7182-18c0-4cc3-8ff2-0cd534403bc8",
+  "identity_fingerprint": "7617708dfc6fc89431bfface603fab700fcf038eac9dac97d0448cea90066a74",
+  "output_dir": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl031-resnet34-ph2cp-ima6-s44/selection",
+  "identity": {
+    "run_type": "dermlip_guided_semi_supervised_case_disjoint_patient_unverified",
+    "ph2_manifest_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+    "ph2_source_artifact_sha256": "0c7c7a2d5cf06537f0e440f0a36ba7f3c94452c97da5f8a0c17279d2e3dd77b1",
+    "train_case_ids_sha256": "a2c5458bff2f7705ea06be0f114c8ae8df946346f34045b6f8240a26f8e2830f",
+    "val_case_ids_sha256": "1aafa780388bd9cee462501ddf40db71334d0ad074108ec9702aed5781bfd867",
+    "unlabeled_manifest_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+    "unlabeled_validation_audit_sha256": "097bd19a7426007bdbc49a497d37c402ef7ef9bfc03f236323f9b355dee62539",
+    "pool_provenance": {
+      "schema": "dermlip_v2_pool_provenance.v1",
+      "pool_stage": "selection",
+      "pool_root": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003",
+      "pool_manifest_path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/selection.manifest.json",
+      "pool_manifest_sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+      "pool_record_count": 34115,
+      "pool_dataset_counts": {
+        "ISIC2019": 14196,
+        "ISIC2020": 19919
+      },
+      "pool_cohort_sha256": "326f7316fcf2095a39122e3a198c6b0189a2bdafc43d7f137f6f5872f2aa2ae8",
+      "pool_use_attestation_path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/pool-use-attestation.v3.20261101.006.json",
+      "pool_use_attestation_sha256": "9bb5503ef40975aad99d006fe7d7ea0977d8613c7f0a078fac558b862a6ec8ad",
+      "preflight_receipt_path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/receipt.json",
+      "preflight_receipt_sha256": "933b5af709f56e3fbd72a1593b3f2f50f5619e12fcd32edc63136d7c2e63ded4",
+      "source_artifact_sha256": {
+        "dermlip_model_manifest_sha256": "f1bcc6e2f5c5eb102f2565bbb920c0298e0356cc1db575e5dc5f7203fa6ec45f",
+        "evaluation_manifest_receipt_sha256": "25f42c626ba6c4db8583b0220dcbd2f0450665fbbe3c62133741859988dc35a8",
+        "evaluation_manifest_sha256": "53009a68073d6ae1048063a9328a6e7bc6b9ef34cdf0096d64ebaa866fe0f179",
+        "ph2_exclusions_sha256": "b3253b3c1748f4057b497b8e2ceea6bfb4aa91344bba932b4c63d22253e9c09e",
+        "ph2_manifest_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+        "refit_source_manifest_sha256": "21903961c680cf8cc3bdffeb8be394e2e32aec2ca93b295eea47eeb859d0bea0",
+        "selection_source_manifest_sha256": "331457804f6bde1b65c4f184a1a529d9a6e4802b0349f6aebc9f2ab6d1945dc8",
+        "terms_acceptance_sha256": "5f6ef7d4cf7e810bddb053058bcd5dfaa9c56181e97ffcd62eb9356c47c598a9"
+      },
+      "fresh_model_initialization": true,
+      "legacy_checkpoint_reused": false,
+      "legacy_feature_cache_reused": false,
+      "legacy_pseudomasks_reused": false
+    },
+    "dermlip_model": {
+      "manifest_path": "/home/jovyan/work/dermlip_slic_v8/models/dermlip_model_manifest.json",
+      "manifest_sha256": "f1bcc6e2f5c5eb102f2565bbb920c0298e0356cc1db575e5dc5f7203fa6ec45f",
+      "model_repository": "redlessone/DermLIP_PanDerm-base-w-PubMed-256",
+      "model_revision": "b455d4ca3b39a742ae9a8ea7d3246216c6d4bf4f",
+      "tokenizer_repository": "NeuML/pubmedbert-base-embeddings",
+      "tokenizer_revision": "b79526d6ef3645e0df4530322e266f24c829f5ef",
+      "bundle_path": "/home/jovyan/work/dermlip_slic_v8/models/dermlip_bundle",
+      "model_name": "hf-hub:redlessone/DermLIP_PanDerm-base-w-PubMed-256",
+      "license": "CC-BY-NC-ND-4.0",
+      "terms_acceptance_status": "user_attested",
+      "terms_acceptance_verification_method": "manual_user_attestation",
+      "terms_human_attestation": {
+        "accepted_by": "Nicolas Moreno and Maria Paula Saavedra",
+        "accepted_on": "2026-10-21",
+        "attested_at": "2026-10-21T19:28:59Z",
+        "confirmed_by": "researchers",
+        "license": "CC-BY-NC-ND-4.0",
+        "model": "DermLIP PanDerm-base-w-PubMed-256",
+        "model_revision": "b455d4ca3b39a742ae9a8ea7d3246216c6d4bf4f",
+        "purpose": "academic_research",
+        "receipt_sha256": "5f6ef7d4cf7e810bddb053058bcd5dfaa9c56181e97ffcd62eb9356c47c598a9",
+        "redistribution_permitted": false,
+        "repository": "redlessone/DermLIP_PanDerm-base-w-PubMed-256",
+        "terms_reference": "DermLIP model access terms",
+        "terms_version": "CC-BY-NC-ND-4.0"
+      },
+      "terms_acceptance_evidence_path": "/home/jovyan/work/dermlip_slic_v8/models/terms-acceptance.json",
+      "terms_acceptance_evidence_sha256": "5f6ef7d4cf7e810bddb053058bcd5dfaa9c56181e97ffcd62eb9356c47c598a9",
+      "usage": {
+        "commercial_use": "prohibited",
+        "weight_modification": "prohibited"
+      },
+      "files": {
+        "added_tokens.json": "691a5ce0135045c12b8410af8d472ff8de864094df40ac9af418d6c644c7588d",
+        "config.json": "d384b4ca85c7c1eb07767aa69479b722d255f8a40e4a484c6428982b8f18baca",
+        "model.safetensors": "929ddc16369bb4ff6f8e92a6ee9f5e0748f2bef33989b5617533dd50beebe4ef",
+        "open_clip_config.json": "0d9dcaeebcd6fe219392578f3da73ab025d471d4c7289698b56788172ddc2ba1",
+        "open_clip_model.safetensors": "c01315cc8bda77decb7bfaaafaf4668979d065d0ded33c1cb42108cd8d56fedf",
+        "special_tokens_map.json": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+        "tokenizer.json": "6e046044df8a2fcedb10607075dca187cae61d806c0d80a96c5b81017edc90c9",
+        "tokenizer_config.json": "fb83ce924ed390dcdbc47883682193d233c782cd19d9610946c3e4e3c2e5ef38",
+        "vocab.txt": "79489a52be45e6fa033521e8ce8e4f62aedc0a742ee2aa6fc04667e5b0b1454d"
+      },
+      "model_source_hashes_verified": true,
+      "tokenizer_source_hashes_verified": false,
+      "tokenizer_bundle_integrity_verified": true,
+      "source_provenance_status": "model_files_verified_tokenizer_hashes_unverified",
+      "cache_verification": {
+        "verified": true,
+        "cache_root": "/home/jovyan/.cache/huggingface/hub",
+        "model_ref": "b455d4ca3b39a742ae9a8ea7d3246216c6d4bf4f",
+        "tokenizer_ref": "b79526d6ef3645e0df4530322e266f24c829f5ef",
+        "model_config_sha256": "0d9dcaeebcd6fe219392578f3da73ab025d471d4c7289698b56788172ddc2ba1",
+        "model_weights_sha256": "c01315cc8bda77decb7bfaaafaf4668979d065d0ded33c1cb42108cd8d56fedf",
+        "tokenizer_file_sha256": {
+          "added_tokens.json": "691a5ce0135045c12b8410af8d472ff8de864094df40ac9af418d6c644c7588d",
+          "special_tokens_map.json": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+          "tokenizer.json": "6e046044df8a2fcedb10607075dca187cae61d806c0d80a96c5b81017edc90c9",
+          "tokenizer_config.json": "fb83ce924ed390dcdbc47883682193d233c782cd19d9610946c3e4e3c2e5ef38",
+          "vocab.txt": "79489a52be45e6fa033521e8ce8e4f62aedc0a742ee2aa6fc04667e5b0b1454d"
+        },
+        "tokenizer_source_hashes_verified": false,
+        "tokenizer_cache_integrity_verified": true,
+        "cache_mutated": false
+      }
+    },
+    "code": {
+      "git_revision": null,
+      "source_sha256": {
+        "train_dermlip_semi_026.py": "871bd6187e4eedfe5a412230f69f8e22c2b8719638b558b2e3acdb15f9c5b4d4",
+        "trainer.py": "97dbe298bd090421b67dcda8d6c632d0b0501989168884b95ac3b4d94b147f6d",
+        "calibrator.py": "8dd53cbda8a86b1f90e1e09946ede4ee89c7d42057dd258247edd18728fb5595"
+      }
+    },
+    "config": {
+      "epochs": 300,
+      "batch_size": 16,
+      "learning_rate": 0.0001,
+      "ema_decay": 0.99,
+      "gamma_semantic": 0.5,
+      "kappa_uncertainty": 0.693147,
+      "seed": 44,
+      "device": "cuda:1",
+      "dermlip_guidance": true,
+      "hair_removal": true,
+      "pilot_samples": null,
+      "allow_self_consistency_pilot": false,
+      "perceptual_hash_distance_threshold": 4,
+      "backbone": "resnet34",
+      "flat_lr": true
+    }
+  },
+  "patient_independence_accredited": false
+}

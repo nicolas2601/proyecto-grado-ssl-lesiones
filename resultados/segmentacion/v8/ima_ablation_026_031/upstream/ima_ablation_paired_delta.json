@@ -1,0 +1,618 @@
+{
+  "tau_pre_registered": 0.2,
+  "factor": "ima_batch (0 = control, 6 = IMA++); labelled batch held at 16",
+  "per_run_stratified": {
+    "026": {
+      "overall_2594": {
+        "count": 2594,
+        "dice_mean": 0.8319646583753691,
+        "precision_mean": 0.8963155536373046,
+        "median_area_ratio_pred_gt": 0.9458385469582575,
+        "zero_overlap_count": 15,
+        "cielab_median_avail_skin_frac": 0.8768793909490948,
+        "cielab_p05_avail_skin_frac": 0.4963969920320408,
+        "cielab_mean_unprotected_lesion_frac_of_gt": 0.17100128863154576,
+        "cielab_p95_skin_pool_lesion_contamination": 0.38290280301540947,
+        "cielab_circle_degenerate_mask_count": 6
+      },
+      "by_size_stratum": {
+        "<1%": {
+          "count": 48,
+          "dice_mean": 0.5560905324239683,
+          "precision_mean": 0.4730179315100677,
+          "median_area_ratio_pred_gt": 1.7305162555842082,
+          "zero_overlap_count": 4,
+          "cielab_median_avail_skin_frac": 0.9866397028266732,
+          "cielab_p05_avail_skin_frac": 0.9198041245870533,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.11386605734968085,
+          "cielab_p95_skin_pool_lesion_contamination": 0.004780477468347256,
+          "cielab_circle_degenerate_mask_count": 1
+        },
+        "1-2%": {
+          "count": 149,
+          "dice_mean": 0.7815365988554913,
+          "precision_mean": 0.7210163814560542,
+          "median_area_ratio_pred_gt": 1.2020393945151746,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.9806599069148931,
+          "cielab_p05_avail_skin_frac": 0.8937723605105946,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.05086372247979334,
+          "cielab_p95_skin_pool_lesion_contamination": 0.003193452758200496,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "2-5%": {
+          "count": 427,
+          "dice_mean": 0.8271528300030689,
+          "precision_mean": 0.7883839001653784,
+          "median_area_ratio_pred_gt": 1.1033638731698643,
+          "zero_overlap_count": 4,
+          "cielab_median_avail_skin_frac": 0.9602610466365501,
+          "cielab_p05_avail_skin_frac": 0.8883825877915623,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.07877487248707576,
+          "cielab_p95_skin_pool_lesion_contamination": 0.010881762743994843,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "5-10%": {
+          "count": 432,
+          "dice_mean": 0.8490146785769936,
+          "precision_mean": 0.8728929701183762,
+          "median_area_ratio_pred_gt": 1.0002986456692216,
+          "zero_overlap_count": 1,
+          "cielab_median_avail_skin_frac": 0.9308060857896459,
+          "cielab_p05_avail_skin_frac": 0.8669108441987907,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.13363538615994436,
+          "cielab_p95_skin_pool_lesion_contamination": 0.03474111303820771,
+          "cielab_circle_degenerate_mask_count": 1
+        },
+        ">=10%": {
+          "count": 1538,
+          "dice_mean": 0.8420067785977354,
+          "precision_mean": 0.9630536775838607,
+          "median_area_ratio_pred_gt": 0.8653644465360623,
+          "zero_overlap_count": 6,
+          "cielab_median_avail_skin_frac": 0.7861152931495954,
+          "cielab_p05_avail_skin_frac": 0.4347163815807302,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.22052387512020707,
+          "cielab_p95_skin_pool_lesion_contamination": 0.5302046431498003,
+          "cielab_circle_degenerate_mask_count": 4
+        }
+      }
+    },
+    "027": {
+      "overall_2594": {
+        "count": 2594,
+        "dice_mean": 0.8438644719744117,
+        "precision_mean": 0.8722707650731284,
+        "median_area_ratio_pred_gt": 1.0037104129521683,
+        "zero_overlap_count": 6,
+        "cielab_median_avail_skin_frac": 0.8703074830107501,
+        "cielab_p05_avail_skin_frac": 0.48493780404980563,
+        "cielab_mean_unprotected_lesion_frac_of_gt": 0.12852406025746663,
+        "cielab_p95_skin_pool_lesion_contamination": 0.3555307542775465,
+        "cielab_circle_degenerate_mask_count": 4
+      },
+      "by_size_stratum": {
+        "<1%": {
+          "count": 48,
+          "dice_mean": 0.5384776273523635,
+          "precision_mean": 0.41259397182618224,
+          "median_area_ratio_pred_gt": 2.249830597835913,
+          "zero_overlap_count": 1,
+          "cielab_median_avail_skin_frac": 0.9851290805016351,
+          "cielab_p05_avail_skin_frac": 0.932929411546988,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.037893483854740465,
+          "cielab_p95_skin_pool_lesion_contamination": 0.0009600781086436134,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "1-2%": {
+          "count": 149,
+          "dice_mean": 0.7410095653351523,
+          "precision_mean": 0.6237977178849514,
+          "median_area_ratio_pred_gt": 1.5078678184255427,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.9769315564470484,
+          "cielab_p05_avail_skin_frac": 0.9286442338430744,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.018799474097418317,
+          "cielab_p95_skin_pool_lesion_contamination": 0.002197375619791297,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "2-5%": {
+          "count": 427,
+          "dice_mean": 0.8217167324447936,
+          "precision_mean": 0.7423768781440563,
+          "median_area_ratio_pred_gt": 1.2840983470126484,
+          "zero_overlap_count": 4,
+          "cielab_median_avail_skin_frac": 0.955918384308511,
+          "cielab_p05_avail_skin_frac": 0.9164564651220188,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.04409094501488728,
+          "cielab_p95_skin_pool_lesion_contamination": 0.006988246375438208,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "5-10%": {
+          "count": 432,
+          "dice_mean": 0.8631696477016653,
+          "precision_mean": 0.8370978882811337,
+          "median_area_ratio_pred_gt": 1.1382167750099546,
+          "zero_overlap_count": 1,
+          "cielab_median_avail_skin_frac": 0.9221679904580912,
+          "cielab_p05_avail_skin_frac": 0.8800373584696777,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.07724908703807942,
+          "cielab_p95_skin_pool_lesion_contamination": 0.02669968257791332,
+          "cielab_circle_degenerate_mask_count": 1
+        },
+        ">=10%": {
+          "count": 1538,
+          "dice_mean": 0.8640863175505376,
+          "precision_mean": 0.9566311958922098,
+          "median_area_ratio_pred_gt": 0.907878331347408,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.7736969960023092,
+          "cielab_p05_avail_skin_frac": 0.42520250391670067,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.1798263747207532,
+          "cielab_p95_skin_pool_lesion_contamination": 0.5030309550748742,
+          "cielab_circle_degenerate_mask_count": 3
+        }
+      }
+    },
+    "028": {
+      "overall_2594": {
+        "count": 2594,
+        "dice_mean": 0.8179855237469111,
+        "precision_mean": 0.8846762021573716,
+        "median_area_ratio_pred_gt": 0.9449335294123999,
+        "zero_overlap_count": 17,
+        "cielab_median_avail_skin_frac": 0.8750490736598608,
+        "cielab_p05_avail_skin_frac": 0.5047898895886817,
+        "cielab_mean_unprotected_lesion_frac_of_gt": 0.1809038220667543,
+        "cielab_p95_skin_pool_lesion_contamination": 0.3939910567710237,
+        "cielab_circle_degenerate_mask_count": 9
+      },
+      "by_size_stratum": {
+        "<1%": {
+          "count": 48,
+          "dice_mean": 0.5582919011349885,
+          "precision_mean": 0.4860000157161994,
+          "median_area_ratio_pred_gt": 1.5899495047094208,
+          "zero_overlap_count": 4,
+          "cielab_median_avail_skin_frac": 0.9877128943185433,
+          "cielab_p05_avail_skin_frac": 0.9081533806120384,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.12380995836629348,
+          "cielab_p95_skin_pool_lesion_contamination": 0.0047772248405987695,
+          "cielab_circle_degenerate_mask_count": 1
+        },
+        "1-2%": {
+          "count": 149,
+          "dice_mean": 0.7708752032496807,
+          "precision_mean": 0.7187060064602928,
+          "median_area_ratio_pred_gt": 1.1949212777598832,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.98086369680851,
+          "cielab_p05_avail_skin_frac": 0.8970996178947771,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.06810581233823784,
+          "cielab_p95_skin_pool_lesion_contamination": 0.003855432477357882,
+          "cielab_circle_degenerate_mask_count": 1
+        },
+        "2-5%": {
+          "count": 427,
+          "dice_mean": 0.7960502945434996,
+          "precision_mean": 0.7555339957993792,
+          "median_area_ratio_pred_gt": 1.1171795750754172,
+          "zero_overlap_count": 4,
+          "cielab_median_avail_skin_frac": 0.9596410940382357,
+          "cielab_p05_avail_skin_frac": 0.8664531210695109,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.09203500556876834,
+          "cielab_p95_skin_pool_lesion_contamination": 0.014988858909949285,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "5-10%": {
+          "count": 432,
+          "dice_mean": 0.8305256150506928,
+          "precision_mean": 0.8470420090823093,
+          "median_area_ratio_pred_gt": 1.0175325249640843,
+          "zero_overlap_count": 3,
+          "cielab_median_avail_skin_frac": 0.9292761897023809,
+          "cielab_p05_avail_skin_frac": 0.8298425236857604,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.1407463408619887,
+          "cielab_p95_skin_pool_lesion_contamination": 0.03753804118409951,
+          "cielab_circle_degenerate_mask_count": 3
+        },
+        ">=10%": {
+          "count": 1538,
+          "dice_mean": 0.8332220354933889,
+          "precision_mean": 0.9596226973662993,
+          "median_area_ratio_pred_gt": 0.86304907836446,
+          "zero_overlap_count": 6,
+          "cielab_median_avail_skin_frac": 0.7880088838269862,
+          "cielab_p05_avail_skin_frac": 0.4401157258571476,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.22956599725028468,
+          "cielab_p95_skin_pool_lesion_contamination": 0.5410682848806018,
+          "cielab_circle_degenerate_mask_count": 4
+        }
+      }
+    },
+    "029": {
+      "overall_2594": {
+        "count": 2594,
+        "dice_mean": 0.8367257930343781,
+        "precision_mean": 0.8402003482585751,
+        "median_area_ratio_pred_gt": 1.0535772692030998,
+        "zero_overlap_count": 3,
+        "cielab_median_avail_skin_frac": 0.8587777241552208,
+        "cielab_p05_avail_skin_frac": 0.48062289320915436,
+        "cielab_mean_unprotected_lesion_frac_of_gt": 0.10695310693565224,
+        "cielab_p95_skin_pool_lesion_contamination": 0.3426392729671875,
+        "cielab_circle_degenerate_mask_count": 1
+      },
+      "by_size_stratum": {
+        "<1%": {
+          "count": 48,
+          "dice_mean": 0.4793327720546934,
+          "precision_mean": 0.35887955295276913,
+          "median_area_ratio_pred_gt": 2.581396099495892,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.9827039267010819,
+          "cielab_p05_avail_skin_frac": 0.8981088293172463,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.03702554522683957,
+          "cielab_p95_skin_pool_lesion_contamination": 0.00047874641485902674,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "1-2%": {
+          "count": 149,
+          "dice_mean": 0.6824802730539389,
+          "precision_mean": 0.5570763058104077,
+          "median_area_ratio_pred_gt": 1.6369716627693505,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.9746294024525558,
+          "cielab_p05_avail_skin_frac": 0.8802612217503326,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.013789721691225028,
+          "cielab_p95_skin_pool_lesion_contamination": 0.001572610382892243,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "2-5%": {
+          "count": 427,
+          "dice_mean": 0.7850587335852409,
+          "precision_mean": 0.6818881775537281,
+          "median_area_ratio_pred_gt": 1.3936357257831486,
+          "zero_overlap_count": 2,
+          "cielab_median_avail_skin_frac": 0.9505488077799481,
+          "cielab_p05_avail_skin_frac": 0.9020939426123269,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.028648496455871846,
+          "cielab_p95_skin_pool_lesion_contamination": 0.004904215196377068,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "5-10%": {
+          "count": 432,
+          "dice_mean": 0.8480233769909874,
+          "precision_mean": 0.7876444522982,
+          "median_area_ratio_pred_gt": 1.224614525117571,
+          "zero_overlap_count": 1,
+          "cielab_median_avail_skin_frac": 0.9144676440404997,
+          "cielab_p05_avail_skin_frac": 0.8728349470415786,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.05370765320661575,
+          "cielab_p95_skin_pool_lesion_contamination": 0.02050159690361291,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        ">=10%": {
+          "count": 1538,
+          "dice_mean": 0.8739941451797858,
+          "precision_mean": 0.9413657087561743,
+          "median_area_ratio_pred_gt": 0.938895351363839,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.7601531940563749,
+          "cielab_p05_avail_skin_frac": 0.42152048746741827,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.15485685989355383,
+          "cielab_p95_skin_pool_lesion_contamination": 0.5156313411245805,
+          "cielab_circle_degenerate_mask_count": 1
+        }
+      }
+    },
+    "030": {
+      "overall_2594": {
+        "count": 2594,
+        "dice_mean": 0.8292565072971455,
+        "precision_mean": 0.8975976389748074,
+        "median_area_ratio_pred_gt": 0.941804834108505,
+        "zero_overlap_count": 12,
+        "cielab_median_avail_skin_frac": 0.880092277148083,
+        "cielab_p05_avail_skin_frac": 0.5017858936633071,
+        "cielab_mean_unprotected_lesion_frac_of_gt": 0.1782821314210343,
+        "cielab_p95_skin_pool_lesion_contamination": 0.3854241177257737,
+        "cielab_circle_degenerate_mask_count": 5
+      },
+      "by_size_stratum": {
+        "<1%": {
+          "count": 48,
+          "dice_mean": 0.5637023052645059,
+          "precision_mean": 0.48023860546020875,
+          "median_area_ratio_pred_gt": 1.6914714377913347,
+          "zero_overlap_count": 3,
+          "cielab_median_avail_skin_frac": 0.9873533078457448,
+          "cielab_p05_avail_skin_frac": 0.9377250503269728,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.10956668501291174,
+          "cielab_p95_skin_pool_lesion_contamination": 0.004121395316116461,
+          "cielab_circle_degenerate_mask_count": 1
+        },
+        "1-2%": {
+          "count": 149,
+          "dice_mean": 0.7790189587044385,
+          "precision_mean": 0.7169846016582146,
+          "median_area_ratio_pred_gt": 1.1908344072164954,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.9809519449869801,
+          "cielab_p05_avail_skin_frac": 0.8851959151748289,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.053483223908513726,
+          "cielab_p95_skin_pool_lesion_contamination": 0.0033875895039332084,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "2-5%": {
+          "count": 427,
+          "dice_mean": 0.8241544761871938,
+          "precision_mean": 0.7939505292242355,
+          "median_area_ratio_pred_gt": 1.0897077289914803,
+          "zero_overlap_count": 4,
+          "cielab_median_avail_skin_frac": 0.9605689827127658,
+          "cielab_p05_avail_skin_frac": 0.8979716873597081,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.09506276155966742,
+          "cielab_p95_skin_pool_lesion_contamination": 0.013666683370538397,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "5-10%": {
+          "count": 432,
+          "dice_mean": 0.8504817637725366,
+          "precision_mean": 0.8811346984285113,
+          "median_area_ratio_pred_gt": 0.9895866687196772,
+          "zero_overlap_count": 2,
+          "cielab_median_avail_skin_frac": 0.9321500010631341,
+          "cielab_p05_avail_skin_frac": 0.8825211708210215,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.1450521451849032,
+          "cielab_p95_skin_pool_lesion_contamination": 0.03775565151902626,
+          "cielab_circle_degenerate_mask_count": 1
+        },
+        ">=10%": {
+          "count": 1538,
+          "dice_mean": 0.8378659045172108,
+          "precision_mean": 0.9615208394613917,
+          "median_area_ratio_pred_gt": 0.8659120060513816,
+          "zero_overlap_count": 3,
+          "cielab_median_avail_skin_frac": 0.7870018650990691,
+          "cielab_p05_avail_skin_frac": 0.4363905234983888,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.22495534574598083,
+          "cielab_p95_skin_pool_lesion_contamination": 0.5302881984197299,
+          "cielab_circle_degenerate_mask_count": 3
+        }
+      }
+    },
+    "031": {
+      "overall_2594": {
+        "count": 2594,
+        "dice_mean": 0.8331693679217791,
+        "precision_mean": 0.8400872785842117,
+        "median_area_ratio_pred_gt": 1.0524221965166827,
+        "zero_overlap_count": 10,
+        "cielab_median_avail_skin_frac": 0.8611450794524291,
+        "cielab_p05_avail_skin_frac": 0.488799041759336,
+        "cielab_mean_unprotected_lesion_frac_of_gt": 0.11326058872789745,
+        "cielab_p95_skin_pool_lesion_contamination": 0.34868680429917437,
+        "cielab_circle_degenerate_mask_count": 5
+      },
+      "by_size_stratum": {
+        "<1%": {
+          "count": 48,
+          "dice_mean": 0.5060923326184086,
+          "precision_mean": 0.38028764456587744,
+          "median_area_ratio_pred_gt": 2.348798168103703,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.9842436538507856,
+          "cielab_p05_avail_skin_frac": 0.9272257289090009,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.04404259843413307,
+          "cielab_p95_skin_pool_lesion_contamination": 0.0018243679865471718,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "1-2%": {
+          "count": 149,
+          "dice_mean": 0.6898918259487374,
+          "precision_mean": 0.5589017410133412,
+          "median_area_ratio_pred_gt": 1.677444839455995,
+          "zero_overlap_count": 0,
+          "cielab_median_avail_skin_frac": 0.9746640624999985,
+          "cielab_p05_avail_skin_frac": 0.9162147294564267,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.013599462367154409,
+          "cielab_p95_skin_pool_lesion_contamination": 0.0014764562469618103,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "2-5%": {
+          "count": 427,
+          "dice_mean": 0.7867062278326318,
+          "precision_mean": 0.6829894566917717,
+          "median_area_ratio_pred_gt": 1.4073362693931855,
+          "zero_overlap_count": 3,
+          "cielab_median_avail_skin_frac": 0.9509134112590553,
+          "cielab_p05_avail_skin_frac": 0.9137448905086221,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.03228367031403292,
+          "cielab_p95_skin_pool_lesion_contamination": 0.005635398785294873,
+          "cielab_circle_degenerate_mask_count": 0
+        },
+        "5-10%": {
+          "count": 432,
+          "dice_mean": 0.8418193983425155,
+          "precision_mean": 0.7829843804494859,
+          "median_area_ratio_pred_gt": 1.25685672046405,
+          "zero_overlap_count": 2,
+          "cielab_median_avail_skin_frac": 0.9150924915817866,
+          "cielab_p05_avail_skin_frac": 0.8741046567741295,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.05926175652633603,
+          "cielab_p95_skin_pool_lesion_contamination": 0.023851018464705984,
+          "cielab_circle_degenerate_mask_count": 2
+        },
+        ">=10%": {
+          "count": 1538,
+          "dice_mean": 0.8677278849080293,
+          "precision_mean": 0.9413332145225817,
+          "median_area_ratio_pred_gt": 0.9313041867593279,
+          "zero_overlap_count": 5,
+          "cielab_median_avail_skin_frac": 0.765347909341519,
+          "cielab_p05_avail_skin_frac": 0.4329410398644555,
+          "cielab_mean_unprotected_lesion_frac_of_gt": 0.16272522529203662,
+          "cielab_p95_skin_pool_lesion_contamination": 0.5025055982267158,
+          "cielab_circle_degenerate_mask_count": 3
+        }
+      }
+    }
+  },
+  "paired_deltas": {
+    "seed42": {
+      "control_run": "026",
+      "imapp_run": "027",
+      "overall_2594": {
+        "dice_control": 0.8319646583753691,
+        "dice_imapp": 0.8438644719744117,
+        "delta_dice": 0.011899813599042575
+      },
+      "by_size_stratum": {
+        "<1%": {
+          "count": 48,
+          "dice_control": 0.5560905324239683,
+          "dice_imapp": 0.5384776273523635,
+          "delta_dice": -0.017612905071604845
+        },
+        "1-2%": {
+          "count": 149,
+          "dice_control": 0.7815365988554913,
+          "dice_imapp": 0.7410095653351523,
+          "delta_dice": -0.04052703352033904
+        },
+        "2-5%": {
+          "count": 427,
+          "dice_control": 0.8271528300030689,
+          "dice_imapp": 0.8217167324447936,
+          "delta_dice": -0.0054360975582753435
+        },
+        "5-10%": {
+          "count": 432,
+          "dice_control": 0.8490146785769936,
+          "dice_imapp": 0.8631696477016653,
+          "delta_dice": 0.014154969124671624
+        },
+        ">=10%": {
+          "count": 1538,
+          "dice_control": 0.8420067785977354,
+          "dice_imapp": 0.8640863175505376,
+          "delta_dice": 0.022079538952802125
+        }
+      }
+    },
+    "seed43": {
+      "control_run": "028",
+      "imapp_run": "029",
+      "overall_2594": {
+        "dice_control": 0.8179855237469111,
+        "dice_imapp": 0.8367257930343781,
+        "delta_dice": 0.01874026928746697
+      },
+      "by_size_stratum": {
+        "<1%": {
+          "count": 48,
+          "dice_control": 0.5582919011349885,
+          "dice_imapp": 0.4793327720546934,
+          "delta_dice": -0.07895912908029512
+        },
+        "1-2%": {
+          "count": 149,
+          "dice_control": 0.7708752032496807,
+          "dice_imapp": 0.6824802730539389,
+          "delta_dice": -0.08839493019574185
+        },
+        "2-5%": {
+          "count": 427,
+          "dice_control": 0.7960502945434996,
+          "dice_imapp": 0.7850587335852409,
+          "delta_dice": -0.010991560958258706
+        },
+        "5-10%": {
+          "count": 432,
+          "dice_control": 0.8305256150506928,
+          "dice_imapp": 0.8480233769909874,
+          "delta_dice": 0.01749776194029462
+        },
+        ">=10%": {
+          "count": 1538,
+          "dice_control": 0.8332220354933889,
+          "dice_imapp": 0.8739941451797858,
+          "delta_dice": 0.040772109686396885
+        }
+      }
+    },
+    "seed44": {
+      "control_run": "030",
+      "imapp_run": "031",
+      "overall_2594": {
+        "dice_control": 0.8292565072971455,
+        "dice_imapp": 0.8331693679217791,
+        "delta_dice": 0.003912860624633585
+      },
+      "by_size_stratum": {
+        "<1%": {
+          "count": 48,
+          "dice_control": 0.5637023052645059,
+          "dice_imapp": 0.5060923326184086,
+          "delta_dice": -0.05760997264609735
+        },
+        "1-2%": {
+          "count": 149,
+          "dice_control": 0.7790189587044385,
+          "dice_imapp": 0.6898918259487374,
+          "delta_dice": -0.08912713275570106
+        },
+        "2-5%": {
+          "count": 427,
+          "dice_control": 0.8241544761871938,
+          "dice_imapp": 0.7867062278326318,
+          "delta_dice": -0.037448248354562064
+        },
+        "5-10%": {
+          "count": 432,
+          "dice_control": 0.8504817637725366,
+          "dice_imapp": 0.8418193983425155,
+          "delta_dice": -0.00866236543002108
+        },
+        ">=10%": {
+          "count": 1538,
+          "dice_control": 0.8378659045172108,
+          "dice_imapp": 0.8677278849080293,
+          "delta_dice": 0.029861980390818554
+        }
+      }
+    }
+  },
+  "sign_agreement_across_seeds": {
+    "<1%": {
+      "positive_seeds": 0,
+      "sign_consistent_3of3": true
+    },
+    "1-2%": {
+      "positive_seeds": 0,
+      "sign_consistent_3of3": true
+    },
+    "2-5%": {
+      "positive_seeds": 0,
+      "sign_consistent_3of3": true
+    },
+    "5-10%": {
+      "positive_seeds": 2,
+      "sign_consistent_3of3": false
+    },
+    ">=10%": {
+      "positive_seeds": 3,
+      "sign_consistent_3of3": true
+    },
+    "overall_2594": {
+      "positive_seeds": 3,
+      "sign_consistent_3of3": true
+    }
+  },
+  "caveats": [
+    "patient_independence_accredited is false for every run in this lot",
+    "the 2,594 evaluation manifest is role post_run_evaluation_only_candidate",
+    "source-cohort disjointness is accredited; patient independence is not"
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "dermlip_selection_runtime_config.v1",
+  "preparation_id": "dermlip-selection-runtime-20261101-029",
+  "artifact_path": "plan-segmentacion/metodos-v8/launch-preparation/configs/dermlip.selection.runtime.20261101.029.json",
+  "status": "execution_authorized",
+  "method": "dermlip_semi_supervised",
+  "stage": "selection",
+  "supersedes": [
+    "plan-segmentacion/metodos-v8/launch-preparation/configs/dermlip.selection.runtime.20261028.023.json"
+  ],
+  "paths": {
+    "ph2_manifest": "/home/jovyan/work/dermlip_slic_v8/preflight/ph2-curator-exclusions-20261022-001/manifest.json",
+    "pool_manifest": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/selection.manifest.json",
+    "pool_use_attestation": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/pool-use-attestation.v3.20261101.006.json",
+    "dermlip_model_manifest": "/home/jovyan/work/dermlip_slic_v8/models/dermlip_model_manifest.json",
+    "terms_acceptance": "/home/jovyan/work/dermlip_slic_v8/models/terms-acceptance.json",
+    "output_root": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl029-resnet34-ph2cp-ima6-s43/selection/",
+    "selection_gate": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-runtime-gate-v3-20261101-029.json",
+    "execution_gate": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/dermlip-selection-execution-gate-v3-20261101-029.json",
+    "execution_claim_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl029-resnet34-ph2cp-ima6-s43/selection/claims/dermlip-selection-20261101-029.selection.claim.json",
+    "execution_gate_sha256": "dd481c6acea4c9677e187890c16bf4db73bcac9aa2ed259075a87c73fcfae7a3"
+  },
+  "bindings": {
+    "ph2_manifest": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/preflight/ph2-curator-exclusions-20261022-001/manifest.json",
+      "sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf",
+      "record_count": 195
+    },
+    "pool_manifest": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/selection.manifest.json",
+      "sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d",
+      "cohort_sha256": "326f7316fcf2095a39122e3a198c6b0189a2bdafc43d7f137f6f5872f2aa2ae8",
+      "record_count": 34115,
+      "dataset_counts": {
+        "ISIC2019": 14196,
+        "ISIC2020": 19919
+      },
+      "stage": "selection"
+    },
+    "pool_use_attestation": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/runtime_poolv2_20261022_001/preflight/pool-use-attestation.v3.20261101.006.json",
+      "sha256": "9bb5503ef40975aad99d006fe7d7ea0977d8613c7f0a078fac558b862a6ec8ad"
+    },
+    "dermlip_model_manifest": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/models/dermlip_model_manifest.json",
+      "sha256": "f1bcc6e2f5c5eb102f2565bbb920c0298e0356cc1db575e5dc5f7203fa6ec45f"
+    },
+    "terms_acceptance": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/models/terms-acceptance.json",
+      "sha256": "5f6ef7d4cf7e810bddb053058bcd5dfaa9c56181e97ffcd62eb9356c47c598a9"
+    },
+    "evaluation_manifest": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/preflight/isic2018-task1-eval-2594-v2/manifest.json",
+      "sha256": "53009a68073d6ae1048063a9328a6e7bc6b9ef34cdf0096d64ebaa866fe0f179",
+      "receipt_path": "/home/jovyan/work/dermlip_slic_v8/preflight/isic2018-task1-eval-2594-v2/manifest.receipt.json",
+      "receipt_sha256": "25f42c626ba6c4db8583b0220dcbd2f0450665fbbe3c62133741859988dc35a8",
+      "pair_count": 2594,
+      "role": "post_run_evaluation_only_candidate"
+    }
+  },
+  "ph2": {
+    "manifest_sha256": "d2a159bb1f846e0ee2195406268d457d3c1b5a26a650c201b31e9f815371b9bf"
+  },
+  "dermlip_model": {
+    "manifest_sha256": "f1bcc6e2f5c5eb102f2565bbb920c0298e0356cc1db575e5dc5f7203fa6ec45f",
+    "terms_acceptance_sha256": "5f6ef7d4cf7e810bddb053058bcd5dfaa9c56181e97ffcd62eb9356c47c598a9"
+  },
+  "evaluation_candidate": {
+    "path": "/home/jovyan/work/dermlip_slic_v8/preflight/isic2018-task1-eval-2594-v2/manifest.json",
+    "sha256": "53009a68073d6ae1048063a9328a6e7bc6b9ef34cdf0096d64ebaa866fe0f179",
+    "receipt_path": "/home/jovyan/work/dermlip_slic_v8/preflight/isic2018-task1-eval-2594-v2/manifest.receipt.json",
+    "receipt_sha256": "25f42c626ba6c4db8583b0220dcbd2f0450665fbbe3c62133741859988dc35a8",
+    "pair_count": 2594,
+    "role": "post_run_evaluation_only_candidate"
+  },
+  "profile": {
+    "epochs": 300,
+    "batch_size": 16,
+    "learning_rate": 0.0001,
+    "ema_decay": 0.99,
+    "gamma_semantic": 0.5,
+    "kappa_uncertainty": 0.693147,
+    "seed": 43,
+    "device": "cuda:0",
+    "guidance_enabled": true,
+    "hair_removal": true,
+    "pilot_samples": null,
+    "allow_self_consistency_pilot": false,
+    "execution_claim_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl029-resnet34-ph2cp-ima6-s43/selection/claims/dermlip-selection-20261101-029.selection.claim.json",
+    "stage": "selection",
+    "ima_batch": 6
+  },
+  "isolation": {
+    "output_must_be_new_and_empty": true,
+    "reuse_historical_checkpoint": false,
+    "reuse_legacy_cache": false,
+    "reuse_legacy_pseudomask": false,
+    "post_run_consumed_input_audit_required": true
+  },
+  "execution_enabled": true,
+  "launch_ready": true,
+  "training_started": false,
+  "verified_for_use": false,
+  "execution_ready": true,
+  "patient_independence_accredited": false,
+  "ablation": {
+    "lot": "ima-cohort-single-factor-026-031",
+    "arm": "imapp",
+    "ima_batch": 6,
+    "ph2_batch": 10,
+    "labelled_batch_total": 16,
+    "factor": "source of 6 of the 16 labelled images per step",
+    "control_arm": "ima_batch=0, all 16 labelled images from PH2"
+  },
+  "train_script": "/home/jovyan/work/dermlip_slic_v8/scripts/train_dermlip_semi_026.py",
+  "train_script_sha256": "871bd6187e4eedfe5a412230f69f8e22c2b8719638b558b2e3acdb15f9c5b4d4",
+  "source_cohort_disjoint_from_evaluation": true,
+  "holdout_novelty": false
+}

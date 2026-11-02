@@ -1,0 +1,247 @@
+{
+  "estado": "completado",
+  "corrida": "028",
+  "checkpoint_sha256": "f4ba91e5eecf6d2d9654d90e8ba52feef7fa6350a3a7eb5da8c87db39459dd6b",
+  "inferencia_realizada_una_sola_vez": true,
+  "preprocesamiento_comun": "Limpieza de pelo igual a entrenamiento/validaci\u00f3n; resize 224 y normalizaci\u00f3n del encoder",
+  "filtros_morfologicos": [
+    "vignette_mask",
+    "fill_holes"
+  ],
+  "sin_filtros_adicionales": [
+    "SLIC",
+    "mayor_componente",
+    "prior_central",
+    "rescate_microlesion"
+  ],
+  "conteos": {
+    "casos": 2594,
+    "mejoran_dice": 252,
+    "empeoran_dice": 119,
+    "iguales_dice": 2223,
+    "dice_cero_rescatados": 0,
+    "nuevos_dice_cero": 0,
+    "delta_dice_medio": 0.003916267071120683
+  },
+  "metricas_crudas": {
+    "mean_dice": 0.8179855237469111,
+    "std_dice": 0.20433914681453216,
+    "mean_iou": 0.7318174754522302,
+    "std_iou": 0.233898038554533,
+    "mean_sensitivity": 0.8190961779332456,
+    "std_sensitivity": 0.21308508044456453,
+    "mean_specificity": 0.9854061835443818,
+    "std_specificity": 0.036245275301372705,
+    "mean_accuracy": 0.9341239946284988,
+    "std_accuracy": 0.10303341715662513,
+    "mean_hd95": 346.50370114125974,
+    "std_hd95": 513.1815949942993
+  },
+  "metricas_morfologicas": {
+    "mean_dice": 0.8219017908180317,
+    "std_dice": 0.20020995395629199,
+    "mean_iou": 0.7360505795705414,
+    "std_iou": 0.22970301314179734,
+    "mean_sensitivity": 0.8177567446137485,
+    "std_sensitivity": 0.21329054920448606,
+    "mean_specificity": 0.9865554720927731,
+    "std_specificity": 0.03479067544374881,
+    "mean_accuracy": 0.9344646362820161,
+    "std_accuracy": 0.10337971073944183,
+    "mean_hd95": 312.7902105622488,
+    "std_hd95": 457.57735055868625
+  },
+  "comparacion_pareada": {
+    "schema_version": 2,
+    "method": "paired_percentile_bootstrap",
+    "estimand": "mean_delta=A-B",
+    "evaluation_unit": "image_id",
+    "interval_interpretation": "descriptive",
+    "patient_independence_accredited": false,
+    "ci_level": 0.95,
+    "n_bootstraps_requested": 1000,
+    "seed": 42,
+    "common_cases": 2594,
+    "common_ids": 2594,
+    "unique_case_counts": {
+      "sample_a": 2594,
+      "sample_b": 2594
+    },
+    "unmatched_case_counts": {
+      "sample_a_only": 0,
+      "sample_a_reference_skipped": 0,
+      "sample_b_only": 0
+    },
+    "metrics": {
+      "dice": {
+        "status": "ok",
+        "n_pairs": 2594,
+        "excluded_pairs": 0,
+        "exclusions": {
+          "sample_a": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          },
+          "sample_b": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          }
+        },
+        "improvement_direction": "higher",
+        "n_bootstraps_effective": 1000,
+        "mean_delta": 0.003916267071120683,
+        "ci_level": 0.95,
+        "ci_lower": 0.0025165595736495426,
+        "ci_upper": 0.005421205343416048,
+        "interval_favors_a_descriptively": true
+      },
+      "iou": {
+        "status": "ok",
+        "n_pairs": 2594,
+        "excluded_pairs": 0,
+        "exclusions": {
+          "sample_a": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          },
+          "sample_b": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          }
+        },
+        "improvement_direction": "higher",
+        "n_bootstraps_effective": 1000,
+        "mean_delta": 0.004233104118311338,
+        "ci_level": 0.95,
+        "ci_lower": 0.0026191576216710167,
+        "ci_upper": 0.005920840642468655,
+        "interval_favors_a_descriptively": true
+      },
+      "sensitivity": {
+        "status": "ok",
+        "n_pairs": 2594,
+        "excluded_pairs": 0,
+        "exclusions": {
+          "sample_a": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          },
+          "sample_b": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          }
+        },
+        "improvement_direction": "higher",
+        "n_bootstraps_effective": 1000,
+        "mean_delta": -0.0013394333194973005,
+        "ci_level": 0.95,
+        "ci_lower": -0.0020023072219178964,
+        "ci_upper": -0.0007727692582497302,
+        "interval_favors_a_descriptively": false
+      },
+      "specificity": {
+        "status": "ok",
+        "n_pairs": 2594,
+        "excluded_pairs": 0,
+        "exclusions": {
+          "sample_a": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          },
+          "sample_b": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          }
+        },
+        "improvement_direction": "higher",
+        "n_bootstraps_effective": 1000,
+        "mean_delta": 0.00114928854839144,
+        "ci_level": 0.95,
+        "ci_lower": 0.0008233236079677951,
+        "ci_upper": 0.001523309532645842,
+        "interval_favors_a_descriptively": true
+      },
+      "accuracy": {
+        "status": "ok",
+        "n_pairs": 2594,
+        "excluded_pairs": 0,
+        "exclusions": {
+          "sample_a": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          },
+          "sample_b": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 0,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          }
+        },
+        "improvement_direction": "higher",
+        "n_bootstraps_effective": 1000,
+        "mean_delta": 0.0003406416535172503,
+        "ci_level": 0.95,
+        "ci_lower": -0.00018273913545276512,
+        "ci_upper": 0.0008501850823532441,
+        "interval_favors_a_descriptively": false
+      },
+      "hd95": {
+        "status": "ok",
+        "n_pairs": 2590,
+        "excluded_pairs": 4,
+        "exclusions": {
+          "sample_a": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 4,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          },
+          "sample_b": {
+            "missing_metric_key": 0,
+            "none": 0,
+            "nan": 4,
+            "positive_infinity": 0,
+            "negative_infinity": 0
+          }
+        },
+        "improvement_direction": "lower",
+        "n_bootstraps_effective": 1000,
+        "mean_delta": -33.71349057901097,
+        "ci_level": 0.95,
+        "ci_lower": -43.51898669792932,
+        "ci_upper": -25.397606831534574,
+        "interval_favors_a_descriptively": true
+      }
+    }
+  },
+  "limites": "Benchmark ISIC ya expuesto; bootstrap por imagen condicionado a predicciones fijas; independencia por paciente no acreditada. No elige modelo ni libera m\u00e1scaras al clasificador."
+}

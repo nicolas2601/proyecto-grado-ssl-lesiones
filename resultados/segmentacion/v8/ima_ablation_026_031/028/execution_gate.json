@@ -1,0 +1,58 @@
+{
+  "schema": "dermlip_stage_execution_gate.v1",
+  "gate_id": "dermlip-selection-execution-20261101-028",
+  "status": "execution_authorized",
+  "method": "dermlip_semi_supervised",
+  "stage": "selection",
+  "execution_ready": true,
+  "execution_enabled": true,
+  "launch_ready": true,
+  "training_started": false,
+  "verified_for_use": false,
+  "patient_independence_accredited": false,
+  "pool_manifest_frozen": true,
+  "training_consumable": true,
+  "profile": {
+    "epochs": 300,
+    "batch_size": 16,
+    "learning_rate": 0.0001,
+    "ema_decay": 0.99,
+    "gamma_semantic": 0.5,
+    "kappa_uncertainty": 0.693147,
+    "seed": 43,
+    "device": "cuda:1",
+    "guidance_enabled": true,
+    "hair_removal": true,
+    "pilot_samples": null,
+    "allow_self_consistency_pilot": false,
+    "execution_claim_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl028-resnet34-ph2cp-ima0-s43/selection/claims/dermlip-selection-20261101-028.selection.claim.json",
+    "stage": "selection",
+    "ima_batch": 0
+  },
+  "profile_sha256": "d735a47069f9bcf1dc2a6d83948bd47e3436deb6f4c51da197682ea807c10d78",
+  "pool_manifest": {
+    "path": "/home/jovyan/work/dermlip_slic_v8/preflight/source-disjoint-pools-v3-20261101-003/selection.manifest.json",
+    "sha256": "0bb8be1d7d1eaa9848e7b554b8e20b6d9ee69687fecf3d2d375acbb027140a5d"
+  },
+  "pool_use_attestation_sha256": "9bb5503ef40975aad99d006fe7d7ea0977d8613c7f0a078fac558b862a6ec8ad",
+  "execution_claim_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl028-resnet34-ph2cp-ima0-s43/selection/claims/dermlip-selection-20261101-028.selection.claim.json",
+  "gpu_preflight": {
+    "observed_at_nvidia_smi": "2026-11-01 18:35:29",
+    "cuda_visible_devices": "0,1",
+    "selected_logical_device": "cuda:1",
+    "selected_physical_gpu_index": 1,
+    "utilization_percent": 0,
+    "memory_used_mib": 2,
+    "memory_total_mib": 24467,
+    "memory_free_mib": 24465,
+    "temperature_c": 24,
+    "listed_processes_on_selected_gpu": 0
+  },
+  "evaluation_scope": {
+    "manifest_role": "post_run_evaluation_only_candidate",
+    "patient_independence_accredited": false,
+    "holdout_independence_claimed": false
+  },
+  "train_script": "/home/jovyan/work/dermlip_slic_v8/scripts/train_dermlip_semi_026.py",
+  "train_script_sha256": "871bd6187e4eedfe5a412230f69f8e22c2b8719638b558b2e3acdb15f9c5b4d4"
+}
