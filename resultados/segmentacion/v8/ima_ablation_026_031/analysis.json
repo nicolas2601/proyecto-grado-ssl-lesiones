@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "source_verification": {
+    "source_receipt_sha256": "ad47d1a4ce61c8c3c2f2da8d0c931cb8ad011b43c2c68a134b24ece513711d05",
+    "binding_receipt_sha256": "7464d016028a0205f5199099306e09169c8ed2241e6a2a3cc379a4108ed4e548",
+    "shared_code_recipe_cohort_and_ph2_split_verified": true
+  },
+  "method": {
+    "analysis": "post_hoc_exploratory",
+    "bootstrap_unit": "image",
+    "resamples": 5000,
+    "rng": "numpy.default_rng",
+    "rng_seed": 20261102,
+    "analysis_source_sha256": "7dadda937aa0a6918fd474fc1788cfd77df34ce425b8e00c65723fa83ac977c2",
+    "numpy_version": "2.4.4",
+    "confidence": 0.95,
+    "multiplicity_adjusted": false,
+    "seed_order": [
+      42,
+      43,
+      44
+    ],
+    "delta": "IMA minus control",
+    "patient_independence_accredited": false,
+    "scope": "conditional on these six trained networks and this image cohort"
+  },
+  "contrasts": {
+    "overall": {
+      "count": 2594,
+      "per_seed": [
+        {
+          "delta": 0.011899813599042686,
+          "ci95": [
+            0.007941304160544463,
+            0.015931747974723826
+          ]
+        },
+        {
+          "delta": 0.018740269287467148,
+          "ci95": [
+            0.01360772550374594,
+            0.023899588563194116
+          ]
+        },
+        {
+          "delta": 0.003912860624633647,
+          "ci95": [
+            -0.00029449853588744116,
+            0.008226209796930692
+          ]
+        }
+      ],
+      "mean_across_fixed_seeds": {
+        "delta": 0.011517647837047826,
+        "ci95": [
+          0.0074789861251100655,
+          0.015561192505249915
+        ]
+      },
+      "seed_delta_range": [
+        0.003912860624633647,
+        0.018740269287467148
+      ],
+      "positive_seed_count": 3,
+      "negative_seed_count": 0,
+      "seed_sign_flip_sensitivity": {
+        "assignments": 8,
+        "two_sided_p": 0.25,
+        "assumption": "exchangeable symmetric seed-pair differences; sensitivity only"
+      }
+    },
+    "<1%": {
+      "count": 48,
+      "per_seed": [
+        {
+          "delta": -0.017612905071604863,
+          "ci95": [
+            -0.058727731777436856,
+            0.02546278381909286
+          ]
+        },
+        {
+          "delta": -0.07895912908029502,
+          "ci95": [
+            -0.11471238511107236,
+            -0.040000992763820714
+          ]
+        },
+        {
+          "delta": -0.05760997264609741,
+          "ci95": [
+            -0.0934817120542652,
+            -0.02039630786735222
+          ]
+        }
+      ],
+      "mean_across_fixed_seeds": {
+        "delta": -0.0513940022659991,
+        "ci95": [
+          -0.08233983733483473,
+          -0.02071778299611565
+        ]
+      },
+      "seed_delta_range": [
+        -0.07895912908029502,
+        -0.017612905071604863
+      ],
+      "positive_seed_count": 0,
+      "negative_seed_count": 3,
+      "seed_sign_flip_sensitivity": {
+        "assignments": 8,
+        "two_sided_p": 0.25,
+        "assumption": "exchangeable symmetric seed-pair differences; sensitivity only"
+      }
+    },
+    "1-2%": {
+      "count": 149,
+      "per_seed": [
+        {
+          "delta": -0.0405270335203391,
+          "ci95": [
+            -0.06218019561013418,
+            -0.017267141954078
+          ]
+        },
+        {
+          "delta": -0.08839493019574189,
+          "ci95": [
+            -0.10677401432886258,
+            -0.07035929029111206
+          ]
+        },
+        {
+          "delta": -0.08912713275570085,
+          "ci95": [
+            -0.1073301551617655,
+            -0.07051541008276081
+          ]
+        }
+      ],
+      "mean_across_fixed_seeds": {
+        "delta": -0.07268303215726062,
+        "ci95": [
+          -0.08834501106291662,
+          -0.05700327389521827
+        ]
+      },
+      "seed_delta_range": [
+        -0.08912713275570085,
+        -0.0405270335203391
+      ],
+      "positive_seed_count": 0,
+      "negative_seed_count": 3,
+      "seed_sign_flip_sensitivity": {
+        "assignments": 8,
+        "two_sided_p": 0.25,
+        "assumption": "exchangeable symmetric seed-pair differences; sensitivity only"
+      }
+    },
+    "2-5%": {
+      "count": 427,
+      "per_seed": [
+        {
+          "delta": -0.0054360975582753044,
+          "ci95": [
+            -0.019442317667125262,
+            0.00974443340754098
+          ]
+        },
+        {
+          "delta": -0.010991560958258767,
+          "ci95": [
+            -0.028895037602526284,
+            0.008355706137965152
+          ]
+        },
+        {
+          "delta": -0.03744824835456202,
+          "ci95": [
+            -0.05108750632842515,
+            -0.022989510277149735
+          ]
+        }
+      ],
+      "mean_across_fixed_seeds": {
+        "delta": -0.017958635623698697,
+        "ci95": [
+          -0.03191735717857729,
+          -0.002747960383073328
+        ]
+      },
+      "seed_delta_range": [
+        -0.03744824835456202,
+        -0.0054360975582753044
+      ],
+      "positive_seed_count": 0,
+      "negative_seed_count": 3,
+      "seed_sign_flip_sensitivity": {
+        "assignments": 8,
+        "two_sided_p": 0.25,
+        "assumption": "exchangeable symmetric seed-pair differences; sensitivity only"
+      }
+    },
+    "5-10%": {
+      "count": 432,
+      "per_seed": [
+        {
+          "delta": 0.01415496912467157,
+          "ci95": [
+            0.0026048215305591316,
+            0.02673032270109398
+          ]
+        },
+        {
+          "delta": 0.01749776194029475,
+          "ci95": [
+            0.00300109295875073,
+            0.03356210527037555
+          ]
+        },
+        {
+          "delta": -0.00866236543002105,
+          "ci95": [
+            -0.019817640312909193,
+            0.003275474289244459
+          ]
+        }
+      ],
+      "mean_across_fixed_seeds": {
+        "delta": 0.007663455211648423,
+        "ci95": [
+          -0.0035250391978467097,
+          0.01990900455911547
+        ]
+      },
+      "seed_delta_range": [
+        -0.00866236543002105,
+        0.01749776194029475
+      ],
+      "positive_seed_count": 2,
+      "negative_seed_count": 1,
+      "seed_sign_flip_sensitivity": {
+        "assignments": 8,
+        "two_sided_p": 0.5,
+        "assumption": "exchangeable symmetric seed-pair differences; sensitivity only"
+      }
+    },
+    ">=10%": {
+      "count": 1538,
+      "per_seed": [
+        {
+          "delta": 0.022079538952802107,
+          "ci95": [
+            0.019316775519476758,
+            0.02490364778617683
+          ]
+        },
+        {
+          "delta": 0.040772109686397044,
+          "ci95": [
+            0.03651269451819986,
+            0.04495196495816109
+          ]
+        },
+        {
+          "delta": 0.029861980390818537,
+          "ci95": [
+            0.02618634906033438,
+            0.0335199693950939
+          ]
+        }
+      ],
+      "mean_across_fixed_seeds": {
+        "delta": 0.030904543010005895,
+        "ci95": [
+          0.027906656804483745,
+          0.03395938642112955
+        ]
+      },
+      "seed_delta_range": [
+        0.022079538952802107,
+        0.040772109686397044
+      ],
+      "positive_seed_count": 3,
+      "negative_seed_count": 0,
+      "seed_sign_flip_sensitivity": {
+        "assignments": 8,
+        "two_sided_p": 0.25,
+        "assumption": "exchangeable symmetric seed-pair differences; sensitivity only"
+      }
+    }
+  },
+  "qa": {
+    "026": {
+      "dice": 0.8319646583753691,
+      "ph2_val_teacher_dice": 0.9374792577290916,
+      "degenerate_count": 6,
+      "retention": 0.8882035466461063,
+      "contamination_p95_before": 0.38290280301540947,
+      "contamination_p95_after": 0.13979594500798861
+    },
+    "027": {
+      "dice": 0.8438644719744117,
+      "ph2_val_teacher_dice": 0.9336204715845963,
+      "degenerate_count": 4,
+      "retention": 0.9005397070161912,
+      "contamination_p95_before": 0.3555307542775465,
+      "contamination_p95_after": 0.13283220619624597
+    },
+    "028": {
+      "dice": 0.8179855237469111,
+      "ph2_val_teacher_dice": 0.9347830103298992,
+      "degenerate_count": 9,
+      "retention": 0.8835774865073246,
+      "contamination_p95_before": 0.3939910567710237,
+      "contamination_p95_after": 0.13968908716932912
+    },
+    "029": {
+      "dice": 0.8367257930343781,
+      "ph2_val_teacher_dice": 0.9347650194466042,
+      "degenerate_count": 1,
+      "retention": 0.9082498072474943,
+      "contamination_p95_before": 0.3426392729671875,
+      "contamination_p95_after": 0.1226581942398702
+    },
+    "030": {
+      "dice": 0.8292565072971455,
+      "ph2_val_teacher_dice": 0.9344531928026932,
+      "degenerate_count": 5,
+      "retention": 0.8855050115651504,
+      "contamination_p95_before": 0.3854241177257737,
+      "contamination_p95_after": 0.13817223765102013
+    },
+    "031": {
+      "dice": 0.8331693679217791,
+      "ph2_val_teacher_dice": 0.9327179869502641,
+      "degenerate_count": 5,
+      "retention": 0.9028527370855821,
+      "contamination_p95_before": 0.34868680429917437,
+      "contamination_p95_after": 0.12537161998045296
+    }
+  },
+  "pilot_decision": {
+    "candidate_run": "026",
+    "selection": "engineering baseline: control arm, fixed seed 42",
+    "checkpoint": {
+      "checkpoint_path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/best_teacher_model.pt",
+      "actual_sha256": "f4fcee05cd4e4f884d31bb6a9bc08fc7225817d2529c8fa22eb1b2ab261462f4",
+      "summary_sha256_match": true
+    },
+    "scientific_winner_declared": false,
+    "execution_enabled": false,
+    "reason": "Preserve the control recipe while investigating the replicated small-lesion Dice loss under IMA.",
+    "blockers": [
+      "PAD skin QA without expert reference is not validated",
+      "Current classifier and ResNet34 segmenter adapters require verification",
+      "Pilot inputs and stage budget require a reviewed execution configuration"
+    ]
+  },
+  "limitations": [
+    "Los intervalos post hoc no est\u00e1n ajustados por comparaciones m\u00faltiples.",
+    "El bootstrap de im\u00e1genes no modela correlaci\u00f3n por paciente/lesi\u00f3n ni nuevas semillas de entrenamiento.",
+    "Solo hay tres semillas; la sensibilidad por cambio de signo tiene ocho asignaciones y muy baja resoluci\u00f3n.",
+    "La contaminaci\u00f3n CIELAB usa referencia experta: es auditor\u00eda offline, no un filtro operativo para PAD.",
+    "La evaluaci\u00f3n ISIC es retrospectiva; separar cohortes de origen no acredita independencia por paciente.",
+    "Cuatro logs operativos fueron truncados; los recibos de identidad no reconstruyen esos logs."
+  ]
+}

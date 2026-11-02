@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-02T03:09:23.926031+00:00",
+  "execution_enabled": false,
+  "pilot_started": false,
+  "classifier": {
+    "42": {
+      "evaluation_dir": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s42-evaluation-v1",
+      "stats": {
+        "PAD": {
+          "mean_f1": 0.6525632175924222,
+          "base_mean_f1": 0.6063311423774919,
+          "dmean": 0.046232075214930335,
+          "dseed": 0.06487544000967493,
+          "ic": [
+            0.0114,
+            0.077
+          ]
+        },
+        "HAM": {
+          "mean_f1": 0.611555612165885,
+          "base_mean_f1": 0.513984060916227,
+          "dmean": 0.0975715512496581,
+          "dseed": 0.1162183024982365,
+          "ic": [
+            0.058,
+            0.1404
+          ]
+        },
+        "auc_cancer": 0.9203495863989691,
+        "recall": {
+          "MEL": 0.6296296296296297,
+          "SCC": 0.31929824561403514,
+          "BCC": 0.6945773524720892
+        }
+      },
+      "feature_receipt": {
+        "role": "pad_adapt",
+        "images": 1134,
+        "weights_sha256": "5dffe8dae8f1f623242861f0b6d00dfc38d3d47f19afcc7e8f1748abc4cccd1a",
+        "manifest_sha256": "9c4fd238e67c8e654fe35b7603902fe8c3c1393bac478243c0ed2ff59fd371c6",
+        "overlay_sha256": "ac68427cdd27643cd667c7ff3ac809a3cf71bf37653c6c9b58efeaec3eaca551",
+        "features_sha256": "5f523b6567e7fb9baa7d398722029e1c8863b8e63d76d9eb8301b541c306dfd8",
+        "seconds": 30.460680302232504
+      }
+    },
+    "43": {
+      "evaluation_dir": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s43-evaluation-v1",
+      "stats": {
+        "PAD": {
+          "mean_f1": 0.6396577416697126,
+          "base_mean_f1": 0.6063311423774919,
+          "dmean": 0.033326599292220704,
+          "dseed": 0.04566195450079491,
+          "ic": [
+            0.0024,
+            0.063
+          ]
+        },
+        "HAM": {
+          "mean_f1": 0.5969599965356878,
+          "base_mean_f1": 0.513984060916227,
+          "dmean": 0.08297593561946082,
+          "dseed": 0.09598657699593749,
+          "ic": [
+            0.0485,
+            0.1233
+          ]
+        },
+        "auc_cancer": 0.905198071247454,
+        "recall": {
+          "MEL": 0.6049382716049383,
+          "SCC": 0.3087719298245614,
+          "BCC": 0.6794258373205743
+        }
+      },
+      "feature_receipt": {
+        "role": "pad_adapt",
+        "images": 1134,
+        "weights_sha256": "a1d3af29f02fb626dd90753d38254f139cffede78715329ec410e0e41801a65a",
+        "manifest_sha256": "9c4fd238e67c8e654fe35b7603902fe8c3c1393bac478243c0ed2ff59fd371c6",
+        "overlay_sha256": "ac68427cdd27643cd667c7ff3ac809a3cf71bf37653c6c9b58efeaec3eaca551",
+        "features_sha256": "26ffb995d1ba168a6f2bc9bb99cf381dbdab571aa9007e0d852335ab5283cab1",
+        "seconds": 30.638824474066496
+      }
+    },
+    "44": {
+      "evaluation_dir": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s44-evaluation-v1",
+      "stats": {
+        "PAD": {
+          "mean_f1": 0.6390643085959152,
+          "base_mean_f1": 0.6063311423774919,
+          "dmean": 0.03273316621842337,
+          "dseed": 0.026559861412901564,
+          "ic": [
+            -0.0036,
+            0.0661
+          ]
+        },
+        "HAM": {
+          "mean_f1": 0.597489856378821,
+          "base_mean_f1": 0.513984060916227,
+          "dmean": 0.08350579546259407,
+          "dseed": 0.10316909442452593,
+          "ic": [
+            0.0454,
+            0.124
+          ]
+        },
+        "auc_cancer": 0.9108429978800349,
+        "recall": {
+          "MEL": 0.5925925925925926,
+          "SCC": 0.312280701754386,
+          "BCC": 0.6810207336523125
+        }
+      },
+      "feature_receipt": {
+        "role": "pad_adapt",
+        "images": 1134,
+        "weights_sha256": "0f65793496a5a68b87ad320c18833d3458fba425c6526f88106cf0a1d88ec82f",
+        "manifest_sha256": "9c4fd238e67c8e654fe35b7603902fe8c3c1393bac478243c0ed2ff59fd371c6",
+        "overlay_sha256": "ac68427cdd27643cd667c7ff3ac809a3cf71bf37653c6c9b58efeaec3eaca551",
+        "features_sha256": "931c6901e6ed662e85131ee5dd54f576200b2584cab7c9468dca3f037cf50031",
+        "seconds": 31.67584721604362
+      }
+    }
+  },
+  "segmentation_progress": {
+    "030": {
+      "epoch": 244,
+      "total_epochs": 300,
+      "mean_wall_seconds_per_epoch": 34.35505263157895,
+      "estimated_training_end_utc": "2026-11-02T03:41:27.083947+00:00",
+      "estimated_remaining_minutes": 32.05263193333333,
+      "latest_epoch_time_utc": "2026-11-02T03:09:23.201000+00:00",
+      "evaluation_time_included": false
+    },
+    "031": {
+      "epoch": 230,
+      "total_epochs": 300,
+      "mean_wall_seconds_per_epoch": 36.65278947368421,
+      "estimated_training_end_utc": "2026-11-02T03:51:38.230263+00:00",
+      "estimated_remaining_minutes": 42.238403866666665,
+      "latest_epoch_time_utc": "2026-11-02T03:08:52.535000+00:00",
+      "evaluation_time_included": false
+    }
+  },
+  "checkpoint": {
+    "path": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/moco-v3-s42-full-20261029/simsiam_dinov2_backbone_final.pt",
+    "sha256": "5dffe8dae8f1f623242861f0b6d00dfc38d3d47f19afcc7e8f1748abc4cccd1a",
+    "matches_extraction_receipt": true
+  },
+  "evaluation_protocol": {
+    "settings": {
+      "reader": "balancedLR",
+      "C_grid": [
+        0.3,
+        1.0,
+        3.0,
+        10.0,
+        30.0,
+        100.0
+      ],
+      "tau": 0,
+      "outer": 5,
+      "inner": 3,
+      "CV_seeds": [
+        20261025,
+        20261026,
+        20261027
+      ]
+    },
+    "scope": "Exploratory frozen readout development, not clinical validation; CV seeds are not independent training replicates",
+    "provenance": {
+      "features_sha256": "5f523b6567e7fb9baa7d398722029e1c8863b8e63d76d9eb8301b541c306dfd8",
+      "manifest_sha256": "9c4fd238e67c8e654fe35b7603902fe8c3c1393bac478243c0ed2ff59fd371c6",
+      "metadata_sha256": "14d145235cedb022548257acb0d84dcd949e2c916f65d2baa7c38ed5339e9527",
+      "overlay_sha256": "ac68427cdd27643cd667c7ff3ac809a3cf71bf37653c6c9b58efeaec3eaca551"
+    },
+    "images": 1134
+  },
+  "encoder_label_policy": {
+    "id": "moco-v3-s42",
+    "section": "SSL puro",
+    "encoder_uses_diagnostic_labels": false,
+    "label_guided_sampling": false
+  }
+}
