@@ -439,6 +439,62 @@ Esto es material de las secciones 4.4 (ablación) y 4.7 (sensibilidad al umbral)
 [`60-guia-presentacion-cientifica.md`](60-guia-presentacion-cientifica.md). Hoy está en archivos
 `scratch_*` sin seguimiento, con nombres que no sobreviven a una auditoría.
 
+### Tres semillas del brazo IMA++: la cifra es 0,8366, no 0,8416
+
+> **Corrección.** La cifra de **0,8416** que circuló es la **semilla alta**, no el resultado.
+
+La media de tres semillas del brazo ResNet34 + PH2 copy-paste + IMA++ N=100 es **0,8366** de Dice
+sobre los 2.594 pares: 023 (s42) 0,8416 · 024 (s43) 0,8367 · 025 (s44) 0,8316. Rango 0,0100.
+VERIFICADO: recálculo local desde los `cases.jsonl` crudos, delta **0,000e+00** contra los JSON
+del clúster.
+
+### Lote 026-031: primera ablación de un solo factor de IMA++
+
+**Ninguna comparación previa aislaba IMA++.** Los runs 019-022 usan `train_dermlip_semi.py`, que
+importa copy-paste de la librería; los 023-025 usan `train_dermlip_semi_023.py`, que lleva su
+propia `apply_ph2_copy_paste` de 82 líneas (VERIFICADO: definida en
+`train_dermlip_semi_023.py:1172`, ausente en `train_dermlip_semi.py`). Así que **023-vs-020
+confunde IMA++ con una reimplementación de la augmentación**. El lote 026-031 varía un solo factor
+vía `--ima-batch`, con el batch etiquetado fijo en 16 en los dos brazos: el control toma los 16 de
+PH2, el brazo IMA++ toma 10 de PH2 y 6 del cohorte congelado. Corre sobre el pool disjunto por
+cohorte de origen (34.115 imágenes).
+
+**Incidente operativo del 2026-11-01.** El controlador de cola se relanzó cinco veces en once
+minutos sin detener el anterior. Cuatro controladores quedaron vivos monitoreando las mismas
+salidas; contados en `runs/ima_ablation_026_031_queue.log`, 026 y 027 recibieron diez lanzamientos
+cada una y 028-031 cuatro cada una: **36 lanzamientos para seis corridas**.
+
+**El entrenamiento único quedó acreditado.** VERIFICADO: un solo archivo en `claims/` y un solo
+`run_id` por corrida, con `claim.gate_sha256` igual al sha256 del gate de ejecución en las seis, y
+`gate.profile.ima_batch` igual al del config (0/6/0/6/0/6 con semillas 42/42/43/43/44/44). El
+claim lo escribe el proceso de entrenamiento en su propio directorio de salida, así que ata la
+corrida a ese gate exacto.
+
+**Y el brazo no depende del log.** `ima_batch` es campo obligatorio del perfil pineado
+(`_RUNTIME_PROFILE_FIELDS`), así que un config sin él no arranca; un `--ima-batch` de CLI que lo
+contradiga aborta; y `setattr(args, attribute, configured)` en
+`train_dermlip_semi_026.py:1656` escribe el valor del config sobre los argumentos **de forma
+incondicional**. El `ima_batch` efectivo **es** el del config por construcción, y el flag del
+lanzador es decorativo.
+
+**Lo que sí se dañó.** Los lanzadores escribían el log de consola con `>`, que trunca. Un proceso
+perdedor truncó el log del ganador en cuatro de seis: 028, 029, 030 y 031 empiezan con entre 1.499
+y 1.707 bytes nulos, perdieron la línea `Loaded Labeled datasets` y sus primeras una o dos épocas.
+**La traza operativa de arranque de esas cuatro es incompleta; el brazo no está afectado.** En 026
+y 027 el log está completo y registra `IMA++ audited cohort (0 images)` y `(100 images)`.
+
+**Dos caveats que siguen abiertos, distintos del brazo.** La cadena acredita el **valor** de
+`ima_batch`, no **qué** 100 imágenes son el cohorte ni si solapan con el split de evaluación: ese
+es el hueco de procedencia de 023, cuesta 0 GPU-h y lo heredan 027/029/031. Y `run_identity.json`
+sigue con `config.ima_batch = None`, así que la acreditación depende de tres saltos
+(claim → hash de gate → perfil) en lugar de un campo explícito; la próxima corrida debería
+registrar `ima_batch` y el sha del cohorte **en claro** en `input_validation.json`.
+
+**Corregido.** Lock exclusivo por lote con identidad de dueño validada por PID más tiempo de
+arranque de `/proc`, tomado antes de cualquier lanzamiento; log en modo append; y guardia en el
+lanzador que se niega a arrancar si ya hay un entrenador de esa corrida vivo.
+`scripts/lot_lock.py` y `tests/segmentation_v8/test_lot_lock.py` (8 tests, verificados en Linux).
+
 ### Actividad del 2026-10-29 al 2026-10-30, verificada
 
 Barrido por ID en el VPS y `git log` sobre refs remotas tras `fetch`, en los dos repos:
