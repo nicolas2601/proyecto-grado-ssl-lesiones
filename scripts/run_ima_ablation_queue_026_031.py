@@ -23,12 +23,18 @@ import argparse
 import hashlib
 import json
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lot_lock import LotLock, LotLockError  # noqa: E402
+
 ROOT = Path("/home/jovyan/work/dermlip_slic_v8")
 LOG_PATH = ROOT / "runs/ima_ablation_026_031_queue.log"
+LOT_ID = "ima-ablation-026-031"
+LOCK_PATH = ROOT / "runs/ima_ablation_026_031.lock"
 POLL_SECONDS = 120
 # 023 took 11,085 s (3 h 5 min) for 300 epochs. Three times that is a generous
 # ceiling that still catches a hung run instead of waiting forever.
@@ -196,24 +202,43 @@ def main() -> None:
     if args.launch_record:
         record = json.loads(args.launch_record.read_text(encoding="utf-8"))
 
-    preflight(record)
-    log("queue preflight OK: 6 configs and launchers present, no output dirs, "
-        f"config hashes {'verified' if record else 'NOT verified (no launch record given)'}")
+    # Taken before the preflight and before any launch. The execution claim
+    # serialises training at the output, but it only rejects a duplicate after a
+    # process has already started and written to the console log. This fails the
+    # second controller here instead.
+    lock = LotLock(LOCK_PATH, LOT_ID, role="queue-controller")
+    try:
+        lock.acquire()
+    except LotLockError as error:
+        raise SystemExit(f"ABORT: {error}") from error
 
-    if not args.execute:
-        print("\n--execute not set: nothing launched.")
-        return
+    try:
+        if lock.took_over_from is not None:
+            previous = lock.took_over_from.get("owner", {})
+            log(f"recovered previous lease from pid {previous.get('pid')} "
+                f"(acquired {lock.took_over_from.get('acquired_at_utc')}); its kernel guard is free")
+        log(f"holding lot lock {LOCK_PATH} for {LOT_ID}")
 
-    for index, wave in enumerate(WAVES, start=1):
-        log(f"=== wave {index}/{len(WAVES)}")
-        processes = [launch(run) for run in wave]
-        for process in processes:
-            # The launchers background the trainer with nohup and return at once;
-            # this only reaps the wrapper, not the training itself.
-            process.wait()
-        wait_for_wave(wave, index)
+        preflight(record)
+        log("queue preflight OK: 6 configs and launchers present, no output dirs, "
+            f"config hashes {'verified' if record else 'NOT verified (no launch record given)'}")
 
-    log("all three waves complete: 026-031 finished with 300 epochs each")
+        if not args.execute:
+            print("\n--execute not set: nothing launched.")
+            return
+
+        for index, wave in enumerate(WAVES, start=1):
+            log(f"=== wave {index}/{len(WAVES)}")
+            processes = [launch(run) for run in wave]
+            for process in processes:
+                # The launchers background the trainer with nohup and return at
+                # once; this only reaps the wrapper, not the training itself.
+                process.wait()
+            wait_for_wave(wave, index)
+
+        log("all three waves complete: 026-031 finished with 300 epochs each")
+    finally:
+        lock.release()
 
 
 if __name__ == "__main__":

@@ -358,6 +358,7 @@ def prepare(run: dict, observed_at: str, pins: Pins) -> dict:
 
     log = ROOT / f"runs/dermlip_abl{run_num}_console.log"
     launcher = ROOT / f"launch_train_{run_num}_ima{run['ima_batch']}_s{run['seed']}.sh"
+    TRAIN_SCRIPT_NAME = pins.train_script.name
     launcher.write_text(
         "#!/bin/bash\n"
         "set -e\n"
@@ -368,6 +369,16 @@ def prepare(run: dict, observed_at: str, pins: Pins) -> dict:
         f'PYTHON="{PYTHON_ENV}"\n'
         f'SCRIPT="{pins.train_script}"\n'
         f'LOG="{log}"\n'
+        "\n"
+        "# Advisory launcher check, not a lock. The execution claim rejects duplicates\n"
+        "# only after the trainer has started and written to the log, which is too\n"
+        "# late to stop it corrupting that log. Matching on the exact runtime config\n"
+        "# is specific enough to catch a duplicate of THIS run without matching its\n"
+        "# siblings, which share the trainer path.\n"
+        f'if pgrep -f "{TRAIN_SCRIPT_NAME} .*{cfg_p.name}" > /dev/null; then\n'
+        f'    echo "REFUSING: a trainer for {run_num} is already running with {cfg_p.name}" >&2\n'
+        "    exit 1\n"
+        "fi\n"
         "\n"
         "nohup $PYTHON $SCRIPT \\\n"
         '    --runtime-config "$CFG" \\\n'
@@ -381,7 +392,11 @@ def prepare(run: dict, observed_at: str, pins: Pins) -> dict:
         f"    --seed {run['seed']} \\\n"
         f"    --device {run['device']} \\\n"
         "    --execute \\\n"
-        '    > "$LOG" 2>&1 &\n'
+        # Append, never truncate. With `>` a losing duplicate launcher zeroed the
+        # winner's log: 028-031 lost about 1,700 bytes of header on 2026-11-01,
+        # including the "Loaded Labeled datasets" line that is the only record of
+        # the effective --ima-batch. That evidence survives only for 026 and 027.
+        '    >> "$LOG" 2>&1 &\n'
         "\n"
         f'echo "Launched {run_num} ({run["arm"]}, ima_batch={run["ima_batch"]}, '
         f'seed {run["seed"]}, {run["device"]}) PID: $!"\n',
