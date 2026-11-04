@@ -287,3 +287,50 @@ Bloqueos: ninguno para los pasos 5–8. El paso 0 los desbloqueó.
   `CI_REQUIRE_FULL_DEPS=1` en un entorno con las dependencias completas.
 - Los 12 módulos del paso 0 se versionaron **tal como estaban, sin revisión**,
   para frenar el riesgo de pérdida primero. Su contenido no está auditado.
+
+---
+
+# Continuación 2026-11-04: cierre del residuo y giro a evaluación
+
+Criterios: `docs/63-instrumento-ita-alcance-y-limites.md`,
+`docs/estado/tono-cableado-real-vs-instrumento-v2.md`,
+`docs/estado/ita-medibilidad-vs-clase-diagnostica.md`.
+
+- [x] 9. Residuo de vía B: causa aislada          | `6997206` | `pytest tests/test_tone_augment_lab_v2.py` (20 passed)
+- [x] 10. Cierre sobre S-SYNTH real              | `2b168f1` | `resultados/segmentacion/v8/via_b_cierre/via_b3_analyze.py`
+- [x] 11. Mecanismo asimétrico y umbral          | `bb2bc13` | eqs. 8–9 a mano, `b* < 5 + 0,50·|t|`
+- [x] 12. Unificación de definiciones de piel    | `99bad30` | `pytest tests/test_tone_augment_lab_v2.py`
+- [x] 13. Hoja de contactos sobre S-SYNTH real   | `addc50a` | `scripts/make_tone_contact_sheet.py`
+- [x] 14. Inventario de cableado real            | `4c0958e` | `grep -rn tone_augment_lab_v2 --include=*.py src scripts tests`
+- [x] 15. Cobertura v1 contra v2 en pool real    | `3c2522f` | `resultados/segmentacion/v8/via_b_cierre/pool_v2_coverage.py`
+- [x] 16. Salida del subconjunto medible, medida y descartada | `9038662` | Fisher exacto, OR 0,5469 p=0,0099
+- [x] 17. Recomendación: intervención -> evaluación | `b3e7421` | `docs/01-contexto-y-objetivos.md:28`
+- [x] 18. Triaje de elegibilidad de pool          | `26822af` | `pytest tests/test_audit_pool_tone_eligibility.py` (10 passed)
+- [x] 19. Triaje validado contra medición a mano  | `1b3ce1e` | `scripts/audit_pool_tone_eligibility.py --manifest pool_real_manifest.jsonl`
+- [x] 20. Recorrido alcanzable, atribuido a su cohorte | `b4b7505` | 70,1° real contra 75,4° de S-SYNTH
+- [x] 21. ITA sobre la validación de v7           | `e04235f` | `ids_sha256` reproduce `6ff4c17f…`; `y_true` coincide 2004/2004
+- [x] 22. Lectura estratificada por ITA continuo  | `9d0f0aa` | `pytest tests/test_tone_stratified_eval.py`
+- [x] 23. Artefacto del cero forzado, explicado   | `904ac51` | macro-F1 de 6 comunes: brecha 0,199 -> 0,090
+- [x] 24. macro-F1 comparable entre estratos      | `02f3ba0` | `pytest tests/test_tone_stratified_eval.py` (22 passed)
+- [ ] 25. Conjunto de evaluación con tono real: acceso a datos
+
+Bloqueos: el paso 25 es de **acceso a datos**, no de código. Candidatos sin
+cerrar: DDI, Fitzpatrick17k, Dermofit, Waterloo. Si alguno exige acuerdo de uso
+institucional, lo firma María Paula; ningún agente puede hacerlo.
+
+## Decisiones que siguen siendo de María Paula
+
+1. **El cap de política.** La hoja de contactos existe
+   (`resultados/segmentacion/v8/tone_contact_sheet/`); falta mirarla. Lo medido
+   dice que debería ser **asimétrico**, contra el ±25 simétrico de Corbin.
+2. **Si G3 se reemplaza o se retira.** La puerta que dispara CIRCLe etapa 2
+   corta por buckets de fototipo, que `docs/63` §4 ya retiró. El reemplazo
+   continuo existe y está probado; **no se desconectó nada**.
+
+## Lo que esta continuación retira
+
+El contraste pareado de tono **no se puede correr sobre este pool** con ningún
+módulo ni con ninguna restricción. No es falla del instrumento ni del criterio
+7: es el pool. Y la lectura de evaluación que lo reemplaza corre sobre una
+cohorte sesgada contra el melanoma (OR 0,3041, p=9,2e-22), así que tampoco
+puede presentarse sin declarar su composición de clases.
