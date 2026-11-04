@@ -118,7 +118,38 @@ que es justo lo que baja el b\*.
 Y el dato que ordena todo lo demás: el b\* de piel de este split tiene mediana
 **2,49** con máscara real. El pool de ISIC 2019 daba 5,53; S-SYNTH, 29,26.
 
-## 5. No verificado
+## 5. El macro-F1 por estrato se rompe cuando falta una clase rara
+
+La lectura estratificada (`9d0f0aa`) devolvió un resultado que parecía
+interpretable y no lo era: `macro_f1` de **0,5677** en el estrato con máscara
+del teacher 026 contra **0,7668** en el de Otsu. Leído crudo sugeriría que el
+clasificador rinde peor donde hay máscara real, lo cual no tiene mecanismo.
+
+La composición de clases **no** lo explica — los dos estratos tienen la misma
+proporción de nevos (85,3 % y 84,8 %). La única diferencia estructural es que
+`df` tiene **0 casos** en el estrato del teacher 026 y 4 en el de Otsu. Y
+`macro_f1` promedia sobre las 7 etiquetas fijas, forzando F1 = 0 para la clase
+ausente:
+
+| | 7 clases (cero forzado) | sólo las 6 comunes |
+|---|---:|---:|
+| teacher 026 | 0,5677 | **0,6623** |
+| Otsu (fallback) | 0,7668 | **0,7518** |
+| brecha | **0,199** | **0,090** |
+
+El cero forzado explica **más de la mitad de la brecha** (0,11 de 0,199). Lo
+que queda son 0,09 sobre estratos donde *todas* las clases minoritarias están
+por debajo de `n` = 30, es decir dentro del ruido.
+
+**Regla derivada, y aplica a cualquier lectura estratificada futura:** el
+macro-F1 sobre un conjunto fijo de etiquetas está **estructuralmente sesgado en
+contra** de los estratos a los que les falta una clase rara, y con 7 clases un
+solo cero forzado cuesta hasta 0,143. En estratos chicos hay que reportar el
+macro-F1 sobre las clases **presentes en todos los estratos que se comparan**,
+y declarar cuáles se excluyeron. Comparar un macro-F1 de 7 contra otro de 6 no
+es comparar rendimiento: es comparar cuántas clases raras cayó cada estrato.
+
+## 6. No verificado
 
 - **Si el protocolo de v7 aceptó explícitamente preentrenar SSL sobre imágenes
   que luego se usan como validación supervisada.** El solapamiento de datasets
