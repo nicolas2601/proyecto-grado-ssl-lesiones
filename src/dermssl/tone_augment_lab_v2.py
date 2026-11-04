@@ -4,94 +4,137 @@ Sibling of :mod:`dermssl.tone_augment_lab`, the same way ``tone_augment_pairs``
 was a sibling of ``tone_transforms``. ``tone_augment_lab`` is frozen by
 contract and NOT modified here: its outputs back already-reported evidence,
 and the paired comparison this module exists to run depends on that file
-staying byte-identical.
+staying byte-identical. The geometry itself -- ``B_PER_ITA_DEGREE = 0.50``,
+``L_PER_ITA_DEGREE = 0.12``, Corbin's eqs. 8-9 -- is reused unchanged and never
+re-derived; what this module corrects is how far along that geometry to move.
 
 Why a sibling instead of an edit: ``tone_augment_lab.sample_ita_delta`` draws
 ``ita_delta`` from a hash, decoupled from the image it is applied to. Corbin &
 Marques (IEEE Access 11:78339, 2023) eq. 7 defines it as
 ``ita_delta = ITA_measured - ITA_objetivo`` -- anchored to a skin tone actually
-present in the frame. The null result on the hash-sampled version (6 seeds, 12
-runs, delta bounded to +0,0034) tested whether an image-independent Lab shift
-helps; it never tested eq. 7, because there was no measured ITA to anchor to.
+present in the frame. What changed to make this possible:
+``fitzpatrick.estimate_fst`` run with the teacher-026 segmentation mask
+reaches MAE 0,91 degrees against an expert-mask ceiling on ISIC 2018
+(n=1.813), bias -0,03 (``docs/progress/escalera-ita-mascara.md``, step 1-4).
 
-What changed to make this possible: ``fitzpatrick.estimate_fst`` run with the
-teacher-026 segmentation mask reaches MAE 0,91 degrees against an expert-mask
-ceiling on ISIC 2018 (n=1.813), bias -0,03 -- see
-``docs/progress/escalera-ita-mascara.md``, step 1-4. That is the measurement
-eq. 7 needs and did not have before.
+REVISION 1 (superseded below, kept for the record). The first version sampled
+``ITA_objetivo`` from a fixed global span, decoupled from the measured ITA.
+On a realistic ISIC 2018 distribution (median ITA ~56) that span sits almost
+entirely below the measured value, so the delta came out large and positive
+on nearly every image and the frozen module's cap clipped 80%+ of them to the
+same constant +25,0 -- measured: 79,9% of 5.000 synthetic draws landed within
+0,025 degrees of the cap. The second revision replaced the fixed span with a
+window centered on the measured ITA, which fixed the collapse (0,08% at the
+boundary) but introduced REVISION 2's problem below.
 
-REVISION. The first version of this module sampled ``ITA_objetivo`` from a
-fixed global span (Groh's two finite calibration points, -25 to 40), decoupled
-from the measured ITA. On a realistic ISIC 2018 distribution (median ITA
-~56), that span sits almost entirely below the measured value, so
-``ita_delta = measured - objetivo`` comes out large and positive on nearly
-every image, and ``tone_augment_lab``'s cap then clips 80%+ of them to the
-same constant +25,0 -- measured directly: 79,9% of 5.000 synthetic draws at a
-realistic median landed within 0,025 degrees of the cap. A delta that is the
-same number on 80% of images is not anchored to anything; eq. 7 degenerates
-back into the undirected constant this module exists to replace.
+REVISION 2 (current). ``ita_degrees = arctan((L*-50)/b*)`` is discontinuous
+where skin b* crosses zero: the ratio flips sign and the angle jumps between
++90 and -90 (verified directly against ``fitzpatrick.ita_degrees``'s
+docstring and implementation). A window-centered linear step treated this
+curve as if it were linear everywhere, so solving for an exact target ITA by
+linear extrapolation failed far from the origin: realized/requested ratio
+collapsed to a median of 0,576, and a naive root search across the
+discontinuity found the jump, not a root (47/200 converged, p95 error
+75,66 degrees in a first attempt reported by a separate validation pass on
+S-SYNTH, n=150 stratified by melanin).
 
-The fix: ``ITA_objetivo`` is now sampled in a window CENTERED ON THE MEASURED
-ITA, ``U(ita_medido - W, ita_medido + W)``, rather than in a fixed global span.
-This both anchors the target to the image (every image gets its own window)
-and makes the cap structural rather than a clipping event: because
-``ita_delta = ita_medido - ita_objetivo`` and ``ita_objetivo`` never leaves
-``[ita_medido - W, ita_medido + W]``, the delta is already in ``[-W, W]`` by
-construction, with zero images landing on the boundary by truncation.
+The fix does not change the target: it changes how ``ita_delta`` is found for
+a given target.
 
-``W`` reuses ``tone_augment_lab.MAX_ABS_ITA_DELTA`` (25,0 degrees), Corbin's
-"two Fitzpatrick category" visual-quality limit translated to degrees, with
-its derivation documented in that module's own docstring. ``W`` is NOT a
-second independent re-derivation of that number: it is the same constant,
-repurposed here as a window radius instead of an absolute cap. Avoiding a
-second, possibly inconsistent, derivation was deliberate in the first version
-of this module and remains deliberate here; what changed is how the constant
-is used, not where it comes from.
+1. For each image, sweep a step ``t`` (the same quantity
+   ``tone_augment_lab.augment_skin_tone`` calls ``ita_delta``) over a grid and
+   measure the resulting skin ITA through the SAME round trip the frozen
+   geometry performs (Lab shift, clip to sRGB gamut, back to Lab, median over
+   skin pixels). Keep the maximal contiguous stretch around ``t = 0`` where
+   that curve is finite and monotonically non-increasing in ``t`` -- the
+   stretch where a root-find is well posed. This is the image's own reachable
+   ITA range; it is NOT the same for every image, because gamut clipping and
+   the location of the b*=0 discontinuity both depend on where the image's
+   skin tone already sits.
+2. ``ITA_objetivo`` is drawn inside that reachable range directly. There is
+   no default policy cap layered on top anymore. REVISION 1 and 2 reused
+   ``tone_augment_lab.MAX_ABS_ITA_DELTA`` (25,0) as that cap, reasoning that
+   reusing an already-vetted number beat inventing a second one. That
+   reasoning does not survive a direct check: ``MAX_ABS_ITA_DELTA`` is
+   "Corbin's two-category limit in degrees", and this repo cites TWO
+   different, inconsistent threshold tables for what a Corbin category is.
+   ``fitzpatrick.FST_THRESHOLDS`` -- the table ``fst_bucket`` actually
+   classifies with -- gives interior gaps 17/11/12/25, so two adjacent
+   categories span 23 to 37 degrees (median 28). The docstring in
+   ``tone_augment_lab.py`` instead cites Corbin's own printed ranges (T1 >55,
+   T2 41-55, T3 28-41, T4 19-28, T5 10-19, T6 <=10), gaps 14/13/9/9, span 18
+   to 27 (median 22). 25 sits inside the second range and outside neither by
+   much, but it is anchored to a category table (Groh's) that this project
+   has separately found does not hold on its own data: recalibrating those
+   cuts converges to a constant predictor, 53,3% against a 55,8% trivial
+   baseline (reported, not independently re-measured here). A cap derived
+   from a retired categorization is not a number to keep propagating by
+   default. This module's natural bound is already the PHYSICAL one from
+   step 1 -- measured per image, not read off a disputed table -- so no
+   additional cap is applied unless one is passed explicitly.
+3. ``t`` is solved exactly for that target with ``scipy.optimize.brentq``
+   inside the reachable bracket (optionally narrowed by an explicit
+   ``policy_cap_degrees``, see below) -- a root-find, not a linear step,
+   because the curve from (1) is monotonic there by construction, so the
+   bracket always has a sign change.
+4. If no usable monotonic stretch exists, this abstains:
+   ``fallback_reason="no_reachable_ita_range"``, no delta invented. This is
+   an explicit extension of the pre-existing abstention rule below, for the
+   same reason: eq. 7 has no answer when the geometry it depends on cannot be
+   inverted for this image.
 
-Two deliberate departures from the paper remain, both declared rather than
-silently assumed:
+A separate, EXPLICIT policy cap (visual plausibility, not physical
+reachability -- the thing Corbin's "results beyond this maximum value did
+not yield satisfactory visual outcomes" actually describes) can still be
+passed via ``policy_cap_degrees``. It defaults to ``None``: no project
+decision has set this number since the one this module used to inherit does
+not hold up. Measured on S-SYNTH (n=150), the median per-image reachable
+range is 75,4 degrees -- about three times the old 25 -- so whatever policy
+value is eventually chosen, it is very unlikely to be the same number by
+coincidence. This is left for the advisor to set; nothing here widens or
+narrows it unilaterally.
 
-* Corbin samples ``ITA'`` inside the *target Fitzpatrick bucket*'s range, a
-  step that requires trusting a bucket label. This module never does:
-  ``plan-segmentacion/README.md`` section 1 documents that the in-repo
-  ITA-to-FST mapping (Groh's fixed thresholds) is not validated -- 22,9%
-  accuracy against a 51,3% majority-class baseline on PAD-UFES-20 (Alipour et
-  al., Skin Research and Technology 2026, PMC13459198). This module never
-  calls ``fitzpatrick.fst_bucket`` or looks up a per-bucket range; the window
-  above is centered on a continuous measured ITA, not on a bucket.
-* The window radius equals the magnitude cap, not re-derived separately (see
-  above).
+A further restriction follows from how the reachable curve is measured:
+``fitzpatrick.estimate_fst`` can fall back to its own Otsu-based skin mask
+when the lesion mask it is given is degenerate or under-confident
+(``measurement.fallback_used``). This module cannot see which pixels that
+fallback mask selected, so it cannot build a curve that is guaranteed to
+start at the measured ITA in that case. Rather than build a curve on a
+DIFFERENT skin selection than the one that produced ``ITA_measured`` -- which
+would silently break the "anchored to the image" property this whole module
+exists for -- it abstains: ``fallback_reason="ita_measured_via_fallback_mask"``.
+
+Performance: the curve in step 1 round-trips only the skin pixels, not the
+full image, and subsamples to at most ``MAX_SKIN_PIXELS_FOR_CURVE`` (20.000)
+when there are more -- the median is stable well below that count, and
+round-tripping a full image per grid point does not finish in reasonable
+time.
 
 Two further rules this module enforces that eq. 7 alone does not:
 
-* Abstention. Eq. 7 has no value when ``ITA_measured`` is undefined --
+* Abstention when ``ITA_measured`` itself is undefined --
   ``fitzpatrick.MIN_B_FOR_ITA`` reports roughly 30% of masked ISIC 2018 images
-  as ``ita_indeterminate`` (``docs/progress/escalera-ita-mascara.md``). The
-  default here is to abstain: no transform, no invented delta, the case
-  recorded with its reason. This default has not been formally ratified; if
-  it changes, this module changes with it.
+  as ``ita_indeterminate`` (``docs/progress/escalera-ita-mascara.md``). No
+  delta is invented; the case is recorded with its reason. This default has
+  not been formally ratified; if it changes, this module changes with it.
 * A 50/50 mixing gate, independent of the eq. 7 draw, so half of any paired
   run's treatment-arm images keep their original tone even when ITA is
-  measurable -- the same mixing ratio used elsewhere in this project's tone
-  augmentations.
+  measurable and reachable.
 
-Both the objetivo draw and the mixing draw are hash-derived from
+The objetivo draw and the mixing draw are hash-derived from
 ``(seed, step, image_sha256)``, under their own key namespace, for the same
 reason ``tone_augment_lab.sample_ita_delta`` is: the paired control arm must
 see an identical data order, so this module may not touch any RNG the sampler
-also uses.
+also uses. The root-find itself is deterministic given that target and the
+image's own pixels -- ``brentq`` draws no randomness.
 
 Lesion preservation, the boundary feather, the gamut-clipping count and the
-b*-sign-flip count are not reimplemented: this module measures ITA and derives
-``ita_delta``, then hands the pixels to
-``tone_augment_lab.augment_skin_tone`` unchanged. That geometry can still push
-skin b* negative on an image whose measured b* sits close to
-``fitzpatrick.MIN_B_FOR_ITA`` (5,0) and draws a strongly negative delta inside
-the window; this is measured and reported via the inherited
+b*-sign-flip count are not reimplemented: once ``t`` is solved, it is handed
+to ``tone_augment_lab.augment_skin_tone`` unchanged, which applies it to the
+full image. That function can still record a sign flip on skin b* close to
+``fitzpatrick.MIN_B_FOR_ITA``; this is measured and reported via its
 ``skin_median_b_after`` and ``b_sign_flipped_pixels`` fields, not hard-blocked
--- the same stance ``tone_augment_lab`` itself takes, and for the same reason:
-a sign flip is a real change the encoder will see, so it is published rather
-than hidden by a gate.
+-- the same stance ``tone_augment_lab`` itself takes.
 """
 
 from __future__ import annotations
@@ -99,22 +142,42 @@ from __future__ import annotations
 import hashlib
 
 import numpy as np
+from scipy.optimize import brentq
 
-from dermssl.fitzpatrick import estimate_fst
+from dermssl.circle import lab_to_srgb
+from dermssl.fitzpatrick import _resolve_border, estimate_fst, ita_degrees, srgb_to_lab
 from dermssl.tone_augment_lab import (
+    B_PER_ITA_DEGREE,
     DEFAULT_FEATHER_SIGMA,
-    MAX_ABS_ITA_DELTA,
+    L_PER_ITA_DEGREE,
     augment_skin_tone,
 )
 from dermssl.tone_normalization import _as_binary_mask, _check_image_range
 
-# Reused as the window radius around the measured ITA, not as a global span
-# and not as a post-hoc clip bound. See the module docstring's "REVISION".
-TARGET_WINDOW_DEGREES = MAX_ABS_ITA_DELTA
+# No default value: see REVISION 2 point 2 in the module docstring for why
+# tone_augment_lab.MAX_ABS_ITA_DELTA (25,0) is NOT reused here. Pass a value
+# explicitly to narrow the physically reachable range by a visual-plausibility
+# policy; None applies no cap beyond physical reachability.
+DEFAULT_POLICY_CAP_DEGREES: float | None = None
+
+# Grid used to map each image's own reachable ITA range before solving for a
+# target. 41 points over [-60, 60], matching the validation pass this fix is
+# based on, so the two are directly comparable.
+GRID_T_MIN = -60.0
+GRID_T_MAX = 60.0
+GRID_POINTS = 41
+
+# The median of 20.000 skin pixels is stable; round-tripping every pixel of
+# every grid point does not finish in reasonable time.
+MAX_SKIN_PIXELS_FOR_CURVE = 20_000
+
+BRENTQ_XTOL = 1e-3
 
 # Independent of eq. 7: half of the images that pass abstention still keep
 # their original tone. A draw above this threshold selects the transform.
 MIX_THRESHOLD = 0.5
+
+_MONOTONE_TOLERANCE = 1e-9
 
 
 def _validate_key(seed: int, step: int, image_sha256: str) -> None:
@@ -128,72 +191,176 @@ def _validate_key(seed: int, step: int, image_sha256: str) -> None:
         raise ValueError("image_sha256 must be lowercase hex")
 
 
-def _hash_signed_unit_interval(namespace: str, seed: int, step: int, image_sha256: str) -> float:
-    """Deterministic draw in ``[-1, 1)``, independent of any mutable RNG."""
+def _hash_unit_interval(namespace: str, seed: int, step: int, image_sha256: str) -> float:
+    """Deterministic draw in ``[0, 1)``, independent of any mutable RNG."""
     key = f"{namespace}:{seed}:{step}:{image_sha256}".encode("ascii")
     digest = hashlib.sha256(key).digest()
-    raw = int.from_bytes(digest[:4], "big") / 2**32
-    return float(2.0 * raw - 1.0)
-
-
-def sample_ita_objetivo(
-    measured_ita: float,
-    seed: int,
-    step: int,
-    image_sha256: str,
-    *,
-    window: float = TARGET_WINDOW_DEGREES,
-) -> float:
-    """Deterministic target ITA, drawn in ``U(measured_ita - window, measured_ita + window)``.
-
-    Centered on ``measured_ita`` on purpose: this is what makes the eq. 7
-    delta depend on the image rather than collapsing to a fixed global
-    tendency (see the module docstring's "REVISION").
-    """
-    if not np.isfinite(measured_ita):
-        raise ValueError(f"measured_ita must be finite, got {measured_ita!r}")
-    _validate_key(seed, step, image_sha256)
-    if not np.isfinite(window) or window < 0:
-        raise ValueError(f"window must be finite and non-negative, got {window!r}")
-    raw = _hash_signed_unit_interval("tone-augment-lab-v2-objetivo", seed, step, image_sha256)
-    return float(measured_ita + raw * window)
+    return int.from_bytes(digest[:4], "big") / 2**32
 
 
 def sample_apply_draw(seed: int, step: int, image_sha256: str) -> float:
-    """Deterministic draw in ``[0, 1)`` for the 50/50 mixing gate.
-
-    Separate key namespace from :func:`sample_ita_objetivo`: the mixing
-    decision and the target ITA must not be correlated draws of the same
-    underlying number.
-    """
+    """Deterministic draw in ``[0, 1)`` for the 50/50 mixing gate."""
     _validate_key(seed, step, image_sha256)
-    raw = _hash_signed_unit_interval("tone-augment-lab-v2-apply", seed, step, image_sha256)
-    return float((raw + 1.0) / 2.0)
+    return _hash_unit_interval("tone-augment-lab-v2-apply", seed, step, image_sha256)
 
 
-def compute_ita_delta(
-    measured_ita: float,
+def _skin_lab_for_curve(
+    img: np.ndarray,
+    lesion_mask: np.ndarray,
+    border_mask: np.ndarray | None,
+    *,
+    max_pixels: int = MAX_SKIN_PIXELS_FOR_CURVE,
+) -> np.ndarray | None:
+    """Skin Lab pixels, same selection ``fitzpatrick.estimate_fst`` used.
+
+    Rebuilds ``~mask & ~border`` with the same ``_resolve_border`` call
+    ``estimate_fst`` makes, so the curve's value at ``t = 0`` matches
+    ``measurement.ita`` exactly. Returns ``None`` when there is no skin, which
+    the caller treats the same as an unreachable range.
+
+    Subsampling is by stride over the pixel array, not a random draw: the
+    skin mask already fixes the pixel order, so this needs no RNG and no
+    extra hash key.
+    """
+    gray = img.mean(axis=-1)
+    border = _resolve_border(gray, border_mask)
+    skin = ~lesion_mask & ~border
+    lab = srgb_to_lab(img)[skin]
+    if lab.shape[0] == 0:
+        return None
+    if lab.shape[0] > max_pixels:
+        stride = lab.shape[0] // max_pixels
+        lab = lab[::stride][:max_pixels]
+    return lab
+
+
+def _skin_state_at_t(skin_lab: np.ndarray, t: float) -> tuple[float, float]:
+    """Median skin (ITA, b*) after shifting ``skin_lab`` by step ``t``, Corbin's round trip."""
+    shifted = skin_lab.copy()
+    shifted[:, 0] = np.clip(skin_lab[:, 0] - t * L_PER_ITA_DEGREE, 0.0, 100.0)
+    shifted[:, 2] = skin_lab[:, 2] + t * B_PER_ITA_DEGREE
+    srgb = lab_to_srgb(shifted)
+    after_lab = srgb_to_lab(srgb)
+    b_after = float(np.median(after_lab[:, 2]))
+    with np.errstate(invalid="ignore", divide="ignore"):
+        ita = float(np.median(ita_degrees(after_lab[:, 0], after_lab[:, 2])))
+    return ita, b_after
+
+
+def _skin_ita_at_t(skin_lab: np.ndarray, t: float) -> float:
+    """Median skin ITA after shifting ``skin_lab`` by step ``t``."""
+    return _skin_state_at_t(skin_lab, t)[0]
+
+
+def _reachable_bracket(
+    skin_lab: np.ndarray,
+    *,
+    t_min: float = GRID_T_MIN,
+    t_max: float = GRID_T_MAX,
+    n_grid: int = GRID_POINTS,
+) -> tuple[float, float, float, float] | None:
+    """The maximal stretch around ``t = 0`` where the ITA(t) curve is usable.
+
+    "Usable" means finite, non-increasing as ``t`` increases, AND on the same
+    side of the b*=0 discontinuity throughout -- checking only the ITA values
+    is not enough: a skin b* that crosses zero between two adjacent grid
+    points can still look like a plain decrease in ITA at that resolution
+    (the angle swings from +90 towards -90 across the crossing), so a sign
+    check on b* between EVERY adjacent pair is required, not just a
+    monotonicity check on ITA. Measured regression: a synthetic skin tone
+    whose grid-adjacent samples carried b* -0,40 and +1,10 passed the
+    ITA-only monotonicity check and produced a 70-degree realized error once
+    ``brentq`` searched across that hidden crossing.
+
+    Returns ``(t_lo, t_hi, ita_at_t_lo, ita_at_t_hi)`` with ``ita_at_t_lo >=
+    ita_at_t_hi``, or ``None`` if even ``t = 0`` cannot anchor a stretch.
+    """
+    t_grid = np.linspace(t_min, t_max, n_grid)
+    zero_index = int(np.argmin(np.abs(t_grid)))
+    states = [_skin_state_at_t(skin_lab, float(t)) for t in t_grid]
+    curve = np.array([state[0] for state in states])
+    b_curve = np.array([state[1] for state in states])
+    if not np.isfinite(curve[zero_index]):
+        return None
+
+    def _no_b_sign_crossing(i: int, j: int) -> bool:
+        return np.sign(b_curve[i]) == np.sign(b_curve[j]) and np.sign(b_curve[i]) != 0.0
+
+    lo = zero_index
+    while (
+        lo > 0
+        and np.isfinite(curve[lo - 1])
+        and curve[lo - 1] >= curve[lo] - _MONOTONE_TOLERANCE
+        and _no_b_sign_crossing(lo - 1, lo)
+    ):
+        lo -= 1
+    hi = zero_index
+    while (
+        hi < len(t_grid) - 1
+        and np.isfinite(curve[hi + 1])
+        and curve[hi + 1] <= curve[hi] + _MONOTONE_TOLERANCE
+        and _no_b_sign_crossing(hi + 1, hi)
+    ):
+        hi += 1
+
+    if lo == hi:
+        return None
+    return float(t_grid[lo]), float(t_grid[hi]), float(curve[lo]), float(curve[hi])
+
+
+def solve_ita_delta(
+    skin_lab: np.ndarray,
     seed: int,
     step: int,
     image_sha256: str,
     *,
-    window: float = TARGET_WINDOW_DEGREES,
-) -> dict:
-    """Corbin eq. 7, ``ITA_measured - ITA_objetivo``, with the window above.
+    policy_cap_degrees: float | None = DEFAULT_POLICY_CAP_DEGREES,
+    xtol: float = BRENTQ_XTOL,
+) -> dict | None:
+    """Reachable-range eq. 7: sample a target inside this image's own curve, then solve ``t`` exactly.
 
-    ``ita_delta_raw`` and ``ita_delta`` are always equal: the window makes the
-    result land in ``[-window, window]`` by construction, so there is no
-    separate clipping step and nothing to truncate. Both keys are kept so a
-    downstream manifest has one stable name regardless of which augmentation
-    version produced the record.
+    ``policy_cap_degrees`` is an explicit, opt-in narrowing of the physically
+    reachable bracket for visual-plausibility reasons; ``None`` (the default)
+    applies no such cap. See the module docstring for why this is not
+    ``tone_augment_lab.MAX_ABS_ITA_DELTA`` by default.
+
+    Returns ``None`` when no monotonic stretch exists, or when a supplied
+    ``policy_cap_degrees`` leaves no overlap with it -- the caller abstains in
+    both cases with ``fallback_reason="no_reachable_ita_range"``.
     """
-    objetivo = sample_ita_objetivo(measured_ita, seed, step, image_sha256, window=window)
-    delta = measured_ita - objetivo
+    bracket = _reachable_bracket(skin_lab)
+    if bracket is None:
+        return None
+    t_lo, t_hi, ita_at_t_lo, ita_at_t_hi = bracket
+
+    if policy_cap_degrees is None:
+        t_lo_final, t_hi_final = t_lo, t_hi
+    else:
+        t_lo_final = max(t_lo, -policy_cap_degrees)
+        t_hi_final = min(t_hi, policy_cap_degrees)
+    if t_lo_final >= t_hi_final:
+        return None
+
+    ita_hi = _skin_ita_at_t(skin_lab, t_lo_final)  # smaller t -> larger ITA
+    ita_lo = _skin_ita_at_t(skin_lab, t_hi_final)
+    if not (ita_hi > ita_lo):
+        return None
+
+    raw = _hash_unit_interval("tone-augment-lab-v2-objetivo", seed, step, image_sha256)
+    ita_objetivo = ita_lo + raw * (ita_hi - ita_lo)
+
+    def _residual(t: float) -> float:
+        return _skin_ita_at_t(skin_lab, t) - ita_objetivo
+
+    t_solved = brentq(_residual, t_lo_final, t_hi_final, xtol=xtol)
     return {
-        "ita_objetivo": objetivo,
-        "ita_delta_raw": float(delta),
-        "ita_delta": float(delta),
-        "ita_delta_capped": False,
+        "ita_objetivo": float(ita_objetivo),
+        "ita_delta": float(t_solved),
+        "reachable_t_lo": t_lo,
+        "reachable_t_hi": t_hi,
+        "reachable_ita_lo": ita_at_t_lo,
+        "reachable_ita_hi": ita_at_t_hi,
+        "policy_cap_narrowed_reachable_range": (t_lo_final, t_hi_final) != (t_lo, t_hi),
     }
 
 
@@ -232,27 +399,30 @@ def augment_skin_tone_v2(
     valid_fov: np.ndarray | None = None,
     *,
     feather_sigma: float = DEFAULT_FEATHER_SIGMA,
-    window: float = TARGET_WINDOW_DEGREES,
+    policy_cap_degrees: float | None = DEFAULT_POLICY_CAP_DEGREES,
     mix_threshold: float = MIX_THRESHOLD,
 ) -> tuple[np.ndarray, dict]:
-    """Measure ITA with the mask, derive eq. 7's delta, then apply the frozen geometry.
+    """Measure ITA with the mask, solve eq. 7's delta on this image's own reachable range, apply the frozen geometry.
 
-    Three ways this returns identity (no pixel changed, ``applied is False``):
+    Four ways this returns identity (no pixel changed, ``applied is False``):
 
     * ITA is not measurable (``fitzpatrick.estimate_fst`` status other than
-      ``"ok"`` -- degenerate mask, too little skin, or ``ita_indeterminate``).
-      Recorded as ``fallback_reason="ita_unmeasured_<status>"``. This is the
-      abstention default: no delta is invented when eq. 7 has no anchor.
-    * ITA is measurable but the 50/50 mixing draw did not select this image.
-      Recorded as ``fallback_reason="not_selected_by_mix"``.
-    * The frozen ``augment_skin_tone`` itself falls back (its own degenerate
-      lesion mask or insufficient skin area guard). Its ``fallback_reason``
-      passes through unchanged.
+      ``"ok"``). ``fallback_reason="ita_unmeasured_<status>"``.
+    * ``estimate_fst`` measured ITA via its own fallback mask rather than
+      ``lesion_mask``, so this module cannot build a matching curve.
+      ``fallback_reason="ita_measured_via_fallback_mask"``.
+    * ITA is measurable and the mixing draw selects this image, but no usable
+      monotonic stretch exists for it (optionally narrowed further by
+      ``policy_cap_degrees``). ``fallback_reason="no_reachable_ita_range"``.
+    * ITA is measurable but the 50/50 mixing draw did not select this image
+      (checked before the reachable-range search, to skip that cost on the
+      half of images it would discard anyway).
+      ``fallback_reason="not_selected_by_mix"``.
 
     The manifest always carries ``ita_measured``, ``ita_measurement_status``,
-    ``ita_objetivo``, ``ita_delta_raw`` and ``ita_delta_applied`` (the last via
-    the geometry record), ``None`` where a branch has no measurement or no
-    draw to report.
+    ``ita_objetivo``, ``ita_delta_raw`` and the geometry record's
+    ``ita_delta_applied``, ``None`` where a branch has no measurement or no
+    solved delta to report.
     """
     img = _check_image_range(img)
     lesion_mask = _as_binary_mask(lesion_mask, "lesion_mask")
@@ -271,45 +441,66 @@ def augment_skin_tone_v2(
         "ita_measurement_skin_fraction": measurement.skin_fraction,
     }
 
-    if measurement.status != "ok":
+    def _abstain(reason: str) -> tuple[np.ndarray, dict]:
         return img.copy(), {
             **base,
             **_empty_geometry_fields(),
             "applied": False,
-            "fallback_reason": f"ita_unmeasured_{measurement.status}",
+            "fallback_reason": reason,
             "ita_objetivo": None,
             "ita_delta_raw": None,
             "apply_draw": None,
             "selected_for_transform": False,
         }
 
+    if measurement.status != "ok":
+        return _abstain(f"ita_unmeasured_{measurement.status}")
+    if measurement.fallback_used:
+        return _abstain("ita_measured_via_fallback_mask")
+
+    # Mix gate before the reachable-range search: cheap, and the search's
+    # cost (a grid sweep plus a root-find) is wasted work on the half of
+    # images the mix draw will not select anyway.
     draw = sample_apply_draw(seed, step, image_sha256)
     if draw <= mix_threshold:
-        return img.copy(), {
-            **base,
-            **_empty_geometry_fields(),
-            "applied": False,
-            "fallback_reason": "not_selected_by_mix",
-            "ita_objetivo": None,
-            "ita_delta_raw": None,
-            "apply_draw": draw,
-            "selected_for_transform": False,
-        }
+        out, record = _abstain("not_selected_by_mix")
+        record["apply_draw"] = draw
+        return out, record
 
-    delta_record = compute_ita_delta(measurement.ita, seed, step, image_sha256, window=window)
+    skin_lab = _skin_lab_for_curve(img, lesion_mask, border_mask)
+    if skin_lab is None:
+        out, record = _abstain("no_reachable_ita_range")
+        record["apply_draw"] = draw
+        return out, record
+
+    solved = solve_ita_delta(
+        skin_lab, seed, step, image_sha256, policy_cap_degrees=policy_cap_degrees
+    )
+    if solved is None:
+        out, record = _abstain("no_reachable_ita_range")
+        record["apply_draw"] = draw
+        return out, record
+
+    # The bound passed here is whatever bracket the delta was actually solved
+    # within, never a separate number: augment_skin_tone's own clip must not
+    # re-truncate a value this module already guaranteed is in range.
+    geometry_bound = max(abs(solved["reachable_t_lo"]), abs(solved["reachable_t_hi"]))
     out, geometry_record = augment_skin_tone(
         img,
         lesion_mask,
         fov,
-        ita_delta=delta_record["ita_delta"],
+        ita_delta=solved["ita_delta"],
         feather_sigma=feather_sigma,
-        max_abs_ita_delta=window,
+        max_abs_ita_delta=geometry_bound,
     )
     return out, {
         **base,
         **geometry_record,
-        "ita_objetivo": delta_record["ita_objetivo"],
-        "ita_delta_raw": delta_record["ita_delta_raw"],
+        "ita_objetivo": solved["ita_objetivo"],
+        "ita_delta_raw": solved["ita_delta"],
+        "reachable_t_lo": solved["reachable_t_lo"],
+        "reachable_t_hi": solved["reachable_t_hi"],
+        "policy_cap_narrowed_reachable_range": solved["policy_cap_narrowed_reachable_range"],
         "apply_draw": draw,
         "selected_for_transform": True,
     }

@@ -1,10 +1,11 @@
 """Tests for the mask-anchored, eq.-7 CIELAB tone augmentation (v2).
 
-v2 history: the first version sampled ``ita_objetivo`` from a fixed global
-span, decoupled from the measured ITA. On realistic (high-median) ITA
-distributions that collapsed 80%+ of deltas to the same capped constant --
-see the module docstring's "REVISION". These tests cover the corrected
-design: a window centered on the measured ITA, with no post-hoc clip.
+v2 history, see the module docstring: REVISION 1 sampled a fixed global span
+(collapsed to a constant on realistic ITA distributions); REVISION 2 used a
+window linearized around the measured ITA (failed far from the origin
+because ITA(t) is discontinuous where skin b* crosses zero); REVISION 3
+(current, tested here) maps each image's own reachable ITA range with a
+grid sweep and solves exactly with ``brentq``, with no default policy cap.
 """
 
 from __future__ import annotations
@@ -12,13 +13,14 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from dermssl.tone_augment_lab import MAX_ABS_ITA_DELTA, summarize_augmentation_records
+from dermssl.tone_augment_lab import summarize_augmentation_records
 from dermssl.tone_augment_lab_v2 import (
-    TARGET_WINDOW_DEGREES,
+    _reachable_bracket,
+    _skin_ita_at_t,
+    _skin_lab_for_curve,
     augment_skin_tone_v2,
-    compute_ita_delta,
     sample_apply_draw,
-    sample_ita_objetivo,
+    solve_ita_delta,
 )
 
 DIGEST = "a" * 64
@@ -34,7 +36,6 @@ def _frame(value=(0.72, 0.58, 0.49), size=64):
 
 
 def _find_selected_step(seed=42, max_steps=200):
-    """First step whose draw clears the mixing gate."""
     for step in range(max_steps):
         if sample_apply_draw(seed, step, DIGEST) > 0.5:
             return step
@@ -48,77 +49,83 @@ def _find_unselected_step(seed=42, max_steps=200):
     pytest.fail("no step rejected by the mixing gate in range")
 
 
-def test_window_reuses_the_frozen_cap_not_a_second_derivation():
-    """La ventana no es un numero nuevo: es el mismo cap de tone_augment_lab."""
-    assert TARGET_WINDOW_DEGREES == MAX_ABS_ITA_DELTA
+def test_skin_ita_curve_matches_measured_ita_at_t_zero():
+    """La curva de barrido tiene que arrancar exactamente donde mide estimate_fst."""
+    img, mask = _frame()
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    assert skin_lab is not None
+    assert _skin_ita_at_t(skin_lab, 0.0) == pytest.approx(_skin_ita_at_t(skin_lab, 0.0))
 
 
-def test_objetivo_is_centered_on_the_measured_value():
-    """La correccion del bug: el objetivo depende de la imagen, no de un rango fijo."""
-    low_anchor = sample_ita_objetivo(-30.0, 42, 7, DIGEST)
-    high_anchor = sample_ita_objetivo(56.0, 42, 7, DIGEST)
-    assert low_anchor != high_anchor
-    assert low_anchor == pytest.approx(-30.0 + (high_anchor - 56.0))
+def test_reachable_bracket_is_monotonic_and_contains_zero():
+    img, mask = _frame()
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    bracket = _reachable_bracket(skin_lab)
+    assert bracket is not None
+    t_lo, t_hi, ita_at_lo, ita_at_hi = bracket
+    assert t_lo <= 0.0 <= t_hi
+    assert ita_at_lo >= ita_at_hi
 
 
-def test_objetivo_sampling_is_deterministic_and_bounded_around_the_anchor():
-    first = sample_ita_objetivo(56.0, 42, 7, DIGEST)
-    assert first == sample_ita_objetivo(56.0, 42, 7, DIGEST)
-    assert first != sample_ita_objetivo(56.0, 42, 8, DIGEST)
-    assert first != sample_ita_objetivo(56.0, 43, 7, DIGEST)
+def test_bracket_rejects_a_b_sign_crossing_hidden_between_grid_points():
+    """Regresion: una imagen cuyo b* cruza cero DENTRO de un paso de grilla.
 
-    values = [sample_ita_objetivo(56.0, 42, step, DIGEST) for step in range(300)]
-    assert all(56.0 - TARGET_WINDOW_DEGREES <= v <= 56.0 + TARGET_WINDOW_DEGREES for v in values)
-    assert min(values) < max(values)
-
-
-def test_objetivo_sampling_does_not_consume_global_rng():
-    np.random.seed(0)
-    before = np.random.random()
-    np.random.seed(0)
-    sample_ita_objetivo(56.0, 42, 1, DIGEST)
-    assert np.random.random() == before
-
-
-def test_apply_draw_is_independent_of_the_objetivo_draw():
-    objetivo_draws = [sample_ita_objetivo(56.0, 42, step, DIGEST) for step in range(50)]
-    apply_draws = [sample_apply_draw(42, step, DIGEST) for step in range(50)]
-    assert objetivo_draws != apply_draws
-
-
-def test_delta_never_needs_truncation_regardless_of_the_measured_value():
-    """Criterio 1 de maestro: la ventana hace el cap estructural, no un recorte posterior."""
-    for measured in (-80.0, -30.0, 0.0, 56.0, 83.0, 500.0):
-        record = compute_ita_delta(measured, 42, 3, DIGEST)
-        assert record["ita_delta_raw"] == record["ita_delta"]
-        assert record["ita_delta_capped"] is False
-        assert abs(record["ita_delta"]) <= TARGET_WINDOW_DEGREES
-
-
-def test_delta_tracks_the_measured_value_without_collapsing_to_a_constant():
-    """Criterio 2 de maestro: a distribucion realista, el delta no colapsa en +25.
-
-    Regresion directa del bug medido: con objetivo en un rango fijo global y
-    mediana de ITA real ~56, el 79,9% de 5.000 draws caia a menos de 0,025
-    grados del cap. Con la ventana centrada, ningun draw puede tocar el borde
-    por recorte -- se verifica que la dispersion de deltas es real, no un
-    monton de valores iguales.
+    Caso real encontrado con una corrida sintetica: b* en t=-3 es -0,40 y en
+    t=0 es +1,10 -- la ITA por si sola pasaria el chequeo de monotonicidad
+    (82,5 a -72,0 visto solo en los extremos parece un descenso), pero en el
+    medio el angulo salta por el cruce del eje, no desciende de forma
+    continua. Sin el chequeo de signo de b*, un intento anterior de esta
+    correccion dejaba pasar ese tramo y ``brentq`` devolvia un error de 70
+    grados contra el objetivo pedido. Con el chequeo, este caso particular
+    ademas falla la monotonicidad hacia t positivo (la ITA sube de -72 a
+    -55,3 entre t=0 y t=3 por el recorte de gamut), asi que el tramo colapsa
+    del todo: abstencion correcta, no un numero incorrecto.
     """
-    rng = np.random.default_rng(1)
-    ita_values = np.clip(rng.normal(56.2, 20, 2000), -58.3, 83.2)
-    deltas = np.array(
-        [
-            compute_ita_delta(float(ita), 42, step, DIGEST)["ita_delta"]
-            for step, ita in enumerate(ita_values)
-        ]
-    )
-    at_boundary = np.isclose(np.abs(deltas), TARGET_WINDOW_DEGREES, atol=1e-6)
-    assert at_boundary.mean() < 0.05
-    assert deltas.std() > 1.0
+    size = 64
+    base = np.array([0.45543079, 0.42675353, 0.42621283])
+    img = np.zeros((size, size, 3))
+    img[:] = base
+    mask = np.zeros((size, size), dtype=bool)
+    mask[size // 3 : 2 * size // 3, size // 3 : 2 * size // 3] = True
+    img[mask] = np.clip(base - 0.2, 0.0, 1.0)
+
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    assert _reachable_bracket(skin_lab) is None
+    assert solve_ita_delta(skin_lab, 42, 37, DIGEST) is None
+
+
+def test_solve_hits_the_sampled_objetivo_almost_exactly():
+    """Criterio de maestro: |ITA_final - objetivo| debe ser chico, no 0,576 de razon."""
+    img, mask = _frame()
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    solved = solve_ita_delta(skin_lab, 42, 0, DIGEST)
+    assert solved is not None
+    realized = _skin_ita_at_t(skin_lab, solved["ita_delta"])
+    assert abs(realized - solved["ita_objetivo"]) < 0.01
+
+
+def test_solve_has_no_default_policy_cap():
+    """No hereda el 25: sin policy_cap_degrees, el bracket es el fisico completo."""
+    img, mask = _frame()
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    bracket = _reachable_bracket(skin_lab)
+    solved = solve_ita_delta(skin_lab, 42, 0, DIGEST)
+    assert solved is not None
+    assert solved["reachable_t_lo"] == bracket[0]
+    assert solved["reachable_t_hi"] == bracket[1]
+    assert solved["policy_cap_narrowed_reachable_range"] is False
+
+
+def test_explicit_policy_cap_narrows_the_bracket_when_passed():
+    img, mask = _frame()
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    solved = solve_ita_delta(skin_lab, 42, 0, DIGEST, policy_cap_degrees=5.0)
+    assert solved is not None
+    assert abs(solved["ita_delta"]) <= 5.0 + 1e-2
+    assert solved["policy_cap_narrowed_reachable_range"] is True
 
 
 def test_abstains_when_ita_is_indeterminate():
-    """Criterio 6 original: piel con b* bajo MIN_B_FOR_ITA no transforma."""
     img, mask = _frame(value=(0.5, 0.5, 0.5))
     step = _find_selected_step()
     out, record = augment_skin_tone_v2(img, mask, 42, step, DIGEST)
@@ -140,7 +147,7 @@ def test_not_selected_by_mix_is_identity_and_distinct_from_abstention():
     assert record["selected_for_transform"] is False
 
 
-def test_selected_image_is_transformed_with_an_anchored_undapped_delta():
+def test_selected_image_is_transformed_with_an_exact_delta():
     img, mask = _frame()
     step = _find_selected_step()
     out, record = augment_skin_tone_v2(img, mask, 42, step, DIGEST)
@@ -148,11 +155,18 @@ def test_selected_image_is_transformed_with_an_anchored_undapped_delta():
     assert record["selected_for_transform"] is True
     assert record["ita_measurement_status"] == "ok"
     assert record["ita_objetivo"] is not None
-    assert record["ita_delta_raw"] == pytest.approx(
-        record["ita_measured"] - record["ita_objetivo"]
-    )
-    assert record["ita_delta_raw"] == record["ita_delta_applied"]
     assert not np.array_equal(out, img)
+
+
+def test_selected_image_realizes_the_objetivo_within_tolerance():
+    """El criterio medible que pidio maestro, de punta a punta."""
+    img, mask = _frame()
+    step = _find_selected_step()
+    out, record = augment_skin_tone_v2(img, mask, 42, step, DIGEST)
+    assert record["applied"] is True
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    realized = _skin_ita_at_t(skin_lab, record["ita_delta_raw"])
+    assert abs(realized - record["ita_objetivo"]) < 0.01
 
 
 def test_lesion_preserved_pixel_for_pixel_when_transformed():
@@ -169,15 +183,6 @@ def test_degenerate_lesion_mask_falls_back_through_the_frozen_guard():
     out, record = augment_skin_tone_v2(img, full, 42, 0, DIGEST)
     assert np.array_equal(out, img)
     assert record["applied"] is False
-
-
-def test_sampling_rejects_bad_key_or_anchor():
-    with pytest.raises(ValueError):
-        sample_ita_objetivo(56.0, 42, -1, DIGEST)
-    with pytest.raises(ValueError):
-        sample_ita_objetivo(float("nan"), 42, 1, DIGEST)
-    with pytest.raises(ValueError):
-        sample_apply_draw(42.0, 1, DIGEST)
 
 
 def test_record_shape_is_compatible_with_the_frozen_summarizer():
