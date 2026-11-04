@@ -86,6 +86,15 @@
         "nv": 280,
         "vasc": 3
       },
+      "per_class_f1": {
+        "akiec": 0.8,
+        "bcc": 0.9473684210526315,
+        "bkl": 0.45454545454545453,
+        "df": 0.8571428571428571,
+        "mel": 0.5384615384615384,
+        "nv": 0.9702276707530648,
+        "vasc": 0.8
+      },
       "classes_absent": [],
       "classes_below_min_n": [
         "akiec",
@@ -94,7 +103,19 @@
         "df",
         "mel",
         "vasc"
-      ]
+      ],
+      "macro_f1_comparable_classes": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "mel",
+        "nv",
+        "vasc"
+      ],
+      "macro_f1_excluded_from_comparison": [
+        "df"
+      ],
+      "macro_f1_comparable": 0.7517671808021148
     },
     "teacher_026": {
       "status": "OK",
@@ -117,6 +138,15 @@
         "nv": 448,
         "vasc": 4
       },
+      "per_class_f1": {
+        "akiec": 0.3333333333333333,
+        "bcc": 0.5882352941176471,
+        "bkl": 0.5652173913043478,
+        "df": 0.0,
+        "mel": 0.5128205128205128,
+        "nv": 0.9743589743589743,
+        "vasc": 1.0
+      },
       "classes_absent": [
         "df"
       ],
@@ -126,7 +156,19 @@
         "bkl",
         "mel",
         "vasc"
-      ]
+      ],
+      "macro_f1_comparable_classes": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "mel",
+        "nv",
+        "vasc"
+      ],
+      "macro_f1_excluded_from_comparison": [
+        "df"
+      ],
+      "macro_f1_comparable": 0.6623275843224693
     },
     "unavailable": {
       "status": "SKIPPED",
@@ -156,6 +198,15 @@
         "nv": 259,
         "vasc": 1
       },
+      "per_class_f1": {
+        "akiec": 0.4,
+        "bcc": 0.7692307692307693,
+        "bkl": 0.4444444444444444,
+        "df": 0.0,
+        "mel": 0.4,
+        "nv": 0.9788867562380038,
+        "vasc": 1.0
+      },
       "classes_absent": [],
       "classes_below_min_n": [
         "akiec",
@@ -164,7 +215,18 @@
         "df",
         "mel",
         "vasc"
-      ]
+      ],
+      "macro_f1_comparable_classes": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "nv",
+        "vasc"
+      ],
+      "macro_f1_excluded_from_comparison": [],
+      "macro_f1_comparable": 0.5703659957018882
     },
     "cohorte_t2_medio": {
       "status": "OK",
@@ -187,6 +249,15 @@
         "nv": 248,
         "vasc": 3
       },
+      "per_class_f1": {
+        "akiec": 0.375,
+        "bcc": 0.18181818181818182,
+        "bkl": 0.2857142857142857,
+        "df": 0.6666666666666666,
+        "mel": 0.47058823529411764,
+        "nv": 0.9700598802395209,
+        "vasc": 0.8
+      },
       "classes_absent": [],
       "classes_below_min_n": [
         "akiec",
@@ -195,7 +266,18 @@
         "df",
         "mel",
         "vasc"
-      ]
+      ],
+      "macro_f1_comparable_classes": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "nv",
+        "vasc"
+      ],
+      "macro_f1_excluded_from_comparison": [],
+      "macro_f1_comparable": 0.535692464247539
     },
     "cohorte_t3_mas_claro": {
       "status": "OK",
@@ -218,6 +300,15 @@
         "nv": 221,
         "vasc": 3
       },
+      "per_class_f1": {
+        "akiec": 0.6153846153846154,
+        "bcc": 0.896551724137931,
+        "bkl": 0.6666666666666666,
+        "df": 1.0,
+        "mel": 0.5789473684210527,
+        "nv": 0.968609865470852,
+        "vasc": 1.0
+      },
       "classes_absent": [],
       "classes_below_min_n": [
         "akiec",
@@ -226,7 +317,18 @@
         "df",
         "mel",
         "vasc"
-      ]
+      ],
+      "macro_f1_comparable_classes": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "nv",
+        "vasc"
+      ],
+      "macro_f1_excluded_from_comparison": [],
+      "macro_f1_comparable": 0.8180228914401597
     },
     "unavailable": {
       "status": "SKIPPED",

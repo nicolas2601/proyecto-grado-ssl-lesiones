@@ -191,9 +191,9 @@ def _stratum_mask(labels: np.ndarray, key: str) -> np.ndarray:
 
 
 def _augment_with_class_counts(
-    stratum: dict, y_true: np.ndarray, labels: np.ndarray, min_n: int
+    stratum: dict, y_true: np.ndarray, proba: np.ndarray, labels: np.ndarray, min_n: int
 ) -> dict:
-    """Attaches per-class counts to every OK entry: declares thin or absent classes, never hides them.
+    """Attaches per-class counts and per-class F1 to every OK entry: declares thin or absent classes, never hides them.
 
     A class with 0 true instances in a stratum is ABSENT (contributes 0 to
     that stratum's macro-F1 by ``per_class_f1``'s own documented
@@ -208,12 +208,63 @@ def _augment_with_class_counts(
             augmented[key] = entry
             continue
         mask = _stratum_mask(labels, key)
-        counts = _per_class_counts(y_true[mask])
+        y_masked = y_true[mask]
+        pred_masked = proba[mask].argmax(axis=1)
+        counts = _per_class_counts(y_masked)
+        per_class_f1_array = metrics.per_class_f1(y_masked, pred_masked, N_CLASSES)
         augmented[key] = {
             **entry,
             "per_class_counts": counts,
+            "per_class_f1": dict(zip(HAM10000_CLASSES, (float(v) for v in per_class_f1_array))),
             "classes_absent": [c for c, n in counts.items() if n == 0],
             "classes_below_min_n": [c for c, n in counts.items() if 0 < n < min_n],
+        }
+    return augmented
+
+
+def _add_comparable_macro_f1(stratum: dict) -> dict:
+    """Macro-F1 over the classes present (count > 0) in EVERY OK entry of the group, computed, not left implicit.
+
+    The 7-class macro-F1 of each entry and the 7-class macro-F1 of another
+    entry are not comparable when they are missing different rare classes:
+    a class absent from one stratum forces its F1 to 0 there by
+    ``per_class_f1``'s own convention, mechanically dragging that average
+    down regardless of model performance. That is exactly what made
+    teacher_026's 0.5677 look worse than otsu_fallback's 0.7668 when 'df'
+    sat at 0 true samples in teacher_026 and 4 in otsu_fallback -- the
+    forced zero alone explained more than half the gap (docs/estado/
+    ita-medibilidad-vs-clase-diagnostica.md section 5, commit 904ac51).
+    Recomputing macro-F1 over only the classes every compared stratum
+    actually has data for isolates the comparison from that artifact.
+    """
+    ok_entries = {key: entry for key, entry in stratum.items() if entry.get("status") == "OK"}
+    if len(ok_entries) < 2:
+        comparable_classes: list[str] = list(HAM10000_CLASSES)
+        excluded: list[str] = []
+    else:
+        present_sets = [
+            {c for c, n in entry["per_class_counts"].items() if n > 0} for entry in ok_entries.values()
+        ]
+        intersection = set.intersection(*present_sets)
+        comparable_classes = [c for c in HAM10000_CLASSES if c in intersection]
+        excluded = [c for c in HAM10000_CLASSES if c not in intersection]
+
+    augmented = {}
+    for key, entry in stratum.items():
+        if entry.get("status") != "OK":
+            augmented[key] = entry
+            continue
+        if comparable_classes:
+            comparable_macro_f1 = float(
+                np.mean([entry["per_class_f1"][c] for c in comparable_classes])
+            )
+        else:
+            comparable_macro_f1 = None
+        augmented[key] = {
+            **entry,
+            "macro_f1_comparable_classes": comparable_classes,
+            "macro_f1_excluded_from_comparison": excluded,
+            "macro_f1_comparable": comparable_macro_f1,
         }
     return augmented
 
@@ -227,7 +278,8 @@ def macro_f1_by_mask_source(
         return {}
     labels = np.asarray(sources, dtype=object)
     stratum = metrics.stratified_by_label(y_sub, proba_sub, labels, N_CLASSES, min_n=min_n)
-    return _augment_with_class_counts(stratum, y_sub, labels, min_n)
+    stratum = _augment_with_class_counts(stratum, y_sub, proba_sub, labels, min_n)
+    return _add_comparable_macro_f1(stratum)
 
 
 def cohort_terciles(ita_values: np.ndarray) -> np.ndarray:
@@ -250,7 +302,8 @@ def macro_f1_by_cohort_tercile(
         return {}
     labels = cohort_terciles(ita_values)
     stratum = metrics.stratified_by_label(y_sub, proba_sub, labels, N_CLASSES, min_n=min_n)
-    return _augment_with_class_counts(stratum, y_sub, labels, min_n)
+    stratum = _augment_with_class_counts(stratum, y_sub, proba_sub, labels, min_n)
+    return _add_comparable_macro_f1(stratum)
 
 
 def correctness_ita_correlation(

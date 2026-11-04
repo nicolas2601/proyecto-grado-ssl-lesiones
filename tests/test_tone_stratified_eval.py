@@ -288,6 +288,61 @@ def test_build_report_surfaces_class_composition_and_thin_class_warnings():
     assert "mel" in report["strata_with_thin_classes"]["mask_source/only_source"]
 
 
+def test_comparable_macro_f1_removes_the_forced_zero_artifact():
+    """Regresion exacta del hallazgo de maestro: un cero forzado por clase ausente no es rendimiento.
+
+    Dos estratos, mismo desempeno real (perfecto) sobre lo que SI tienen en
+    comun ('nv'), pero uno tiene ademas 3 'df' (perfectos) y el otro no
+    tiene 'df' en absoluto. El macro-F1 de 7 clases castiga al que le falta
+    'df' aunque su desempeno en lo comun sea identico; el comparable, no.
+    """
+    y_true = np.asarray(
+        [HAM10000_CLASSES.index("nv")] * 40 + [HAM10000_CLASSES.index("df")] * 3
+    )
+    proba = np.asarray(
+        [_one_hot("nv") for _ in range(40)] + [_one_hot("df") for _ in range(3)]
+    )
+    ita_rows = [_row(i, 1.0, "nv", mask_source="has_df") for i in range(40)] + [
+        _row(40 + i, 1.0, "df", mask_source="has_df") for i in range(3)
+    ]
+
+    y_true2 = np.asarray([HAM10000_CLASSES.index("nv")] * 40)
+    proba2 = np.asarray([_one_hot("nv") for _ in range(40)])
+    ita_rows2 = [_row(43 + i, 1.0, "nv", mask_source="no_df") for i in range(40)]
+
+    y_all = np.concatenate([y_true, y_true2])
+    proba_all = np.concatenate([proba, proba2])
+    rows_all = ita_rows + ita_rows2
+
+    result = macro_f1_by_mask_source(y_all, proba_all, rows_all, min_n=3)
+    has_df = result["has_df"]
+    no_df = result["no_df"]
+
+    # 7-class macro-F1 is NOT equal: 'no_df' is missing a class it never had,
+    # which forces that class's F1 to 0 there even though the model never
+    # made a mistake on anything it was actually asked to classify.
+    assert has_df["macro_f1"] != pytest.approx(no_df["macro_f1"])
+    assert "df" in no_df["classes_absent"]
+
+    # Comparable macro-F1, over the intersection ('nv' only), removes the artifact.
+    assert has_df["macro_f1_comparable_classes"] == ["nv"]
+    assert no_df["macro_f1_comparable_classes"] == ["nv"]
+    assert has_df["macro_f1_comparable"] == pytest.approx(1.0)
+    assert no_df["macro_f1_comparable"] == pytest.approx(1.0)
+    assert "df" in has_df["macro_f1_excluded_from_comparison"]
+    assert "df" in no_df["macro_f1_excluded_from_comparison"]
+
+
+def test_comparable_macro_f1_defaults_to_all_classes_with_a_single_stratum():
+    y_true = np.asarray([HAM10000_CLASSES.index("nv")] * 40)
+    proba = np.asarray([_one_hot("nv") for _ in range(40)])
+    ita_rows = [_row(i, 1.0, "nv", mask_source="only_one") for i in range(40)]
+    result = macro_f1_by_mask_source(y_true, proba, ita_rows, min_n=3)
+    assert result["only_one"]["macro_f1_comparable_classes"] == list(HAM10000_CLASSES)
+    assert result["only_one"]["macro_f1_excluded_from_comparison"] == []
+    assert result["only_one"]["macro_f1_comparable"] == pytest.approx(result["only_one"]["macro_f1"])
+
+
 def test_build_report_declares_partial_coverage_and_which_variant():
     rng = np.random.default_rng(2)
     n = 50

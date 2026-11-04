@@ -50,12 +50,13 @@ from dermssl.tone_stratified_eval import (  # noqa: E402
 
 def _format_stratum_table(stratum: dict) -> list[str]:
     lines = []
+    n_ok = sum(1 for entry in stratum.values() if entry.get("status") == "OK")
     for key, entry in stratum.items():
         if entry.get("status") == "SKIPPED":
             lines.append(f"     {key}: SKIPPED ({entry['reason']})")
             continue
         lines.append(
-            f"     {key}: n={entry['count']}  macro_f1={entry['macro_f1']:.4f}  "
+            f"     {key}: n={entry['count']}  macro_f1(7 clases)={entry['macro_f1']:.4f}  "
             f"ci95=[{entry.get('macro_f1_ci95_low', float('nan')):.4f}, "
             f"{entry.get('macro_f1_ci95_high', float('nan')):.4f}]"
         )
@@ -66,6 +67,20 @@ def _format_stratum_table(stratum: dict) -> list[str]:
                 f"       clases con n insuficiente (no promediar su F1 como confiable): "
                 f"{entry['classes_below_min_n']}"
             )
+        if entry.get("macro_f1_comparable") is not None:
+            comparable = entry["macro_f1_comparable"]
+            excluded = entry.get("macro_f1_excluded_from_comparison") or []
+            lines.append(
+                f"       macro_f1(clases comparables entre estratos)={comparable:.4f}"
+                f"  excluidas: {excluded}" if excluded else
+                f"       macro_f1(clases comparables entre estratos)={comparable:.4f}  (sin exclusiones)"
+            )
+    if n_ok >= 2:
+        lines.append(
+            "     NOTA: macro_f1(7 clases) de un estrato NO es comparable contra otro si difieren "
+            "en que clases raras les faltan -- una clase ausente fuerza su F1 a 0 mecanicamente. "
+            "Para comparar estratos entre si, usar macro_f1(clases comparables)."
+        )
     return lines
 
 
