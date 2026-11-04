@@ -1,0 +1,57 @@
+{
+  "n_total": 1500,
+  "b_median_distribution": {
+    "p5": -5.6716462867615824,
+    "p25": 0.7515269242665545,
+    "p50": 5.532797098866138,
+    "p75": 12.685604287925134,
+    "p95": 25.454334503837348
+  },
+  "b_median_n_finite": 1500,
+  "fraction_below_min_b_for_ita": 0.4646666666666667,
+  "measurable_rate": 0.5353333333333333,
+  "reachable_without_mix_rate": 0.524,
+  "effective_intervention_rate_with_mix": 0.25866666666666666,
+  "criterion_7_floor": 0.8,
+  "sustains_criterion_7": false,
+  "no_reachable_among_measurable": 11,
+  "population_shift_rejections": 6,
+  "reachable_ita_span_distribution": {
+    "p5": 50.94806423867742,
+    "p25": 59.542460652996695,
+    "p50": 70.11730907968436,
+    "p75": 79.08999103077801,
+    "p95": 87.64643437852575
+  },
+  "reachable_ita_span_n": 792,
+  "label_coverage_n": 594,
+  "label_coverage_fraction": 0.396,
+  "measurability_vs_label": {
+    "table_measurable_pos_neg": [
+      31,
+      193
+    ],
+    "table_unmeasurable_pos_neg": [
+      84,
+      286
+    ],
+    "odds_ratio": 0.5468788551690106,
+    "p_value": 0.009907860139091326,
+    "positive_rate_measurable": 0.13839285714285715,
+    "positive_rate_unmeasurable": 0.22702702702702704
+  },
+  "measurability_vs_label_by_area_tercile": {
+    "0": {
+      "positive_rate_measurable": 0.06349206349206349,
+      "positive_rate_unmeasurable": 0.125
+    },
+    "1": {
+      "positive_rate_measurable": 0.14473684210526316,
+      "positive_rate_unmeasurable": 0.19672131147540983
+    },
+    "2": {
+      "positive_rate_measurable": 0.18823529411764706,
+      "positive_rate_unmeasurable": 0.38392857142857145
+    }
+  }
+}

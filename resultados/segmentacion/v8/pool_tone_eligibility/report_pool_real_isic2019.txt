@@ -1,0 +1,29 @@
+TRIAJE DE ELEGIBILIDAD DE POOL PARA EL CONTRASTE DE TONO
+manifiesto: pool_real_manifest.jsonl
+n total: 1500  seed: 42  policy_cap_degrees: None
+
+1. Distribucion de b* de piel (fitzpatrick.estimate_fst)
+   mediana=5.533  p05=-5.672  p25=0.752  p75=12.686  p95=25.454  (n=1500)
+   fraccion bajo MIN_B_FOR_ITA=5.0: 0.4647
+
+2. Tasa de medibilidad del ITA y techo de intervencion proyectado de v2
+   medible (status=ok): 0.5353
+   alcanzable SIN sorteo de mezcla (techo real): 0.5240
+   tasa efectiva proyectada CON sorteo de mezcla: 0.2587
+   rechazos por border_population_shift (MAX_POPULATION_SHIFT_FRACTION): 6
+
+3. Contraste contra criterio 7 (piso 80%)
+   tasa efectiva con mezcla 0.2587 contra piso 0.80: NO SOSTIENE
+
+4. Medibilidad contra etiqueta diagnostica
+   cobertura de etiqueta: 594/1500 (0.3960)
+   COBERTURA PARCIAL: lo que sigue es condicional al subconjunto con etiqueta, no al pool completo.
+   tasa de positivos, medible: 0.1384  no medible: 0.2270
+   Fisher exacto: odds ratio 0.5469  p=0.009908
+   por tercil de area de lesion (medible / no medible):
+     tercil 0: 0.0635 / 0.1250
+     tercil 1: 0.1447 / 0.1967
+     tercil 2: 0.1882 / 0.3839
+
+5. Recorrido alcanzable por imagen (grados de ITA, solo entre las medibles y alcanzables)
+   mediana=70.117  p05=50.948  p25=59.542  p75=79.090  p95=87.646  (n=792)
