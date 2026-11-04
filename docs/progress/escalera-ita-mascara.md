@@ -32,6 +32,49 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
   checkpoint `f4fcee05...462f4` reverificado) → `resultados/segmentacion/v8/hair_removal_shaped_dice_ph2/summary.json`
 - [ ] 8. Rejilla completa del brazo T
 
+## Dónde se retoma (2026-11-04, fin de sesión)
+
+Síntesis en `docs/63-instrumento-ita-alcance-y-limites.md`. Dos líneas abiertas.
+
+### Línea 1 — Piel oscura: lo que bloquea el objetivo 3
+
+**Ningún dataset de esta línea tiene piel oscura real.** El tercil "oscuro" de
+ISIC 2018 cae en *intermediate/tan* de Del Bino; el pool tiene terciles de ITA
+48,05 y 67,61; Benčević descarta ISIC explícitamente para evaluar sesgo y su
+propio N de FST V–VI es **5 imágenes**. El objetivo de equidad del acta
+**no es testeable en los datos elegidos**, y eso no lo arregla ninguna técnica.
+
+Candidatos sin evaluar: **S-SYNTH** con fototipos sintéticos controlados — el
+único con piel oscura real *y* melanina verdadera, ya descargado y verificado en
+UNABIA (72 GB, sha256 coincidente con HuggingFace, máscara de lesión por
+muestra) —, **DDI**, **Fitzpatrick17k** (ya usado en `docs/20c`), **Dermofit** y
+**Waterloo** (los tres que usa Benčević).
+
+Caveat de S-SYNTH, declarado antes de empezar: es render sintético, y en
+aprendizaje contrastivo el encoder puede aprender «real contra sintético» como
+la invariancia más fácil de romper.
+
+### Línea 2 — Cerrar el instrumento
+
+1. **Plausibilidad visual: nunca medida.** Corbin acota el desplazamiento por
+   eso y nosotros solo medimos puntería numérica. Un desplazamiento puede
+   aterrizar con error 0,00001° y producir una imagen que no parece piel; con
+   recorrido alcanzable de 75° el riesgo es concreto. **Bloquea fijar el cap de
+   política.** Son ~20 imágenes transformadas a ojo, no un experimento.
+2. **Residuo de 2,33° de la vía B.** El solver es exacto; la salida mide
+   sistemáticamente más claro que lo que la curva predice. Ocho causas
+   descartadas. En `transformacion-tono`, que tiene los internos.
+3. **Unificar las dos definiciones de «piel».** Higiene, no causa del residuo.
+
+### Decisiones pendientes del usuario
+
+- Política de abstención: hoy corre con el default «no transformar y registrar»,
+  **sin confirmación**.
+- Cap de política: bloqueado por la plausibilidad visual.
+- Si vale correr la rejilla de 18 combinaciones para medir la varianza del brazo
+  B entre tonos — la única vía que la literatura 2025 señala como prometedora y
+  que se descartó sin medir.
+
 ## Resultados medidos
 
 Error de ITA contra el techo de máscara experta, ISIC 2018, denominador común
