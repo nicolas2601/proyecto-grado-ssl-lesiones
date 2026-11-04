@@ -235,6 +235,39 @@ Medición propia, n=33 transformadas sobre S-SYNTH, con el módulo v2:
     Y en el lado de aclarado crece con la magnitud: 4,0 % hasta 20°, 8,9 %
     hasta 30°, 14,2 % hasta 40°, 24,3 % sin cap.
 
+    **La causa está en las ecuaciones del paper, no en nuestro código.** Los
+    signos de las eqs. 8–9 de Corbin están **acoplados**:
+    `delta_b = +t·0,50` y `delta_l = −t·0,12`. Aclarar exige `t < 0` para que
+    `delta_l > 0` suba L\*, y ese mismo `t < 0` hace `delta_b < 0`, que empuja
+    b\* hacia cero **en la misma operación**. Oscurecer (`t > 0`) mueve los dos
+    canales al revés: sube b\*, lo aleja de cero. No depende de nuestra curva,
+    ni del feather, ni del submuestreo. Verificado por los dos lados: por
+    `transformacion-tono` llamando a `augment_skin_tone` directo, y de forma
+    independiente aplicando sólo las eqs. 8–9 a mano.
+
+    De ahí sale un **umbral analítico** cerrado, que es la forma útil del
+    hallazgo: aclarar `|t|` grados cruza `MIN_B_FOR_ITA` cuando
+    **`b*_inicial < 5 + 0,50·|t|`**. Un cap de 25° en aclarado exige
+    `b*_inicial ≥ 17,5`.
+
+    **Y acá hay un riesgo de generalización que S-SYNTH esconde.** El b\* de
+    piel de S-SYNTH tiene mediana **29,26** (p05 12,89). El grupo `ok` de
+    ISIC 2018 tiene b\* mediana **11,53** (sección 3) — *por debajo del p05 de
+    S-SYNTH*. Es decir que en dermatoscopia real la mayoría de las imágenes no
+    llega al `b*_inicial ≥ 17,5` que un aclarado de 25° necesita. **El 24,3 %
+    medido en S-SYNTH es un piso optimista, no una estimación.** Sobre
+    S-SYNTH el mismo umbral analítico predice 10,2 % de fallas a 25° y 33,2 %
+    a 40°.
+
+    Un detalle que conviene no exagerar: el escenario de b\* **negativo** —que
+    sin la guarda daría ITA negativo, o sea fototipo V–VI en Groh, es decir
+    *fabricar* una etiqueta de piel oscura al aclarar— es analíticamente real
+    (con `b*_inicial = 8` y `t = −25` da b\* = −4,5, ITA = −78,9°) pero **no
+    ocurrió en S-SYNTH**: 0 de 129 no medibles tienen b\* negativo, el mínimo
+    fue +0,237. La guarda los atrapa antes. Queda anotado como el modo de falla
+    a vigilar cuando esto corra sobre dermatoscopia real de b\* bajo, no como
+    algo observado.
+
     **Esto no coincide con la literatura que usamos.** El ±25 de Corbin es
     **simétrico**; medido en nuestro pipeline, oscurecer no degrada nada y
     aclarar sí, de forma monótona. Un cap simétrico o paga de más en el lado
