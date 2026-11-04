@@ -28,6 +28,7 @@ from dermssl.tone_augment_lab_v2 import (
     _skin_ita_at_t,
     _skin_lab_for_curve,
     _skin_state_at_t,
+    _unified_skin_fov,
     augment_skin_tone_v2,
     sample_apply_draw,
     solve_ita_delta,
@@ -297,6 +298,68 @@ def test_lesion_preserved_pixel_for_pixel_when_transformed():
     out, record = augment_skin_tone_v2(img, mask, 42, step, DIGEST)
     if record["applied"]:
         assert np.array_equal(out[mask], img[mask])
+
+
+def _frame_with_vignette(size=96, value=(0.6, 0.5, 0.4), vignette_width=10):
+    """A skin patch with a near-black dermoscope vignette ring outside the lesion.
+
+    Needed to exercise the two skin-population definitions diverging:
+    on a plain frame (no vignette) both already agree everywhere, so a test
+    without one cannot tell a unification bug from a correct unification.
+    """
+    img = np.zeros((size, size, 3))
+    img[:] = np.asarray(value)
+    yy, xx = np.mgrid[0:size, 0:size]
+    center = size / 2
+    radius = np.sqrt((yy - center) ** 2 + (xx - center) ** 2)
+    img[radius > size / 2 - vignette_width] = 0.005  # below BORDER_LUMINANCE_THRESHOLD
+    mask = np.zeros((size, size), dtype=bool)
+    mask[size // 3 : 2 * size // 3, size // 3 : 2 * size // 3] = True
+    img[mask] = (0.33, 0.21, 0.19)
+    return img, mask
+
+
+def test_unified_fov_excludes_the_vignette_the_selector_alone_would_keep():
+    """Regresion de la Tarea 1A: las dos definiciones de piel, unificadas.
+
+    `tone_normalization._skin_selector` por si sola (sin excluir casi-negro)
+    incluiria el anillo de vineteado como piel transformable. El fov
+    unificado no.
+    """
+    img, mask = _frame_with_vignette()
+    from dermssl.tone_normalization import _skin_selector
+
+    selector_only = _skin_selector(mask, None)
+    unified = ~mask & _unified_skin_fov(img, None)
+    vignette_ring = selector_only & ~unified
+    assert vignette_ring.any()
+
+
+def test_transformed_pixels_never_include_the_vignette():
+    """La geometria congelada, llamada con el fov unificado, no toca el vineteado.
+
+    ``feather_sigma=0`` aisla la unificacion de piel del suavizado del
+    borde: con feather, CUALQUIER limite de mascara sangra un anillo de
+    pocos pixeles por diseno (es lo que prueba
+    ``test_feather_softens_the_boundary_without_touching_the_lesion`` en el
+    modulo congelado), y eso incluiria el borde del vineteado tambien. Sin
+    feather, si las dos definiciones de piel volvieran a divergir (alguien
+    pasa el fov crudo en vez del unificado), este test falla: el vineteado
+    quedaria transformado en vez de identico.
+    """
+    img, mask = _frame_with_vignette()
+    step = _find_selected_step()
+    out, record = augment_skin_tone_v2(img, mask, 42, step, DIGEST, feather_sigma=0.0)
+    if record["applied"]:
+        vignette = _skin_selector_vignette_mask(img, mask)
+        assert vignette.any()
+        assert np.array_equal(out[vignette], img[vignette])
+
+
+def _skin_selector_vignette_mask(img, mask):
+    from dermssl.tone_normalization import _skin_selector
+
+    return _skin_selector(mask, None) & ~_unified_skin_fov(img, None)
 
 
 def test_degenerate_lesion_mask_falls_back_through_the_frozen_guard():

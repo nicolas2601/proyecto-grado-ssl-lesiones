@@ -255,6 +255,34 @@ def sample_apply_draw(seed: int, step: int, image_sha256: str) -> float:
     return _hash_unit_interval("tone-augment-lab-v2-apply", seed, step, image_sha256)
 
 
+def _unified_skin_fov(img: np.ndarray, border_mask: np.ndarray | None) -> np.ndarray:
+    """A ``valid_fov`` that makes the TRANSFORMED set match the MEASURED set.
+
+    The repo has two "skin" definitions that are supposed to be the same
+    thing and are not: ``tone_normalization._skin_selector`` (what
+    ``tone_augment_lab.augment_skin_tone`` actually shifts, ``~lesion_mask &
+    valid_fov``, no near-black exclusion) and ``fitzpatrick._resolve_border``
+    (what ``estimate_fst`` -- and this module's own curve -- measures,
+    additionally excluding ``gray < BORDER_LUMINANCE_THRESHOLD``). On
+    S-SYNTH they coincide exactly (0,0000% divergence, independently
+    measured); on real dermoscopy with vignetting they need not.
+
+    Unifying by EDITING ``_skin_selector`` would change
+    ``tone_augment_lab.augment_skin_tone``'s effective behaviour on every
+    caller, including already-reported ``tone_normalization`` results --
+    the same frozen-contract risk as editing the file directly, just one
+    import away. This sidesteps that: pass THIS as ``valid_fov`` to
+    ``augment_skin_tone`` instead of the raw field-of-view, and
+    ``_skin_selector(lesion_mask, this)`` reduces to exactly
+    ``~lesion_mask & ~border`` -- the measurer's definition -- without
+    touching ``_skin_selector``, ``tone_normalization.py`` or
+    ``tone_augment_lab.py`` at all. The transformer adopts the measurer's
+    criterion by construction, not by edit.
+    """
+    gray = img.mean(axis=-1)
+    return ~_resolve_border(gray, border_mask)
+
+
 def _skin_lab_for_curve(
     img: np.ndarray,
     lesion_mask: np.ndarray,
@@ -273,9 +301,7 @@ def _skin_lab_for_curve(
     skin mask already fixes the pixel order, so this needs no RNG and no
     extra hash key.
     """
-    gray = img.mean(axis=-1)
-    border = _resolve_border(gray, border_mask)
-    skin = ~lesion_mask & ~border
+    skin = ~lesion_mask & _unified_skin_fov(img, border_mask)
     lab = srgb_to_lab(img)[skin]
     if lab.shape[0] == 0:
         return None
@@ -631,10 +657,13 @@ def augment_skin_tone_v2(
     # within, never a separate number: augment_skin_tone's own clip must not
     # re-truncate a value this module already guaranteed is in range.
     geometry_bound = max(abs(solved["reachable_t_lo"]), abs(solved["reachable_t_hi"]))
+    # _unified_skin_fov, not the raw fov: makes augment_skin_tone's internal
+    # _skin_selector shift exactly the population this module solved and
+    # measured over, not the (possibly wider) raw field of view.
     out, geometry_record = augment_skin_tone(
         img,
         lesion_mask,
-        fov,
+        _unified_skin_fov(img, border_mask),
         ita_delta=solved["ita_delta"],
         feather_sigma=feather_sigma,
         max_abs_ita_delta=geometry_bound,
