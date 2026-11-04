@@ -12,7 +12,7 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
 - [x] 2. Escalera de 4 brazos sobre ISIC 2018 Task 1 (n=2.594) | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/final_isic.py`
 - [x] 3. Causa del 28 % sin ITA | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/diag_b.py`
 - [x] 4. Tono contra contraste como conductor del sesgo | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/contrast.py`
-- [ ] 5. `tone_augment_lab_v2` con Corbin eq. 7 en grados ITA
+- [x] 5. `tone_augment_lab_v2` con Corbin eq. 7 en grados ITA | `60d165f` | `PYTHONPATH=src pytest -q tests/test_tone_augment_lab_v2.py tests/test_tone_augment_lab.py` → 42 passed
 - [ ] 6. Validación de la transformación contra melanina verdadera en S-SYNTH
 - [ ] 7. Sesgo en PH2 y varianza del brazo B entre tonos
 - [ ] 8. Rejilla completa del brazo T
