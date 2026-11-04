@@ -13,6 +13,22 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
 - [x] 3. Causa del 28 % sin ITA | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/diag_b.py`
 - [x] 4. Tono contra contraste como conductor del sesgo | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/contrast.py`
 - [x] 5. `tone_augment_lab_v2` con Corbin eq. 7 en grados ITA | `6997206` | `PYTHONPATH=src pytest -q tests/test_tone_augment_lab_v2.py tests/test_tone_augment_lab.py` → 46 passed (recorrido alcanzable por imagen + `brentq`; sin cap de politica por defecto — ver docstring del modulo sobre la inconsistencia Groh/Corbin en `MAX_ABS_ITA_DELTA`; corregida la agregacion del ITA de la curva — angulo de las medianas, no mediana de los angulos — causa dominante del residuo de la via B; abstencion nueva `border_population_shift_too_large` para la causa secundaria)
+- [x] 5d. Unificar las dos definiciones de piel (Tarea 1A) | `99bad30` |
+  `PYTHONPATH=src pytest -q tests/test_tone_augment_lab_v2.py tests/test_tone_augment_lab.py`
+  → 48 passed. `_unified_skin_fov` pliega la exclusion de borde casi-negro en
+  el `valid_fov` que se pasa a `augment_skin_tone`, sin tocar `_skin_selector`
+  ni `tone_normalization.py` ni `tone_augment_lab.py` (editar `_skin_selector`
+  cambiaria el comportamiento efectivo del modulo congelado para todo
+  llamador). Test de regresion con vineteado sintetico — S-SYNTH no alcanza
+  para probarlo, las dos definiciones coinciden ahi al 0,0000 %.
+- [x] 5e. Hoja de contactos antes/despues (Tarea 1B) | `addc50a` |
+  `PYTHONPATH=src pytest -q tests/test_make_tone_contact_sheet.py` → 8 passed.
+  `scripts/make_tone_contact_sheet.py`, toma un manifiesto JSONL de
+  imagen/mascara, estratifica por delta LOGRADO (no por melanina), fuerza los
+  dos extremos absolutos. Pendiente: correrlo sobre S-SYNTH real (manifiesto
+  no generado en esta sesion) y que Maria Paula juzgue la plausibilidad
+  visual — eso desbloquea la Tarea 1C (calibrar `MAX_POPULATION_SHIFT_FRACTION`,
+  bloqueada aparte, esperando la corrida `via_b3` de maestro).
 - [~] 6. Validación de la transformación contra melanina verdadera en S-SYNTH |
   sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/via_b2.py` →
   `via_b2_rows.jsonl`. **Causa raiz del residuo aislada y corregida en `6997206`
