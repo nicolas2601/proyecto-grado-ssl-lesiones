@@ -1,0 +1,177 @@
+{
+  "dataset": "ph2",
+  "n_used": 177,
+  "n_skipped": 23,
+  "skipped": [
+    [
+      "IMD045",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD065",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD146",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD208",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD211",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD284",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD347",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD385",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD397",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD398",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD400",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD405",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD408",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD410",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD420",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD421",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD423",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD425",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD426",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD427",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD434",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD435",
+      "estimate_fst_status=ita_indeterminate"
+    ],
+    [
+      "IMD437",
+      "estimate_fst_status=ita_indeterminate"
+    ]
+  ],
+  "spearman_vs_dice": {
+    "ita": {
+      "rho": 0.04703000294316235,
+      "p": 0.5342020130855427
+    },
+    "contrast_L": {
+      "rho": 0.12523804989525805,
+      "p": 0.09672861309844086
+    },
+    "contrast_lab": {
+      "rho": -0.0032829244646041447,
+      "p": 0.9654088805935874
+    },
+    "area": {
+      "rho": 0.4983964093419435,
+      "p": 1.674886917256745e-12
+    }
+  },
+  "tone_vs_contrast_confound": {
+    "ita_vs_contrast_L": {
+      "rho": 0.372950606810824,
+      "p": 3.182740865450103e-07
+    },
+    "ita_vs_contrast_lab": {
+      "rho": 0.5733799622582713,
+      "p": 7.379626507047219e-17
+    },
+    "ita_vs_area": {
+      "rho": -0.056491404234691234,
+      "p": 0.45515960412521705
+    }
+  },
+  "partial_correlations": {
+    "ita_given_contrast_L_and_area": {
+      "rho": 0.018567891830127595,
+      "p": 0.8062236654404363
+    },
+    "contrast_L_given_ita_and_area": {
+      "rho": 0.12131888298332788,
+      "p": 0.10771386928083058
+    }
+  },
+  "tercile_gap": {
+    "ita": {
+      "n_per_tercile": [
+        59,
+        59,
+        59
+      ],
+      "mean_per_tercile": [
+        0.9572502284135408,
+        0.9758669848467276,
+        0.9712869149982245
+      ],
+      "gap_t3_minus_t1": 0.01403668658468371,
+      "anova_F": 2.079838504523118,
+      "anova_p": 0.12804580337868218,
+      "kruskal_H": 1.5760420129822705,
+      "kruskal_p": 0.45474384049515226
+    },
+    "contrast_L": {
+      "n_per_tercile": [
+        59,
+        59,
+        59
+      ],
+      "mean_per_tercile": [
+        0.9514626642321534,
+        0.9764792184474589,
+        0.9764622455788805
+      ],
+      "gap_t3_minus_t1": 0.024999581346727084,
+      "anova_F": 4.745624668115483,
+      "anova_p": 0.009845742749723503,
+      "kruskal_H": 1.793763254133978,
+      "kruskal_p": 0.4078394744117686
+    }
+  }
+}

@@ -14,15 +14,18 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
 - [x] 4. Tono contra contraste como conductor del sesgo | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/contrast.py`
 - [x] 5. `tone_augment_lab_v2` con Corbin eq. 7 en grados ITA | `8da01ad` | `PYTHONPATH=src pytest -q tests/test_tone_augment_lab_v2.py tests/test_tone_augment_lab.py` → 43 passed (ventana anclada al ITA medido, corrige colapso de `60d165f`)
 - [ ] 6. Validación de la transformación contra melanina verdadera en S-SYNTH
-- [ ] 7. Sesgo en PH2 (por tono y por contraste lesión-piel). La varianza del
-  brazo B entre tonos queda **fuera de alcance** (2026-11-04): requeriría
-  correr la rejilla de 18 combinaciones de B, protocolo no ejecutado
-  (`docs/estado/clf-medicion-completa-a0-b-t.md`), trabajo mayor no asignado.
+- [x] 7. Sesgo en PH2 (por tono y por contraste lesión-piel) | sin commit
+  todavía | `PYTHONPATH=src python scripts/audit_ph2_tone_vs_contrast_bias.py`
+  → `resultados/segmentacion/v8/ph2_tone_vs_contrast_bias/summary.json`.
+  La varianza del brazo B entre tonos queda **fuera de alcance** (2026-11-04):
+  requeriría correr la rejilla de 18 combinaciones de B, protocolo no
+  ejecutado (`docs/estado/clf-medicion-completa-a0-b-t.md`), trabajo mayor no
+  asignado.
 - [x] 7b. ¿El removedor de pelo (`hair.py`) se come el borde de la lesión? |
   `2026cc4` (overlap) | `PYTHONPATH=src python scripts/audit_hair_removal_lesion_overlap.py`
   → `resultados/segmentacion/v8/hair_removal_lesion_overlap_ph2/summary.json`
-- [x] 7c. Efecto del solapamiento sobre el Dice del teacher 026, PH2 | sin
-  commit todavía | corrido en UNABIA (`scripts/measure_ph2_hair_removal_shaped_dice.py`,
+- [x] 7c. Efecto del solapamiento sobre el Dice del teacher 026, PH2 |
+  `39d5e75` | corrido en UNABIA (`scripts/measure_ph2_hair_removal_shaped_dice.py`,
   checkpoint `f4fcee05...462f4` reverificado) → `resultados/segmentacion/v8/hair_removal_shaped_dice_ph2/summary.json`
 - [ ] 8. Rejilla completa del brazo T
 
@@ -60,6 +63,45 @@ Lecturas que se sostienen:
   Dice da contraste Lab +0,604 contra tono +0,193, y el área no participa
   (−0,014, p=0,71). El tono sobrevive como efecto propio pequeño (parcial
   +0,136, p=3e−04).
+
+### Sesgo en PH2: no replica el patrón "contraste domina sobre tono" de ISIC2018
+
+`scripts/audit_ph2_tone_vs_contrast_bias.py`, mismas definiciones que
+`contrast.py` (ITA con máscara experta, contraste = gap de L*/Lab mediano
+piel-lesión, Dice del teacher 026 `shaped=False` reusado de 7c). n=177/200
+(88,5 % de cobertura; los 23 que no resuelven `estimate_fst` por
+`MIN_B_FOR_ITA` tienen área mediana 0,538 contra 0,217 de los que sí resuelven
+— el mismo sesgo hacia lesiones grandes que en ISIC2018, declarado antes de
+usar la tabla).
+
+Spearman contra el Dice del 026, n=177:
+
+| variable | rho | p |
+|---|---:|---:|
+| ITA (tono) | +0,047 | 0,53 |
+| contraste L* | +0,125 | 0,097 |
+| contraste Lab | −0,003 | 0,97 |
+| área de la lesión | **+0,498** | **1,7e−12** |
+
+**No replica el hallazgo de ISIC2018** (contraste Lab +0,604, tono +0,193,
+área −0,014 n.s.). En PH2 ni el tono ni el contraste predicen el Dice de
+forma significativa (contraste L* p=0,097, al borde pero no cruza 0,05); lo
+que sí predice, con fuerza, es el **área de la lesión** — lo opuesto de
+ISIC2018. Brecha por tercil de ITA: T1 0,9573 | T2 0,9759 | T3 0,9713, brecha
++0,0140, ANOVA F=2,08 p=0,13, Kruskal-Wallis H=1,58 p=0,45 — ninguna
+significativa. Contraste L*: brecha +0,0250, ANOVA p=0,0098 (significativa)
+pero Kruskal-Wallis p=0,41 (no) — los dos tests discrepan, señal débil e
+inconsistente entre pruebas.
+
+Lectura, sin forzar el paralelismo con ISIC2018: PH2 tiene el Dice cerca del
+techo (mediana 0,9825, ver 7c) y es un dataset mucho más chico (n=177) y
+curado que ISIC2018 (n=1.813-2.594). La correlación con el área puede ser el
+artefacto conocido de Dice en objetos chicos (la proporción borde/área crece
+al reducirse la lesión, penalizando el Dice independientemente de tono o
+contraste), no necesariamente una señal de sesgo de equidad nueva. **No se
+afirma que el hallazgo de ISIC2018 sea robusto entre cohortes** — en PH2 no
+se repite, y esa es la respuesta, no un hallazgo que haya que maquillar para
+que coincida.
 
 ### El removedor de pelo repinta la lesión, no solo el pelo (PH2, n=200)
 
