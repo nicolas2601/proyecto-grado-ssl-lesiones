@@ -167,8 +167,23 @@ retiró. Cambiar 25 por 28 arreglaría la tabla, no el fundamento.
 Lo que Corbin acota de verdad no son categorías: es **plausibilidad visual**
 («results beyond this maximum value did not yield satisfactory visual
 outcomes»). El reemplazo principiado es el **recorrido alcanzable por imagen**
-—cota física, medida por caso, mediana **75,4 grados**— pero eso deja abierta la
-plausibilidad visual, que **este proyecto nunca midió**.
+—cota física, medida por caso— pero eso deja abierta la plausibilidad visual,
+que **este proyecto nunca midió**.
+
+El recorrido depende fuerte de la cohorte, así que la cifra hay que citarla con
+su procedencia:
+
+| cohorte | recorrido alcanzable, mediana | n |
+|---|---:|---:|
+| S-SYNTH | 75,4° | — |
+| **pool real (ISIC 2019, teacher 026)** | **70,1°** (p05 50,9, p25 59,5) | 792 |
+
+La del pool real se midió el 2026-11-04 con
+`scripts/audit_pool_tone_eligibility.py` sobre las 792 imágenes medibles y
+alcanzables de una muestra de 1.500
+(`resultados/segmentacion/v8/pool_tone_eligibility/`). Es la **primera**
+medición del recorrido sobre dermatoscopia real; la de 75,4° venía de S-SYNTH y
+no se debe presentar como propiedad del pool de trabajo.
 
 ## 6. Cifras retiradas
 
