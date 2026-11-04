@@ -12,11 +12,13 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
 - [x] 2. Escalera de 4 brazos sobre ISIC 2018 Task 1 (n=2.594) | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/final_isic.py`
 - [x] 3. Causa del 28 % sin ITA | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/diag_b.py`
 - [x] 4. Tono contra contraste como conductor del sesgo | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/contrast.py`
-- [x] 5. `tone_augment_lab_v2` con Corbin eq. 7 en grados ITA | `7e86bf2` | `PYTHONPATH=src pytest -q tests/test_tone_augment_lab_v2.py tests/test_tone_augment_lab.py` → 42 passed (recorrido alcanzable por imagen + `brentq`, corrige la discontinuidad de b*=0 de la version anterior `8da01ad`; sin cap de politica por defecto — ver docstring del modulo sobre la inconsistencia Groh/Corbin en `MAX_ABS_ITA_DELTA`)
+- [x] 5. `tone_augment_lab_v2` con Corbin eq. 7 en grados ITA | `6997206` | `PYTHONPATH=src pytest -q tests/test_tone_augment_lab_v2.py tests/test_tone_augment_lab.py` → 46 passed (recorrido alcanzable por imagen + `brentq`; sin cap de politica por defecto — ver docstring del modulo sobre la inconsistencia Groh/Corbin en `MAX_ABS_ITA_DELTA`; corregida la agregacion del ITA de la curva — angulo de las medianas, no mediana de los angulos — causa dominante del residuo de la via B; abstencion nueva `border_population_shift_too_large` para la causa secundaria)
 - [~] 6. Validación de la transformación contra melanina verdadera en S-SYNTH |
   sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/via_b2.py` →
-  `via_b2_rows.jsonl`. **Parcial: el sesgo sistemático se corrigió, queda un
-  residuo sin causa aislada** — ver "La transformación" abajo. No integrar.
+  `via_b2_rows.jsonl`. **Causa raiz del residuo aislada y corregida en `6997206`
+  (agregacion angulo-de-medianas vs mediana-de-angulos); pendiente de re-correr
+  la via B sobre S-SYNTH real para confirmar en datos reales** — ver "La
+  transformación" abajo. No integrar hasta esa confirmación.
 - [x] 7. Sesgo en PH2 (por tono y por contraste lesión-piel) | sin commit
   todavía | `PYTHONPATH=src python scripts/audit_ph2_tone_vs_contrast_bias.py`
   → `resultados/segmentacion/v8/ph2_tone_vs_contrast_bias/summary.json`.
