@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 
 from dermssl.circle import lab_to_srgb
-from dermssl.fitzpatrick import estimate_fst, ita_degrees, srgb_to_lab
+from dermssl.fitzpatrick import MIN_B_FOR_ITA, estimate_fst, ita_degrees, srgb_to_lab
 from dermssl.tone_augment_lab import (
     B_PER_ITA_DEGREE,
     L_PER_ITA_DEGREE,
@@ -368,6 +368,39 @@ def test_degenerate_lesion_mask_falls_back_through_the_frozen_guard():
     out, record = augment_skin_tone_v2(img, full, 42, 0, DIGEST)
     assert np.array_equal(out, img)
     assert record["applied"] is False
+
+
+def test_lightening_can_lose_measurability_but_darkening_of_equal_magnitude_cannot():
+    """Regresion: la perdida de medibilidad tras transformar es asimetrica.
+
+    Hallazgo de una corrida sobre S-SYNTH real (745 casos aplicados): aclarar
+    (t negativo) dejo el 24,3% de las salidas con b* bajo MIN_B_FOR_ITA,
+    oscurecer (t positivo) el 0,0%, con corte limpio justo en MIN_B_FOR_ITA
+    (max no-medible 4,973 contra min medible 5,035). No es un defecto de este
+    modulo: es estructural a la geometria congelada. ``delta_b = t *
+    B_PER_ITA_DEGREE`` y ``delta_l = -t * L_PER_ITA_DEGREE`` tienen signos
+    acoplados -- aclarar (``delta_l > 0``, por lo tanto ``t < 0``) mueve b*
+    HACIA cero en la misma operacion; oscurecer (``t > 0``) lo aleja. El cap
+    simetrico de Corbin (+/-25) no refleja esto porque la literatura no mide
+    si la salida sigue siendo medible por el mismo instrumento que fijo el
+    objetivo -- ver docs/63-instrumento-ita-alcance-y-limites.md.
+
+    Verificado aqui sobre la geometria congelada pura (``augment_skin_tone``
+    de ``tone_augment_lab``, sin pasar por el solver de v2): mismo |t|, b*
+    inicial moderado (~17), un signo cruza MIN_B_FOR_ITA y el otro no.
+    """
+    img, mask = _frame()  # base (0.72, 0.58, 0.49): b* inicial ~17, moderado
+    magnitude = 25.0
+
+    _, darken_record = augment_skin_tone(
+        img, mask, None, ita_delta=magnitude, feather_sigma=0.0, max_abs_ita_delta=100.0
+    )
+    _, lighten_record = augment_skin_tone(
+        img, mask, None, ita_delta=-magnitude, feather_sigma=0.0, max_abs_ita_delta=100.0
+    )
+
+    assert darken_record["skin_median_b_after"] >= MIN_B_FOR_ITA
+    assert lighten_record["skin_median_b_after"] < MIN_B_FOR_ITA
 
 
 def test_record_shape_is_compatible_with_the_frozen_summarizer():
