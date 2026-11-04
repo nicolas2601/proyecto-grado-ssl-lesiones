@@ -294,11 +294,22 @@ Medición propia, n=33 transformadas sobre S-SYNTH, con el módulo v2:
     sombra; anotado como lo que es, no como cifra validada.
     Y ojo con atribuirle el cierre: los casos que superaban ese umbral tenían
     *menos* error final (1,03° contra 3,62°). El dominante es la agregación.
-- **Dos definiciones de «piel» en el pipeline.** `tone_normalization._skin_selector`
-  (`~lesión & valid_fov`) decide qué se transforma; `fitzpatrick._resolve_border`
-  (que además excluye `gray < 0,02`) decide qué se mide. En S-SYNTH coinciden
-  (0,0000 % de diferencia) pero en dermatoscopia real con vineteado no tienen
-  por qué. Hay que unificarlas por higiene, aunque no sean la causa del residuo.
+- **Dos definiciones de «piel» en el pipeline — RESUELTO (commit `99bad30`).**
+  `tone_normalization._skin_selector` (`~lesión & valid_fov`) decide qué se
+  transforma; `fitzpatrick._resolve_border` (que además excluye `gray < 0,02`)
+  decide qué se mide. En S-SYNTH coincidían (0,0000 % de diferencia) pero en
+  dermatoscopia real con vineteado no tenían por qué. No se editó
+  `_skin_selector`: eso habría cambiado el comportamiento efectivo de
+  `tone_augment_lab.augment_skin_tone` (congelado) y de los resultados ya
+  reportados de `tone_normalization.py` para todo llamador. Se agregó
+  `_unified_skin_fov` en `tone_augment_lab_v2.py`, que pliega la exclusión de
+  borde casi-negro dentro del `valid_fov` que se pasa a la función congelada
+  — `_skin_selector(lesión, fov_unificado)` queda matemáticamente igual a
+  `~lesión & ~borde`, sin tocar `_skin_selector`, `tone_normalization.py`,
+  `tone_augment_lab.py` ni `fitzpatrick.py`. Test de regresión con un
+  vineteado sintético: S-SYNTH no puede probar esta unificación (coincide al
+  0,0000 % ahí), mismo límite del dataset que bloquea calibrar
+  `MAX_POPULATION_SHIFT_FRACTION` (Tarea 1C).
 - **El sesgo por contraste no replica entre cohortes.** En ISIC 2018 el contraste
   lesión-piel predice el Dice (rho +0,604) mucho mejor que el tono (+0,193), y el
   área no participa (−0,014, p=0,71). En PH2 (n=177) ni tono ni contraste son
