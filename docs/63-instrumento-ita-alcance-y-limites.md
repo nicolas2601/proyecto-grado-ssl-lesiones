@@ -212,12 +212,33 @@ Medición propia, n=33 transformadas sobre S-SYNTH, con el módulo v2:
   solo medimos puntería numérica. Un desplazamiento puede aterrizar con error
   0,00001° y aun así producir una imagen que no parece piel. Con recorrido
   alcanzable de 75°, el riesgo es concreto. **Bloquea fijar el cap de política.**
-- **El residuo de 2,33° de la vía B.** El solver acierta exacto (curva en `t`
-  contra objetivo: 0,00000), pero la imagen de salida mide sistemáticamente
-  **más claro** que lo que la curva predice: +0,30 a +25,24, siempre positivo,
-  con los dos signos de `t`. Ocho causas descartadas por medición (feather,
-  submuestreo por stride, ITA inicial, fidelidad de b, fidelidad de L, recorte,
-  desajuste de conjuntos, signo invertido). Causa sin aislar.
+- **El residuo de 2,33° de la vía B: causa aislada y corregida, falta
+  re-medirlo en S-SYNTH real.** El solver acertaba exacto contra su propia curva
+  (0,00000) pero la salida medía sistemáticamente **más claro**: +0,30 a +25,24,
+  siempre positivo, con los dos signos de `t`. Ocho causas se habían descartado
+  por medición (feather, submuestreo por stride, ITA inicial, fidelidad de b,
+  fidelidad de L, recorte, desajuste de conjuntos, signo invertido). La causa
+  real era una **agregación distinta**: `_skin_state_at_t` calculaba
+  `median(arctan por píxel)` — mediana de los ángulos — mientras
+  `fitzpatrick._skin_ita`, y por lo tanto todo lo que mide la salida, calcula
+  `arctan(median(L), median(b))` — ángulo de las medianas. `arctan` es no
+  lineal, así que son estadísticos distintos en cuanto hay varianza entre
+  píxeles, es decir siempre en una imagen real. Corregido en `6997206`
+  (ángulo-de-medianas en los dos lados). Sobre un lote **sintético con textura**
+  de 150 imágenes, el error mediana contra `estimate_fst` sobre la salida real
+  bajó de 3,62° a 0,21°, y el máximo de 10,54° a 1,87°. **Lo que falta:**
+  re-medir la vía B sobre S-SYNTH real; el 2,33° se midió ahí y la mejora se
+  midió en sintético, así que la cifra de cierre todavía no existe.
+  - Hallazgo separado del mismo pase: el mecanismo de borde que era la primera
+    hipótesis **sí es real**, solo que chico. Con población oscura suficiente
+    (15 % de sombra) un desplazamiento grande hace que hasta 11 % de los píxeles
+    cruce el umbral de borde *después* de transformar, moviendo la mediana
+    ~1,85° en ese caso. No se corrigió moviendo la curva — excluir esos píxeles
+    por paso de `t` rompía la monotonicidad. Se agregó `_population_shift_fraction`
+    y la abstención `border_population_shift_too_large` sobre
+    `MAX_POPULATION_SHIFT_FRACTION = 0,01`, **constante declarada, no medida**.
+    Y ojo con atribuirle el cierre: los casos que superaban ese umbral tenían
+    *menos* error final (1,03° contra 3,62°). El dominante es la agregación.
 - **Dos definiciones de «piel» en el pipeline.** `tone_normalization._skin_selector`
   (`~lesión & valid_fov`) decide qué se transforma; `fitzpatrick._resolve_border`
   (que además excluye `gray < 0,02`) decide qué se mide. En S-SYNTH coinciden
