@@ -94,6 +94,19 @@ value is eventually chosen, it is very unlikely to be the same number by
 coincidence. This is left for the advisor to set; nothing here widens or
 narrows it unilaterally.
 
+INTEGRATION REQUIREMENT, not yet applicable because nothing calls this
+module from a pipeline: ``None`` here is defensible only while unintegrated,
+because it forces the decision to be explicit rather than silently
+inherited. Applying the full 75-degree reachable range with no visual
+plausibility cap would very likely produce images that do not look like
+skin -- that risk has never been measured. Whoever wires this module into a
+training pipeline MUST require ``policy_cap_degrees`` as an explicit,
+non-defaulted argument AT THAT INTEGRATION POINT (not by changing the
+default here, which would silently re-impose a choice this module
+deliberately leaves open). The low-level functions in this module keep
+``None`` as their own default; the integration call site is where the
+requirement belongs.
+
 A further restriction follows from how the reachable curve is measured:
 ``fitzpatrick.estimate_fst`` can fall back to its own Otsu-based skin mask
 when the lesion mask it is given is degenerate or under-confident
@@ -271,6 +284,17 @@ def _reachable_bracket(
     whose grid-adjacent samples carried b* -0,40 and +1,10 passed the
     ITA-only monotonicity check and produced a 70-degree realized error once
     ``brentq`` searched across that hidden crossing.
+
+    This guard measured 0,0% activation on a 48-image S-SYNTH validation
+    pass (an independent check, see this module's revision history) -- it
+    never fired there. That is a property of S-SYNTH's skin, not evidence
+    the guard is unneeded: that cohort's median skin b* (among images that
+    resolve) sits comfortably positive (~28), so it is structurally unable
+    to exhibit a crossing. The population where this guard matters is the
+    opposite tail -- b* near zero, the same ~28% of real dermoscopy that
+    already abstains via ``fitzpatrick.MIN_B_FOR_ITA`` for not having an ITA
+    at all. Do not remove this check because a dataset without that tail
+    never exercises it.
 
     Returns ``(t_lo, t_hi, ita_at_t_lo, ita_at_t_hi)`` with ``ita_at_t_lo >=
     ita_at_t_hi``, or ``None`` if even ``t = 0`` cannot anchor a stretch.
