@@ -29,6 +29,17 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
   no generado en esta sesion) y que Maria Paula juzgue la plausibilidad
   visual — eso desbloquea la Tarea 1C (calibrar `MAX_POPULATION_SHIFT_FRACTION`,
   bloqueada aparte, esperando la corrida `via_b3` de maestro).
+- [x] 5f. Triaje de elegibilidad de pool (Fase 3) | `26822af` |
+  `PYTHONPATH=src pytest -q tests/test_audit_pool_tone_eligibility.py` → 10
+  passed. `scripts/audit_pool_tone_eligibility.py`: distribucion de b*,
+  medibilidad, techo de intervencion de v2 sin/con el sorteo de mezcla,
+  veredicto contra el piso del criterio 7, Fisher de medibilidad contra
+  etiqueta con confounds por tercil de area, percentiles del recorrido
+  alcanzable. Motivado por el contraste de tono muerto sobre el pool
+  ISIC2019+teacher-026 (25,7 % de tasa efectiva, techo duro del pool: 53,5 %
+  medible, b* mediana 5,53 — mucho mas desaturado que S-SYNTH o ISIC2018);
+  restringir al subconjunto medible tambien descartado (Fisher OR 0,547,
+  p=0,0099, empobrece la clase melanoma). No fija umbrales nuevos.
 - [~] 6. Validación de la transformación contra melanina verdadera en S-SYNTH |
   sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/via_b2.py` →
   `via_b2_rows.jsonl`. **Causa raiz del residuo aislada y corregida en `6997206`
