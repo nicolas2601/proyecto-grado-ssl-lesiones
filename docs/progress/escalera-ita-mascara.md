@@ -12,7 +12,7 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
 - [x] 2. Escalera de 4 brazos sobre ISIC 2018 Task 1 (n=2.594) | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/final_isic.py`
 - [x] 3. Causa del 28 % sin ITA | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/diag_b.py`
 - [x] 4. Tono contra contraste como conductor del sesgo | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/contrast.py`
-- [x] 5. `tone_augment_lab_v2` con Corbin eq. 7 en grados ITA | `8da01ad` | `PYTHONPATH=src pytest -q tests/test_tone_augment_lab_v2.py tests/test_tone_augment_lab.py` → 43 passed (ventana anclada al ITA medido, corrige colapso de `60d165f`)
+- [x] 5. `tone_augment_lab_v2` con Corbin eq. 7 en grados ITA | `7e86bf2` | `PYTHONPATH=src pytest -q tests/test_tone_augment_lab_v2.py tests/test_tone_augment_lab.py` → 42 passed (recorrido alcanzable por imagen + `brentq`, corrige la discontinuidad de b*=0 de la version anterior `8da01ad`; sin cap de politica por defecto — ver docstring del modulo sobre la inconsistencia Groh/Corbin en `MAX_ABS_ITA_DELTA`)
 - [ ] 6. Validación de la transformación contra melanina verdadera en S-SYNTH
 - [x] 7. Sesgo en PH2 (por tono y por contraste lesión-piel) | sin commit
   todavía | `PYTHONPATH=src python scripts/audit_ph2_tone_vs_contrast_bias.py`
