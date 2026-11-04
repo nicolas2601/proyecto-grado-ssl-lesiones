@@ -242,6 +242,71 @@ salida que queda es la 2, cambiar el pool, que es la línea de piel oscura.
   que comprobar desde ahí. Queda abierto y no es menor: `docs/02` lo exige por
   `lesion_id`.
 
+## 7. Recomendación: el instrumento cambia de rol, no de pool
+
+Las dos salidas de §5 no son equivalentes, y la elección no es «cuál conviene»
+sino que **sólo queda una, y conviene reencuadrarla**.
+
+La salida 1 está medida y descartada (§6). La salida 2 —cambiar el pool— es la
+única viable, pero mantener la intervención sobre otro pool arrastra un
+problema que conviene ver antes de gastar una materialización:
+
+**Cambiar el pool a S-SYNTH no salva la intervención.**
+
+| | b\* de piel, mediana |
+|---|---:|
+| S-SYNTH | 29,26 |
+| pool real (dermatoscopia) | 5,53 |
+
+Todo el instrumento se midió, calibró y cerró sobre b\* ≈ 29, un régimen de
+croma que **no existe** en dermatoscopia real. El cierre de 0,1148° de error es
+cierto, y es cierto *ahí*. Un encoder al que se le enseña invariancia a
+desplazamientos tonales en b\* ≈ 29 aprende una invariancia que el dominio
+objetivo nunca ejercita. Es una brecha de dominio **en el aumento mismo**, no
+sólo en las imágenes — y se suma al riesgo ya registrado de que en aprendizaje
+contrastivo el encoder tome «real contra sintético» como la invariancia más
+fácil de romper.
+
+### El reencuadre
+
+`docs/01-contexto-y-objetivos.md` línea 28 define el Objetivo 3 como
+«validación externa cross-dataset y **análisis de sesgo por fototipo**». Eso es
+**estratificar**, no transformar. Y el instrumento sirve para estratificar sin
+necesidad de intervenir nada:
+
+| uso | qué exige | estado |
+|---|---|---|
+| **Intervención** (aumento tonal en el preentrenamiento) | cobertura ≥ 80 % del pool, espejo materializado, contraste pareado | **muerto sobre este pool**, §5–§6 |
+| **Evaluación** (estratificar el rendimiento por ITA medido) | sólo medir ITA en el conjunto de prueba | **vivo, y sin bloqueos** |
+
+El uso de evaluación no pasa por el criterio 7, porque no interviene: el 80 %
+existe para que un brazo tratado no sea casi identidad, y acá no hay brazo
+tratado. El 46,5 % sin ITA medible deja de ser un bloqueo y pasa a ser una
+**cobertura que se declara**, exactamente como ya recomienda `docs/63` §3.
+
+Y esto es consistente con lo que el protocolo ya sabía:
+`docs/estado/clf-trainer-pareado-tono.md` línea 174 registra que **el pool no
+tiene piel oscura** y que Benčević et al. (CMPB 245:108044, 2024) descartan
+ISIC para evaluación de sesgo. Es decir: el contraste pareado se diseñó como
+intervención sobre un pool que el propio protocolo ya había declarado
+inadecuado para la pregunta de sesgo. La medición de §5–§6 no contradice el
+protocolo; **confirma por una vía independiente lo que su propia línea 174 ya
+decía**.
+
+### Qué se conserva
+
+Nada del trabajo del instrumento se pierde con el reencuadre. El estimador, la
+corrección de agregación, la unificación de definiciones de piel, la abstención
+declarada y el umbral analítico `b* < 5 + 0,50·|t|` siguen siendo exactamente
+lo que un análisis de sesgo por fototipo necesita. Lo que se retira es la
+pretensión de usarlos como **tratamiento** en un contraste pareado sobre este
+pool.
+
+**No verificado:** si existe un conjunto de prueba con diversidad tonal real y
+etiqueta diagnóstica al que aplicar la estratificación. Candidatos sin evaluar:
+DDI, Fitzpatrick17k, Dermofit, Waterloo. Es el siguiente bloqueo real, y es de
+acceso a datos, no de código.
+
 Datos: `resultados/segmentacion/v8/via_b_cierre/pool_v2_coverage.jsonl`.
 
 **Nota de procedencia.** Una primera corrida de este script pasó
