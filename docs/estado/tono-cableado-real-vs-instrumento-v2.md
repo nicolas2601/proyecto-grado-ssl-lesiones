@@ -155,11 +155,43 @@ hash (mediana −0,17°, rango ±25°) aplicado sin consultar el tono de partida
 incluido el 46,5 % de imágenes donde el ITA no es medible siquiera. v2 falla el
 criterio **porque mide y se abstiene**.
 
-Así que el criterio 7, tal como está escrito, **premia al módulo ciego**. No es
-un empate entre dos opciones: es un umbral de cobertura que no distingue
-«intervino» de «intervino sobre algo que entiende». Antes de elegir módulo hay
-que decidir si el 80 % se mide sobre todo el pool o sobre el subconjunto
-medible, y esa reformulación es una decisión de protocolo, no de código.
+**Pero el criterio 7 no está mal, y conviene no descartarlo.** Su razón
+declarada (líneas 140–142) es: «si cae por debajo del 80 %, se detiene antes de
+interpretar nada: un brazo donde casi todo fue identidad daría un nulo por el
+motivo equivocado». Eso es estadísticamente correcto. Con v2 al 25,7 %, el
+contraste pareado compararía dos brazos casi idénticos, y un nulo no
+significaría «el tono no importa» sino «casi no intervinimos». El criterio hace
+exactamente el trabajo para el que se escribió.
+
+Así que no es que el criterio premie al módulo ciego por estar mal redactado.
+Es que **ninguno de los dos módulos puede sostener el contraste sobre este
+pool**, por razones opuestas:
+
+| | cobertura | problema |
+|---|---:|---|
+| v1 | 100 % | interviene sin saber desde qué tono ni hacia cuál, en el 46,5 % donde el ITA no es medible |
+| v2 | 25,7 % | interviene sobre lo que entiende, y es demasiado poco para un contraste con potencia |
+
+El elemento que falla no es el módulo ni el criterio: es **el pool**. Con b\*
+mediana 5,53 no hay forma de medir desplazamiento tonal sobre casi la mitad de
+las imágenes, y por lo tanto no hay forma de tratarlas de manera verificable.
+
+Dos salidas, y las dos son decisión de María Paula porque cambian lo que el
+resultado puede afirmar:
+
+1. **Restringir el contraste al subconjunto medible.** 53,5 % del pool son
+   ~18.000 imágenes, suficientes para preentrenar. El criterio 7 se mediría
+   sobre ese subconjunto —donde v2 da 98,2 %— y se declararía que la
+   intervención se evaluó sobre piel con croma suficiente para medir ITA. El
+   costo es que el resultado ya no habla del pool completo, y el subconjunto
+   no es aleatorio: excluye justo lo desaturado.
+2. **Cambiar el pool.** No medido, y es la puerta a la línea de piel oscura.
+
+**No verificado:** si el subconjunto medible mantiene el balance de clases y el
+split lesión-disjunto. Si la medibilidad del ITA correlaciona con la clase
+diagnóstica, restringirse a ella introduce sesgo de selección en el
+preentrenamiento. Es la primera cosa que habría que medir si se elige la
+salida 1.
 
 Datos: `resultados/segmentacion/v8/via_b_cierre/pool_v2_coverage.jsonl`.
 
