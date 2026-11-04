@@ -20,26 +20,47 @@ ceiling on ISIC 2018 (n=1.813), bias -0,03 -- see
 ``docs/progress/escalera-ita-mascara.md``, step 1-4. That is the measurement
 eq. 7 needs and did not have before.
 
-Two deliberate departures from the paper, both declared rather than silently
-assumed:
+REVISION. The first version of this module sampled ``ITA_objetivo`` from a
+fixed global span (Groh's two finite calibration points, -25 to 40), decoupled
+from the measured ITA. On a realistic ISIC 2018 distribution (median ITA
+~56), that span sits almost entirely below the measured value, so
+``ita_delta = measured - objetivo`` comes out large and positive on nearly
+every image, and ``tone_augment_lab``'s cap then clips 80%+ of them to the
+same constant +25,0 -- measured directly: 79,9% of 5.000 synthetic draws at a
+realistic median landed within 0,025 degrees of the cap. A delta that is the
+same number on 80% of images is not anchored to anything; eq. 7 degenerates
+back into the undirected constant this module exists to replace.
 
-* Corbin samples ``ITA'`` inside the *target Fitzpatrick bucket*'s range. This
-  module does not: ``plan-segmentacion/README.md`` section 1 documents that
-  the in-repo ITA-to-FST mapping (Groh's fixed thresholds) is not validated --
-  22,9% accuracy against a 51,3% majority-class baseline on PAD-UFES-20
-  (Alipour et al., Skin Research and Technology 2026, PMC13459198). Treating a
-  bucket label as ground truth for the anchor would import that error into the
-  sample. ``ITA_objetivo`` is instead drawn directly in continuous ITA
-  degrees, over the span Groh's two finite calibration points cover
-  (``fitzpatrick.FST_THRESHOLDS[0]`` to ``[-1]``, i.e. 40 to -25): the same
-  numbers already used in this repo to anchor the ITA axis, used here as a
-  plain degree span rather than as bucket boundaries or labels.
-* The magnitude cap is not re-derived. ``tone_augment_lab.MAX_ABS_ITA_DELTA``
-  (25,0 degrees) already is Corbin's "two Fitzpatrick category" visual-quality
-  limit translated to degrees, with its derivation documented in that module's
-  own docstring. Deriving a second number here from a different source would
-  leave two inconsistent caps in the repo; this module imports and reuses the
-  one that already exists.
+The fix: ``ITA_objetivo`` is now sampled in a window CENTERED ON THE MEASURED
+ITA, ``U(ita_medido - W, ita_medido + W)``, rather than in a fixed global span.
+This both anchors the target to the image (every image gets its own window)
+and makes the cap structural rather than a clipping event: because
+``ita_delta = ita_medido - ita_objetivo`` and ``ita_objetivo`` never leaves
+``[ita_medido - W, ita_medido + W]``, the delta is already in ``[-W, W]`` by
+construction, with zero images landing on the boundary by truncation.
+
+``W`` reuses ``tone_augment_lab.MAX_ABS_ITA_DELTA`` (25,0 degrees), Corbin's
+"two Fitzpatrick category" visual-quality limit translated to degrees, with
+its derivation documented in that module's own docstring. ``W`` is NOT a
+second independent re-derivation of that number: it is the same constant,
+repurposed here as a window radius instead of an absolute cap. Avoiding a
+second, possibly inconsistent, derivation was deliberate in the first version
+of this module and remains deliberate here; what changed is how the constant
+is used, not where it comes from.
+
+Two deliberate departures from the paper remain, both declared rather than
+silently assumed:
+
+* Corbin samples ``ITA'`` inside the *target Fitzpatrick bucket*'s range, a
+  step that requires trusting a bucket label. This module never does:
+  ``plan-segmentacion/README.md`` section 1 documents that the in-repo
+  ITA-to-FST mapping (Groh's fixed thresholds) is not validated -- 22,9%
+  accuracy against a 51,3% majority-class baseline on PAD-UFES-20 (Alipour et
+  al., Skin Research and Technology 2026, PMC13459198). This module never
+  calls ``fitzpatrick.fst_bucket`` or looks up a per-bucket range; the window
+  above is centered on a continuous measured ITA, not on a bucket.
+* The window radius equals the magnitude cap, not re-derived separately (see
+  above).
 
 Two further rules this module enforces that eq. 7 alone does not:
 
@@ -63,7 +84,14 @@ also uses.
 Lesion preservation, the boundary feather, the gamut-clipping count and the
 b*-sign-flip count are not reimplemented: this module measures ITA and derives
 ``ita_delta``, then hands the pixels to
-``tone_augment_lab.augment_skin_tone`` unchanged.
+``tone_augment_lab.augment_skin_tone`` unchanged. That geometry can still push
+skin b* negative on an image whose measured b* sits close to
+``fitzpatrick.MIN_B_FOR_ITA`` (5,0) and draws a strongly negative delta inside
+the window; this is measured and reported via the inherited
+``skin_median_b_after`` and ``b_sign_flipped_pixels`` fields, not hard-blocked
+-- the same stance ``tone_augment_lab`` itself takes, and for the same reason:
+a sign flip is a real change the encoder will see, so it is published rather
+than hidden by a gate.
 """
 
 from __future__ import annotations
@@ -72,7 +100,7 @@ import hashlib
 
 import numpy as np
 
-from dermssl.fitzpatrick import FST_THRESHOLDS, estimate_fst
+from dermssl.fitzpatrick import estimate_fst
 from dermssl.tone_augment_lab import (
     DEFAULT_FEATHER_SIGMA,
     MAX_ABS_ITA_DELTA,
@@ -80,14 +108,9 @@ from dermssl.tone_augment_lab import (
 )
 from dermssl.tone_normalization import _as_binary_mask, _check_image_range
 
-# Groh's two finite calibration cut points (fitzpatrick.FST_THRESHOLDS is
-# descending: 40, 23, 12, 0, -25), reused as the span of the ITA continuum to
-# sample ``ITA_objetivo`` from. Plain degree bounds, not bucket boundaries:
-# this module never calls fitzpatrick.fst_bucket or looks up a per-bucket
-# range, because the bucket LABELS are what plan-segmentacion/README.md
-# documents as unvalidated. The underlying numbers are not in question.
-ITA_OBJETIVO_HIGH = FST_THRESHOLDS[0]
-ITA_OBJETIVO_LOW = FST_THRESHOLDS[-1]
+# Reused as the window radius around the measured ITA, not as a global span
+# and not as a post-hoc clip bound. See the module docstring's "REVISION".
+TARGET_WINDOW_DEGREES = MAX_ABS_ITA_DELTA
 
 # Independent of eq. 7: half of the images that pass abstention still keep
 # their original tone. A draw above this threshold selects the transform.
@@ -105,34 +128,35 @@ def _validate_key(seed: int, step: int, image_sha256: str) -> None:
         raise ValueError("image_sha256 must be lowercase hex")
 
 
-def _hash_unit_interval(namespace: str, seed: int, step: int, image_sha256: str) -> float:
-    """Deterministic draw in ``[0, 1)``, independent of any mutable RNG."""
+def _hash_signed_unit_interval(namespace: str, seed: int, step: int, image_sha256: str) -> float:
+    """Deterministic draw in ``[-1, 1)``, independent of any mutable RNG."""
     key = f"{namespace}:{seed}:{step}:{image_sha256}".encode("ascii")
     digest = hashlib.sha256(key).digest()
-    return int.from_bytes(digest[:4], "big") / 2**32
+    raw = int.from_bytes(digest[:4], "big") / 2**32
+    return float(2.0 * raw - 1.0)
 
 
 def sample_ita_objetivo(
+    measured_ita: float,
     seed: int,
     step: int,
     image_sha256: str,
     *,
-    low: float = ITA_OBJETIVO_LOW,
-    high: float = ITA_OBJETIVO_HIGH,
+    window: float = TARGET_WINDOW_DEGREES,
 ) -> float:
-    """Deterministic target ITA in degrees, drawn independently of the image.
+    """Deterministic target ITA, drawn in ``U(measured_ita - window, measured_ita + window)``.
 
-    Uniform over ``[low, high]`` (default: Groh's two finite calibration
-    points, 40 to -25 degrees). This value does not depend on the image's own
-    measured ITA -- that independence is what lets eq. 7 pull an image toward
-    a plausible tone region rather than kicking it away from wherever it
-    already sits.
+    Centered on ``measured_ita`` on purpose: this is what makes the eq. 7
+    delta depend on the image rather than collapsing to a fixed global
+    tendency (see the module docstring's "REVISION").
     """
+    if not np.isfinite(measured_ita):
+        raise ValueError(f"measured_ita must be finite, got {measured_ita!r}")
     _validate_key(seed, step, image_sha256)
-    if not np.isfinite(low) or not np.isfinite(high) or low > high:
-        raise ValueError(f"low/high must be finite with low <= high, got {low!r}, {high!r}")
-    raw = _hash_unit_interval("tone-augment-lab-v2-objetivo", seed, step, image_sha256)
-    return float(low + raw * (high - low))
+    if not np.isfinite(window) or window < 0:
+        raise ValueError(f"window must be finite and non-negative, got {window!r}")
+    raw = _hash_signed_unit_interval("tone-augment-lab-v2-objetivo", seed, step, image_sha256)
+    return float(measured_ita + raw * window)
 
 
 def sample_apply_draw(seed: int, step: int, image_sha256: str) -> float:
@@ -143,7 +167,8 @@ def sample_apply_draw(seed: int, step: int, image_sha256: str) -> float:
     underlying number.
     """
     _validate_key(seed, step, image_sha256)
-    return _hash_unit_interval("tone-augment-lab-v2-apply", seed, step, image_sha256)
+    raw = _hash_signed_unit_interval("tone-augment-lab-v2-apply", seed, step, image_sha256)
+    return float((raw + 1.0) / 2.0)
 
 
 def compute_ita_delta(
@@ -152,25 +177,23 @@ def compute_ita_delta(
     step: int,
     image_sha256: str,
     *,
-    max_abs: float = MAX_ABS_ITA_DELTA,
-    low: float = ITA_OBJETIVO_LOW,
-    high: float = ITA_OBJETIVO_HIGH,
+    window: float = TARGET_WINDOW_DEGREES,
 ) -> dict:
-    """Corbin eq. 7 with a continuous, anchor-free target: ``ITA - ITA_objetivo``.
+    """Corbin eq. 7, ``ITA_measured - ITA_objetivo``, with the window above.
 
-    Returns the objetivo drawn, the uncapped delta, the delta actually usable
-    (clipped to ``[-max_abs, max_abs]``), and whether the cap bound.
+    ``ita_delta_raw`` and ``ita_delta`` are always equal: the window makes the
+    result land in ``[-window, window]`` by construction, so there is no
+    separate clipping step and nothing to truncate. Both keys are kept so a
+    downstream manifest has one stable name regardless of which augmentation
+    version produced the record.
     """
-    if not np.isfinite(measured_ita):
-        raise ValueError(f"measured_ita must be finite, got {measured_ita!r}")
-    objetivo = sample_ita_objetivo(seed, step, image_sha256, low=low, high=high)
-    raw_delta = measured_ita - objetivo
-    applied_delta = float(np.clip(raw_delta, -max_abs, max_abs))
+    objetivo = sample_ita_objetivo(measured_ita, seed, step, image_sha256, window=window)
+    delta = measured_ita - objetivo
     return {
         "ita_objetivo": objetivo,
-        "ita_delta_raw": float(raw_delta),
-        "ita_delta": applied_delta,
-        "ita_delta_capped_by_objetivo_draw": bool(abs(raw_delta) > max_abs),
+        "ita_delta_raw": float(delta),
+        "ita_delta": float(delta),
+        "ita_delta_capped": False,
     }
 
 
@@ -209,7 +232,7 @@ def augment_skin_tone_v2(
     valid_fov: np.ndarray | None = None,
     *,
     feather_sigma: float = DEFAULT_FEATHER_SIGMA,
-    max_abs_ita_delta: float = MAX_ABS_ITA_DELTA,
+    window: float = TARGET_WINDOW_DEGREES,
     mix_threshold: float = MIX_THRESHOLD,
 ) -> tuple[np.ndarray, dict]:
     """Measure ITA with the mask, derive eq. 7's delta, then apply the frozen geometry.
@@ -225,6 +248,11 @@ def augment_skin_tone_v2(
     * The frozen ``augment_skin_tone`` itself falls back (its own degenerate
       lesion mask or insufficient skin area guard). Its ``fallback_reason``
       passes through unchanged.
+
+    The manifest always carries ``ita_measured``, ``ita_measurement_status``,
+    ``ita_objetivo``, ``ita_delta_raw`` and ``ita_delta_applied`` (the last via
+    the geometry record), ``None`` where a branch has no measurement or no
+    draw to report.
     """
     img = _check_image_range(img)
     lesion_mask = _as_binary_mask(lesion_mask, "lesion_mask")
@@ -268,16 +296,14 @@ def augment_skin_tone_v2(
             "selected_for_transform": False,
         }
 
-    delta_record = compute_ita_delta(
-        measurement.ita, seed, step, image_sha256, max_abs=max_abs_ita_delta
-    )
+    delta_record = compute_ita_delta(measurement.ita, seed, step, image_sha256, window=window)
     out, geometry_record = augment_skin_tone(
         img,
         lesion_mask,
         fov,
         ita_delta=delta_record["ita_delta"],
         feather_sigma=feather_sigma,
-        max_abs_ita_delta=max_abs_ita_delta,
+        max_abs_ita_delta=window,
     )
     return out, {
         **base,
