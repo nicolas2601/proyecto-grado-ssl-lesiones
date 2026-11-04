@@ -58,6 +58,13 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
   minoritarias, incluido melanoma, por debajo de n=30 — no hay lectura por
   clase posible sobre este pool, reportado tal cual, no forzado. No se
   toco `gates.py` ni `circle.py`.
+  **Seguimiento (`02f3ba0`):** una clase ausente fuerza su F1 a 0 por
+  convencion de `dermssl.metrics.per_class_f1`, lo que explica mas de la
+  mitad de la brecha teacher_026/otsu_fallback (0,5677 vs 0,7668) sin que
+  sea rendimiento real. Agregado `macro_f1_comparable` (interseccion de
+  clases presentes entre estratos comparados) junto al de 7 clases, nunca
+  solo. Reproduce exacto lo medido a mano: 0,7518 vs 0,6623, brecha 0,0895
+  contra el 0,090 de maestro.
 - [~] 6. Validación de la transformación contra melanina verdadera en S-SYNTH |
   sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/via_b2.py` →
   `via_b2_rows.jsonl`. **Causa raiz del residuo aislada y corregida en `6997206`
