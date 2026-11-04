@@ -1,0 +1,295 @@
+{
+  "variant": "proposed",
+  "classes": [
+    "akiec",
+    "bcc",
+    "bkl",
+    "df",
+    "mel",
+    "nv",
+    "vasc"
+  ],
+  "coverage": {
+    "n_total_predictions": 2004,
+    "n_in_ita_manifest": 2004,
+    "manifest_coverage_fraction": 1.0,
+    "n_ita_measurable": 855,
+    "ita_measurable_fraction_of_manifest": 0.42664670658682635,
+    "by_ita_status": {
+      "ita_indeterminate": 1149,
+      "ok": 855
+    },
+    "by_mask_source": {
+      "teacher_026": 1268,
+      "otsu_fallback": 736
+    }
+  },
+  "class_composition": {
+    "n_full": 2004,
+    "n_measurable": 855,
+    "fraction_full": {
+      "akiec": 0.03293413173652695,
+      "bcc": 0.05139720558882235,
+      "bkl": 0.10978043912175649,
+      "df": 0.011477045908183632,
+      "mel": 0.11077844311377245,
+      "nv": 0.6691616766467066,
+      "vasc": 0.014471057884231538
+    },
+    "fraction_measurable": {
+      "akiec": 0.022222222222222223,
+      "bcc": 0.03274853801169591,
+      "bkl": 0.03625730994152047,
+      "df": 0.004678362573099415,
+      "mel": 0.044444444444444446,
+      "nv": 0.8514619883040936,
+      "vasc": 0.008187134502923977
+    },
+    "counts_full": {
+      "akiec": 66,
+      "bcc": 103,
+      "bkl": 220,
+      "df": 23,
+      "mel": 222,
+      "nv": 1341,
+      "vasc": 29
+    },
+    "counts_measurable": {
+      "akiec": 19,
+      "bcc": 28,
+      "bkl": 31,
+      "df": 4,
+      "mel": 38,
+      "nv": 728,
+      "vasc": 7
+    }
+  },
+  "macro_f1_by_mask_source": {
+    "otsu_fallback": {
+      "status": "OK",
+      "count": 330,
+      "macro_f1": 0.7668208488507924,
+      "accuracy": 0.9303030303030303,
+      "balanced_accuracy": 0.7103232201971698,
+      "macro_precision": 0.8548876095267849,
+      "macro_recall": 0.7103232201971698,
+      "auc": 0.9849201663498778,
+      "ece": 0.012847233721704203,
+      "macro_f1_ci95_low": 0.5964809550625099,
+      "macro_f1_ci95_high": 0.8494368064053935,
+      "per_class_counts": {
+        "akiec": 5,
+        "bcc": 10,
+        "bkl": 11,
+        "df": 4,
+        "mel": 17,
+        "nv": 280,
+        "vasc": 3
+      },
+      "classes_absent": [],
+      "classes_below_min_n": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "vasc"
+      ]
+    },
+    "teacher_026": {
+      "status": "OK",
+      "count": 525,
+      "macro_f1": 0.5677093579906879,
+      "accuracy": 0.9104761904761904,
+      "balanced_accuracy": 0.5632723922902495,
+      "macro_precision": 0.5791184996641567,
+      "macro_recall": 0.5632723922902495,
+      "auc": 0.976691931684818,
+      "ece": 0.030197355690456534,
+      "macro_f1_ci95_low": 0.48221358405632375,
+      "macro_f1_ci95_high": 0.6254026301033899,
+      "per_class_counts": {
+        "akiec": 14,
+        "bcc": 18,
+        "bkl": 20,
+        "df": 0,
+        "mel": 21,
+        "nv": 448,
+        "vasc": 4
+      },
+      "classes_absent": [
+        "df"
+      ],
+      "classes_below_min_n": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "mel",
+        "vasc"
+      ]
+    },
+    "unavailable": {
+      "status": "SKIPPED",
+      "count": 0,
+      "reason": "n=0 < min_n=30"
+    }
+  },
+  "macro_f1_by_cohort_tercile": {
+    "cohorte_t1_mas_oscuro": {
+      "status": "OK",
+      "count": 285,
+      "macro_f1": 0.5703659957018882,
+      "accuracy": 0.9403508771929825,
+      "balanced_accuracy": 0.5811270454127596,
+      "macro_precision": 0.6315573557667342,
+      "macro_recall": 0.5811270454127596,
+      "auc": 0.9719904408555307,
+      "ece": 0.021273663378598366,
+      "macro_f1_ci95_low": 0.316227345567742,
+      "macro_f1_ci95_high": 0.6616050300529548,
+      "per_class_counts": {
+        "akiec": 2,
+        "bcc": 6,
+        "bkl": 8,
+        "df": 1,
+        "mel": 8,
+        "nv": 259,
+        "vasc": 1
+      },
+      "classes_absent": [],
+      "classes_below_min_n": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "vasc"
+      ]
+    },
+    "cohorte_t2_medio": {
+      "status": "OK",
+      "count": 285,
+      "macro_f1": 0.535692464247539,
+      "accuracy": 0.9017543859649123,
+      "balanced_accuracy": 0.5504077975276133,
+      "macro_precision": 0.5606800032265872,
+      "macro_recall": 0.5504077975276133,
+      "auc": 0.9817707229036984,
+      "ece": 0.04202454518853569,
+      "macro_f1_ci95_low": 0.33698207996811747,
+      "macro_f1_ci95_high": 0.6523096589219596,
+      "per_class_counts": {
+        "akiec": 9,
+        "bcc": 7,
+        "bkl": 7,
+        "df": 2,
+        "mel": 9,
+        "nv": 248,
+        "vasc": 3
+      },
+      "classes_absent": [],
+      "classes_below_min_n": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "vasc"
+      ]
+    },
+    "cohorte_t3_mas_claro": {
+      "status": "OK",
+      "count": 285,
+      "macro_f1": 0.8180228914401597,
+      "accuracy": 0.9122807017543859,
+      "balanced_accuracy": 0.8025502508695785,
+      "macro_precision": 0.8479471788715486,
+      "macro_recall": 0.8025502508695785,
+      "auc": 0.9856587032197044,
+      "ece": 0.0417226665898373,
+      "macro_f1_ci95_low": 0.5942778222158684,
+      "macro_f1_ci95_high": 0.8734488831545709,
+      "per_class_counts": {
+        "akiec": 8,
+        "bcc": 15,
+        "bkl": 16,
+        "df": 1,
+        "mel": 21,
+        "nv": 221,
+        "vasc": 3
+      },
+      "classes_absent": [],
+      "classes_below_min_n": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "vasc"
+      ]
+    },
+    "unavailable": {
+      "status": "SKIPPED",
+      "count": 0,
+      "reason": "n=0 < min_n=30"
+    }
+  },
+  "correctness_vs_ita_spearman": {
+    "n": 855,
+    "rho": -0.04046153648741338,
+    "p_value": 0.23725968316096335,
+    "ci95_low": -0.11131214359153281,
+    "ci95_high": 0.02730822692228995
+  },
+  "reachable_ita_span_percentiles": null,
+  "macro_f1_full_split_reference": {
+    "macro_f1": 0.6605592124681987,
+    "n": 2004,
+    "caveat": "NO COMPARABLE con el macro-F1 por estrato de ITA: corre sobre el split completo (n y composicion de clases distintos al subconjunto medible). Ver class_composition."
+  },
+  "strata_with_insufficient_n": [
+    "unavailable",
+    "unavailable"
+  ],
+  "strata_with_thin_classes": {
+    "mask_source/otsu_fallback": [
+      "akiec",
+      "bcc",
+      "bkl",
+      "df",
+      "mel",
+      "vasc"
+    ],
+    "mask_source/teacher_026": [
+      "akiec",
+      "bcc",
+      "bkl",
+      "mel",
+      "vasc"
+    ],
+    "cohort_tercile/cohorte_t1_mas_oscuro": [
+      "akiec",
+      "bcc",
+      "bkl",
+      "df",
+      "mel",
+      "vasc"
+    ],
+    "cohort_tercile/cohorte_t2_medio": [
+      "akiec",
+      "bcc",
+      "bkl",
+      "df",
+      "mel",
+      "vasc"
+    ],
+    "cohort_tercile/cohorte_t3_mas_claro": [
+      "akiec",
+      "bcc",
+      "bkl",
+      "df",
+      "mel",
+      "vasc"
+    ]
+  }
+}

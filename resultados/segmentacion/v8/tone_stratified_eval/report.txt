@@ -1,0 +1,56 @@
+EVALUACION ESTRATIFICADA POR ITA CONTINUO (reemplazo de G3)
+variante: proposed  clases: akiec,bcc,bkl,df,mel,nv,vasc
+
+1. Cobertura
+   predicciones totales: 2004
+   filas con registro en el manifiesto de ITA: 2004 (1.0000)
+   ITA medible dentro del manifiesto: 855 (0.4266)
+   por ita_status: {'ita_indeterminate': 1149, 'ok': 855}
+   por mask_source: {'teacher_026': 1268, 'otsu_fallback': 736}
+
+1b. Composicion de clases: split completo contra subconjunto medible
+    Si el subconjunto medible concentra o vacia una clase frente al split, ninguna metrica de abajo se lee sin esta tabla al lado.
+   n split completo=2004  n medible=855
+   clase       frac. en split    frac. en medible
+     akiec       0.0329            0.0222
+     bcc         0.0514            0.0327
+     bkl         0.1098            0.0363
+     df          0.0115            0.0047
+     mel         0.1108            0.0444
+     nv          0.6692            0.8515
+     vasc        0.0145            0.0082
+
+2. macro-F1 por mask_source (nunca promediado en silencio)
+     otsu_fallback: n=330  macro_f1=0.7668  ci95=[0.5965, 0.8494]
+       clases con n insuficiente (no promediar su F1 como confiable): ['akiec', 'bcc', 'bkl', 'df', 'mel', 'vasc']
+     teacher_026: n=525  macro_f1=0.5677  ci95=[0.4822, 0.6254]
+       clases ausentes (0 muestras, contribuyen F1=0): ['df']
+       clases con n insuficiente (no promediar su F1 como confiable): ['akiec', 'bcc', 'bkl', 'mel', 'vasc']
+     unavailable: SKIPPED (n=0 < min_n=30)
+
+3. macro-F1 por tercil DE LA COHORTE (percentiles del ITA medido, no Groh ni Corbin)
+     cohorte_t1_mas_oscuro: n=285  macro_f1=0.5704  ci95=[0.3162, 0.6616]
+       clases con n insuficiente (no promediar su F1 como confiable): ['akiec', 'bcc', 'bkl', 'df', 'mel', 'vasc']
+     cohorte_t2_medio: n=285  macro_f1=0.5357  ci95=[0.3370, 0.6523]
+       clases con n insuficiente (no promediar su F1 como confiable): ['akiec', 'bcc', 'bkl', 'df', 'mel', 'vasc']
+     cohorte_t3_mas_claro: n=285  macro_f1=0.8180  ci95=[0.5943, 0.8734]
+       clases con n insuficiente (no promediar su F1 como confiable): ['akiec', 'bcc', 'bkl', 'df', 'mel', 'vasc']
+     unavailable: SKIPPED (n=0 < min_n=30)
+
+4. Dependencia continua: correlacion de acierto contra grados de ITA
+   Spearman rho=-0.0405  p=0.2373  ci95=[-0.1113, 0.0273]  n=855
+
+5. Recorrido alcanzable por imagen (si el manifiesto lo trae)
+   el manifiesto no trae reachable_ita_span
+
+6. macro-F1 del split completo, solo de referencia
+   macro_f1=0.6606  n=2004
+   NO COMPARABLE con el macro-F1 por estrato de ITA: corre sobre el split completo (n y composicion de clases distintos al subconjunto medible). Ver class_composition.
+
+ADVERTENCIA: estratos con n insuficiente (SKIPPED), no promediados: ['unavailable', 'unavailable']
+ADVERTENCIA: clases con n insuficiente DENTRO de un estrato OK (su F1 no es confiable):
+   mask_source/otsu_fallback: ['akiec', 'bcc', 'bkl', 'df', 'mel', 'vasc']
+   mask_source/teacher_026: ['akiec', 'bcc', 'bkl', 'mel', 'vasc']
+   cohort_tercile/cohorte_t1_mas_oscuro: ['akiec', 'bcc', 'bkl', 'df', 'mel', 'vasc']
+   cohort_tercile/cohorte_t2_medio: ['akiec', 'bcc', 'bkl', 'df', 'mel', 'vasc']
+   cohort_tercile/cohorte_t3_mas_claro: ['akiec', 'bcc', 'bkl', 'df', 'mel', 'vasc']
