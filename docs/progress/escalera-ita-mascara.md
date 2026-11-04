@@ -19,8 +19,11 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
   correr la rejilla de 18 combinaciones de B, protocolo no ejecutado
   (`docs/estado/clf-medicion-completa-a0-b-t.md`), trabajo mayor no asignado.
 - [x] 7b. ¿El removedor de pelo (`hair.py`) se come el borde de la lesión? |
-  sin commit todavía | `PYTHONPATH=src python scripts/audit_hair_removal_lesion_overlap.py`
+  `2026cc4` (overlap) | `PYTHONPATH=src python scripts/audit_hair_removal_lesion_overlap.py`
   → `resultados/segmentacion/v8/hair_removal_lesion_overlap_ph2/summary.json`
+- [x] 7c. Efecto del solapamiento sobre el Dice del teacher 026, PH2 | sin
+  commit todavía | corrido en UNABIA (`scripts/measure_ph2_hair_removal_shaped_dice.py`,
+  checkpoint `f4fcee05...462f4` reverificado) → `resultados/segmentacion/v8/hair_removal_shaped_dice_ph2/summary.json`
 - [ ] 8. Rejilla completa del brazo T
 
 ## Resultados medidos
@@ -77,10 +80,37 @@ un cuadro sintético con líneas finas ideales; 3,6× es la cifra real a citar.
 Los tres llamadores de producción (`pipeline_segment_circle.py:268`,
 `segmentation_methods/common/data.py:243`, `pilot_adapters.py:174`) y la
 receta pineada del teacher 026 (`generate_masks_026_pool.py` en UNABIA) dejan
-`shaped=False` en su valor por defecto. **Toda métrica de segmentación de
-corridas con `apply_hair_removal=True` (020, 022, 023, teacher 026) queda en
-duda** hasta que se mida el Dice con `shaped=True` (pendiente, paso 7b-c,
-requiere el checkpoint en UNABIA).
+`shaped=False` en su valor por defecto.
+
+### Pero el efecto medido sobre el Dice en PH2 es minúsculo (y en la dirección contraria a la esperada)
+
+`scripts/measure_ph2_hair_removal_shaped_dice.py`, misma receta pineada
+(`cruda+hair_removal+resize224_bilinear+thr0.5`, checkpoint
+`f4fcee05...462f4` reverificado), Dice contra la máscara experta de PH2
+(n=200), pareado por imagen:
+
+| máscara | Dice media | Dice mediana | sd |
+|---|---:|---:|---:|
+| `shaped=False` (producción) | 0,9680 | 0,9825 | 0,0557 |
+| `shaped=True` (elongado) | 0,9666 | 0,9807 | 0,0558 |
+
+Delta pareado (`shaped − unshaped`): media −0,0014, mediana −0,0008.
+Estadísticamente significativo (Wilcoxon signed-rank p=1,19e-08, t pareado
+p=0,0085) pero el tamaño del efecto es minúsculo — por debajo de 0,2 puntos
+de Dice — y **en contra** de la hipótesis: `shaped=True` (menos solapamiento
+con la lesión, medido en 7b) sale levemente PEOR, no mejor (mejora en
+58/200 imágenes, empeora en 142/200). Rango: −0,0256 a +0,0623 por imagen.
+
+Lectura honesta, sin forzarla a confirmar 7b: en PH2 el Dice ya está cerca
+del techo (mediana >0,98) para ambas variantes, y la fracción de pelo
+absoluta es chica (mediana 5,35 % del cuadro para `shaped=False`) — el
+solapamiento relativo con la lesión que mide 7b (>50 % del área de la
+máscara de pelo) no se traduce en un área absoluta de lesión repintada
+suficiente para mover el Dice en PH2. **Esto NO descarta el problema**: PH2
+son imágenes de 256×256 relativamente limpias; no mide qué pasa en
+cohortes con más pelo real (ISIC2018, HAM10000), donde `hair_fraction`
+puede ser mayor y el mismo mecanismo de solapamiento sí podría pesar. No
+generalizar este resultado fuera de PH2.
 
 ## Caveats que viajan con estas cifras
 

@@ -1,0 +1,30 @@
+{
+  "n": 200,
+  "dice_unshaped": {
+    "mean": 0.9679910347438013,
+    "median": 0.9825008815818521,
+    "sd": 0.05571135180399758
+  },
+  "dice_shaped": {
+    "mean": 0.9666157361579453,
+    "median": 0.980689962242429,
+    "sd": 0.0557604827787212
+  },
+  "delta_paired_shaped_minus_unshaped": {
+    "mean": -0.00137529858585609,
+    "median": -0.0008217734938759658
+  },
+  "paired_ttest": {
+    "t": -2.65843156337549,
+    "p": 0.008489052753825294
+  },
+  "wilcoxon_signed_rank": {
+    "W": 5378.0,
+    "p": 1.1936189623323794e-08
+  },
+  "n_shaped_better": 58,
+  "n_shaped_worse": 142,
+  "n_tie": 0,
+  "hair_fraction_unshaped_median": 0.05347177933673469,
+  "hair_fraction_shaped_median": 0.01477798150510204
+}
