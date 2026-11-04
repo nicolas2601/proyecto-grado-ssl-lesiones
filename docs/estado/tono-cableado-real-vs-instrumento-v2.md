@@ -104,12 +104,69 @@ bloqueo no es de infraestructura. Son tres decisiones, en este orden:
 3. **El gate.** `execution_enabled` no se marca sin evidencia real, por
    convención dura del repo.
 
-**No verificado:** si re-materializar el espejo con v2 cambia la cobertura del
-pool. v2 abstiene por motivos que v1 no tiene (`no_reachable_ita_range`,
-`border_population_shift_too_large`, y la unificación de piel que excluye
-vineteado). Sobre S-SYNTH v2 aplicó en 745 de 2000 muestras (37,2 %), con
-48,3 % no seleccionado por el sorteo de mezcla y 13,8 % sin recorrido
-alcanzable. Si esa tasa se traslada a ISIC, el brazo tratado del contraste
-pareado vería bastante menos imágenes transformadas de lo que vio el pool de
-v1 — y el diseño pareado exige que los dos brazos difieran en **un** factor.
-Medirlo requiere correr v2 sobre el pool real, que no se hizo.
+## 5. Medido: v2 no puede cumplir el criterio 7 sobre este pool
+
+Se corrieron **los dos módulos sobre las mismas 1.500 imágenes** del pool real
+(`masks.source_fit.jsonl`, muestra aleatoria con semilla 42 de los 33.620
+registros elegibles del teacher 026, ISIC 2019, `feather_sigma=0,0`).
+
+| | tasa efectiva de intervención |
+|---|---:|
+| v1 (en producción) | **100,0 %** |
+| v2 (instrumento de esta sesión) | **25,7 %** |
+| piso del criterio 7 | **80 %** |
+
+El criterio 7 de `docs/estado/clf-trainer-pareado-tono.md` (línea 140) exige que
+la tasa efectiva de intervención se mida y se publique, y que si cae por debajo
+del **80 %** se detenga. Descompuesto, el techo de v2 no depende del sorteo:
+
+| etapa | n | % |
+|---|---:|---:|
+| ITA medible antes de transformar | 803 / 1.500 | **53,5 %** |
+| de esos, seleccionados por la mezcla | 392 / 803 | 48,8 % |
+| de esos, aplicados | 385 / 392 | **98,2 %** |
+
+Es decir: **cuando v2 puede medir y le toca actuar, actúa en el 98,2 % de los
+casos.** El limitante no es el instrumento, es el pool. Y aun si la mezcla se
+pusiera en 100 %, el techo sería **52,6 %** — sigue por debajo del piso.
+
+Abstenciones de v2 sobre el pool real: 46,5 % `ita_unmeasured_ita_indeterminate`,
+27,4 % `not_selected_by_mix`, 0,4 % `no_reachable_ita_range`, 0,1 %
+`border_population_shift_too_large` — **primera vez que esa guarda se dispara
+sobre datos reales**; en S-SYNTH valía 0 en los 745 casos.
+
+### El b\* del pool real, que es la causa
+
+| cohorte | b\* de piel, mediana | p05 |
+|---|---:|---:|
+| S-SYNTH | 29,26 | 12,89 |
+| ISIC 2018 Task 1, grupo `ok` | 11,53 | — |
+| **pool real (ISIC 2019, teacher 026)** | **5,53** | **−5,67** |
+
+El p25 del pool es **0,75**, y el **46,5 %** cae bajo `MIN_B_FOR_ITA = 5,0`.
+El pool sobre el que esto tiene que correr es **mucho** más desaturado que
+cualquier cohorte donde se midió el instrumento. La advertencia de §4 era
+correcta en dirección y conservadora en magnitud.
+
+### Lo que el número obliga a decir
+
+v1 cumple el criterio 7 **porque no mide**. Su desplazamiento es un sorteo por
+hash (mediana −0,17°, rango ±25°) aplicado sin consultar el tono de partida,
+incluido el 46,5 % de imágenes donde el ITA no es medible siquiera. v2 falla el
+criterio **porque mide y se abstiene**.
+
+Así que el criterio 7, tal como está escrito, **premia al módulo ciego**. No es
+un empate entre dos opciones: es un umbral de cobertura que no distingue
+«intervino» de «intervino sobre algo que entiende». Antes de elegir módulo hay
+que decidir si el 80 % se mide sobre todo el pool o sobre el subconjunto
+medible, y esa reformulación es una decisión de protocolo, no de código.
+
+Datos: `resultados/segmentacion/v8/via_b_cierre/pool_v2_coverage.jsonl`.
+
+**Nota de procedencia.** Una primera corrida de este script pasó
+`source_revision` como hash por imagen; ese campo es una constante del dataset
+(1 valor distinto en 500 filas, contra 500 de `mask_sha256`), así que las
+1.500 imágenes recibieron el mismo sorteo y el mismo delta. Se detectó por dos
+señales —`v1_delta` idéntico en todas, y `not_selected_by_mix` exactamente
+igual al conteo de ITA medible— y se descartó. Las cifras de arriba son de la
+corrida corregida. **No reutilizar ninguna cifra de esa primera pasada.**
