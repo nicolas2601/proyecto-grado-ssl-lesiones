@@ -212,6 +212,38 @@ Medición propia, n=33 transformadas sobre S-SYNTH, con el módulo v2:
   solo medimos puntería numérica. Un desplazamiento puede aterrizar con error
   0,00001° y aun así producir una imagen que no parece piel. Con recorrido
   alcanzable de 75°, el riesgo es concreto. **Bloquea fijar el cap de política.**
+  - **Artefacto construido (2026-11-04), falta el juicio humano.** Hoja de
+    contactos de 20 pares antes/después sobre S-SYNTH real, estratificada por
+    delta **logrado** (no por melanina: los extremos son donde una imagen deja
+    de parecer piel, y estratificar por melanina promedia justo esa cola).
+    Generador: `scripts/make_tone_contact_sheet.py`. Salida en
+    `resultados/segmentacion/v8/tone_contact_sheet/`. El recorrido cubierto va
+    de −58,91° a +58,88°. Lo que falta sigue siendo irreductiblemente humano:
+    mirarla.
+  - **Hallazgo medible que acota el cap sin esperar al ojo.** Sobre los 745
+    casos aplicados, 129 (17,3 %) pierden medibilidad del ITA *después* de
+    transformar (`ita_indeterminate`), y el mecanismo es un corte limpio:
+    `b*` de salida máximo 4,973 en los no medibles contra mínimo 5,035 en los
+    medibles — exactamente `MIN_B_FOR_ITA = 5,0`. La pérdida es
+    **completamente asimétrica**:
+
+    | sentido | n | pierden medibilidad |
+    |---|---|---|
+    | oscurecer | 215 | **0 (0,0 %)** |
+    | aclarar | 530 | **129 (24,3 %)** |
+
+    Y en el lado de aclarado crece con la magnitud: 4,0 % hasta 20°, 8,9 %
+    hasta 30°, 14,2 % hasta 40°, 24,3 % sin cap.
+
+    **Esto no coincide con la literatura que usamos.** El ±25 de Corbin es
+    **simétrico**; medido en nuestro pipeline, oscurecer no degrada nada y
+    aclarar sí, de forma monótona. Un cap simétrico o paga de más en el lado
+    que no falla, o deja pasar el que sí. La consecuencia de diseño es que el
+    cap debería ser **asimétrico**, y que el criterio no tiene por qué ser
+    estético: «la salida sigue siendo medible por el mismo instrumento que
+    fijó el objetivo» es una condición verificable. **No se fija el número
+    todavía** — la hoja de contactos puede mover el límite del lado de
+    aclarado hacia abajo, y ese juicio es de María Paula.
 - **El residuo de 2,33° de la vía B: causa aislada y corregida, falta
   re-medirlo en S-SYNTH real.** El solver acertaba exacto contra su propia curva
   (0,00000) pero la salida medía sistemáticamente **más claro**: +0,30 a +25,24,
@@ -226,9 +258,26 @@ Medición propia, n=33 transformadas sobre S-SYNTH, con el módulo v2:
   píxeles, es decir siempre en una imagen real. Corregido en `6997206`
   (ángulo-de-medianas en los dos lados). Sobre un lote **sintético con textura**
   de 150 imágenes, el error mediana contra `estimate_fst` sobre la salida real
-  bajó de 3,62° a 0,21°, y el máximo de 10,54° a 1,87°. **Lo que falta:**
-  re-medir la vía B sobre S-SYNTH real; el 2,33° se midió ahí y la mejora se
-  midió en sintético, así que la cifra de cierre todavía no existe.
+  bajó de 3,62° a 0,21°, y el máximo de 10,54° a 1,87°.
+  - **CERRADO sobre S-SYNTH real (2026-11-04).** 2000 muestras sobre 50 grupos
+    de melanina verdadera, misma semilla 42, mismo índice, `feather_sigma=0,0`,
+    sin cap; única variable que se mueve, el módulo. 745 casos aplicados, 616
+    con ITA medible después. Datos y scripts en
+    `resultados/segmentacion/v8/via_b_cierre/`.
+
+    | \|error\| contra `ita_objetivo` | antes (n=33) | después (n=616) |
+    |---|---|---|
+    | mediana | 2,3520 | **0,1148** |
+    | p95 | 20,7190 | **0,5542** |
+    | máximo | 25,2846 | **1,3275** |
+    | positivos | 29/33 (87,9 %) | 189/616 (30,7 %) |
+
+    Dos correcciones al relato anterior. El residuo **no era «siempre
+    positivo»**: eran 29 de 33, con 4 negativos. Y el sesgo direccional
+    desaparece tras el fix (30,7 %), que es lo que se espera si la causa era
+    agregación no lineal y no un mecanismo de signo fijo. Por tercil de
+    melanina verdadera el error sube monótono pero poco: 0,0934 (bajo),
+    0,1209 (medio), 0,1420 (alto).
   - Hallazgo separado del mismo pase: el mecanismo de borde que era la primera
     hipótesis **sí es real**, solo que chico. Con población oscura suficiente
     (15 % de sombra) un desplazamiento grande hace que hasta 11 % de los píxeles
@@ -237,6 +286,12 @@ Medición propia, n=33 transformadas sobre S-SYNTH, con el módulo v2:
     por paso de `t` rompía la monotonicidad. Se agregó `_population_shift_fraction`
     y la abstención `border_population_shift_too_large` sobre
     `MAX_POPULATION_SHIFT_FRACTION = 0,01`, **constante declarada, no medida**.
+    Intentamos calibrarla y **no se puede con este dataset**: sobre los 745
+    casos aplicados de S-SYNTH real, `population_shift_fraction` vale
+    **exactamente 0,000000 en los 745** (p100 = 0). La guarda nunca se dispara
+    acá, así que el umbral es infalsificable sobre S-SYNTH y el 0,01 sigue
+    siendo declarado. Calibrarlo exige dermatoscopia real con vineteado o
+    sombra; anotado como lo que es, no como cifra validada.
     Y ojo con atribuirle el cierre: los casos que superaban ese umbral tenían
     *menos* error final (1,03° contra 3,62°). El dominante es la agregación.
 - **Dos definiciones de «piel» en el pipeline.** `tone_normalization._skin_selector`
