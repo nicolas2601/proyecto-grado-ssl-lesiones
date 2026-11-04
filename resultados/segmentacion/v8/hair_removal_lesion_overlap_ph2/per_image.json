@@ -1,0 +1,1602 @@
+[
+  {
+    "image_id": "IMD002",
+    "hair_fraction_unshaped": 0.04623724489795918,
+    "hair_fraction_shaped": 0.01211734693877551,
+    "overlap_with_lesion_unshaped": 0.6392241379310345,
+    "overlap_with_lesion_shaped": 0.06578947368421052,
+    "lesion_fraction": 0.27519132653061223
+  },
+  {
+    "image_id": "IMD003",
+    "hair_fraction_unshaped": 0.17777423469387754,
+    "hair_fraction_shaped": 0.06969467474489796,
+    "overlap_with_lesion_unshaped": 0.1242152466367713,
+    "overlap_with_lesion_shaped": 0.11181012296253932,
+    "lesion_fraction": 0.11322146045918367
+  },
+  {
+    "image_id": "IMD004",
+    "hair_fraction_unshaped": 0.05365114795918367,
+    "hair_fraction_shaped": 0.01424984056122449,
+    "overlap_with_lesion_unshaped": 0.6671619613670133,
+    "overlap_with_lesion_shaped": 0.11048951048951049,
+    "lesion_fraction": 0.19505341198979592
+  },
+  {
+    "image_id": "IMD006",
+    "hair_fraction_unshaped": 0.04846938775510204,
+    "hair_fraction_shaped": 0.014787946428571428,
+    "overlap_with_lesion_unshaped": 0.3684210526315789,
+    "overlap_with_lesion_shaped": 0.20619946091644206,
+    "lesion_fraction": 0.14678332270408162
+  },
+  {
+    "image_id": "IMD008",
+    "hair_fraction_unshaped": 0.03744818239795918,
+    "hair_fraction_shaped": 0.01682079081632653,
+    "overlap_with_lesion_unshaped": 0.6205428419372007,
+    "overlap_with_lesion_shaped": 0.26303317535545023,
+    "lesion_fraction": 0.11688855229591837
+  },
+  {
+    "image_id": "IMD009",
+    "hair_fraction_unshaped": 0.18718112244897958,
+    "hair_fraction_shaped": 0.020169005102040817,
+    "overlap_with_lesion_unshaped": 0.06942078364565588,
+    "overlap_with_lesion_shaped": 0.12944664031620554,
+    "lesion_fraction": 0.11362005739795919
+  },
+  {
+    "image_id": "IMD010",
+    "hair_fraction_unshaped": 0.04836973852040816,
+    "hair_fraction_shaped": 0.007573341836734694,
+    "overlap_with_lesion_unshaped": 0.1676967449526164,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.11001275510204081
+  },
+  {
+    "image_id": "IMD013",
+    "hair_fraction_unshaped": 0.03900271045918367,
+    "hair_fraction_shaped": 0.02529097576530612,
+    "overlap_with_lesion_unshaped": 0.31221257026060295,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.20204878826530612
+  },
+  {
+    "image_id": "IMD014",
+    "hair_fraction_unshaped": 0.033322704081632654,
+    "hair_fraction_shaped": 0.0,
+    "overlap_with_lesion_unshaped": 0.666267942583732,
+    "overlap_with_lesion_shaped": null,
+    "lesion_fraction": 0.4236686862244898
+  },
+  {
+    "image_id": "IMD015",
+    "hair_fraction_unshaped": 0.03599330357142857,
+    "hair_fraction_shaped": 0.026566485969387755,
+    "overlap_with_lesion_unshaped": 0.13732004429678848,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.23148517219387754
+  },
+  {
+    "image_id": "IMD016",
+    "hair_fraction_unshaped": 0.09817442602040816,
+    "hair_fraction_shaped": 0.011658960459183673,
+    "overlap_with_lesion_unshaped": 0.5397888753552578,
+    "overlap_with_lesion_shaped": 0.22393162393162394,
+    "lesion_fraction": 0.16844706632653061
+  },
+  {
+    "image_id": "IMD017",
+    "hair_fraction_unshaped": 0.047971141581632654,
+    "hair_fraction_shaped": 0.017119738520408163,
+    "overlap_with_lesion_unshaped": 0.4540922309929373,
+    "overlap_with_lesion_shaped": 0.06984866123399301,
+    "lesion_fraction": 0.4848134566326531
+  },
+  {
+    "image_id": "IMD018",
+    "hair_fraction_unshaped": 0.032346141581632654,
+    "hair_fraction_shaped": 0.014349489795918368,
+    "overlap_with_lesion_unshaped": 0.27171903881700554,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.09097975127551021
+  },
+  {
+    "image_id": "IMD019",
+    "hair_fraction_unshaped": 0.0657485650510204,
+    "hair_fraction_shaped": 0.016462053571428572,
+    "overlap_with_lesion_unshaped": 0.12367384055774477,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.0953842474489796
+  },
+  {
+    "image_id": "IMD020",
+    "hair_fraction_unshaped": 0.07403938137755102,
+    "hair_fraction_shaped": 0.015664859693877552,
+    "overlap_with_lesion_unshaped": 0.43149394347240916,
+    "overlap_with_lesion_shaped": 0.1946564885496183,
+    "lesion_fraction": 0.11846301020408163
+  },
+  {
+    "image_id": "IMD021",
+    "hair_fraction_unshaped": 0.03870376275510204,
+    "hair_fraction_shaped": 0.012974330357142858,
+    "overlap_with_lesion_unshaped": 0.4557157569515963,
+    "overlap_with_lesion_shaped": 0.06758832565284179,
+    "lesion_fraction": 0.13444674744897958
+  },
+  {
+    "image_id": "IMD022",
+    "hair_fraction_unshaped": 0.06905691964285714,
+    "hair_fraction_shaped": 0.01460857780612245,
+    "overlap_with_lesion_unshaped": 0.5751803751803751,
+    "overlap_with_lesion_shaped": 0.2933151432469304,
+    "lesion_fraction": 0.27463329081632654
+  },
+  {
+    "image_id": "IMD023",
+    "hair_fraction_unshaped": 0.09661989795918367,
+    "hair_fraction_shaped": 0.019511320153061226,
+    "overlap_with_lesion_unshaped": 0.8774752475247525,
+    "overlap_with_lesion_shaped": 0.5178753830439223,
+    "lesion_fraction": 0.8029336734693877
+  },
+  {
+    "image_id": "IMD024",
+    "hair_fraction_unshaped": 0.036989795918367346,
+    "hair_fraction_shaped": 0.02293925382653061,
+    "overlap_with_lesion_unshaped": 0.2645474137931034,
+    "overlap_with_lesion_shaped": 0.13466550825369245,
+    "lesion_fraction": 0.08456234056122448
+  },
+  {
+    "image_id": "IMD025",
+    "hair_fraction_unshaped": 0.016143176020408163,
+    "hair_fraction_shaped": 0.007832429846938776,
+    "overlap_with_lesion_unshaped": 0.18641975308641975,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.17558195153061223
+  },
+  {
+    "image_id": "IMD027",
+    "hair_fraction_unshaped": 0.1201969068877551,
+    "hair_fraction_shaped": 0.011499521683673469,
+    "overlap_with_lesion_unshaped": 0.6738517658763058,
+    "overlap_with_lesion_shaped": 0.682842287694974,
+    "lesion_fraction": 0.22243702168367346
+  },
+  {
+    "image_id": "IMD030",
+    "hair_fraction_unshaped": 0.08631616709183673,
+    "hair_fraction_shaped": 0.017956792091836735,
+    "overlap_with_lesion_unshaped": 0.7314707919649042,
+    "overlap_with_lesion_shaped": 0.38401775804661487,
+    "lesion_fraction": 0.5304528061224489
+  },
+  {
+    "image_id": "IMD031",
+    "hair_fraction_unshaped": 0.07772640306122448,
+    "hair_fraction_shaped": 0.010821906887755101,
+    "overlap_with_lesion_unshaped": 0.8784615384615385,
+    "overlap_with_lesion_shaped": 1.0,
+    "lesion_fraction": 0.6873604910714286
+  },
+  {
+    "image_id": "IMD032",
+    "hair_fraction_unshaped": 0.15569196428571427,
+    "hair_fraction_shaped": 0.008709343112244899,
+    "overlap_with_lesion_unshaped": 0.41052227342549924,
+    "overlap_with_lesion_shaped": 0.7734553775743707,
+    "lesion_fraction": 0.47702088647959184
+  },
+  {
+    "image_id": "IMD033",
+    "hair_fraction_unshaped": 0.09847337372448979,
+    "hair_fraction_shaped": 0.0072146045918367345,
+    "overlap_with_lesion_unshaped": 0.1813398097551103,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.29494180484693877
+  },
+  {
+    "image_id": "IMD035",
+    "hair_fraction_unshaped": 0.05131935586734694,
+    "hair_fraction_shaped": 0.0126953125,
+    "overlap_with_lesion_unshaped": 0.14951456310679612,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.14773995535714285
+  },
+  {
+    "image_id": "IMD036",
+    "hair_fraction_unshaped": 0.20178970025510204,
+    "hair_fraction_shaped": 0.019013073979591837,
+    "overlap_with_lesion_unshaped": 0.5584197530864198,
+    "overlap_with_lesion_shaped": 0.36268343815513626,
+    "lesion_fraction": 0.41954320790816324
+  },
+  {
+    "image_id": "IMD037",
+    "hair_fraction_unshaped": 0.05329241071428571,
+    "hair_fraction_shaped": 0.02353714923469388,
+    "overlap_with_lesion_unshaped": 0.4091249065071055,
+    "overlap_with_lesion_shaped": 0.09568162574089754,
+    "lesion_fraction": 0.1358019770408163
+  },
+  {
+    "image_id": "IMD038",
+    "hair_fraction_unshaped": 0.044064891581632654,
+    "hair_fraction_shaped": 0.02369658801020408,
+    "overlap_with_lesion_unshaped": 0.20669380370872908,
+    "overlap_with_lesion_shaped": 0.07148864592094197,
+    "lesion_fraction": 0.1053890306122449
+  },
+  {
+    "image_id": "IMD039",
+    "hair_fraction_unshaped": 0.03208705357142857,
+    "hair_fraction_shaped": 0.01211734693877551,
+    "overlap_with_lesion_unshaped": 0.2826086956521739,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.07637117346938775
+  },
+  {
+    "image_id": "IMD040",
+    "hair_fraction_unshaped": 0.034099968112244895,
+    "hair_fraction_shaped": 0.013691804846938776,
+    "overlap_with_lesion_unshaped": 0.2104032729398013,
+    "overlap_with_lesion_shaped": 0.08151382823871907,
+    "lesion_fraction": 0.08119419642857142
+  },
+  {
+    "image_id": "IMD041",
+    "hair_fraction_unshaped": 0.06851881377551021,
+    "hair_fraction_shaped": 0.025669642857142856,
+    "overlap_with_lesion_unshaped": 0.47062245491564864,
+    "overlap_with_lesion_shaped": 0.3268633540372671,
+    "lesion_fraction": 0.23971619897959184
+  },
+  {
+    "image_id": "IMD042",
+    "hair_fraction_unshaped": 0.0538703762755102,
+    "hair_fraction_shaped": 0.014150191326530613,
+    "overlap_with_lesion_unshaped": 0.5049944506104328,
+    "overlap_with_lesion_shaped": 0.15352112676056337,
+    "lesion_fraction": 0.2516541772959184
+  },
+  {
+    "image_id": "IMD043",
+    "hair_fraction_unshaped": 0.05689971301020408,
+    "hair_fraction_shaped": 0.01078204719387755,
+    "overlap_with_lesion_unshaped": 0.3211908931698774,
+    "overlap_with_lesion_shaped": 0.24029574861367836,
+    "lesion_fraction": 0.1727718431122449
+  },
+  {
+    "image_id": "IMD044",
+    "hair_fraction_unshaped": 0.15377869897959184,
+    "hair_fraction_shaped": 0.03549505739795918,
+    "overlap_with_lesion_unshaped": 0.8641783307413168,
+    "overlap_with_lesion_shaped": 0.7787759685569905,
+    "lesion_fraction": 0.46562101403061223
+  },
+  {
+    "image_id": "IMD045",
+    "hair_fraction_unshaped": 0.03501674107142857,
+    "hair_fraction_shaped": 0.012615593112244899,
+    "overlap_with_lesion_unshaped": 0.4473534433693796,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.09091996173469388
+  },
+  {
+    "image_id": "IMD047",
+    "hair_fraction_unshaped": 0.05052216198979592,
+    "hair_fraction_shaped": 0.025988520408163265,
+    "overlap_with_lesion_unshaped": 0.41972386587771204,
+    "overlap_with_lesion_shaped": 0.12883435582822086,
+    "lesion_fraction": 0.22963169642857142
+  },
+  {
+    "image_id": "IMD048",
+    "hair_fraction_unshaped": 0.03786670918367347,
+    "hair_fraction_shaped": 0.013432716836734694,
+    "overlap_with_lesion_unshaped": 0.39,
+    "overlap_with_lesion_shaped": 0.06231454005934718,
+    "lesion_fraction": 0.13440688775510204
+  },
+  {
+    "image_id": "IMD049",
+    "hair_fraction_unshaped": 0.07794563137755102,
+    "hair_fraction_shaped": 0.023596938775510203,
+    "overlap_with_lesion_unshaped": 0.10278701099463053,
+    "overlap_with_lesion_shaped": 0.20185810810810811,
+    "lesion_fraction": 0.13606106505102042
+  },
+  {
+    "image_id": "IMD050",
+    "hair_fraction_unshaped": 0.03942123724489796,
+    "hair_fraction_shaped": 0.023397640306122448,
+    "overlap_with_lesion_unshaped": 0.40141557128412536,
+    "overlap_with_lesion_shaped": 0.04599659284497445,
+    "lesion_fraction": 0.19599011479591838
+  },
+  {
+    "image_id": "IMD057",
+    "hair_fraction_unshaped": 0.08378507653061225,
+    "hair_fraction_shaped": 0.019112723214285716,
+    "overlap_with_lesion_unshaped": 0.629162702188392,
+    "overlap_with_lesion_shaped": 0.46715328467153283,
+    "lesion_fraction": 0.41196986607142855
+  },
+  {
+    "image_id": "IMD058",
+    "hair_fraction_unshaped": 0.06206154336734694,
+    "hair_fraction_shaped": 0.009964923469387755,
+    "overlap_with_lesion_unshaped": 0.6897880539499036,
+    "overlap_with_lesion_shaped": 0.24,
+    "lesion_fraction": 0.6435546875
+  },
+  {
+    "image_id": "IMD061",
+    "hair_fraction_unshaped": 0.11429767219387756,
+    "hair_fraction_shaped": 0.020567602040816327,
+    "overlap_with_lesion_unshaped": 0.8877070619006103,
+    "overlap_with_lesion_shaped": 0.6007751937984496,
+    "lesion_fraction": 0.6809829400510204
+  },
+  {
+    "image_id": "IMD063",
+    "hair_fraction_unshaped": 0.04049744897959184,
+    "hair_fraction_shaped": 0.01309390943877551,
+    "overlap_with_lesion_unshaped": 0.6589566929133859,
+    "overlap_with_lesion_shaped": 0.2100456621004566,
+    "lesion_fraction": 0.48477359693877553
+  },
+  {
+    "image_id": "IMD064",
+    "hair_fraction_unshaped": 0.11868223852040816,
+    "hair_fraction_shaped": 0.0067362882653061226,
+    "overlap_with_lesion_unshaped": 0.7541561712846347,
+    "overlap_with_lesion_shaped": 0.3106508875739645,
+    "lesion_fraction": 0.7917330994897959
+  },
+  {
+    "image_id": "IMD065",
+    "hair_fraction_unshaped": 0.17900988520408162,
+    "hair_fraction_shaped": 0.0320671237244898,
+    "overlap_with_lesion_unshaped": 0.9054776219104876,
+    "overlap_with_lesion_shaped": 0.7172156619018024,
+    "lesion_fraction": 0.6909677933673469
+  },
+  {
+    "image_id": "IMD075",
+    "hair_fraction_unshaped": 0.04292889030612245,
+    "hair_fraction_shaped": 0.01526626275510204,
+    "overlap_with_lesion_unshaped": 0.6880222841225627,
+    "overlap_with_lesion_shaped": 0.4464751958224543,
+    "lesion_fraction": 0.23423549107142858
+  },
+  {
+    "image_id": "IMD076",
+    "hair_fraction_unshaped": 0.03268494897959184,
+    "hair_fraction_shaped": 0.010463169642857142,
+    "overlap_with_lesion_unshaped": 0.25426829268292683,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.2609016262755102
+  },
+  {
+    "image_id": "IMD078",
+    "hair_fraction_unshaped": 0.06724330357142858,
+    "hair_fraction_shaped": 0.021524234693877552,
+    "overlap_with_lesion_unshaped": 0.6470065204505039,
+    "overlap_with_lesion_shaped": 0.3101851851851852,
+    "lesion_fraction": 0.20165019132653061
+  },
+  {
+    "image_id": "IMD080",
+    "hair_fraction_unshaped": 0.024792729591836735,
+    "hair_fraction_shaped": 0.010841836734693877,
+    "overlap_with_lesion_unshaped": 0.5482315112540193,
+    "overlap_with_lesion_shaped": 0.08823529411764706,
+    "lesion_fraction": 0.6888751594387755
+  },
+  {
+    "image_id": "IMD085",
+    "hair_fraction_unshaped": 0.17006138392857142,
+    "hair_fraction_shaped": 0.01747847576530612,
+    "overlap_with_lesion_unshaped": 0.41732098910113674,
+    "overlap_with_lesion_shaped": 0.3090079817559863,
+    "lesion_fraction": 0.21807238520408162
+  },
+  {
+    "image_id": "IMD088",
+    "hair_fraction_unshaped": 0.045021524234693876,
+    "hair_fraction_shaped": 0.01403061224489796,
+    "overlap_with_lesion_unshaped": 0.6502877379371403,
+    "overlap_with_lesion_shaped": 0.234375,
+    "lesion_fraction": 0.4568718112244898
+  },
+  {
+    "image_id": "IMD090",
+    "hair_fraction_unshaped": 0.05213647959183673,
+    "hair_fraction_shaped": 0.011021205357142858,
+    "overlap_with_lesion_unshaped": 0.6815749235474006,
+    "overlap_with_lesion_shaped": 0.5985533453887885,
+    "lesion_fraction": 0.7280970982142857
+  },
+  {
+    "image_id": "IMD091",
+    "hair_fraction_unshaped": 0.005500637755102041,
+    "hair_fraction_shaped": 0.0,
+    "overlap_with_lesion_unshaped": 0.6847826086956522,
+    "overlap_with_lesion_shaped": null,
+    "lesion_fraction": 0.6671715561224489
+  },
+  {
+    "image_id": "IMD092",
+    "hair_fraction_unshaped": 0.03202726403061224,
+    "hair_fraction_shaped": 0.01229671556122449,
+    "overlap_with_lesion_unshaped": 0.09769757311761046,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.031090561224489797
+  },
+  {
+    "image_id": "IMD101",
+    "hair_fraction_unshaped": 0.11955915178571429,
+    "hair_fraction_shaped": 0.025111607142857144,
+    "overlap_with_lesion_unshaped": 0.8038006334389065,
+    "overlap_with_lesion_shaped": 0.5761904761904761,
+    "lesion_fraction": 0.5697743941326531
+  },
+  {
+    "image_id": "IMD103",
+    "hair_fraction_unshaped": 0.038185586734693876,
+    "hair_fraction_shaped": 0.01171875,
+    "overlap_with_lesion_unshaped": 0.34498956158663885,
+    "overlap_with_lesion_shaped": 0.1292517006802721,
+    "lesion_fraction": 0.09257413903061225
+  },
+  {
+    "image_id": "IMD105",
+    "hair_fraction_unshaped": 0.054966517857142856,
+    "hair_fraction_shaped": 0.011658960459183673,
+    "overlap_with_lesion_unshaped": 0.40065264684554025,
+    "overlap_with_lesion_shaped": 0.12478632478632479,
+    "lesion_fraction": 0.09819435586734694
+  },
+  {
+    "image_id": "IMD107",
+    "hair_fraction_unshaped": 0.04701450892857143,
+    "hair_fraction_shaped": 0.017239317602040817,
+    "overlap_with_lesion_unshaped": 0.34590928359474354,
+    "overlap_with_lesion_shaped": 0.09364161849710982,
+    "lesion_fraction": 0.1210140306122449
+  },
+  {
+    "image_id": "IMD108",
+    "hair_fraction_unshaped": 0.033083545918367346,
+    "hair_fraction_shaped": 0.013592155612244899,
+    "overlap_with_lesion_unshaped": 0.5096385542168674,
+    "overlap_with_lesion_shaped": 0.08211143695014662,
+    "lesion_fraction": 0.1396484375
+  },
+  {
+    "image_id": "IMD112",
+    "hair_fraction_unshaped": 0.058713329081632654,
+    "hair_fraction_shaped": 0.015166613520408163,
+    "overlap_with_lesion_unshaped": 0.3363883231500339,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.3999521683673469
+  },
+  {
+    "image_id": "IMD118",
+    "hair_fraction_unshaped": 0.068359375,
+    "hair_fraction_shaped": 0.019770408163265307,
+    "overlap_with_lesion_unshaped": 0.2938775510204082,
+    "overlap_with_lesion_shaped": 0.21068548387096775,
+    "lesion_fraction": 0.16792889030612246
+  },
+  {
+    "image_id": "IMD120",
+    "hair_fraction_unshaped": 0.06449298469387756,
+    "hair_fraction_shaped": 0.032525510204081634,
+    "overlap_with_lesion_unshaped": 0.7061186650185414,
+    "overlap_with_lesion_shaped": 0.5919117647058824,
+    "lesion_fraction": 0.35311702806122447
+  },
+  {
+    "image_id": "IMD125",
+    "hair_fraction_unshaped": 0.042649872448979595,
+    "hair_fraction_shaped": 0.018136160714285716,
+    "overlap_with_lesion_unshaped": 0.42990654205607476,
+    "overlap_with_lesion_shaped": 0.26483516483516484,
+    "lesion_fraction": 0.17135682397959184
+  },
+  {
+    "image_id": "IMD126",
+    "hair_fraction_unshaped": 0.028160873724489797,
+    "hair_fraction_shaped": 0.010682397959183673,
+    "overlap_with_lesion_unshaped": 0.42179759377211606,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.21731505102040816
+  },
+  {
+    "image_id": "IMD132",
+    "hair_fraction_unshaped": 0.034279336734693876,
+    "hair_fraction_shaped": 0.013751594387755101,
+    "overlap_with_lesion_unshaped": 0.38895348837209304,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.06475207270408163
+  },
+  {
+    "image_id": "IMD133",
+    "hair_fraction_unshaped": 0.016541772959183673,
+    "hair_fraction_shaped": 0.010323660714285714,
+    "overlap_with_lesion_unshaped": 0.21807228915662652,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.10528938137755102
+  },
+  {
+    "image_id": "IMD134",
+    "hair_fraction_unshaped": 0.031927614795918366,
+    "hair_fraction_shaped": 0.016262755102040817,
+    "overlap_with_lesion_unshaped": 0.43570536828963796,
+    "overlap_with_lesion_shaped": 0.33700980392156865,
+    "lesion_fraction": 0.13127790178571427
+  },
+  {
+    "image_id": "IMD135",
+    "hair_fraction_unshaped": 0.10329639668367346,
+    "hair_fraction_shaped": 0.02676578443877551,
+    "overlap_with_lesion_unshaped": 0.8317576693034922,
+    "overlap_with_lesion_shaped": 0.6157855547282204,
+    "lesion_fraction": 0.48329878826530615
+  },
+  {
+    "image_id": "IMD137",
+    "hair_fraction_unshaped": 0.04653619260204082,
+    "hair_fraction_shaped": 0.014170121173469387,
+    "overlap_with_lesion_unshaped": 0.6029978586723769,
+    "overlap_with_lesion_shaped": 0.09845288326300984,
+    "lesion_fraction": 0.13064014668367346
+  },
+  {
+    "image_id": "IMD138",
+    "hair_fraction_unshaped": 0.04213169642857143,
+    "hair_fraction_shaped": 0.012555803571428572,
+    "overlap_with_lesion_unshaped": 0.48770104068117315,
+    "overlap_with_lesion_shaped": 0.3761904761904762,
+    "lesion_fraction": 0.24382174744897958
+  },
+  {
+    "image_id": "IMD139",
+    "hair_fraction_unshaped": 0.0921157525510204,
+    "hair_fraction_shaped": 0.03948102678571429,
+    "overlap_with_lesion_unshaped": 0.22501081782778018,
+    "overlap_with_lesion_shaped": 0.14941948510853104,
+    "lesion_fraction": 0.10423309948979592
+  },
+  {
+    "image_id": "IMD140",
+    "hair_fraction_unshaped": 0.047552614795918366,
+    "hair_fraction_shaped": 0.01251594387755102,
+    "overlap_with_lesion_unshaped": 0.2749371332774518,
+    "overlap_with_lesion_shaped": 0.10987261146496816,
+    "lesion_fraction": 0.11407844387755102
+  },
+  {
+    "image_id": "IMD142",
+    "hair_fraction_unshaped": 0.03053252551020408,
+    "hair_fraction_shaped": 0.010463169642857142,
+    "overlap_with_lesion_unshaped": 0.4960835509138381,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.14283721301020408
+  },
+  {
+    "image_id": "IMD143",
+    "hair_fraction_unshaped": 0.035435267857142856,
+    "hair_fraction_shaped": 0.017996651785714284,
+    "overlap_with_lesion_unshaped": 0.2705286839145107,
+    "overlap_with_lesion_shaped": 0.24363233665559247,
+    "lesion_fraction": 0.058713329081632654
+  },
+  {
+    "image_id": "IMD144",
+    "hair_fraction_unshaped": 0.028758769132653062,
+    "hair_fraction_shaped": 0.012197066326530613,
+    "overlap_with_lesion_unshaped": 0.29244629244629244,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.05885283801020408
+  },
+  {
+    "image_id": "IMD146",
+    "hair_fraction_unshaped": 0.0233577806122449,
+    "hair_fraction_shaped": 0.011579241071428572,
+    "overlap_with_lesion_unshaped": 0.4087030716723549,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.1504504145408163
+  },
+  {
+    "image_id": "IMD147",
+    "hair_fraction_unshaped": 0.06845902423469388,
+    "hair_fraction_shaped": 0.015744579081632654,
+    "overlap_with_lesion_unshaped": 0.8154294032023289,
+    "overlap_with_lesion_shaped": 0.3721518987341772,
+    "lesion_fraction": 0.4765625
+  },
+  {
+    "image_id": "IMD149",
+    "hair_fraction_unshaped": 0.20440051020408162,
+    "hair_fraction_shaped": 0.03651147959183673,
+    "overlap_with_lesion_unshaped": 0.41487909516380655,
+    "overlap_with_lesion_shaped": 0.42194323144104806,
+    "lesion_fraction": 0.3659717793367347
+  },
+  {
+    "image_id": "IMD150",
+    "hair_fraction_unshaped": 0.16908482142857142,
+    "hair_fraction_shaped": 0.04478236607142857,
+    "overlap_with_lesion_unshaped": 0.7839462517680339,
+    "overlap_with_lesion_shaped": 0.6395193591455274,
+    "lesion_fraction": 0.3981385522959184
+  },
+  {
+    "image_id": "IMD152",
+    "hair_fraction_unshaped": 0.0829280931122449,
+    "hair_fraction_shaped": 0.00821109693877551,
+    "overlap_with_lesion_unshaped": 0.6322999279019467,
+    "overlap_with_lesion_shaped": 0.866504854368932,
+    "lesion_fraction": 0.36826371173469385
+  },
+  {
+    "image_id": "IMD153",
+    "hair_fraction_unshaped": 0.08298788265306123,
+    "hair_fraction_shaped": 0.016840720663265307,
+    "overlap_with_lesion_unshaped": 0.8638328530259366,
+    "overlap_with_lesion_shaped": 0.9349112426035503,
+    "lesion_fraction": 0.44308035714285715
+  },
+  {
+    "image_id": "IMD154",
+    "hair_fraction_unshaped": 0.1410235969387755,
+    "hair_fraction_shaped": 0.013731664540816327,
+    "overlap_with_lesion_unshaped": 0.8661673261729791,
+    "overlap_with_lesion_shaped": 0.8969521044992743,
+    "lesion_fraction": 0.5848014987244898
+  },
+  {
+    "image_id": "IMD155",
+    "hair_fraction_unshaped": 0.04456313775510204,
+    "hair_fraction_shaped": 0.005500637755102041,
+    "overlap_with_lesion_unshaped": 0.817531305903399,
+    "overlap_with_lesion_shaped": 1.0,
+    "lesion_fraction": 0.39766023596938777
+  },
+  {
+    "image_id": "IMD156",
+    "hair_fraction_unshaped": 0.013871173469387755,
+    "hair_fraction_shaped": 0.0034080038265306123,
+    "overlap_with_lesion_unshaped": 0.6551724137931034,
+    "overlap_with_lesion_shaped": 0.4444444444444444,
+    "lesion_fraction": 0.058892697704081634
+  },
+  {
+    "image_id": "IMD157",
+    "hair_fraction_unshaped": 0.03549505739795918,
+    "hair_fraction_shaped": 0.005739795918367347,
+    "overlap_with_lesion_unshaped": 0.8192026951151039,
+    "overlap_with_lesion_shaped": 1.0,
+    "lesion_fraction": 0.2588687818877551
+  },
+  {
+    "image_id": "IMD159",
+    "hair_fraction_unshaped": 0.03411989795918367,
+    "hair_fraction_shaped": 0.01403061224489796,
+    "overlap_with_lesion_unshaped": 0.4842289719626168,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.32222576530612246
+  },
+  {
+    "image_id": "IMD160",
+    "hair_fraction_unshaped": 0.08035714285714286,
+    "hair_fraction_shaped": 0.02072704081632653,
+    "overlap_with_lesion_unshaped": 0.7762896825396826,
+    "overlap_with_lesion_shaped": 0.5817307692307693,
+    "lesion_fraction": 0.5373883928571429
+  },
+  {
+    "image_id": "IMD161",
+    "hair_fraction_unshaped": 0.04842952806122449,
+    "hair_fraction_shaped": 0.012615593112244899,
+    "overlap_with_lesion_unshaped": 0.6703703703703704,
+    "overlap_with_lesion_shaped": 0.09320695102685624,
+    "lesion_fraction": 0.5065967793367347
+  },
+  {
+    "image_id": "IMD162",
+    "hair_fraction_unshaped": 0.05177774234693878,
+    "hair_fraction_shaped": 0.018395248724489797,
+    "overlap_with_lesion_unshaped": 0.39568899153194764,
+    "overlap_with_lesion_shaped": 0.1256771397616468,
+    "lesion_fraction": 0.1563097895408163
+  },
+  {
+    "image_id": "IMD164",
+    "hair_fraction_unshaped": 0.036989795918367346,
+    "hair_fraction_shaped": 0.008231026785714286,
+    "overlap_with_lesion_unshaped": 0.6530172413793104,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.22584502551020408
+  },
+  {
+    "image_id": "IMD166",
+    "hair_fraction_unshaped": 0.06469228316326531,
+    "hair_fraction_shaped": 0.018614477040816327,
+    "overlap_with_lesion_unshaped": 0.7375231053604436,
+    "overlap_with_lesion_shaped": 0.3265524625267666,
+    "lesion_fraction": 0.5090282206632653
+  },
+  {
+    "image_id": "IMD168",
+    "hair_fraction_unshaped": 0.07806521045918367,
+    "hair_fraction_shaped": 0.021942761479591837,
+    "overlap_with_lesion_unshaped": 0.39596630074036254,
+    "overlap_with_lesion_shaped": 0.3224341507720254,
+    "lesion_fraction": 0.2380420918367347
+  },
+  {
+    "image_id": "IMD169",
+    "hair_fraction_unshaped": 0.06449298469387756,
+    "hair_fraction_shaped": 0.016302614795918366,
+    "overlap_with_lesion_unshaped": 0.3878244746600742,
+    "overlap_with_lesion_shaped": 0.33985330073349634,
+    "lesion_fraction": 0.22177933673469388
+  },
+  {
+    "image_id": "IMD170",
+    "hair_fraction_unshaped": 0.09265385841836735,
+    "hair_fraction_shaped": 0.022520727040816327,
+    "overlap_with_lesion_unshaped": 0.8922348892234889,
+    "overlap_with_lesion_shaped": 0.5823008849557522,
+    "lesion_fraction": 0.7299107142857143
+  },
+  {
+    "image_id": "IMD171",
+    "hair_fraction_unshaped": 0.04625717474489796,
+    "hair_fraction_shaped": 0.011340082908163265,
+    "overlap_with_lesion_unshaped": 0.44463593278759156,
+    "overlap_with_lesion_shaped": 0.070298769771529,
+    "lesion_fraction": 0.14106345663265307
+  },
+  {
+    "image_id": "IMD173",
+    "hair_fraction_unshaped": 0.05412946428571429,
+    "hair_fraction_shaped": 0.017059948979591837,
+    "overlap_with_lesion_unshaped": 0.5846833578792342,
+    "overlap_with_lesion_shaped": 0.2757009345794392,
+    "lesion_fraction": 0.2690330038265306
+  },
+  {
+    "image_id": "IMD175",
+    "hair_fraction_unshaped": 0.04414461096938776,
+    "hair_fraction_shaped": 0.016402264030612245,
+    "overlap_with_lesion_unshaped": 0.6401805869074492,
+    "overlap_with_lesion_shaped": 0.37910085054678005,
+    "lesion_fraction": 0.2296516262755102
+  },
+  {
+    "image_id": "IMD176",
+    "hair_fraction_unshaped": 0.03657126913265306,
+    "hair_fraction_shaped": 0.015505420918367346,
+    "overlap_with_lesion_unshaped": 0.6103542234332425,
+    "overlap_with_lesion_shaped": 0.2493573264781491,
+    "lesion_fraction": 0.32932079081632654
+  },
+  {
+    "image_id": "IMD177",
+    "hair_fraction_unshaped": 0.042071906887755105,
+    "hair_fraction_shaped": 0.011738679846938776,
+    "overlap_with_lesion_unshaped": 0.19658929417337753,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.1496532206632653
+  },
+  {
+    "image_id": "IMD182",
+    "hair_fraction_unshaped": 0.07932079081632654,
+    "hair_fraction_shaped": 0.018933354591836735,
+    "overlap_with_lesion_unshaped": 0.7741206030150753,
+    "overlap_with_lesion_shaped": 0.25157894736842107,
+    "lesion_fraction": 0.30520567602040816
+  },
+  {
+    "image_id": "IMD196",
+    "hair_fraction_unshaped": 0.06527024872448979,
+    "hair_fraction_shaped": 0.016402264030612245,
+    "overlap_with_lesion_unshaped": 0.24458015267175573,
+    "overlap_with_lesion_shaped": 0.43256379100850545,
+    "lesion_fraction": 0.10241948341836735
+  },
+  {
+    "image_id": "IMD197",
+    "hair_fraction_unshaped": 0.06981425382653061,
+    "hair_fraction_shaped": 0.02716438137755102,
+    "overlap_with_lesion_unshaped": 0.6679988581216101,
+    "overlap_with_lesion_shaped": 0.5407190022010272,
+    "lesion_fraction": 0.2607421875
+  },
+  {
+    "image_id": "IMD198",
+    "hair_fraction_unshaped": 0.029854910714285716,
+    "hair_fraction_shaped": 0.011798469387755101,
+    "overlap_with_lesion_unshaped": 0.3391188251001335,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.12270806760204081
+  },
+  {
+    "image_id": "IMD199",
+    "hair_fraction_unshaped": 0.08019770408163265,
+    "hair_fraction_shaped": 0.01518654336734694,
+    "overlap_with_lesion_unshaped": 0.6269880715705766,
+    "overlap_with_lesion_shaped": 0.3556430446194226,
+    "lesion_fraction": 0.16364397321428573
+  },
+  {
+    "image_id": "IMD200",
+    "hair_fraction_unshaped": 0.07688934948979592,
+    "hair_fraction_shaped": 0.019252232142857144,
+    "overlap_with_lesion_unshaped": 0.6088646967340591,
+    "overlap_with_lesion_shaped": 0.5838509316770186,
+    "lesion_fraction": 0.16063456632653061
+  },
+  {
+    "image_id": "IMD203",
+    "hair_fraction_unshaped": 0.08103475765306123,
+    "hair_fraction_shaped": 0.014768016581632654,
+    "overlap_with_lesion_unshaped": 0.3585833743236596,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.10666454081632654
+  },
+  {
+    "image_id": "IMD204",
+    "hair_fraction_unshaped": 0.04059709821428571,
+    "hair_fraction_shaped": 0.018315529336734693,
+    "overlap_with_lesion_unshaped": 0.22484045164457536,
+    "overlap_with_lesion_shaped": 0.12295973884657237,
+    "lesion_fraction": 0.04292889030612245
+  },
+  {
+    "image_id": "IMD206",
+    "hair_fraction_unshaped": 0.1136001275510204,
+    "hair_fraction_shaped": 0.023198341836734693,
+    "overlap_with_lesion_unshaped": 0.19263157894736843,
+    "overlap_with_lesion_shaped": 0.22422680412371135,
+    "lesion_fraction": 0.09532445790816327
+  },
+  {
+    "image_id": "IMD207",
+    "hair_fraction_unshaped": 0.08545918367346939,
+    "hair_fraction_shaped": 0.027582908163265307,
+    "overlap_with_lesion_unshaped": 0.24183768656716417,
+    "overlap_with_lesion_shaped": 0.14450867052023122,
+    "lesion_fraction": 0.2049984056122449
+  },
+  {
+    "image_id": "IMD208",
+    "hair_fraction_unshaped": 0.015345982142857142,
+    "hair_fraction_shaped": 0.007134885204081632,
+    "overlap_with_lesion_unshaped": 0.3935064935064935,
+    "overlap_with_lesion_shaped": 0.21508379888268156,
+    "lesion_fraction": 0.2504982461734694
+  },
+  {
+    "image_id": "IMD210",
+    "hair_fraction_unshaped": 0.04902742346938776,
+    "hair_fraction_shaped": 0.015146683673469387,
+    "overlap_with_lesion_unshaped": 0.666260162601626,
+    "overlap_with_lesion_shaped": 0.47368421052631576,
+    "lesion_fraction": 0.3671277104591837
+  },
+  {
+    "image_id": "IMD211",
+    "hair_fraction_unshaped": 0.016262755102040817,
+    "hair_fraction_shaped": 0.00723453443877551,
+    "overlap_with_lesion_unshaped": 0.48284313725490197,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.29490194515306123
+  },
+  {
+    "image_id": "IMD219",
+    "hair_fraction_unshaped": 0.15949856505102042,
+    "hair_fraction_shaped": 0.02626753826530612,
+    "overlap_with_lesion_unshaped": 0.9343996001499437,
+    "overlap_with_lesion_shaped": 0.7534142640364189,
+    "lesion_fraction": 0.7051777742346939
+  },
+  {
+    "image_id": "IMD226",
+    "hair_fraction_unshaped": 0.08635602678571429,
+    "hair_fraction_shaped": 0.018116230867346938,
+    "overlap_with_lesion_unshaped": 0.3955688899146088,
+    "overlap_with_lesion_shaped": 0.3773377337733773,
+    "lesion_fraction": 0.26975047831632654
+  },
+  {
+    "image_id": "IMD240",
+    "hair_fraction_unshaped": 0.039560746173469385,
+    "hair_fraction_shaped": 0.009008290816326531,
+    "overlap_with_lesion_unshaped": 0.9375314861460957,
+    "overlap_with_lesion_shaped": 0.7654867256637168,
+    "lesion_fraction": 0.9333147321428571
+  },
+  {
+    "image_id": "IMD242",
+    "hair_fraction_unshaped": 0.11774553571428571,
+    "hair_fraction_shaped": 0.014389349489795918,
+    "overlap_with_lesion_unshaped": 0.6364251861882194,
+    "overlap_with_lesion_shaped": 0.4889196675900277,
+    "lesion_fraction": 0.29408482142857145
+  },
+  {
+    "image_id": "IMD243",
+    "hair_fraction_unshaped": 0.05835459183673469,
+    "hair_fraction_shaped": 0.017119738520408163,
+    "overlap_with_lesion_unshaped": 0.7117486338797814,
+    "overlap_with_lesion_shaped": 0.3806752037252619,
+    "lesion_fraction": 0.31871811224489793
+  },
+  {
+    "image_id": "IMD251",
+    "hair_fraction_unshaped": 0.13073979591836735,
+    "hair_fraction_shaped": 0.006536989795918368,
+    "overlap_with_lesion_unshaped": 0.18140243902439024,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.11358019770408163
+  },
+  {
+    "image_id": "IMD254",
+    "hair_fraction_unshaped": 0.044822225765306124,
+    "hair_fraction_shaped": 0.0013751594387755102,
+    "overlap_with_lesion_unshaped": 0.37305469097376615,
+    "overlap_with_lesion_shaped": 0.13043478260869565,
+    "lesion_fraction": 0.34640066964285715
+  },
+  {
+    "image_id": "IMD256",
+    "hair_fraction_unshaped": 0.06216119260204082,
+    "hair_fraction_shaped": 0.013253348214285714,
+    "overlap_with_lesion_unshaped": 0.512023084321898,
+    "overlap_with_lesion_shaped": 0.2992481203007519,
+    "lesion_fraction": 0.2138671875
+  },
+  {
+    "image_id": "IMD278",
+    "hair_fraction_unshaped": 0.04538026147959184,
+    "hair_fraction_shaped": 0.012814891581632654,
+    "overlap_with_lesion_unshaped": 0.2968818620992534,
+    "overlap_with_lesion_shaped": 0.18040435458786935,
+    "lesion_fraction": 0.10975366709183673
+  },
+  {
+    "image_id": "IMD279",
+    "hair_fraction_unshaped": 0.049884406887755105,
+    "hair_fraction_shaped": 0.01504703443877551,
+    "overlap_with_lesion_unshaped": 0.2317219336795845,
+    "overlap_with_lesion_shaped": 0.1576158940397351,
+    "lesion_fraction": 0.10903619260204081
+  },
+  {
+    "image_id": "IMD280",
+    "hair_fraction_unshaped": 0.04805086096938776,
+    "hair_fraction_shaped": 0.013751594387755101,
+    "overlap_with_lesion_unshaped": 0.3330568228950643,
+    "overlap_with_lesion_shaped": 0.08260869565217391,
+    "lesion_fraction": 0.10678411989795919
+  },
+  {
+    "image_id": "IMD284",
+    "hair_fraction_unshaped": 0.15750558035714285,
+    "hair_fraction_shaped": 0.019331951530612245,
+    "overlap_with_lesion_unshaped": 0.950651651271669,
+    "overlap_with_lesion_shaped": 0.6412371134020619,
+    "lesion_fraction": 0.8634406887755102
+  },
+  {
+    "image_id": "IMD285",
+    "hair_fraction_unshaped": 0.053033322704081634,
+    "hair_fraction_shaped": 0.014389349489795918,
+    "overlap_with_lesion_unshaped": 0.7534761367906802,
+    "overlap_with_lesion_shaped": 0.2673130193905817,
+    "lesion_fraction": 0.4502551020408163
+  },
+  {
+    "image_id": "IMD304",
+    "hair_fraction_unshaped": 0.08023756377551021,
+    "hair_fraction_shaped": 0.018614477040816327,
+    "overlap_with_lesion_unshaped": 0.312220566318927,
+    "overlap_with_lesion_shaped": 0.5492505353319058,
+    "lesion_fraction": 0.15124760841836735
+  },
+  {
+    "image_id": "IMD305",
+    "hair_fraction_unshaped": 0.07433832908163265,
+    "hair_fraction_shaped": 0.026207748724489797,
+    "overlap_with_lesion_unshaped": 0.36943699731903484,
+    "overlap_with_lesion_shaped": 0.3285171102661597,
+    "lesion_fraction": 0.1955516581632653
+  },
+  {
+    "image_id": "IMD306",
+    "hair_fraction_unshaped": 0.05919164540816327,
+    "hair_fraction_shaped": 0.02122528698979592,
+    "overlap_with_lesion_unshaped": 0.2569023569023569,
+    "overlap_with_lesion_shaped": 0.15492957746478872,
+    "lesion_fraction": 0.0787826849489796
+  },
+  {
+    "image_id": "IMD312",
+    "hair_fraction_unshaped": 0.046974649234693876,
+    "hair_fraction_shaped": 0.010084502551020409,
+    "overlap_with_lesion_unshaped": 0.336868901145524,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.18112244897959184
+  },
+  {
+    "image_id": "IMD328",
+    "hair_fraction_unshaped": 0.022321428571428572,
+    "hair_fraction_shaped": 0.012994260204081632,
+    "overlap_with_lesion_unshaped": 0.16785714285714284,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.056142378826530615
+  },
+  {
+    "image_id": "IMD331",
+    "hair_fraction_unshaped": 0.24412069515306123,
+    "hair_fraction_shaped": 0.03479751275510204,
+    "overlap_with_lesion_unshaped": 0.18834190546167034,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.09962930484693877
+  },
+  {
+    "image_id": "IMD339",
+    "hair_fraction_unshaped": 0.03533561862244898,
+    "hair_fraction_shaped": 0.011120854591836735,
+    "overlap_with_lesion_unshaped": 0.4444444444444444,
+    "overlap_with_lesion_shaped": 0.09498207885304659,
+    "lesion_fraction": 0.15475526147959184
+  },
+  {
+    "image_id": "IMD347",
+    "hair_fraction_unshaped": 0.06989397321428571,
+    "hair_fraction_shaped": 0.018435108418367346,
+    "overlap_with_lesion_unshaped": 0.8189335614485315,
+    "overlap_with_lesion_shaped": 0.5070270270270271,
+    "lesion_fraction": 0.5383051658163265
+  },
+  {
+    "image_id": "IMD348",
+    "hair_fraction_unshaped": 0.1271125637755102,
+    "hair_fraction_shaped": 0.025410554846938774,
+    "overlap_with_lesion_unshaped": 0.7141737221699592,
+    "overlap_with_lesion_shaped": 0.48627450980392156,
+    "lesion_fraction": 0.7457948022959183
+  },
+  {
+    "image_id": "IMD349",
+    "hair_fraction_unshaped": 0.11902104591836735,
+    "hair_fraction_shaped": 0.032126913265306124,
+    "overlap_with_lesion_unshaped": 0.8859678499665103,
+    "overlap_with_lesion_shaped": 0.6836228287841191,
+    "lesion_fraction": 0.6036949936224489
+  },
+  {
+    "image_id": "IMD356",
+    "hair_fraction_unshaped": 0.033701371173469385,
+    "hair_fraction_shaped": 0.012755102040816327,
+    "overlap_with_lesion_unshaped": 0.40035481963335307,
+    "overlap_with_lesion_shaped": 0.103125,
+    "lesion_fraction": 0.20127152423469388
+  },
+  {
+    "image_id": "IMD360",
+    "hair_fraction_unshaped": 0.0839046556122449,
+    "hair_fraction_shaped": 0.018315529336734693,
+    "overlap_with_lesion_unshaped": 0.5660332541567696,
+    "overlap_with_lesion_shaped": 0.31120783460282914,
+    "lesion_fraction": 0.14239875637755103
+  },
+  {
+    "image_id": "IMD364",
+    "hair_fraction_unshaped": 0.025191326530612245,
+    "hair_fraction_shaped": 0.009566326530612245,
+    "overlap_with_lesion_unshaped": 0.22151898734177214,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.11941964285714286
+  },
+  {
+    "image_id": "IMD365",
+    "hair_fraction_unshaped": 0.0253109056122449,
+    "hair_fraction_shaped": 0.011080994897959183,
+    "overlap_with_lesion_unshaped": 0.384251968503937,
+    "overlap_with_lesion_shaped": 0.1223021582733813,
+    "lesion_fraction": 0.1326530612244898
+  },
+  {
+    "image_id": "IMD367",
+    "hair_fraction_unshaped": 0.05000398596938776,
+    "hair_fraction_shaped": 0.0205078125,
+    "overlap_with_lesion_unshaped": 0.39577520924671183,
+    "overlap_with_lesion_shaped": 0.20116618075801748,
+    "lesion_fraction": 0.21177455357142858
+  },
+  {
+    "image_id": "IMD368",
+    "hair_fraction_unshaped": 0.028200733418367346,
+    "hair_fraction_shaped": 0.013392857142857142,
+    "overlap_with_lesion_unshaped": 0.4911660777385159,
+    "overlap_with_lesion_shaped": 0.28125,
+    "lesion_fraction": 0.173828125
+  },
+  {
+    "image_id": "IMD369",
+    "hair_fraction_unshaped": 0.07302295918367346,
+    "hair_fraction_shaped": 0.013014190051020409,
+    "overlap_with_lesion_unshaped": 0.7524563318777293,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.25607860331632654
+  },
+  {
+    "image_id": "IMD370",
+    "hair_fraction_unshaped": 0.052814094387755105,
+    "hair_fraction_shaped": 0.01739875637755102,
+    "overlap_with_lesion_unshaped": 0.6162264150943396,
+    "overlap_with_lesion_shaped": 0.27491408934707906,
+    "lesion_fraction": 0.2941844706632653
+  },
+  {
+    "image_id": "IMD371",
+    "hair_fraction_unshaped": 0.047931281887755105,
+    "hair_fraction_shaped": 0.003527582908163265,
+    "overlap_with_lesion_unshaped": 0.641995841995842,
+    "overlap_with_lesion_shaped": 0.5536723163841808,
+    "lesion_fraction": 0.46450494260204084
+  },
+  {
+    "image_id": "IMD372",
+    "hair_fraction_unshaped": 0.11995774872448979,
+    "hair_fraction_shaped": 0.02060746173469388,
+    "overlap_with_lesion_unshaped": 0.39342083402558564,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.15750558035714285
+  },
+  {
+    "image_id": "IMD374",
+    "hair_fraction_unshaped": 0.022181919642857144,
+    "hair_fraction_shaped": 0.008769132653061224,
+    "overlap_with_lesion_unshaped": 0.22731356693620844,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.08978396045918367
+  },
+  {
+    "image_id": "IMD375",
+    "hair_fraction_unshaped": 0.057716836734693876,
+    "hair_fraction_shaped": 0.026486766581632654,
+    "overlap_with_lesion_unshaped": 0.2893646408839779,
+    "overlap_with_lesion_shaped": 0.11662904439428141,
+    "lesion_fraction": 0.12242904974489796
+  },
+  {
+    "image_id": "IMD376",
+    "hair_fraction_unshaped": 0.03870376275510204,
+    "hair_fraction_shaped": 0.009905133928571428,
+    "overlap_with_lesion_unshaped": 0.3192584963954686,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.1493542729591837
+  },
+  {
+    "image_id": "IMD378",
+    "hair_fraction_unshaped": 0.06158322704081633,
+    "hair_fraction_shaped": 0.018574617346938774,
+    "overlap_with_lesion_unshaped": 0.7491909385113269,
+    "overlap_with_lesion_shaped": 0.3293991416309013,
+    "lesion_fraction": 0.5038863201530612
+  },
+  {
+    "image_id": "IMD379",
+    "hair_fraction_unshaped": 0.019949776785714284,
+    "hair_fraction_shaped": 0.01030373086734694,
+    "overlap_with_lesion_unshaped": 0.41058941058941056,
+    "overlap_with_lesion_shaped": 0.1528046421663443,
+    "lesion_fraction": 0.21586017219387754
+  },
+  {
+    "image_id": "IMD380",
+    "hair_fraction_unshaped": 0.024135044642857144,
+    "hair_fraction_shaped": 0.015405771683673469,
+    "overlap_with_lesion_unshaped": 0.31544178364987613,
+    "overlap_with_lesion_shaped": 0.07761966364812418,
+    "lesion_fraction": 0.1550342793367347
+  },
+  {
+    "image_id": "IMD381",
+    "hair_fraction_unshaped": 0.05329241071428571,
+    "hair_fraction_shaped": 0.023776307397959183,
+    "overlap_with_lesion_unshaped": 0.6462228870605834,
+    "overlap_with_lesion_shaped": 0.3319362950544845,
+    "lesion_fraction": 0.3465601084183674
+  },
+  {
+    "image_id": "IMD382",
+    "hair_fraction_unshaped": 0.04047751913265306,
+    "hair_fraction_shaped": 0.014329559948979591,
+    "overlap_with_lesion_unshaped": 0.5204332840965041,
+    "overlap_with_lesion_shaped": 0.12378303198887343,
+    "lesion_fraction": 0.26010443239795916
+  },
+  {
+    "image_id": "IMD383",
+    "hair_fraction_unshaped": 0.025669642857142856,
+    "hair_fraction_shaped": 0.011419802295918368,
+    "overlap_with_lesion_unshaped": 0.20341614906832298,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.10108418367346939
+  },
+  {
+    "image_id": "IMD384",
+    "hair_fraction_unshaped": 0.035076530612244895,
+    "hair_fraction_shaped": 0.013153698979591837,
+    "overlap_with_lesion_unshaped": 0.35909090909090907,
+    "overlap_with_lesion_shaped": 0.24393939393939393,
+    "lesion_fraction": 0.12240911989795919
+  },
+  {
+    "image_id": "IMD385",
+    "hair_fraction_unshaped": 0.04398517219387755,
+    "hair_fraction_shaped": 0.016163105867346938,
+    "overlap_with_lesion_unshaped": 0.6411418214771183,
+    "overlap_with_lesion_shaped": 0.21701602959309493,
+    "lesion_fraction": 0.22576530612244897
+  },
+  {
+    "image_id": "IMD386",
+    "hair_fraction_unshaped": 0.0379264987244898,
+    "hair_fraction_shaped": 0.008888711734693877,
+    "overlap_with_lesion_unshaped": 0.3604834471886495,
+    "overlap_with_lesion_shaped": 0.15022421524663676,
+    "lesion_fraction": 0.12232940051020408
+  },
+  {
+    "image_id": "IMD388",
+    "hair_fraction_unshaped": 0.11228475765306123,
+    "hair_fraction_shaped": 0.03216677295918367,
+    "overlap_with_lesion_unshaped": 0.5553780617678381,
+    "overlap_with_lesion_shaped": 0.46406443618339527,
+    "lesion_fraction": 0.40780452806122447
+  },
+  {
+    "image_id": "IMD389",
+    "hair_fraction_unshaped": 0.13400829081632654,
+    "hair_fraction_shaped": 0.025410554846938774,
+    "overlap_with_lesion_unshaped": 0.8776026174895896,
+    "overlap_with_lesion_shaped": 0.5827450980392157,
+    "lesion_fraction": 0.5417131696428571
+  },
+  {
+    "image_id": "IMD390",
+    "hair_fraction_unshaped": 0.022122130102040817,
+    "hair_fraction_shaped": 0.012994260204081632,
+    "overlap_with_lesion_unshaped": 0.22612612612612612,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.18439094387755103
+  },
+  {
+    "image_id": "IMD392",
+    "hair_fraction_unshaped": 0.04262994260204082,
+    "hair_fraction_shaped": 0.015206473214285714,
+    "overlap_with_lesion_unshaped": 0.6666666666666666,
+    "overlap_with_lesion_shaped": 0.2214941022280472,
+    "lesion_fraction": 0.13996731505102042
+  },
+  {
+    "image_id": "IMD393",
+    "hair_fraction_unshaped": 0.1474609375,
+    "hair_fraction_shaped": 0.03473772321428571,
+    "overlap_with_lesion_unshaped": 0.7842951750236519,
+    "overlap_with_lesion_shaped": 0.4945496270797476,
+    "lesion_fraction": 0.5279217155612245
+  },
+  {
+    "image_id": "IMD394",
+    "hair_fraction_unshaped": 0.033103475765306124,
+    "hair_fraction_shaped": 0.013512436224489796,
+    "overlap_with_lesion_unshaped": 0.5039133052378085,
+    "overlap_with_lesion_shaped": 0.09292035398230089,
+    "lesion_fraction": 0.21008051658163265
+  },
+  {
+    "image_id": "IMD395",
+    "hair_fraction_unshaped": 0.02467315051020408,
+    "hair_fraction_shaped": 0.0126953125,
+    "overlap_with_lesion_unshaped": 0.39418416801292405,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.32059151785714285
+  },
+  {
+    "image_id": "IMD396",
+    "hair_fraction_unshaped": 0.03655133928571429,
+    "hair_fraction_shaped": 0.011579241071428572,
+    "overlap_with_lesion_unshaped": 0.38495092693565974,
+    "overlap_with_lesion_shaped": 0.19793459552495696,
+    "lesion_fraction": 0.19810267857142858
+  },
+  {
+    "image_id": "IMD397",
+    "hair_fraction_unshaped": 0.032146843112244895,
+    "hair_fraction_shaped": 0.00799186862244898,
+    "overlap_with_lesion_unshaped": 0.5995040297582145,
+    "overlap_with_lesion_shaped": 0.1596009975062344,
+    "lesion_fraction": 0.34974888392857145
+  },
+  {
+    "image_id": "IMD398",
+    "hair_fraction_unshaped": 0.07708864795918367,
+    "hair_fraction_shaped": 0.01721938775510204,
+    "overlap_with_lesion_unshaped": 0.8562564632885212,
+    "overlap_with_lesion_shaped": 0.5300925925925926,
+    "lesion_fraction": 0.7526108099489796
+  },
+  {
+    "image_id": "IMD399",
+    "hair_fraction_unshaped": 0.022181919642857144,
+    "hair_fraction_shaped": 0.008549904336734694,
+    "overlap_with_lesion_unshaped": 0.4079065588499551,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.1887157206632653
+  },
+  {
+    "image_id": "IMD400",
+    "hair_fraction_unshaped": 0.06568877551020408,
+    "hair_fraction_shaped": 0.01273517219387755,
+    "overlap_with_lesion_unshaped": 0.8546723300970874,
+    "overlap_with_lesion_shaped": 0.4209702660406886,
+    "lesion_fraction": 0.45814732142857145
+  },
+  {
+    "image_id": "IMD402",
+    "hair_fraction_unshaped": 0.029137436224489797,
+    "hair_fraction_shaped": 0.007772640306122449,
+    "overlap_with_lesion_unshaped": 0.4042407660738714,
+    "overlap_with_lesion_shaped": 0.0,
+    "lesion_fraction": 0.2453563456632653
+  },
+  {
+    "image_id": "IMD403",
+    "hair_fraction_unshaped": 0.24559550382653061,
+    "hair_fraction_shaped": 0.014309630102040817,
+    "overlap_with_lesion_unshaped": 0.904730990830155,
+    "overlap_with_lesion_shaped": 0.5097493036211699,
+    "lesion_fraction": 0.7270009566326531
+  },
+  {
+    "image_id": "IMD404",
+    "hair_fraction_unshaped": 0.18558673469387754,
+    "hair_fraction_shaped": 0.013731664540816327,
+    "overlap_with_lesion_unshaped": 0.8281786941580757,
+    "overlap_with_lesion_shaped": 0.7314949201741655,
+    "lesion_fraction": 0.46450494260204084
+  },
+  {
+    "image_id": "IMD405",
+    "hair_fraction_unshaped": 0.04195232780612245,
+    "hair_fraction_shaped": 0.012396364795918368,
+    "overlap_with_lesion_unshaped": 0.5292161520190024,
+    "overlap_with_lesion_shaped": 0.45980707395498394,
+    "lesion_fraction": 0.16442123724489796
+  },
+  {
+    "image_id": "IMD406",
+    "hair_fraction_unshaped": 0.06273915816326531,
+    "hair_fraction_shaped": 0.013412786989795918,
+    "overlap_with_lesion_unshaped": 0.817979669631512,
+    "overlap_with_lesion_shaped": 0.3060921248142645,
+    "lesion_fraction": 0.4758848852040816
+  },
+  {
+    "image_id": "IMD407",
+    "hair_fraction_unshaped": 0.1556122448979592,
+    "hair_fraction_shaped": 0.01584422831632653,
+    "overlap_with_lesion_unshaped": 0.805968237704918,
+    "overlap_with_lesion_shaped": 0.08930817610062892,
+    "lesion_fraction": 0.37575733418367346
+  },
+  {
+    "image_id": "IMD408",
+    "hair_fraction_unshaped": 0.33225047831632654,
+    "hair_fraction_shaped": 0.017159598214285716,
+    "overlap_with_lesion_unshaped": 0.9802651310659228,
+    "overlap_with_lesion_shaped": 0.6806039488966318,
+    "lesion_fraction": 0.8775908801020408
+  },
+  {
+    "image_id": "IMD409",
+    "hair_fraction_unshaped": 0.13719706632653061,
+    "hair_fraction_shaped": 0.01921237244897959,
+    "overlap_with_lesion_unshaped": 0.9273678094131319,
+    "overlap_with_lesion_shaped": 0.7510373443983402,
+    "lesion_fraction": 0.651725924744898
+  },
+  {
+    "image_id": "IMD410",
+    "hair_fraction_unshaped": 0.09628109056122448,
+    "hair_fraction_shaped": 0.016940369897959183,
+    "overlap_with_lesion_unshaped": 0.8876009107845166,
+    "overlap_with_lesion_shaped": 0.7023529411764706,
+    "lesion_fraction": 0.546257174744898
+  },
+  {
+    "image_id": "IMD411",
+    "hair_fraction_unshaped": 0.09157764668367346,
+    "hair_fraction_shaped": 0.018176020408163265,
+    "overlap_with_lesion_unshaped": 0.9893362350380849,
+    "overlap_with_lesion_shaped": 1.0,
+    "lesion_fraction": 0.9570910395408163
+  },
+  {
+    "image_id": "IMD413",
+    "hair_fraction_unshaped": 0.16015625,
+    "hair_fraction_shaped": 0.030113998724489797,
+    "overlap_with_lesion_unshaped": 0.9897959183673469,
+    "overlap_with_lesion_shaped": 0.9536730641958967,
+    "lesion_fraction": 0.9460897640306123
+  },
+  {
+    "image_id": "IMD417",
+    "hair_fraction_unshaped": 0.09207589285714286,
+    "hair_fraction_shaped": 0.016183035714285716,
+    "overlap_with_lesion_unshaped": 0.9863636363636363,
+    "overlap_with_lesion_shaped": 0.9679802955665024,
+    "lesion_fraction": 0.9413863201530612
+  },
+  {
+    "image_id": "IMD418",
+    "hair_fraction_unshaped": 0.22367267219387754,
+    "hair_fraction_shaped": 0.01331313775510204,
+    "overlap_with_lesion_unshaped": 0.9280049897531855,
+    "overlap_with_lesion_shaped": 0.8203592814371258,
+    "lesion_fraction": 0.5675821109693877
+  },
+  {
+    "image_id": "IMD419",
+    "hair_fraction_unshaped": 0.09921077806122448,
+    "hair_fraction_shaped": 0.019192442602040817,
+    "overlap_with_lesion_unshaped": 0.9636400160707111,
+    "overlap_with_lesion_shaped": 0.8618899273104881,
+    "lesion_fraction": 0.8035315688775511
+  },
+  {
+    "image_id": "IMD420",
+    "hair_fraction_unshaped": 0.056720344387755105,
+    "hair_fraction_shaped": 0.022480867346938774,
+    "overlap_with_lesion_unshaped": 0.8204497540407589,
+    "overlap_with_lesion_shaped": 0.6604609929078015,
+    "lesion_fraction": 0.7308474170918368
+  },
+  {
+    "image_id": "IMD421",
+    "hair_fraction_unshaped": 0.07521524234693877,
+    "hair_fraction_shaped": 0.01305404974489796,
+    "overlap_with_lesion_unshaped": 0.9523052464228935,
+    "overlap_with_lesion_shaped": 0.7954198473282442,
+    "lesion_fraction": 0.8927774234693877
+  },
+  {
+    "image_id": "IMD423",
+    "hair_fraction_unshaped": 0.2528499681122449,
+    "hair_fraction_shaped": 0.019252232142857144,
+    "overlap_with_lesion_unshaped": 0.9745408686056594,
+    "overlap_with_lesion_shaped": 0.7587991718426501,
+    "lesion_fraction": 0.6564293686224489
+  },
+  {
+    "image_id": "IMD424",
+    "hair_fraction_unshaped": 0.24579480229591838,
+    "hair_fraction_shaped": 0.016462053571428572,
+    "overlap_with_lesion_unshaped": 0.9871888429417012,
+    "overlap_with_lesion_shaped": 0.87409200968523,
+    "lesion_fraction": 0.9829400510204082
+  },
+  {
+    "image_id": "IMD425",
+    "hair_fraction_unshaped": 0.14178093112244897,
+    "hair_fraction_shaped": 0.025350765306122448,
+    "overlap_with_lesion_unshaped": 0.9413831880798426,
+    "overlap_with_lesion_shaped": 0.785377358490566,
+    "lesion_fraction": 0.848274075255102
+  },
+  {
+    "image_id": "IMD426",
+    "hair_fraction_unshaped": 0.12541852678571427,
+    "hair_fraction_shaped": 0.011120854591836735,
+    "overlap_with_lesion_unshaped": 0.9149849038614334,
+    "overlap_with_lesion_shaped": 0.7383512544802867,
+    "lesion_fraction": 0.5742586096938775
+  },
+  {
+    "image_id": "IMD427",
+    "hair_fraction_unshaped": 0.0361328125,
+    "hair_fraction_shaped": 0.01189811862244898,
+    "overlap_with_lesion_unshaped": 0.7027027027027027,
+    "overlap_with_lesion_shaped": 0.34338358458961477,
+    "lesion_fraction": 0.32912149234693877
+  },
+  {
+    "image_id": "IMD429",
+    "hair_fraction_unshaped": 0.041095344387755105,
+    "hair_fraction_shaped": 0.02112563775510204,
+    "overlap_with_lesion_unshaped": 0.7453928225024248,
+    "overlap_with_lesion_shaped": 0.5745283018867925,
+    "lesion_fraction": 0.1803252551020408
+  },
+  {
+    "image_id": "IMD430",
+    "hair_fraction_unshaped": 0.06602758290816327,
+    "hair_fraction_shaped": 0.009267378826530613,
+    "overlap_with_lesion_unshaped": 0.8364020525203743,
+    "overlap_with_lesion_shaped": 0.16774193548387098,
+    "lesion_fraction": 0.19371811224489796
+  },
+  {
+    "image_id": "IMD431",
+    "hair_fraction_unshaped": 0.0680404974489796,
+    "hair_fraction_shaped": 0.014050542091836735,
+    "overlap_with_lesion_unshaped": 0.7727006444053895,
+    "overlap_with_lesion_shaped": 0.21418439716312057,
+    "lesion_fraction": 0.44218351403061223
+  },
+  {
+    "image_id": "IMD432",
+    "hair_fraction_unshaped": 0.041673309948979595,
+    "hair_fraction_shaped": 0.013771524234693877,
+    "overlap_with_lesion_unshaped": 0.580105212816834,
+    "overlap_with_lesion_shaped": 0.11287988422575977,
+    "lesion_fraction": 0.2078483737244898
+  },
+  {
+    "image_id": "IMD433",
+    "hair_fraction_unshaped": 0.033522002551020405,
+    "hair_fraction_shaped": 0.012595663265306123,
+    "overlap_with_lesion_unshaped": 0.5136741973840666,
+    "overlap_with_lesion_shaped": 0.11867088607594936,
+    "lesion_fraction": 0.11856265943877552
+  },
+  {
+    "image_id": "IMD434",
+    "hair_fraction_unshaped": 0.030153858418367346,
+    "hair_fraction_shaped": 0.009008290816326531,
+    "overlap_with_lesion_unshaped": 0.4712491738268341,
+    "overlap_with_lesion_shaped": 0.1261061946902655,
+    "lesion_fraction": 0.19778380102040816
+  },
+  {
+    "image_id": "IMD435",
+    "hair_fraction_unshaped": 0.17518335459183673,
+    "hair_fraction_shaped": 0.03689014668367347,
+    "overlap_with_lesion_unshaped": 0.9323094425483504,
+    "overlap_with_lesion_shaped": 0.8460291734197731,
+    "lesion_fraction": 0.7789580676020408
+  },
+  {
+    "image_id": "IMD436",
+    "hair_fraction_unshaped": 0.08290816326530612,
+    "hair_fraction_shaped": 0.022500797193877552,
+    "overlap_with_lesion_unshaped": 0.8399038461538462,
+    "overlap_with_lesion_shaped": 0.5075287865367581,
+    "lesion_fraction": 0.5535514987244898
+  },
+  {
+    "image_id": "IMD437",
+    "hair_fraction_unshaped": 0.0918765943877551,
+    "hair_fraction_shaped": 0.020169005102040817,
+    "overlap_with_lesion_unshaped": 0.8713665943600868,
+    "overlap_with_lesion_shaped": 0.4792490118577075,
+    "lesion_fraction": 0.4930046237244898
+  }
+]

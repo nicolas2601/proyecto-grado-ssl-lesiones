@@ -1,0 +1,33 @@
+{
+  "dataset": "ph2",
+  "n_images": 200,
+  "resize": "224x224 bilinear (image), nearest (mask) - matches production",
+  "overlap_with_lesion_unshaped": {
+    "n_images_with_hair_detected": 200,
+    "n_images_no_hair_detected": 0,
+    "mean": 0.5460347458419703,
+    "median": 0.5170537407402853,
+    "p95": 0.937724071242783
+  },
+  "overlap_with_lesion_shaped": {
+    "n_images_with_hair_detected": 198,
+    "n_images_no_hair_detected": 2,
+    "mean": 0.30608340022320374,
+    "median": 0.22930090206185566,
+    "p95": 0.8625821663692546
+  },
+  "hair_fraction_unshaped": {
+    "n_images_with_hair_detected": 200,
+    "n_images_no_hair_detected": 0,
+    "mean": 0.0729526068239796,
+    "median": 0.05347177933673469,
+    "p95": 0.1793387276785713
+  },
+  "hair_fraction_shaped": {
+    "n_images_with_hair_detected": 200,
+    "n_images_no_hair_detected": 0,
+    "mean": 0.01656967474489796,
+    "median": 0.01477798150510204,
+    "p95": 0.03212890625
+  }
+}

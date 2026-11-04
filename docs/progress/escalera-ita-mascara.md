@@ -14,7 +14,13 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
 - [x] 4. Tono contra contraste como conductor del sesgo | sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/contrast.py`
 - [x] 5. `tone_augment_lab_v2` con Corbin eq. 7 en grados ITA | `8da01ad` | `PYTHONPATH=src pytest -q tests/test_tone_augment_lab_v2.py tests/test_tone_augment_lab.py` → 43 passed (ventana anclada al ITA medido, corrige colapso de `60d165f`)
 - [ ] 6. Validación de la transformación contra melanina verdadera en S-SYNTH
-- [ ] 7. Sesgo en PH2 y varianza del brazo B entre tonos
+- [ ] 7. Sesgo en PH2 (por tono y por contraste lesión-piel). La varianza del
+  brazo B entre tonos queda **fuera de alcance** (2026-11-04): requeriría
+  correr la rejilla de 18 combinaciones de B, protocolo no ejecutado
+  (`docs/estado/clf-medicion-completa-a0-b-t.md`), trabajo mayor no asignado.
+- [x] 7b. ¿El removedor de pelo (`hair.py`) se come el borde de la lesión? |
+  sin commit todavía | `PYTHONPATH=src python scripts/audit_hair_removal_lesion_overlap.py`
+  → `resultados/segmentacion/v8/hair_removal_lesion_overlap_ph2/summary.json`
 - [ ] 8. Rejilla completa del brazo T
 
 ## Resultados medidos
@@ -51,6 +57,30 @@ Lecturas que se sostienen:
   Dice da contraste Lab +0,604 contra tono +0,193, y el área no participa
   (−0,014, p=0,71). El tono sobrevive como efecto propio pequeño (parcial
   +0,136, p=3e−04).
+
+### El removedor de pelo repinta la lesión, no solo el pelo (PH2, n=200)
+
+`scripts/audit_hair_removal_lesion_overlap.py`, resize 224×224 (igual que
+`pipeline_segment_circle.segment_image`), fracción de la máscara de pelo que
+cae DENTRO de la máscara experta de lesión:
+
+| máscara | n con pelo detectado | mediana | media | p95 |
+|---|---:|---:|---:|---:|
+| `hair_mask` (producción, `shaped=False`) | 200/200 | 0,5171 | 0,5460 | 0,9377 |
+| `elongated_hair_mask` (`shaped=True`, nadie la llama) | 198/200 | 0,2293 | 0,3061 | 0,8626 |
+
+Más de la mitad del área que `shaped=False` marca como "pelo" y repinta con
+Telea cae dentro de la lesión experta, en la imagen mediana. El filtro de
+elongación reduce el solapamiento ~2,3× (no lo elimina). `hair_fraction`
+también baja (mediana 0,0535 → 0,0148, 3,6×) — bastante menos que el 37× de
+un cuadro sintético con líneas finas ideales; 3,6× es la cifra real a citar.
+Los tres llamadores de producción (`pipeline_segment_circle.py:268`,
+`segmentation_methods/common/data.py:243`, `pilot_adapters.py:174`) y la
+receta pineada del teacher 026 (`generate_masks_026_pool.py` en UNABIA) dejan
+`shaped=False` en su valor por defecto. **Toda métrica de segmentación de
+corridas con `apply_hair_removal=True` (020, 022, 023, teacher 026) queda en
+duda** hasta que se mida el Dice con `shaped=True` (pendiente, paso 7b-c,
+requiere el checkpoint en UNABIA).
 
 ## Caveats que viajan con estas cifras
 
