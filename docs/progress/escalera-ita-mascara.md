@@ -40,6 +40,24 @@ Protocolo de referencia: acta 2026-09-18 (`plan-segmentacion/README.md` §1) y
   medible, b* mediana 5,53 — mucho mas desaturado que S-SYNTH o ISIC2018);
   restringir al subconjunto medible tambien descartado (Fisher OR 0,547,
   p=0,0099, empobrece la clase melanoma). No fija umbrales nuevos.
+- [x] 5g. Evaluacion estratificada por ITA continuo (Fase 4, reemplazo de G3) |
+  `9d0f0aa` | `PYTHONPATH=src pytest -q tests/test_tone_stratified_eval.py`
+  → 20 passed. `src/dermssl/tone_stratified_eval.py` +
+  `scripts/eval_tone_stratified.py`. G3 (`gates.py`) estratifica por buckets
+  de fototipo nunca computados sobre datos reales (ningun JSON lleva su
+  status) y sobre un constructo que docs/63 §4 ya retiro. Reemplazo: ITA en
+  grados continuos, terciles de la cohorte (nunca Groh/Corbin), sin
+  `FST_THRESHOLDS` en ningun lado (guardia de test dedicada). Corrido contra
+  `resultados/clasificacion/v7/final_eval.probas.npz` (variante `proposed`)
+  + `resultados/clasificacion/v7/ita_stratified/val_ita.jsonl` (2.004 filas,
+  provisto por maestro desde el pod UNABIA, esta sesion no tiene las
+  imagenes de HAM10000). Reproduce exacto lo medido independientemente:
+  855/2004 (42,66 %) medible, nv al 85,1 % del subconjunto medible contra
+  66,9 % del split completo, mel vaciado de 11,1 % a 4,4 %. Resultado real:
+  CADA estrato (mask_source y tercil de cohorte) tiene TODAS las clases
+  minoritarias, incluido melanoma, por debajo de n=30 — no hay lectura por
+  clase posible sobre este pool, reportado tal cual, no forzado. No se
+  toco `gates.py` ni `circle.py`.
 - [~] 6. Validación de la transformación contra melanina verdadera en S-SYNTH |
   sin commit (artefactos en UNABIA) | `~/work/ita-ladder-20261104/via_b2.py` →
   `via_b2_rows.jsonl`. **Causa raiz del residuo aislada y corregida en `6997206`
