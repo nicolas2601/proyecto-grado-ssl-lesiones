@@ -187,11 +187,60 @@ resultado puede afirmar:
    no es aleatorio: excluye justo lo desaturado.
 2. **Cambiar el pool.** No medido, y es la puerta a la línea de piel oscura.
 
-**No verificado:** si el subconjunto medible mantiene el balance de clases y el
-split lesión-disjunto. Si la medibilidad del ITA correlaciona con la clase
-diagnóstica, restringirse a ella introduce sesgo de selección en el
-preentrenamiento. Es la primera cosa que habría que medir si se elige la
-salida 1.
+## 6. Medido: la salida 1 introduce sesgo de selección contra la clase positiva
+
+Se cruzó la muestra de 1.500 con `train-metadata.csv` de ISIC 2019 (columna
+`target`, binaria). Quedaron **594 con etiqueta** (39,6 %).
+
+| subconjunto | n | positivos | tasa |
+|---|---:|---:|---:|
+| ITA medible | 224 | 31 | **13,84 %** |
+| ITA no medible | 370 | 84 | **22,70 %** |
+| ambos | 594 | 115 | 19,36 % |
+
+**Fisher exacto: odds ratio 0,5469, p = 0,0099.** La medibilidad del ITA
+**sí** correlaciona con la clase diagnóstica. Una imagen medible tiene
+aproximadamente **la mitad de las probabilidades** de ser positiva.
+
+Restringirse al subconjunto medible bajaría la tasa de positivos de **19,36 %
+a 13,84 %** — una pérdida relativa del **28,5 %** de la clase positiva.
+
+**No es un confound de área.** El sesgo se mantiene en los tres terciles, en la
+misma dirección:
+
+| tercil de área | medible | no medible |
+|---|---:|---:|
+| bajo | 6,35 % (n=63) | 12,59 % (n=135) |
+| medio | 14,67 % (n=75) | 19,51 % (n=123) |
+| alto | 18,60 % (n=86) | 38,39 % (n=112) |
+
+### Consecuencia
+
+**La salida 1 de §5 queda descartada tal como estaba formulada.** Preentrenar
+sobre el subconjunto medible significa preentrenar sobre un pool empobrecido
+justo en la clase que el proyecto existe para detectar. En un trabajo de
+tamizaje de melanoma eso no es un costo aceptable a cambio de cobertura del
+criterio 7: es el sesgo peor de los dos.
+
+Lo que esto deja: el contraste pareado de tono **no se puede correr sobre este
+pool** con ninguno de los dos módulos ni con ninguna restricción del pool. La
+salida que queda es la 2, cambiar el pool, que es la línea de piel oscura.
+
+### Confounds declarados
+
+- **Cobertura de etiqueta parcial.** Solo 594 de 1.500 tienen `target`, porque
+  el pool mezcla ISIC 2019 e ISIC 2020 y solo el primero trae ese
+  `train-metadata.csv`. El test de clase es **dentro** del subconjunto
+  etiquetado.
+- **El subconjunto etiquetado no es representativo en medibilidad**: 37,7 %
+  medible contra 63,9 % del no etiquetado. Eso no invalida la comparación
+  interna —ambos brazos del test salen del mismo subconjunto— pero sí impide
+  extrapolar la *magnitud* al pool completo. La dirección y la significancia
+  valen; el 28,5 % exacto, no.
+- **El split lesión-disjunto no se pudo verificar.** `patient_id` en ese CSV
+  es `dummy_*` en las 25.331 filas, así que no hay agrupación real de lesiones
+  que comprobar desde ahí. Queda abierto y no es menor: `docs/02` lo exige por
+  `lesion_id`.
 
 Datos: `resultados/segmentacion/v8/via_b_cierre/pool_v2_coverage.jsonl`.
 
