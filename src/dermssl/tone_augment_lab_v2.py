@@ -27,7 +27,7 @@ same constant +25,0 -- measured: 79,9% of 5.000 synthetic draws landed within
 window centered on the measured ITA, which fixed the collapse (0,08% at the
 boundary) but introduced REVISION 2's problem below.
 
-REVISION 2 (current). ``ita_degrees = arctan((L*-50)/b*)`` is discontinuous
+REVISION 2 (superseded further below). ``ita_degrees = arctan((L*-50)/b*)`` is discontinuous
 where skin b* crosses zero: the ratio flips sign and the angle jumps between
 +90 and -90 (verified directly against ``fitzpatrick.ita_degrees``'s
 docstring and implementation). A window-centered linear step treated this
@@ -148,6 +148,30 @@ full image. That function can still record a sign flip on skin b* close to
 ``fitzpatrick.MIN_B_FOR_ITA``; this is measured and reported via its
 ``skin_median_b_after`` and ``b_sign_flipped_pixels`` fields, not hard-blocked
 -- the same stance ``tone_augment_lab`` itself takes.
+
+REVISION 4 (current). An independent end-to-end validation pass on real
+S-SYNTH images found this module's solved ``t`` landing on the right target
+inside its own curve, but the REAL output, re-measured with
+``fitzpatrick.estimate_fst``, missing that target by a median of 2,33
+degrees (p95 20,60), always in the lighter direction. Eight candidate causes
+were ruled out one at a time (feather, stride subsampling, the initial ITA
+measurement, both channels' shift fidelity, clipping, and the pre-transform
+skin-set definitions) before finding two real, independent mismatches
+between this module's curve and a real re-measurement of its output:
+
+* The dominant one, by roughly an order of magnitude: this module's curve
+  used to aggregate ITA as the MEDIAN OF PER-PIXEL ANGLES. ``estimate_fst``
+  (and so any real re-measurement) aggregates it as the ANGLE OF THE
+  MEDIAN L* AND MEDIAN b*. These differ whenever pixels have real L/b
+  variance. Fixed in ``_skin_state_at_t``; see that function's docstring for
+  the isolated reproduction.
+* A smaller, separate effect: the curve's population is fixed at ``t = 0``,
+  but a real re-measurement recomputes near-black border exclusion on the
+  SHIFTED pixels, which can drop a texture-dependent fraction of that fixed
+  population. See ``_population_shift_fraction``, which this module uses to
+  abstain rather than silently report an unreachable target, instead of
+  trying to make the curve itself track a population that changes size
+  (an earlier attempt at that broke the bracket's monotonicity).
 """
 
 from __future__ import annotations
@@ -158,7 +182,13 @@ import numpy as np
 from scipy.optimize import brentq
 
 from dermssl.circle import lab_to_srgb
-from dermssl.fitzpatrick import _resolve_border, estimate_fst, ita_degrees, srgb_to_lab
+from dermssl.fitzpatrick import (
+    BORDER_LUMINANCE_THRESHOLD,
+    _resolve_border,
+    estimate_fst,
+    ita_degrees,
+    srgb_to_lab,
+)
 from dermssl.tone_augment_lab import (
     B_PER_ITA_DEGREE,
     DEFAULT_FEATHER_SIGMA,
@@ -185,6 +215,14 @@ GRID_POINTS = 41
 MAX_SKIN_PIXELS_FOR_CURVE = 20_000
 
 BRENTQ_XTOL = 1e-3
+
+# A declared engineering choice, NOT measured against real data: the largest
+# fraction of the solving population allowed to fall below
+# fitzpatrick.BORDER_LUMINANCE_THRESHOLD at the solved t before abstaining
+# instead of reporting a target the real output will not land on. See
+# _population_shift_fraction. 1% is conservative on purpose; revise with a
+# real measured tolerance once one exists, rather than loosening this blind.
+MAX_POPULATION_SHIFT_FRACTION = 0.01
 
 # Independent of eq. 7: half of the images that pass abstention still keep
 # their original tone. A draw above this threshold selects the transform.
@@ -248,16 +286,80 @@ def _skin_lab_for_curve(
 
 
 def _skin_state_at_t(skin_lab: np.ndarray, t: float) -> tuple[float, float]:
-    """Median skin (ITA, b*) after shifting ``skin_lab`` by step ``t``, Corbin's round trip."""
+    """Skin (ITA, b*) after shifting ``skin_lab`` by step ``t``, Corbin's round trip.
+
+    ITA is the angle OF THE MEDIANS, ``ita_degrees(median(L), median(b))`` --
+    the same aggregation ``fitzpatrick._skin_ita`` uses, and the one
+    ``estimate_fst`` applies to any real image anyone measures downstream.
+    An earlier version of this function computed the MEDIAN OF THE PER-PIXEL
+    ANGLES instead, ``median(ita_degrees(L_i, b_i))``. The two are NOT the
+    same statistic -- arctan(ratio) is nonlinear, so ``median(f(x))`` and
+    ``f(median(x))`` diverge whenever the pixels have real L/b variance,
+    which every real image has. This was the actual root cause of a residual
+    an independent S-SYNTH validation pass measured end-to-end (median 2,33
+    degrees, p95 20,60): isolated down to one textured synthetic case where
+    the buggy median-of-angles version of this function disagreed with
+    ``estimate_fst``'s measurement of the real, identically shifted pixels by
+    over 10 degrees (same pixel count, no subsampling, no border exclusion
+    involved -- ruling out every other candidate already investigated).
+    Recomputing ``estimate_fst``'s number by hand from
+    ``arctan((median_L - 50) / median_b)`` matched to six significant
+    figures; recomputing it from the median of per-pixel angles reproduced
+    the wrong one. ``_population_shift_fraction`` is a real, separate,
+    smaller effect (see its own docstring); this is the dominant one.
+
+    Deliberately does NOT drop pixels that would fall below
+    ``fitzpatrick.BORDER_LUMINANCE_THRESHOLD`` at this ``t``: an earlier
+    attempt did that per grid point, and it broke the monotonicity the
+    bracket search depends on -- a texture-heavy synthetic test showed the
+    curve dip and rise non-monotonically as different shadow pixels crossed
+    the threshold at different grid points, well before any b*=0 crossing.
+    The population this curve is measured over is fixed at ``t = 0`` by
+    ``_skin_lab_for_curve`` and held fixed across the whole sweep on purpose.
+    """
     shifted = skin_lab.copy()
     shifted[:, 0] = np.clip(skin_lab[:, 0] - t * L_PER_ITA_DEGREE, 0.0, 100.0)
     shifted[:, 2] = skin_lab[:, 2] + t * B_PER_ITA_DEGREE
     srgb = lab_to_srgb(shifted)
     after_lab = srgb_to_lab(srgb)
-    b_after = float(np.median(after_lab[:, 2]))
+    l_med = float(np.median(after_lab[:, 0]))
+    b_med = float(np.median(after_lab[:, 2]))
     with np.errstate(invalid="ignore", divide="ignore"):
-        ita = float(np.median(ita_degrees(after_lab[:, 0], after_lab[:, 2])))
-    return ita, b_after
+        ita = float(ita_degrees(np.asarray(l_med), np.asarray(b_med)))
+    return ita, b_med
+
+
+def _population_shift_fraction(skin_lab: np.ndarray, t: float) -> float:
+    """Fraction of ``skin_lab`` that a post-hoc re-measurement would drop at step ``t``.
+
+    Root cause of a residual an independent S-SYNTH validation pass found
+    (median 2,33 degrees, p95 20,60, always realized-lighter-than-predicted):
+    this module's curve measures the median ITA over a FIXED pixel
+    population, selected once at ``t = 0`` (``_skin_lab_for_curve`` already
+    applies ``fitzpatrick.estimate_fst``'s near-black exclusion there, so the
+    two agree exactly at the origin). ``tone_augment_lab.augment_skin_tone``
+    then shifts that same population's colour, but ANY downstream consumer
+    that re-measures the output with ``estimate_fst`` recomputes the border
+    exclusion fresh, from the SHIFTED pixels. Removing the pixels that fall
+    below the threshold always drops from the dark tail, which always pulls
+    a median ITA higher (lighter) -- matching the direction measured on
+    S-SYNTH exactly. Confirmed synthetically: a shadow-heavy skin patch
+    where 11% of the fixed population newly fell below the threshold at one
+    grid point showed a 1,85-degree gap between the fixed-population median
+    and the recomputed one, at that same point.
+
+    This is NOT fixed by making the curve itself drop those pixels per grid
+    point -- that broke monotonicity instead (see ``_skin_state_at_t``). It
+    is instead measured at the solved ``t`` only, so the caller can abstain
+    when the two populations would diverge enough to matter, rather than
+    silently reporting a target the real output will not land on.
+    """
+    shifted = skin_lab.copy()
+    shifted[:, 0] = np.clip(skin_lab[:, 0] - t * L_PER_ITA_DEGREE, 0.0, 100.0)
+    shifted[:, 2] = skin_lab[:, 2] + t * B_PER_ITA_DEGREE
+    srgb = lab_to_srgb(shifted)
+    newly_excluded = srgb.mean(axis=-1) < BORDER_LUMINANCE_THRESHOLD
+    return float(np.mean(newly_excluded))
 
 
 def _skin_ita_at_t(skin_lab: np.ndarray, t: float) -> float:
@@ -385,6 +487,7 @@ def solve_ita_delta(
         "reachable_ita_lo": ita_at_t_lo,
         "reachable_ita_hi": ita_at_t_hi,
         "policy_cap_narrowed_reachable_range": (t_lo_final, t_hi_final) != (t_lo, t_hi),
+        "population_shift_fraction": _population_shift_fraction(skin_lab, t_solved),
     }
 
 
@@ -428,20 +531,26 @@ def augment_skin_tone_v2(
 ) -> tuple[np.ndarray, dict]:
     """Measure ITA with the mask, solve eq. 7's delta on this image's own reachable range, apply the frozen geometry.
 
-    Four ways this returns identity (no pixel changed, ``applied is False``):
+    Five ways this returns identity (no pixel changed, ``applied is False``):
 
     * ITA is not measurable (``fitzpatrick.estimate_fst`` status other than
       ``"ok"``). ``fallback_reason="ita_unmeasured_<status>"``.
     * ``estimate_fst`` measured ITA via its own fallback mask rather than
       ``lesion_mask``, so this module cannot build a matching curve.
       ``fallback_reason="ita_measured_via_fallback_mask"``.
-    * ITA is measurable and the mixing draw selects this image, but no usable
-      monotonic stretch exists for it (optionally narrowed further by
-      ``policy_cap_degrees``). ``fallback_reason="no_reachable_ita_range"``.
     * ITA is measurable but the 50/50 mixing draw did not select this image
       (checked before the reachable-range search, to skip that cost on the
       half of images it would discard anyway).
       ``fallback_reason="not_selected_by_mix"``.
+    * ITA is measurable and the mixing draw selects this image, but no usable
+      monotonic stretch exists for it (optionally narrowed further by
+      ``policy_cap_degrees``). ``fallback_reason="no_reachable_ita_range"``.
+    * A usable ``t`` was solved, but a large-enough fraction of the solving
+      population would fall below the near-black border threshold once
+      actually shifted (see ``_population_shift_fraction``) that a post-hoc
+      re-measurement would land away from ``ita_objetivo``.
+      ``fallback_reason="border_population_shift_too_large"``. ``ita_objetivo``
+      and ``ita_delta_raw`` are still reported here, for diagnosis.
 
     The manifest always carries ``ita_measured``, ``ita_measurement_status``,
     ``ita_objetivo``, ``ita_delta_raw`` and the geometry record's
@@ -505,6 +614,19 @@ def augment_skin_tone_v2(
         record["apply_draw"] = draw
         return out, record
 
+    # The curve's median was measured over a FIXED pre-transform population;
+    # a large fraction of it falling below the border threshold at the
+    # solved t means any post-hoc re-measurement (estimate_fst on the real
+    # output) will drop those pixels and land away from ita_objetivo -- see
+    # _population_shift_fraction. Abstain rather than report an unreachable
+    # promise.
+    if solved["population_shift_fraction"] > MAX_POPULATION_SHIFT_FRACTION:
+        out, record = _abstain("border_population_shift_too_large")
+        record["apply_draw"] = draw
+        record["ita_objetivo"] = solved["ita_objetivo"]
+        record["ita_delta_raw"] = solved["ita_delta"]
+        return out, record
+
     # The bound passed here is whatever bracket the delta was actually solved
     # within, never a separate number: augment_skin_tone's own clip must not
     # re-truncate a value this module already guaranteed is in range.
@@ -525,6 +647,7 @@ def augment_skin_tone_v2(
         "reachable_t_lo": solved["reachable_t_lo"],
         "reachable_t_hi": solved["reachable_t_hi"],
         "policy_cap_narrowed_reachable_range": solved["policy_cap_narrowed_reachable_range"],
+        "population_shift_fraction": solved["population_shift_fraction"],
         "apply_draw": draw,
         "selected_for_transform": True,
     }

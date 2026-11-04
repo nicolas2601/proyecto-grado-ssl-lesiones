@@ -13,11 +13,21 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from dermssl.tone_augment_lab import summarize_augmentation_records
+from dermssl.circle import lab_to_srgb
+from dermssl.fitzpatrick import estimate_fst, ita_degrees, srgb_to_lab
+from dermssl.tone_augment_lab import (
+    B_PER_ITA_DEGREE,
+    L_PER_ITA_DEGREE,
+    augment_skin_tone,
+    summarize_augmentation_records,
+)
 from dermssl.tone_augment_lab_v2 import (
+    MAX_POPULATION_SHIFT_FRACTION,
+    _population_shift_fraction,
     _reachable_bracket,
     _skin_ita_at_t,
     _skin_lab_for_curve,
+    _skin_state_at_t,
     augment_skin_tone_v2,
     sample_apply_draw,
     solve_ita_delta,
@@ -47,6 +57,118 @@ def _find_unselected_step(seed=42, max_steps=200):
         if sample_apply_draw(seed, step, DIGEST) <= 0.5:
             return step
     pytest.fail("no step rejected by the mixing gate in range")
+
+
+def _textured_frame(seed, size=96, base=(0.35, 0.28, 0.20), shadow_fraction=0.08):
+    """A skin patch with real pixel-to-pixel variance, not a flat colour.
+
+    Needed to exercise the angle-of-medians-vs-median-of-angles distinction:
+    on a flat frame every pixel has the same L and b, so the two aggregations
+    agree trivially and the bug these tests guard against cannot show up.
+    """
+    rng = np.random.default_rng(seed)
+    base = np.array(base)
+    img = np.zeros((size, size, 3))
+    noise = rng.normal(1.0, 0.15, size=(size, size, 1))
+    img[:] = np.clip(base[None, None, :] * noise, 0, 1)
+    shadow = rng.random((size, size)) < shadow_fraction
+    img[shadow] = img[shadow] * 0.1
+    mask = np.zeros((size, size), dtype=bool)
+    mask[size // 3 : 2 * size // 3, size // 3 : 2 * size // 3] = True
+    img[mask] = np.clip(img[mask] - 0.04, 0.0, 1.0)
+    return img, mask
+
+
+def _textured_frame_sequence(seed, index, size=128, shadow_fraction=0.08):
+    """Reproduces the Nth frame of a (seed, base-per-frame) generation sequence.
+
+    Matches the exact construction used to discover the aggregation-order
+    regression below: a random base is drawn per frame from the SAME rng
+    stream, so reproducing frame ``index`` requires drawing (and discarding)
+    the ``index`` frames before it, not drawing ``index`` directly.
+    """
+    rng = np.random.default_rng(seed)
+    img = mask = None
+    for _ in range(index + 1):
+        base = rng.uniform(0.25, 0.6, size=3)
+        img = np.zeros((size, size, 3))
+        noise = rng.normal(1.0, 0.15, size=(size, size, 1))
+        img[:] = np.clip(base[None, None, :] * noise, 0, 1)
+        shadow = rng.random((size, size)) < shadow_fraction
+        img[shadow] = img[shadow] * 0.1
+        mask = np.zeros((size, size), dtype=bool)
+        mask[size // 3 : 2 * size // 3, size // 3 : 2 * size // 3] = True
+        img[mask] = np.clip(img[mask] - 0.04, 0.0, 1.0)
+    return img, mask
+
+
+def test_ita_is_the_angle_of_the_medians_not_the_median_of_angles():
+    """Regresion: aterrizo en el bug real que media el residuo de la via B.
+
+    arctan es no lineal: median(arctan(L_i, b_i)) y arctan(median(L),
+    median(b)) son estadisticos distintos salvo que no haya varianza entre
+    pixeles. ``fitzpatrick._skin_ita`` (y por lo tanto ``estimate_fst``, y
+    cualquiera que mida la imagen de salida) usa la segunda forma. En el
+    diagnostico original, un caso con esta misma textura media mas de 10
+    grados de diferencia entre las dos formas -- mismos pixeles, mismo t,
+    sin reclasificacion de borde ni submuestreo de por medio.
+    """
+    img, mask = _textured_frame_sequence(21, index=4)
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    solved = solve_ita_delta(skin_lab, 42, 4, DIGEST)
+    assert solved is not None
+    t = solved["ita_delta"]
+
+    ita_correct, b_med = _skin_state_at_t(skin_lab, t)
+
+    shifted = skin_lab.copy()
+    shifted[:, 0] = np.clip(skin_lab[:, 0] - t * L_PER_ITA_DEGREE, 0.0, 100.0)
+    shifted[:, 2] = skin_lab[:, 2] + t * B_PER_ITA_DEGREE
+    after_lab = srgb_to_lab(lab_to_srgb(shifted))
+    median_of_angles = float(np.median(ita_degrees(after_lab[:, 0], after_lab[:, 2])))
+    angle_of_medians = float(
+        ita_degrees(np.median(after_lab[:, 0]), np.median(after_lab[:, 2]))
+    )
+
+    assert ita_correct == pytest.approx(angle_of_medians)
+    assert abs(median_of_angles - angle_of_medians) > 1.0  # the two disagree on real texture
+
+    out, _ = augment_skin_tone(img, mask, None, ita_delta=t, max_abs_ita_delta=100.0)
+    final = estimate_fst(out, mask=mask, border_mask=None)
+    assert final.status == "ok"
+    # Not exact: fitzpatrick.estimate_fst also runs its own border exclusion
+    # and skin detector, a residual _population_shift_fraction does not fully
+    # eliminate (see that function's docstring). What matters here is the
+    # order-of-magnitude fix: within ~1 degree of the angle-of-medians curve,
+    # not within ~10 degrees of the median-of-angles bug.
+    assert final.ita == pytest.approx(ita_correct, abs=1.0)
+    assert abs(final.ita - median_of_angles) > 5.0
+
+
+def test_population_shift_fraction_is_zero_without_near_black_pixels():
+    img, mask = _frame()
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    assert _population_shift_fraction(skin_lab, 10.0) == 0.0
+
+
+def test_population_shift_fraction_detects_border_crossing():
+    """Regresion: hallazgo original de maestro, real pero mas chico que el bug de agregacion."""
+    img, mask = _textured_frame(9, base=(0.30, 0.20, 0.10), shadow_fraction=0.15)
+    skin_lab = _skin_lab_for_curve(img, mask, None)
+    # a large positive t should push a meaningful fraction of the shadow
+    # pixels across BORDER_LUMINANCE_THRESHOLD in this particular texture.
+    fractions = [_population_shift_fraction(skin_lab, float(t)) for t in range(0, 30, 2)]
+    assert max(fractions) > MAX_POPULATION_SHIFT_FRACTION
+
+
+def test_augment_skin_tone_v2_abstains_on_large_population_shift():
+    img, mask = _textured_frame(9, base=(0.30, 0.20, 0.10), shadow_fraction=0.15)
+    step = _find_selected_step()
+    out, record = augment_skin_tone_v2(img, mask, 42, step, DIGEST)
+    if record["fallback_reason"] == "border_population_shift_too_large":
+        assert np.array_equal(out, img)
+        assert record["applied"] is False
+        assert record["ita_objetivo"] is not None  # still reported for diagnosis
 
 
 def test_skin_ita_curve_matches_measured_ita_at_t_zero():
