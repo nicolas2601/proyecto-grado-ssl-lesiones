@@ -17,7 +17,7 @@ Karen Sánchez (KAUST). Fuente: `README.md`.
 `resultados/clasificacion/v7/SEMILLAS.md` y `docs/28-rediseno-brazo-propuesto-v7.md`).
 El trabajo activo en v8 es una **auditoría modular de segmentación sin etiquetas**
 (cuatro métodos: SLED, USL-Net, RPI-Net, TriDermNet-HAGO) y su preparación para
-correr en el clúster UNABIA — ver sección 6 (bloqueos actuales) y
+correr en el clúster UNABIA — ver la skill `estado-v8` (bloqueos actuales) y
 `odd/tasks/v8-cierre-bloqueos-lanzamiento.md`.
 
 Remoto: `https://github.com/nicolas2601/proyecto-grado-ssl-lesiones`. Licencia
@@ -105,9 +105,17 @@ de las fases y dónde viven:
 
 El índice vigente de toda la documentación numerada está en `docs/README.md`
 (marca qué documento es "Vigente" vs "Superado" por una versión posterior). **Nota:**
-ese índice solo llega hasta el doc 50; los docs 51–55 (los más recientes, sobre
-preparación/bloqueos de lanzamiento v8) no están todavía listados ahí — consultarlos
-directamente por nombre de archivo.
+la numeración llega al **doc 63** (2026-11-04) y el índice está incompleto en el
+tramo alto — verificar con `ls docs/*.md` antes de afirmar que un documento no
+existe, y consultar por nombre de archivo lo que el índice no liste.
+
+**Instrumento de tono:** antes de tocar cualquier cosa que use ITA, FST o la
+transformación tonal, leer `docs/63-instrumento-ita-alcance-y-limites.md`. Trae
+qué mide el instrumento y qué no, el 28 % de abstención con sus tres
+alternativas ya descartadas con evidencia, y una tabla de **cifras retiradas**
+que no se deben reutilizar (el delta −0,047 del brazo B, las 1.917 coincidencias
+de ISIC2018, "el ITA ordena", "la luz mueve más que la biología entera", entre
+otras). Esa tabla existe para que una cifra muerta no llegue al informe final.
 
 Punto de entrada recomendado por el propio índice: `docs/27` → `docs/28` → resultado
 v7 en `resultados/clasificacion/v7/README.md`.
@@ -128,97 +136,18 @@ Reglas de higiene de datos (`docs/02`): split lesión-disjunto con `assert` de c
 solapamiento; pesos de clase = raíz del inverso de frecuencia; carga robusta ante
 imágenes truncadas (placeholder, nunca tumbar el run).
 
-## 6. Estado v8 y bloqueos conocidos (no repetir esta investigación)
+## 6. Estado v8 (linea activa)
 
-La línea activa es la **auditoría modular v8** (segmentación sin etiquetas, cuatro
-métodos) con despliegue previsto en el clúster UNABIA. Antes de retomar este
-trabajo, leer `odd/tasks/v8-cierre-bloqueos-lanzamiento.md` y los docs más
-recientes (`docs/46`, `docs/49`, `docs/50`, `docs/51`, `docs/55`). Resumen de
-bloqueos documentados al 2026-10-14 (todos con `execution_enabled=false`,
-`launch_ready=false`, `training_started=false` — **nadie debe cambiar esos flags
-sin evidencia real**):
+La linea activa es la **auditoria modular v8** (segmentacion sin etiquetas, cuatro
+metodos) con despliegue previsto en el cluster UNABIA. Al 2026-10-14 todos los gates
+siguen en `execution_enabled=false`, `launch_ready=false`, `training_started=false`.
 
-- **Cuota de disco/CPU en UNABIA sin verificar.** El punto de montaje NFS reporta
-  ~40 TiB compartidos, pero eso no acredita una cuota individual. `quota`, `lfs`,
-  `squota`, `sacctmgr`, `scontrol`, `sinfo`, `squeue` no están disponibles en el
-  entorno observado. El perfil de CPU (`cpu.max`) tiene lecturas inconsistentes
-  entre observaciones — sin reconciliar.
-- **SimCLR (checkpoint oficial) bloqueado — mitigado vía espejo Hugging Face,
-  no resuelto del todo.** El ZIP TensorFlow oficial (`gs://simclr-checkpoints`,
-  403; objeto alterno del README oficial, 401) sigue sin descargarse. Se usa en
-  su lugar `lightly-ai/simclrv1-imagenet1k-resnet50-1x` en Hugging Face
-  (conversión de terceros, hash SHA-256 verificado, 320 tensores cargados con
-  `weights_only=True`, 318 convertidos al encoder) — ver `docs/52` para la
-  validación numérica local (error absoluto máximo 0 en las 4 etapas contra una
-  referencia PyTorch adaptada al perfil V8) y `docs/53` para el despliegue del
-  parche al clúster (transferencia por terminal en base64 fragmentado, no por el
-  widget de carga de JupyterLab — ese camino falló dos veces: rechazo de la
-  revisión automática por falta de autorización de despliegue, y luego
-  `native credential state cannot be safely resumed`). **Caveat que no hay que
-  perder**: `docs/52` deja explícito `upstream_numerical_equivalence_verified=false`
-  — el espejo HF valida la implementación PyTorch local, *no* equivalencia
-  numérica con el TensorFlow original ni identidad binaria con el ZIP de
-  Google. Sigue sin ser el checkpoint oficial, solo el mejor sustituto
-  verificado disponible — no presentarlo como si fuera el original. **No
-  sustituir por SimCLRv2, DINOv2, pesos de V7 ni un preentrenamiento local.**
-  `launch_ready` sigue en `false` por otros pendientes (ver lista completa).
-- **Solapamiento de IDs ISIC2018 sin cerrar como holdout independiente** (ver
-  sección 5 arriba).
-- **Banco de pesos públicos (MoCo v1/v2/v3, DINO original) descargado y convertido
-  con verificación estricta de hash.** Para USL-Net específicamente, el banco de
-  tres orígenes (SimCLR HF + MoCo v1 + MoCo v2) ya se **cerró y verificó
-  end-to-end en UNABIA (2026-10-14)**: carga `strict=True` de los tres encoders
-  (23.508.032 parámetros cada uno) y un forward sintético en CPU (semilla 42,
-  `torch.randn` `[1,3,224,224]`, sin imágenes reales) con salida finita
-  `[1,9216,14,14]` — ver `docs/54-usl-net-banco-pesos-v8.md`, commit `c55b6b1` y
-  `readiness.review.json` bloque `usl_net_bank`. Sigue sin estar conectado a
-  ningún config habilitado (`source_bank=null` en los configs activos),
-  `execution_ready=false`, y no certifica equivalencia numérica con los papers
-  originales ni con el TensorFlow oficial de SimCLR.
-- **Evaluación anatómica independiente** (máscaras expertas exclusivas para
-  evaluación, separadas de entrenamiento) sigue declarada pendiente, pero ya
-  hay avance concreto: el ZIP oficial de ISIC2018 Task 1 (imágenes + máscaras
-  expertas `_segmentation.png`) se descargó a UNABIA y sus checksums SHA-256 se
-  verificaron (2.594 pares imagen/máscara, cero IDs sin pareja). El cruce de IDs
-  contra el inventario de entrenamiento está en la sección 5 arriba (583
-  solapamientos exactos, 2.011 candidatos). Ese inventario candidato sigue
-  **sin congelar, sin independencia acreditada y sin grupos paciente/lesión
-  históricos completos** — no es todavía un holdout ejecutable. Ver
-  `docs/46-pendientes-por-metodo-v8.md` ("Avance de índices ISIC2018 y gate de
-  limpieza") y `readiness.review.json` bloque `data`.
-- **Planes seriales concretos del controlador** (configs, manifiestos, gates y
-  salidas por paso para cada uno de los 4 métodos) siguen sin escribirse en
-  detalle ejecutable. `scripts/run_segmentation_controller_v8.py` ya existe y
-  funciona como motor genérico de ejecución/ledger (lee un plan JSON con
-  `schema_version=1`/`protocol="w3-four-methods-v8"` y exige manifest/gate/config
-  reales por paso) — **no genera ni infiere el plan científico**, solo lo
-  ejecuta si ya existe con rutas reales. Hay borradores de recursos y seis
-  configs deshabilitados en `plan-segmentacion/metodos-v8/launch-preparation/`
-  (commit `a983858`), pero el plan ejecutable con manifiestos/gates reales sigue
-  dependiendo de que se congele el manifiesto elegible (bullet anterior).
-- **Copia candidata del lanzador + parches CUDA, verificada en vivo pero sin
-  wire-up.** En UNABIA, `~/work/validation_v8/f1dc0d2-20261014/` (extraída de
-  `v8-validation-f1dc0d2.tar`, ver sección 8) sí tiene `run_segmentation_controller_v8.py`
-  y los parches SimCLR SAME + fix RPI-Net, hash-verificados idénticos al commit
-  `f1dc0d2` local — confirmado en vivo el 2026-10-14. Pero sigue siendo solo
-  candidata: los archivos de lanzamiento están marcados como borrador y
-  `execution_enabled: false`, igual que `pipeline.draft.json` y
-  `resources.draft.json`. Tiene checks por método y dry-runs del controlador
-  con fixtures, no una corrida real habilitada. **No training started.**
-- **Gate de limpieza de artefactos sintéticos, pendiente para justo antes de la
-  primera corrida real.** UNABIA y W&B acumularon corridas/forwards sintéticos
-  de validación (p. ej. run W&B `g8us8pz9`, artefacto
-  `usl-net-synthetic-forward-20261014`). Antes de entrenar hay que inventariar
-  y retirar esas rutas/identificadores exactos (preservando primero procedencia
-  y recibos de auditoría fuera del espacio de resultados reales) — ver
-  `readiness.review.json` bloque `pre_real_run_synthetic_cleanup_gate`
-  (`cleanup_complete=false`). Esta limpieza es intencionalmente tardía, para no
-  mezclar artefactos de prueba con resultados científicos.
-
-No reabrir estas investigaciones desde cero: cada bloqueo tiene su evidencia
-(JSON de `readiness.review.json`, hashes, respuestas HTTP) documentada en los docs
-citados. Si una sesión nueva necesita retomar v8, debe reconciliar contra esos
-documentos y el task file antes de avanzar.
+**El detalle de los bloqueos abiertos, su evidencia y los caveats que no hay que
+perder viven en la skill `estado-v8`.** Invocarla antes de retomar trabajo de v8, de
+cambiar cualquier gate de ejecucion, o de afirmar que un bloqueo quedo resuelto. No
+reabrir esas investigaciones desde cero: cada una tiene evidencia documentada
+(`readiness.review.json`, hashes, respuestas HTTP) en `docs/46`, `docs/49`-`docs/55` y
+`odd/tasks/v8-cierre-bloqueos-lanzamiento.md`.
 
 ## 7. Flujo de trabajo ya establecido (ODD / OpenSpec)
 
@@ -241,7 +170,22 @@ y `openspec/changes/` cuando el trabajo entra en SDD explícito.
 
 ## 8. Archivos sin seguimiento (preguntar antes de tocar)
 
-Hay artefactos sueltos en la raíz que **no se deben borrar ni mover sin
+**Precedente de 2026-11-04, y el más caro que encontró este proyecto:** doce
+módulos de `src/dermssl/` **nunca se commitearon** — no en ninguna rama, no
+cubiertos por `.gitignore`, solo en el working tree. Entre ellos
+`tone_augment_lab.py`, documentado como "congelado por contrato" y citado por
+número de línea; `pretrain/paired_factor_gate.py`, el gate que acreditó las
+corridas pareadas; y `segmentation_methods/common/hair.py`, que usa la receta
+pineada del teacher 026. Un `git clean -fd` los borraba sin aviso. Rescatados en
+`f14a63a`. También explica por qué `repo_v8_canonical` en UNABIA no los tenía:
+se construyó con `git archive HEAD`, que solo empaqueta archivos rastreados.
+
+**Regla derivada:** correr `git status --short src/ | grep '^??'` periódicamente,
+y nunca dar por versionado un archivo porque un documento lo llame "congelado".
+El agente `auditor-archivos-sin-seguimiento` existe para esto y no se había
+corrido nunca sobre `src/`.
+
+Hay además artefactos sueltos en la raíz que **no se deben borrar ni mover sin
 preguntarle primero al usuario**, porque no está confirmado si son desechables:
 
 - `jupyter-terminal-25.png` … `jupyter-terminal-46.png`. **Ya no es un
@@ -254,7 +198,7 @@ preguntarle primero al usuario**, porque no está confirmado si son desechables:
   `??` en `git status`.
 - `v8-validation-f1dc0d2.tar` (archivo sin seguimiento). **Ya identificado**
   (2026-10-14): es el snapshot del commit `f1dc0d2` extraído en UNABIA en
-  `~/work/validation_v8/f1dc0d2-20261014/` — ver sección 6, "copia candidata
+  `~/work/validation_v8/f1dc0d2-20261014/` — ver la skill `estado-v8`, "copia candidata
   del lanzador". Sigue sin estar en `.gitignore` ni versionado; decidir si
   conviene ignorarlo explícitamente dado que ya cumplió su propósito de
   validación en el clúster.
@@ -270,12 +214,11 @@ El resto (capturas de Jupyter y `.playwright-mcp/`) seguía apareciendo como
   READMEs, mensajes de estado) debe seguir esa convención. El código, nombres de
   variables/funciones/identificadores y comentarios de código siguen en inglés
   (práctica normal, y es lo que ya usa `src/`).
-- **Perfil visual del Anteproyecto y la tesis SSL.** Cuando ese sea el destino, mantén homogeneidad entre figuras: fondo blanco; Times New Roman; texto de figura en peso normal, sin negrita general, sombras ni 3D; alrededor de 11 pt para texto y marcas y 12 pt para títulos/etiquetas al tamaño final. Si Times New Roman no está disponible en el entorno, admite Nimbus Roman solo como sustitución explícita y documentada, sin fallback silencioso.
-  La paleta cappuccino define acentos y bordes — `cappdark` `#4B3832`, `cappwine` `#854442`, `capptan` `#BE9B7B` —, no rellenos sólidos de cajas. Usa `cappcream` `#FFF4E6`, `shwhite1`–`shwhite4` (`#FAF0E6`, `#FFF5EE`, `#FDF5E6`, `#FAEBD7`) o los neutros cálidos casi blancos ya usados en las SVG vigentes. Conserva el texto oscuro (`#302b27`), los conectores discretos (`#65564b`) y los contornos cálidos (`#a38a77`). Mantén la asignación cromática de cada grupo entre figuras.
-  Reserva Fitzpatrick — I `#F1DFCB`, II `#E3C7A8`, III `#C9A47E`, IV `#A67B52`, V `#7A5636`, VI `#4A3222` — para figuras de tono/fototipo. No la uses para codificar diagnósticos ni en diagramas conceptuales, y no deduzcas fototipo clínico por el color dibujado.
-  Si el destino es otro artículo, sigue su guía editorial; no impongas allí la paleta o tipografía del Anteproyecto.
-- **Criterios de publicación.** Adapta de BeautifulFigures el ajuste de dimensiones, relación de aspecto, rangos y marcas de ejes, tipografía, grosores de líneas/marcadores, cuadrícula y colocación compacta de leyendas. Exporta en PDF/SVG vectorial cuando sea compatible y revisa la figura ya insertada en la plantilla y al tamaño final. Conserva los ajustes en el script o fuente editable. El rigor científico prevalece sobre la estética: no alteres valores, unidades, denominadores, particiones, incertidumbre ni relaciones del método para que la figura se vea mejor.
-  Referencias verificadas: [guía de figuras](https://github.com/Paulasaah/Anteproyecto/blob/main/docs/flujo-tablas-figuras.md), [paleta y plantilla LaTeX](https://github.com/Paulasaah/Anteproyecto/blob/main/main.tex), [figuras vigentes](https://github.com/Paulasaah/Anteproyecto/tree/main/images/organizadas), [arquitectura](https://github.com/Paulasaah/Anteproyecto/blob/main/images/organizadas/17_arquitectura_general.svg), [protocolo vertical](https://github.com/Paulasaah/Anteproyecto/blob/main/images/organizadas/21_protocolo_vertical.svg), [script de gráficas](https://github.com/Paulasaah/Anteproyecto/blob/main/scripts/generar_figuras_resultados.py), [BeautifulFigures](https://github.com/AndreyChurkin/BeautifulFigures/tree/main/01_main_simple_example/Python).
+- **Perfil visual de figuras.** El perfil del Anteproyecto (tipografia, paleta
+  cappuccino, paleta Fitzpatrick reservada, criterios de publicacion) vive en
+  `.claude/rules/figuras.md`, que carga solo al trabajar sobre figuras. Regla de
+  precedencia: si hay una referencia (HTML, imagen, mockup, URL), la referencia manda y
+  el objetivo es fidelidad.
 - **Commits: Conventional Commits con scope del hito**, por ejemplo
   `docs(v8): record ISIC2018 evaluation overlap`, `feat(v8): deploy verified
   SimCLR patch to cluster runtime via terminal transfer`, `chore(v8): prepare
@@ -288,11 +231,11 @@ El resto (capturas de Jupyter y `.playwright-mcp/`) seguía apareciendo como
   (`resultados/*.json`, `results/*.json`) vía scripts `build_*`; un test falla si
   alguien edita un número a mano (`tests/test_readme_tables_fresh.py`,
   `tests/test_resultados_readme_fresh.py`, verificados en el job `generated` de CI).
-- **Ningún gate de ejecución se marca `true` sin evidencia real** — ver sección 6.
+- **Ningún gate de ejecución se marca `true` sin evidencia real** — ver la skill `estado-v8`.
   Esto es una convención explícita y repetida en los docs v8: no fabricar gates.
 - **Pesos públicos bloqueados en su fuente oficial: revisar primero un espejo en
   Hugging Face Hub, no reabrir una investigación larga de acceso.** Lección del
-  caso SimCLR (sección 6, `docs/52`): la fuente oficial puede estar bloqueada
+  caso SimCLR (skill `estado-v8`, `docs/52`): la fuente oficial puede estar bloqueada
   por meses sin que eso sea un fallo del clúster; buscar un espejo de terceros
   en Hugging Face, verificar su hash SHA-256 contra el objeto publicado, y
   correr una validación numérica local antes de asumirlo usable — y declarar
@@ -317,7 +260,12 @@ Usa el especialista cuyo alcance coincida con la tarea:
 - `crear-graficas-resultados` — crea o revisa gráficas cuantitativas.
 - `crear-figuras-cientificas` — crea o revisa diagramas y esquemas de método.
 - `mantener-indice-docs` — sincroniza el índice con los documentos numerados reales.
+- `estado-v8` — estado real y bloqueos abiertos de la auditoría v8, con su evidencia.
 
 Los nombres visibles coinciden con el campo `name` y con el nombre base de
 cada archivo en `.claude/agents/` y `.claude/skills/`, para que la invocación y
 la búsqueda en el repositorio usen términos consistentes.
+
+Además: `.claude/rules/figuras.md` carga automáticamente el perfil visual al trabajar
+sobre figuras, y un hook `Stop` (`.claude/settings.json`) corre `ruff` y los tests de
+frescura de tablas cuando la sesión tocó código, docs o resultados.
