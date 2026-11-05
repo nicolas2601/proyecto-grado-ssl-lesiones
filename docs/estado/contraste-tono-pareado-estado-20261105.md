@@ -249,6 +249,67 @@ archivo hashea `6aa8787e...`. **No es una procedencia rota.** La linea 99 hace
 no el hash del envoltorio. El nombre invita al error; se estuvo a punto de
 reportar una falsa alarma.
 
+## 3.6 La dosis puede estar sub-dimensionada, y es candidata a explicar los nulos
+
+Abierto el 2026-11-04 al cruzar la medicion de la dosis real con la observacion
+**#2081** sobre el origen del tope. Es una hipotesis, no un resultado.
+
+**Lo medido** (33.199 imagenes por semilla, seis semillas, parametros identicos
+en las seis: `max_abs_ita_delta 25.0`, `b_per_ita_degree 0.5`,
+`l_per_ita_degree 0.12`, `feather_sigma 2.0`):
+
+| cantidad | valor |
+|---|---:|
+| desplazamiento tipico aplicado (media absoluta) | **12,48 grados** |
+| tope declarado `MAX_ABS_ITA_DELTA` | 25,0 |
+| recorrido fisicamente alcanzable por imagen | **~70 grados** reales (75,4 en S-SYNTH) |
+
+**El desplazamiento tipico es ~18 % de lo que las imagenes soportan fisicamente,
+y el tope es ~36 %.**
+
+**De donde sale el 25, segun #2081:**
+
+1. Se derivo de la tabla de **Corbin** (dos categorias FST ~= 18-27 grados,
+   mediana 22). Pero el estimador del repo clasifica con la de **Groh**
+   (`FST_THRESHOLDS = (40, 23, 12, 0, -25)`), donde dos categorias abarcan 23-37
+   grados, mediana **28**. El tope es coherente con una tabla que no usamos.
+2. **Y la incoherencia es doble, con la segunda capa mas grave:** el tope se
+   justifica como "dos categorias FST", y **#2047** ya establecio que la
+   clasificacion ITA->FST no funciona en estos datos (recalibrar converge al
+   predictor constante, 53,3 % contra base trivial 55,8 %). El tope esta anclado
+   a una categorizacion que el proyecto **ya retiro**. Cambiar 25 por 28
+   arreglaria la tabla sin arreglar el fundamento.
+3. **Lo que Corbin acota de verdad no son categorias**, es plausibilidad visual:
+   *"results beyond this maximum value did not yield satisfactory visual
+   outcomes"*. Las categorias eran su forma de acotarlo, no la razon.
+
+**Y `capped: 0` no dice lo que parece.** Aparece en las seis semillas con maximo
+absoluto 24,9999. No significa "se probo mas y no hizo falta": el muestreador
+sortea **uniformemente dentro** de +-25 en vez de sortear mas amplio y recortar,
+asi que el tope nunca recorta porque nunca se le pide mas. **El tope no limita,
+define el rango**, y es vinculante por construccion. Es otro campo que invita a
+la lectura inversa.
+
+**Por que esto es candidato a explicar los nulos previos.** El brazo B dio
+negativo 18/18 y A71 dio −0,1002 en PAD. Esas corridas se descartaron por el
+pool viejo y la segmentacion anterior, pero **ninguna de las dos explicaciones
+toca la magnitud del tratamiento**. Si la dosis tipica es un sexto del recorrido
+disponible, un efecto real podria quedar por debajo del ruido sin que nada en el
+pipeline este roto.
+
+**Recomendacion: medir respuesta a la dosis antes de concluir cualquier cosa del
+contraste.** Es barato del lado de la materializacion: no requiere segmentador
+nuevo, ni mascaras nuevas, ni resolucion nueva — solo volver a correr la
+transformacion con un tope mayor sobre el espejo que ya existe. Las seis
+semillas actuales no sirven para esto porque son replicas con parametros
+identicos; hacen falta espejos a topes distintos.
+
+**Lo que no hay que hacer:** subir el tope a 28 "porque Groh". Eso repite el
+error de anclar la dosis a una categorizacion retirada. La cota principiada es
+el recorrido alcanzable medido por caso (#2080), y el tope deberia declararse
+como **politica conservadora explicita** derivada de plausibilidad visual, no
+como traduccion de una tabla.
+
 ## 4. El gate, resuelto el 2026-11-05 (`2b538df`)
 
 Habia una contradiccion entre dos reglas del propio repo:
