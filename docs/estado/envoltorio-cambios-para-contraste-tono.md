@@ -130,8 +130,11 @@ no adivinarla.
 2. Calcular la revision de datos sobre **34.754**.
 3. Regenerar manifiestos de rol y recibo con rutas del espejo (2.4).
 4. Aplicar 2.1, 2.2, 2.3 y 2.5 sobre una copia del envoltorio.
-5. Re-correr el control sobre el espejo, por el recorte a distinta resolucion
-   (ver `contraste-tono-pareado-estado-20261105.md` seccion 3.5).
+5. Re-correr el control sobre el espejo. **Solo por paridad de rutas**, no por
+   resolucion: esa razon quedo **retirada** el 2026-11-05, ver
+   `contraste-tono-pareado-estado-20261105.md` seccion 3.7. Las fuentes
+   `source_fit` ya son 224x224 y el espejo no reescala, asi que el recorte opera
+   sobre la misma resolucion en los dos brazos. Paso opcional.
 6. Recalibrar `tone_consistency_weight` con las palancas reales.
 7. Lanzar `tono-026` sobre SimSiam.
 8. Extender a MoCo-v3 y repetir 5-7.

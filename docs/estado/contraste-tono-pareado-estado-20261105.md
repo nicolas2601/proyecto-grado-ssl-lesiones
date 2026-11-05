@@ -310,6 +310,49 @@ el recorrido alcanzable medido por caso (#2080), y el tope deberia declararse
 como **politica conservadora explicita** derivada de plausibilidad visual, no
 como traduccion de una tabla.
 
+## 3.7 RETIRADO: el "segundo factor por resolucion" no existe
+
+Afirmado el 2026-11-04 por la noche, **retirado el 2026-11-05 por la manana**
+tras medir el tamano de las fuentes, que era un comando.
+
+**Lo que se afirmo:** que el control recortaba con
+`RandomResizedCrop(scale=(0.2, 1.0))` sobre JPG a resolucion completa mientras
+el brazo tratado lo haria sobre PNG ya reescaladas a 224, produciendo vistas de
+nitidez radicalmente distinta con los mismos parametros.
+
+**Por que es falso:** las fuentes `source_fit` **ya son 224x224** (299 de 300 en
+la muestra; una a 256). Y `tone_mirror_pool_v1._mirror_one` **no reescala**:
+decodifica, convierte a RGB y escribe PNG. El 224x224 del recibo del espejo
+viene de que la fuente ya venia asi, no de que el espejo la escalara. El recorte
+opera sobre 224 en **los dos brazos por igual**.
+
+**El error de metodo:** se leyo `width 224, height 224` en el recibo del espejo y
+se **asumio** que el espejo habia reescalado, en vez de abrir una fuente y
+mirarla. Es la misma falla que `CLAUDE.md` seccion 11 ya describe.
+
+**Y tampoco hay segundo factor por compresion.** El espejo es una copia sin
+perdida de los pixeles **ya decodificados** del JPG, asi que
+`PNG(decode(JPG))` tiene exactamente los mismos pixeles que `decode(JPG)`. Los
+dos brazos ven arreglos identicos. El docstring del propio script ya lo decia:
+el espejo existe para que el brazo tratado no tenga que re-encodear a JPEG, no
+para cambiar resolucion.
+
+**Consecuencia:** re-correr el control **no es necesario por razones
+cientificas**. Queda como paridad de rutas —el envoltorio valida `image_path`
+contra sus manifiestos aprobados (lineas 51-64) y el gate exige `image_root`
+igual— y como 1,24 h de GPU que compran la prueba de que el resultado es el
+mismo. Opcional y barato, no requisito.
+
+**Lo que si queda en pie de 3.5:** que `clinical_batch_quota = 0` esta rechazado
+por codigo, que el reparto de roles es el adaptador de dominio, y que el
+envoltorio no sabe nada de tono. Eso se verifico leyendo el codigo, no asumiendo.
+
+**Dato nuevo que sale de la misma verificacion:** las `pad_adapt` son de
+**tamano variable, de 215x215 hasta 3024x3024**. A diferencia de `source_fit`,
+no estan normalizadas. Pero el control lee esas mismas imagenes, asi que es
+simetrico entre brazos y no es un factor del contraste. Si es relevante para
+cualquier analisis que asuma resolucion uniforme en el pool.
+
 ## 4. El gate, resuelto el 2026-11-05 (`2b538df`)
 
 Habia una contradiccion entre dos reglas del propio repo:
