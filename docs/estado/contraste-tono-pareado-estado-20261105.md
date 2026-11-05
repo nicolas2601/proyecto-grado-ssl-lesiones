@@ -156,6 +156,71 @@ sin autorizacion.
    no escribe. Lo produjo otra ruta de codigo
    (`tone_mirror_pool_v1.py` en `~/work/tone-mirror-20261103/scripts/`).
 
+## 3.5 El envoltorio del cluster, y por que el control NO se recorta
+
+Verificado el 2026-11-04. Esto refuta la recomendacion de 3.1.
+
+El control no se lanzo con `scripts/pretrain.py` del repo. Lo lanzo
+`~/work/clf1_clinical_reference_20261024/scripts/overlay_ssl_runtime.py`
+(198 lineas, sha `6aa8787e...`, identico en `scripts/` y en
+`scripts_snapshot_20261027_pre_v2/`), un envoltorio **no versionado**.
+
+Sus parametros reales traen dos campos que el repo no tiene:
+
+```json
+"sampling_plan": ".../config/ssl-overlay-v1/mixed-uniform.npz",
+"sampling_plan_sha256": "d0491ef4...",
+"clinical_batch_quota": 4,
+"batch_size_per_gpu": 16
+```
+
+**`clinical_batch_quota 4` sobre `batch_size_per_gpu 16` reserva 4 de cada 16
+posiciones de cada lote al rol clinico.** Las 1.134 de `pad_adapt` no son un 3 %
+del pool: son el **25 % de cada paso**, por sobremuestreo. Y la linea 101 dice
+para que:
+
+```python
+domains = [int(row["role"] == "pad_adapt") for row in rows]
+coverage = CoverageState(ids, domains)
+```
+
+**El reparto de roles ES el adaptador de dominio**, el que V1 y V2 declaran.
+
+Y la linea 93 lo cierra por codigo:
+
+```python
+or cfg.clinical_batch_quota not in (1, 4) or cfg.max_steps not in (40, 6000)
+or cfg.seed not in (42, 43, 44) ...
+    raise ValueError("Configuration is outside the authorized isolated experiment")
+```
+
+**`clinical_batch_quota = 0` esta rechazado.** Recortar el control a `source_fit`
+no es inconveniente: el arnes no lo permite, y si lo permitiera borraria el
+adaptador de dominio. **Recomendacion corregida: conservar el control tal como
+esta** (34.754 imagenes, cuota 4, 6.000 pasos ya pagados) y adaptar el brazo
+tratado, no el control.
+
+El envoltorio **no sabe nada de tono**: cero coincidencias de `adaptation_mode`,
+`transformed` y `tone_consistency`. Pero el codigo congelado que maneja
+(`frozen_experiment_root = /home/jovyan/work/clf1_ssl_phone_20261024`) **si lo
+soporta entero**: `config.py`, `levers.py`, `torch_adaptation.py`,
+`torch_loop.py` y `torch_simsiam.py` llevan los flags. Falta que el envoltorio
+los pase y que su lista blanca admita el brazo tratado. Cambio chico.
+
+**Plan corregido:**
+
+1. Materializar las 1.134 de `pad_adapt` en el espejo por el camino de copia
+   identidad con registro de mascara inelegible, el mismo que ya atiende a 421
+   imagenes. Sin segmentador fuera de dominio, sin confound nuevo.
+2. Calcular la revision de datos sobre **34.754**, no sobre 33.620.
+3. Pasar los flags de tono en el envoltorio y extender su lista blanca.
+
+**Nota sobre `wrapper_sha256`:** el sello del control dice `8b34a29c...` y el
+archivo hashea `6aa8787e...`. **No es una procedencia rota.** La linea 99 hace
+`seal = config_seal(config)`: el campo guarda un sello de la **configuracion**,
+no el hash del envoltorio. El nombre invita al error; se estuvo a punto de
+reportar una falsa alarma.
+
 ## 4. El gate, resuelto el 2026-11-05 (`2b538df`)
 
 Habia una contradiccion entre dos reglas del propio repo:

@@ -312,6 +312,71 @@ corrida dirigida. Reconstruirlo duplica el costo y pisa a quien lo estaba
 haciendo. Antes de asumir que una sesion esta inactiva, mirar su estado real:
 `started 4d ago` es cuando arranco, **no** su ultima actividad.
 
+### Contrato de respuesta: la recomendacion va adelante, no al final
+
+Fijado el 2026-11-04 despues de que Maria Paula lo pidiera **cuatro veces** en una
+sola sesion. Es la falla mas repetida del proyecto y la mas cara en confianza:
+no es un error tecnico, es entregar el trabajo a medias y dejarle la decision a
+ella cuando la decision era mia.
+
+**Toda respuesta que presente un hallazgo lleva la recomendacion explicita,
+derivada de lo observado, antes de los detalles.** No "hay dos caminos, deci
+vos". Si los datos alcanzan para recomendar, se recomienda. Si no alcanzan, se
+dice **que dato falta y como se consigue**, y se va a buscar.
+
+**Prohibido partir un paso en varias preguntas.** Si el plan tiene cinco pasos y
+ella dijo "hagamoslo", se corren los cinco y se reporta al final. Se para solo
+ante algo **irreversible o fuera de lo pedido**. Verificar, calcular, leer
+codigo y escribir artefactos nuevos al lado de los originales **no son
+irreversibles**: no se piden permiso.
+
+**Una pregunta por respuesta, como maximo, y solo si bloquea de verdad.** Si se
+puede avanzar en otras cuatro cosas mientras, se avanza y se pregunta al final.
+
+**Cuando una recomendacion propia se cae, decirlo de frente y con la evidencia
+que la tumbo**, en la misma respuesta, no en la siguiente. Ya paso dos veces:
+"re-correr el control sobre `source_fit`" quedo refutada por la lista blanca del
+envoltorio (`clinical_batch_quota not in (1, 4)` lo rechaza por codigo), y
+"re-materializar el espejo" quedo refutada por la modalidad de `pad_adapt`.
+
+**Nunca recomendar rendirse.** Paso el 2026-11-04 y la respuesta de ella es la
+regla: no se baja la cabeza ante un resultado negativo **y menos sin haber
+validado la fuente**. Un brazo que nunca se corrio no es un brazo que fallo.
+Antes de dar algo por perdido, verificar que lo que fallo comparte propiedad con
+lo que se propone.
+
+### Que el repositorio no es la fuente de verdad
+
+Confirmado el 2026-11-04 por diferencia de modulos, no por suposicion. El repo y
+el codigo congelado del cluster **divergieron en las dos direcciones**:
+
+| | modulos |
+|---|---|
+| el congelado tiene, el repo **no** | `coverage_sampling.py`, `sampling_contract.py`, `image_input.py`, `torch_monitor.py` |
+| el repo tiene, el congelado **no** | `paired_factor_gate.py`, `tone_augment_pairs.py`, `torch_view_audit.py` |
+
+Por eso buscar `clinical_batch_quota` en `src/` da **cero** y aun asi el control
+corrio con cuota 4: la cuota vive en modulos que el repo nunca tuvo. **Un grep
+local negativo no prueba que una funcionalidad no exista.** Se confirma en el
+cluster antes de afirmarlo.
+
+Las corridas reales se lanzan con envoltorios del cluster
+(`overlay_ssl_runtime.py` y sus hermanos en
+`~/work/clf1_clinical_reference_20261024/scripts/`) que **no estan versionados**
+y que imponen listas blancas de configuracion propias. Leer el envoltorio antes
+de disenar cualquier corrida pareada.
+
+### Leer el campo, no su nombre
+
+`launch-seal.json` guarda `wrapper_sha256`, y **no es el hash del envoltorio**:
+la linea 99 hace `seal = config_seal(config)`, un sello de la configuracion. El
+archivo en disco hashea distinto y eso es correcto. Se estuvo a punto de
+reportar una procedencia rota por confiar en el nombre del campo.
+
+Igual que `ita_delta_applied_abs_mean` en el manifiesto del espejo, que es una
+media **con signo** pese a decir `abs`. Antes de citar un campo, confirmar que
+lo que calcula es lo que su nombre promete.
+
 ### Verificar el insumo antes de lanzar N
 
 Correr sobre 5 filas y confirmar que los campos son por-item antes de lanzar
