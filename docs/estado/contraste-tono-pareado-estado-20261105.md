@@ -429,6 +429,77 @@ La mala calibracion del teacher —confianza mediana 0,8963 sobre mascaras
 degeneradas, cero detecciones por el umbral de confianza, todas por area— **se
 reporta como hallazgo**, no se corrige a las corridas. No entra en este corte.
 
+## 3.9 RETIRADO: "pad_adapt no tiene mascara del teacher 026"
+
+Afirmado desde el 2026-11-04, **retirado el 2026-11-05** al verificarlo. Es el
+error mas caro de esta tanda porque fundamento una recomendacion y produjo
+1.134 artefactos equivocados.
+
+**Lo que se afirmo:** que las 1.134 fotos clinicas de `pad_adapt` no tenian
+mascara del teacher 026, que incluirlas exigiria correr un segmentador de
+dermatoscopia fuera de dominio, y que por lo tanto debian entrar como copias
+identidad.
+
+**Lo que es cierto, medido:**
+`~/work/seg_masks_026_20261102/full/masks.pad_adapt.jsonl`
+
+| | |
+|---|---:|
+| filas | **1.134** |
+| elegibles | **1.116** |
+| `degenerate_area` | 18 |
+| `producer` | `dermlip_slic_v8:abl026-resnet34-ph2cp-ima0-s42:teacher` |
+| `version` | `cruda+hair_removal+resize224_bilinear+thr0.5` |
+| mascaras PNG en disco | 1.134 de 1.134 |
+| alineacion con el espejo | 120 de 120 en muestra con semilla 42 |
+| cruce con el manifiesto de rol | 1.134 de 1.134, cero sobrantes |
+
+**El teacher corrio sobre ellas el 2026-11-02**, con el mismo productor y la
+misma version que sobre `source_fit`. No hay nada fuera de dominio que inventar.
+
+**Consecuencias:**
+
+1. La dilucion real es **439 de 34.754 = 1,26 %** (421 `degenerate_area` de
+   `source_fit` + 18 de `pad_adapt`), no 4,47 %. Eso la aleja del umbral del
+   5 % que traeria de vuelta el ajuste del teacher (3.8, corte 3).
+2. Las 1.134 copias identidad generadas esa manana quedaron en cuarentena en
+   `~/work/source-fit-revision-20261104/quarantine-identity-copies/` y se
+   reemplazaron por transformaciones reales.
+3. El arreglo de codigo que se hizo para habilitarlas —que un registro
+   inelegible no exija su archivo de mascara, commit `56addf8`— **sigue siendo
+   correcto y se conserva**: la rama de identidad nunca usa la mascara, asi que
+   exigirla era un defecto real. Lo que estaba mal era la premisa de que
+   `pad_adapt` necesitaba ese camino.
+
+**De donde salio el error:** la afirmacion se heredo de una sesion anterior a
+una compactacion y **se reuso para fundamentar una recomendacion sin
+re-verificarla**, aunque verificarla era un comando. Es exactamente la falla
+que `CLAUDE.md` seccion 11 describe. La pista estaba a la vista en
+`docs/estado/clf-contraste-ab-corridas.md`, que mide la forma de las mascaras
+del 026 sobre 1.134 imagenes de PAD — el mismo conteo— y que no se leyo antes
+de afirmar.
+
+### Caveat que SI sobrevive, y que ya estaba predeclarado
+
+`docs/estado/clf-contraste-ab-corridas.md`, escrito el 2026-11-02 **antes de que
+existiera ningun delta**: PAD tiene una cola de fragmentacion que HAM
+practicamente no tiene. **260 de 1.134 (22,9 %)** quedan con componente mayor
+bajo 0,90, contra 74 de 1.528 en HAM (4,8 %). Y `build_mask_record` **solo
+evalua area y confianza, no detecta fragmentacion**, asi que esas 260 estan
+marcadas elegibles y se van a transformar.
+
+Por eso el delta se publica **estratificado**, con el umbral fijado de antemano:
+
+1. **Conjunto completo** (1.134 PAD / 1.528 HAM): desenlace principal, no cambia.
+2. **Subconjunto con componente mayor >= 0,90** (874 / 1.454): analisis de
+   sensibilidad preespecificado, **no** el desenlace.
+
+Y la lectura de la combinacion tambien esta fijada: completo negativo con
+estratificado neutro o positivo significa que **el fallo es atribuible a la
+mascara, no al metodo**. Un delta positivo solo sobre las mascaras limpias no es
+evidencia de que el pipeline funcione: es evidencia de que funcionaria con un
+segmentador que todavia no tenemos. **Esa predeclaracion se respeta tal cual.**
+
 ## 4. El gate, resuelto el 2026-11-05 (`2b538df`)
 
 Habia una contradiccion entre dos reglas del propio repo:
