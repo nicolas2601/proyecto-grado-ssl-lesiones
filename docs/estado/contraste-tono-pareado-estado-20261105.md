@@ -353,6 +353,82 @@ no estan normalizadas. Pero el control lee esas mismas imagenes, asi que es
 simetrico entre brazos y no es un factor del contraste. Si es relevante para
 cualquier analisis que asuma resolucion uniforme en el pool.
 
+## 3.8 Lo que se deja afuera, y la condicion exacta que lo devuelve
+
+Fijado el 2026-11-05 a pedido de Maria Paula: un recorte sin criterio de
+reingreso no es una decision, es un olvido con fecha. Cada corte lleva **que lo
+mantiene afuera** y **que lo trae de vuelta**, verificable sin discusion.
+
+### Corte 1: re-correr el control `ctrl-tono-0`
+
+**Estado: AFUERA.** Se conserva `ssl_overlay_A_s42_6000_v1` tal como esta.
+
+**Que lo mantiene afuera** — una sola propiedad, ya **medida**: el espejo PNG
+contiene los mismos pixeles que los JPG que leyo el control. Verificado el
+2026-11-05 sobre 200 imagenes muestreadas con semilla 42:
+**200 identicas, 0 distintas, 0 faltantes en el recibo**. `PNG(decode(JPG))` es
+una copia sin perdida de los pixeles ya decodificados, asi que el encoder del
+control se entreno sobre exactamente lo que leera el brazo tratado.
+
+**Que lo trae de vuelta** (cualquiera de estas, sin debate):
+
+1. Una comparacion de bytes PNG-vs-JPG que muestre **una sola** diferencia al
+   ampliar la muestra. El criterio es cero, no "pocas".
+2. Que el envoltorio rechace los `resolved-params.json` del control existente
+   contra los manifiestos de rol regenerados.
+3. Que `paired_factor_gate` reporte una diferencia en `image_root` que no se
+   pueda resolver apuntando los dos brazos al espejo.
+4. Que el contraste salga **positivo**: ahi el control re-corrido pasa a ser
+   recibo de reproducibilidad para el informe, y 1,24 h de GPU es un precio
+   trivial por eso. Es la unica condicion que no es un fallo.
+
+### Corte 2: sonda de respuesta a la dosis
+
+**Estado: AFUERA, y con fecha de reingreso corta.**
+
+**Que lo mantiene afuera:** que el primer contraste todavia no haya producido un
+delta. Nada mas. No es una idea archivada, es una idea **en cola detras de una
+sola medicion**.
+
+**Que lo trae de vuelta:** el primer contraste, en **las dos ramas**.
+
+- Si el delta es **nulo o negativo**: pasa a ser la primera hipotesis a probar,
+  antes de tocar segmentador, encoder o peso. Razon: la dosis tipica medida es
+  12,48 grados sobre un recorrido alcanzable de 70,1, y el tope de 25 no tiene
+  fundamento fisico (fidelidad de b\* plana en 0,976 hasta el borde). Ninguna de
+  las explicaciones que ya descartamos —pool viejo, segmentacion anterior— toca
+  la magnitud del tratamiento.
+- Si el delta es **positivo**: pasa a ser el experimento natural de
+  fortalecimiento, porque una relacion dosis-respuesta monotona es evidencia
+  mucho mas fuerte que un solo punto.
+
+O sea que **vuelve en los dos casos**. Lo unico que la mantiene afuera es
+"antes del primer contraste". Escrito asi a proposito: si en una semana nadie
+la corrio, eso no es que siga postergada, es que el criterio se incumplio.
+
+### Corte 3: ajustar el teacher 026
+
+**Estado: AFUERA.** Ver 3.4: las 421 abstenciones son el 1,25 % del brazo
+tratado, el 026 ya esta validado y reproducido (Dice 0,8320 / 0,9375,
+reproducido en 0,8319), y reentrenarlo invalida mascaras, espejo base, seis
+espejos transformados y la procedencia completa.
+
+**Que lo trae de vuelta:**
+
+1. Que la dilucion total supere el **5 %** del brazo tratado. Hoy es 1.555 de
+   34.754 = **4,47 %** (421 `degenerate_area` + 1.134 `missing_mask`). Esta
+   cerca del umbral, asi que hay que recalcularlo si entra cualquier imagen mas
+   sin mascara utilizable.
+2. Que el delta del contraste sea del mismo orden que la dilucion, porque ahi
+   deja de ser despreciable y pasa a ser competencia.
+3. Que la ablacion 026-031 cierre su investigacion abierta de perdida de Dice en
+   lesiones pequenas con un ganador cientifico declarado
+   (`scientific_winner_declared` sigue en `false`).
+
+La mala calibracion del teacher —confianza mediana 0,8963 sobre mascaras
+degeneradas, cero detecciones por el umbral de confianza, todas por area— **se
+reporta como hallazgo**, no se corrige a las corridas. No entra en este corte.
+
 ## 4. El gate, resuelto el 2026-11-05 (`2b538df`)
 
 Habia una contradiccion entre dos reglas del propio repo:
