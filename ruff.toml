@@ -7,7 +7,22 @@
 line-length = 100
 target-version = "py311"
 
-exclude = ["notebooks", "data", "results", "assets", "demo"]
+# ``cluster/runtime-snapshot-*`` holds byte-for-byte rescues of the UNABIA run
+# harness, kept so a pod restart cannot erase the only copy of the code that
+# launches the experiments. Its value is being identical to the original: the
+# wrappers hash their own source into every run seal, so "fixing" an unused
+# import here would destroy the parity that makes the copy worth having.
+# Excluded for that reason, not because the findings are unimportant.
+exclude = [
+    "notebooks",
+    "data",
+    "results",
+    "assets",
+    "demo",
+    ".audit_tmp",
+    "scratch",
+    "cluster/runtime-snapshot-*",
+]
 
 [lint]
 select = [
