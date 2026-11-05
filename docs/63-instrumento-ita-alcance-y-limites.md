@@ -199,6 +199,7 @@ No reutilizar ninguna de estas. Cada una con lo que la reemplaza.
 | el 026 **elimina** la dependencia del área | medición en S-SYNTH | artefacto del rango de área limitado de S-SYNTH (tope 0,260). En ISIC2018 el MAE va de 0,29 a 4,74, factor 16x |
 | reducción **37x** del filtro de forma de pelo | cuadro sintético propio | **3,6x** sobre PH2 real (mediana `hair_fraction` 0,0535 → 0,0148) |
 | «Otsu es dañino» | medición en S-SYNTH | depende del dominio: MAE 15,71 en S-SYNTH, **1,88** en dermatoscopia, donde le gana a no enmascarar |
+| `ita_delta_applied_abs_mean` = **0,0201** | `tone_transform_manifest.json` de los seis espejos | **12,4757** (s42), 12,4775 (s43), 12,5248 (s44). El campo calculaba una media **con signo** bajo un nombre que prometía absolutos, y la media con signo es ~0 porque el muestreador es simétrico por diseño. Leída literal, la cifra vieja decía que la transformación es inerte sobre una corrida que desplaza 12,5° de media. Corregido el 2026-11-04 en `src/dermssl/tone_augment_lab.py`, que ahora reporta `_mean`, `_abs_mean` y `_abs_max` por separado |
 
 ## 7. Hueco de la literatura que esta línea llena
 
@@ -232,6 +233,39 @@ the achieved Δ°ITA distribution, rather than reporting a brightness multiplier
 >
 > Acción: **borrar la frase entrecomillada** al redactar el informe, o
 > encontrar su fuente real antes de usarla.
+
+### El desplazamiento logrado, en grados: nuestra cifra
+
+El hueco que esta sección declara —que nadie reporta el desplazamiento tonal
+alcanzado en grados de ITA— **ya lo podemos llenar con número propio**, medido
+el 2026-11-04 sobre los manifiestos de los espejos materializados, 33.199
+imágenes transformadas por semilla:
+
+| semilla | media con signo | **media absoluta** | mediana absoluta | máx absoluto |
+|---|---:|---:|---:|---:|
+| s42 | 0,0201 | **12,4757** | 12,4427 | 24,9999 |
+| s43 | −0,1601 | **12,4775** | 12,4928 | 24,9972 |
+| s44 | −0,0751 | **12,5248** | 12,5358 | 24,9998 |
+
+Cómo se lee, y por qué las dos columnas hacen falta:
+
+- la **media absoluta de 12,5°** es la dosis: el desplazamiento típico que la
+  transformación realmente aplica;
+- la **media con signo cercana a cero** dice que el muestreador no está sesgado
+  hacia aclarar ni hacia oscurecer, que es una propiedad deseada del diseño;
+- mediana ≈ media ≈ 12,5 con máximo en 25,0 es la firma de una **distribución
+  uniforme sobre ±25**, consistente con `max_abs_ita_delta = 25.0`;
+- las tres semillas coinciden en la tercera cifra significativa, así que no es
+  un artefacto de una corrida.
+
+Esto no es el ITA usado como instrumento de medición —ese uso está **descartado**
+(sección 1, 22 % iluminación)—. Es el ITA como **unidad de parametrización** del
+desplazamiento aplicado en Lab, que es el único uso que sobrevive. La
+transformación nunca estima ITA de una imagen: aplica `delta_b` y `delta_l`
+derivados del grado pedido.
+
+**Advertencia:** la cifra `0,0201` circuló como si fuera la media absoluta por un
+campo mal nombrado (ver tabla de cifras retiradas). No reutilizarla.
 
 ### Lo que la literatura sí dice, verificado contra el PDF
 
