@@ -214,6 +214,43 @@ Y la recomendación explícita del campo es exactamente el procedimiento de la v
 B de esta línea: *«measuring pre/post ITA on segmented healthy skin and reporting
 the achieved Δ°ITA distribution, rather than reporting a brightness multiplier»*.
 
+> **CITA SIN FUENTE — resolver antes del informe.** Esa frase entrecomillada no
+> tiene referencia en este documento y **no se encontró** en la discusión
+> (p. 14) de Alipour et al. 2026, que es el candidato más probable. Hasta
+> ubicarla, **no citarla textualmente**. Lo que sí está verificado de esa fuente
+> es lo de abajo.
+
+### Lo que la literatura sí dice, verificado contra el PDF
+
+**Alipour, Burke & Courtney (2026).** «Limitations of ITA for Skin Type
+Estimation Under Uncontrolled Imaging Conditions». *Skin Research and
+Technology* 32:e70374, aceptado 2026-07-18. Open access.
+`sha256 f34b4968bffa78a433e8d3ee98b3c2e6d3584e53fa2117e0bdf15c8e86aed727`.
+
+Del resumen (p. 1), textual: *«Fixed-threshold ITA classification achieved
+**22.9% accuracy, below the majority-class baseline accuracy of 51.3%**, and
+failed to correctly classify the darkest skin type (FST VI)»*. Y la conclusión:
+ITA *«should not be interpreted as a validated skin type measurement method»*.
+
+**Lo replicamos de forma independiente sobre el mismo dataset (PAD-UFES-20):**
+
+| | Alipour 2026 | nuestra medición |
+|---|---:|---:|
+| ITA con cortes fijos | 22,9 % | 19,4 % (cortes de Groh) |
+| base de clase mayoritaria | 51,3 % | 55,8 % |
+| ¿supera la base? | **no** | **no** |
+
+Esto convierte la sección 4 de este documento de hallazgo propio en
+**replicación de un resultado publicado en 2026**. Es más fuerte así, y es lo
+que hay que escribir en el informe.
+
+De la discusión (p. 14), verificado: la inestabilidad del ITA es **peor en piel
+oscura** —«small lighting changes can cause large shifts in ITA values, making
+the method less stable for highly pigmented skin»— y el campo pide «alternative
+or enhanced metrics that are both robust to lighting changes and sensitive to
+subtle color variations». El déficit de piel oscura que encontramos no es
+nuestro: es del instrumento y del campo.
+
 Medición propia, n=33 transformadas sobre S-SYNTH, con el módulo v2:
 
 - razón logrado/pedido: **mediana 1,0889** (antes de corregir: **0,37**)
