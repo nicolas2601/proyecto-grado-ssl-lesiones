@@ -275,10 +275,7 @@ def generate_tone_augmentations_from_records(
 
         original = Path(record["source_image_path"])
         relative = original.relative_to(image_root)
-        mask_file = records_root / record["mask_path"]
-        if not mask_file.is_file():
-            raise FileNotFoundError(f"falta la máscara declarada para {image_id}: {mask_file}")
-        lesion_mask = np.asarray(Image.open(mask_file).convert("L"), dtype=np.uint8) > 0
+        lesion_mask = _lesion_mask_if_used(record, records_root, image_id)
 
         with Image.open(original) as image:
             pixels = np.asarray(image.convert("RGB"), dtype=np.float64) / 255.0
@@ -301,6 +298,39 @@ def generate_tone_augmentations_from_records(
         raise ValueError("el cache no contiene máscaras de la revisión solicitada")
     return _finish(rows, effects, output_root, seed, source_revision,
                    feather_sigma, max_abs_ita_delta)
+
+
+def _lesion_mask_if_used(
+    record: dict, records_root: Path, image_id: str
+) -> np.ndarray | None:
+    """Load the lesion mask, or return ``None`` when the record will not use it.
+
+    An ineligible record takes the identity branch of ``_one``, which never
+    touches the mask. Demanding the file anyway made it impossible to carry a
+    frame that has no mask at all - which is the case for the 1,134 clinical
+    photographs of the ``pad_adapt`` role: the dermoscopy teacher 026 was never
+    run on them, so there is nothing on disk to load.
+
+    Those frames still have to be in the treated arm. The control draws 25% of
+    every batch from the clinical role, so leaving them out would make the two
+    arms train on different data - the second factor this whole contrast exists
+    to exclude. The alternative, running a dermoscopy segmenter over smartphone
+    clinical photographs, would invent out-of-domain masks of unknown quality
+    inside the treated arm, which is worse than declaring an untransformed
+    frame.
+
+    For an eligible record the file is still mandatory and still verified: that
+    is the case where the mask decides which pixels are protected.
+    """
+    if not record.get("eligible"):
+        return None
+    mask_path = record.get("mask_path")
+    if not mask_path:
+        raise ValueError(f"la mascara elegible de {image_id} no declara mask_path")
+    mask_file = records_root / mask_path
+    if not mask_file.is_file():
+        raise FileNotFoundError(f"falta la máscara declarada para {image_id}: {mask_file}")
+    return np.asarray(Image.open(mask_file).convert("L"), dtype=np.uint8) > 0
 
 
 def generate_tone_augmentations(
@@ -339,7 +369,10 @@ def generate_tone_augmentations(
         if record is None:
             raise ValueError(f"no hay registro de máscara para {relative.as_posix()}")
 
-        lesion_mask = _load_mask(mask_root, relative)
+        # Same asymmetry as in the records entry point: an ineligible record
+        # takes the identity branch and never reads the mask, so requiring the
+        # file would block frames that have none. See _lesion_mask_if_used.
+        lesion_mask = _load_mask(mask_root, relative) if record.get("eligible") else None
         with Image.open(original) as image:
             pixels = np.asarray(image.convert("RGB"), dtype=np.float64) / 255.0
 

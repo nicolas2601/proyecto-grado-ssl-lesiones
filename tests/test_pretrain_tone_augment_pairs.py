@@ -193,6 +193,48 @@ def test_the_two_causes_of_abstention_stay_separable_in_the_manifest(tmp_path):
         assert payload["summary"]["rejected"] == 0
 
 
+def test_a_frame_with_no_mask_at_all_becomes_a_counted_identity(tmp_path):
+    """Las 1.134 clinicas de pad_adapt no tienen mascara y aun asi deben entrar.
+
+    El teacher 026 es de dermatoscopia y nunca corrio sobre fotos clinicas de
+    celular, asi que no hay archivo que cargar. Tienen que estar en el brazo
+    tratado igual: el control toma el 25 % de cada lote del rol clinico, asi que
+    dejarlas fuera haria que los dos brazos entrenen sobre datos distintos. La
+    alternativa, correr el segmentador fuera de dominio, inventaria mascaras de
+    calidad desconocida dentro del brazo tratado.
+    """
+    inputs = _build(tmp_path / "in", eligible=False, quarantine_reason="missing_mask")
+    # Nada que cargar: se borra la mascara del disco, como en pad_adapt.
+    (inputs["mask_root"] / "sample.png").unlink()
+
+    payload = generate_tone_augmentations(
+        output_root=tmp_path / "out", seed=42, source_revision=REVISION, **inputs
+    )
+    row = payload["transforms"][0]
+    assert row["applied"] is False
+    assert row["fallback_reason"] == "missing_mask"
+    assert payload["summary"]["total"] == 1
+    assert payload["summary"]["fallbacks_by_reason"] == {"missing_mask": 1}
+
+    original = np.asarray(Image.open(inputs["image_root"] / "sample.png").convert("RGB"))
+    written = np.asarray(Image.open(tmp_path / "out" / "sample.png").convert("RGB"))
+    assert np.array_equal(written, original)
+
+
+def test_an_eligible_record_still_requires_its_mask(tmp_path):
+    """Relajar la exigencia para las inelegibles no puede relajarla para las demas.
+
+    Cuando la mascara SI decide que pixeles se protegen, su ausencia es un fallo
+    y tiene que levantar.
+    """
+    inputs = _build(tmp_path / "in")
+    (inputs["mask_root"] / "sample.png").unlink()
+    with pytest.raises(FileNotFoundError):
+        generate_tone_augmentations(
+            output_root=tmp_path / "out", seed=42, source_revision=REVISION, **inputs
+        )
+
+
 def test_an_abstention_without_a_declared_reason_is_still_labelled(tmp_path):
     """Un registro sin quarantine_reason no puede producir una etiqueta vacia."""
     payload = generate_tone_augmentations(
