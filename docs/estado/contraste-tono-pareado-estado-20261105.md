@@ -655,6 +655,66 @@ MoCo-v3 requiere decidir **contra cual rama** se compara la vista transformada
 —encoder o encoder de momentum— y eso es diseno, no un parche. Decidido con
 Maria Paula: lo hacemos nosotros, despues de esta medicion.
 
+## 3.12 El control re-corrido reprodujo el viejo BIT A BIT
+
+Cerrado el 2026-11-05. `ctrl_tono_0_s42_6000`, `status COMPLETE`, 6.000 pasos,
+1,198 h de GPU, `ssl_loss` final **−0,8547**.
+
+```
+09c15345b937d2f07ee91d08820d8499c3468bc2ab6949ac64f41ded699f41b7  ssl_overlay_A_s42_6000_v1/simsiam_dinov2_backbone_final.pt
+09c15345b937d2f07ee91d08820d8499c3468bc2ab6949ac64f41ded699f41b7  ctrl_tono_0_s42_6000/simsiam_dinov2_backbone_final.pt
+```
+
+**El backbone es byte-identico al del control original**, y no es la unica
+coincidencia: `coverage.counts` tambien coincide, o sea el conteo de accesos de
+**cada una de las 34.754 imagenes**, mas `coverage.domain_counts`
+(`{source: 72000, clinical: 24000}`).
+
+Y eso ocurrio **a pesar de** tres diferencias declaradas: el control nuevo lee
+PNG del espejo donde el viejo leia JPG, declara `data_revision 60ae7343...`
+donde el viejo declaraba `afcfab26...`, y corre bajo un envoltorio distinto
+(`tone_overlay_ssl_runtime.py` en vez de `overlay_ssl_runtime.py`).
+
+### Lo que esto prueba, y es mas de lo que se buscaba
+
+1. **El espejo es pixel-identico al original, demostrado sobre 96.000
+   extracciones de imagen en 6.000 pasos**, no sobre la muestra de 200 del
+   2026-11-05. Una sola diferencia de un bit en una sola imagen habria cambiado
+   el hash final.
+2. **El envoltorio nuevo es conductualmente identico al original en el brazo
+   control.** Es la validacion mas fuerte posible de los cinco cambios de
+   `tone_overlay_ssl_runtime.py`: no alteran nada de lo que el original hacia.
+3. **El determinismo del arnes se sostiene de punta a punta** con
+   `torch.use_deterministic_algorithms(True)`.
+4. **El delta del contraste es atribuible**, porque el control no es "equivalente
+   al publicado": es literalmente el mismo encoder.
+
+### Consecuencia operativa: el readout del control NO se vuelve a correr
+
+Mismo backbone implica mismas cifras. El readout del control ya esta medido y
+verificado por `impl` el 2026-11-02 con delta cero exacto contra el cache
+historico, en 16 cifras significativas:
+
+| | macro-F1, semilla 42 |
+|---|---:|
+| PAD | **0,6063311423774919** |
+| HAM | **0,513984060916227** |
+
+**Cuidado con esa cifra:** es A0 de **una** semilla, no el promedio de tres. El
+0,5973 / 0,5179 de la tabla de los tres encoders es el promedio de s42/s43/s44.
+Mismo arnes, agregacion distinta; confundirlos ya hizo perder tiempo una vez.
+
+Asi que solo hace falta el readout del brazo tratado, y el delta se calcula
+contra estas cifras. "Validar, no rehacer."
+
+### Y confirma retroactivamente el corte de la manana
+
+El corte 1 de 3.8 decia que re-correr el control **no era necesario por razones
+cientificas** y quedaba solo como paridad de rutas. La re-corrida lo confirma:
+cambio exactamente nada. El criterio de reingreso se cumplio por la razon
+correcta (el envoltorio rechazaba los `resolved-params` viejos) y el resultado
+es el que se predijo.
+
 ## 4. El gate, resuelto el 2026-11-05 (`2b538df`)
 
 Habia una contradiccion entre dos reglas del propio repo:
