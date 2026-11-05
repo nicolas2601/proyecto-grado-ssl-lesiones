@@ -691,14 +691,29 @@ donde el viejo declaraba `afcfab26...`, y corre bajo un envoltorio distinto
 
 ### Consecuencia operativa: el readout del control NO se vuelve a correr
 
-Mismo backbone implica mismas cifras. El readout del control ya esta medido y
-verificado por `impl` el 2026-11-02 con delta cero exacto contra el cache
-historico, en 16 cifras significativas:
+Mismo backbone implica mismas cifras: pesos byte-identicos por sha256 verificado,
+mas lector determinista ya probado, mas los mismos manifiestos y metadata con
+los mismos sha. Las cifras del control son estas:
 
 | | macro-F1, semilla 42 |
 |---|---:|
 | PAD | **0,6063311423774919** |
 | HAM | **0,513984060916227** |
+
+**PROCEDENCIA EXACTA, y hay que escribirla asi en el informe.** Estas cifras se
+**midieron el 2026-11-02 contra `ssl_overlay_A_s42_6000_v1`**, por la sesion
+`impl`, con delta cero exacto contra el cache historico en 16 cifras
+significativas. **NO se ejecutaron contra `ctrl_tono_0_s42_6000`.**
+
+Son el mismo numero por identidad de bytes del backbone y determinismo probado
+del lector, no por haberse corrido en el directorio nuevo. En el reporte final
+va como **"reutilizado por bit-identidad del backbone (sha256 verificado) y
+determinismo probado del lector"**, nunca como "readout corrido sobre
+`ctrl_tono_0_s42_6000`": si alguien busca el log de ese comando contra ese
+directorio, no existe, y el documento no debe dar a entender que si.
+
+Precision aportada por la sesion `transformacion-tono`, que tiene el rol de
+verificacion independiente justamente para atrapar esto.
 
 **Cuidado con esa cifra:** es A0 de **una** semilla, no el promedio de tres. El
 0,5973 / 0,5179 de la tabla de los tres encoders es el promedio de s42/s43/s44.
