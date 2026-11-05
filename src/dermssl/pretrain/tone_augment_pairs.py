@@ -112,10 +112,20 @@ def _one(
         # which is a second factor. Writing the original back gives that frame
         # two views of the same unmodified image - exactly what the control arm
         # does for every frame - and keeps the row.
+        #
+        # The reason is carried through from the record instead of being
+        # hardcoded. A pool mask that collapsed to 0.3% of the frame and an
+        # image that has no mask at all both land here, and both must be
+        # declared with the delta, but they are not the same finding: the first
+        # is a failure of our own semi-supervised teacher 026, which we can
+        # measure and improve, and the second is an image the teacher was never
+        # run on. Collapsing them under one label would make the dilution
+        # impossible to attribute, which is the mistake this whole contrast
+        # exists to avoid.
         _write(pixels, destination)
         return {
             "applied": False,
-            "fallback_reason": "ineligible_mask",
+            "fallback_reason": record.get("quarantine_reason") or "ineligible_mask",
             "ita_delta_applied": 0.0,
             "ita_delta_capped": False,
             "delta_l_requested": 0.0,
