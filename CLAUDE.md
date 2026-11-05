@@ -269,3 +269,51 @@ la búsqueda en el repositorio usen términos consistentes.
 Además: `.claude/rules/figuras.md` carga automáticamente el perfil visual al trabajar
 sobre figuras, y un hook `Stop` (`.claude/settings.json`) corre `ruff` y los tests de
 frescura de tablas cuando la sesión tocó código, docs o resultados.
+
+## 11. Orden obligatorio antes de medir o implementar
+
+Fijado el 2026-11-04 tras una sesion que midio en la direccion equivocada medio
+dia. Las cuatro fallas fueron de **orden de lectura**, no de capacidad: la regla
+que las evitaba ya estaba escrita y no se leyo.
+
+**Antes de medir cualquier cosa nueva, o de implementar, en este orden:**
+
+1. **Memoria local** — `~/.claude/projects/C--Users-mpaul-Documents-ProyectoDeGrado/memory/`.
+   Leer los archivos, no solo `MEMORY.md`: **el indice esta incompleto** y los
+   enlaces `[[nombre]]` dentro de cada archivo apuntan a cosas que el indice no
+   lista. Asi se perdio el puntero a v9 (`[[project_v9-bundles-inferencia]]`,
+   enlazado desde `feedback_engram-vps-siempre.md`, ausente del indice).
+2. **`docs/` del repo** — en particular `docs/63` antes de tocar ITA/FST/tono, y
+   su **tabla de cifras retiradas**.
+3. **Engram VPS (`engram-equipo`)** — ahi sube Nicolas. **Barrer por ID con
+   `mem_get_observation`, NO con `mem_search` filtrado**: ese servidor devuelve
+   "no memories found" con facilidad y muchas observaciones del proyecto estan
+   ruteadas bajo el proyecto `claude-web`, no bajo
+   `proyecto-grado-ssl-lesiones`. Revisar tambien los proyectos `nicolas`,
+   `proyecto-de-grado`, `anteproyecto-grado` y `unab-grado`, no solo el propio.
+4. **Declarar contra que corrida se mide**, por nombre y fecha, antes de la
+   primera medicion. No asumir que el repo local o GitHub estan al dia: **no lo
+   estan**. Nicolas trabaja en maquinas y repos que no se ven desde aqui.
+
+**Si falta un dato: preguntar.** No deducirlo del codigo ni rellenarlo con una
+hipotesis plausible. Deducir el diseno de un experimento ajeno costo medio dia.
+
+### Checkpoints: al terminar cada paso, no al final
+
+La skill `checkpoint` exige commit atomico + comando que pasa + linea en
+`docs/progress/<feature>.md`, **escrito al terminar cada paso**. Agrupar
+dieciseis pasos en una sola escritura al final no es un checkpoint: si la sesion
+se corta, se pierde el mapa de lo hecho. Escribir la linea cuando el paso cierra.
+
+### Validar, no rehacer
+
+El trabajo que otra sesion ya entrego se **valida** con sus propias cifras y una
+corrida dirigida. Reconstruirlo duplica el costo y pisa a quien lo estaba
+haciendo. Antes de asumir que una sesion esta inactiva, mirar su estado real:
+`started 4d ago` es cuando arranco, **no** su ultima actividad.
+
+### Verificar el insumo antes de lanzar N
+
+Correr sobre 5 filas y confirmar que los campos son por-item antes de lanzar
+sobre miles. Un campo que parecia por-imagen (`source_revision`) era una
+constante del dataset y obligo a repetir una corrida de 1.500 imagenes.
