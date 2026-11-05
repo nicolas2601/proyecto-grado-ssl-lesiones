@@ -214,11 +214,24 @@ Y la recomendación explícita del campo es exactamente el procedimiento de la v
 B de esta línea: *«measuring pre/post ITA on segmented healthy skin and reporting
 the achieved Δ°ITA distribution, rather than reporting a brightness multiplier»*.
 
-> **CITA SIN FUENTE — resolver antes del informe.** Esa frase entrecomillada no
-> tiene referencia en este documento y **no se encontró** en la discusión
-> (p. 14) de Alipour et al. 2026, que es el candidato más probable. Hasta
-> ubicarla, **no citarla textualmente**. Lo que sí está verificado de esa fuente
-> es lo de abajo.
+> **CITA SIN FUENTE — NO USAR. Buscada en los tres PDF y no encontrada
+> (2026-11-04).** Se revisó Alipour et al. 2026 (resumen p. 1 y discusión
+> p. 14), Seth & Pai 2024 (resultados, discusión y conclusión pp. 6–7) y
+> Pakzad et al. 2022 CIRCLe (conclusión p. 14). **No está en ninguno.**
+>
+> La explicación más probable es que sea una **recomendación redactada por una
+> sesión anterior de este proyecto** que después se entrecomilló como si fuera
+> literatura. Está en inglés dentro de un documento en español, con la forma de
+> una recomendación propia y no de una cita.
+>
+> **Riesgo:** si el aporte de esta línea se justifica con una cita inventada y
+> el jurado la pide, se cae la justificación entera. El aporte **no necesita**
+> esa frase: se sostiene con la medición propia de abajo y con el hueco real
+> —que nadie reporta el desplazamiento logrado en grados—, que sí se puede
+> afirmar por ausencia de fuentes, no por una cita.
+>
+> Acción: **borrar la frase entrecomillada** al redactar el informe, o
+> encontrar su fuente real antes de usarla.
 
 ### Lo que la literatura sí dice, verificado contra el PDF
 
