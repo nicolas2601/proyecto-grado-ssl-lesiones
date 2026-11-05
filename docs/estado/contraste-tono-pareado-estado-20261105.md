@@ -31,7 +31,7 @@ Esta confusion costo horas el 2026-11-04. Fijada de una vez:
 | pool limpio | verificado por hash | `mixed-fit.jsonl`, sha256 `afcfab26...1eabb`, 34.754 filas = 33.620 `source_fit` + 1.134 `pad_adapt` |
 | agrupacion de duplicados | verificada | 33.620 imagenes en **14.004 componentes**; 2.624 componentes con mas de una imagen cubren 22.240 (66 %). Los splits DEBEN agrupar por `identity_component_id`, no por `image_id` |
 | espejo PNG base | materializado | `~/work/tone-mirror-20261103/full/mirror`, 33.620 PNG, 2,4 G |
-| espejos transformados | materializados | `tone_s42/s43/s44`, 33.620 PNG cada uno, 2,5 G |
+| espejos transformados | materializados | **`tone_s42` a `tone_s47`: seis**, 33.620 PNG cada uno y manifiesto completo. Solo s42/s43/s44 tienen `.log`. Corregido el 2026-11-04; antes esta fila decia tres (ver seccion 3.4) |
 | transformada | verificada | `lab_l_b_feathered_v1`, **dos canales L\* y b\***, `b_per_ita_degree 0.5`, `l_per_ita_degree 0.12`, `feather_sigma 2.0`, `max_abs_ita_delta 25.0` |
 | mecanismo en el entrenador | cableado | `--tone-consistency-weight`, default 0.0 |
 | `paired_factor_gate` | **pasa** tras `2b538df` | ver seccion 4 |
@@ -81,17 +81,80 @@ razon medida a paso cero no describe el regimen de 6.000 pasos.
 
 **Hay que recalibrar con las palancas reales y a mitad de corrida.**
 
-### 3.3 `data_revision` incompatible
+### 3.3 `data_revision` incompatible: causa raiz resuelta el 2026-11-04
 
-El control declara `afcfab26...` (sha del manifiesto del pool). El manifiesto
-del espejo declara `source_revision f4fcee05...` y
-`config.validate_transformed_manifest` aborta si no coinciden.
+El control declara `afcfab26...`. El manifiesto del espejo declara
+`source_revision f4fcee05...` y `config.validate_transformed_manifest` aborta
+si no coinciden (`config.py:472`, compara contra `cfg.data_revision`).
 
-Si el tratado corre con `f4fcee05...`, difiere del control en `data_revision`,
-que **no** esta en `TREATMENT_FIELDS`, y el gate lo rechaza con razon.
+**No son dos hashes del mismo pool. Uno es un dataset y el otro es un modelo.**
 
-Falta entender por que hay dos hashes distintos para el mismo pool antes de
-tocar nada.
+| hash | que es | evidencia |
+|---|---|---|
+| `afcfab26...` | sha256 de `mixed-fit.jsonl`, el manifiesto de seleccion del pool | `tone_mirror_pool_20261103/receipt.json:20` |
+| `f4fcee05...` | sha256 del **checkpoint del teacher 026** (`best_teacher_model.pt`) | `run_record.md:46` lo etiqueta literal; `ph2_benchmark.json:3` como `checkpoint_sha256`; `measure_ph2_hair_removal_shaped_dice.py:27` como `CHECKPOINT_SHA256` |
+
+El campo `source_revision` esta definido de forma coherente en todo el codigo
+como **la revision de los datos fuente**: `pool_manifest.build_pool_manifest`
+lo recibe como `Mapping[dataset -> revision]`,
+`tone_transforms._load_records` filtra por el, y `config.py:472` lo compara
+contra `data_revision`. No hay ambiguedad en el codigo.
+
+**El error fue del lado del operador al materializar el espejo:** se paso el
+sha del checkpoint del teacher a un campo cuyo contrato es la revision de
+datos. Verificado el 2026-11-04 sobre
+`~/work/tone-mirror-20261103/full/masks.mirror.jsonl`: las 33.620 filas traen
+`source_revision = f4fcee05...`, **y ademas** ya traen la identidad del modelo
+en su lugar correcto:
+
+- `producer`: `dermlip_slic_v8:abl026-resnet34-ph2cp-ima0-s42:teacher`
+- `version`: `cruda+hair_removal+resize224_bilinear+thr0.5`
+
+Es decir, **el sha del checkpoint en `source_revision` es redundante** y esta
+ocupando el campo que deberia llevar la revision de datos. Los borradores de
+protocolo ya lo tenian separado bien (`tone-lab-pairs-v1.draft.json` lleva
+`pool_manifest_sha256` y `mask_teacher_sha256` como campos distintos); el
+codigo nunca los confundio, la materializacion si.
+
+**Por lo tanto el arreglo es de valor, no de esquema.** No hace falta rediseniar
+`config.py` ni el manifiesto: hace falta que `source_revision` lleve la
+revision del conjunto de datos realmente usado.
+
+**Y ahi 3.3 se une con 3.1.** La revision correcta no es `afcfab26...`, que es
+el sha de `mixed-fit.jsonl` con sus 34.754 filas (los dos roles). El espejo se
+construyo sobre 33.620. El valor correcto es el hash del subconjunto
+`source_fit` efectivamente usado, declarado por **los dos brazos**. Un solo
+arreglo cierra 3.1 y 3.3; la causa raiz comun es que el espejo y el control no
+se construyeron desde el mismo conjunto declarado.
+
+**Pendiente de decision:** reescribir `source_revision` en los artefactos ya
+materializados es una reescritura de registros de procedencia. No se toco nada
+sin autorizacion.
+
+### 3.4 Hallazgos colaterales de la verificacion del 2026-11-04
+
+1. **Hay seis espejos transformados, no tres.** `tone_s42` a `tone_s47`, los
+   seis con 33.620 PNG y su `tone_transform_manifest.json` completo. Solo
+   s42/s43/s44 tienen `.log`. La seccion 2 de este documento decia tres.
+2. **421 imagenes del brazo tratado son copias identidad**
+   (`fallbacks_by_reason: {ineligible_mask: 421}`, `transformed_fraction
+   0.98748`). Es deliberado y el manifiesto lo explica: dejarlas caer haria que
+   el brazo tratado entrenara sobre un conjunto distinto al de su control. Pero
+   significa que el 1,25 % del brazo tratado no recibe tratamiento, y eso
+   diluye el efecto medido. Hay que reportarlo con el delta, no esconderlo.
+3. **`ita_delta_applied_abs_mean: 0.0201` esta mal nombrado.** Es una media con
+   signo, no de valores absolutos: filas individuales traen `ita_delta 19.73` y
+   `delta_b_requested_mean` es 0.010 con `delta_b_realized_abs_max` 12.54. Leido
+   literal, el campo sugiere que la transformacion no hace casi nada, y es
+   falso. **No citar esa cifra** hasta renombrar el campo.
+4. **72 % de las imagenes tienen inversion de signo en b\***
+   (`images_with_b_sign_flip: 24276` de 33.620). Consistente con la asimetria ya
+   trazada a los signos acoplados de Corbin y su umbral analitico
+   `b*_inicial < 5 + 0.50*|t|`.
+5. **El manifiesto del espejo es de esquema v2**, con `parameters`, `seed` y
+   `materialization_step`, que `tone_transforms.generate_tone_transformations`
+   no escribe. Lo produjo otra ruta de codigo
+   (`tone_mirror_pool_v1.py` en `~/work/tone-mirror-20261103/scripts/`).
 
 ## 4. El gate, resuelto el 2026-11-05 (`2b538df`)
 
