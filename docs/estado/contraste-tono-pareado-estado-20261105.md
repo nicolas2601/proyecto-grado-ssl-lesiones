@@ -500,6 +500,71 @@ mascara, no al metodo**. Un delta positivo solo sobre las mascaras limpias no es
 evidencia de que el pipeline funcione: es evidencia de que funcionaria con un
 segmentador que todavia no tenemos. **Esa predeclaracion se respeta tal cual.**
 
+## 3.10 LANZADO: el contraste corre desde el 2026-11-05
+
+Los dos brazos entrenando, 6.000 pasos, semilla 42, una GPU cada uno.
+
+| | control | tratado |
+|---|---|---|
+| directorio | `runs/ctrl_tono_0_s42_6000` | `runs/tono_026_w1_s42_6000` |
+| `adaptation_mode` | `two_view_ssl` | `original_transformed_consistency` |
+| `tone_consistency_weight` | 0.0 | **1.0** |
+| cuadros del pool | 34.754 | 34.754 |
+| `data_revision` | `60ae7343...` | `60ae7343...` |
+| `image_root` | espejo | espejo |
+| proyeccion medida | 1,19 h | 1,87 h |
+
+**`paired_factor_gate`: `passed`**, con los campos que difieren siendo
+exactamente los cinco del conjunto de tratamiento y nada mas:
+`adaptation_mode`, `tone_consistency_weight`, `transformed_data_revision`,
+`transformed_image_root`, `transformed_manifest_path`.
+
+Envoltorio: `tone_overlay_ssl_runtime.py` (`cluster/tone-contrast-runtime/`),
+commit `9024b49`.
+
+### El peso 1.0, decidido con medicion y no con argumento
+
+La calibracion de 0.194 apuntaba al 10 % de una perdida base de **−0,022**, que
+es el arranque. La base real al final del entrenamiento es **−0,8547**, sesenta
+veces mayor, asi que una razon medida temprano **no describe el regimen de 6.000
+pasos**. Una sonda de 40 pasos lo confirmo: el metodo de calibracion no sirve,
+ni con 50 pasos ni con 40.
+
+Se eligio 1.0, el tope del rango que CIRCLe declara (`lambda in [0,1]`), porque
+el termino es una distancia coseno acotada en [0,2] y porque hay dos hipotesis
+abiertas de sub-dosificacion (3.6 y esta). **Y la corrida real lo valida:**
+`lever_tone_consistency` se registra por separado y vale **0,04608** a paso 250,
+con `ssl_loss −0,02453`. La aritmetica cierra exacta contra `total_loss`
+(−0,02453 + 0,04608 + 0,00359 = 0,02514). Como la base crece hasta ~−0,85, el
+aporte del termino **converge a ~5,4 % de la perdida base**: moderado, no
+extremo. Con 0.194 habria quedado cerca del 1 %.
+
+### Los cinco defectos que solo aparecieron al ejecutar
+
+Ninguno se veia leyendo el plan. Los cinco los atrapo una verificacion antes de
+gastar GPU en un resultado que habria parecido valido:
+
+1. El gate comparaba `world_size` y `effective_lr`, que son **salidas** que una
+   corrida reporta, no entradas de configuracion. Arreglado en `2ddbc0f`, con
+   tres tests, mas `checkpoint_every_steps` y `checkpoint_fractions` movidos a
+   `OPERATIONAL_FIELDS`.
+2. `image_root` tenia que ser la raiz del espejo, no el directorio de
+   manifiestos: el modo pareado valida los **dos arboles de imagenes** contra el
+   manifiesto (`config._validate_transformed_paths`).
+3. **El parche de `collect_images` era una constante**, asi que devolvia las
+   rutas del original tambien cuando se le pedia barrer el arbol transformado.
+   Un parche que ignora su argumento no es un parche de esa funcion. Arreglado
+   en `9024b49`; es el defecto mas grave de los cinco porque el brazo tratado
+   habria leido el arbol equivocado.
+4. `resolved-params.json` serializa `color_constancy_probs` como **cadena** y el
+   entrenador espera tuplas.
+5. `budget_gpu_hours` quedaba sin declarar en el brazo tratado.
+
+Y una falsa alarma propia, atrapada a tiempo: se proyecto que el tratado
+tardaria 3,7 h **extrapolando desde un solo punto** inflado por el arranque. Con
+cinco muestras la proyeccion es 1,87 h. Casi se reinicio una corrida sana. Un
+punto no es una tendencia.
+
 ## 4. El gate, resuelto el 2026-11-05 (`2b538df`)
 
 Habia una contradiccion entre dos reglas del propio repo:
