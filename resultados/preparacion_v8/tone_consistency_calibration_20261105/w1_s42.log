@@ -1,0 +1,10 @@
+Using cache found in /home/jovyan/.cache/torch/hub/facebookresearch_dinov2_main
+/home/jovyan/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn("xFormers is not available (SwiGLU)")
+/home/jovyan/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn("xFormers is not available (Attention)")
+/home/jovyan/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn("xFormers is not available (Block)")
+ADVERTENCIA: ni MLflow ni Weights & Biases están disponibles; esta ejecución no tendrá seguimiento.
+max_memory_allocated_gib 5.74
+Modelo base final: /home/jovyan/work/tone-probe-20261105/w1_s42/simsiam_dinov2_backbone_final.pt
