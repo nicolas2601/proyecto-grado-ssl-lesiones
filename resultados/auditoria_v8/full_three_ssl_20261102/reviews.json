@@ -1,0 +1,17 @@
+{
+  "protocol": {
+    "reviewer": "full_protocol_review",
+    "scope": "source files read",
+    "finding": "Reajustar A1 dentro de CV; mantener folds, cohorts y seeds y reproducir A0; implementado en full runner."
+  },
+  "color": {
+    "reviewer": "full_color_review",
+    "scope": "provided code excerpts only; no direct filesystem",
+    "finding": "Punto de cambio L*-8 en piel predicha; falsos negativos pueden alterar lesi\u00f3n real; no normalizaci\u00f3n/equidad validadas. Protecci\u00f3n de p\u00edxeles fuera de m\u00e1scara aplicada con selecci\u00f3n final en pipeline."
+  },
+  "execution": {
+    "reviewer": "full_execution_review",
+    "scope": "source files read",
+    "finding": "Exigir unicidad/grupos, cobertura por clase, hashes de artefactos y estados; incorporados. Dependencia cl\u00ednica entre grupos no se acredita de nuevo."
+  }
+}

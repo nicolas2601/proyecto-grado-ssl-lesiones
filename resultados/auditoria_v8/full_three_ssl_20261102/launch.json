@@ -1,0 +1,16 @@
+{
+  "pid": 1720685,
+  "root": "/home/jovyan/work/full-three-ssl-prepared-u9oel4ft",
+  "output": "/home/jovyan/work/full-three-ssl-prepared-u9oel4ft/attempt-001",
+  "started_at_utc": "2026-11-02T20:05:21.217961+00:00",
+  "status": "running",
+  "config_sha256": "7dc6d15a23118d4906cc9fe773da68c9a3facec05b12bd18c367075db21ad87e",
+  "jobs": 9,
+  "cohorts": {
+    "PAD": 1134,
+    "HAM": 1528
+  },
+  "encoder_training": false,
+  "reader_refit": "independent nested CV for A0 and A1",
+  "authorization": "Pau: hagamos la comparacion completa; dos GPU en paralelo"
+}

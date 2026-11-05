@@ -1,0 +1,16 @@
+{
+  "OOF_macro_f1_runs_recomputed": 108,
+  "maximum_allowed_absolute_error": 1e-12,
+  "all_match": true,
+  "final_global_artifact_hash_count": 63,
+  "all_final_artifact_hashes_match": true,
+  "cache_cases_verified": {
+    "PAD": 1134,
+    "HAM": 1528
+  },
+  "A0_feature_and_probability_parity_errors": 0,
+  "final_configuration_sha256": "fcbeb8bcc38e10ca4a1d1632bf58a563a51ef99a33a6ebfa1ec6c706bda48fdf",
+  "historical_launch_configuration_sha256": "7dc6d15a23118d4906cc9fe773da68c9a3facec05b12bd18c367075db21ad87e",
+  "resume_actor_verified": false,
+  "scope": "development comparison, no clinical validation"
+}

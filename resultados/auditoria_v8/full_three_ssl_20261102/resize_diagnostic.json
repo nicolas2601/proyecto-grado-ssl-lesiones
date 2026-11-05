@@ -1,0 +1,18 @@
+{
+  "pad_adapt": {
+    "scope": "first ten cached cases, illustrative pixel diagnostic; not clinical segmentation validity",
+    "cases": 10,
+    "cases_with_changed_predicted_lesion_pixels_after_resize": 10,
+    "total_changed_predicted_lesion_pixels": 6833,
+    "cases_with_eroded_core_changes": 10,
+    "max_delta_RGB": 18.0
+  },
+  "ham_dev": {
+    "scope": "first ten cached cases, illustrative pixel diagnostic; not clinical segmentation validity",
+    "cases": 10,
+    "cases_with_changed_predicted_lesion_pixels_after_resize": 10,
+    "total_changed_predicted_lesion_pixels": 6740,
+    "cases_with_eroded_core_changes": 10,
+    "max_delta_RGB": 16.0
+  }
+}

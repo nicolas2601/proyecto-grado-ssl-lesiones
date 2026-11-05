@@ -1,0 +1,1761 @@
+{
+  "root": "/home/jovyan/work/full-three-ssl-prepared-u9oel4ft",
+  "completion": {
+    "status": "completed",
+    "started_at_utc": "2026-11-02T20:47:19.321925+00:00",
+    "config_sha256": "fcbeb8bcc38e10ca4a1d1632bf58a563a51ef99a33a6ebfa1ec6c706bda48fdf",
+    "jobs": [
+      "moco-42",
+      "vicreg-42",
+      "simsiam-42",
+      "moco-43",
+      "vicreg-43",
+      "simsiam-43",
+      "moco-44",
+      "vicreg-44",
+      "simsiam-44"
+    ],
+    "artifacts": {
+      "moco-42/pad_adapt.A0.json": "df5ca6d6c13c6808c49d4d89d1e13abd73d9d08128758f6df198cb261acce954",
+      "moco-42/pad_adapt.A1.json": "b73cbe8fbb05e5735d74ca9d01e1a83d35c22ebb7e023121e43395303df05def",
+      "moco-42/pad_adapt.contrast.json": "16c0ca8e94060332d7e03043599f7c8c9a8bcd677ba67840090795a937273ab8",
+      "moco-42/ham_dev.A0.json": "f049e66e3b195d1684429e87ea2f62543380e8b25ef6f34c47d1ad60dcd55cb0",
+      "moco-42/ham_dev.A1.json": "3e543d1d5acb0cb67a0170b01d2d5a09ccb82805acb4abfd5717658ef3e5b8d3",
+      "moco-42/ham_dev.contrast.json": "cd6f404d1742fd6c53824c4bdf0b1c81463edec649ecce9c333b286e1778409b",
+      "moco-42/completed.json": "425ff182cbd99bcb3ea3f83f09d8d2d5ccc9c4de298f6555d83f4183465c4342",
+      "vicreg-42/pad_adapt.A0.json": "dd35ae585fb05fce1f70b4e57f2f14f02668ef6a0e30826d3590f11dba6e060d",
+      "vicreg-42/pad_adapt.A1.json": "84bfb89b3a901e0893882e67d8c94105f18e5ee46ea9eb17c646fd80abe19806",
+      "vicreg-42/pad_adapt.contrast.json": "6efbbdf5072f9f6697b33e8af5e262790ef7e95db734b9ae913cf55ff2dae7eb",
+      "vicreg-42/ham_dev.A0.json": "76876c69c33bf4082c19db0d0224c29f72fe90f080b1969e988485133e29d8cc",
+      "vicreg-42/ham_dev.A1.json": "7e378717007b7151bb459f451fc5ea209b7df60d48ba5fb5585f7d5a7348ac6f",
+      "vicreg-42/ham_dev.contrast.json": "1071a194ae06451d3e0e57e3e33e0d976a4839450481b8402629eac7116c0235",
+      "vicreg-42/completed.json": "cb6cd5bbd32f292751233c21fdfff95bb96621e45cf1cbcb17fc334a3b7b9eff",
+      "simsiam-42/pad_adapt.A0.json": "21e6ba5c5396cbb530ab169250c73e8a4e50edb7d8bca42d196f200b509ed326",
+      "simsiam-42/pad_adapt.A1.json": "c9f90283be2121770e23d0ef0f884f9e845d4d797607f4cb6b1b558948aa0d7b",
+      "simsiam-42/pad_adapt.contrast.json": "6bdd5f90801004f4cb2b06b778a327305673577c3a8a8875337935db6155a7d8",
+      "simsiam-42/ham_dev.A0.json": "dfc3cc001693cddd96d8fb416e56ebe992cda7889bd0195a0547a5615ca358c3",
+      "simsiam-42/ham_dev.A1.json": "0751650cb5328cc85519647bde8f02785432ca5dca48a0443de00e1fc77d0a51",
+      "simsiam-42/ham_dev.contrast.json": "95d278db790150e2d72bb9e0af9cc7d69086932ff6e56473bd36f7208c1a274a",
+      "simsiam-42/completed.json": "04dcaf0cb5df34d89911d1f7c1253252472f68409f1714f7558479b50c2c925a",
+      "moco-43/pad_adapt.A0.json": "8b3bc72a616c32a7fd611d847becc1178207ce7564f02e654bb3c60a86d02623",
+      "moco-43/pad_adapt.A1.json": "7198e29e8fb4369d27edd465b80eace59a75012470a84a986e6e859b5130818d",
+      "moco-43/pad_adapt.contrast.json": "3c736df3f94b7afe85f43e1a68d9bf3e1ebb3e73f8117a7e7aa899aa70fb4133",
+      "moco-43/ham_dev.A0.json": "a70ec7a76ceded76acbea784927e2237762643f714613e7e951364fe23b05cf9",
+      "moco-43/ham_dev.A1.json": "a401cdd3e6f21a47ed48d475f9977601b3c2bac3d09397ea23c04343c6b59bf9",
+      "moco-43/ham_dev.contrast.json": "157585e56eef3fae685a54e97a70e77763d616d4ffced1134431fde42fbd88d6",
+      "moco-43/completed.json": "cdad48f007f007563ddc7c7d888ec20cbd8c4513c00866e7cd6a6dc6ae1edbfa",
+      "vicreg-43/pad_adapt.A0.json": "990ba6121ba2f57749a50d0669d6efacfda0057856078d113a80cb2b1ac1e289",
+      "vicreg-43/pad_adapt.A1.json": "aa1b7cd0e14cbd8947254d3d72020f9fc778260498304fccda7d68a07fa6d0d8",
+      "vicreg-43/pad_adapt.contrast.json": "a42d3746e2d2803ba2456b55474372c4e14affdcd74936b55f284be26565098f",
+      "vicreg-43/ham_dev.A0.json": "556a64ba47e01f8d56bc7734372c4b3cd73c037f83cefd03c515201d5832c0ad",
+      "vicreg-43/ham_dev.A1.json": "cf81f07e45e42f2e2bb0d89e84c7ccf272029f533a8fa4ad4be1e723ea7a0437",
+      "vicreg-43/ham_dev.contrast.json": "13c547c8ec9c485c12a0ac0ac58a8154d212627f425b3c3c827811b7017d202a",
+      "vicreg-43/completed.json": "731e9a6b45b61d467a87ae67cf5dcf74fd43dd0635a81d7d85497bfe361ff91b",
+      "simsiam-43/pad_adapt.A0.json": "22bb5c3cb129b8fb350b1308db0ccb916e986ee0ff634f7d6cff1cdd70dc1d92",
+      "simsiam-43/pad_adapt.A1.json": "6553b2116ba98a0a9820b89e6d73fc6119c1778f761df044317d547e7b1bca5a",
+      "simsiam-43/pad_adapt.contrast.json": "a5cc96f00b561cea6b5b4fa5cfe29c179626c21a8c378b4815cdde3c1fe16420",
+      "simsiam-43/ham_dev.A0.json": "bd3a347f5cef48f1ff22cbc2bdc5ee7fad5a0847a55112e7b98ce3d23b762767",
+      "simsiam-43/ham_dev.A1.json": "3ad6cc4822220857cf39ed448bc1cc6563980140a373bd3ac81983adfa6ffbbe",
+      "simsiam-43/ham_dev.contrast.json": "d5e06a2d69fb00b31a3f5477e84b29561370bd0b1f25c4f2f7852bb7ebd45dfb",
+      "simsiam-43/completed.json": "432f2f4336246062155f46650d1048df58bc95a092481805858c8c764d9ac213",
+      "moco-44/pad_adapt.A0.json": "e9f3c4efce4202631bc81ac2238aaad3bb7ba7afc4886cd452dd75fb4a51daf6",
+      "moco-44/pad_adapt.A1.json": "ba94b62c28921088ad97bdcb998b30d353deb7583000aa5bb373bebee54e7b93",
+      "moco-44/pad_adapt.contrast.json": "0604708b09db1cf0e6fa45ed4bcba77dc57528ce590bab222a04ec839d747373",
+      "moco-44/ham_dev.A0.json": "ddae2b1ca00826ede17c051530a63f6087451dc4221ffa9975ee3cdde51e63b1",
+      "moco-44/ham_dev.A1.json": "76d3d3c00a2e37d04f214efb3eb179dd883f793dbe7fcadf64d5fc83bf209345",
+      "moco-44/ham_dev.contrast.json": "d057849f4969292e4e400603d7bb10d81e39596051ffca79bf5f79f5c02b0201",
+      "moco-44/completed.json": "dbcd5f39be51adbd35c15e574f415a353b2fca93894759e9c1ff876ab5478fb3",
+      "vicreg-44/pad_adapt.A0.json": "88764d1515bc93de3b9846f3c1eccd9d6e2f4cccdacfa0f3bf0a9e7b87f6f528",
+      "vicreg-44/pad_adapt.A1.json": "c689efbd88037d69b7b89c0da2ddc9bfab9b62237e70be671cf702475df55c90",
+      "vicreg-44/pad_adapt.contrast.json": "8a435e140bed40648266422ecf000794941b641c8d137add9cb31cc56a1d8e8a",
+      "vicreg-44/ham_dev.A0.json": "51f9606a06d9b5038ddc7becd77fe82b6822712b84991c8819400a3fb5ed7a1e",
+      "vicreg-44/ham_dev.A1.json": "78a708192d788f7b830e3f3fc852734cb9d0fbdc3e948bbc3f829200e3ab45cd",
+      "vicreg-44/ham_dev.contrast.json": "b4db1233b2036f65c31a64e3a69ac451d7996c0c8b44c5282f80badf8d77b4b2",
+      "vicreg-44/completed.json": "25e258447ae451555fd8a41f0620414519d9e7a3b96b90ade6369f03294a80f7",
+      "simsiam-44/pad_adapt.A0.json": "0a404c6fbcefd890c5341ae7bfa65a5e57dd96c2c3ca4a73296c7a8bc4dbd972",
+      "simsiam-44/pad_adapt.A1.json": "20179fdbc56d2a550c53171de4a35e3046771914b342dee530e5f91a692cc8f7",
+      "simsiam-44/pad_adapt.contrast.json": "be14050c157310524ad2961584545a9549648c6b0fdd2ae4597f9e1d23ea6ca8",
+      "simsiam-44/ham_dev.A0.json": "03284acb661e5d53902a18d5a05716bcc2ba0ea46f6c8e570ebd095ab3b41808",
+      "simsiam-44/ham_dev.A1.json": "1022e69e22a66275bc5e298ad87071545a432059b8ac8680ddb179871fc3de7f",
+      "simsiam-44/ham_dev.contrast.json": "ae91579a68ffe7a14c4986af11b64bc2045a9408e1a8f801bd20d175f3dd2c46",
+      "simsiam-44/completed.json": "2298ddd3c20962990b3561ae7b9fe233c7ccb453df12bb999385ae79c0c7b1bb"
+    },
+    "clinical_validation": false,
+    "encoder_training": false
+  },
+  "verified": {
+    "pad_adapt": {
+      "cases": 1134,
+      "ledger_inputs_and_cache_hashes_verified": true
+    },
+    "ham_dev": {
+      "cases": 1528,
+      "ledger_inputs_and_cache_hashes_verified": true
+    }
+  },
+  "contrasts": {
+    "moco-42/pad_adapt": {
+      "delta_macro_f1": -0.023515068990481947,
+      "ci95": [
+        -0.04170261652183813,
+        -0.00552372433827914
+      ],
+      "unit": "identity_component_id",
+      "groups": 682,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.6525632175924222,
+          "sd_ddof0": 0.012039159331903923
+        },
+        "balanced_accuracy": {
+          "mean": 0.6637351751745304,
+          "sd_ddof0": 0.01051694606914445
+        },
+        "ece": {
+          "mean": 0.03840114480335546,
+          "sd_ddof0": 0.012959531264003515
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.6290481486019402,
+          "sd_ddof0": 0.015200067995417616
+        },
+        "balanced_accuracy": {
+          "mean": 0.6366806969821021,
+          "sd_ddof0": 0.016637573297781545
+        },
+        "ece": {
+          "mean": 0.05381926790709416,
+          "sd_ddof0": 0.009427760994552599
+        }
+      },
+      "cases": 1134,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1124,
+      "fallbacks": 10,
+      "fallback_reason_counts": {
+        "lesion_too_small": 6,
+        "lesion_too_large": 4
+      },
+      "coverage_by_class": {
+        "ACK": {
+          "cases": 362,
+          "transformed": 356
+        },
+        "BCC": {
+          "cases": 418,
+          "transformed": 415
+        },
+        "MEL": {
+          "cases": 27,
+          "transformed": 27
+        },
+        "NEV": {
+          "cases": 116,
+          "transformed": 116
+        },
+        "SCC": {
+          "cases": 95,
+          "transformed": 94
+        },
+        "SEK": {
+          "cases": 116,
+          "transformed": 116
+        }
+      }
+    },
+    "moco-42/ham_dev": {
+      "delta_macro_f1": -0.03436712900260167,
+      "ci95": [
+        -0.06297423206530936,
+        -0.004705888896279921
+      ],
+      "unit": "identity_component_id",
+      "groups": 1152,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.611555612165885,
+          "sd_ddof0": 0.00627703756093657
+        },
+        "balanced_accuracy": {
+          "mean": 0.6308547117233387,
+          "sd_ddof0": 0.00533163582573359
+        },
+        "ece": {
+          "mean": 0.047620535452555735,
+          "sd_ddof0": 0.004866207720256546
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.5771884831632834,
+          "sd_ddof0": 0.011788800233330376
+        },
+        "balanced_accuracy": {
+          "mean": 0.6054599905405281,
+          "sd_ddof0": 0.008632924308222208
+        },
+        "ece": {
+          "mean": 0.04039207455846766,
+          "sd_ddof0": 0.0035292057576481344
+        }
+      },
+      "cases": 1528,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1527,
+      "fallbacks": 1,
+      "fallback_reason_counts": {
+        "insufficient_healthy_skin": 1
+      },
+      "coverage_by_class": {
+        "akiec": {
+          "cases": 52,
+          "transformed": 52
+        },
+        "bcc": {
+          "cases": 82,
+          "transformed": 82
+        },
+        "bkl": {
+          "cases": 173,
+          "transformed": 173
+        },
+        "df": {
+          "cases": 18,
+          "transformed": 18
+        },
+        "mel": {
+          "cases": 169,
+          "transformed": 169
+        },
+        "nv": {
+          "cases": 1012,
+          "transformed": 1011
+        },
+        "vasc": {
+          "cases": 22,
+          "transformed": 22
+        }
+      }
+    },
+    "moco-43/pad_adapt": {
+      "delta_macro_f1": -0.01930371494404759,
+      "ci95": [
+        -0.038943052850091385,
+        0.0023885520678496633
+      ],
+      "unit": "identity_component_id",
+      "groups": 682,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.6396577416697126,
+          "sd_ddof0": 0.011510737872755162
+        },
+        "balanced_accuracy": {
+          "mean": 0.6474075824199045,
+          "sd_ddof0": 0.012964331304552752
+        },
+        "ece": {
+          "mean": 0.055721632060928596,
+          "sd_ddof0": 0.022066688793544214
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.620354026725665,
+          "sd_ddof0": 0.007164220730739062
+        },
+        "balanced_accuracy": {
+          "mean": 0.6240170260207215,
+          "sd_ddof0": 0.006523288183650011
+        },
+        "ece": {
+          "mean": 0.05761012847115641,
+          "sd_ddof0": 0.007144232688583317
+        }
+      },
+      "cases": 1134,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1124,
+      "fallbacks": 10,
+      "fallback_reason_counts": {
+        "lesion_too_small": 6,
+        "lesion_too_large": 4
+      },
+      "coverage_by_class": {
+        "ACK": {
+          "cases": 362,
+          "transformed": 356
+        },
+        "BCC": {
+          "cases": 418,
+          "transformed": 415
+        },
+        "MEL": {
+          "cases": 27,
+          "transformed": 27
+        },
+        "NEV": {
+          "cases": 116,
+          "transformed": 116
+        },
+        "SCC": {
+          "cases": 95,
+          "transformed": 94
+        },
+        "SEK": {
+          "cases": 116,
+          "transformed": 116
+        }
+      }
+    },
+    "moco-43/ham_dev": {
+      "delta_macro_f1": -0.03742351324199685,
+      "ci95": [
+        -0.059511557505345425,
+        -0.01389711038967728
+      ],
+      "unit": "identity_component_id",
+      "groups": 1152,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.5969599965356878,
+          "sd_ddof0": 0.006287682294438382
+        },
+        "balanced_accuracy": {
+          "mean": 0.6367543162020453,
+          "sd_ddof0": 0.013819515081319806
+        },
+        "ece": {
+          "mean": 0.03736079500115579,
+          "sd_ddof0": 0.01653017591016266
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.5595364832936909,
+          "sd_ddof0": 0.019318048799239745
+        },
+        "balanced_accuracy": {
+          "mean": 0.5964501271244177,
+          "sd_ddof0": 0.021309035816864604
+        },
+        "ece": {
+          "mean": 0.03771342483225298,
+          "sd_ddof0": 0.009745925962966263
+        }
+      },
+      "cases": 1528,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1527,
+      "fallbacks": 1,
+      "fallback_reason_counts": {
+        "insufficient_healthy_skin": 1
+      },
+      "coverage_by_class": {
+        "akiec": {
+          "cases": 52,
+          "transformed": 52
+        },
+        "bcc": {
+          "cases": 82,
+          "transformed": 82
+        },
+        "bkl": {
+          "cases": 173,
+          "transformed": 173
+        },
+        "df": {
+          "cases": 18,
+          "transformed": 18
+        },
+        "mel": {
+          "cases": 169,
+          "transformed": 169
+        },
+        "nv": {
+          "cases": 1012,
+          "transformed": 1011
+        },
+        "vasc": {
+          "cases": 22,
+          "transformed": 22
+        }
+      }
+    },
+    "moco-44/pad_adapt": {
+      "delta_macro_f1": -0.01492448874891609,
+      "ci95": [
+        -0.0372716655741463,
+        0.008322341474949193
+      ],
+      "unit": "identity_component_id",
+      "groups": 682,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.6390643085959152,
+          "sd_ddof0": 0.006371979760873278
+        },
+        "balanced_accuracy": {
+          "mean": 0.651683106400212,
+          "sd_ddof0": 0.006748554103114864
+        },
+        "ece": {
+          "mean": 0.058393946785411134,
+          "sd_ddof0": 0.007615124705272296
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.6241398198469991,
+          "sd_ddof0": 0.005454492002046903
+        },
+        "balanced_accuracy": {
+          "mean": 0.6364077811137624,
+          "sd_ddof0": 0.006889241757523242
+        },
+        "ece": {
+          "mean": 0.050344322772442475,
+          "sd_ddof0": 0.008213128011109462
+        }
+      },
+      "cases": 1134,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1124,
+      "fallbacks": 10,
+      "fallback_reason_counts": {
+        "lesion_too_small": 6,
+        "lesion_too_large": 4
+      },
+      "coverage_by_class": {
+        "ACK": {
+          "cases": 362,
+          "transformed": 356
+        },
+        "BCC": {
+          "cases": 418,
+          "transformed": 415
+        },
+        "MEL": {
+          "cases": 27,
+          "transformed": 27
+        },
+        "NEV": {
+          "cases": 116,
+          "transformed": 116
+        },
+        "SCC": {
+          "cases": 95,
+          "transformed": 94
+        },
+        "SEK": {
+          "cases": 116,
+          "transformed": 116
+        }
+      }
+    },
+    "moco-44/ham_dev": {
+      "delta_macro_f1": -0.02810693429961786,
+      "ci95": [
+        -0.060271394603793764,
+        0.0019121760951430653
+      ],
+      "unit": "identity_component_id",
+      "groups": 1152,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.597489856378821,
+          "sd_ddof0": 0.004896476906344665
+        },
+        "balanced_accuracy": {
+          "mean": 0.6270296052712604,
+          "sd_ddof0": 0.005884578166956388
+        },
+        "ece": {
+          "mean": 0.04038688033919088,
+          "sd_ddof0": 0.01076851678854549
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.5693829220792032,
+          "sd_ddof0": 0.008546736871882824
+        },
+        "balanced_accuracy": {
+          "mean": 0.606738712483601,
+          "sd_ddof0": 0.01083109889848113
+        },
+        "ece": {
+          "mean": 0.04585436638852541,
+          "sd_ddof0": 0.012562499891731478
+        }
+      },
+      "cases": 1528,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1527,
+      "fallbacks": 1,
+      "fallback_reason_counts": {
+        "insufficient_healthy_skin": 1
+      },
+      "coverage_by_class": {
+        "akiec": {
+          "cases": 52,
+          "transformed": 52
+        },
+        "bcc": {
+          "cases": 82,
+          "transformed": 82
+        },
+        "bkl": {
+          "cases": 173,
+          "transformed": 173
+        },
+        "df": {
+          "cases": 18,
+          "transformed": 18
+        },
+        "mel": {
+          "cases": 169,
+          "transformed": 169
+        },
+        "nv": {
+          "cases": 1012,
+          "transformed": 1011
+        },
+        "vasc": {
+          "cases": 22,
+          "transformed": 22
+        }
+      }
+    },
+    "vicreg-42/pad_adapt": {
+      "delta_macro_f1": -0.02962948495055706,
+      "ci95": [
+        -0.04852038632654435,
+        -0.010926563802231025
+      ],
+      "unit": "identity_component_id",
+      "groups": 682,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.6369466974261592,
+          "sd_ddof0": 0.009567992947598497
+        },
+        "balanced_accuracy": {
+          "mean": 0.6464269698245483,
+          "sd_ddof0": 0.010157068485822339
+        },
+        "ece": {
+          "mean": 0.043264219904224986,
+          "sd_ddof0": 0.014211474782276643
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.6073172124756021,
+          "sd_ddof0": 0.00813882231624675
+        },
+        "balanced_accuracy": {
+          "mean": 0.6212862731687259,
+          "sd_ddof0": 0.005970398344020839
+        },
+        "ece": {
+          "mean": 0.0411333978703387,
+          "sd_ddof0": 0.010157144894462141
+        }
+      },
+      "cases": 1134,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1124,
+      "fallbacks": 10,
+      "fallback_reason_counts": {
+        "lesion_too_small": 6,
+        "lesion_too_large": 4
+      },
+      "coverage_by_class": {
+        "ACK": {
+          "cases": 362,
+          "transformed": 356
+        },
+        "BCC": {
+          "cases": 418,
+          "transformed": 415
+        },
+        "MEL": {
+          "cases": 27,
+          "transformed": 27
+        },
+        "NEV": {
+          "cases": 116,
+          "transformed": 116
+        },
+        "SCC": {
+          "cases": 95,
+          "transformed": 94
+        },
+        "SEK": {
+          "cases": 116,
+          "transformed": 116
+        }
+      }
+    },
+    "vicreg-42/ham_dev": {
+      "delta_macro_f1": -0.029203079155738276,
+      "ci95": [
+        -0.0721577851581257,
+        0.012093275986517474
+      ],
+      "unit": "identity_component_id",
+      "groups": 1152,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.5540121170822025,
+          "sd_ddof0": 0.014131083848155677
+        },
+        "balanced_accuracy": {
+          "mean": 0.5808351154977464,
+          "sd_ddof0": 0.015059568751022986
+        },
+        "ece": {
+          "mean": 0.07153085590922116,
+          "sd_ddof0": 0.01705880006191531
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.5248090379264644,
+          "sd_ddof0": 0.011805904989826145
+        },
+        "balanced_accuracy": {
+          "mean": 0.5468510506111758,
+          "sd_ddof0": 0.00846366782639942
+        },
+        "ece": {
+          "mean": 0.06409675272673764,
+          "sd_ddof0": 0.0080348849019063
+        }
+      },
+      "cases": 1528,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1527,
+      "fallbacks": 1,
+      "fallback_reason_counts": {
+        "insufficient_healthy_skin": 1
+      },
+      "coverage_by_class": {
+        "akiec": {
+          "cases": 52,
+          "transformed": 52
+        },
+        "bcc": {
+          "cases": 82,
+          "transformed": 82
+        },
+        "bkl": {
+          "cases": 173,
+          "transformed": 173
+        },
+        "df": {
+          "cases": 18,
+          "transformed": 18
+        },
+        "mel": {
+          "cases": 169,
+          "transformed": 169
+        },
+        "nv": {
+          "cases": 1012,
+          "transformed": 1011
+        },
+        "vasc": {
+          "cases": 22,
+          "transformed": 22
+        }
+      }
+    },
+    "vicreg-43/pad_adapt": {
+      "delta_macro_f1": -0.029370193256749055,
+      "ci95": [
+        -0.0515750924462962,
+        -0.008408527315246168
+      ],
+      "unit": "identity_component_id",
+      "groups": 682,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.6433724585244304,
+          "sd_ddof0": 0.005794215055912529
+        },
+        "balanced_accuracy": {
+          "mean": 0.6447879978586468,
+          "sd_ddof0": 0.008466594006007553
+        },
+        "ece": {
+          "mean": 0.061558322104821074,
+          "sd_ddof0": 0.013878773571389223
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.6140022652676813,
+          "sd_ddof0": 0.004055718854726395
+        },
+        "balanced_accuracy": {
+          "mean": 0.6214418739270591,
+          "sd_ddof0": 0.004489194346880742
+        },
+        "ece": {
+          "mean": 0.04010192641880503,
+          "sd_ddof0": 0.012088918577907917
+        }
+      },
+      "cases": 1134,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1124,
+      "fallbacks": 10,
+      "fallback_reason_counts": {
+        "lesion_too_small": 6,
+        "lesion_too_large": 4
+      },
+      "coverage_by_class": {
+        "ACK": {
+          "cases": 362,
+          "transformed": 356
+        },
+        "BCC": {
+          "cases": 418,
+          "transformed": 415
+        },
+        "MEL": {
+          "cases": 27,
+          "transformed": 27
+        },
+        "NEV": {
+          "cases": 116,
+          "transformed": 116
+        },
+        "SCC": {
+          "cases": 95,
+          "transformed": 94
+        },
+        "SEK": {
+          "cases": 116,
+          "transformed": 116
+        }
+      }
+    },
+    "vicreg-43/ham_dev": {
+      "delta_macro_f1": -0.025655127755420375,
+      "ci95": [
+        -0.05717896363949268,
+        0.0026832947677138314
+      ],
+      "unit": "identity_component_id",
+      "groups": 1152,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.55654816276899,
+          "sd_ddof0": 0.017696484569728835
+        },
+        "balanced_accuracy": {
+          "mean": 0.5745745336787804,
+          "sd_ddof0": 0.012145665216110758
+        },
+        "ece": {
+          "mean": 0.07807128937516951,
+          "sd_ddof0": 0.004426382417438319
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.5308930350135697,
+          "sd_ddof0": 0.010468574673587085
+        },
+        "balanced_accuracy": {
+          "mean": 0.5496214883986851,
+          "sd_ddof0": 0.011145674529959144
+        },
+        "ece": {
+          "mean": 0.08786197611992576,
+          "sd_ddof0": 0.005951095910958666
+        }
+      },
+      "cases": 1528,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1527,
+      "fallbacks": 1,
+      "fallback_reason_counts": {
+        "insufficient_healthy_skin": 1
+      },
+      "coverage_by_class": {
+        "akiec": {
+          "cases": 52,
+          "transformed": 52
+        },
+        "bcc": {
+          "cases": 82,
+          "transformed": 82
+        },
+        "bkl": {
+          "cases": 173,
+          "transformed": 173
+        },
+        "df": {
+          "cases": 18,
+          "transformed": 18
+        },
+        "mel": {
+          "cases": 169,
+          "transformed": 169
+        },
+        "nv": {
+          "cases": 1012,
+          "transformed": 1011
+        },
+        "vasc": {
+          "cases": 22,
+          "transformed": 22
+        }
+      }
+    },
+    "vicreg-44/pad_adapt": {
+      "delta_macro_f1": -0.020877770850028694,
+      "ci95": [
+        -0.03773331802271802,
+        -0.0028437737421767094
+      ],
+      "unit": "identity_component_id",
+      "groups": 682,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.6339740729795323,
+          "sd_ddof0": 0.004522149248455846
+        },
+        "balanced_accuracy": {
+          "mean": 0.6458763319494798,
+          "sd_ddof0": 0.004848458684264259
+        },
+        "ece": {
+          "mean": 0.04389823144583311,
+          "sd_ddof0": 0.020111854663513944
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.6130963021295037,
+          "sd_ddof0": 0.012249046876813094
+        },
+        "balanced_accuracy": {
+          "mean": 0.6226923282777698,
+          "sd_ddof0": 0.011463205444508656
+        },
+        "ece": {
+          "mean": 0.04508928763037947,
+          "sd_ddof0": 0.005272736770333279
+        }
+      },
+      "cases": 1134,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1124,
+      "fallbacks": 10,
+      "fallback_reason_counts": {
+        "lesion_too_small": 6,
+        "lesion_too_large": 4
+      },
+      "coverage_by_class": {
+        "ACK": {
+          "cases": 362,
+          "transformed": 356
+        },
+        "BCC": {
+          "cases": 418,
+          "transformed": 415
+        },
+        "MEL": {
+          "cases": 27,
+          "transformed": 27
+        },
+        "NEV": {
+          "cases": 116,
+          "transformed": 116
+        },
+        "SCC": {
+          "cases": 95,
+          "transformed": 94
+        },
+        "SEK": {
+          "cases": 116,
+          "transformed": 116
+        }
+      }
+    },
+    "vicreg-44/ham_dev": {
+      "delta_macro_f1": 0.0023419823128001025,
+      "ci95": [
+        -0.02087597665755106,
+        0.029096969949033144
+      ],
+      "unit": "identity_component_id",
+      "groups": 1152,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.5277966385062407,
+          "sd_ddof0": 0.007236509873810969
+        },
+        "balanced_accuracy": {
+          "mean": 0.5502650839265627,
+          "sd_ddof0": 0.0026874459339077303
+        },
+        "ece": {
+          "mean": 0.07701430899938137,
+          "sd_ddof0": 0.006201420402145981
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.5301386208190407,
+          "sd_ddof0": 0.010002488947876946
+        },
+        "balanced_accuracy": {
+          "mean": 0.5539521335085241,
+          "sd_ddof0": 0.014263955733438461
+        },
+        "ece": {
+          "mean": 0.06679716112498225,
+          "sd_ddof0": 0.02319924699618301
+        }
+      },
+      "cases": 1528,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1527,
+      "fallbacks": 1,
+      "fallback_reason_counts": {
+        "insufficient_healthy_skin": 1
+      },
+      "coverage_by_class": {
+        "akiec": {
+          "cases": 52,
+          "transformed": 52
+        },
+        "bcc": {
+          "cases": 82,
+          "transformed": 82
+        },
+        "bkl": {
+          "cases": 173,
+          "transformed": 173
+        },
+        "df": {
+          "cases": 18,
+          "transformed": 18
+        },
+        "mel": {
+          "cases": 169,
+          "transformed": 169
+        },
+        "nv": {
+          "cases": 1012,
+          "transformed": 1011
+        },
+        "vasc": {
+          "cases": 22,
+          "transformed": 22
+        }
+      }
+    },
+    "simsiam-42/pad_adapt": {
+      "delta_macro_f1": -0.07014065476935016,
+      "ci95": [
+        -0.09953477552207583,
+        -0.03824683736331369
+      ],
+      "unit": "identity_component_id",
+      "groups": 682,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.6063311423774919,
+          "sd_ddof0": 0.010995746842634652
+        },
+        "balanced_accuracy": {
+          "mean": 0.6189162918583949,
+          "sd_ddof0": 0.007870210122984797
+        },
+        "ece": {
+          "mean": 0.0652972756042087,
+          "sd_ddof0": 0.005219539025384069
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.5361904876081417,
+          "sd_ddof0": 0.005490521570004501
+        },
+        "balanced_accuracy": {
+          "mean": 0.5429048987455266,
+          "sd_ddof0": 0.0015200100453523233
+        },
+        "ece": {
+          "mean": 0.07751373450048397,
+          "sd_ddof0": 0.017965506383252273
+        }
+      },
+      "cases": 1134,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1124,
+      "fallbacks": 10,
+      "fallback_reason_counts": {
+        "lesion_too_small": 6,
+        "lesion_too_large": 4
+      },
+      "coverage_by_class": {
+        "ACK": {
+          "cases": 362,
+          "transformed": 356
+        },
+        "BCC": {
+          "cases": 418,
+          "transformed": 415
+        },
+        "MEL": {
+          "cases": 27,
+          "transformed": 27
+        },
+        "NEV": {
+          "cases": 116,
+          "transformed": 116
+        },
+        "SCC": {
+          "cases": 95,
+          "transformed": 94
+        },
+        "SEK": {
+          "cases": 116,
+          "transformed": 116
+        }
+      }
+    },
+    "simsiam-42/ham_dev": {
+      "delta_macro_f1": -0.03466303737161145,
+      "ci95": [
+        -0.06807754097948053,
+        -2.4491268192911946e-06
+      ],
+      "unit": "identity_component_id",
+      "groups": 1152,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.513984060916227,
+          "sd_ddof0": 0.012178021117956309
+        },
+        "balanced_accuracy": {
+          "mean": 0.5406053348749218,
+          "sd_ddof0": 0.010093898246780976
+        },
+        "ece": {
+          "mean": 0.03875812918543161,
+          "sd_ddof0": 0.006328174466627834
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.4793210235446154,
+          "sd_ddof0": 0.01557337176755467
+        },
+        "balanced_accuracy": {
+          "mean": 0.5077420529325157,
+          "sd_ddof0": 0.010029385778283693
+        },
+        "ece": {
+          "mean": 0.03552758741722842,
+          "sd_ddof0": 0.0064439725073790295
+        }
+      },
+      "cases": 1528,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1527,
+      "fallbacks": 1,
+      "fallback_reason_counts": {
+        "insufficient_healthy_skin": 1
+      },
+      "coverage_by_class": {
+        "akiec": {
+          "cases": 52,
+          "transformed": 52
+        },
+        "bcc": {
+          "cases": 82,
+          "transformed": 82
+        },
+        "bkl": {
+          "cases": 173,
+          "transformed": 173
+        },
+        "df": {
+          "cases": 18,
+          "transformed": 18
+        },
+        "mel": {
+          "cases": 169,
+          "transformed": 169
+        },
+        "nv": {
+          "cases": 1012,
+          "transformed": 1011
+        },
+        "vasc": {
+          "cases": 22,
+          "transformed": 22
+        }
+      }
+    },
+    "simsiam-43/pad_adapt": {
+      "delta_macro_f1": -0.06291600628919643,
+      "ci95": [
+        -0.0922373206442682,
+        -0.03132001134879215
+      ],
+      "unit": "identity_component_id",
+      "groups": 682,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.5999809053570272,
+          "sd_ddof0": 0.015265688565809727
+        },
+        "balanced_accuracy": {
+          "mean": 0.6108494938740243,
+          "sd_ddof0": 0.011491811398981377
+        },
+        "ece": {
+          "mean": 0.05831301818138718,
+          "sd_ddof0": 0.012555358916416124
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.5370648990678307,
+          "sd_ddof0": 0.006201625532553355
+        },
+        "balanced_accuracy": {
+          "mean": 0.5413874557126572,
+          "sd_ddof0": 0.0066392592613890074
+        },
+        "ece": {
+          "mean": 0.07142239608140606,
+          "sd_ddof0": 0.013753756039577576
+        }
+      },
+      "cases": 1134,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1124,
+      "fallbacks": 10,
+      "fallback_reason_counts": {
+        "lesion_too_small": 6,
+        "lesion_too_large": 4
+      },
+      "coverage_by_class": {
+        "ACK": {
+          "cases": 362,
+          "transformed": 356
+        },
+        "BCC": {
+          "cases": 418,
+          "transformed": 415
+        },
+        "MEL": {
+          "cases": 27,
+          "transformed": 27
+        },
+        "NEV": {
+          "cases": 116,
+          "transformed": 116
+        },
+        "SCC": {
+          "cases": 95,
+          "transformed": 94
+        },
+        "SEK": {
+          "cases": 116,
+          "transformed": 116
+        }
+      }
+    },
+    "simsiam-43/ham_dev": {
+      "delta_macro_f1": -0.04327706378093458,
+      "ci95": [
+        -0.07571879815415242,
+        -0.010114603164601457
+      ],
+      "unit": "identity_component_id",
+      "groups": 1152,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.5239442199068977,
+          "sd_ddof0": 0.01946336399909382
+        },
+        "balanced_accuracy": {
+          "mean": 0.5455119418647216,
+          "sd_ddof0": 0.011632381712239475
+        },
+        "ece": {
+          "mean": 0.05306718066672375,
+          "sd_ddof0": 0.0076490134340844885
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.48066715612596306,
+          "sd_ddof0": 0.021873822708691815
+        },
+        "balanced_accuracy": {
+          "mean": 0.5005839127530777,
+          "sd_ddof0": 0.02505947878042383
+        },
+        "ece": {
+          "mean": 0.059266441021265305,
+          "sd_ddof0": 0.01771166278988684
+        }
+      },
+      "cases": 1528,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1527,
+      "fallbacks": 1,
+      "fallback_reason_counts": {
+        "insufficient_healthy_skin": 1
+      },
+      "coverage_by_class": {
+        "akiec": {
+          "cases": 52,
+          "transformed": 52
+        },
+        "bcc": {
+          "cases": 82,
+          "transformed": 82
+        },
+        "bkl": {
+          "cases": 173,
+          "transformed": 173
+        },
+        "df": {
+          "cases": 18,
+          "transformed": 18
+        },
+        "mel": {
+          "cases": 169,
+          "transformed": 169
+        },
+        "nv": {
+          "cases": 1012,
+          "transformed": 1011
+        },
+        "vasc": {
+          "cases": 22,
+          "transformed": 22
+        }
+      }
+    },
+    "simsiam-44/pad_adapt": {
+      "delta_macro_f1": -0.04903225559239899,
+      "ci95": [
+        -0.07692978895704099,
+        -0.01867545099366561
+      ],
+      "unit": "identity_component_id",
+      "groups": 682,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.5856865130290444,
+          "sd_ddof0": 0.004291083192574722
+        },
+        "balanced_accuracy": {
+          "mean": 0.5973980522007493,
+          "sd_ddof0": 0.0026804380758534514
+        },
+        "ece": {
+          "mean": 0.049406268248043915,
+          "sd_ddof0": 0.01531512046729104
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.5366542574366454,
+          "sd_ddof0": 0.001583154788249878
+        },
+        "balanced_accuracy": {
+          "mean": 0.5426358314265673,
+          "sd_ddof0": 0.003474777506490153
+        },
+        "ece": {
+          "mean": 0.07715485085745347,
+          "sd_ddof0": 0.002901862326630455
+        }
+      },
+      "cases": 1134,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1124,
+      "fallbacks": 10,
+      "fallback_reason_counts": {
+        "lesion_too_small": 6,
+        "lesion_too_large": 4
+      },
+      "coverage_by_class": {
+        "ACK": {
+          "cases": 362,
+          "transformed": 356
+        },
+        "BCC": {
+          "cases": 418,
+          "transformed": 415
+        },
+        "MEL": {
+          "cases": 27,
+          "transformed": 27
+        },
+        "NEV": {
+          "cases": 116,
+          "transformed": 116
+        },
+        "SCC": {
+          "cases": 95,
+          "transformed": 94
+        },
+        "SEK": {
+          "cases": 116,
+          "transformed": 116
+        }
+      }
+    },
+    "simsiam-44/ham_dev": {
+      "delta_macro_f1": -0.03447857068542145,
+      "ci95": [
+        -0.07013212202667445,
+        -0.001556210313551019
+      ],
+      "unit": "identity_component_id",
+      "groups": 1152,
+      "resamples": 1000,
+      "seed": 20261102,
+      "scope": "fixed OOF predictions; grouping metadata limitations remain",
+      "multiplicity_adjusted": false,
+      "A0": {
+        "macro_f1": {
+          "mean": 0.5158104867097789,
+          "sd_ddof0": 0.014343161754380248
+        },
+        "balanced_accuracy": {
+          "mean": 0.539846746819965,
+          "sd_ddof0": 0.010163789943425119
+        },
+        "ece": {
+          "mean": 0.048760718010796844,
+          "sd_ddof0": 0.009143205394544234
+        }
+      },
+      "A1": {
+        "macro_f1": {
+          "mean": 0.4813319160243575,
+          "sd_ddof0": 0.016952318634574748
+        },
+        "balanced_accuracy": {
+          "mean": 0.5095494157739096,
+          "sd_ddof0": 0.011957196587900159
+        },
+        "ece": {
+          "mean": 0.0333908450675336,
+          "sd_ddof0": 0.0057569015448348405
+        }
+      },
+      "cases": 1528,
+      "feature_parity_error": 0.0,
+      "A0_probability_error": 0.0,
+      "transformed": 1527,
+      "fallbacks": 1,
+      "fallback_reason_counts": {
+        "insufficient_healthy_skin": 1
+      },
+      "coverage_by_class": {
+        "akiec": {
+          "cases": 52,
+          "transformed": 52
+        },
+        "bcc": {
+          "cases": 82,
+          "transformed": 82
+        },
+        "bkl": {
+          "cases": 173,
+          "transformed": 173
+        },
+        "df": {
+          "cases": 18,
+          "transformed": 18
+        },
+        "mel": {
+          "cases": 169,
+          "transformed": 169
+        },
+        "nv": {
+          "cases": 1012,
+          "transformed": 1011
+        },
+        "vasc": {
+          "cases": 22,
+          "transformed": 22
+        }
+      }
+    }
+  },
+  "summary": {
+    "moco/pad_adapt": {
+      "A0_macro_f1_mean": 0.6437617559526833,
+      "A1_macro_f1_mean": 0.6245139983915348,
+      "negative_seeds": 3,
+      "ci95_negative_seeds": 1
+    },
+    "moco/ham_dev": {
+      "A0_macro_f1_mean": 0.6020018216934647,
+      "A1_macro_f1_mean": 0.5687026295120591,
+      "negative_seeds": 3,
+      "ci95_negative_seeds": 2
+    },
+    "vicreg/pad_adapt": {
+      "A0_macro_f1_mean": 0.6380977429767073,
+      "A1_macro_f1_mean": 0.6114719266242624,
+      "negative_seeds": 3,
+      "ci95_negative_seeds": 3
+    },
+    "vicreg/ham_dev": {
+      "A0_macro_f1_mean": 0.546118972785811,
+      "A1_macro_f1_mean": 0.5286135645863582,
+      "negative_seeds": 2,
+      "ci95_negative_seeds": 0
+    },
+    "simsiam/pad_adapt": {
+      "A0_macro_f1_mean": 0.5973328535878545,
+      "A1_macro_f1_mean": 0.5366365480375394,
+      "negative_seeds": 3,
+      "ci95_negative_seeds": 3
+    },
+    "simsiam/ham_dev": {
+      "A0_macro_f1_mean": 0.5179129225109679,
+      "A1_macro_f1_mean": 0.48044003189831197,
+      "negative_seeds": 3,
+      "ci95_negative_seeds": 3
+    }
+  },
+  "config_redacted": {
+    "segmenter": {
+      "path": "/home/jovyan/work/dermlip_slic_v8/runs/dermlip-semi-supervised-v8-isic2018-2594-abl026-resnet34-ph2cp-ima0-s42/selection/best_teacher_model.pt",
+      "sha256": "f4fcee05cd4e4f884d31bb6a9bc08fc7225817d2529c8fa22eb1b2ab261462f4",
+      "run_id": "7cbcd3d7-b79e-4e3d-be5e-2abaf5088f27"
+    },
+    "hub_directory": "/home/jovyan/.cache/torch/hub/facebookresearch_dinov2_main",
+    "hub_source_sha256": "4a5a3cfbd4185dd4955c1de2f2f26e3b4ba3fa88cccae503b9f93ceb08fed818",
+    "reader_scripts": "/home/jovyan/work/clf1_clinical_reference_20261024/scripts",
+    "feature_abs_tolerance": 0.02,
+    "reader_probability_tolerance": 1e-06,
+    "bootstrap_resamples": 1000,
+    "job_timeout_seconds": 1800,
+    "cohorts": {
+      "pad_adapt": {
+        "kind": "PAD",
+        "manifest": "/home/jovyan/work/clf1_clinical_reference_20261024/results/content-exclusion-overlay-v1/pad_adapt.jsonl",
+        "manifest_sha256": "9c4fd238e67c8e654fe35b7603902fe8c3c1393bac478243c0ed2ff59fd371c6",
+        "metadata": "/home/jovyan/work/pad_ufes_20/metadata.csv",
+        "metadata_sha256": "14d145235cedb022548257acb0d84dcd949e2c916f65d2baa7c38ed5339e9527",
+        "count": 1134,
+        "unique_image_content": 1134,
+        "grouping_scope": "original identity_component_id; clinical linkage completeness not newly accredited"
+      },
+      "ham_dev": {
+        "kind": "HAM",
+        "manifest": "/home/jovyan/work/clf1_clinical_reference_20261024/results/content-exclusion-overlay-v1/ham_dev.jsonl",
+        "manifest_sha256": "8baeef21e380fa7b4d0609afb183d13743fa603d61e17294461fce81eb790275",
+        "metadata": "/home/jovyan/work/datos/ham10000/HAM10000_metadata.csv",
+        "metadata_sha256": "06aee5e603d313ba69de38263053c792a1dff030eb9c44a96ceb477ceefb99a5",
+        "count": 1528,
+        "unique_image_content": 1528,
+        "grouping_scope": "original identity_component_id; clinical linkage completeness not newly accredited"
+      }
+    },
+    "jobs": {
+      "moco-42": {
+        "family": "moco",
+        "SSL_seed": 42,
+        "weights": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/moco-v3-s42-full-20261029/simsiam_dinov2_backbone_final.pt",
+        "weights_sha256": "5dffe8dae8f1f623242861f0b6d00dfc38d3d47f19afcc7e8f1748abc4cccd1a",
+        "cohorts": {
+          "pad_adapt": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s42-evaluation-v1/pad_adapt.npz",
+            "features_sha256": "5f523b6567e7fb9baa7d398722029e1c8863b8e63d76d9eb8301b541c306dfd8",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s42-evaluation-v1/PAD-readout.json",
+            "readout_sha256": "39bc9518866b8be01aa67fe31b9dcf794590a2f0da3a4941195be8506d2630ab"
+          },
+          "ham_dev": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s42-evaluation-v1/ham_dev.npz",
+            "features_sha256": "115c53a13d906e640aeb809ad38bd3be5cef0b81061bc81a98942e91e2cdba7c",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s42-evaluation-v1/HAM-readout-06aee5.json",
+            "readout_sha256": "6f3cf632190ed84448367fdbe04e2801db54da14ab34c9d87cb5ec7ed0ebae8c"
+          }
+        }
+      },
+      "vicreg-42": {
+        "family": "vicreg",
+        "SSL_seed": 42,
+        "weights": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/vicreg-seed42-run-v1/simsiam_dinov2_backbone_final.pt",
+        "weights_sha256": "ca811853d8adf52e9dcd2e34638d6c6c9dc6aea463e9e6c682edc37d466f2466",
+        "cohorts": {
+          "pad_adapt": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-evaluation-v1/pad_adapt.npz",
+            "features_sha256": "959d05fbc23d02ab96c56c4ea0a4c3f0a5b0dc617062bb879d04db5fdf92b5d5",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-evaluation-v1/PAD-readout.json",
+            "readout_sha256": "3b2727942335c62cbff97997148f97ddb595a1973eb50ce3814b88b87b45f0c6"
+          },
+          "ham_dev": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-evaluation-v1/ham_dev.npz",
+            "features_sha256": "3836a087fff8591fbbcd7345c4ac8a897854b0537fd1d070af9dc18b082e068f",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-evaluation-v1/HAM-readout-06aee5.json",
+            "readout_sha256": "594fd2b37907cc4017986106623bd034f5aa7a12aa2ccc01b7216ee14d16ef09"
+          }
+        }
+      },
+      "simsiam-42": {
+        "family": "simsiam",
+        "SSL_seed": 42,
+        "weights": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/ssl_overlay_A_s42_6000_v1/simsiam_dinov2_backbone_final.pt",
+        "weights_sha256": "09c15345b937d2f07ee91d08820d8499c3468bc2ab6949ac64f41ded699f41b7",
+        "cohorts": {
+          "pad_adapt": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s42-pipeline-evaluation-v1/pad_adapt.npz",
+            "features_sha256": "a36946ebfc2b765e06285b640d4bdec265f040d5e30c4234c02c05a806de8921",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s42-pipeline-evaluation-v1/PAD-readout.json",
+            "readout_sha256": "c7ad447105f05cc72308709b2946c392b614099850efabba8770f64f4db47746"
+          },
+          "ham_dev": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s42-pipeline-evaluation-v1/ham_dev.npz",
+            "features_sha256": "d182f927e16b83eb390ad6eb58b19bf768272e6ed15317c2d7c61397fa7922a9",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s42-pipeline-evaluation-v1/HAM-readout-06aee5.json",
+            "readout_sha256": "1acd4d4e6e0677a51eea4e1a44e16df99c599bd26d0e2b1843886a6eeb9e8d07"
+          }
+        }
+      },
+      "moco-43": {
+        "family": "moco",
+        "SSL_seed": 43,
+        "weights": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/moco-v3-s43-full-20261029/simsiam_dinov2_backbone_final.pt",
+        "weights_sha256": "a1d3af29f02fb626dd90753d38254f139cffede78715329ec410e0e41801a65a",
+        "cohorts": {
+          "pad_adapt": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s43-evaluation-v1/pad_adapt.npz",
+            "features_sha256": "26ffb995d1ba168a6f2bc9bb99cf381dbdab571aa9007e0d852335ab5283cab1",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s43-evaluation-v1/PAD-readout.json",
+            "readout_sha256": "dc23d12494d337ccd79f4f165a8ac9fc588b4b221d092f9d1225b79519fe7b09"
+          },
+          "ham_dev": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s43-evaluation-v1/ham_dev.npz",
+            "features_sha256": "1da0f78a93262b3af971f0e32b10cdc60807cf51a25b8ae83e0c4575642a2a4e",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s43-evaluation-v1/HAM-readout-06aee5.json",
+            "readout_sha256": "1eda1538e4c7a3f25a1dfc05acb733e1a1759c59a5b750004c4bc2da855a3cad"
+          }
+        }
+      },
+      "vicreg-43": {
+        "family": "vicreg",
+        "SSL_seed": 43,
+        "weights": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/vicreg-ssl43-seed43-run-v1/simsiam_dinov2_backbone_final.pt",
+        "weights_sha256": "329b76497bf4ad0b8f15854ac1872a59d6657da8b6d0948617bf38b59aaeb9ae",
+        "cohorts": {
+          "pad_adapt": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-s43-evaluation-v1/pad_adapt.npz",
+            "features_sha256": "854a7cdabc03839dc5b1168d580ec1a4fa46da81c6bae75922632d6d7154c438",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-s43-evaluation-v1/PAD-readout.json",
+            "readout_sha256": "4a08e6aa49464d66b9a399684e318b00276a0c6989b70036d85759a010324e1a"
+          },
+          "ham_dev": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-s43-evaluation-v1/ham_dev.npz",
+            "features_sha256": "2abe04be697dd54a032454ad0d6f1fb45b6b461001d1213e91654b97ee0378df",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-s43-evaluation-v1/HAM-readout-06aee5.json",
+            "readout_sha256": "49650d52468047b8d23bf4c72d2e697aed332e1c71053d3128af95e121cff366"
+          }
+        }
+      },
+      "simsiam-43": {
+        "family": "simsiam",
+        "SSL_seed": 43,
+        "weights": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/ssl_overlay_A_s43_6000_v1/simsiam_dinov2_backbone_final.pt",
+        "weights_sha256": "1f34bf7cbead2a1b5c39af049ece765b95889da4e0d2827ac60abebf0fcd01e6",
+        "cohorts": {
+          "pad_adapt": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s43-evaluation-v1/pad_adapt.npz",
+            "features_sha256": "079c963f3571a50786e77b6d5462e12379f02579998e56eeac19b77c7f9e33f2",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s43-evaluation-v1/PAD-readout.json",
+            "readout_sha256": "82778bc573d5f1ec0ecff50727ec4afa5e7f0cf6d0c79eaa6fd77a9af599654e"
+          },
+          "ham_dev": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s43-evaluation-v1/ham_dev.npz",
+            "features_sha256": "303fb071080926a4cbad9d835365ac7888950c9bcc3a20a0fd6452859e773ed7",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s43-evaluation-v1/HAM-readout-06aee5.json",
+            "readout_sha256": "6cb38bb39d596afc0726b977e10726995cad6969b77b1d5b59c94d2f37cf0a9c"
+          }
+        }
+      },
+      "moco-44": {
+        "family": "moco",
+        "SSL_seed": 44,
+        "weights": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/moco-v3-s44-full-20261029/simsiam_dinov2_backbone_final.pt",
+        "weights_sha256": "0f65793496a5a68b87ad320c18833d3458fba425c6526f88106cf0a1d88ec82f",
+        "cohorts": {
+          "pad_adapt": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s44-evaluation-v1/pad_adapt.npz",
+            "features_sha256": "931c6901e6ed662e85131ee5dd54f576200b2584cab7c9468dca3f037cf50031",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s44-evaluation-v1/PAD-readout.json",
+            "readout_sha256": "7fa08ab1838d243c03cbbf0335ed30137d2241155e3efead1a24ede5e17da91c"
+          },
+          "ham_dev": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s44-evaluation-v1/ham_dev.npz",
+            "features_sha256": "c0d82ec0b2e760ac3868950fe7c8d0e1df0ec226a373175e8e0ab34e0e3884ab",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v3-s44-evaluation-v1/HAM-readout-06aee5.json",
+            "readout_sha256": "5218c1fec1f66853cc921e87a7f78cb893202ab36b8fbf92b184f0ad1aaa1d8d"
+          }
+        }
+      },
+      "vicreg-44": {
+        "family": "vicreg",
+        "SSL_seed": 44,
+        "weights": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/vicreg-ssl44-seed44-run-v1/simsiam_dinov2_backbone_final.pt",
+        "weights_sha256": "6d46009cb3d3d898e7a8add116400885b625ce1b04843267e7c7e3756d55a824",
+        "cohorts": {
+          "pad_adapt": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-s44-evaluation-v1/pad_adapt.npz",
+            "features_sha256": "d8ec7bee785cf9aa663cb28dae25a928b2403219dd8657eface7668cbb4af049",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-s44-evaluation-v1/PAD-readout.json",
+            "readout_sha256": "d29386d99222071433332fb26154e30eaf53b2a87e09f872b9c6519ccf0ca16f"
+          },
+          "ham_dev": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-s44-evaluation-v1/ham_dev.npz",
+            "features_sha256": "d6fdead1de115703e94a41a667340d11bf46645a15dbad4e6ab708364cf56e00",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/vicreg-s44-evaluation-v1/HAM-readout-06aee5.json",
+            "readout_sha256": "c14e1a343051283b415cc7ca991c6880ce3154adf06242bf4cea407208683000"
+          }
+        }
+      },
+      "simsiam-44": {
+        "family": "simsiam",
+        "SSL_seed": 44,
+        "weights": "/home/jovyan/work/clf1_clinical_reference_20261024/runs/ssl_overlay_A_s44_6000_v1/simsiam_dinov2_backbone_final.pt",
+        "weights_sha256": "07725ae69c1086a21b730bc82cec0ec22fa88735685f849bbd6ddcc32acc3fdd",
+        "cohorts": {
+          "pad_adapt": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s44-evaluation-v1/pad_adapt.npz",
+            "features_sha256": "9591faf5044674fa6ba5b0337afb6e773ff29f378826221db4026b0a8fe00c1f",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s44-evaluation-v1/PAD-readout.json",
+            "readout_sha256": "35caa26b3865fc0a1f0eff9e028a8d62aabc05ee42ba86a4731a949b40b897fe"
+          },
+          "ham_dev": {
+            "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s44-evaluation-v1/ham_dev.npz",
+            "features_sha256": "29c78fd184a49758112111cdc6d49a64825511dc3baaef3fd32d5bab468d2bf3",
+            "readout": "/home/jovyan/work/clf1_clinical_reference_20261024/results/baseline-s44-evaluation-v1/HAM-readout-06aee5.json",
+            "readout_sha256": "920bc3ba7f8ae60ad291efc1a5731676d04778900baf3b6ed643a173962974ce"
+          }
+        }
+      }
+    },
+    "source_bindings": {
+      "/home/jovyan/work/full-three-ssl-prepared-u9oel4ft/scripts/run_full_ssl_comparison.py": "d192813366c187174981112a94c5f9ac36da528a936a000b5f4131c7bbd48788",
+      "/home/jovyan/work/full-three-ssl-prepared-u9oel4ft/scripts/run_three_ssl_example.py": "13ac4516703e62a6f8174a28501b5d7c73fcfd8572bbc4b09bfd4f469705d254",
+      "/home/jovyan/work/full-three-ssl-prepared-u9oel4ft/scripts/lot_lock.py": "69038c576f0f51c6a019c8042f083b2f9069abc7c422fbde0db79c9b9ba586ac",
+      "/home/jovyan/work/full-three-ssl-prepared-u9oel4ft/src/dermssl/pilot_adapters.py": "ffe7d5c884e2386f878a8724b292c7f5f36ea0e97a184e6c5ef3a97604968382",
+      "/home/jovyan/work/full-three-ssl-prepared-u9oel4ft/tests/segmentation_v8/test_full_ssl_comparison.py": "8de67933a1476f3dfe6e9152a9aab0b51a4e919b53b13f1fbc28561511f5b4ed",
+      "/home/jovyan/work/clf1_clinical_reference_20261024/scripts/evaluate_overlay_readout.py": "ed35cae76c631390a8d1ae8451203771cb4df297cb5dffea7db1de5bd4f12d27",
+      "/home/jovyan/work/clf1_clinical_reference_20261024/scripts/probe_preprocessing_readout.py": "68f625e46384a32c29a851b9c52b4d884c8da8449b46941c8a7ca700dd946d58"
+    },
+    "scope": "exploratory paired development comparison; fixed Lstar -8; not clinical validation",
+    "CPU_threads_per_worker": 2
+  },
+  "runner_source_sha256": "d192813366c187174981112a94c5f9ac36da528a936a000b5f4131c7bbd48788"
+}

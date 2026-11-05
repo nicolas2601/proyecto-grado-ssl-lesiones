@@ -1,0 +1,24 @@
+{
+  "review_type": "bounded narrative, not systematic",
+  "institutional_access": "live browser blocked; local Seth/Pai PDF includes UNAB licensed-download notice; no new institutional full text retrieved",
+  "files": [
+    {
+      "file": "C:\\Users\\mpaul\\Documents\\Anteproyecto\\bibliografia\\Pakzad2022_CIRCLe.pdf",
+      "sha256": "0eff64b82570dc8549a04ebfeea72d78ca2af244901f84ec1297ec0c58a639ad",
+      "pages": 18,
+      "review_scope": "method pp4-5, training p7, discussion/conclusion p14"
+    },
+    {
+      "file": "C:\\Users\\mpaul\\Documents\\Anteproyecto\\bibliografia\\SethPai2024_pretraining_fairness.pdf",
+      "sha256": "d3c92578e386a6ec0716a19b32b224877da76ed974abb5a8923ca109e245bbff",
+      "pages": 8,
+      "review_scope": "abstract, methodology/related work pp2-3, results/discussion/conclusion pp6-7"
+    },
+    {
+      "file": "C:\\Users\\mpaul\\Documents\\Anteproyecto\\bibliografia\\Alipour2026_ITA_limitations.pdf",
+      "sha256": "f34b4968bffa78a433e8d3ee98b3c2e6d3584e53fa2117e0bdf15c8e86aed727",
+      "pages": 18,
+      "review_scope": "abstract p1 and discussion p14; not all references assessed"
+    }
+  ]
+}

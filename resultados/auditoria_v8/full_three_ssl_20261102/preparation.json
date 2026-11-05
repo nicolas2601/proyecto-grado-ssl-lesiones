@@ -1,0 +1,35 @@
+{
+  "root": "/home/jovyan/work/full-three-ssl-prepared-u9oel4ft",
+  "config_sha256": "7dc6d15a23118d4906cc9fe773da68c9a3facec05b12bd18c367075db21ad87e",
+  "jobs": [
+    "moco-42",
+    "vicreg-42",
+    "simsiam-42",
+    "moco-43",
+    "vicreg-43",
+    "simsiam-43",
+    "moco-44",
+    "vicreg-44",
+    "simsiam-44"
+  ],
+  "cohorts": {
+    "pad_adapt": {
+      "count": 1134,
+      "unique_image_content": 1134,
+      "manifest_sha256": "9c4fd238e67c8e654fe35b7603902fe8c3c1393bac478243c0ed2ff59fd371c6",
+      "metadata_sha256": "14d145235cedb022548257acb0d84dcd949e2c916f65d2baa7c38ed5339e9527"
+    },
+    "ham_dev": {
+      "count": 1528,
+      "unique_image_content": 1528,
+      "manifest_sha256": "8baeef21e380fa7b4d0609afb183d13743fa603d61e17294461fce81eb790275",
+      "metadata_sha256": "06aee5e603d313ba69de38263053c792a1dff030eb9c44a96ceb477ceefb99a5"
+    }
+  },
+  "validation": {
+    "exit_code": 0,
+    "stdout": "..                                                                       [100%]\n2 passed in 0.18s\n",
+    "stderr": ""
+  },
+  "disk_free": 42720469975040
+}
