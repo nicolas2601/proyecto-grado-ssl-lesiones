@@ -1,0 +1,8 @@
+{
+  "frozen_experiment_root": "/home/jovyan/work/clf1_ssl_phone_20261024",
+  "models": {
+    "S0": "/home/jovyan/.cache/torch/hub/checkpoints/dinov2_vitb14_pretrain.pth",
+    "refit": "/home/jovyan/work/clf1_ssl_phone_20261024/deliverables/dermssl-final-research-v1/encoder.pt"
+  },
+  "metadata_csv": "/home/jovyan/work/pad_ufes_20/metadata.csv"
+}
