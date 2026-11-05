@@ -72,6 +72,7 @@ Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Redise
 | [62](62-validacion-cielab-segmentacion-v8.md) | Validación CIELAB de la segmentación v8 y procedencia de IMA++. | Vigente (2026-10-31) |
 | [63](63-instrumento-ita-alcance-y-limites.md) | El instrumento ITA: qué mide, qué no, y la tabla de **cifras retiradas**. | **Vigente y de lectura obligatoria** antes de tocar ITA, FST o la transformación tonal |
 | [64](64-aporte-medibilidad-ita-y-desplazamiento-logrado.md) | Aporte propio: la medibilidad del ITA depende del diagnóstico (OR 0,30, p 9e-22, replicado), y el desplazamiento tonal logrado en grados (12,5°). | Vigente (2026-11-05); independiente del resultado del contraste |
+| [65](65-resultado-contraste-tono-y-que-prueba.md) | Resultado del contraste pareado de tono: **negativo** (PAD −0,0129 [−0,0249; −0,0015], HAM −0,0112), por qué el experimento es válido, y las tres razones por las que **no prueba la hipótesis de CIRCLe**. | **Vigente (2026-11-05)**; incluye una hipótesis propia refutada y la trampa medida del mapeo DDI→HAM |
 
 **Nota sobre este tramo:** los documentos 59 a 64 estuvieron fuera del índice
 hasta el 2026-11-05. Esa ausencia es la causa directa de que se consultara al
