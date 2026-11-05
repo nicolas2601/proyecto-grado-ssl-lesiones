@@ -58,12 +58,37 @@ TREATMENT_FIELDS = frozenset(
 
 # Fields that are allowed to differ because they are about where a run writes,
 # not about what it computes. Mirrors the OPERATIONAL set of the sibling gate.
+#
+# ``checkpoint_every_steps`` and ``checkpoint_fractions`` were added 2026-11-05.
+# They decide how often a run persists its state; a run that checkpoints every
+# 500 steps and one that only writes at the end compute identical gradients and
+# see identical batches. Keeping them in the comparison made a probe fail for a
+# reason that has nothing to do with attributability.
+#
+# ``world_size`` and ``effective_lr`` are different in kind: they are not inputs
+# at all. ``resolved-params.json`` reports them as DERIVED values, computed from
+# the base learning rate, the batch size and the visible device count. They are
+# excluded here because comparing them means comparing a report against a config
+# that has not produced one yet - which is a false difference, not a real one.
+# Their inputs (``batch_size_per_gpu``, ``max_steps``, ``seed``, the levers) are
+# all still compared, so an actual divergence in the learning rate cannot hide.
 OPERATIONAL_FIELDS = frozenset(
     {
         "output_dir",
         "run_name",
         "resume",
         "resume_checkpoint",
+        "checkpoint_every_steps",
+        "checkpoint_fractions",
+    }
+)
+
+# Values that a finished run reports rather than receives. They are dropped from
+# both sides before comparison; see the note above OPERATIONAL_FIELDS.
+DERIVED_FIELDS = frozenset(
+    {
+        "world_size",
+        "effective_lr",
     }
 )
 
@@ -76,7 +101,7 @@ class PairedFactorError(ValueError):
 
 
 def _differing(control: dict, treated: dict) -> set[str]:
-    keys = (set(control) | set(treated)) - OPERATIONAL_FIELDS
+    keys = (set(control) | set(treated)) - OPERATIONAL_FIELDS - DERIVED_FIELDS
     return {key for key in keys if control.get(key) != treated.get(key)}
 
 

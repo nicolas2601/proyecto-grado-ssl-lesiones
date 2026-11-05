@@ -218,15 +218,34 @@ def run(config_path):
     # paired_factor_gate lives in the repo and not in the frozen tree, so it is
     # imported from the contrast directory rather than from dermssl.
     treated_arm = cfg.adaptation_mode == TREATED_MODE
+
+    # The single-factor gate guards a CONTRAST, so it only runs on one. A 40-step
+    # probe differs from the 6,000-step control in max_steps by construction, and
+    # that is a legitimate difference for a probe and a fatal one for a contrast.
+    # Running the gate on the probe would force the probe to lie about its length
+    # to get past it, which is how a gate stops meaning anything.
+    #
+    # The probe still records what differed, so nobody can claim afterwards that
+    # it was comparable when it was not.
+    is_contrast = cfg.max_steps == 6000
     changed_fields = None
+    gate_status = "not_applicable"
     if treated_arm:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
-        from paired_factor_gate import validate_paired_factor
-        control = json.loads(Path(config["control_resolved_params"]).read_text())
+        from paired_factor_gate import (DERIVED_FIELDS, OPERATIONAL_FIELDS,
+                                        validate_paired_factor)
         if digest(config["control_resolved_params"]) != config["control_resolved_params_sha256"]:
             raise ValueError("Control resolved params changed since they were declared")
+        control = json.loads(Path(config["control_resolved_params"]).read_text())
         effective = {**base, **{k: getattr(cfg, k) for k in base if hasattr(cfg, k)}}
-        changed_fields = sorted(validate_paired_factor(control, effective))
+        if is_contrast:
+            changed_fields = sorted(validate_paired_factor(control, effective))
+            gate_status = "passed"
+        else:
+            ignored = OPERATIONAL_FIELDS | DERIVED_FIELDS
+            keys = (set(control) | set(effective)) - ignored
+            changed_fields = sorted(k for k in keys if control.get(k) != effective.get(k))
+            gate_status = "skipped_probe_is_not_a_contrast"
 
     seal = config_seal(config)
     resume_path = Path(cfg.resume_checkpoint) if config.get("resume") else None
@@ -260,6 +279,7 @@ def run(config_path):
         "deterministic_algorithms": True,
         "arm": TREATED_MODE if treated_arm else CONTROL_MODE,
         "paired_factor_changed_fields": changed_fields,
+        "paired_factor_gate": gate_status,
         "transformed_manifest_sha256": evidence.manifest_sha256 if evidence else None,
         "pool_frames": len(rows),
     }, indent=2))
@@ -373,6 +393,7 @@ def run(config_path):
                   "arm": TREATED_MODE if treated_arm else CONTROL_MODE,
                   "tone_consistency_weight": cfg.tone_consistency_weight,
                   "paired_factor_changed_fields": changed_fields,
+                  "paired_factor_gate": gate_status,
                   "coverage": coverage.checkpoint_payload()}
         (out / "result.json").write_text(json.dumps(result, indent=2, allow_nan=False))
         print(json.dumps({key: value for key, value in result.items() if key != "coverage"}), flush=True)

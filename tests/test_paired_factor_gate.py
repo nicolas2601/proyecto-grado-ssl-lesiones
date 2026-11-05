@@ -78,6 +78,41 @@ def test_a_missing_tone_weight_in_the_treated_arm_is_not_silently_accepted():
         validate_paired_factor(control, treated)
 
 
+def test_checkpoint_cadence_may_differ():
+    """Cada cuanto se persiste el estado no cambia un gradiente ni un batch.
+
+    Una corrida que escribe cada 500 pasos y otra que solo escribe al final
+    computan lo mismo. Mantenerlos en la comparacion hizo fallar una sonda por
+    un motivo que no tiene nada que ver con atribuibilidad.
+    """
+    control, treated = _arms()
+    control["checkpoint_every_steps"] = 500
+    treated["checkpoint_every_steps"] = 0
+    control["checkpoint_fractions"] = [0.1, 0.25, 0.5, 1.0]
+    treated["checkpoint_fractions"] = [1.0]
+    validate_paired_factor(control, treated)
+
+
+def test_derived_values_are_not_compared_as_configuration():
+    """world_size y effective_lr son salidas que una corrida reporta, no entradas.
+
+    Compararlas significa comparar el reporte de una corrida terminada contra
+    una configuracion que todavia no produjo ninguno: una diferencia falsa.
+    """
+    control, treated = _arms()
+    control["world_size"] = 1
+    control["effective_lr"] = 7.8125e-06
+    # El brazo tratado no los declara todavia; no puede ser un segundo factor.
+    validate_paired_factor(control, treated)
+
+
+def test_a_real_learning_rate_input_divergence_still_fails():
+    """Excluir los derivados no puede esconder una divergencia real de sus insumos."""
+    control, treated = _arms(batch_size_per_gpu=32)
+    with pytest.raises(PairedFactorError, match="batch_size_per_gpu"):
+        validate_paired_factor(control, treated)
+
+
 def test_output_dir_may_differ():
     """Donde escribe un brazo no cambia lo que computa."""
     control, treated = _arms()
