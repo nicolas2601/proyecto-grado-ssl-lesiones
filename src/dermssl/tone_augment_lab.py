@@ -355,13 +355,32 @@ def summarize_augmentation_records(records: list[dict]) -> dict:
         values = [abs(float(r[key])) for r in applied if r.get(key) is not None]
         return float(np.max(values)) if values else None
 
+    def _abs_mean(key: str) -> float | None:
+        values = [abs(float(r[key])) for r in applied if r.get(key) is not None]
+        return float(np.mean(values)) if values else None
+
     return {
         "images": total,
         "transformed": len(applied),
         "transformed_fraction": (len(applied) / total) if total else 0.0,
         "fallbacks_by_reason": reasons,
         "capped": sum(1 for r in applied if r.get("ita_delta_capped")),
-        "ita_delta_applied_abs_mean": _mean("ita_delta_applied"),
+        # Two numbers, because one of them was wearing the other's name until
+        # 2026-11-04. The field used to be published as
+        # ``ita_delta_applied_abs_mean`` while computing a SIGNED mean, which on
+        # the real pool read 0.0201 and invited the conclusion that the
+        # transformation does almost nothing - on a run whose individual rows
+        # carry ita_delta of 19.73 and whose delta_b reaches 12.54. The signed
+        # mean is near zero because the shifts are symmetric by design, which is
+        # evidence the sampler is unbiased, not evidence of a weak dose.
+        #
+        # Both are kept and correctly named: the signed mean shows the sampler
+        # is centred, the absolute mean shows the typical magnitude actually
+        # applied. Manifests written before this date carry only the old key
+        # with the signed value; do not compare them across the rename.
+        "ita_delta_applied_mean": _mean("ita_delta_applied"),
+        "ita_delta_applied_abs_mean": _abs_mean("ita_delta_applied"),
+        "ita_delta_applied_abs_max": _abs_max("ita_delta_applied"),
         "delta_l_requested_mean": _mean("delta_l_requested"),
         "delta_l_realized_mean": _mean("delta_l_realized"),
         "delta_l_realized_abs_max": _abs_max("delta_l_realized"),

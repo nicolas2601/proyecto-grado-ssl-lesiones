@@ -142,11 +142,39 @@ sin autorizacion.
    el brazo tratado entrenara sobre un conjunto distinto al de su control. Pero
    significa que el 1,25 % del brazo tratado no recibe tratamiento, y eso
    diluye el efecto medido. Hay que reportarlo con el delta, no esconderlo.
-3. **`ita_delta_applied_abs_mean: 0.0201` esta mal nombrado.** Es una media con
-   signo, no de valores absolutos: filas individuales traen `ita_delta 19.73` y
-   `delta_b_requested_mean` es 0.010 con `delta_b_realized_abs_max` 12.54. Leido
-   literal, el campo sugiere que la transformacion no hace casi nada, y es
-   falso. **No citar esa cifra** hasta renombrar el campo.
+3. **`ita_delta_applied_abs_mean: 0.0201` estaba mal nombrado, y la cifra real
+   es 620 veces mayor.** Corregido el 2026-11-04 (`src/dermssl/tone_augment_lab.py`):
+   el campo calculaba una media **con signo** bajo un nombre que prometia
+   valores absolutos. Medido sobre los manifiestos ya materializados, sin
+   re-materializar nada:
+
+   | semilla | publicado como `abs_mean` | media con signo real | media **absoluta** real | max abs |
+   |---|---:|---:|---:|---:|
+   | s42 | 0.0201 | 0.0201 | **12.4757** | 24.9999 |
+   | s43 | −0.1601 | −0.1601 | **12.4775** | 24.9972 |
+   | s44 | −0.0751 | −0.0751 | **12.5248** | 24.9998 |
+
+   **La dosis aplicada es de 12,48 grados de ITA**, no 0,02. Y las tres semillas
+   son coherentes entre si: mediana absoluta ~= media absoluta ~= 12,5, que es
+   exactamente la mitad del tope `max_abs_ita_delta 25.0`, o sea una
+   distribucion uniforme sobre +-25 tal como el diseno pedia. La media con signo
+   cerca de cero **prueba que el muestreador no esta sesgado**; no es una dosis
+   debil.
+
+   Leer el campo viejo literal habria llevado a afirmar que la transformacion es
+   inerte, sobre una corrida que desplaza 12,5 grados de media. **La cifra
+   `0.0201` queda retirada**; usar `ita_delta_applied_abs_mean` solo en
+   manifiestos posteriores al 2026-11-04, que ahora reportan las tres cifras con
+   nombres honestos (`_mean` con signo, `_abs_mean`, `_abs_max`).
+
+6. **El motivo de abstencion se aplanaba bajo una sola etiqueta.** Corregido en
+   `tone_augment_pairs.py`: `fallback_reason` estaba fijo en `ineligible_mask`
+   sin importar la causa. Las 421 del pool son `degenerate_area`, fallos del
+   teacher 026 **propio** (381 con mascara bajo el 1 % del area, algunas vacias;
+   40 por encima del 90 %; **cero** por baja confianza, con confianza mediana
+   0.8963). Una imagen sin mascara seria `missing_mask`. Son hallazgos distintos
+   —uno es un defecto medible de nuestro segmentador, el otro una imagen que
+   nunca paso por el— y aplanarlos dejaba la dilucion sin atribuir.
 4. **72 % de las imagenes tienen inversion de signo en b\***
    (`images_with_b_sign_flip: 24276` de 33.620). Consistente con la asimetria ya
    trazada a los signos acoplados de Corbin y su umbral analitico
