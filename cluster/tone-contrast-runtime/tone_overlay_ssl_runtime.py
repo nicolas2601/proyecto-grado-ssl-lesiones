@@ -357,8 +357,26 @@ def run(config_path):
     status, final = "FAILED", None
     random.seed(cfg.seed)
     np.random.seed(cfg.seed)
+    real_collect_images = config_mod.collect_images
+
+    def collect_for(root):
+        """Pin the pool only for the ORIGINAL root; sweep normally elsewhere.
+
+        The original wrapper patches this with a constant, which is correct for
+        the control: ``collect_images`` is called once, on ``image_root``. In the
+        paired mode it is called three times - on the original root, on the
+        transformed root inside ``_validate_transformed_paths``, and again for
+        the sampling plan. A constant makes the transformed sweep return the
+        ORIGINAL paths, and ``relative_to(transformed_root)`` then raises on the
+        first frame. A patch that ignores its argument is not a patch of this
+        function; it is a patch of a different one that happens to share a name.
+        """
+        if Path(root).resolve() == Path(cfg.image_root).resolve():
+            return ordered
+        return real_collect_images(root)
+
     patches = [
-        patch.object(config_mod, "collect_images", return_value=ordered),
+        patch.object(config_mod, "collect_images", side_effect=collect_for),
         patch.object(torch_loop.sampling_contract, "load_sampling_plan",
                      side_effect=lambda p, s, images: original_sampling(p, s, bind_sampling_ids(rows, images))),
         patch.object(config_mod, "effective_lr",
