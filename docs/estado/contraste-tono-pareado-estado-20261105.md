@@ -530,9 +530,29 @@ veces mayor, asi que una razon medida temprano **no describe el regimen de 6.000
 pasos**. Una sonda de 40 pasos lo confirmo: el metodo de calibracion no sirve,
 ni con 50 pasos ni con 40.
 
-Se eligio 1.0, el tope del rango que CIRCLe declara (`lambda in [0,1]`), porque
-el termino es una distancia coseno acotada en [0,2] y porque hay dos hipotesis
-abiertas de sub-dosificacion (3.6 y esta). **Y la corrida real lo valida:**
+**CORRECCION DE ATRIBUCION, 2026-11-05.** Al elegir el peso se dijo que 1.0 era
+"el tope del rango que CIRCLe declara (`lambda in [0,1]`)". **Eso es un error de
+atribucion y `docs/estado/clf-paridad-p2bis.md` ya lo advertia:** el rango del
+paper esta calibrado contra la escala de una entropia cruzada supervisada y
+contra una distancia distinta, asi que **no es transferible**. Nuestro lever
+difiere de CIRCLe en cuatro puntos medibles:
+
+| | CIRCLe | este lever |
+|---|---|---|
+| termino | `norm(r - r')^2`, L2 al cuadrado (ec. 4) | `1 - cos(h_tono, h_original.detach())` |
+| simetria | la ec. 4 es simetrica | lleva `.detach()` en el original |
+| perdida base | entropia cruzada **supervisada** (ec. 2) | SSL **sin etiquetas** |
+| transformacion | Skin Color Transformer StarGAN, FST destino al azar | colorimetrica en CIELAB, `lab_l_b_feathered_v1` |
+
+CIRCLe es el **antecedente conceptual**, no la linea base de comparacion. Y la
+transformacion se parece mas a la mezcla sintetica de **Corbin y Marques** que a
+la de CIRCLe. **Sus magnitudes de efecto tampoco son transferibles**, asi que no
+sirven para decidir si nuestro delta es grande o chico.
+
+**La justificacion que SI se sostiene es la medida, y no necesita el paper.**
+Se eligio 1.0 porque el termino es una distancia coseno acotada en [0,2], porque
+hay dos hipotesis abiertas de sub-dosificacion (3.6 y esta), y sobre todo porque
+**la corrida real lo valida:**
 `lever_tone_consistency` se registra por separado y vale **0,04608** a paso 250,
 con `ssl_loss −0,02453`. La aritmetica cierra exacta contra `total_loss`
 (−0,02453 + 0,04608 + 0,00359 = 0,02514). Como la base crece hasta ~−0,85, el
@@ -564,6 +584,76 @@ Y una falsa alarma propia, atrapada a tiempo: se proyecto que el tratado
 tardaria 3,7 h **extrapolando desde un solo punto** inflado por el arranque. Con
 cinco muestras la proyeccion es 1,87 h. Casi se reinicio una corrida sana. Un
 punto no es una tendencia.
+
+## 3.11 Predeclaracion de lectura, escrita ANTES de que exista el delta
+
+Escrita el 2026-11-05 con los dos brazos a mitad de corrida y **ningun numero de
+clasificacion disponible**. Existe para que la interpretacion no se elija
+despues de ver el resultado.
+
+Continua y no reemplaza la predeclaracion de `impl` del 2026-11-02
+(`docs/estado/clf-contraste-ab-corridas.md`), que fija la estratificacion por
+fragmentacion de mascara. **Esa sigue vigente tal cual.**
+
+### Lo que la literatura licencia, y lo que no
+
+| fuente | que dice | que licencia aca |
+|---|---|---|
+| **CIRCLe** (Pakzad et al. 2022) | `L_total = L_cls + lambda*L_reg`, regularizador de consistencia entre original y sintetica | **Solo el concepto.** Cuatro diferencias medibles (ver 3.10): coseno contra L2, `.detach()` contra simetria, SSL contra supervisado, CIELAB contra StarGAN. **Ni su rango de lambda ni sus magnitudes de efecto son transferibles** |
+| **Corbin y Marques 2023** (IEEE Access 11:78339) | eqs. 8-9, `delta_b = +t*0.50`, `delta_l = -t*0.12`, signos acoplados | **La transformacion misma.** Es el antecedente real de `lab_l_b_feathered_v1`, mas que CIRCLe. Y explica la asimetria medida: umbral analitico `b*_inicial < 5 + 0.50*abs(t)` |
+| **Bencevic 2024** (CMPB 245:108044) | la conversion a CIELAB **fallo** como mitigacion de sesgo | **Es el antecedente negativo mas cercano y hay que citarlo si salimos negativos.** Nuestra via no es la suya —transformamos dentro de Lab, no convertimos el espacio de entrada— pero un nulo nuestro seria *consistente* con su resultado, no una sorpresa |
+| **Alipour, Burke y Courtney 2026** (*Skin Res Technol* 32:e70374) | ITA de umbral fijo: 22,9 % de exactitud contra base trivial de 51,3 % | **Sostiene que el ITA no se use como medicion de fototipo**, que es la decision ya tomada. No dice nada sobre usarlo como unidad de parametrizacion |
+
+**Consecuencia incomoda que conviene escribir ahora:** el antecedente mas
+cercano a lo que hacemos, Bencevic, **es negativo**. Si nuestro delta sale nulo,
+eso no refuta el pipeline: lo pone en la misma direccion que la unica evidencia
+publicada comparable. Lo que seria novedoso es un delta **positivo**.
+
+### Que cuenta como validado
+
+El desenlace principal es el delta pareado de macro-F1 en el **conjunto
+completo** (1.134 PAD / 1.528 HAM), tratado menos control, misma semilla, mismo
+lector, mismas semillas de validacion cruzada.
+
+1. **Positivo y consistente en los dos datasets.** La linea queda validada y se
+   corre el pipeline completo con las tres semillas. Siguiente experimento:
+   respuesta a la dosis, que ya pasa de hipotesis a fortalecimiento (3.8).
+2. **Positivo en uno y nulo en el otro.** NO es validacion. PAD y HAM difieren
+   en modalidad (clinica de celular contra dermatoscopia) y en la cola de
+   fragmentacion de mascara (22,9 % contra 4,8 %). Un positivo solo en PAD es
+   mas facil de explicar por la mascara que por el tono.
+3. **Nulo en los dos.** Primera hipotesis a probar: **sub-dosificacion**, por
+   las dos vias medidas (dosis tonal 12,48 grados sobre 70,1 alcanzables, y peso
+   convergiendo a ~5,4 % de la perdida base). Es el criterio de reingreso del
+   corte 2 y ya esta escrito.
+4. **Negativo en los dos.** Ahi entra la estratificacion de `impl`: si el
+   subconjunto de mascaras limpias es neutro o positivo, **el fallo es
+   atribuible a la mascara y no al metodo**, y la decision siguiente es si hace
+   falta un segmentador adaptado al dominio. Si el estratificado tambien es
+   negativo, la hipotesis pasa al metodo y Bencevic 2024 es la cita.
+
+### Lo que NO se va a hacer con el resultado
+
+- **No se va a leer el subconjunto estratificado como el resultado.** Es
+  sensibilidad preespecificada. Un delta positivo solo sobre mascaras limpias es
+  evidencia de que funcionaria con un segmentador que no tenemos.
+- **No se va a comparar el delta contra las magnitudes de CIRCLe.** No son
+  transferibles, por las cuatro diferencias de 3.10.
+- **No se va a reportar el delta sin la dilucion al lado.** 34.315 de 34.754
+  transformadas, 98,74 %; los 439 restantes separados por causa (421
+  `degenerate_area` de `source_fit`, 18 de `pad_adapt`).
+- **No se va a declarar nada con una sola semilla.** Esta corrida es s42. Las
+  tres semillas estan materializadas (s42/s43/s44) y el pipeline completo las
+  usa; un delta de una semilla es una señal, no un resultado.
+
+### Problema abierto que esta corrida NO resuelve
+
+El modo pareado solo corre sobre **SimSiam** (`config.SIMSIAM_METHODS`), que es
+el peor de los tres encoders medidos (PAD 0,5973 contra 0,6438 de MoCo-v3). Asi
+que incluso un delta positivo se mide sobre el backbone mas debil. Extenderlo a
+MoCo-v3 requiere decidir **contra cual rama** se compara la vista transformada
+—encoder o encoder de momentum— y eso es diseno, no un parche. Decidido con
+Maria Paula: lo hacemos nosotros, despues de esta medicion.
 
 ## 4. El gate, resuelto el 2026-11-05 (`2b538df`)
 
