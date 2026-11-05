@@ -175,6 +175,92 @@ presentarlo como tal sería faltar a la verdad.
 
 ---
 
+## 5-bis. Lo que no estábamos viendo: la línea base ya contiene la intervención
+
+Encontrado el 2026-11-05 después de que María Paula insistiera en que faltaba
+algo. **Es la explicación más profunda que tenemos, y es medida.**
+
+El control corre con `color_constancy_probs = identity:0.4, gray_world:0.3,
+shades_of_gray:0.3`. Esos dos últimos son **algoritmos de constancia de color**,
+y el docstring de `pretrain/color_constancy.py` declara su propósito sin
+ambigüedad:
+
+> *"v6 applies it STOCHASTICALLY and INDEPENDENTLY to each view of an SSL pair.
+> The encoder then cannot rely on illuminant color to match views, so it is
+> pushed to **become invariant to the dermatoscope's lighting**"*
+
+Es la **novedad 2** de la tesis. Y la línea tonal ataca **el mismo eje**:
+invariancia a cambios globales de color. `gray_world` escala cada canal para
+igualar sus medias, que es exactamente deshacer un tinte global — y nuestro
+desplazamiento en `b*` es, a primer orden, un tinte global.
+
+### Cuánto del tratamiento sobrevive, medido
+
+100 imágenes con `|ita_delta| > 8`, midiendo el `b*` mediano antes y después:
+
+| | `delta_b` mediana absoluta | **fracción que sobrevive** |
+|---|---:|---:|
+| sin normalizar | 7,2461 | 1,000 |
+| `gray_world` | 0,6184 | **0,0877** |
+| `shades_of_gray` | 0,3674 | **0,0515** |
+
+**La constancia de color destruye entre el 91 % y el 95 % del desplazamiento.**
+Promediando sobre la distribución de aumentos del control:
+
+```
+0,40 x 1,000 + 0,30 x 0,0877 + 0,30 x 0,0515 = 0,44
+```
+
+**El tratamiento se entrega al ~44 % de su fuerza**, y en el 60 % de los pasos
+el término de tono compara dos imágenes que la normalización ya volvió casi
+idénticas: trivialmente satisfacible, no aporta nada.
+
+### Un confound que NO existe, y conviene decirlo
+
+Se sospechó que las dos vistas podían recibir sorteos independientes de
+constancia de color, lo que haría que el término midiera la elección del aumento
+en vez del tono. **Es falso.** `torch_data._with_tone_view` rebobina el estado
+aleatorio a propósito:
+
+```python
+torch_state, rng_before = torch.get_rng_state(), copy.deepcopy(rng)
+view1 = _finish_view(self.geometric(original_img), rng, self.cc_probs, ...)
+torch.set_rng_state(torch_state)
+tone  = _finish_view(self.geometric(transformed_img), rng_before, self.cc_probs, ...)
+```
+
+La vista tonal replica el mismo recorte, los mismos volteos **y la misma
+elección de constancia de color**. Quien lo escribió previno exactamente ese
+problema. El efecto es dilución, no contaminación.
+
+### Lo que esto explica de una sola vez
+
+1. Por qué los rasgos casi no se mueven (coseno mediana 0,990): el
+   desplazamiento se normaliza casi entero antes de llegar al encoder.
+2. Por qué el regularizador con contrapeso da cero: no hay varianza tonal que
+   quitar, ya la quitó la línea base.
+3. Por qué en SSL hace daño: añade presión sobre un eje **ya saturado** por la
+   novedad 2, y lo poco que toca resulta ser información útil.
+
+### El experimento que sigue, lanzado el 2026-11-05
+
+**Contraste con `color_constancy_probs = identity:1.0` en LOS DOS brazos.**
+Brazos `ctrl_nocc_s42_6000` y `tono_nocc_w1_s42_6000`.
+
+- Elimina la dilución del 60 %: el tratamiento se entrega completo por primera
+  vez.
+- Es un cambio de un solo factor en la **línea base compartida**, así que el
+  contraste sigue limpio y `paired_factor_gate` lo sigue validando.
+
+**Costo que se declara, no se esconde:** quitar la constancia de color le saca a
+la línea base la novedad 2, así que ese control es **otro** control y más débil.
+El delta sigue siendo internamente válido, pero **sus números absolutos no son
+comparables con v7** ni con los brazos de la sección 1.
+
+Si a fuerza plena también sale negativo, la conclusión se vuelve sólida **y
+además explicada**: no es que el método no se probó bien, es que el eje ya
+estaba cubierto por otra pieza del propio diseño.
+
 ## 6. Lo que falta medir, en orden
 
 1. **La brecha por tono, sobre DDI.** Es la hipótesis real de la línea y no se
