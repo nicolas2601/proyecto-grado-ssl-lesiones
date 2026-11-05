@@ -30,12 +30,29 @@ from __future__ import annotations
 # Fields that may differ between the control and the treated arm. These are the
 # transform itself and the provenance that describes it - nothing that changes
 # optimization, data order, or model capacity.
+#
+# ``tone_consistency_weight`` is here, added 2026-11-05, and it is the one entry
+# that needs an argument rather than being self-evident. It is a loss weight, so
+# at first reading it belongs to optimization and should be excluded. It is not,
+# for a structural reason: ``levers.Levers.validate`` refuses any value above
+# zero unless ``adaptation_mode`` is already the treated mode. The weight cannot
+# vary independently of a field that is in this set, and in the control arm it
+# cannot be anything but zero. It is the dose of the treatment, not a second
+# factor, and the contrast is impossible without it differing - the control
+# cannot carry a nonzero weight and the treated arm cannot carry a zero one
+# without the term being inert.
+#
+# The alternative considered and rejected was relaxing ``levers`` so the weight
+# could sit nonzero and inactive in the control. That keeps the two configs
+# textually identical at the cost of recording a number that did not describe
+# what ran, which is the failure mode this module exists to prevent.
 TREATMENT_FIELDS = frozenset(
     {
         "adaptation_mode",
         "transformed_image_root",
         "transformed_manifest_path",
         "transformed_data_revision",
+        "tone_consistency_weight",
     }
 )
 
@@ -90,6 +107,25 @@ def validate_paired_factor(control: dict, treated: dict) -> set[str]:
     if control.get("transformed_image_root"):
         raise PairedFactorError(
             "el brazo control declara transformed_image_root; entonces no es un control"
+        )
+
+    # Admitting tone_consistency_weight into TREATMENT_FIELDS opens a hole this
+    # closes: with the weight merely allowed to differ, both arms could carry
+    # zero and the treated arm would pay for the transformed views while the
+    # term that is supposed to use them stays inert. The contrast would pass
+    # every check and measure nothing.
+    control_weight = float(control.get("tone_consistency_weight") or 0.0)
+    treated_weight = float(treated.get("tone_consistency_weight") or 0.0)
+    if control_weight != 0.0:
+        raise PairedFactorError(
+            f"el brazo control declara tone_consistency_weight={control_weight}; "
+            "en el control el termino de tono no existe y el peso debe ser cero"
+        )
+    if treated_weight <= 0.0:
+        raise PairedFactorError(
+            "el brazo tratado declara tone_consistency_weight="
+            f"{treated_weight}; con peso cero el termino de tono es inerte y el "
+            "contraste no mediria el tratamiento"
         )
 
     changed = _differing(control, treated)
