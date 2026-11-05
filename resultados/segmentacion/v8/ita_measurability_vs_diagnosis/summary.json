@@ -1,0 +1,84 @@
+{
+  "cohorts": [
+    {
+      "cohort": "HAM10000 via tone_stratified_eval",
+      "measurable_fraction": 0.42664670658682635,
+      "n_full": 2004,
+      "n_measurable": 855,
+      "nevus_share_full": 0.6691616766467066,
+      "nevus_share_measurable": 0.8514619883040936,
+      "readings": {
+        "primary_with_akiec": {
+          "classes": [
+            "akiec",
+            "bcc",
+            "mel"
+          ],
+          "measurable_negative": 770,
+          "measurable_positive": 85,
+          "odds_ratio": 0.3041125541125541,
+          "p_value": 9.249407606485107e-22,
+          "positive_rate_measurable": 0.09941520467836257,
+          "positive_rate_unmeasurable": 0.26631853785900783,
+          "unmeasurable_negative": 843,
+          "unmeasurable_positive": 306
+        },
+        "strict_without_akiec": {
+          "classes": [
+            "bcc",
+            "mel"
+          ],
+          "measurable_negative": 789,
+          "measurable_positive": 66,
+          "odds_ratio": 0.2874465992336715,
+          "p_value": 3.4403783437699707e-20,
+          "positive_rate_measurable": 0.07719298245614035,
+          "positive_rate_unmeasurable": 0.22541340295909487,
+          "unmeasurable_negative": 890,
+          "unmeasurable_positive": 259
+        }
+      },
+      "source": "resultados/segmentacion/v8/tone_stratified_eval/summary.json"
+    },
+    {
+      "by_area_tercile": {
+        "0": {
+          "positive_rate_measurable": 0.06349206349206349,
+          "positive_rate_unmeasurable": 0.125
+        },
+        "1": {
+          "positive_rate_measurable": 0.14473684210526316,
+          "positive_rate_unmeasurable": 0.19672131147540983
+        },
+        "2": {
+          "positive_rate_measurable": 0.18823529411764706,
+          "positive_rate_unmeasurable": 0.38392857142857145
+        }
+      },
+      "caveat": "Condicional al 39,6 % del pool que trae etiqueta, no al pool completo. Asi lo declara el propio reporte y asi hay que citarlo.",
+      "cohort": "ISIC2019 SSL pool via pool_tone_eligibility",
+      "label_coverage_fraction": 0.396,
+      "measurable_rate": 0.5353333333333333,
+      "n_total": 1500,
+      "reading": {
+        "measurable_negative": 193,
+        "measurable_positive": 31,
+        "odds_ratio": 0.5468788551690106,
+        "p_value": 0.009907860139091326,
+        "positive_rate_measurable": 0.13839285714285715,
+        "positive_rate_unmeasurable": 0.22702702702702704,
+        "unmeasurable_negative": 286,
+        "unmeasurable_positive": 84
+      },
+      "reported_odds_ratio": 0.5468788551690106,
+      "reported_p_value": 0.009907860139091326,
+      "source": "resultados/segmentacion/v8/pool_tone_eligibility/summary_pool_real_isic2019.json"
+    }
+  ],
+  "direction_replicates": true,
+  "isic_recomputation_agreement": {
+    "odds_ratio_matches_upstream": true,
+    "p_value_matches_upstream": true
+  },
+  "question": "La medibilidad del ITA depende de la clase diagnostica? Si depende, toda metrica de equidad por tono que abstenga sobre lo no medible describe una poblacion distinta de la que el lector supone."
+}
