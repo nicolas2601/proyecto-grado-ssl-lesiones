@@ -37,6 +37,8 @@ ruff>=0.6
 # skipped for a missing import, which CI_REQUIRE_FULL_DEPS turns into a failure.
 opencv-python-headless==4.10.0.84
 imagehash>=4.3
+# Confusion-matrix rendering test; CI rejects missing-import skips.
+matplotlib>=3.9,<4
 
 # Demo backend API tests (tests/test_demo_api.py); same floors as demo/requirements.txt.
 fastapi>=0.115

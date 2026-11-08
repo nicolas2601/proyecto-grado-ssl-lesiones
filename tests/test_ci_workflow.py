@@ -91,6 +91,18 @@ def test_requirements_dev_pins_scikit_learn():
     assert "scikit-learn" in text
 
 
+def test_ci_checks_missing_imports_from_the_same_single_suite_run(ci):
+    assert len(re.findall(r"^\s*pytest[^\n]*--dist loadfile", ci, re.M)) == 1
+    guard = ci.split("- name: Fail if any test was skipped for a missing dependency", 1)[1].split("\n  generated:", 1)[0]
+    assert not re.search(r"^\s*pytest\b", guard, re.M)
+    assert 'grep -qi "could not import" /tmp/pytest.log' in guard
+
+
+def test_requirements_dev_includes_the_confusion_plot_dependency():
+    text = (REPO / "requirements-dev.txt").read_text()
+    assert re.search(r"^matplotlib[>=]", text, re.M)
+
+
 def test_requirements_dev_does_not_hardcode_a_test_count():
     """`266 passed` in a comment is stale the moment a test is added - the same
     rot that hit the result tables and the checkpoint table."""
