@@ -128,6 +128,19 @@ class PlainDinov2(nn.Module):
             x = layer(x)
         return self.layernorm(x)[:, 0]
 
+    def forward_cls4(self, pixels: torch.Tensor) -> torch.Tensor:
+        """Concatenate normalized CLS tokens from the final four blocks."""
+        x = self.embeddings(pixels)
+        depth = len(self.encoder.layer)
+        if depth < 4:
+            raise ValueError("CLS4 requires at least four encoder layers")
+        features = []
+        for index, layer in enumerate(self.encoder.layer):
+            x = layer(x)
+            if index >= depth - 4:
+                features.append(self.layernorm(x)[:, 0])
+        return torch.cat(features, dim=-1)
+
 
 class Classifier(nn.Module):
     """Backbone CLS -> fused linear head -> softmax."""
