@@ -1,0 +1,11 @@
+Hola Pau,
+
+Te dejo la tabla de desarrollo para PAD6 y HAM7 y una nota que reconstruye E01. La propuesta actual de V10 es MoCo-v3-style sobre DINOv2 ViT-B/14, con cuota 12 imágenes de origen + 4 PAD y representación CLS4. SimSiam queda como antecedente/comparador; el nombre `simsiam_dinov2_backbone_final.pt` en los archivos antiguos no identifica el método realmente ejecutado.
+
+Las métricas propuestas son PAD macro-F1 0,674628 y HAM 0,620537. Cada media resume tres encoders entrenados por separado y tres repeticiones de CV agrupada por encoder; no es un ensemble ni el resultado de un lector final ajustado sobre toda la cohorte. PAD6 conserva ACK, BCC, MEL, NEV, SCC y SEK; HAM7 conserva akiec, bcc, bkl, df, mel, nv y vasc. No se cruzan ni se fusionan las ontologías.
+
+Mira con cuidado el soporte bajo: MEL en PAD son 27 imágenes / 18 grupos; `df` en HAM, 18 / 6. SCC también tiene recall bajo. Los máximos por clase de la tabla son descriptivos, no pruebas de significancia. PAD es transductivo y HAM corresponde a desarrollo expuesto a selección; no se abrieron el holdout sellado de HAM ni `target_test` de PAD. No son resultados de validación clínica.
+
+E01 se recuperó como MoCo, aunque el nombre de checkpoint diga SimSiam. La nota describe sus dos vistas, objetivo contrastivo, cuota, extracción CLS4 y lector, y separa sus resultados de semilla 42 de la media V10 de tres semillas. La tabla y la nota son evidencia de desarrollo; V10 sigue pendiente de empaquetado y verificación del release/API. La disponibilidad observada de GPU no reserva capacidad futura.
+
+Archivos: `resultados/clasificacion/v10/README.md`, `docs/41-moco-proposed-release-v10.md` y `docs/42-moco-e01-for-pau.md`.

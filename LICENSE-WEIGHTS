@@ -1,9 +1,11 @@
 Model weights license notice
 
-Scope: the trained model files of this project and of its releases - the
+Scope: the trained model files of this project and its releases - the
 backbone and head weights (hf/model.safetensors, hf/head.safetensors) and the
-exported classifiers (onnx/*.onnx) of the v7 skin-lesion models. The source
-code is licensed separately under the Apache License 2.0 (see LICENSE).
+exported classifiers (onnx/*.onnx) of the v7 skin-lesion models, and any V10
+model weights/classifiers if and when they are distributed. The V10 OOF tables
+are aggregate results, not model weights. The source code is licensed separately
+under the Apache License 2.0 (see LICENSE).
 
 The model weights are licensed under the Creative Commons
 Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0):
@@ -15,6 +17,9 @@ research artifact: not a medical device, and not to be used for diagnosis or
 any clinical decision. Provided "as is", without warranty of any kind.
 
 Why non-commercial: the weights derive from data licensed CC BY-NC 4.0.
+PAD-UFES-20 is separately licensed CC BY 4.0 and requires attribution; its
+license does not remove the non-commercial restriction arising from the other
+source datasets used by these weights.
 
 Attribution
 
@@ -36,3 +41,14 @@ Attribution
   Oquab M. et al. "DINOv2: Learning Robust Visual Features without
   Supervision" (2023), Meta Platforms, Inc. Code and weights licensed under
   the Apache License 2.0, https://github.com/facebookresearch/dinov2
+
+- PAD-UFES-20 (unlabeled SSL inputs and PAD6 reader data for the proposed V10
+  method). Pacheco A. G. C. et al. "PAD-UFES-20: a skin lesion dataset composed
+  of patient data and clinical images collected from smartphones." Mendeley
+  Data, v1, doi:10.17632/zr7vgbcyr2.1; article in Data in Brief 32 (2020)
+  106221, doi:10.1016/j.dib.2020.106221. Dataset and published article are
+  licensed CC BY 4.0: http://creativecommons.org/licenses/by/4.0. Credit the
+  authors, link the license, and indicate changes; do not imply endorsement.
+  V10 retains the PAD6 ontology as separate output labels and does not map them
+  to HAM10000 labels. No PAD-UFES-20 images are included in the generated tables
+  or this repository's proposed release outputs.

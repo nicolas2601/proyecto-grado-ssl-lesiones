@@ -2,7 +2,7 @@
 
 ## Nomenclatura de lectura
 
-**Proposed sin segmentación** clasifica sin usar una máscara de lesión. **Proposed con segmentación** combina imagen completa, recorte y descriptores de lesión; es una variante experimental, sin mejora robusta demostrada. El Modelo de control no es una tercera propuesta ni la versión segmentada.
+**Proposed sin segmentación** y **Proposed con segmentación** son nombres de la línea v7 descrita en sus registros históricos. La propuesta actual V10 es MoCo-v3-style sobre DINOv2 ViT-B/14; SimSiam queda como antecedente/comparador, no como método propuesto. El Modelo de control v7 tampoco es una tercera propuesta; la variante v7 con segmentación sigue siendo experimental y sin mejora robusta demostrada.
 
 Los experimentos de segmentación se identifican por arquitectura, origen de pseudo-máscaras y ronda de aprendizaje. Las rondas no son arquitecturas distintas; los identificadores antiguos se conservan solo donde permiten localizar archivos o reproducir comandos.
 
@@ -10,7 +10,7 @@ Ver [nombres, equivalencias y explicación para lectores técnicos y no técnico
 
 Una línea por documento, en orden numérico. La columna Estado indica si el documento es la referencia vigente o si otro lo reemplazó. Los superados se conservan sin editar, porque cuentan cómo se llegó al diseño actual.
 
-Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Rediseño v7](28-rediseno-brazo-propuesto-v7.md) y el [resultado v7](../resultados/clasificacion/v7/README.md). Para el cierre de lo que pidieron el profesor y Pau, con veredicto por regla: [tabla de cierre](../resultados/TABLA_CIERRE.md) (generada).
+Para la propuesta actual, empieza por [41 · V10 MoCo y resultados de desarrollo](41-moco-proposed-release-v10.md) y la [tabla PAD6/HAM7](../resultados/clasificacion/v10/README.md). Para entender la reconstrucción histórica solicitada por Pau, consulta [42 · E01 MoCo recuperado](42-moco-e01-for-pau.md). El [resultado v7](../resultados/clasificacion/v7/README.md) conserva el registro histórico. Para el cierre de lo que pidieron el profesor y Pau, con veredicto por regla: [tabla de cierre](../resultados/TABLA_CIERRE.md) (generada).
 
 | Doc | Tema | Estado |
 |---|---|---|
@@ -51,6 +51,8 @@ Para empezar: [27 · Plan v7](27-plan-v7-mejoras-ssl.md), después [28 · Redise
 | 32 | No existe: el número quedó sin usar. | — |
 | [33](33-banco-completo-multidataset.md) | Banco completo: todas las pruebas sobre HAM10000, ISIC 2019, ISIC 2020 y PAD-UFES-20 (pesos limpios, segmentación, matrices de confusión, tono). | Vigente |
 | [34](34-entorno-cluster.md) | Entorno del cluster: versiones y comandos para reproducir las corridas. | Vigente |
+| [41](41-moco-proposed-release-v10.md) | Propuesta MoCo V10, resultados OOF de desarrollo, procedencia y límites. | Propuesta; no publicada ni desplegada |
+| [42](42-moco-e01-for-pau.md) | Recuperación del protocolo histórico MoCo E01 y cómo interpretar sus resultados. | Histórico recuperado |
 
 Otros documentos:
 
@@ -62,6 +64,7 @@ Otros documentos:
 | [plan-segmentacion-sin-etiquetas.md](plan-segmentacion-sin-etiquetas.md) | Plan ejecutivo de pruebas de segmentación no supervisada por tono. |
 | [superpowers/plans/](superpowers/plans/) | Planes de ejecución. |
 | [figuras_analisis/](figuras_analisis/) | Figuras de análisis. |
+| [reply-Pau.txt](reply-Pau.txt) | Borrador en español para compartir la tabla y la nota E01 con Pau; no enviado. |
 
 ## Regla de actualización
 
