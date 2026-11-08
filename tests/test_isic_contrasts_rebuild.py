@@ -6,7 +6,6 @@ import dataclasses
 import json
 
 import numpy as np
-import pytest
 from test_isic_eval_runner import FakeExtractor, make_ds, run
 
 from dermssl import e3_store, run_environment

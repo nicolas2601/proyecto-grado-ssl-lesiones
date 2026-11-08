@@ -1,0 +1,12 @@
+FROM python@sha256:09a17cad02668ae61ece136b4fd36ac3849e14f670ebedb637ea3e15580525bc
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 HOME=/tmp OTEL_SDK_DISABLED=true
+COPY requirements-onnx.txt /tmp/requirements-onnx.txt
+RUN python -m pip install --no-cache-dir -r /tmp/requirements-onnx.txt
+COPY requirements-api.txt /tmp/requirements-api.txt
+RUN python -m pip install --no-cache-dir -r /tmp/requirements-api.txt
+WORKDIR /service
+COPY demo /service/demo
+ENV MOCO_RELEASE_ROOT=/models/v10 DEMO_V9_MODEL_DIR=/models/v9
+USER 65532:65532
+EXPOSE 3200
+ENTRYPOINT ["python", "-m", "uvicorn", "demo.backend.v10_app:app", "--host", "0.0.0.0", "--port", "3200"]

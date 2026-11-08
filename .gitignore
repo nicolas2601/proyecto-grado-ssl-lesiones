@@ -81,3 +81,7 @@ salidas/
 
 # The bench reads these epoch logs; a global *.log ignore once kept them out of the repo (see tests/test_bench_inputs_versioned.py)
 !resultados/banco_completo/ft_isic2020/logs/*.epochs.log
+
+# V10 private evidence cache; only aggregate generated tables are versioned.
+/results/moco-v10-evidence-inputs/
+!resultados/clasificacion/v10/*.csv

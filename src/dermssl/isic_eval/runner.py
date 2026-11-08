@@ -14,7 +14,6 @@ from pathlib import Path
 
 import numpy as np
 
-from dermssl import e3_store as store_mod
 from dermssl.isic_eval import evaluate as ev
 from dermssl.isic_eval import protocol as pr
 from dermssl.isic_eval import scoring

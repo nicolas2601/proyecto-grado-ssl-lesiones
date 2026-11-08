@@ -29,6 +29,7 @@ import v71_run  # noqa: E402
 from dermssl import c1_split_identity as si  # noqa: E402
 from dermssl import probe_threads  # noqa: E402
 from dermssl import selection_holdout as sh  # noqa: E402
+from dermssl.display_nomenclature import display_text  # noqa: E402
 from tests.release_helpers import tiny_hub_model  # noqa: E402
 
 CLASSES = ("akiec", "bcc", "bkl", "df", "mel", "nv", "vasc")
@@ -150,7 +151,7 @@ def test_rehearsal_reads_every_entry_and_contrast(ran):
     assert {(r["arm"], r["control"]) for r in doc["paired"]} >= {("A71", "public_A71")}
     import build_v71_table
 
-    assert "A* v7.1" in build_v71_table.render(doc)  # the table reads what the stage writes
+    assert display_text("A* v7.1") in build_v71_table.render(doc)  # the table reads what the stage writes
 
 
 def test_a_relaunch_skips_finished_units(pod, ran, capsys):

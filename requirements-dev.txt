@@ -37,6 +37,8 @@ ruff>=0.6
 # skipped for a missing import, which CI_REQUIRE_FULL_DEPS turns into a failure.
 opencv-python-headless==4.10.0.84
 imagehash>=4.3
+# Confusion-matrix rendering test; CI rejects missing-import skips.
+matplotlib>=3.9,<4
 
 # Release package of the v7 classifier (tests/test_release_*.py): safetensors
 # for the weight files, transformers for the Dinov2Model form, onnx +
@@ -44,7 +46,8 @@ imagehash>=4.3
 # Ranges with wheels for Python 3.11-3.13. Without them those modules skip on
 # a missing import, which CI_REQUIRE_FULL_DEPS turns into a failure.
 safetensors>=0.4.5,<1
-transformers>=4.45,<6
+# Verified HF DINOv2 state layout; 5.22 renamed attention/layer-scale keys.
+transformers==5.17.0
 onnx>=1.17,<2
 onnxruntime>=1.20,<2
 onnxconverter-common>=1.16,<2

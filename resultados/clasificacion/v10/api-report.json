@@ -1,0 +1,2255 @@
+{
+  "caveats": [
+    "OOF table means average three independently trained MoCo encoders and three CV repetitions per encoder; they are not an ensemble or final-reader metrics.",
+    "Final HAM7/PAD6 readers were refit on all authorized development data; no independent score is claimed for those fitted heads.",
+    "PAD is transductive; HAM development was selection-exposed. Sealed HAM holdout and PAD target_test were not accessed.",
+    "The legacy baseline method identity is unverified; the frozen SimSiam R50 result is architecture-context only.",
+    "Model-package hashes and portable/API parity are recorded in the separate bundle manifest and release-validation evidence, not inferred from this OOF table.",
+    "Research only; not a medical device and not for diagnosis or clinical decisions."
+  ],
+  "classification": {
+    "HAM": {
+      "classes": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "nv",
+        "vasc"
+      ],
+      "records": [
+        {
+          "accuracy": 0.7608347876672483,
+          "auc_ovr_macro": 0.9367372943936656,
+          "balanced_accuracy": 0.6358007491928055,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.42102029048019685,
+              "precision": 0.39602117824304717,
+              "recall": 0.4508547008547008,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.7119655790513585,
+              "precision": 0.6578197076171659,
+              "recall": 0.7764227642276423,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5695808136382294,
+              "precision": 0.529827572798993,
+              "recall": 0.6159280667951188,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.4601633927304426,
+              "precision": 0.6522045855379188,
+              "recall": 0.3580246913580247,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.4688737376746938,
+              "precision": 0.41549939073895253,
+              "recall": 0.5384615384615384,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8835408729265724,
+              "precision": 0.9292527783972118,
+              "recall": 0.8422266139657444,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.8286156741461453,
+              "precision": 0.7996840867601102,
+              "recall": 0.8686868686868687,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.03512563138889369,
+          "macro_f1": 0.6205371943782341,
+          "method": "MoCo quota4 CLS4 (proposed)",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.745564281559046,
+          "auc_ovr_macro": 0.929795401397468,
+          "balanced_accuracy": 0.6315462110655481,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.3693243305896515,
+              "precision": 0.3336580339781637,
+              "recall": 0.41452991452991456,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.7418224278284807,
+              "precision": 0.682548892299225,
+              "recall": 0.8130081300813008,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5265943824594783,
+              "precision": 0.4865664026513365,
+              "recall": 0.5741811175337186,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.47666388579903596,
+              "precision": 0.6058608058608059,
+              "recall": 0.3950617283950617,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.4533788648555881,
+              "precision": 0.4002681807463246,
+              "recall": 0.5233399079552926,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8752698318871114,
+              "precision": 0.9296866313420461,
+              "recall": 0.8269653052261748,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.7709590284349064,
+              "precision": 0.6934750559078515,
+              "recall": 0.8737373737373737,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.04178940359763413,
+          "macro_f1": 0.6020018216934646,
+          "method": "MoCo M0 CLS",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7569080860965678,
+          "auc_ovr_macro": 0.9357488969787054,
+          "balanced_accuracy": 0.6302718836416308,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.42386846498611613,
+              "precision": 0.39263506132593623,
+              "recall": 0.46153846153846156,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.7180391604302095,
+              "precision": 0.672155031648855,
+              "recall": 0.7723577235772358,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5673522541845092,
+              "precision": 0.5215059019427785,
+              "recall": 0.6223506743737958,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.4433291697659514,
+              "precision": 0.6281144781144782,
+              "recall": 0.345679012345679,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.4631851293571932,
+              "precision": 0.4120819028034299,
+              "recall": 0.5292570677186061,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8802397962089722,
+              "precision": 0.9280174042201964,
+              "recall": 0.8372859025032938,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.7839131537146266,
+              "precision": 0.7348975842304178,
+              "recall": 0.8434343434343434,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.03413731799629387,
+          "macro_f1": 0.6114181612353683,
+          "method": "MoCo M0 CLS4",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7569808027923212,
+          "auc_ovr_macro": 0.9330708102824504,
+          "balanced_accuracy": 0.6227624943157128,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.41300425787524064,
+              "precision": 0.38073937517551976,
+              "recall": 0.45299145299145294,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.7237590966349722,
+              "precision": 0.6775603840618563,
+              "recall": 0.7777777777777778,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5639494072261315,
+              "precision": 0.5313027641373039,
+              "recall": 0.6011560693641619,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.39014560010728594,
+              "precision": 0.5562850729517396,
+              "recall": 0.30246913580246915,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.45709942021149774,
+              "precision": 0.4130600298120011,
+              "recall": 0.5121630506245891,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8811252647681105,
+              "precision": 0.9216818622141444,
+              "recall": 0.8440931049626701,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.7459531986842911,
+              "precision": 0.6555751046172502,
+              "recall": 0.8686868686868687,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.05012862249886459,
+          "macro_f1": 0.5964337493582186,
+          "method": "MoCo M0 CLS plus patch mean",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.747891215823153,
+          "auc_ovr_macro": 0.9309561152020382,
+          "balanced_accuracy": 0.6331505514968855,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.391822399440425,
+              "precision": 0.3486705748341182,
+              "recall": 0.4487179487179487,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.7194281346589799,
+              "precision": 0.656428502683315,
+              "recall": 0.7967479674796748,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5312446750179591,
+              "precision": 0.4995150677210474,
+              "recall": 0.5677585099550417,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.45619647115908396,
+              "precision": 0.5788854573168298,
+              "recall": 0.3827160493827161,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.45247762177342743,
+              "precision": 0.39712416622488284,
+              "recall": 0.5266272189349113,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8790196319599901,
+              "precision": 0.9334709658398537,
+              "recall": 0.8306982872200264,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.7813819718750485,
+              "precision": 0.7050298466965134,
+              "recall": 0.8787878787878788,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.044506675297164115,
+          "macro_f1": 0.6016529865549878,
+          "method": "MoCo quota4 CLS",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7595986038394416,
+          "auc_ovr_macro": 0.935573229687919,
+          "balanced_accuracy": 0.6355437034962957,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.40981020163589554,
+              "precision": 0.3775123380498242,
+              "recall": 0.4487179487179487,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.7269877852908463,
+              "precision": 0.6759677790344651,
+              "recall": 0.7872628726287263,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5633187566260002,
+              "precision": 0.5276412714746964,
+              "recall": 0.6043673731535003,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.4431781546476887,
+              "precision": 0.5800637633970968,
+              "recall": 0.36419753086419754,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.4589765464643596,
+              "precision": 0.4140381121518318,
+              "recall": 0.5154503616042078,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8841299378261476,
+              "precision": 0.9271551073562967,
+              "recall": 0.8449714536671059,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.7736767189145162,
+              "precision": 0.6898127633016071,
+              "recall": 0.8838383838383838,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.04644097490439953,
+          "macro_f1": 0.6085825859150649,
+          "method": "MoCo quota4 CLS plus patch mean",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7439645142524723,
+          "auc_ovr_macro": 0.9282911526181502,
+          "balanced_accuracy": 0.6133219112771235,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.3372049894048059,
+              "precision": 0.30742756382852243,
+              "recall": 0.37393162393162394,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.6778064377168205,
+              "precision": 0.627092430594176,
+              "recall": 0.7384823848238482,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5413463045769344,
+              "precision": 0.5142064141622792,
+              "recall": 0.5716120745022479,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.4236817969061311,
+              "precision": 0.5014995897348838,
+              "recall": 0.37037037037037035,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.4484300805848199,
+              "precision": 0.3906287336118968,
+              "recall": 0.5272846811308349,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8788482872574199,
+              "precision": 0.9305333394632446,
+              "recall": 0.832784365393061,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.7716251531342347,
+              "precision": 0.6904200407334593,
+              "recall": 0.8787878787878788,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.0505956464387529,
+          "macro_f1": 0.5827061499401666,
+          "method": "MoCo quota4 50% weight interpolation",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7423647469458987,
+          "auc_ovr_macro": 0.9285125994791947,
+          "balanced_accuracy": 0.6243989155716861,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.370378454689311,
+              "precision": 0.3385156895080411,
+              "recall": 0.41025641025641024,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.7326731532671595,
+              "precision": 0.6747340839841737,
+              "recall": 0.8021680216802168,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5198508148944753,
+              "precision": 0.47818059414590963,
+              "recall": 0.5696852922286448,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.4827031259502524,
+              "precision": 0.6431457431457431,
+              "recall": 0.3888888888888889,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.4454991066611477,
+              "precision": 0.3925241507358475,
+              "recall": 0.5154503616042078,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8739603924081575,
+              "precision": 0.9281873688484666,
+              "recall": 0.8257575757575757,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.7620840542184867,
+              "precision": 0.688821872345957,
+              "recall": 0.8585858585858586,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.043020268255874725,
+          "macro_f1": 0.5981641574412843,
+          "method": "MoCo M0 EMA teacher",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7491273996509599,
+          "auc_ovr_macro": 0.9304210700253341,
+          "balanced_accuracy": 0.6320075373067544,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.3949902937877069,
+              "precision": 0.35523302652642097,
+              "recall": 0.44658119658119655,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.7172168254930765,
+              "precision": 0.6545864686473561,
+              "recall": 0.7940379403794038,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5306668907349643,
+              "precision": 0.5006018413349336,
+              "recall": 0.565189466923571,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.471611966172371,
+              "precision": 0.5980362230362231,
+              "recall": 0.3950617283950617,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.44822238123959834,
+              "precision": 0.39737913415951726,
+              "recall": 0.5141354372123603,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8801301814736009,
+              "precision": 0.9301384945117389,
+              "recall": 0.8353096179183136,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.7767779185999727,
+              "precision": 0.7020964594863063,
+              "recall": 0.8737373737373737,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.05209959584413653,
+          "macro_f1": 0.602802351071613,
+          "method": "MoCo quota4 EMA teacher",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7063699825479931,
+          "auc_ovr_macro": 0.8993956131601099,
+          "balanced_accuracy": 0.5325082531566903,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.3414811932346014,
+              "precision": 0.3213266265897845,
+              "recall": 0.3653846153846154,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.513874744309527,
+              "precision": 0.465797322165112,
+              "recall": 0.573170731707317,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.48440912461934776,
+              "precision": 0.4435898434313093,
+              "recall": 0.5337186897880539,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.223993783993784,
+              "precision": 0.3599206349206349,
+              "recall": 0.16666666666666666,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.4114443320325673,
+              "precision": 0.35302552617344646,
+              "recall": 0.4930966469428008,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8611010276989495,
+              "precision": 0.9221477308295181,
+              "recall": 0.8076416337285902,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.6977777777777779,
+              "precision": 0.626720980169256,
+              "recall": 0.787878787878788,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "public reference",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.03610431049269571,
+          "macro_f1": 0.5048688548095078,
+          "method": "Public DINOv2 (CLS)",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 1,
+          "n_trained_seeds": 0,
+          "trained_seeds": []
+        },
+        {
+          "accuracy": 0.7102966841186736,
+          "auc_ovr_macro": 0.9063479206967151,
+          "balanced_accuracy": 0.5419880078532029,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.31876035934748015,
+              "precision": 0.3062350561422631,
+              "recall": 0.3333333333333333,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.543004323695334,
+              "precision": 0.49768650965526195,
+              "recall": 0.5975609756097561,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.5014054127118512,
+              "precision": 0.4595783002553028,
+              "recall": 0.5517019910083494,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.30461733640049055,
+              "precision": 0.4815052231718899,
+              "recall": 0.22839506172839505,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.3993239466191865,
+              "precision": 0.33969332061417645,
+              "recall": 0.4845496383957923,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8640907229727391,
+              "precision": 0.9253153332130023,
+              "recall": 0.8104962670180061,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.6941883558296933,
+              "precision": 0.621285248028543,
+              "recall": 0.7878787878787878,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "matched control",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.04686200928765073,
+          "macro_f1": 0.5179129225109679,
+          "method": "Legacy baseline (method identity unverified)",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7308027923211169,
+          "auc_ovr_macro": 0.9216161429580385,
+          "balanced_accuracy": 0.5685582443676965,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.39133933172351254,
+              "precision": 0.35340876119390835,
+              "recall": 0.44017094017094016,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.6495576588919851,
+              "precision": 0.6286593984635298,
+              "recall": 0.6734417344173441,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.4944074775299211,
+              "precision": 0.46764637697060935,
+              "recall": 0.5247270391779062,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.3661397223466189,
+              "precision": 0.47792207792207786,
+              "recall": 0.30246913580246915,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.4345518298875659,
+              "precision": 0.3883702322966838,
+              "recall": 0.49375410913872453,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8703586516345333,
+              "precision": 0.911079288417993,
+              "recall": 0.8332235397452789,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.6164781374865408,
+              "precision": 0.5444227051506745,
+              "recall": 0.7121212121212122,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "matched SSL control",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.07553881809459068,
+          "macro_f1": 0.5461189727858111,
+          "method": "VICReg",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.715241419429901,
+          "auc_ovr_macro": 0.9161646894602116,
+          "balanced_accuracy": 0.5507261095143837,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.40146384367152216,
+              "precision": 0.35740637587898333,
+              "recall": 0.45940170940170943,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.6260161851923769,
+              "precision": 0.5800372691259127,
+              "recall": 0.6802168021680217,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.4853758195063841,
+              "precision": 0.45312182491049224,
+              "recall": 0.5228002569043031,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.3145118620925073,
+              "precision": 0.37574277574277576,
+              "recall": 0.2716049382716049,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.4233271146850663,
+              "precision": 0.36730991155633014,
+              "recall": 0.4996712689020381,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8602864922440396,
+              "precision": 0.9168896936648324,
+              "recall": 0.8102766798418972,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.5392200259923494,
+              "precision": 0.4836437245904555,
+              "recall": 0.6111111111111112,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "matched SSL control",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.08404896437865159,
+          "macro_f1": 0.521457334769178,
+          "method": "Barlow Twins + VICReg",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.699607329842932,
+          "auc_ovr_macro": 0.8919765342758854,
+          "balanced_accuracy": 0.4754068374546334,
+          "classes": [
+            {
+              "class": "akiec",
+              "f1": 0.3568615480380186,
+              "precision": 0.3241357315984182,
+              "recall": 0.3974358974358974,
+              "support_groups": 36,
+              "support_images": 52
+            },
+            {
+              "class": "bcc",
+              "f1": 0.5094764304323128,
+              "precision": 0.4537518037518038,
+              "recall": 0.5813008130081301,
+              "support_groups": 57,
+              "support_images": 82
+            },
+            {
+              "class": "bkl",
+              "f1": 0.45710562411530004,
+              "precision": 0.41906527559864654,
+              "recall": 0.5028901734104047,
+              "support_groups": 122,
+              "support_images": 173
+            },
+            {
+              "class": "df",
+              "f1": 0.1978494623655914,
+              "precision": 0.315018315018315,
+              "recall": 0.14814814814814814,
+              "support_groups": 6,
+              "support_images": 18
+            },
+            {
+              "class": "mel",
+              "f1": 0.3900942947164517,
+              "precision": 0.3494871071843874,
+              "recall": 0.44181459566074954,
+              "support_groups": 98,
+              "support_images": 169
+            },
+            {
+              "class": "nv",
+              "f1": 0.8624399115916871,
+              "precision": 0.9134540543704489,
+              "recall": 0.8168642951251647,
+              "support_groups": 816,
+              "support_images": 1012
+            },
+            {
+              "class": "vasc",
+              "f1": 0.4270531400966184,
+              "precision": 0.41545893719806765,
+              "recall": 0.4393939393939394,
+              "support_groups": 17,
+              "support_images": 22
+            }
+          ],
+          "cohort": "HAM",
+          "comparison_group": "architecture context",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.03254808306435752,
+          "macro_f1": 0.45726863019371145,
+          "method": "SimSiam R50 (frozen bank; architecture context)",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 1,
+          "n_trained_seeds": 0,
+          "trained_seeds": []
+        }
+      ]
+    },
+    "PAD": {
+      "classes": [
+        "ACK",
+        "BCC",
+        "MEL",
+        "NEV",
+        "SCC",
+        "SEK"
+      ],
+      "records": [
+        {
+          "accuracy": 0.7208504801097394,
+          "auc_ovr_macro": 0.9194285001220073,
+          "balanced_accuracy": 0.6877522466473597,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.8050830214187931,
+              "precision": 0.8027109798981795,
+              "recall": 0.8075506445672191,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.7356430793747246,
+              "precision": 0.7729521283343923,
+              "recall": 0.702020202020202,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.6900609615473192,
+              "precision": 0.6525540209286037,
+              "recall": 0.7325102880658436,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7766304738948333,
+              "precision": 0.7603924877164047,
+              "recall": 0.7940613026819923,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.28540497873812315,
+              "precision": 0.25835491191074716,
+              "recall": 0.3192982456140351,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7549457237384961,
+              "precision": 0.7397829972941472,
+              "recall": 0.7710727969348659,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.03378320364072315,
+          "macro_f1": 0.6746280397853817,
+          "method": "MoCo quota4 CLS4 (proposed)",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7018420536939056,
+          "auc_ovr_macro": 0.904638942824372,
+          "balanced_accuracy": 0.6542752879982157,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7882957615842526,
+              "precision": 0.7863100003987908,
+              "recall": 0.7903621853898097,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.7225185157414342,
+              "precision": 0.7646202794167891,
+              "recall": 0.6850079744816587,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.5936383395824865,
+              "precision": 0.5827666983222539,
+              "recall": 0.6090534979423867,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7477650061079979,
+              "precision": 0.7247150939201668,
+              "recall": 0.7729885057471264,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.27365818504654593,
+              "precision": 0.24386561139288013,
+              "recall": 0.3134502923976608,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7366947276533827,
+              "precision": 0.7196544333708556,
+              "recall": 0.7547892720306514,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.050838907883231726,
+          "macro_f1": 0.6437617559526834,
+          "method": "MoCo M0 CLS",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7082108563590045,
+          "auc_ovr_macro": 0.9141315484192492,
+          "balanced_accuracy": 0.674676121752925,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7943491184243279,
+              "precision": 0.7938301941741049,
+              "recall": 0.7949662369551872,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.7254797271827698,
+              "precision": 0.7701954063590143,
+              "recall": 0.6858054226475279,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.6610622857177497,
+              "precision": 0.6261666805009717,
+              "recall": 0.7037037037037037,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7710534757550357,
+              "precision": 0.7602071200634221,
+              "recall": 0.7825670498084292,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.2684244774167562,
+              "precision": 0.2374191254002451,
+              "recall": 0.30994152046783624,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7416120137761927,
+              "precision": 0.7144860683463036,
+              "recall": 0.7710727969348659,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.04294716740387679,
+          "macro_f1": 0.660330183045472,
+          "method": "MoCo M0 CLS4",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7054673721340388,
+          "auc_ovr_macro": 0.9068102129260309,
+          "balanced_accuracy": 0.650658206383877,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7863711095217142,
+              "precision": 0.786398893843585,
+              "recall": 0.7863720073664825,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.730794259162966,
+              "precision": 0.7633143840320624,
+              "recall": 0.7012227538543327,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.5851951133978687,
+              "precision": 0.5886048492858529,
+              "recall": 0.5843621399176955,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7451199187700129,
+              "precision": 0.7219741656326755,
+              "recall": 0.7710727969348659,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.2634296093766944,
+              "precision": 0.24287460433052205,
+              "recall": 0.2888888888888889,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7462911225376607,
+              "precision": 0.7224931145563018,
+              "recall": 0.7720306513409961,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.05038361631822113,
+          "macro_f1": 0.6428668554611529,
+          "method": "MoCo M0 CLS plus patch mean",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7103664511071918,
+          "auc_ovr_macro": 0.909212747365336,
+          "balanced_accuracy": 0.6759883959093258,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7953415986968185,
+              "precision": 0.7927528973759871,
+              "recall": 0.7980356046654389,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.7236096118819245,
+              "precision": 0.7628422349256483,
+              "recall": 0.6884635832004253,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.6641651071529595,
+              "precision": 0.6357409369743335,
+              "recall": 0.6995884773662551,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7432804717193662,
+              "precision": 0.7176388565645531,
+              "recall": 0.7710727969348659,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.29195674198239435,
+              "precision": 0.26359696933670296,
+              "recall": 0.3286549707602339,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7595196461244598,
+              "precision": 0.74947007693817,
+              "recall": 0.7701149425287357,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.05100236603666172,
+          "macro_f1": 0.6629788629263205,
+          "method": "MoCo quota4 CLS",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7103664511071918,
+          "auc_ovr_macro": 0.9133115350697888,
+          "balanced_accuracy": 0.6654257984593346,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7980514569746442,
+              "precision": 0.7963179927748738,
+              "recall": 0.7998772252915899,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.7286595623119911,
+              "precision": 0.7624875950656775,
+              "recall": 0.6980329611908559,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.6433442368913229,
+              "precision": 0.6270333262410879,
+              "recall": 0.6625514403292181,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.742984124049522,
+              "precision": 0.7169811854971927,
+              "recall": 0.771072796934866,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.26795757067956866,
+              "precision": 0.24623981084146024,
+              "recall": 0.29473684210526313,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7511651082241665,
+              "precision": 0.7368179518962289,
+              "recall": 0.7662835249042145,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.04682961770112197,
+          "macro_f1": 0.6553603431885359,
+          "method": "MoCo quota4 CLS plus patch mean",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7047815010777974,
+          "auc_ovr_macro": 0.9076704608155315,
+          "balanced_accuracy": 0.6629383311090622,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7911629504796746,
+              "precision": 0.7848076748468373,
+              "recall": 0.7977286678944138,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.7147342139166415,
+              "precision": 0.7494428737165849,
+              "recall": 0.6834130781499203,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.6564268926881299,
+              "precision": 0.6577767037489259,
+              "recall": 0.6584362139917695,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7483424823672813,
+              "precision": 0.7287522328688066,
+              "recall": 0.7691570881226054,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.2681410704116555,
+              "precision": 0.24561364196495836,
+              "recall": 0.295906432748538,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7570740699632569,
+              "precision": 0.7419366847121158,
+              "recall": 0.7729885057471264,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.05441117940198075,
+          "macro_f1": 0.6559802799711066,
+          "method": "MoCo quota4 50% weight interpolation",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.696061140505585,
+          "auc_ovr_macro": 0.9056991142002242,
+          "balanced_accuracy": 0.6510281854784957,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7842343967884093,
+              "precision": 0.7836737119349375,
+              "recall": 0.7848373235113566,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.7159548945468728,
+              "precision": 0.7628323930604274,
+              "recall": 0.6746411483253589,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.5892604497687339,
+              "precision": 0.577236975986976,
+              "recall": 0.6049382716049383,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7362129594691231,
+              "precision": 0.7089791835872898,
+              "recall": 0.7662835249042145,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.27587529061840527,
+              "precision": 0.24224855018293423,
+              "recall": 0.32163742690058483,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7343743752519885,
+              "precision": 0.7162449431146561,
+              "recall": 0.7538314176245211,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.044436326755323184,
+          "macro_f1": 0.6393187277405887,
+          "method": "MoCo M0 EMA teacher",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.7069370958259847,
+          "auc_ovr_macro": 0.9098788628558735,
+          "balanced_accuracy": 0.6718057102036953,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7932656272388542,
+              "precision": 0.7950554878529508,
+              "recall": 0.7915899324739103,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.7218555648755263,
+              "precision": 0.7602842748171602,
+              "recall": 0.6874003189792663,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.6537420867284237,
+              "precision": 0.6218001007767415,
+              "recall": 0.691358024691358,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7425755808886358,
+              "precision": 0.7181848976038953,
+              "recall": 0.7691570881226054,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.28231653023726166,
+              "precision": 0.2540415947883708,
+              "recall": 0.3192982456140351,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7540829275680708,
+              "precision": 0.7373586513429871,
+              "recall": 0.7720306513409961,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "MoCo v5 variants",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.045247964239820596,
+          "macro_f1": 0.6579730529227955,
+          "method": "MoCo quota4 EMA teacher",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.6513815402704292,
+          "auc_ovr_macro": 0.8735794450313253,
+          "balanced_accuracy": 0.5961429005903921,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7529053001856351,
+              "precision": 0.7610501536128954,
+              "recall": 0.7449355432780846,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.6671209178355104,
+              "precision": 0.691717771387354,
+              "recall": 0.6443381180223285,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.5162706457978536,
+              "precision": 0.4925595238095238,
+              "recall": 0.5432098765432098,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.703770325573157,
+              "precision": 0.6821037866134502,
+              "recall": 0.7270114942528735,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.24273461655070308,
+              "precision": 0.2182347670250896,
+              "recall": 0.2736842105263158,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.6380760947146644,
+              "precision": 0.6330418346200268,
+              "recall": 0.6436781609195402,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "public reference",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.0740587727110935,
+          "macro_f1": 0.5868129834429207,
+          "method": "Public DINOv2 (CLS)",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 1,
+          "n_trained_seeds": 0,
+          "trained_seeds": []
+        },
+        {
+          "accuracy": 0.6557907113462669,
+          "auc_ovr_macro": 0.8810218511011123,
+          "balanced_accuracy": 0.6090546126443894,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.757463663951706,
+              "precision": 0.7669469648397,
+              "recall": 0.7483118477593615,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.6667847958563453,
+              "precision": 0.6965330408210885,
+              "recall": 0.6395534290271132,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.5399752785765632,
+              "precision": 0.5100830796345783,
+              "recall": 0.5761316872427984,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7123856962951216,
+              "precision": 0.6907372822987352,
+              "recall": 0.735632183908046,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.2565181831746956,
+              "precision": 0.22727419416015693,
+              "recall": 0.29473684210526313,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.6508695036726951,
+              "precision": 0.642202713127431,
+              "recall": 0.6599616858237548,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "matched control",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.0576721873445466,
+          "macro_f1": 0.5973328535878545,
+          "method": "Legacy baseline (method identity unverified)",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.6923378404859887,
+          "auc_ovr_macro": 0.9039892867015205,
+          "balanced_accuracy": 0.6456970998775583,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7814009654117609,
+              "precision": 0.7775431197180986,
+              "recall": 0.785451197053407,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.7161023343222258,
+              "precision": 0.7646837378007131,
+              "recall": 0.6735778841041999,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.6184422059633352,
+              "precision": 0.6319193795543121,
+              "recall": 0.6090534979423867,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7349194553765408,
+              "precision": 0.7028682773551441,
+              "recall": 0.771072796934866,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.27485330692461424,
+              "precision": 0.2408420130675835,
+              "recall": 0.32046783625730996,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.7028681898617669,
+              "precision": 0.6918582500663233,
+              "recall": 0.7145593869731801,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "matched SSL control",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.049573591151626385,
+          "macro_f1": 0.6380977429767074,
+          "method": "VICReg",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.6872427983539094,
+          "auc_ovr_macro": 0.9003437744856524,
+          "balanced_accuracy": 0.651416968335182,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7812611215362036,
+              "precision": 0.7778602671513039,
+              "recall": 0.7848373235113566,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.706248382959804,
+              "precision": 0.7670411962620334,
+              "recall": 0.6547049441786283,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.6323801026824308,
+              "precision": 0.6163664064047205,
+              "recall": 0.6502057613168724,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.7343576305052656,
+              "precision": 0.6921104927369675,
+              "recall": 0.7825670498084292,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.2783598869978938,
+              "precision": 0.240029526854722,
+              "recall": 0.3321637426900585,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.6890627068392345,
+              "precision": 0.6753208426890964,
+              "recall": 0.7040229885057472,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "matched SSL control",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.04616391291677782,
+          "macro_f1": 0.6369449719201388,
+          "method": "Barlow Twins + VICReg",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 3,
+          "n_trained_seeds": 3,
+          "trained_seeds": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "accuracy": 0.5981775426219871,
+          "auc_ovr_macro": 0.842329934822728,
+          "balanced_accuracy": 0.538131140106955,
+          "classes": [
+            {
+              "class": "ACK",
+              "f1": 0.7004239680197868,
+              "precision": 0.6877098009401738,
+              "recall": 0.7136279926335175,
+              "support_groups": 258,
+              "support_images": 362
+            },
+            {
+              "class": "BCC",
+              "f1": 0.6124525761881346,
+              "precision": 0.6563057058048493,
+              "recall": 0.5741626794258373,
+              "support_groups": 247,
+              "support_images": 418
+            },
+            {
+              "class": "MEL",
+              "f1": 0.46140091256628435,
+              "precision": 0.479957264957265,
+              "recall": 0.4444444444444444,
+              "support_groups": 18,
+              "support_images": 27
+            },
+            {
+              "class": "NEV",
+              "f1": 0.6758501617274238,
+              "precision": 0.6428854299822042,
+              "recall": 0.7126436781609194,
+              "support_groups": 87,
+              "support_images": 116
+            },
+            {
+              "class": "SCC",
+              "f1": 0.24144345916290133,
+              "precision": 0.22061058908884998,
+              "recall": 0.26666666666666666,
+              "support_groups": 67,
+              "support_images": 95
+            },
+            {
+              "class": "SEK",
+              "f1": 0.49941300228987223,
+              "precision": 0.4828588919498011,
+              "recall": 0.5172413793103449,
+              "support_groups": 87,
+              "support_images": 116
+            }
+          ],
+          "cohort": "PAD",
+          "comparison_group": "architecture context",
+          "cv_seeds": [
+            20261025,
+            20261026,
+            20261027
+          ],
+          "ece": 0.057757132006475385,
+          "macro_f1": 0.5318306799924005,
+          "method": "SimSiam R50 (frozen bank; architecture context)",
+          "n_cv_repetitions_per_seed": 3,
+          "n_encoder_checkpoints": 1,
+          "n_trained_seeds": 0,
+          "trained_seeds": []
+        }
+      ]
+    }
+  },
+  "method": {
+    "backbone": "DINOv2 ViT-B/14",
+    "family": "MoCo-v3-style",
+    "feature": "CLS4",
+    "feature_dim": 3072,
+    "layers": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "seed": 42,
+    "training_quota": {
+      "PAD_unlabeled": 4,
+      "source": 12
+    }
+  },
+  "protocol": {
+    "aggregation": "Independent encoder checkpoints and repeated grouped-CV readouts are averaged; no ensemble is formed.",
+    "reader_fit": {
+      "heads": {
+        "HAM7": {
+          "fit_groups": 1152,
+          "fit_images": 1528,
+          "solver_iterations": 143
+        },
+        "PAD6": {
+          "fit_groups": 682,
+          "fit_images": 1134,
+          "solver_iterations": 144
+        }
+      },
+      "refit_scope": "all authorized development records",
+      "selected_C": {
+        "HAM7": 30,
+        "PAD6": 30
+      },
+      "selection": {
+        "candidate_C": [
+          0.3,
+          1,
+          3,
+          10,
+          30,
+          100
+        ],
+        "cv_seeds": [
+          20261025,
+          20261026,
+          20261027
+        ],
+        "folds": 3,
+        "metric": "macro-F1",
+        "tie_break": "smaller C"
+      },
+      "source_precision": "bfloat16 CLS4, fixed seed 42 encoder"
+    },
+    "sha256": "1144e857e768a94e4e8df5129e5ec0b5f9f73d3f5c2a5f2982b0e42e9e335414",
+    "table_scope": "Development out-of-fold metrics only; sealed evaluations are excluded."
+  },
+  "release": "v10.0.0",
+  "source": {
+    "encoder_checkpoint_sha256": "fe64610560880e2df1185bf17fbe49e2da46a31e0644ddad76bfa7e8651aab1e",
+    "plan_sha256": "e4589916523799fc653ce55a8c6a9754dea44827533985e0a6fd591b7cf88e1d",
+    "table_receipt_sha256": "b0df0e23a998a405d06d880d389df9ad84f0977f3fc0c348419856372c30e7b1"
+  },
+  "status": "aggregate development evidence; artifact and deployment status are recorded separately",
+  "table": {
+    "csv": {
+      "HAM": "HAM.csv",
+      "PAD": "PAD.csv"
+    },
+    "encoder_checkpoint_sha256": "fe64610560880e2df1185bf17fbe49e2da46a31e0644ddad76bfa7e8651aab1e",
+    "markdown": "README.md",
+    "metrics_json": "metrics.json",
+    "plan_sha256": "e4589916523799fc653ce55a8c6a9754dea44827533985e0a6fd591b7cf88e1d",
+    "table_receipt_sha256": "b0df0e23a998a405d06d880d389df9ad84f0977f3fc0c348419856372c30e7b1"
+  }
+}
