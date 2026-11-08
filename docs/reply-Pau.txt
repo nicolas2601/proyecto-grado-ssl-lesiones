@@ -1,11 +1,19 @@
-Hola Pau,
+Pau, ya dejamos como propuesta final MoCo-v3-style con DINOv2 ViT-B/14, cuota 12 ISIC + 4 PAD por lote y CLS de las últimas cuatro capas (3072 características). SimSiam queda como comparación histórica.
 
-Te dejo la tabla de desarrollo para PAD6 y HAM7 y una nota que reconstruye E01. La propuesta actual de V10 es MoCo-v3-style sobre DINOv2 ViT-B/14, con cuota 12 imágenes de origen + 4 PAD y representación CLS4. SimSiam queda como antecedente/comparador; el nombre `simsiam_dinov2_backbone_final.pt` en los archivos antiguos no identifica el método realmente ejecutado.
+Recuperé y versioné el código del MoCo anterior con sus hashes; reprodujimos exactamente los checkpoints históricos en las tres semillas. La cuota 12+4 y el lector CLS4 son cambios explícitos sobre esa referencia, no una reproducción de MoCo v3 oficial. Para entregar fijamos la semilla 42, sin escoger la mejor retrospectivamente.
 
-Las métricas propuestas son PAD macro-F1 0,674628 y HAM 0,620537. Cada media resume tres encoders entrenados por separado y tres repeticiones de CV agrupada por encoder; no es un ensemble ni el resultado de un lector final ajustado sobre toda la cohorte. PAD6 conserva ACK, BCC, MEL, NEV, SCC y SEK; HAM7 conserva akiec, bcc, bkl, df, mel, nv y vasc. No se cruzan ni se fusionan las ontologías.
+La receta queda así: dos vistas con crop aleatorio a 224, flip y normalización ImageNet; sin constancia de color, hue jitter, crops locales, anclas ni L2-SP. Entrenan bloques 8–11 y norma final, teacher EMA 0,99, InfoNCE intra-lote a temperatura 0,2 y AdamW a LR 1e-5/1e-4, weight decay 0,05. Son 6000 pasos, batch 16, sin scheduler ni warmup. Se entrega el student. La ficha E01 adjunta tiene código, configuración, checkpoint, manifiestos y costes.
 
-Mira con cuidado el soporte bajo: MEL en PAD son 27 imágenes / 18 grupos; `df` en HAM, 18 / 6. SCC también tiene recall bajo. Los máximos por clase de la tabla son descriptivos, no pruebas de significancia. PAD es transductivo y HAM corresponde a desarrollo expuesto a selección; no se abrieron el holdout sellado de HAM ni `target_test` de PAD. No son resultados de validación clínica.
+Sobre los nodos: las etiquetas son salidas, no entradas del backbone. Entra una imagen RGB, salen 3072 características y el lector decide la clase. Dejé cabezas separadas HAM7 y PAD6; ambas con C=30, sin mezclar sus taxonomías. En API son MOCO_HAM7 (default) y MOCO_PAD6.
 
-E01 se recuperó como MoCo, aunque el nombre de checkpoint diga SimSiam. La nota describe sus dos vistas, objetivo contrastivo, cuota, extracción CLS4 y lector, y separa sus resultados de semilla 42 de la media V10 de tres semillas. La tabla y la nota son evidencia de desarrollo; V10 sigue pendiente de empaquetado y verificación del release/API. La disponibilidad observada de GPU no reserva capacidad futura.
+La tabla compara precision, recall y F1 por lesión en las mismas cohortes y folds agrupados por identidad. MoCo resume tres entrenamientos y tres repeticiones CV por entrenamiento, no un ensemble. La media de desarrollo es F1 macro 0,6746 PAD y 0,6205 HAM; no es un test independiente de la cabeza final.
 
-Archivos: `resultados/clasificacion/v10/README.md`, `docs/41-moco-proposed-release-v10.md` y `docs/42-moco-e01-for-pau.md`.
+No gana en todo: CLS4 mejora el balance global y melanoma en PAD, pero SCC sigue débil; para SCC la variante CLS final tiene algo más de F1. En HAM, M0 con CLS final tiene mejor F1 para BCC. Dejé visibles los soportes y los demás modelos; MEL en PAD son 27 imágenes/18 componentes y df en HAM 18/6.
+
+Ya se verificaron PyTorch, ONNX, Docker y la API por HTTPS. Enlaces:
+https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/v10.0.0
+https://derm.nicolasmoreno.site/api/status
+
+PAD sigue siendo transductivo y HAM desarrollo reutilizado para selección. No abrimos los tests sellados ni afirmamos validación clínica, equidad o ausencia de sobreentrenamiento.
+
+Para tu núcleo tonal aún falta verificar E06–E08 antes de T0/M1 y M1−T0. El M0 tonal debe usar esta receta final sin transformación, no el M0 uniforme del barrido. No modifiqué tu segmentador, transformador ni máscaras. Los entrenamientos de cuota4 midieron ~0,45–0,57 h, pero el coste integrado de tono se mide aparte; coordinamos GPU cuando toque, no hay reserva permanente.

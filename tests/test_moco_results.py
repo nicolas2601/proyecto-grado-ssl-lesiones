@@ -128,6 +128,7 @@ def test_output_writer_is_deterministic_and_aggregate_only(tmp_path):
     report = {
         "release_version": "10.0.0",
         "source_plan_sha256": "plan-hash",
+        "encoder_checkpoint_sha256": "weights-hash",
         "source_sha256": "abc",
         "protocol_sha256": "def",
         "aggregation": "mean, not ensemble",
@@ -148,7 +149,9 @@ def test_output_writer_is_deterministic_and_aggregate_only(tmp_path):
     assert api_report["method"]["family"] == "MoCo-v3-style"
     assert api_report["classification"] == report["cohorts"]
     assert api_report["source"]["table_receipt_sha256"] == "abc"
+    assert api_report["source"]["encoder_checkpoint_sha256"] == "weights-hash"
     assert api_report["protocol"]["sha256"] == "def"
+    assert api_report["protocol"]["reader_fit"]["selected_C"] == {"HAM7": 30, "PAD6": 30}
     assert api_report["table"]["markdown"] == "README.md"
     assert api_report["caveats"]
     assert "image_ids" not in first["metrics.json"]

@@ -96,6 +96,58 @@ def _aggregate_cohort(cohort: str, moco_root: Path, comparator_root: Path,
     return records, {"classes": aligned_readouts[0]["classes"], "settings": aligned_readouts[0]["settings"]}
 
 
+def _seed42_encoder_sha256(plan: dict) -> str:
+    jobs = [job for job in plan.get("jobs", []) if job.get("id") == "quota4-s42"]
+    if len(jobs) != 1:
+        raise ValueError("fixed quota4 seed-42 job is missing from the source plan")
+    digests = [digest for path, digest in jobs[0].get("weights", {}).items()
+               if Path(path).name == "simsiam_dinov2_backbone_final.pt"]
+    if len(digests) != 1 or len(digests[0]) != 64:
+        raise ValueError("fixed seed-42 encoder digest is missing from the source plan")
+    return digests[0]
+
+
+def _reader_fit_report() -> dict:
+    return {
+        "source_precision": "bfloat16 CLS4, fixed seed 42 encoder",
+        "selection": {"folds": 3, "cv_seeds": [20261025, 20261026, 20261027],
+                      "candidate_C": [0.3, 1, 3, 10, 30, 100], "metric": "macro-F1",
+                      "tie_break": "smaller C"},
+        "selected_C": {"HAM7": 30, "PAD6": 30},
+        "refit_scope": "all authorized development records",
+        "heads": {"HAM7": {"fit_images": 1528, "fit_groups": 1152, "solver_iterations": 143},
+                  "PAD6": {"fit_images": 1134, "fit_groups": 682, "solver_iterations": 144}},
+    }
+
+
+def make_api_report(report: dict) -> dict:
+    source = {"table_receipt_sha256": report["source_sha256"],
+              "plan_sha256": report["source_plan_sha256"],
+              "encoder_checkpoint_sha256": report["encoder_checkpoint_sha256"]}
+    table = {"markdown": "README.md", "metrics_json": "metrics.json",
+             "csv": {"PAD": "PAD.csv", "HAM": "HAM.csv"}, **source}
+    return {
+        "release": "v10.0.0",
+        "status": "aggregate development evidence; artifact and deployment status are recorded separately",
+        "method": {"family": "MoCo-v3-style", "backbone": "DINOv2 ViT-B/14",
+                   "training_quota": {"source": 12, "PAD_unlabeled": 4}, "feature": "CLS4",
+                   "layers": [8, 9, 10, 11], "feature_dim": 3072, "seed": 42},
+        "classification": report["cohorts"],
+        "table": table,
+        "source": source,
+        "protocol": {"sha256": report["protocol_sha256"], "table_scope": report["scope"],
+                     "aggregation": report["aggregation"], "reader_fit": _reader_fit_report()},
+        "caveats": [
+            "OOF table means average three independently trained MoCo encoders and three CV repetitions per encoder; they are not an ensemble or final-reader metrics.",
+            "Final HAM7/PAD6 readers were refit on all authorized development data; no independent score is claimed for those fitted heads.",
+            "PAD is transductive; HAM development was selection-exposed. Sealed HAM holdout and PAD target_test were not accessed.",
+            "The legacy baseline method identity is unverified; the frozen SimSiam R50 result is architecture-context only.",
+            "Model-package hashes and portable/API parity are recorded in the separate bundle manifest and release-validation evidence, not inferred from this OOF table.",
+            "Research only; not a medical device and not for diagnosis or clinical decisions.",
+        ],
+    }
+
+
 def build_release_report(evidence_root: Path) -> dict:
     """Build aggregate-only report from the approved development OOF receipts."""
     evidence_root = evidence_root.resolve()
@@ -105,6 +157,8 @@ def build_release_report(evidence_root: Path) -> dict:
     summary = _read_json(summary_path)
     if hashlib.sha256(plan_path.read_bytes()).hexdigest() != summary.get("plan_sha256"):
         raise ValueError("MoCo source plan hash does not match its summary receipt")
+    plan = _read_json(plan_path)
+    encoder_sha256 = _seed42_encoder_sha256(plan)
     if summary.get("incomplete") or any(job.get("status") != "done" for job in summary["jobs"].values()):
         raise ValueError("MoCo source summary has incomplete jobs")
     if set(summary.get("variants", {})) != set(_V5_VARIANTS):
@@ -129,5 +183,6 @@ def build_release_report(evidence_root: Path) -> dict:
         "source_sha256": source_hash,
         "protocol_sha256": protocol_hash,
         "source_plan_sha256": summary["plan_sha256"],
+        "encoder_checkpoint_sha256": encoder_sha256,
         "cohorts": cohorts,
     }

@@ -206,7 +206,10 @@ def render_tables(records: list[dict], *, source_hash: str, protocol_hash: str) 
 
 
 def _release_files(report: dict) -> dict[str, str]:
-    files = {"metrics.json": json.dumps(report, indent=2, sort_keys=True) + "\n"}
+    from moco_results_inputs import make_api_report
+
+    files = {"metrics.json": json.dumps(report, indent=2, sort_keys=True) + "\n",
+             "api-report.json": json.dumps(make_api_report(report), indent=2, sort_keys=True) + "\n"}
     sections = []
     for cohort in ("PAD", "HAM"):
         records = report["cohorts"][cohort]["records"]

@@ -23,7 +23,7 @@ La idea central es no depender de miles de etiquetas hechas por médicos. Primer
 - **Prueba de …:** cada pregunta que se evaluó (por ejemplo, "Prueba de pesos limpios").
 - **Repetición 42, 43, 44:** el mismo entrenamiento repetido con distinto azar, para saber cuánto cambia el resultado solo por casualidad.
 
-Los códigos antiguos (B71, A71, student, E1, T7, s42…) siguen existiendo únicamente en nombres de archivo y en registros fechados; el glosario tiene la tabla de equivalencias.
+Los códigos históricos A71/B71 se conservan con su identidad V9 en archivos, registros y selecciones explícitas de la API. El nuevo default es `MOCO_HAM7`; `MOCO_PAD6` selecciona la ontología PAD. No se renombra silenciosamente un modelo antiguo como MoCo.
 
 ## Método propuesto actual (V10)
 
@@ -36,7 +36,7 @@ La propuesta V10 es **MoCo-v3-style continued SSL sobre DINOv2 ViT-B/14**: batch
 
 Cada cifra propuesta promedia tres encoders entrenados por separado y tres repeticiones de CV agrupada por encoder; **no es un ensemble** ni el resultado de un lector globalmente ajustado para despliegue. Las tablas incluyen P/R/F1 por clase, soporte en imágenes y grupos, accuracy, balanced accuracy, AUC OVR macro y ECE: [resultados PAD6/HAM7](resultados/clasificacion/v10/README.md). Las diferencias son descriptivas; no implican significancia.
 
-**Estado: propuesta, todavía no publicada ni desplegada.** PAD es transductivo y HAM corresponde a desarrollo expuesto a selección. El holdout sellado de HAM y `target_test` de PAD no se usaron. Esto no es una validación clínica ni un dispositivo médico; no sirve para diagnóstico ni decisiones clínicas. Ver [protocolo, procedencia y límites V10](docs/41-moco-proposed-release-v10.md) y [reconstrucción histórica E01 para Pau](docs/42-moco-e01-for-pau.md).
+**V10: clasificador completo verificado en PyTorch, ONNX y Docker, y API de investigación desplegada.** [Release y archivos](https://github.com/nicolas2601/proyecto-grado-ssl-lesiones/releases/tag/v10.0.0) · [estado API](https://derm.nicolasmoreno.site/api/status) · [uso de los tres formatos](scripts/release_v10/USAGE.md) · [model card](docs/43-moco-model-card-v10.md). PAD es transductivo y HAM corresponde a desarrollo expuesto a selección. El holdout sellado de HAM y `target_test` de PAD no se usaron. No es validación clínica ni un dispositivo médico. Ver [protocolo, procedencia y límites](docs/41-moco-proposed-release-v10.md), [E01 para Pau](docs/42-moco-e01-for-pau.md) y [comparación separada del banco supervisado/arquitecturas](resultados/clasificacion/v10/BANK.md).
 
 ## Resultado principal (v7)
 
