@@ -71,6 +71,9 @@ _GENERATED = "generates notebooks, tables or site data from committed files; mus
 _DATA_PREP = "data preparation (split, index, exclusion or manifest of inputs), no evaluated number"
 # script -> why it writes JSON without the block.
 EXEMPT = {
+    "scripts/build_moco_bank_comparison.py": "derived aggregate tables; raw input SHA recorded, no new evaluation",
+    "scripts/build_moco_bundle.py": "release provenance records software/source hashes and separate numerical validation",
+    "scripts/fit_moco_release_readers.py": "reader artifact records software/source hashes and fixed BLAS threads; no independent evaluation",
     "scripts/build_bench_tables.py": ("derived tables and per-model confusion JSON generated from committed result "
                                       "JSON; no new evaluation, must stay byte-identical (docs/33 section 6)"),
     "scripts/build_baseline_tests.py": _GENERATED,

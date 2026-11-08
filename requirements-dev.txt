@@ -49,7 +49,8 @@ python-multipart>=0.0.9
 # Ranges with wheels for Python 3.11-3.13. Without them those modules skip on
 # a missing import, which CI_REQUIRE_FULL_DEPS turns into a failure.
 safetensors>=0.4.5,<1
-transformers>=4.45,<6
+# Verified HF DINOv2 state layout; 5.22 renamed attention/layer-scale keys.
+transformers==5.17.0
 onnx>=1.17,<2
 onnxruntime>=1.20,<2
 onnxconverter-common>=1.16,<2
