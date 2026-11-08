@@ -1,0 +1,22 @@
+{
+  "manifest": "${MIXED_FIT_JSONL}",
+  "manifest_sha256": "afcfab263229f8bf08ffb412344e49a70d650f880b518d88e1078a8d1201eabb",
+  "manifest_roles": ["source_fit", "pad_adapt"],
+  "batch_size": 16,
+  "base_config": {
+    "initial_weights": "${PUBLIC_WEIGHTS}",
+    "output_dir": "${NEW_OUTPUT_DIR}",
+    "max_steps": 6000,
+    "seed": 42,
+    "teacher_momentum": 0.99,
+    "temperature": 0.2,
+    "backbone_lr": 0.00001,
+    "head_lr": 0.0001,
+    "weight_decay": 0.05,
+    "freeze_blocks": 8,
+    "cosine_anchor": false,
+    "l2sp": 0.0,
+    "clinical_quota": 4,
+    "checkpoint_steps": []
+  }
+}
