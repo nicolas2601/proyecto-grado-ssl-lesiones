@@ -1,0 +1,407 @@
+{
+  "meta": {
+    "date": "2026-11-10",
+    "scope": "Track A only. New label-free SSL arms on the DINOv2 ViT-B/14 queue4096 seed-42 base: debiased (queue 4096 + debiased InfoNCE, tau_plus 0.1), queue16384, dino_native (DINO v1 objective, no iBOT). Seed 42 exploratory; seeds 43/44 only for arms that pass the seed-42 gate.",
+    "results_dir": "results/moco-v10-phase-b-arms-20261110 (cluster, /home/jovyan/work/clf1_clinical_reference_20261024)",
+    "status": "IN PROGRESS. Predeclaration frozen at 618fecbb; results block appended after s42 readouts (checkpoint curves added at 2026-11-10 14:23:41 UTC)."
+  },
+  "predeclaration": {
+    "written_at": "sin marca registrada (estimate only, ~12:40 UTC, not captured at save time); written before any Phase B readout and before seeds 43/44 of any Phase B arm were launched",
+    "primary_checkpoint": 6000,
+    "descriptive_checkpoints": [
+      2000,
+      4000
+    ],
+    "primary_features": [
+      "224 CLS4 (cls4)",
+      "448 CLS4 + D4 TTA (cls4_d4)"
+    ],
+    "primary_endpoints": [
+      "macro-F1 HAM (ham_dev)",
+      "macro-F1 PAD (pad_adapt)",
+      "HAM mel recall",
+      "HAM mel->NV",
+      "PAD MEL recall",
+      "PAD SCC recall",
+      "PAD SCC->BCC"
+    ],
+    "baselines": {
+      "224 cls4": "results/moco-v10-teacher-cls4-20261108/readouts/student-s{seed}-{HAM,PAD}.json",
+      "448 cls4_d4": "results/moco-v10-variants-20261109/readouts/s{seed}-r448-cls4_d4-{HAM,PAD}.json",
+      "note": "fresh same-seed baselines; same readout script, same environment (cluster), same CV seeds 20261025/26/27"
+    },
+    "exploratory_gate_seed42": "An arm passes the seed-42 gate if at ckpt 6000 the macro-F1 delta vs baseline is > 0 for at least one (feature, dataset) pair. Only then are seeds 43 and 44 launched.",
+    "success_rule": "Success if, for one primary feature, the macro-F1 delta (arm minus fresh same-environment baseline) has the same positive sign in seeds 42, 43 and 44 on one dataset, AND the other dataset does not worsen by more than 0.01 macro-F1 in any of those seeds. Same rule as Phase A (queue4096 used the same wording).",
+    "failure_rule": "Anything else is not success. Checkpoints 2000 and 4000 and the per-endpoint clinical numbers are descriptive only and do not enter the rule.",
+    "multiplicity": "Hypothesis count per coordinator and statistical review: one hypothesis = one arm with a ck6000 readout, tested on 2 features x 2 datasets. As of 2026-11-10 ~12:50 UTC: 0 readouts exist; arms with a full train under way: debiased, queue16384, fnc, fullres (4); planned, not yet trained: mochi, tau_schedule (smoke only). Not counted as hypotheses: dino_native (stopped before any readout, duplicate of dino-ibot-v1), the fullres manifest alone. Final count is reported at the close of each arm. Interval: the confirmatory rule has no interval; statistical review reports a paired bootstrap of the 3-seed mean separately, with its CI.",
+    "not_run": "No seeds beyond 42/43/44. No further arms. ViT-L not touched.",
+    "hardened_2026_11_10": {
+      "written_at": "2026-11-10 12:47:15 UTC (file mtime at the save that inserted this block; corrects an earlier hand-written '12:50' label, which was wrong). Before this block the author had opened no Phase B readout JSON, only training logs and smoke-test stats.",
+      "supersedes": "success_rule and the s42 gate text where they conflict",
+      "primary": "checkpoint 6000; 448 CLS4 + D4 TTA (cls4_d4) is primary; 224 CLS4 is secondary",
+      "macro_f1_definition": "per encoder seed, the mean over the 3 CV seeds (20261025/26/27) as stored in readouts summary.macro_f1.mean",
+      "baselines": "primary: queue4096 with the same encoder seed (results/moco-v10-ssl-arms-20261109/queue4096-s{seed}/readouts/ck6000-r448-cls4_d4-{HAM,PAD}.json); secondary: V10 448 cls4_d4 (results/moco-v10-variants-20261109) for 448 and V10 224 (results/moco-v10-teacher-cls4-20261108) for 224",
+      "confirmatory_success": "AND-chain on primary feature 448 cls4_d4: (i) delta macro-F1 > 0 in 3/3 encoder seeds on ONE dataset; (ii) mean over the 3 seeds of that delta >= +0.010; (iii) mean delta on the OTHER dataset >= -0.010; (iv) HAM mel->NV (dataset HAM) or PAD SCC->BCC (dataset PAD), whichever belongs to the dataset of (i), does not worsen in mean by more than 1 pp (i.e. mean delta of mel->NV <= +1 pp or SCC->BCC <= +1 pp).",
+      "exploratory_gate_seed42": "Before seeds 43/44 are launched: vs queue4096 seed 42, 448 cls4_d4, ckpt 6000: delta macro-F1 HAM >= +0.005 AND delta HAM mel->NV <= -1 pp AND delta macro-F1 PAD >= -0.01 (coordinator rule). Passing it only licenses seeds 43/44; it is not success.",
+      "descriptive_only": "checkpoints 2000 and 4000; 224 secondary; per-class precision/recall; ECE; any endpoint not named in (iv)",
+      "tested_arms_count": "6 Phase B arms; no correction applied; any success is reported with this count"
+    },
+    "addendum_2026_11_10_later": {
+      "written_at": "2026-11-10 12:47 UTC (corrected from an earlier '~13:10' estimate; the local clock reads 12:47 UTC at this entry), before any fnc, mochi or tau_schedule readout",
+      "arms_added": [
+        "fnc (Huynh 2022 false-negative elimination, |S|=1 third view as support, threshold 0.8, eliminated fraction logged per step)",
+        "mochi (Kalantidis 2020, N=1024 hardest queue negatives + s=128 synthetic mixes of hard pairs, s'=0)",
+        "tau_schedule (Kukleva 2023 cosine temperature, P=2000, tau- 0.1, tau+ 0.5; primary checkpoint 6000 sits in the tau+ phase)"
+      ],
+      "s42_gate_lead_rule": "Taken from docs/phase-b-research-ssl.json as directed by coordinator: vs queue4096 + 448 D4 seed 42, delta macro-F1 HAM >= +0.005 AND delta mel->NV <= -1 pp AND delta macro-F1 PAD >= -0.01. Applied at ckpt 6000, feature 448 cls4_d4. The 224 numbers and checkpoints 2000/4000 are descriptive.",
+      "seeds_43_44_rule": "Same as success_rule above (same-sign positive delta in 42, 43, 44 on one dataset, other dataset not worse than -0.01).",
+      "deviation_note": "The FNC support view is a third augmented view of the same anchor image (research sec 3.2.3), not the query alone; the eliminated fraction is reported, not tuned.",
+      "queue16384_and_debiased": "Started before this addendum; their rule is the one above."
+    }
+  },
+  "arms": {
+    "debiased": {
+      "state": "TRAINING seed 42 (started 2026-11-10 12:28:55 UTC, GPU0)",
+      "config": "queue4096 seed-42 base (results/moco-v10-ssl-arms-20261109/queue4096-s42/config.json) with output_dir and checkpoint_steps [2000,4000] overridden; 6000 steps, batch 16, T=0.2, momentum 0.99, freeze 8, clinical_quota 4",
+      "loss": "Chuang 2020 debiased InfoNCE over in-batch + queue negatives, tau_plus=0.1, negatives floored at N*exp(-1/T); tau_plus=0 is bit-for-bit the queue InfoNCE (selfcheck)",
+      "queue_size": 4096,
+      "wrapper": "scripts/arms/moco_v12_phaseb_runtime_20261110.py + moco_v12_phaseb_losses_20261110.py",
+      "selfcheck": "scripts/arms/moco_v12_phaseb_selfcheck_20261110.py: RED = ModuleNotFoundError before the module existed; GREEN = 12/12 PASS (SELFCHECK OK)"
+    },
+    "queue16384": {
+      "state": "TRAINING seed 42 (started 2026-11-10 12:30:52 UTC, GPU0)",
+      "config": "same as debiased, queue size 16384, plain queue InfoNCE (Phase A helper arms.make_queue_loss)",
+      "queue_size": 16384,
+      "wrapper": "scripts/arms/moco_v12_phaseb_runtime_20261110.py",
+      "selfcheck": "covered by moco_v12_phaseb_selfcheck_20261110.py (16384-slot queue builds and returns a finite loss)"
+    },
+    "dino_native": {
+      "state": "STOPPED by the reviewer on coordinator instruction (superseded by dino-ibot-v1, 3 seeds). Launched 12:36:59 UTC on GPU1, ran a few minutes, killed (PIDs 2226181, 2226182), no readout. Directory dino_native-s42-stopped-superseded-20261110 kept (train/ partial, not evaluated). Smoke test (4 steps, checkpoint at step 2) PASSED end-to-end on GPU0 before the full run; first attempt failed on a CLI mismatch (runtime expected CONFIG only) and was renamed to dino_native-s42-failed-argcheck-20261110 without deleting it.",
+      "objective": "DINO v1 on the DINOv2 backbone, no iBOT, no KoLeo: prototype head MLP 768-2048-2048-256 (L2-normalised) to K=8192 unit-norm prototypes; teacher temperature 0.04 fixed; student temperature 0.1; centre EMA momentum 0.9; cross-entropy over (teacher global i, student view v != i); gradient clipping 3.0",
+      "views": "2 global 224 px (scale 0.4-1.0) for teacher and student; 6 local 98 px (scale 0.05-0.4) for student only; no colour jitter, as the recipe",
+      "teacher": "EMA of student backbone and head, momentum 0.99 (same as the MoCo arms)",
+      "trainable": "blocks 8-11 and final norm (same freeze plan); prototype head from scratch; backbone lr 1e-5, head lr 1e-4, AdamW wd 0.05, constant lr, same sampler (12 source_fit + 4 pad_adapt)",
+      "checkpoint_saved": "student backbone (same format as the other arms), so the same feature extraction applies",
+      "wrapper": "scripts/arms/moco_v12_phaseb_dino_runtime_20261110.py + moco_v12_phaseb_dino_losses_20261110.py",
+      "selfcheck": "scripts/arms/moco_v12_phaseb_dino_selfcheck_20261110.py: RED = ModuleNotFoundError; GREEN = 7/7 PASS (SELFCHECK OK), incl. uniform case = log K, explicit pair-mean match, center EMA"
+    },
+    "fnc": {
+      "state": "TRAINING seed 42 (started 2026-11-10 12:44:54 UTC, GPU1); smoke PASSED. Eliminated fraction logged per step in fnc-stats.json. Support view = third augmented view of the same anchor (|S|=1), threshold 0.8.",
+      "wrapper": "scripts/arms/moco_v12_phaseb_arms2_runtime_20261110.py + moco_v12_phaseb_hard_losses_20261110.py",
+      "selfcheck": "scripts/arms/moco_v12_phaseb_hard_selfcheck_20261110.py: RED = ModuleNotFoundError; GREEN = 16/16 PASS (shared with mochi and tau)"
+    },
+    "fullres": {
+      "state": "TRAINING seed 42 (started 2026-11-10 12:48:29 UTC, GPU1). Data arm: same pool rows and loss as queue4096; ISIC 2019 rows read from datos/isic2019_fullres (13896 rows), 176 rows without a fullres file keep the original path; 0 overlap with ham_dev. Manifest sha256 fc6a63c605957b92b29b28c741bd4337dddfaec2557e8fdc227fc32405e84e77.",
+      "wrapper": "scripts/arms/moco_v12_phaseb_arms2_runtime_20261110.py (loss = arms.make_queue_loss(4096)); manifest and config in results/moco-v10-phase-b-arms-20261110/fullres-manifest/",
+      "classification": "DATA-SOURCE SENSITIVITY, not an SSL method arm. Loss, recipe, seed and sampler are identical to queue4096; only the ISIC 2019 image files change. Its delta vs queue4096 (same seed, original source) isolates the source effect, because the loss is unchanged. It is reported as sensitivity and never as a new SSL method.",
+      "gpu": "GPU1 (second job there with fnc). GPU0 hosts debiased and queue16384. The brief assigns SSL training to GPU0; GPU1 was used under the coordinator rule (>=10 GB free, util <30%). Declared here; coordinator decides."
+    },
+    "mochi": {
+      "state": "PLANNED, not trained. Smoke PASSED (4 steps). Waiting for GPU0.",
+      "config": "N=1024 hardest queue negatives per query, s=128 synthetic mixes of hard pairs (alpha ~ U(0,1)), s'=0"
+    },
+    "tau_schedule": {
+      "state": "PLANNED, not trained. Smoke PASSED (4 steps). Waiting for GPU0.",
+      "config": "Kukleva cosine temperature, P=2000, tau- 0.1, tau+ 0.5; primary checkpoint 6000 at the tau+ phase"
+    }
+  },
+  "infrastructure": {
+    "launcher": "scripts/arms/moco_v12_phaseb_launch_20261110.py ARM GPU (train -> verify resolved-params checkpoint_steps [2000,4000], max_steps 6000, seed 42 and checkpoint files -> extract 224/448 at 2000/4000/6000 -> overlay readouts via Phase A helpers)",
+    "comparison": "scripts/arms/moco_v12_phaseb_compare_20261110.py ARM [ARM ...] (deltas vs fresh same-seed baselines; endpoints; rule verdict at ckpt 6000)",
+    "queue_status": "results/moco-v10-phase-b-arms-20261110/queue-status.json",
+    "gpu_policy": "GPU0 for debiased and queue16384 (2 concurrent trainings, ~2.2 GiB each). GPU1 used for dino_native only while it was free (0% util, 2 GiB used by another reviewer at launch time); not touched otherwise."
+  },
+  "skills_invoked": {
+    "strict-tdd": "Invoked as a Skill? No. Applied its RED->GREEN discipline manually: selfcheck run before each module existed (ModuleNotFoundError), then GREEN after implementation, for the loss module and the DINO loss module.",
+    "systematic-debugging": "Not invoked as a Skill. The DINO CLI failure was traced from the traceback (runtime argv mismatch) and fixed; no separate debugging cycle."
+  },
+  "results": {
+    "status": "s42 readouts complete for debiased, queue16384, fnc, fullres; mochi and tau_schedule training",
+    "gate_seed42_frozen_rule_618fecbb": {
+      "file": "docs/phase-b-ssl-arms-gate-s42.json",
+      "verdict": {
+        "debiased": {
+          "delta_f1_ham": -0.0499,
+          "delta_mel_to_nv_pp": 0.9862,
+          "delta_f1_pad": -0.0281,
+          "pass": false
+        },
+        "queue16384": {
+          "delta_f1_ham": 0.0022,
+          "delta_mel_to_nv_pp": 0.5917,
+          "delta_f1_pad": 0.0042,
+          "pass": false
+        },
+        "fnc": {
+          "delta_f1_ham": 0.0205,
+          "delta_mel_to_nv_pp": 0.0,
+          "delta_f1_pad": -0.0066,
+          "pass": false
+        },
+        "fullres": {
+          "delta_f1_ham": -0.0055,
+          "delta_mel_to_nv_pp": 1.9724,
+          "delta_f1_pad": 0.0017,
+          "pass": false
+        }
+      },
+      "note": "No arm passes; no seeds 43/44 launched."
+    },
+    "curves_seed42_448_and_224_vs_V10_secondary": {
+      "debiased": {
+        "ck2000-r224-HAM": {
+          "macro_f1": 0.5498,
+          "delta_vs_V10_secondary": -0.083,
+          "mel_to_nv": 0.2308
+        },
+        "ck2000-r224-PAD": {
+          "macro_f1": 0.6203,
+          "delta_vs_V10_secondary": -0.053,
+          "scc_to_bcc": 0.5158
+        },
+        "ck2000-r448-HAM": {
+          "macro_f1": 0.5767,
+          "delta_vs_V10_secondary": -0.0369,
+          "mel_to_nv": 0.2308
+        },
+        "ck2000-r448-PAD": {
+          "macro_f1": 0.6454,
+          "delta_vs_V10_secondary": -0.0309,
+          "scc_to_bcc": 0.4737
+        },
+        "ck4000-r224-HAM": {
+          "macro_f1": 0.5604,
+          "delta_vs_V10_secondary": -0.0724,
+          "mel_to_nv": 0.2268
+        },
+        "ck4000-r224-PAD": {
+          "macro_f1": 0.6291,
+          "delta_vs_V10_secondary": -0.0441,
+          "scc_to_bcc": 0.5018
+        },
+        "ck4000-r448-HAM": {
+          "macro_f1": 0.5955,
+          "delta_vs_V10_secondary": -0.018,
+          "mel_to_nv": 0.2209
+        },
+        "ck4000-r448-PAD": {
+          "macro_f1": 0.654,
+          "delta_vs_V10_secondary": -0.0222,
+          "scc_to_bcc": 0.4596
+        },
+        "ck6000-r224-HAM": {
+          "macro_f1": 0.5577,
+          "delta_vs_V10_secondary": -0.0751,
+          "mel_to_nv": 0.213
+        },
+        "ck6000-r224-PAD": {
+          "macro_f1": 0.631,
+          "delta_vs_V10_secondary": -0.0422,
+          "scc_to_bcc": 0.5298
+        },
+        "ck6000-r448-HAM": {
+          "macro_f1": 0.5809,
+          "delta_vs_V10_secondary": -0.0327,
+          "mel_to_nv": 0.2051
+        },
+        "ck6000-r448-PAD": {
+          "macro_f1": 0.6495,
+          "delta_vs_V10_secondary": -0.0267,
+          "scc_to_bcc": 0.4807
+        }
+      },
+      "queue16384": {
+        "ck2000-r224-HAM": {
+          "macro_f1": 0.6368,
+          "delta_vs_V10_secondary": 0.004,
+          "mel_to_nv": 0.211
+        },
+        "ck2000-r224-PAD": {
+          "macro_f1": 0.6752,
+          "delta_vs_V10_secondary": 0.002,
+          "scc_to_bcc": 0.4702
+        },
+        "ck2000-r448-HAM": {
+          "macro_f1": 0.629,
+          "delta_vs_V10_secondary": 0.0154,
+          "mel_to_nv": 0.211
+        },
+        "ck2000-r448-PAD": {
+          "macro_f1": 0.6669,
+          "delta_vs_V10_secondary": -0.0093,
+          "scc_to_bcc": 0.4982
+        },
+        "ck4000-r224-HAM": {
+          "macro_f1": 0.6142,
+          "delta_vs_V10_secondary": -0.0186,
+          "mel_to_nv": 0.2288
+        },
+        "ck4000-r224-PAD": {
+          "macro_f1": 0.6796,
+          "delta_vs_V10_secondary": 0.0064,
+          "scc_to_bcc": 0.4737
+        },
+        "ck4000-r448-HAM": {
+          "macro_f1": 0.6312,
+          "delta_vs_V10_secondary": 0.0176,
+          "mel_to_nv": 0.1972
+        },
+        "ck4000-r448-PAD": {
+          "macro_f1": 0.6736,
+          "delta_vs_V10_secondary": -0.0026,
+          "scc_to_bcc": 0.4737
+        },
+        "ck6000-r224-HAM": {
+          "macro_f1": 0.6129,
+          "delta_vs_V10_secondary": -0.0199,
+          "mel_to_nv": 0.2268
+        },
+        "ck6000-r224-PAD": {
+          "macro_f1": 0.6842,
+          "delta_vs_V10_secondary": 0.0109,
+          "scc_to_bcc": 0.4772
+        },
+        "ck6000-r448-HAM": {
+          "macro_f1": 0.6329,
+          "delta_vs_V10_secondary": 0.0193,
+          "mel_to_nv": 0.2012
+        },
+        "ck6000-r448-PAD": {
+          "macro_f1": 0.6818,
+          "delta_vs_V10_secondary": 0.0055,
+          "scc_to_bcc": 0.4737
+        }
+      },
+      "fnc": {
+        "ck2000-r224-HAM": {
+          "macro_f1": 0.6277,
+          "delta_vs_V10_secondary": -0.0051,
+          "mel_to_nv": 0.217
+        },
+        "ck2000-r224-PAD": {
+          "macro_f1": 0.6706,
+          "delta_vs_V10_secondary": -0.0026,
+          "scc_to_bcc": 0.4702
+        },
+        "ck2000-r448-HAM": {
+          "macro_f1": 0.6422,
+          "delta_vs_V10_secondary": 0.0287,
+          "mel_to_nv": 0.2249
+        },
+        "ck2000-r448-PAD": {
+          "macro_f1": 0.672,
+          "delta_vs_V10_secondary": -0.0042,
+          "scc_to_bcc": 0.4772
+        },
+        "ck4000-r224-HAM": {
+          "macro_f1": 0.6263,
+          "delta_vs_V10_secondary": -0.0065,
+          "mel_to_nv": 0.2229
+        },
+        "ck4000-r224-PAD": {
+          "macro_f1": 0.6818,
+          "delta_vs_V10_secondary": 0.0085,
+          "scc_to_bcc": 0.4772
+        },
+        "ck4000-r448-HAM": {
+          "macro_f1": 0.6409,
+          "delta_vs_V10_secondary": 0.0273,
+          "mel_to_nv": 0.2071
+        },
+        "ck4000-r448-PAD": {
+          "macro_f1": 0.6748,
+          "delta_vs_V10_secondary": -0.0014,
+          "scc_to_bcc": 0.4947
+        },
+        "ck6000-r224-HAM": {
+          "macro_f1": 0.6187,
+          "delta_vs_V10_secondary": -0.0141,
+          "mel_to_nv": 0.2209
+        },
+        "ck6000-r224-PAD": {
+          "macro_f1": 0.6836,
+          "delta_vs_V10_secondary": 0.0104,
+          "scc_to_bcc": 0.4982
+        },
+        "ck6000-r448-HAM": {
+          "macro_f1": 0.6512,
+          "delta_vs_V10_secondary": 0.0377,
+          "mel_to_nv": 0.1953
+        },
+        "ck6000-r448-PAD": {
+          "macro_f1": 0.6709,
+          "delta_vs_V10_secondary": -0.0053,
+          "scc_to_bcc": 0.4947
+        }
+      },
+      "fullres": {
+        "ck2000-r224-HAM": {
+          "macro_f1": 0.5991,
+          "delta_vs_V10_secondary": -0.0337,
+          "mel_to_nv": 0.2327
+        },
+        "ck2000-r224-PAD": {
+          "macro_f1": 0.6802,
+          "delta_vs_V10_secondary": 0.007,
+          "scc_to_bcc": 0.4421
+        },
+        "ck2000-r448-HAM": {
+          "macro_f1": 0.6328,
+          "delta_vs_V10_secondary": 0.0192,
+          "mel_to_nv": 0.2209
+        },
+        "ck2000-r448-PAD": {
+          "macro_f1": 0.6739,
+          "delta_vs_V10_secondary": -0.0023,
+          "scc_to_bcc": 0.4702
+        },
+        "ck4000-r224-HAM": {
+          "macro_f1": 0.6068,
+          "delta_vs_V10_secondary": -0.026,
+          "mel_to_nv": 0.2249
+        },
+        "ck4000-r224-PAD": {
+          "macro_f1": 0.6819,
+          "delta_vs_V10_secondary": 0.0087,
+          "scc_to_bcc": 0.4561
+        },
+        "ck4000-r448-HAM": {
+          "macro_f1": 0.6322,
+          "delta_vs_V10_secondary": 0.0186,
+          "mel_to_nv": 0.2091
+        },
+        "ck4000-r448-PAD": {
+          "macro_f1": 0.6836,
+          "delta_vs_V10_secondary": 0.0074,
+          "scc_to_bcc": 0.4491
+        },
+        "ck6000-r224-HAM": {
+          "macro_f1": 0.6131,
+          "delta_vs_V10_secondary": -0.0196,
+          "mel_to_nv": 0.2347
+        },
+        "ck6000-r224-PAD": {
+          "macro_f1": 0.6918,
+          "delta_vs_V10_secondary": 0.0186,
+          "scc_to_bcc": 0.4702
+        },
+        "ck6000-r448-HAM": {
+          "macro_f1": 0.6252,
+          "delta_vs_V10_secondary": 0.0117,
+          "mel_to_nv": 0.215
+        },
+        "ck6000-r448-PAD": {
+          "macro_f1": 0.6792,
+          "delta_vs_V10_secondary": 0.003,
+          "scc_to_bcc": 0.4667
+        }
+      }
+    },
+    "notes": [
+      "deltas in curves are vs the V10 baseline (secondary), not vs queue4096; the primary gate uses queue4096",
+      "checkpoint 2000 and 4000 are descriptive only",
+      "fnc ck6000 HAM 448: arm macro-F1 0.6512106, V10 448 seed-42 baseline 0.6135511, delta +0.0376595 (stored, unrounded; the rounded 0.614 would give +0.0372, do not use it)",
+      "Seed-42 only; no interval; statistical review reports the paired bootstrap separately"
+    ]
+  }
+}

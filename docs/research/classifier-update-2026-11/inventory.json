@@ -1,0 +1,4462 @@
+{
+  "meta": {
+    "title": "Inventario de experimentos clf1 (Fase B)",
+    "generated": "2026-11-10",
+    "author": "archivista (agencia phase-b)",
+    "scope": "solo lectura: results/ en cluster unabia, Engram VPS, research/ local. No se abrieron manifests ham_holdout ni pad_test. No se lanzaron jobs.",
+    "sources": [
+      "ssh unabia: results/ (241 entradas, 187 JSON readout, 180 con matriz de confusion)",
+      "research/moco-v10-improvement- 20261108/AGENCY_BRIEF.md, emails/03-cierre-ssl-20261110.txt, docs/phase-b-research-ssl.json, docs/phase-b-research-derm.json",
+      "Engram VPS proyecto-grado-ssl-lesiones: #2266, #2344, #2349, #2353, #2363, #2366"
+    ]
+  },
+  "protocol_check": {
+    "reader": "Los 178 readouts HAM/PAD de results/ son balancedLR nested grouped 5x3, CV seeds 20261025/26/27, grid C 0.3..100. Mismo reader.",
+    "feature_pooling_VERIFICADO": "Las features de los readouts viejos (SimSiam, VICReg, Barlow, DINO+iBOT, etc.) son CLS de 768 dims (ham_dev.npz shape (1528,768)). Las de V10 son CLS4 de 3072 dims y cls4patch de 6144 (moco-v10-variants-20261109/s42-r224). CORRECCION: no son comparables directamente con V10 CLS4 (0.621/0.675). Mi version anterior decia que si, y estaba mal.",
+    "consecuencia": "La diferencia V10 vs MoCo-v3 (0.644 PAD) mezcla encoder/recipe con pooling. Hueco: medir CLS vs CLS4 sobre el MISMO encoder (barato, solo lectura de features/readout).",
+    "transductivo": "En PAD el encoder SSL ve imagenes del target_adapt; los numeros PAD son dev transductivo.",
+    "multiplicidad": "~100 comparaciones en dev sin correccion.",
+    "moco_bootstrap": "El p=0.010 de MoCo no es p calibrado (Engram #2366).",
+    "approximations": "Filas marcadas * en la tabla de referencia son aproximaciones 'estilo X', no reproducciones del paper. Filas con dagger usan etiquetas diagnosticas para elegir imagenes (no SSL puro)."
+  },
+  "master_table": [
+    {
+      "method": "SimSiam (baseline de referencia)",
+      "encoder": "DINOv2 ViT-B/14 (init publico)",
+      "init": "publico + ancla coseno 1.0 + L2-SP 1e-4 (run.json, Engram #2344/#2353)",
+      "ssl_objective": "SimSiam",
+      "sampler_aug": "12 fuente + 4 PAD por batch",
+      "seeds": "42,43,44 (encoder) x 3 CV",
+      "protocol": "balancedLR nested 5x3, CV 20261025-27 (comparable)",
+      "HAM_mf1": 0.518,
+      "PAD_mf1": 0.597,
+      "HAM_MEL_to_NV_mean": 0.2435,
+      "PAD_SCC_to_BCC_mean": 0.547,
+      "paths": [
+        "results/baseline-s42-pipeline-evaluation-v1",
+        "results/baseline-s43-evaluation-v1",
+        "results/baseline-s44-evaluation-v1"
+      ],
+      "verdict": "Referencia. Superada en PAD por VICReg/Barlow (campana v3)."
+    },
+    {
+      "method": "VICReg (cabeza sobre DINOv2)",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico + ancla (verificado)",
+      "ssl_objective": "VICReg",
+      "sampler_aug": "baseline",
+      "seeds": "42,43,44 x 3 CV",
+      "protocol": "comparable",
+      "HAM_mf1": 0.546,
+      "PAD_mf1": 0.638,
+      "HAM_MEL_to_NV_mean": 0.27,
+      "PAD_SCC_to_BCC_mean": 0.418,
+      "paths": [
+        "results/vicreg-evaluation-v1",
+        "results/vicreg-s43-evaluation-v1",
+        "results/vicreg-s44-evaluation-v1"
+      ],
+      "verdict": "Ganador PAD provisional (+0.041, IC pareado excluye 0; permutacion min p=0.10). No mejora HAM ni melanoma."
+    },
+    {
+      "method": "Barlow Twins (cabeza sobre DINOv2)",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico + ancla",
+      "ssl_objective": "Barlow Twins",
+      "sampler_aug": "baseline",
+      "seeds": "42,43,44 x 3 CV",
+      "protocol": "comparable",
+      "HAM_mf1": 0.519,
+      "PAD_mf1": 0.633,
+      "HAM_MEL_to_NV_mean": 0.231,
+      "PAD_SCC_to_BCC_mean": 0.4,
+      "paths": [
+        "results/barlow-evaluation-v1",
+        "results/barlow-s43-evaluation-v1",
+        "results/barlow-s44-evaluation-v1"
+      ],
+      "verdict": "Ganador PAD provisional (+0.035). HAM sin mejora."
+    },
+    {
+      "method": "Barlow + VICReg (suma)",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico + ancla",
+      "ssl_objective": "Barlow+VICReg",
+      "sampler_aug": "baseline",
+      "seeds": "42 (s43,s44 como runner exploratorio)",
+      "protocol": "comparable",
+      "HAM_mf1": 0.522,
+      "PAD_mf1": 0.637,
+      "HAM_MEL_to_NV_mean": 0.241,
+      "PAD_SCC_to_BCC_mean": 0.414,
+      "paths": [
+        "results/barlow-vicreg-evaluation-v1",
+        "results/barlow-vicreg-s43-evaluation-v1",
+        "results/barlow-vicreg-s44-evaluation-v1"
+      ],
+      "verdict": "Sin ganancia sobre VICReg solo."
+    },
+    {
+      "method": "DINO + iBOT (prototipos 65536, teacher mom 0.994, pesos [1,1,0.1])",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico; ancla coseno 1.0 SIN L2-SP (Engram #2353)",
+      "ssl_objective": "DINO+iBOT+KoLeo",
+      "sampler_aug": "baseline",
+      "seeds": "42,43,44 x 3 CV",
+      "protocol": "comparable",
+      "HAM_mf1": 0.527,
+      "PAD_mf1": 0.607,
+      "HAM_MEL_to_NV_mean": 0.236,
+      "PAD_SCC_to_BCC_mean": 0.512,
+      "paths": [
+        "results/dino-ibot-evaluation-v1",
+        "results/dino-ibot-s43-evaluation-v1",
+        "results/dino-ibot-s44-evaluation-v1",
+        "results/dino-ibot-cb-s42-evaluation-v1"
+      ],
+      "verdict": "Delta +0.009 PAD, casi atribuible al objetivo. No alcanza +0.02 prerregistrado. Ya cubre el brazo M10 (DINOv2 nativo)."
+    },
+    {
+      "method": "MoCo-v3-style SIN ancla (cola, sampler uniforme)",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico, ANCLA APAGADA (cosine_anchor=false)",
+      "ssl_objective": "MoCo v3 style",
+      "sampler_aug": "random.sample sobre mixed-fit (no 12+4)",
+      "seeds": "42,43,44 x 3 CV",
+      "protocol": "comparable en readout; NO comparable en recipe (confound)",
+      "HAM_mf1": 0.602,
+      "PAD_mf1": 0.644,
+      "HAM_MEL_to_NV_mean": 0.223,
+      "PAD_SCC_to_BCC_mean": 0.455,
+      "paths": [
+        "results/moco-v3-s42-evaluation-v1",
+        "results/moco-v3-s43-evaluation-v1",
+        "results/moco-v3-s44-evaluation-v1"
+      ],
+      "verdict": "Mejor PAD y HAM en la tabla, pero CONFUNDIDO: difiere en objetivo y ancla, costo 0.216 GPU-h vs ~1.2-1.3. Es la linea base actual de MoCo."
+    },
+    {
+      "method": "MoCo-v3-style CON ancla coseno",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico + ancla coseno",
+      "ssl_objective": "MoCo v3 style",
+      "sampler_aug": "uniforme",
+      "seeds": "42,43,44 x 3 CV",
+      "protocol": "comparable",
+      "HAM_mf1": 0.549,
+      "PAD_mf1": 0.617,
+      "HAM_MEL_to_NV_mean": 0.251,
+      "PAD_SCC_to_BCC_mean": 0.516,
+      "paths": [
+        "results/moco-v3-anchor-s42-evaluation-v1",
+        "results/moco-v3-anchor-s43-evaluation-v1",
+        "results/moco-v3-anchor-s44-evaluation-v1"
+      ],
+      "verdict": "El ancla PERJUDICA MoCo (-0.027 PAD, -0.053 HAM). Descarta el ancla en MoCo."
+    },
+    {
+      "method": "MoCo v4 sweeps (freeze10, l2sp, lr5e-6, m0, mom0.996, quota4, quota4+l2sp, steps3000/12000, temp0.1)",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico, sin ancla salvo l2sp/quota4l2sp",
+      "ssl_objective": "MoCo v4",
+      "sampler_aug": "quota4 = cuota por fuente",
+      "seeds": "42,43,44 x 3 CV",
+      "protocol": "comparable",
+      "HAM_mf1": "0.571-0.602",
+      "PAD_mf1": "0.641-0.664",
+      "HAM_MEL_to_NV_mean": "0.214-0.249",
+      "PAD_SCC_to_BCC_mean": "0.442-0.512",
+      "paths": [
+        "results/moco-v4-*-s4{2,3,4}-evaluation-v1"
+      ],
+      "verdict": "Barrido plano dentro del ruido (SD ~0.01). Mejor: quota4 PAD .663 / HAM .602 / MEL>NV .214. m0 es IDENTICO a moco-v3 sin ancla (duplicado)."
+    },
+    {
+      "method": "MoCo v10 V10 (224, cls4)",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico",
+      "ssl_objective": "MoCo v10",
+      "sampler_aug": "baseline v10",
+      "seeds": "3 encoder x 3 CV",
+      "protocol": "reportado en brief/email; features cls4 no verificadas en JSON de settings",
+      "HAM_mf1": 0.621,
+      "PAD_mf1": 0.675,
+      "HAM_MEL_to_NV_mean": 0.244,
+      "PAD_SCC_to_BCC_mean": 0.478,
+      "paths": [
+        "results/moco-v10-variants-20261109",
+        "results/moco-v10-teacher-cls4-20261108"
+      ],
+      "verdict": "Referencia V10."
+    },
+    {
+      "method": "MoCo v10 + 448 + D4 TTA",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico",
+      "ssl_objective": "MoCo v10",
+      "sampler_aug": "448 + TTA D4",
+      "seeds": "3 x 3",
+      "protocol": "reportado (brief/email)",
+      "HAM_mf1": 0.614,
+      "PAD_mf1": 0.678,
+      "HAM_MEL_to_NV_mean": 0.197,
+      "PAD_SCC_to_BCC_mean": 0.448,
+      "paths": [
+        "results/moco-v10-variants-20261109"
+      ],
+      "verdict": "Candidato A (decision de project owner pendiente). Mejor en errores clinicos; no reentrenado."
+    },
+    {
+      "method": "MoCo v10 queue4096 + 448 + D4",
+      "encoder": "DINOv2 ViT-B/14",
+      "init": "publico",
+      "ssl_objective": "MoCo + cola 4096",
+      "sampler_aug": "448 + D4",
+      "seeds": "3 x 3",
+      "protocol": "reportado (brief/email)",
+      "HAM_mf1": 0.631,
+      "PAD_mf1": 0.677,
+      "HAM_MEL_to_NV_mean": 0.196,
+      "PAD_SCC_to_BCC_mean": 0.475,
+      "paths": [
+        "results/moco-v10-phase-b-arms-20261110 (si aplica)",
+        "results/moco-v10-ssl-arms-20261109"
+      ],
+      "verdict": "Candidato B. Pasa regla predeclarada, pero sin mejora clinica y SCC>BCC peor en s44."
+    },
+    {
+      "method": "Track B: metadatos clinicos PAD (w=0.1)",
+      "encoder": "DINOv2 + metadatos",
+      "init": "n/a",
+      "ssl_objective": "n/a (supervisado)",
+      "sampler_aug": "n/a",
+      "seeds": "3 x 3",
+      "protocol": "CONFLICTO de cifras: brief .675->.763 (set completo); email .737 (PAD) / .619 HAM; tabla maestra .703 (SigLIP2+meta)",
+      "HAM_mf1": 0.619,
+      "PAD_mf1": 0.737,
+      "HAM_MEL_to_NV_mean": 0.175,
+      "PAD_SCC_to_BCC_mean": 0.387,
+      "paths": [
+        "results/campaign-20261027-v3/tabla-maestra-union"
+      ],
+      "verdict": "Solo comparacion supervisada. Reconciliar cifras antes de citar."
+    },
+    {
+      "method": "Supervised fine-tune de bancos (alexnet, resnet50, vgg19, vit-b16, dinov2 vitb/vits, effnet, simsiam-r50)",
+      "encoder": "varios",
+      "init": "varios",
+      "ssl_objective": "supervisado",
+      "sampler_aug": "n/a",
+      "seeds": "3 x 3",
+      "protocol": "comparable en readout (FT)",
+      "HAM_mf1": "0.35-0.52",
+      "PAD_mf1": "0.39-0.61",
+      "HAM_MEL_to_NV_mean": "0.10-0.41",
+      "PAD_SCC_to_BCC_mean": "0.44-0.57",
+      "paths": [
+        "results/bank-*-finetune-evaluation-v1"
+      ],
+      "verdict": "Sin ganancia clinica. MEL recall -16 pp en PAD."
+    },
+    {
+      "method": "Comparadores publicos congelados",
+      "encoder": "DINOv2 S/B/L/g, OpenCLIP B/L, SigLIP2",
+      "init": "publico",
+      "ssl_objective": "no SSL propio",
+      "sampler_aug": "n/a",
+      "seeds": "3 x 3",
+      "protocol": "comparable",
+      "HAM_mf1": "S 0.503 / G 0.526 / OCLIP-L 0.541",
+      "PAD_mf1": "S 0.562 / G 0.613 / L 0.592 / OCLIP-L 0.613 / SigLIP2 so400m 0.667",
+      "HAM_MEL_to_NV_mean": "n/d",
+      "PAD_SCC_to_BCC_mean": "n/d",
+      "paths": [
+        "results/public-small-giant-v1",
+        "results/public-frozen-encoder-comparison-v1",
+        "results/openclip-*-evaluation-v1"
+      ],
+      "verdict": "Referencias. DINOv2 ViT-L/g SSL NO entrenado."
+    },
+    {
+      "method": "Clasico LBP+GLCM+color (LR balanceado / RBF-SVM)",
+      "encoder": "n/a",
+      "init": "n/a",
+      "ssl_objective": "n/a",
+      "sampler_aug": "n/a",
+      "seeds": "CV 3",
+      "protocol": "reportado",
+      "HAM_mf1": "n/d",
+      "PAD_mf1": "0.308 / 0.289",
+      "HAM_MEL_to_NV_mean": "n/d",
+      "PAD_SCC_to_BCC_mean": "n/d",
+      "paths": [
+        "results/classic-*"
+      ],
+      "verdict": "Piso. Descartado."
+    }
+  ],
+  "readouts_detail": [
+    {
+      "file": "bank-alexnet-finetune-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.468,
+      "macro_f1_sd_ddof0": 0.03,
+      "balanced_acc": 0.5117,
+      "MEL_to_NV": 0.185,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-alexnet-finetune-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.5228,
+      "macro_f1_sd_ddof0": 0.0069,
+      "balanced_acc": 0.5245,
+      "MEL_to_NV": 0.21,
+      "SCC_to_BCC": 0.516
+    },
+    {
+      "file": "bank-alexnet-frozen-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4702,
+      "macro_f1_sd_ddof0": 0.0104,
+      "balanced_acc": 0.5249,
+      "MEL_to_NV": 0.168,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-alexnet-frozen-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4658,
+      "macro_f1_sd_ddof0": 0.018,
+      "balanced_acc": 0.4828,
+      "MEL_to_NV": 0.21,
+      "SCC_to_BCC": 0.396
+    },
+    {
+      "file": "bank-dinov2-vitb14-finetune-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.4994,
+      "macro_f1_sd_ddof0": 0.0134,
+      "balanced_acc": 0.5361,
+      "MEL_to_NV": 0.227,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-dinov2-vitb14-finetune-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.6128,
+      "macro_f1_sd_ddof0": 0.0037,
+      "balanced_acc": 0.6107,
+      "MEL_to_NV": 0.222,
+      "SCC_to_BCC": 0.509
+    },
+    {
+      "file": "bank-dinov2-vitb14-frozen-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4914,
+      "macro_f1_sd_ddof0": 0.0088,
+      "balanced_acc": 0.5126,
+      "MEL_to_NV": 0.258,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-dinov2-vitb14-frozen-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5841,
+      "macro_f1_sd_ddof0": 0.0103,
+      "balanced_acc": 0.5955,
+      "MEL_to_NV": 0.111,
+      "SCC_to_BCC": 0.53
+    },
+    {
+      "file": "bank-dinov2-vits14-finetune-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.448,
+      "macro_f1_sd_ddof0": 0.0127,
+      "balanced_acc": 0.4956,
+      "MEL_to_NV": 0.225,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-dinov2-vits14-finetune-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.585,
+      "macro_f1_sd_ddof0": 0.0097,
+      "balanced_acc": 0.5881,
+      "MEL_to_NV": 0.148,
+      "SCC_to_BCC": 0.565
+    },
+    {
+      "file": "bank-dinov2-vits14-frozen-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4759,
+      "macro_f1_sd_ddof0": 0.0234,
+      "balanced_acc": 0.5152,
+      "MEL_to_NV": 0.213,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-dinov2-vits14-frozen-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5595,
+      "macro_f1_sd_ddof0": 0.0209,
+      "balanced_acc": 0.5799,
+      "MEL_to_NV": 0.16,
+      "SCC_to_BCC": 0.456
+    },
+    {
+      "file": "bank-efficientnet-b0-finetune-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.3782,
+      "macro_f1_sd_ddof0": 0.026,
+      "balanced_acc": 0.4054,
+      "MEL_to_NV": 0.414,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-efficientnet-b0-finetune-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.3898,
+      "macro_f1_sd_ddof0": 0.0236,
+      "balanced_acc": 0.4063,
+      "MEL_to_NV": 0.37,
+      "SCC_to_BCC": 0.463
+    },
+    {
+      "file": "bank-efficientnet-b0-frozen-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4367,
+      "macro_f1_sd_ddof0": 0.0099,
+      "balanced_acc": 0.45,
+      "MEL_to_NV": 0.254,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-efficientnet-b0-frozen-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5328,
+      "macro_f1_sd_ddof0": 0.0035,
+      "balanced_acc": 0.5399,
+      "MEL_to_NV": 0.16,
+      "SCC_to_BCC": 0.46
+    },
+    {
+      "file": "bank-resnet50-finetune-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.5092,
+      "macro_f1_sd_ddof0": 0.0226,
+      "balanced_acc": 0.5319,
+      "MEL_to_NV": 0.249,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-resnet50-finetune-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.5437,
+      "macro_f1_sd_ddof0": 0.0127,
+      "balanced_acc": 0.5487,
+      "MEL_to_NV": 0.16,
+      "SCC_to_BCC": 0.491
+    },
+    {
+      "file": "bank-resnet50-frozen-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4156,
+      "macro_f1_sd_ddof0": 0.0102,
+      "balanced_acc": 0.4365,
+      "MEL_to_NV": 0.245,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-resnet50-frozen-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4885,
+      "macro_f1_sd_ddof0": 0.0093,
+      "balanced_acc": 0.496,
+      "MEL_to_NV": 0.21,
+      "SCC_to_BCC": 0.523
+    },
+    {
+      "file": "bank-simsiam-r50-finetune-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.3485,
+      "macro_f1_sd_ddof0": 0.0136,
+      "balanced_acc": 0.4358,
+      "MEL_to_NV": 0.097,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-simsiam-r50-finetune-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.4382,
+      "macro_f1_sd_ddof0": 0.0182,
+      "balanced_acc": 0.478,
+      "MEL_to_NV": 0.148,
+      "SCC_to_BCC": 0.442
+    },
+    {
+      "file": "bank-simsiam-r50-frozen-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4573,
+      "macro_f1_sd_ddof0": 0.0066,
+      "balanced_acc": 0.4754,
+      "MEL_to_NV": 0.231,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-simsiam-r50-frozen-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5318,
+      "macro_f1_sd_ddof0": 0.0063,
+      "balanced_acc": 0.5381,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.407
+    },
+    {
+      "file": "bank-vgg19-finetune-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.4822,
+      "macro_f1_sd_ddof0": 0.0173,
+      "balanced_acc": 0.5051,
+      "MEL_to_NV": 0.229,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-vgg19-finetune-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.5834,
+      "macro_f1_sd_ddof0": 0.0085,
+      "balanced_acc": 0.5737,
+      "MEL_to_NV": 0.148,
+      "SCC_to_BCC": 0.516
+    },
+    {
+      "file": "bank-vgg19-frozen-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.3862,
+      "macro_f1_sd_ddof0": 0.0068,
+      "balanced_acc": 0.4177,
+      "MEL_to_NV": 0.215,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-vgg19-frozen-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4513,
+      "macro_f1_sd_ddof0": 0.0039,
+      "balanced_acc": 0.4684,
+      "MEL_to_NV": 0.309,
+      "SCC_to_BCC": 0.421
+    },
+    {
+      "file": "bank-vit-b16-finetune-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.5168,
+      "macro_f1_sd_ddof0": 0.0395,
+      "balanced_acc": 0.5107,
+      "MEL_to_NV": 0.329,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-vit-b16-finetune-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "supervised fine-tune",
+      "macro_f1_mean": 0.5731,
+      "macro_f1_sd_ddof0": 0.008,
+      "balanced_acc": 0.5689,
+      "MEL_to_NV": 0.259,
+      "SCC_to_BCC": 0.568
+    },
+    {
+      "file": "bank-vit-b16-frozen-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4715,
+      "macro_f1_sd_ddof0": 0.0042,
+      "balanced_acc": 0.492,
+      "MEL_to_NV": 0.231,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "bank-vit-b16-frozen-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5376,
+      "macro_f1_sd_ddof0": 0.0104,
+      "balanced_acc": 0.5445,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.491
+    },
+    {
+      "file": "barlow-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.511,
+      "macro_f1_sd_ddof0": 0.0138,
+      "balanced_acc": 0.5419,
+      "MEL_to_NV": 0.233,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "barlow-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6465,
+      "macro_f1_sd_ddof0": 0.0069,
+      "balanced_acc": 0.6617,
+      "MEL_to_NV": 0.074,
+      "SCC_to_BCC": 0.382
+    },
+    {
+      "file": "barlow-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5212,
+      "macro_f1_sd_ddof0": 0.0148,
+      "balanced_acc": 0.5563,
+      "MEL_to_NV": 0.227,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "barlow-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6219,
+      "macro_f1_sd_ddof0": 0.0064,
+      "balanced_acc": 0.6321,
+      "MEL_to_NV": 0.111,
+      "SCC_to_BCC": 0.432
+    },
+    {
+      "file": "barlow-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.524,
+      "macro_f1_sd_ddof0": 0.0109,
+      "balanced_acc": 0.556,
+      "MEL_to_NV": 0.233,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "barlow-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.629,
+      "macro_f1_sd_ddof0": 0.0106,
+      "balanced_acc": 0.6496,
+      "MEL_to_NV": 0.074,
+      "SCC_to_BCC": 0.386
+    },
+    {
+      "file": "barlow-vicreg-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5184,
+      "macro_f1_sd_ddof0": 0.0091,
+      "balanced_acc": 0.5497,
+      "MEL_to_NV": 0.252,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "barlow-vicreg-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6436,
+      "macro_f1_sd_ddof0": 0.0054,
+      "balanced_acc": 0.6559,
+      "MEL_to_NV": 0.049,
+      "SCC_to_BCC": 0.425
+    },
+    {
+      "file": "barlow-vicreg-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5253,
+      "macro_f1_sd_ddof0": 0.0185,
+      "balanced_acc": 0.5535,
+      "MEL_to_NV": 0.241,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "barlow-vicreg-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6296,
+      "macro_f1_sd_ddof0": 0.0094,
+      "balanced_acc": 0.6438,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.425
+    },
+    {
+      "file": "barlow-vicreg-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5207,
+      "macro_f1_sd_ddof0": 0.0188,
+      "balanced_acc": 0.549,
+      "MEL_to_NV": 0.229,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "barlow-vicreg-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6377,
+      "macro_f1_sd_ddof0": 0.0122,
+      "balanced_acc": 0.6545,
+      "MEL_to_NV": 0.074,
+      "SCC_to_BCC": 0.393
+    },
+    {
+      "file": "baseline-s42-pipeline-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.514,
+      "macro_f1_sd_ddof0": 0.0122,
+      "balanced_acc": 0.5406,
+      "MEL_to_NV": 0.241,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "baseline-s42-pipeline-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6063,
+      "macro_f1_sd_ddof0": 0.011,
+      "balanced_acc": 0.6189,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.53
+    },
+    {
+      "file": "baseline-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5239,
+      "macro_f1_sd_ddof0": 0.0195,
+      "balanced_acc": 0.5455,
+      "MEL_to_NV": 0.254,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "baseline-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6,
+      "macro_f1_sd_ddof0": 0.0153,
+      "balanced_acc": 0.6108,
+      "MEL_to_NV": 0.111,
+      "SCC_to_BCC": 0.547
+    },
+    {
+      "file": "baseline-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5158,
+      "macro_f1_sd_ddof0": 0.0143,
+      "balanced_acc": 0.5398,
+      "MEL_to_NV": 0.233,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "baseline-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5857,
+      "macro_f1_sd_ddof0": 0.0043,
+      "balanced_acc": 0.5974,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.547
+    },
+    {
+      "file": "byol-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5068,
+      "macro_f1_sd_ddof0": 0.0144,
+      "balanced_acc": 0.531,
+      "MEL_to_NV": 0.249,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "byol-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5938,
+      "macro_f1_sd_ddof0": 0.0152,
+      "balanced_acc": 0.6037,
+      "MEL_to_NV": 0.111,
+      "SCC_to_BCC": 0.551
+    },
+    {
+      "file": "contrastive-domain-hamPAD-s42-retry-20261029-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5592,
+      "macro_f1_sd_ddof0": 0.012,
+      "balanced_acc": 0.5809,
+      "MEL_to_NV": 0.247,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "contrastive-domain-hamPAD-s42-retry-20261029-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6389,
+      "macro_f1_sd_ddof0": 0.0109,
+      "balanced_acc": 0.6585,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.516
+    },
+    {
+      "file": "diet-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.388,
+      "macro_f1_sd_ddof0": 0.0064,
+      "balanced_acc": 0.4253,
+      "MEL_to_NV": 0.219,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "diet-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5381,
+      "macro_f1_sd_ddof0": 0.0139,
+      "balanced_acc": 0.556,
+      "MEL_to_NV": 0.259,
+      "SCC_to_BCC": 0.446
+    },
+    {
+      "file": "dino-ibot-cb-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5357,
+      "macro_f1_sd_ddof0": 0.0143,
+      "balanced_acc": 0.5662,
+      "MEL_to_NV": 0.237,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "dino-ibot-cb-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6041,
+      "macro_f1_sd_ddof0": 0.0139,
+      "balanced_acc": 0.6151,
+      "MEL_to_NV": 0.136,
+      "SCC_to_BCC": 0.495
+    },
+    {
+      "file": "dino-ibot-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5158,
+      "macro_f1_sd_ddof0": 0.0141,
+      "balanced_acc": 0.553,
+      "MEL_to_NV": 0.223,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "dino-ibot-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6104,
+      "macro_f1_sd_ddof0": 0.0097,
+      "balanced_acc": 0.6325,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.491
+    },
+    {
+      "file": "dino-ibot-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5295,
+      "macro_f1_sd_ddof0": 0.0097,
+      "balanced_acc": 0.5644,
+      "MEL_to_NV": 0.231,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "dino-ibot-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6099,
+      "macro_f1_sd_ddof0": 0.019,
+      "balanced_acc": 0.6253,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.537
+    },
+    {
+      "file": "dino-ibot-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5366,
+      "macro_f1_sd_ddof0": 0.0167,
+      "balanced_acc": 0.5689,
+      "MEL_to_NV": 0.254,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "dino-ibot-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5992,
+      "macro_f1_sd_ddof0": 0.0071,
+      "balanced_acc": 0.6116,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.509
+    },
+    {
+      "file": "freeze4-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.519,
+      "macro_f1_sd_ddof0": 0.0149,
+      "balanced_acc": 0.5432,
+      "MEL_to_NV": 0.26,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "freeze4-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6016,
+      "macro_f1_sd_ddof0": 0.0102,
+      "balanced_acc": 0.6159,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.551
+    },
+    {
+      "file": "icone-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5057,
+      "macro_f1_sd_ddof0": 0.0189,
+      "balanced_acc": 0.5337,
+      "MEL_to_NV": 0.245,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "icone-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5859,
+      "macro_f1_sd_ddof0": 0.0059,
+      "balanced_acc": 0.5979,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.54
+    },
+    {
+      "file": "masked-pixel-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5188,
+      "macro_f1_sd_ddof0": 0.0135,
+      "balanced_acc": 0.5463,
+      "MEL_to_NV": 0.189,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "masked-pixel-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.532,
+      "macro_f1_sd_ddof0": 0.0071,
+      "balanced_acc": 0.5403,
+      "MEL_to_NV": 0.235,
+      "SCC_to_BCC": 0.554
+    },
+    {
+      "file": "maskfeat-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.3083,
+      "macro_f1_sd_ddof0": 0.0044,
+      "balanced_acc": 0.3903,
+      "MEL_to_NV": 0.197,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "maskfeat-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.3959,
+      "macro_f1_sd_ddof0": 0.0025,
+      "balanced_acc": 0.4728,
+      "MEL_to_NV": 0.136,
+      "SCC_to_BCC": 0.235
+    },
+    {
+      "file": "moco-v3-anchor-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5572,
+      "macro_f1_sd_ddof0": 0.0102,
+      "balanced_acc": 0.5821,
+      "MEL_to_NV": 0.247,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v3-anchor-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6182,
+      "macro_f1_sd_ddof0": 0.0107,
+      "balanced_acc": 0.6327,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.526
+    },
+    {
+      "file": "moco-v3-anchor-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5494,
+      "macro_f1_sd_ddof0": 0.0152,
+      "balanced_acc": 0.5809,
+      "MEL_to_NV": 0.245,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v3-anchor-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6223,
+      "macro_f1_sd_ddof0": 0.012,
+      "balanced_acc": 0.6337,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.495
+    },
+    {
+      "file": "moco-v3-anchor-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5401,
+      "macro_f1_sd_ddof0": 0.0112,
+      "balanced_acc": 0.5649,
+      "MEL_to_NV": 0.262,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v3-anchor-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6116,
+      "macro_f1_sd_ddof0": 0.0127,
+      "balanced_acc": 0.6259,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.526
+    },
+    {
+      "file": "moco-v3-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6116,
+      "macro_f1_sd_ddof0": 0.0063,
+      "balanced_acc": 0.6309,
+      "MEL_to_NV": 0.223,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v3-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6526,
+      "macro_f1_sd_ddof0": 0.012,
+      "balanced_acc": 0.6637,
+      "MEL_to_NV": 0.074,
+      "SCC_to_BCC": 0.453
+    },
+    {
+      "file": "moco-v3-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.597,
+      "macro_f1_sd_ddof0": 0.0063,
+      "balanced_acc": 0.6368,
+      "MEL_to_NV": 0.227,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v3-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6397,
+      "macro_f1_sd_ddof0": 0.0115,
+      "balanced_acc": 0.6474,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.449
+    },
+    {
+      "file": "moco-v3-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5975,
+      "macro_f1_sd_ddof0": 0.0049,
+      "balanced_acc": 0.627,
+      "MEL_to_NV": 0.219,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v3-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6391,
+      "macro_f1_sd_ddof0": 0.0064,
+      "balanced_acc": 0.6517,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.463
+    },
+    {
+      "file": "moco-v4-freeze10-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5637,
+      "macro_f1_sd_ddof0": 0.0281,
+      "balanced_acc": 0.6018,
+      "MEL_to_NV": 0.235,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-freeze10-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6414,
+      "macro_f1_sd_ddof0": 0.0177,
+      "balanced_acc": 0.6517,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.519
+    },
+    {
+      "file": "moco-v4-freeze10-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5667,
+      "macro_f1_sd_ddof0": 0.0192,
+      "balanced_acc": 0.5918,
+      "MEL_to_NV": 0.225,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-freeze10-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6444,
+      "macro_f1_sd_ddof0": 0.0083,
+      "balanced_acc": 0.6514,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.526
+    },
+    {
+      "file": "moco-v4-freeze10-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5839,
+      "macro_f1_sd_ddof0": 0.0113,
+      "balanced_acc": 0.6081,
+      "MEL_to_NV": 0.25,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-freeze10-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6403,
+      "macro_f1_sd_ddof0": 0.007,
+      "balanced_acc": 0.6483,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.491
+    },
+    {
+      "file": "moco-v4-l2sp-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6065,
+      "macro_f1_sd_ddof0": 0.0048,
+      "balanced_acc": 0.6274,
+      "MEL_to_NV": 0.221,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-l2sp-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6505,
+      "macro_f1_sd_ddof0": 0.0106,
+      "balanced_acc": 0.6626,
+      "MEL_to_NV": 0.074,
+      "SCC_to_BCC": 0.453
+    },
+    {
+      "file": "moco-v4-l2sp-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5911,
+      "macro_f1_sd_ddof0": 0.0016,
+      "balanced_acc": 0.6296,
+      "MEL_to_NV": 0.237,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-l2sp-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6368,
+      "macro_f1_sd_ddof0": 0.0079,
+      "balanced_acc": 0.6473,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.446
+    },
+    {
+      "file": "moco-v4-l2sp-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6019,
+      "macro_f1_sd_ddof0": 0.0058,
+      "balanced_acc": 0.6277,
+      "MEL_to_NV": 0.235,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-l2sp-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6386,
+      "macro_f1_sd_ddof0": 0.0071,
+      "balanced_acc": 0.653,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.456
+    },
+    {
+      "file": "moco-v4-lr5e6-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6022,
+      "macro_f1_sd_ddof0": 0.015,
+      "balanced_acc": 0.6285,
+      "MEL_to_NV": 0.221,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-lr5e6-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6594,
+      "macro_f1_sd_ddof0": 0.0116,
+      "balanced_acc": 0.6689,
+      "MEL_to_NV": 0.062,
+      "SCC_to_BCC": 0.442
+    },
+    {
+      "file": "moco-v4-lr5e6-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5919,
+      "macro_f1_sd_ddof0": 0.0112,
+      "balanced_acc": 0.6183,
+      "MEL_to_NV": 0.26,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-lr5e6-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6477,
+      "macro_f1_sd_ddof0": 0.0144,
+      "balanced_acc": 0.6568,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.467
+    },
+    {
+      "file": "moco-v4-lr5e6-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6029,
+      "macro_f1_sd_ddof0": 0.0132,
+      "balanced_acc": 0.6321,
+      "MEL_to_NV": 0.231,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-lr5e6-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6492,
+      "macro_f1_sd_ddof0": 0.0056,
+      "balanced_acc": 0.6611,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.46
+    },
+    {
+      "file": "moco-v4-m0-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6116,
+      "macro_f1_sd_ddof0": 0.0063,
+      "balanced_acc": 0.6309,
+      "MEL_to_NV": 0.223,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-m0-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6526,
+      "macro_f1_sd_ddof0": 0.012,
+      "balanced_acc": 0.6637,
+      "MEL_to_NV": 0.074,
+      "SCC_to_BCC": 0.453
+    },
+    {
+      "file": "moco-v4-m0-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.597,
+      "macro_f1_sd_ddof0": 0.0063,
+      "balanced_acc": 0.6368,
+      "MEL_to_NV": 0.227,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-m0-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6397,
+      "macro_f1_sd_ddof0": 0.0115,
+      "balanced_acc": 0.6474,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.449
+    },
+    {
+      "file": "moco-v4-m0-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5975,
+      "macro_f1_sd_ddof0": 0.0049,
+      "balanced_acc": 0.627,
+      "MEL_to_NV": 0.219,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-m0-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6391,
+      "macro_f1_sd_ddof0": 0.0064,
+      "balanced_acc": 0.6517,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.463
+    },
+    {
+      "file": "moco-v4-mom996-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5961,
+      "macro_f1_sd_ddof0": 0.0083,
+      "balanced_acc": 0.6285,
+      "MEL_to_NV": 0.229,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-mom996-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6536,
+      "macro_f1_sd_ddof0": 0.0129,
+      "balanced_acc": 0.6622,
+      "MEL_to_NV": 0.111,
+      "SCC_to_BCC": 0.474
+    },
+    {
+      "file": "moco-v4-mom996-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.591,
+      "macro_f1_sd_ddof0": 0.0127,
+      "balanced_acc": 0.6148,
+      "MEL_to_NV": 0.264,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-mom996-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6362,
+      "macro_f1_sd_ddof0": 0.008,
+      "balanced_acc": 0.6447,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.474
+    },
+    {
+      "file": "moco-v4-mom996-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5802,
+      "macro_f1_sd_ddof0": 0.0089,
+      "balanced_acc": 0.6078,
+      "MEL_to_NV": 0.254,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-mom996-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6388,
+      "macro_f1_sd_ddof0": 0.0036,
+      "balanced_acc": 0.6531,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.456
+    },
+    {
+      "file": "moco-v4-quota4-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6053,
+      "macro_f1_sd_ddof0": 0.007,
+      "balanced_acc": 0.635,
+      "MEL_to_NV": 0.235,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-quota4-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6625,
+      "macro_f1_sd_ddof0": 0.0041,
+      "balanced_acc": 0.6717,
+      "MEL_to_NV": 0.148,
+      "SCC_to_BCC": 0.491
+    },
+    {
+      "file": "moco-v4-quota4-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5809,
+      "macro_f1_sd_ddof0": 0.0117,
+      "balanced_acc": 0.6177,
+      "MEL_to_NV": 0.199,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-quota4-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6707,
+      "macro_f1_sd_ddof0": 0.0175,
+      "balanced_acc": 0.6813,
+      "MEL_to_NV": 0.136,
+      "SCC_to_BCC": 0.453
+    },
+    {
+      "file": "moco-v4-quota4-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6188,
+      "macro_f1_sd_ddof0": 0.0115,
+      "balanced_acc": 0.6468,
+      "MEL_to_NV": 0.207,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-quota4-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6558,
+      "macro_f1_sd_ddof0": 0.006,
+      "balanced_acc": 0.675,
+      "MEL_to_NV": 0.136,
+      "SCC_to_BCC": 0.439
+    },
+    {
+      "file": "moco-v4-quota4l2sp-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6092,
+      "macro_f1_sd_ddof0": 0.0092,
+      "balanced_acc": 0.6371,
+      "MEL_to_NV": 0.247,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-quota4l2sp-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6595,
+      "macro_f1_sd_ddof0": 0.0059,
+      "balanced_acc": 0.6654,
+      "MEL_to_NV": 0.148,
+      "SCC_to_BCC": 0.512
+    },
+    {
+      "file": "moco-v4-quota4l2sp-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5756,
+      "macro_f1_sd_ddof0": 0.0075,
+      "balanced_acc": 0.6142,
+      "MEL_to_NV": 0.183,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-quota4l2sp-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6751,
+      "macro_f1_sd_ddof0": 0.0174,
+      "balanced_acc": 0.6842,
+      "MEL_to_NV": 0.136,
+      "SCC_to_BCC": 0.446
+    },
+    {
+      "file": "moco-v4-quota4l2sp-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6191,
+      "macro_f1_sd_ddof0": 0.014,
+      "balanced_acc": 0.6431,
+      "MEL_to_NV": 0.219,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-quota4l2sp-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.657,
+      "macro_f1_sd_ddof0": 0.0059,
+      "balanced_acc": 0.6738,
+      "MEL_to_NV": 0.136,
+      "SCC_to_BCC": 0.449
+    },
+    {
+      "file": "moco-v4-steps12000-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5931,
+      "macro_f1_sd_ddof0": 0.0091,
+      "balanced_acc": 0.6307,
+      "MEL_to_NV": 0.203,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-steps12000-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6553,
+      "macro_f1_sd_ddof0": 0.0046,
+      "balanced_acc": 0.6676,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.442
+    },
+    {
+      "file": "moco-v4-steps12000-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5861,
+      "macro_f1_sd_ddof0": 0.0119,
+      "balanced_acc": 0.6227,
+      "MEL_to_NV": 0.245,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-steps12000-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6454,
+      "macro_f1_sd_ddof0": 0.0065,
+      "balanced_acc": 0.6532,
+      "MEL_to_NV": 0.025,
+      "SCC_to_BCC": 0.435
+    },
+    {
+      "file": "moco-v4-steps12000-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6063,
+      "macro_f1_sd_ddof0": 0.0048,
+      "balanced_acc": 0.6376,
+      "MEL_to_NV": 0.201,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-steps12000-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.64,
+      "macro_f1_sd_ddof0": 0.0087,
+      "balanced_acc": 0.66,
+      "MEL_to_NV": 0.049,
+      "SCC_to_BCC": 0.449
+    },
+    {
+      "file": "moco-v4-steps3000-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5911,
+      "macro_f1_sd_ddof0": 0.0105,
+      "balanced_acc": 0.6194,
+      "MEL_to_NV": 0.225,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-steps3000-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6504,
+      "macro_f1_sd_ddof0": 0.0155,
+      "balanced_acc": 0.6572,
+      "MEL_to_NV": 0.074,
+      "SCC_to_BCC": 0.456
+    },
+    {
+      "file": "moco-v4-steps3000-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5904,
+      "macro_f1_sd_ddof0": 0.0144,
+      "balanced_acc": 0.6248,
+      "MEL_to_NV": 0.227,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-steps3000-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6393,
+      "macro_f1_sd_ddof0": 0.0092,
+      "balanced_acc": 0.6447,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.512
+    },
+    {
+      "file": "moco-v4-steps3000-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.582,
+      "macro_f1_sd_ddof0": 0.0095,
+      "balanced_acc": 0.5971,
+      "MEL_to_NV": 0.26,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-steps3000-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6334,
+      "macro_f1_sd_ddof0": 0.0073,
+      "balanced_acc": 0.643,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.519
+    },
+    {
+      "file": "moco-v4-temp01-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5914,
+      "macro_f1_sd_ddof0": 0.0071,
+      "balanced_acc": 0.6074,
+      "MEL_to_NV": 0.233,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-temp01-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6586,
+      "macro_f1_sd_ddof0": 0.0052,
+      "balanced_acc": 0.6671,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.456
+    },
+    {
+      "file": "moco-v4-temp01-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5862,
+      "macro_f1_sd_ddof0": 0.0122,
+      "balanced_acc": 0.6102,
+      "MEL_to_NV": 0.249,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-temp01-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6517,
+      "macro_f1_sd_ddof0": 0.0092,
+      "balanced_acc": 0.653,
+      "MEL_to_NV": 0.148,
+      "SCC_to_BCC": 0.488
+    },
+    {
+      "file": "moco-v4-temp01-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5747,
+      "macro_f1_sd_ddof0": 0.0067,
+      "balanced_acc": 0.5902,
+      "MEL_to_NV": 0.241,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "moco-v4-temp01-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6476,
+      "macro_f1_sd_ddof0": 0.0077,
+      "balanced_acc": 0.6577,
+      "MEL_to_NV": 0.062,
+      "SCC_to_BCC": 0.477
+    },
+    {
+      "file": "msn-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.3472,
+      "macro_f1_sd_ddof0": 0.0095,
+      "balanced_acc": 0.4385,
+      "MEL_to_NV": 0.179,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "msn-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.4395,
+      "macro_f1_sd_ddof0": 0.0155,
+      "balanced_acc": 0.4946,
+      "MEL_to_NV": 0.198,
+      "SCC_to_BCC": 0.375
+    },
+    {
+      "file": "mulan-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5286,
+      "macro_f1_sd_ddof0": 0.0099,
+      "balanced_acc": 0.5506,
+      "MEL_to_NV": 0.249,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "mulan-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.602,
+      "macro_f1_sd_ddof0": 0.0106,
+      "balanced_acc": 0.6171,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.544
+    },
+    {
+      "file": "oob-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5313,
+      "macro_f1_sd_ddof0": 0.0237,
+      "balanced_acc": 0.5481,
+      "MEL_to_NV": 0.272,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "oob-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5896,
+      "macro_f1_sd_ddof0": 0.0138,
+      "balanced_acc": 0.6043,
+      "MEL_to_NV": 0.136,
+      "SCC_to_BCC": 0.512
+    },
+    {
+      "file": "openclip-b16-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5417,
+      "macro_f1_sd_ddof0": 0.0089,
+      "balanced_acc": 0.5761,
+      "MEL_to_NV": 0.174,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "openclip-b16-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5983,
+      "macro_f1_sd_ddof0": 0.0122,
+      "balanced_acc": 0.6233,
+      "MEL_to_NV": 0.222,
+      "SCC_to_BCC": 0.393
+    },
+    {
+      "file": "openclip-l14-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.541,
+      "macro_f1_sd_ddof0": 0.0079,
+      "balanced_acc": 0.5674,
+      "MEL_to_NV": 0.201,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "openclip-l14-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6128,
+      "macro_f1_sd_ddof0": 0.0098,
+      "balanced_acc": 0.6364,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.449
+    },
+    {
+      "file": "public-small-giant-v1/dinov2-giant/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5262,
+      "macro_f1_sd_ddof0": 0.011,
+      "balanced_acc": 0.5417,
+      "MEL_to_NV": 0.235,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "public-small-giant-v1/dinov2-giant/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6128,
+      "macro_f1_sd_ddof0": 0.0124,
+      "balanced_acc": 0.6175,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.558
+    },
+    {
+      "file": "public-small-giant-v1/dinov2-small/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5029,
+      "macro_f1_sd_ddof0": 0.0121,
+      "balanced_acc": 0.5295,
+      "MEL_to_NV": 0.209,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "public-small-giant-v1/dinov2-small/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5616,
+      "macro_f1_sd_ddof0": 0.0049,
+      "balanced_acc": 0.5858,
+      "MEL_to_NV": 0.148,
+      "SCC_to_BCC": 0.463
+    },
+    {
+      "file": "res336-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5127,
+      "macro_f1_sd_ddof0": 0.0172,
+      "balanced_acc": 0.5377,
+      "MEL_to_NV": 0.239,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "res336-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5979,
+      "macro_f1_sd_ddof0": 0.0162,
+      "balanced_acc": 0.6093,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.554
+    },
+    {
+      "file": "rotation-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5148,
+      "macro_f1_sd_ddof0": 0.0111,
+      "balanced_acc": 0.539,
+      "MEL_to_NV": 0.233,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "rotation-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.582,
+      "macro_f1_sd_ddof0": 0.0126,
+      "balanced_acc": 0.5907,
+      "MEL_to_NV": 0.123,
+      "SCC_to_BCC": 0.519
+    },
+    {
+      "file": "sigreg-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5486,
+      "macro_f1_sd_ddof0": 0.0087,
+      "balanced_acc": 0.5751,
+      "MEL_to_NV": 0.239,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "sigreg-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6219,
+      "macro_f1_sd_ddof0": 0.0143,
+      "balanced_acc": 0.6369,
+      "MEL_to_NV": 0.086,
+      "SCC_to_BCC": 0.523
+    },
+    {
+      "file": "simsiam-cb-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5131,
+      "macro_f1_sd_ddof0": 0.0122,
+      "balanced_acc": 0.5342,
+      "MEL_to_NV": 0.249,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "simsiam-cb-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5973,
+      "macro_f1_sd_ddof0": 0.0136,
+      "balanced_acc": 0.6046,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.547
+    },
+    {
+      "file": "ssl-overlay-evaluation-v1/S0-HAM-readout.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5049,
+      "macro_f1_sd_ddof0": 0.0202,
+      "balanced_acc": 0.5325,
+      "MEL_to_NV": 0.245,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "ssl-overlay-evaluation-v1/S0-PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.584,
+      "macro_f1_sd_ddof0": 0.0128,
+      "balanced_acc": 0.5958,
+      "MEL_to_NV": 0.099,
+      "SCC_to_BCC": 0.533
+    },
+    {
+      "file": "swav-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.206,
+      "macro_f1_sd_ddof0": 0.006,
+      "balanced_acc": 0.2681,
+      "MEL_to_NV": 0.235,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "swav-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.2656,
+      "macro_f1_sd_ddof0": 0.007,
+      "balanced_acc": 0.3258,
+      "MEL_to_NV": 0.222,
+      "SCC_to_BCC": 0.221
+    },
+    {
+      "file": "tico-s42-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.238,
+      "macro_f1_sd_ddof0": 0.0157,
+      "balanced_acc": 0.2608,
+      "MEL_to_NV": 0.172,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "tico-s42-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.298,
+      "macro_f1_sd_ddof0": 0.0086,
+      "balanced_acc": 0.3053,
+      "MEL_to_NV": 0.321,
+      "SCC_to_BCC": 0.449
+    },
+    {
+      "file": "vicreg-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.554,
+      "macro_f1_sd_ddof0": 0.0141,
+      "balanced_acc": 0.5808,
+      "MEL_to_NV": 0.268,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "vicreg-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6369,
+      "macro_f1_sd_ddof0": 0.0096,
+      "balanced_acc": 0.6464,
+      "MEL_to_NV": 0.148,
+      "SCC_to_BCC": 0.425
+    },
+    {
+      "file": "vicreg-s43-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5565,
+      "macro_f1_sd_ddof0": 0.0177,
+      "balanced_acc": 0.5746,
+      "MEL_to_NV": 0.272,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "vicreg-s43-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.6434,
+      "macro_f1_sd_ddof0": 0.0058,
+      "balanced_acc": 0.6448,
+      "MEL_to_NV": 0.111,
+      "SCC_to_BCC": 0.421
+    },
+    {
+      "file": "vicreg-s44-evaluation-v1/HAM-readout-06aee5.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.5278,
+      "macro_f1_sd_ddof0": 0.0072,
+      "balanced_acc": 0.5503,
+      "MEL_to_NV": 0.27,
+      "SCC_to_BCC": null
+    },
+    {
+      "file": "vicreg-s44-evaluation-v1/PAD-readout.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.634,
+      "macro_f1_sd_ddof0": 0.0045,
+      "balanced_acc": 0.6459,
+      "MEL_to_NV": 0.062,
+      "SCC_to_BCC": 0.407
+    },
+    {
+      "file": "learning-rate-x4-seed42-evaluation-v1/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.609,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "learning-rate-x4-seed42-evaluation-v1/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.518,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "fewer-phone-repeats-seed42-evaluation-v1/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.597,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "fewer-phone-repeats-seed42-evaluation-v1/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.511,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "same-quota-without-skindisnet-seed42-evaluation-v1/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.594,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "same-quota-without-skindisnet-seed42-evaluation-v1/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.519,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "plus-skindisnet-phone-seed42-evaluation-v1/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.594,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "plus-skindisnet-phone-seed42-evaluation-v1/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.505,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "simsiam-explora-style-seed42-evaluation-v1/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.601,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "simsiam-explora-style-seed42-evaluation-v1/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.519,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "simsiam-constant-predictor-lr-seed42-evaluation-v1/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.601,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "simsiam-constant-predictor-lr-seed42-evaluation-v1/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.514,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "long-dose-baseline-12000-seed42-evaluation-v1/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.602,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "long-dose-baseline-12000-seed42-evaluation-v1/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.517,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "simsiam-distill-with-predictor-memoryfix-seed42-evaluation-v2/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.574,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "simsiam-distill-with-predictor-memoryfix-seed42-evaluation-v2/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.462,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "crop-scale-0.4-seed42-evaluation-v2/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.591,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    },
+    {
+      "file": "crop-scale-0.4-seed42-evaluation-v2/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "reader": "balancedLR",
+      "macro_f1_mean": 0.507,
+      "macro_f1_sd_ddof0": null,
+      "balanced_acc": null,
+      "MEL_to_NV": null,
+      "SCC_to_BCC": null,
+      "note": "archivo de nombre distinto a *readout*.json; omitido en el primer escaneo"
+    }
+  ],
+  "readout_families_3seed_means": [
+    {
+      "family": "bank-alexnet-finetune",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.468,
+      "PAD_mf1": 0.5228,
+      "HAM_MEL_to_NV": 0.185,
+      "PAD_SCC_to_BCC": 0.516
+    },
+    {
+      "family": "bank-alexnet-frozen",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.4702,
+      "PAD_mf1": 0.4658,
+      "HAM_MEL_to_NV": 0.168,
+      "PAD_SCC_to_BCC": 0.396
+    },
+    {
+      "family": "bank-dinov2-vitb14-finetune",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.4994,
+      "PAD_mf1": 0.6128,
+      "HAM_MEL_to_NV": 0.227,
+      "PAD_SCC_to_BCC": 0.509
+    },
+    {
+      "family": "bank-dinov2-vitb14-frozen",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.4914,
+      "PAD_mf1": 0.5841,
+      "HAM_MEL_to_NV": 0.258,
+      "PAD_SCC_to_BCC": 0.53
+    },
+    {
+      "family": "bank-dinov2-vits14-finetune",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.448,
+      "PAD_mf1": 0.585,
+      "HAM_MEL_to_NV": 0.225,
+      "PAD_SCC_to_BCC": 0.565
+    },
+    {
+      "family": "bank-dinov2-vits14-frozen",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.4759,
+      "PAD_mf1": 0.5595,
+      "HAM_MEL_to_NV": 0.213,
+      "PAD_SCC_to_BCC": 0.456
+    },
+    {
+      "family": "bank-efficientnet-b0-finetune",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.3782,
+      "PAD_mf1": 0.3898,
+      "HAM_MEL_to_NV": 0.414,
+      "PAD_SCC_to_BCC": 0.463
+    },
+    {
+      "family": "bank-efficientnet-b0-frozen",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.4367,
+      "PAD_mf1": 0.5328,
+      "HAM_MEL_to_NV": 0.254,
+      "PAD_SCC_to_BCC": 0.46
+    },
+    {
+      "family": "bank-resnet50-finetune",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5092,
+      "PAD_mf1": 0.5437,
+      "HAM_MEL_to_NV": 0.249,
+      "PAD_SCC_to_BCC": 0.491
+    },
+    {
+      "family": "bank-resnet50-frozen",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.4156,
+      "PAD_mf1": 0.4885,
+      "HAM_MEL_to_NV": 0.245,
+      "PAD_SCC_to_BCC": 0.523
+    },
+    {
+      "family": "bank-simsiam-r50-finetune",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.3485,
+      "PAD_mf1": 0.4382,
+      "HAM_MEL_to_NV": 0.097,
+      "PAD_SCC_to_BCC": 0.442
+    },
+    {
+      "family": "bank-simsiam-r50-frozen",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.4573,
+      "PAD_mf1": 0.5318,
+      "HAM_MEL_to_NV": 0.231,
+      "PAD_SCC_to_BCC": 0.407
+    },
+    {
+      "family": "bank-vgg19-finetune",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.4822,
+      "PAD_mf1": 0.5834,
+      "HAM_MEL_to_NV": 0.229,
+      "PAD_SCC_to_BCC": 0.516
+    },
+    {
+      "family": "bank-vgg19-frozen",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.3862,
+      "PAD_mf1": 0.4513,
+      "HAM_MEL_to_NV": 0.215,
+      "PAD_SCC_to_BCC": 0.421
+    },
+    {
+      "family": "bank-vit-b16-finetune",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5168,
+      "PAD_mf1": 0.5731,
+      "HAM_MEL_to_NV": 0.329,
+      "PAD_SCC_to_BCC": 0.568
+    },
+    {
+      "family": "bank-vit-b16-frozen",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.4715,
+      "PAD_mf1": 0.5376,
+      "HAM_MEL_to_NV": 0.231,
+      "PAD_SCC_to_BCC": 0.491
+    },
+    {
+      "family": "barlow",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5188,
+      "PAD_mf1": 0.6325,
+      "HAM_MEL_to_NV": 0.231,
+      "PAD_SCC_to_BCC": 0.4
+    },
+    {
+      "family": "barlow-vicreg",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5215,
+      "PAD_mf1": 0.6369,
+      "HAM_MEL_to_NV": 0.2407,
+      "PAD_SCC_to_BCC": 0.4143
+    },
+    {
+      "family": "baseline",
+      "n_HAM": 2,
+      "n_PAD": 2,
+      "HAM_mf1": 0.5199,
+      "PAD_mf1": 0.5928,
+      "HAM_MEL_to_NV": 0.2435,
+      "PAD_SCC_to_BCC": 0.547
+    },
+    {
+      "family": "baseline-pipeline",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.514,
+      "PAD_mf1": 0.6063,
+      "HAM_MEL_to_NV": 0.241,
+      "PAD_SCC_to_BCC": 0.53
+    },
+    {
+      "family": "byol",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5068,
+      "PAD_mf1": 0.5938,
+      "HAM_MEL_to_NV": 0.249,
+      "PAD_SCC_to_BCC": 0.551
+    },
+    {
+      "family": "contrastive-domain-hamPAD-retry-20261029",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5592,
+      "PAD_mf1": 0.6389,
+      "HAM_MEL_to_NV": 0.247,
+      "PAD_SCC_to_BCC": 0.516
+    },
+    {
+      "family": "diet",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.388,
+      "PAD_mf1": 0.5381,
+      "HAM_MEL_to_NV": 0.219,
+      "PAD_SCC_to_BCC": 0.446
+    },
+    {
+      "family": "dino-ibot",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5273,
+      "PAD_mf1": 0.6065,
+      "HAM_MEL_to_NV": 0.236,
+      "PAD_SCC_to_BCC": 0.5123
+    },
+    {
+      "family": "dino-ibot-cb",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5357,
+      "PAD_mf1": 0.6041,
+      "HAM_MEL_to_NV": 0.237,
+      "PAD_SCC_to_BCC": 0.495
+    },
+    {
+      "family": "freeze4",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.519,
+      "PAD_mf1": 0.6016,
+      "HAM_MEL_to_NV": 0.26,
+      "PAD_SCC_to_BCC": 0.551
+    },
+    {
+      "family": "icone",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5057,
+      "PAD_mf1": 0.5859,
+      "HAM_MEL_to_NV": 0.245,
+      "PAD_SCC_to_BCC": 0.54
+    },
+    {
+      "family": "masked-pixel",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5188,
+      "PAD_mf1": 0.532,
+      "HAM_MEL_to_NV": 0.189,
+      "PAD_SCC_to_BCC": 0.554
+    },
+    {
+      "family": "maskfeat",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.3083,
+      "PAD_mf1": 0.3959,
+      "HAM_MEL_to_NV": 0.197,
+      "PAD_SCC_to_BCC": 0.235
+    },
+    {
+      "family": "moco-v3",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.602,
+      "PAD_mf1": 0.6438,
+      "HAM_MEL_to_NV": 0.223,
+      "PAD_SCC_to_BCC": 0.455
+    },
+    {
+      "family": "moco-v3-anchor",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5489,
+      "PAD_mf1": 0.6174,
+      "HAM_MEL_to_NV": 0.2513,
+      "PAD_SCC_to_BCC": 0.5157
+    },
+    {
+      "family": "moco-v4-freeze10",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5714,
+      "PAD_mf1": 0.642,
+      "HAM_MEL_to_NV": 0.2367,
+      "PAD_SCC_to_BCC": 0.512
+    },
+    {
+      "family": "moco-v4-l2sp",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5998,
+      "PAD_mf1": 0.642,
+      "HAM_MEL_to_NV": 0.231,
+      "PAD_SCC_to_BCC": 0.4517
+    },
+    {
+      "family": "moco-v4-lr5e6",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.599,
+      "PAD_mf1": 0.6521,
+      "HAM_MEL_to_NV": 0.2373,
+      "PAD_SCC_to_BCC": 0.4563
+    },
+    {
+      "family": "moco-v4-m0",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.602,
+      "PAD_mf1": 0.6438,
+      "HAM_MEL_to_NV": 0.223,
+      "PAD_SCC_to_BCC": 0.455
+    },
+    {
+      "family": "moco-v4-mom996",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5891,
+      "PAD_mf1": 0.6429,
+      "HAM_MEL_to_NV": 0.249,
+      "PAD_SCC_to_BCC": 0.468
+    },
+    {
+      "family": "moco-v4-quota4",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.6017,
+      "PAD_mf1": 0.663,
+      "HAM_MEL_to_NV": 0.2137,
+      "PAD_SCC_to_BCC": 0.461
+    },
+    {
+      "family": "moco-v4-quota4l2sp",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.6013,
+      "PAD_mf1": 0.6639,
+      "HAM_MEL_to_NV": 0.2163,
+      "PAD_SCC_to_BCC": 0.469
+    },
+    {
+      "family": "moco-v4-steps12000",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5952,
+      "PAD_mf1": 0.6469,
+      "HAM_MEL_to_NV": 0.2163,
+      "PAD_SCC_to_BCC": 0.442
+    },
+    {
+      "family": "moco-v4-steps3000",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5878,
+      "PAD_mf1": 0.641,
+      "HAM_MEL_to_NV": 0.2373,
+      "PAD_SCC_to_BCC": 0.4957
+    },
+    {
+      "family": "moco-v4-temp01",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5841,
+      "PAD_mf1": 0.6526,
+      "HAM_MEL_to_NV": 0.241,
+      "PAD_SCC_to_BCC": 0.4737
+    },
+    {
+      "family": "msn",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.3472,
+      "PAD_mf1": 0.4395,
+      "HAM_MEL_to_NV": 0.179,
+      "PAD_SCC_to_BCC": 0.375
+    },
+    {
+      "family": "mulan",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5286,
+      "PAD_mf1": 0.602,
+      "HAM_MEL_to_NV": 0.249,
+      "PAD_SCC_to_BCC": 0.544
+    },
+    {
+      "family": "oob",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5313,
+      "PAD_mf1": 0.5896,
+      "HAM_MEL_to_NV": 0.272,
+      "PAD_SCC_to_BCC": 0.512
+    },
+    {
+      "family": "openclip-b16",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5417,
+      "PAD_mf1": 0.5983,
+      "HAM_MEL_to_NV": 0.174,
+      "PAD_SCC_to_BCC": 0.393
+    },
+    {
+      "family": "openclip-l14",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.541,
+      "PAD_mf1": 0.6128,
+      "HAM_MEL_to_NV": 0.201,
+      "PAD_SCC_to_BCC": 0.449
+    },
+    {
+      "family": "public-small-giant-v1",
+      "n_HAM": 2,
+      "n_PAD": 2,
+      "HAM_mf1": 0.5146,
+      "PAD_mf1": 0.5872,
+      "HAM_MEL_to_NV": 0.222,
+      "PAD_SCC_to_BCC": 0.5105
+    },
+    {
+      "family": "res336",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5127,
+      "PAD_mf1": 0.5979,
+      "HAM_MEL_to_NV": 0.239,
+      "PAD_SCC_to_BCC": 0.554
+    },
+    {
+      "family": "rotation",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5148,
+      "PAD_mf1": 0.582,
+      "HAM_MEL_to_NV": 0.233,
+      "PAD_SCC_to_BCC": 0.519
+    },
+    {
+      "family": "sigreg",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5486,
+      "PAD_mf1": 0.6219,
+      "HAM_MEL_to_NV": 0.239,
+      "PAD_SCC_to_BCC": 0.523
+    },
+    {
+      "family": "simsiam-cb",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5131,
+      "PAD_mf1": 0.5973,
+      "HAM_MEL_to_NV": 0.249,
+      "PAD_SCC_to_BCC": 0.547
+    },
+    {
+      "family": "ssl-overlay",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.5049,
+      "PAD_mf1": 0.584,
+      "HAM_MEL_to_NV": 0.245,
+      "PAD_SCC_to_BCC": 0.533
+    },
+    {
+      "family": "swav",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.206,
+      "PAD_mf1": 0.2656,
+      "HAM_MEL_to_NV": 0.235,
+      "PAD_SCC_to_BCC": 0.221
+    },
+    {
+      "family": "tico",
+      "n_HAM": 1,
+      "n_PAD": 1,
+      "HAM_mf1": 0.238,
+      "PAD_mf1": 0.298,
+      "HAM_MEL_to_NV": 0.172,
+      "PAD_SCC_to_BCC": 0.449
+    },
+    {
+      "family": "vicreg",
+      "n_HAM": 3,
+      "n_PAD": 3,
+      "HAM_mf1": 0.5461,
+      "PAD_mf1": 0.6381,
+      "HAM_MEL_to_NV": 0.27,
+      "PAD_SCC_to_BCC": 0.4177
+    }
+  ],
+  "moco_v10_and_other_readouts_summary": [
+    {
+      "file": "frozen-reader-comparison-v1/small-mlp-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.494,
+      "macro_f1_sd": 0.023
+    },
+    {
+      "file": "frozen-reader-comparison-v1/svm-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.549,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "frozen-reader-comparison-v1/two-encoder-concat-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.594,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "long-dose-baseline-12000-seed42-evaluation-v1/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.517,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "long-dose-baseline-12000-seed42-evaluation-v1/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.602,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "long-dose-baseline-12000-step6000-evaluation-v1/balanced-linear-reader-ham-dev.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.511,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "long-dose-baseline-12000-step6000-evaluation-v1/balanced-linear-reader-pad-adapt.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.61,
+      "macro_f1_sd": 0.013
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/hier-padu-s42-final-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.613,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/hier-padu-s42-final-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.665,
+      "macro_f1_sd": 0.013
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/hier-padu-s42-step2000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.602,
+      "macro_f1_sd": 0.018
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/hier-padu-s42-step2000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.668,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/hier-padu-s42-step4000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.626,
+      "macro_f1_sd": 0.017
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/hier-padu-s42-step4000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.669,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/padu-s42-final-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.615,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/padu-s42-final-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.676,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/padu-s42-step2000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.615,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/padu-s42-step2000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.658,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/padu-s42-step4000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.612,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/padu-s42-step4000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.671,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/s42-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.596,
+      "macro_f1_sd": 0.019
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/s42-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.665,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/s42-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.613,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-cluster-balanced-20261109/readouts/s42-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.669,
+      "macro_f1_sd": 0.003
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck2000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.604,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck2000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.664,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck2000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.624,
+      "macro_f1_sd": 0.004
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck2000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.656,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck4000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.602,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck4000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.669,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck4000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.634,
+      "macro_f1_sd": 0.0
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck4000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.655,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck6000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.604,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck6000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.67,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck6000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.622,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v10-sdclr-20261109/readouts/s42-ck6000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.664,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck2000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.597,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck2000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.662,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck2000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.62,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck2000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.659,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck4000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.612,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck4000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.662,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck4000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.611,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck4000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.673,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck6000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.593,
+      "macro_f1_sd": 0.002
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck6000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.667,
+      "macro_f1_sd": 0.017
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck6000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.616,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_color-s42/readouts/ck6000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.68,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck2000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.604,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck2000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.662,
+      "macro_f1_sd": 0.013
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck2000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.617,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck2000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.668,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck4000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.627,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck4000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.66,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck4000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.626,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck4000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.664,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck6000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.626,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck6000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.664,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck6000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.626,
+      "macro_f1_sd": 0.002
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/d4_only-s42/readouts/ck6000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.669,
+      "macro_f1_sd": 0.002
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck2000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.635,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck2000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.673,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck2000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.635,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck2000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.672,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck4000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.618,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck4000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.68,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck4000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.628,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck4000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.676,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck6000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.61,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck6000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.691,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck6000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.631,
+      "macro_f1_sd": 0.004
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s42/readouts/ck6000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.678,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck2000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.609,
+      "macro_f1_sd": 0.013
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck2000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.664,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck2000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.624,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck2000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.665,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck4000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.605,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck4000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.675,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck4000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.621,
+      "macro_f1_sd": 0.002
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck4000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.665,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck6000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.601,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck6000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.673,
+      "macro_f1_sd": 0.003
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck6000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.626,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s43/readouts/ck6000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.669,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck2000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.617,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck2000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.671,
+      "macro_f1_sd": 0.004
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck2000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.637,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck2000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.671,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck4000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.62,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck4000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.685,
+      "macro_f1_sd": 0.013
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck4000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.633,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck4000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.679,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck6000-r224-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.618,
+      "macro_f1_sd": 0.001
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck6000-r224-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.683,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck6000-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.636,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v10-ssl-arms-20261109/queue4096-s44/readouts/ck6000-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.683,
+      "macro_f1_sd": 0.002
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/control-student-s42-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.633,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/control2-student-s42-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.633,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/student-s42-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.633,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/student-s42-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.673,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/student-s43-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.607,
+      "macro_f1_sd": 0.018
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/student-s43-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.674,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/student-s44-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.623,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/student-s44-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.676,
+      "macro_f1_sd": 0.013
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/teacher-s42-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.624,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/teacher-s42-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.676,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/teacher-s43-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.609,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/teacher-s43-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.675,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/teacher-s44-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.627,
+      "macro_f1_sd": 0.001
+    },
+    {
+      "file": "moco-v10-teacher-cls4-20261108/readouts/teacher-s44-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.673,
+      "macro_f1_sd": 0.004
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r224-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.627,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r224-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.676,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r224-cls4patch-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.605,
+      "macro_f1_sd": 0.019
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r224-cls4patch-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.67,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r448-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.619,
+      "macro_f1_sd": 0.002
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r448-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.675,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.614,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.676,
+      "macro_f1_sd": 0.003
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r448-cls4patch-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.619,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s42-r448-cls4patch-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.68,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r224-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.604,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r224-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.676,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r224-cls4patch-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.6,
+      "macro_f1_sd": 0.028
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r224-cls4patch-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.664,
+      "macro_f1_sd": 0.019
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r448-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.608,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r448-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.683,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.606,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.674,
+      "macro_f1_sd": 0.004
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r448-cls4patch-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.622,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s43-r448-cls4patch-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.67,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r224-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.623,
+      "macro_f1_sd": 0.021
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r224-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.67,
+      "macro_f1_sd": 0.004
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r224-cls4patch-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.606,
+      "macro_f1_sd": 0.021
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r224-cls4patch-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.66,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r448-cls4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.614,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r448-cls4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.678,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r448-cls4_d4-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.622,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r448-cls4_d4-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.684,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r448-cls4patch-HAM.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.638,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v10-variants-20261109/readouts/s44-r448-cls4patch-PAD.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.675,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-m0-s42/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.612,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-m0-s42/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.647,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-m0-s43/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.593,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-m0-s43/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.634,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-m0-s44/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.589,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-m0-s44/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.638,
+      "macro_f1_sd": 0.004
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-quota4-s42/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.607,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-quota4-s42/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.652,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-quota4-s43/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.584,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-quota4-s43/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.667,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-quota4-s44/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.618,
+      "macro_f1_sd": 0.013
+    },
+    {
+      "file": "moco-v5-20261107/jobs/ema-quota4-s44/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.655,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v5-20261107/jobs/interpolate-s42/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.579,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v5-20261107/jobs/interpolate-s42/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.657,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v5-20261107/jobs/interpolate-s43/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.572,
+      "macro_f1_sd": 0.017
+    },
+    {
+      "file": "moco-v5-20261107/jobs/interpolate-s43/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.655,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v5-20261107/jobs/interpolate-s44/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.597,
+      "macro_f1_sd": 0.023
+    },
+    {
+      "file": "moco-v5-20261107/jobs/interpolate-s44/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.655,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s42/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.612,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s42/HAM-cls4.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.616,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s42/HAM-cls_patch.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.604,
+      "macro_f1_sd": 0.004
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s42/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.653,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s42/PAD-cls4.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.663,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s42/PAD-cls_patch.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.648,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s43/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.597,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s43/HAM-cls4.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.605,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s43/HAM-cls_patch.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.597,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s43/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.64,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s43/PAD-cls4.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.652,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s43/PAD-cls_patch.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.64,
+      "macro_f1_sd": 0.013
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s44/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.597,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s44/HAM-cls4.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.614,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s44/HAM-cls_patch.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.589,
+      "macro_f1_sd": 0.023
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s44/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.639,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s44/PAD-cls4.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.666,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v5-20261107/jobs/m0-s44/PAD-cls_patch.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.64,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v5-20261107/jobs/public/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.505,
+      "macro_f1_sd": 0.02
+    },
+    {
+      "file": "moco-v5-20261107/jobs/public/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.587,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s42/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.605,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s42/HAM-cls4.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.634,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s42/HAM-cls_patch.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.612,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s42/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.662,
+      "macro_f1_sd": 0.004
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s42/PAD-cls4.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.674,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s42/PAD-cls_patch.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.654,
+      "macro_f1_sd": 0.008
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s43/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.581,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s43/HAM-cls4.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.607,
+      "macro_f1_sd": 0.016
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s43/HAM-cls_patch.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.594,
+      "macro_f1_sd": 0.014
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s43/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.671,
+      "macro_f1_sd": 0.017
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s43/PAD-cls4.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.675,
+      "macro_f1_sd": 0.01
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s43/PAD-cls_patch.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.665,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s44/HAM-cls.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.619,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s44/HAM-cls4.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.62,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s44/HAM-cls_patch.json",
+      "kind": "HAM",
+      "macro_f1_mean": 0.62,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s44/PAD-cls.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.656,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s44/PAD-cls4.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.675,
+      "macro_f1_sd": 0.013
+    },
+    {
+      "file": "moco-v5-20261107/jobs/quota4-s44/PAD-cls_patch.json",
+      "kind": "PAD",
+      "macro_f1_mean": 0.648,
+      "macro_f1_sd": 0.007
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/adapted-simsiam-plus-siglip2-clinical-metadata-fusion-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.695,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/adapted-simsiam-plus-siglip2-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.649,
+      "macro_f1_sd": 0.005
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/dinov2-large-clinical-metadata-fusion-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.656,
+      "macro_f1_sd": 0.015
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/dinov2-large-plus-siglip2-clinical-metadata-fusion-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.7,
+      "macro_f1_sd": 0.003
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/dinov2-large-plus-siglip2-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.654,
+      "macro_f1_sd": 0.003
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/dinov2-large-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.592,
+      "macro_f1_sd": 0.009
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/public-dinov2-clinical-metadata-fusion-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.653,
+      "macro_f1_sd": 0.006
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/siglip2-base-clinical-metadata-fusion-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.703,
+      "macro_f1_sd": 0.017
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/siglip2-base-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.612,
+      "macro_f1_sd": 0.012
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/siglip2-clinical-metadata-fusion-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.703,
+      "macro_f1_sd": 0.011
+    },
+    {
+      "file": "public-frozen-encoder-comparison-v1/siglip2-reader.json",
+      "kind": null,
+      "macro_f1_mean": 0.667,
+      "macro_f1_sd": 0.006
+    }
+  ],
+  "negatives_and_partials": {
+    "diet-s42": "DIET-CP",
+    "icone-s42": "IConE",
+    "maskfeat-s42": "MaskFeat",
+    "msn-s42": "MSN",
+    "swav-s42": "SwAV",
+    "tico-s42": "TiCo",
+    "sigreg-s42": "SIGReg",
+    "mulan-v1": "MULAN",
+    "oob": "OOB",
+    "freeze4": "freeze4",
+    "res336": "res336",
+    "crop-scale-0.4": "crop 0.4",
+    "byol": "BYOL",
+    "masked-pixel": "masked-pixel",
+    "rotation": "rotation",
+    "ssl-overlay": "overlay",
+    "contrastive-domain": "contrastivo dominio HAM+PAD (en hold)",
+    "simsiam-distill": "distilacion con predictor (empeora)",
+    "simsiam-cb": "SimSiam class-balanced",
+    "simsiam-explora": "ExPLoRA LoRA r64",
+    "long-dose": "entrenamiento largo 6000/12000",
+    "learning-rate-x4": "LR x4",
+    "fewer-phone": "menos repeticiones celular",
+    "plus-skindisnet": "celular + SkinDisNet",
+    "same-quota": "misma cuota sin SkinDisNet"
+  },
+  "in_flight": [
+    {
+      "arm": "debiased-s42 (Chuang 2020, PhB-M9)",
+      "state": "TRAINING GPU0 desde 2026-11-10 12:28 UTC",
+      "dir": "results/moco-v10-phase-b-arms-20261110/debiased-s42"
+    },
+    {
+      "arm": "queue16384-s42 (PhB-M-cola 16384)",
+      "state": "TRAINING GPU0 desde 2026-11-10 12:30 UTC",
+      "dir": "results/moco-v10-phase-b-arms-20261110/queue16384-s42"
+    },
+    {
+      "arm": "postproc de features (phase-b-reader-postproc)",
+      "state": "jobs/logs presentes, sin readout verificado",
+      "dir": "results/moco-v10-phase-b-postproc-20261110"
+    },
+    {
+      "arm": "diagnosticos (public-features, readouts-public, v10-layers)",
+      "state": "presentes, no inspeccionados",
+      "dir": "results/moco-v10-phase-b-diagnostics-20261110"
+    }
+  ],
+  "gaps_not_tried": [
+    {
+      "item": "Hard-negative mixing MoCHi (PhB-M1)",
+      "status": "no encontrado en results/"
+    },
+    {
+      "item": "False-negative elimination (PhB-M2)",
+      "status": "no encontrado; limitacion: mixed-fit.jsonl no tiene lesion_id, no se puede agrupar por lesion"
+    },
+    {
+      "item": "Debiased contrastive (PhB-M9)",
+      "status": "EN CURSO (debiased-s42)"
+    },
+    {
+      "item": "Cola 16384",
+      "status": "EN CURSO (queue16384-s42). Cola 4096 ya probada"
+    },
+    {
+      "item": "Post-procesamiento de features",
+      "status": "jobs presentes, sin resultado verificado"
+    },
+    {
+      "item": "DINOv2 ViT-L y ViT-g con SSL propio",
+      "status": "NO entrenado. Solo congelados publicos (L PAD .592, g PAD .613)"
+    },
+    {
+      "item": "Preprocesamiento derm: color constancy (Shades-of-Gray), hair removal, crops de lesion",
+      "status": "NO ejecutado (busqueda por nombre sin hits). preprocessing-variants-v1 solo cubre squash 224/336/448 + TTA"
+    },
+    {
+      "item": "Hard-negative reweighting (PhB-M5)",
+      "status": "no encontrado"
+    },
+    {
+      "item": "Patch/local-global objectives (PhB-M6)",
+      "status": "no encontrado. mulan y masked-pixel son parientes, no equivalentes"
+    },
+    {
+      "item": "Test-time registers / backbone con registers (PhB-M3, PhB-M4)",
+      "status": "no encontrado; verificar"
+    },
+    {
+      "item": "Temperature schedule coseno (Kukleva)",
+      "status": "parcial: moco-v4-temp01 es temperatura fija, no schedule"
+    },
+    {
+      "item": "Reactivation / ssl-night / long-dose ya tienen readouts",
+      "status": "tratado como dato, no como hueco"
+    },
+    {
+      "item": "Pooling CLS vs CLS4 sobre el MISMO encoder",
+      "status": "NO medido. Hueco metodologico prioritario: decide cuanto de la ventaja V10 es pooling vs recipe. Barato (solo readout)."
+    },
+    {
+      "item": "PanDerm_base (ViT-B) como arm de referencia",
+      "status": "Mi version decia no factible (gated). phase-b-research-derm: repo SiyuanYan1/PanDerm publica PanDerm_base, licencia no declarada. Verificar antes de descartar. Solo como referencia, no como encoder (restriccion DINOv2)."
+    },
+    {
+      "item": "Auditoria de solapamiento SSCD (dedup del pool)",
+      "status": "NO ejecutada. Sigue vigente (finding #2 de phase-b-research-derm)."
+    },
+    {
+      "item": "Shades-of-Gray + hair removal como arms label-free en dev",
+      "status": "NO ejecutada. Sin evidencia fuerte de beneficio (phase-b-research-derm finding #3)."
+    }
+  ],
+  "duplicates_or_already_done": [
+    "moco-v4-m0 es numericamente IDENTICO a moco-v3 sin ancla (HAM .612/.597/.597, PAD .653/.640/.639)",
+    "DINO+iBOT nativo (M10) ya fue corrido: dino-ibot s42/43/44 y dino-ibot-cb",
+    "Cola 4096 + 448 + D4 ya medida (V10)",
+    "Resolucion 448 y TTA D4 ya medidas (V10 variants y v3 res336)",
+    "Sampler por colisiones: auditado, 0.49% de anclas, negativo",
+    "k-means plano / PAD uniforme / jerarquico: corridos (moco-v10-cluster-balanced, 8 readouts, PAD .658-.676)",
+    "SDCLR: corrido (moco-v10-sdclr, 6 readouts, PAD .655-.670)",
+    "Reader imbalance (7 metodos): corrido (moco-v10-reader-imbalance, reader-r4-gap)",
+    "Fine-tune supervisado: corrido, negativo",
+    "Metadatos clinicos Track B: corrido, supervisado",
+    "Distilacion con predictor SimSiam: corrido, empeora (PAD .574)",
+    "Contrastivo dominio HAM+PAD: corrido, PAD .639 / HAM .559 (en hold segun Engram)",
+    "d4_color y color jitter: negativo en Fase A. phase-b-research-derm retiro su finding #1 de jitter de color"
+  ],
+  "history": {
+    "simsiam_to_moco": "Campana v3 (2026-10-27): baseline SimSiam PAD .597 (3 seeds). VICReg y Barlow mejoran PAD. Cola del 2026-10-29: brazos MoCo-v3-style y otros. MoCo sin ancla sale como mejor PAD (.644), pero a colleague detecto el 2026-11-05 que el ancla estaba apagada (confound, Engram #2344). Con ancla: .617 y el ancla perjudica. Motivo explicito del cambio a MoCo no registrado en Engram: se infiere de la cola de 9 brazos, no de un documento de decision.",
+    "nota_tabla_referencia": "La tabla de referencia (imagen reference-table.jpeg) es el protocolo viejo: CV anidada por paciente, CLS 768. Todas sus filas tienen folder mapeado en reference_table_mapping."
+  },
+  "conflicts": [
+    "Track B PAD: .763 (brief) vs .737 (email) vs .703 (tabla maestra SigLIP2+meta)",
+    "Brief dice 'V10 224 HAM .621/PAD .675' y tabla v3 MoCo sin ancla dice .602/.644: son encoders/pipelines distintos (cls4 vs cls), no contradiccion, pero deben etiquetarse",
+    "DINO+iBOT: Engram #2344 dice ancla con cosine, #2353 corrige que dino-ibot ancla al inicializador publico"
+  ],
+  "reference_table_mapping": [
+    {
+      "row": "SimSiam (propuesto)",
+      "folder": "baseline-s42-pipeline-evaluation-v1, baseline-s43-evaluation-v1, baseline-s44-evaluation-v1",
+      "PAD": 0.597,
+      "HAM": 0.518,
+      "comparable_con_V10": "No (CLS 768 vs CLS4 3072)"
+    },
+    {
+      "row": "VICReg",
+      "folder": "vicreg-evaluation-v1, vicreg-s43-evaluation-v1, vicreg-s44-evaluation-v1",
+      "PAD": 0.638,
+      "HAM": 0.546,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Barlow Twins",
+      "folder": "barlow-evaluation-v1, barlow-s43-evaluation-v1, barlow-s44-evaluation-v1",
+      "PAD": 0.632,
+      "HAM": 0.519,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Barlow + VICReg",
+      "folder": "barlow-vicreg-evaluation-v1, barlow-vicreg-s43-evaluation-v1, barlow-vicreg-s44-evaluation-v1",
+      "PAD": 0.637,
+      "HAM": 0.521,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "MoCo-v3-style (*)",
+      "folder": "moco-v3-s42/43/44-evaluation-v1",
+      "PAD": 0.644,
+      "HAM": 0.602,
+      "comparable_con_V10": "No; ANCLA APAGADA, confound. La tabla de referencia no lo marca"
+    },
+    {
+      "row": "DINO + iBOT",
+      "folder": "dino-ibot-evaluation-v1, dino-ibot-s43-evaluation-v1, dino-ibot-s44-evaluation-v1",
+      "PAD": 0.607,
+      "HAM": 0.527,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Contraste dominio HAM+PAD (*)",
+      "folder": "contrastive-domain-hamPAD-s42-retry-20261029-evaluation-v1",
+      "PAD": 0.639,
+      "HAM": 0.559,
+      "comparable_con_V10": "No; 1 semilla"
+    },
+    {
+      "row": "SIGReg-style (*)",
+      "folder": "sigreg-s42-evaluation-v1",
+      "PAD": 0.622,
+      "HAM": 0.549,
+      "comparable_con_V10": "No; aproximacion"
+    },
+    {
+      "row": "IConE-style (*)",
+      "folder": "icone-s42-evaluation-v1",
+      "PAD": 0.586,
+      "HAM": 0.506,
+      "comparable_con_V10": "No; aproximacion"
+    },
+    {
+      "row": "Prediccion de rotacion (*)",
+      "folder": "rotation-s42-evaluation-v1",
+      "PAD": 0.582,
+      "HAM": 0.515,
+      "comparable_con_V10": "No; aproximacion. Ancla publica encendida (Engram #2353)"
+    },
+    {
+      "row": "DIET-style (*)",
+      "folder": "diet-s42-evaluation-v1",
+      "PAD": 0.538,
+      "HAM": 0.388,
+      "comparable_con_V10": "No; aproximacion"
+    },
+    {
+      "row": "BYOL",
+      "folder": "byol-evaluation-v1",
+      "PAD": 0.594,
+      "HAM": 0.507,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "MuLan",
+      "folder": "mulan-evaluation-v1",
+      "PAD": 0.602,
+      "HAM": 0.529,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "OOB",
+      "folder": "oob-evaluation-v1",
+      "PAD": 0.59,
+      "HAM": 0.531,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "MAE / pixeles enmascarados (*)",
+      "folder": "masked-pixel-s42-evaluation-v1",
+      "PAD": 0.532,
+      "HAM": 0.519,
+      "comparable_con_V10": "No; aproximacion; sin ancla"
+    },
+    {
+      "row": "MSN-style (*)",
+      "folder": "msn-s42-evaluation-v1",
+      "PAD": 0.44,
+      "HAM": 0.347,
+      "comparable_con_V10": "No; aproximacion"
+    },
+    {
+      "row": "MaskFeat-style (*)",
+      "folder": "maskfeat-s42-evaluation-v1",
+      "PAD": 0.396,
+      "HAM": 0.308,
+      "comparable_con_V10": "No; aproximacion"
+    },
+    {
+      "row": "TiCo-style (*)",
+      "folder": "tico-s42-evaluation-v1",
+      "PAD": 0.298,
+      "HAM": 0.238,
+      "comparable_con_V10": "No; aproximacion"
+    },
+    {
+      "row": "SwAV-style (*)",
+      "folder": "swav-s42-evaluation-v1",
+      "PAD": 0.266,
+      "HAM": 0.206,
+      "comparable_con_V10": "No; aproximacion"
+    },
+    {
+      "row": "lr x4",
+      "folder": "learning-rate-x4-seed42-evaluation-v1 (balanced-linear-reader-*.json)",
+      "PAD": 0.609,
+      "HAM": 0.518,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Menos repeticiones phone",
+      "folder": "fewer-phone-repeats-seed42-evaluation-v1",
+      "PAD": 0.597,
+      "HAM": 0.511,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Misma cuota sin SkinDisNet",
+      "folder": "same-quota-without-skindisnet-seed42-evaluation-v1",
+      "PAD": 0.594,
+      "HAM": 0.519,
+      "comparable_con_V10": "No; la tabla de referencia tiene HAM vacio, el JSON si trae 0.519"
+    },
+    {
+      "row": "+ SkinDisNet phone",
+      "folder": "plus-skindisnet-phone-seed42-evaluation-v1",
+      "PAD": 0.594,
+      "HAM": 0.505,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "SimSiam estilo ExPLoRA (*)",
+      "folder": "simsiam-explora-style-seed42-evaluation-v1",
+      "PAD": 0.601,
+      "HAM": 0.519,
+      "comparable_con_V10": "No; la tabla tiene HAM vacio, JSON .519"
+    },
+    {
+      "row": "Predictor lr constante",
+      "folder": "simsiam-constant-predictor-lr-seed42-evaluation-v1",
+      "PAD": 0.601,
+      "HAM": 0.514,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Dosis larga 12000 pasos",
+      "folder": "long-dose-baseline-12000-seed42-evaluation-v1",
+      "PAD": 0.602,
+      "HAM": 0.517,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Destilacion con predictor",
+      "folder": "simsiam-distill-with-predictor-memoryfix-seed42-evaluation-v2 (v1 = failure)",
+      "PAD": 0.574,
+      "HAM": 0.462,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Crop scale 0.4",
+      "folder": "crop-scale-0.4-seed42-evaluation-v2",
+      "PAD": 0.591,
+      "HAM": 0.507,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Resolucion 336",
+      "folder": "res336-evaluation-v1",
+      "PAD": 0.598,
+      "HAM": 0.513,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Congelar 4 bloques",
+      "folder": "freeze4-evaluation-v1",
+      "PAD": 0.602,
+      "HAM": 0.519,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "SimSiam + balanceo por clase (dagger)",
+      "folder": "simsiam-cb-s42-evaluation-v1",
+      "PAD": 0.597,
+      "HAM": 0.513,
+      "comparable_con_V10": "No; usa etiquetas para elegir imagenes"
+    },
+    {
+      "row": "DINO+iBOT + balanceo por clase (dagger)",
+      "folder": "dino-ibot-cb-s42-evaluation-v1",
+      "PAD": 0.604,
+      "HAM": 0.536,
+      "comparable_con_V10": "No; usa etiquetas para elegir imagenes"
+    },
+    {
+      "row": "Baselines supervisados congelados (AlexNet, VGG19, EffNet-B0, ResNet-50, ViT-B/16)",
+      "folder": "bank-{alexnet,vgg19,efficientnet-b0,resnet50,vit-b16}-frozen-evaluation-v1",
+      "PAD": "0.466/0.451/0.533/0.489/0.538",
+      "HAM": "0.470/0.386/0.437/0.416/0.472",
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Baselines supervisados fine-tune",
+      "folder": "bank-{alexnet,vgg19,efficientnet-b0,resnet50,vit-b16}-finetune-evaluation-v1",
+      "PAD": "0.523/0.583/0.390/0.544/0.573",
+      "HAM": "0.468/0.482/0.378/0.509/0.517",
+      "comparable_con_V10": "No (reader FT)"
+    },
+    {
+      "row": "SSL publico congelado: SimSiam R50, DINOv2 S/14, B/14",
+      "folder": "bank-simsiam-r50-frozen, bank-dinov2-vits14-frozen, bank-dinov2-vitb14-frozen",
+      "PAD": "0.532/0.559/0.584",
+      "HAM": "0.457/0.476/0.491",
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "SSL publico fine-tune: SimSiam R50, DINOv2 S/14, B/14",
+      "folder": "bank-simsiam-r50-finetune, bank-dinov2-vits14-finetune, bank-dinov2-vitb14-finetune",
+      "PAD": "0.438/0.585/0.613",
+      "HAM": "0.348/0.448/0.499",
+      "comparable_con_V10": "No (FT)"
+    },
+    {
+      "row": "DINOv2 large congelado",
+      "folder": "public-frozen-encoder-comparison-v1 (verificar archivo)",
+      "PAD": 0.592,
+      "HAM": null,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "DINOv2 giant congelado",
+      "folder": "public-small-giant-v1/dinov2-giant",
+      "PAD": 0.613,
+      "HAM": 0.526,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "OpenCLIP B/16 y L/14 (solo imagen)",
+      "folder": "openclip-b16-evaluation-v1, openclip-l14-evaluation-v1",
+      "PAD": "0.598/0.613",
+      "HAM": "0.542/0.541",
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "SigLIP2 base / so400m (solo imagen)",
+      "folder": "lesion-binary-fixed-oof-v1/siglip2-so400m.json y public-frozen-encoder-comparison-v1 (verificar)",
+      "PAD": "0.612/0.667",
+      "HAM": null,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "DINOv2 large + SigLIP2; +metadatos; SigLIP2 + metadatos",
+      "folder": "public-frozen-encoder-comparison-v1 y lesion-binary-fixed-oof-v1/*plus-metadata.json (verificar)",
+      "PAD": "0.654 / 0.703 / 0.703",
+      "HAM": null,
+      "comparable_con_V10": "No; metadatos = supervisado"
+    },
+    {
+      "row": "MLP supervisado y ensamble sobre SimSiam",
+      "folder": "supervised-readers-v1/derived-mlp-PAD.json, derived-ensemble-PAD.json (probable, verificar)",
+      "PAD": "0.587/0.597",
+      "HAM": null,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "Clasico (primario/secundario)",
+      "folder": "classic-handcrafted-v1, classic-svm-pad-v1 (probable)",
+      "PAD": "0.308/0.289",
+      "HAM": null,
+      "comparable_con_V10": "No"
+    },
+    {
+      "row": "V10 CLS4 balanced LR (referencia actual)",
+      "folder": "moco-v10-variants-20261109, moco-v10-teacher-cls4-20261108",
+      "PAD": 0.675,
+      "HAM": 0.621,
+      "comparable_con_V10": "Si (es la referencia)"
+    }
+  ]
+}

@@ -1,0 +1,1139 @@
+{
+  "date": "2026-11-10",
+  "scope": "Track A reader-side only: frozen SSL features, balanced-LR protocol, dev cohorts only (HAM ham_dev, PAD pad_adapt). No holdout/target_test opened. CPU only.",
+  "cluster_dir": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-reader-imbalance-20261109",
+  "script": "scripts/reader_imbalance.py (copy in cluster dir); self-check: --selfcheck PASS",
+  "summary_json": "summary.json (cluster dir, per-job seed-wise deltas)",
+  "protocol": {
+    "folds": "grouped StratifiedGroupKFold outer5/inner3, CV seeds 20261025/26/27, same as evaluate_overlay_readout/probe_preprocessing_readout",
+    "C_grid": [
+      0.3,
+      1.0,
+      3.0,
+      10.0,
+      30.0,
+      100.0
+    ],
+    "features": "row-L2",
+    "threads": 3,
+    "concurrency": 7
+  },
+  "arms": {
+    "bal_lr_macrof1": "BASELINE: balanced LR, C by inner macro-F1 (matches protocol)",
+    "bal_lr_bacc": "balanced LR, C by inner balanced accuracy (a)",
+    "bal_lr_minrec": "balanced LR, C by inner mean minority recall; minority = train classes with count < mean (a)",
+    "plain_lr_macrof1": "plain LR (no weights), C by inner macro-F1; reference for logit adjustment (b)",
+    "logitadj_tau": "plain LR + post-hoc p/pi^tau, (C,tau) jointly by inner macro-F1, tau in {0,.25,.5,.75,1} (b)",
+    "over_lr_macrof1": "random class-balanced oversampling of train fold, plain LR, C by inner F1 (c)",
+    "under_lr_macrof1": "random class-balanced undersampling, plain LR, C by inner F1 (c)",
+    "sw05_lr_macrof1": "sample weights (n/(K n_y))^0.5, C by inner F1 (d)",
+    "sw075_lr_macrof1": "sample weights (n/(K n_y))^0.75, C by inner F1 (d)"
+  },
+  "balanced_softmax_note": "For a linear multinomial head with a free intercept, balanced softmax (logit + log pi in training) has the same hypothesis class as plain LR; the offset is absorbed by the intercept. It is therefore not a separate arm; (d) is covered by the sample-weight exponents.",
+  "results": {
+    "r448cls4d4-HAM": {
+      "bal_lr_macrof1": {
+        "macro_f1_mean": 0.6139,
+        "delta_macro_f1_vs_baseline_mean": 0.0,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "43": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "44": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5575,
+          "mel_to_nv": 0.1966
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": 0.0,
+          "mel_to_nv": 0.0
+        }
+      },
+      "bal_lr_bacc": {
+        "macro_f1_mean": 0.5683,
+        "delta_macro_f1_vs_baseline_mean": -0.0456,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0285,
+            -0.0392,
+            -0.0637
+          ],
+          "43": [
+            -0.0778,
+            -0.0539,
+            -0.0483
+          ],
+          "44": [
+            -0.041,
+            -0.0245,
+            -0.0336
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5871,
+          "mel_to_nv": 0.1183
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": 0.0296,
+          "mel_to_nv": -0.0782
+        }
+      },
+      "bal_lr_minrec": {
+        "macro_f1_mean": 0.5555,
+        "delta_macro_f1_vs_baseline_mean": -0.0584,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0285,
+            -0.0425,
+            -0.0846
+          ],
+          "43": [
+            -0.0826,
+            -0.0795,
+            -0.065
+          ],
+          "44": [
+            -0.0435,
+            -0.0759,
+            -0.0235
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5832,
+          "mel_to_nv": 0.1078
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": 0.0256,
+          "mel_to_nv": -0.0888
+        }
+      },
+      "plain_lr_macrof1": {
+        "macro_f1_mean": 0.598,
+        "delta_macro_f1_vs_baseline_mean": -0.0159,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.016,
+            -0.0056,
+            -0.0352
+          ],
+          "43": [
+            -0.0239,
+            -0.0076,
+            -0.0066
+          ],
+          "44": [
+            -0.0061,
+            -0.0216,
+            -0.0209
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.4142,
+          "mel_to_nv": 0.4122
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.1433,
+          "mel_to_nv": 0.2156
+        }
+      },
+      "logitadj_tau": {
+        "macro_f1_mean": 0.6108,
+        "delta_macro_f1_vs_baseline_mean": -0.0032,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0099,
+            -0.0071,
+            -0.0073
+          ],
+          "43": [
+            0.0012,
+            -0.008,
+            0.0114
+          ],
+          "44": [
+            -0.0029,
+            -0.0148,
+            0.0091
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.503,
+          "mel_to_nv": 0.2636
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0546,
+          "mel_to_nv": 0.0671
+        }
+      },
+      "over_lr_macrof1": {
+        "macro_f1_mean": 0.6175,
+        "delta_macro_f1_vs_baseline_mean": 0.0036,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0051,
+            0.0133,
+            -0.0036
+          ],
+          "43": [
+            0.0112,
+            0.0057,
+            0.0008
+          ],
+          "44": [
+            0.0059,
+            0.0024,
+            -0.0085
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5332,
+          "mel_to_nv": 0.238
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0243,
+          "mel_to_nv": 0.0414
+        }
+      },
+      "under_lr_macrof1": {
+        "macro_f1_mean": 0.4641,
+        "delta_macro_f1_vs_baseline_mean": -0.1498,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.1764,
+            -0.1253,
+            -0.1212
+          ],
+          "43": [
+            -0.194,
+            -0.16,
+            -0.1221
+          ],
+          "44": [
+            -0.1907,
+            -0.1448,
+            -0.1141
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.4957,
+          "mel_to_nv": 0.1039
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0618,
+          "mel_to_nv": -0.0927
+        }
+      },
+      "sw05_lr_macrof1": {
+        "macro_f1_mean": 0.6235,
+        "delta_macro_f1_vs_baseline_mean": 0.0096,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0089,
+            0.0161,
+            -0.0001
+          ],
+          "43": [
+            0.0093,
+            0.024,
+            0.0013
+          ],
+          "44": [
+            0.0189,
+            -0.007,
+            0.015
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.499,
+          "mel_to_nv": 0.2998
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0585,
+          "mel_to_nv": 0.1032
+        }
+      },
+      "sw075_lr_macrof1": {
+        "macro_f1_mean": 0.6195,
+        "delta_macro_f1_vs_baseline_mean": 0.0056,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0199,
+            0.0149,
+            -0.0025
+          ],
+          "43": [
+            -0.0003,
+            -0.0056,
+            0.0112
+          ],
+          "44": [
+            0.014,
+            0.0009,
+            -0.0019
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5312,
+          "mel_to_nv": 0.2413
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0263,
+          "mel_to_nv": 0.0447
+        }
+      }
+    },
+    "r448cls4d4-PAD": {
+      "bal_lr_macrof1": {
+        "macro_f1_mean": 0.6784,
+        "delta_macro_f1_vs_baseline_mean": 0.0,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "43": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "44": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7325,
+          "SCC_recall": 0.3392,
+          "SCC_to_BCC": 0.448
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": 0.0,
+          "SCC_recall": 0.0,
+          "SCC_to_BCC": 0.0
+        }
+      },
+      "bal_lr_bacc": {
+        "macro_f1_mean": 0.6731,
+        "delta_macro_f1_vs_baseline_mean": -0.0052,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0002,
+            -0.0027,
+            -0.0226
+          ],
+          "43": [
+            -0.0096,
+            0.0018,
+            -0.0025
+          ],
+          "44": [
+            -0.0145,
+            0.0,
+            0.003
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7449,
+          "SCC_recall": 0.3789,
+          "SCC_to_BCC": 0.4269
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": 0.0123,
+          "SCC_recall": 0.0398,
+          "SCC_to_BCC": -0.0211
+        }
+      },
+      "bal_lr_minrec": {
+        "macro_f1_mean": 0.6525,
+        "delta_macro_f1_vs_baseline_mean": -0.0259,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0096,
+            -0.0444,
+            -0.0251
+          ],
+          "43": [
+            -0.0162,
+            -0.0337,
+            -0.0192
+          ],
+          "44": [
+            -0.0295,
+            -0.0293,
+            -0.0263
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7654,
+          "SCC_recall": 0.4152,
+          "SCC_to_BCC": 0.4035
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": 0.0329,
+          "SCC_recall": 0.076,
+          "SCC_to_BCC": -0.0444
+        }
+      },
+      "plain_lr_macrof1": {
+        "macro_f1_mean": 0.6764,
+        "delta_macro_f1_vs_baseline_mean": -0.002,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0027,
+            -0.0027,
+            -0.0163
+          ],
+          "43": [
+            0.0021,
+            0.006,
+            -0.0103
+          ],
+          "44": [
+            0.003,
+            -0.0076,
+            0.0104
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.6255,
+          "SCC_recall": 0.1719,
+          "SCC_to_BCC": 0.5661
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.107,
+          "SCC_recall": -0.1673,
+          "SCC_to_BCC": 0.1181
+        }
+      },
+      "logitadj_tau": {
+        "macro_f1_mean": 0.6737,
+        "delta_macro_f1_vs_baseline_mean": -0.0047,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0074,
+            -0.0071,
+            -0.0178
+          ],
+          "43": [
+            0.0022,
+            0.0094,
+            -0.011
+          ],
+          "44": [
+            -0.0075,
+            -0.0144,
+            -0.0032
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.716,
+          "SCC_recall": 0.2749,
+          "SCC_to_BCC": 0.4994
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.0165,
+          "SCC_recall": -0.0643,
+          "SCC_to_BCC": 0.0515
+        }
+      },
+      "over_lr_macrof1": {
+        "macro_f1_mean": 0.6678,
+        "delta_macro_f1_vs_baseline_mean": -0.0106,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.006,
+            -0.0238,
+            0.001
+          ],
+          "43": [
+            -0.0176,
+            -0.0167,
+            0.0025
+          ],
+          "44": [
+            -0.0135,
+            -0.0261,
+            0.005
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7202,
+          "SCC_recall": 0.3146,
+          "SCC_to_BCC": 0.4924
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.0123,
+          "SCC_recall": -0.0246,
+          "SCC_to_BCC": 0.0444
+        }
+      },
+      "under_lr_macrof1": {
+        "macro_f1_mean": 0.5624,
+        "delta_macro_f1_vs_baseline_mean": -0.116,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.1134,
+            -0.1164,
+            -0.105
+          ],
+          "43": [
+            -0.1192,
+            -0.1153,
+            -0.0992
+          ],
+          "44": [
+            -0.1378,
+            -0.1363,
+            -0.1017
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7984,
+          "SCC_recall": 0.5123,
+          "SCC_to_BCC": 0.3041
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": 0.0658,
+          "SCC_recall": 0.1731,
+          "SCC_to_BCC": -0.1439
+        }
+      },
+      "sw05_lr_macrof1": {
+        "macro_f1_mean": 0.6818,
+        "delta_macro_f1_vs_baseline_mean": 0.0034,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0107,
+            -0.0026,
+            0.0009
+          ],
+          "43": [
+            0.01,
+            -0.0048,
+            0.0104
+          ],
+          "44": [
+            0.0079,
+            -0.0128,
+            0.0109
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.679,
+          "SCC_recall": 0.2363,
+          "SCC_to_BCC": 0.5404
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.0535,
+          "SCC_recall": -0.1029,
+          "SCC_to_BCC": 0.0924
+        }
+      },
+      "sw075_lr_macrof1": {
+        "macro_f1_mean": 0.6805,
+        "delta_macro_f1_vs_baseline_mean": 0.0021,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0149,
+            -0.0009,
+            -0.0083
+          ],
+          "43": [
+            0.0096,
+            0.0013,
+            0.0063
+          ],
+          "44": [
+            0.0061,
+            -0.0063,
+            -0.0039
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7202,
+          "SCC_recall": 0.2982,
+          "SCC_to_BCC": 0.4971
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.0123,
+          "SCC_recall": -0.0409,
+          "SCC_to_BCC": 0.0491
+        }
+      }
+    },
+    "r224cls4-HAM": {
+      "bal_lr_macrof1": {
+        "macro_f1_mean": 0.6184,
+        "delta_macro_f1_vs_baseline_mean": 0.0,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "43": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "44": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5378,
+          "mel_to_nv": 0.2433
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": 0.0,
+          "mel_to_nv": 0.0
+        }
+      },
+      "bal_lr_bacc": {
+        "macro_f1_mean": 0.5557,
+        "delta_macro_f1_vs_baseline_mean": -0.0626,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0969,
+            -0.0521,
+            -0.0912
+          ],
+          "43": [
+            -0.0629,
+            -0.0752,
+            -0.0519
+          ],
+          "44": [
+            -0.0431,
+            -0.0493,
+            -0.0409
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5569,
+          "mel_to_nv": 0.1269
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": 0.0191,
+          "mel_to_nv": -0.1164
+        }
+      },
+      "bal_lr_minrec": {
+        "macro_f1_mean": 0.5405,
+        "delta_macro_f1_vs_baseline_mean": -0.0779,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.1064,
+            -0.0521,
+            -0.107
+          ],
+          "43": [
+            -0.0961,
+            -0.0909,
+            -0.0499
+          ],
+          "44": [
+            -0.0848,
+            -0.0569,
+            -0.0571
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5444,
+          "mel_to_nv": 0.1157
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": 0.0066,
+          "mel_to_nv": -0.1275
+        }
+      },
+      "plain_lr_macrof1": {
+        "macro_f1_mean": 0.5697,
+        "delta_macro_f1_vs_baseline_mean": -0.0486,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0557,
+            -0.0816,
+            -0.0408
+          ],
+          "43": [
+            -0.0669,
+            -0.0391,
+            -0.0227
+          ],
+          "44": [
+            -0.0293,
+            -0.0914,
+            -0.0102
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.432,
+          "mel_to_nv": 0.4004
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.1059,
+          "mel_to_nv": 0.1571
+        }
+      },
+      "logitadj_tau": {
+        "macro_f1_mean": 0.611,
+        "delta_macro_f1_vs_baseline_mean": -0.0074,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0194,
+            -0.0092,
+            -0.032
+          ],
+          "43": [
+            -0.0202,
+            0.0041,
+            -0.0247
+          ],
+          "44": [
+            0.0176,
+            -0.0225,
+            0.0398
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5003,
+          "mel_to_nv": 0.2847
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0375,
+          "mel_to_nv": 0.0414
+        }
+      },
+      "over_lr_macrof1": {
+        "macro_f1_mean": 0.6185,
+        "delta_macro_f1_vs_baseline_mean": 0.0001,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0279,
+            0.0061,
+            -0.0106
+          ],
+          "43": [
+            -0.0244,
+            0.0007,
+            0.0075
+          ],
+          "44": [
+            0.018,
+            0.0007,
+            0.0307
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5194,
+          "mel_to_nv": 0.2656
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0184,
+          "mel_to_nv": 0.0224
+        }
+      },
+      "under_lr_macrof1": {
+        "macro_f1_mean": 0.4563,
+        "delta_macro_f1_vs_baseline_mean": -0.1621,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.2013,
+            -0.1616,
+            -0.1433
+          ],
+          "43": [
+            -0.1882,
+            -0.1292,
+            -0.1594
+          ],
+          "44": [
+            -0.1896,
+            -0.1646,
+            -0.1219
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.4944,
+          "mel_to_nv": 0.0973
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0434,
+          "mel_to_nv": -0.146
+        }
+      },
+      "sw05_lr_macrof1": {
+        "macro_f1_mean": 0.6163,
+        "delta_macro_f1_vs_baseline_mean": -0.0021,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0364,
+            -0.005,
+            -0.0094
+          ],
+          "43": [
+            0.0035,
+            0.0023,
+            -0.0017
+          ],
+          "44": [
+            0.0129,
+            -0.0055,
+            0.0206
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.4845,
+          "mel_to_nv": 0.3222
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0533,
+          "mel_to_nv": 0.0789
+        }
+      },
+      "sw075_lr_macrof1": {
+        "macro_f1_mean": 0.6194,
+        "delta_macro_f1_vs_baseline_mean": 0.001,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0193,
+            0.008,
+            0.0013
+          ],
+          "43": [
+            -0.0086,
+            -0.0086,
+            0.0017
+          ],
+          "44": [
+            0.0021,
+            0.0034,
+            0.0289
+          ]
+        },
+        "targets_mean": {
+          "mel_recall": 0.5194,
+          "mel_to_nv": 0.2663
+        },
+        "delta_targets_vs_baseline_mean": {
+          "mel_recall": -0.0184,
+          "mel_to_nv": 0.023
+        }
+      }
+    },
+    "r224cls4-PAD": {
+      "bal_lr_macrof1": {
+        "macro_f1_mean": 0.6741,
+        "delta_macro_f1_vs_baseline_mean": 0.0,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "43": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "44": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7325,
+          "SCC_recall": 0.317,
+          "SCC_to_BCC": 0.4784
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": 0.0,
+          "SCC_recall": 0.0,
+          "SCC_to_BCC": 0.0
+        }
+      },
+      "bal_lr_bacc": {
+        "macro_f1_mean": 0.6651,
+        "delta_macro_f1_vs_baseline_mean": -0.009,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0123,
+            -0.0105,
+            -0.0023
+          ],
+          "43": [
+            -0.0049,
+            -0.0177,
+            -0.0056
+          ],
+          "44": [
+            0.0042,
+            -0.0144,
+            -0.0176
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7613,
+          "SCC_recall": 0.3602,
+          "SCC_to_BCC": 0.4503
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": 0.0288,
+          "SCC_recall": 0.0433,
+          "SCC_to_BCC": -0.0281
+        }
+      },
+      "bal_lr_minrec": {
+        "macro_f1_mean": 0.6496,
+        "delta_macro_f1_vs_baseline_mean": -0.0245,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0291,
+            -0.0314,
+            -0.0202
+          ],
+          "43": [
+            -0.012,
+            -0.0267,
+            -0.0361
+          ],
+          "44": [
+            -0.003,
+            -0.0309,
+            -0.0311
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7984,
+          "SCC_recall": 0.4129,
+          "SCC_to_BCC": 0.4023
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": 0.0658,
+          "SCC_recall": 0.0959,
+          "SCC_to_BCC": -0.076
+        }
+      },
+      "plain_lr_macrof1": {
+        "macro_f1_mean": 0.6791,
+        "delta_macro_f1_vs_baseline_mean": 0.005,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0155,
+            0.0118,
+            0.0006
+          ],
+          "43": [
+            0.0258,
+            0.009,
+            -0.0003
+          ],
+          "44": [
+            0.0219,
+            -0.0254,
+            -0.014
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.5802,
+          "SCC_recall": 0.1731,
+          "SCC_to_BCC": 0.5883
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.1523,
+          "SCC_recall": -0.1439,
+          "SCC_to_BCC": 0.1099
+        }
+      },
+      "logitadj_tau": {
+        "macro_f1_mean": 0.6782,
+        "delta_macro_f1_vs_baseline_mean": 0.0041,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0011,
+            0.0047,
+            0.0133
+          ],
+          "43": [
+            0.0144,
+            0.0003,
+            0.0064
+          ],
+          "44": [
+            0.0028,
+            -0.0081,
+            0.0021
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7202,
+          "SCC_recall": 0.2842,
+          "SCC_to_BCC": 0.5158
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.0123,
+          "SCC_recall": -0.0327,
+          "SCC_to_BCC": 0.0374
+        }
+      },
+      "over_lr_macrof1": {
+        "macro_f1_mean": 0.6684,
+        "delta_macro_f1_vs_baseline_mean": -0.0057,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.0045,
+            0.0023,
+            -0.0046
+          ],
+          "43": [
+            0.0008,
+            -0.0018,
+            -0.0153
+          ],
+          "44": [
+            0.0004,
+            -0.0137,
+            -0.0151
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7119,
+          "SCC_recall": 0.3123,
+          "SCC_to_BCC": 0.5041
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.0206,
+          "SCC_recall": -0.0047,
+          "SCC_to_BCC": 0.0257
+        }
+      },
+      "under_lr_macrof1": {
+        "macro_f1_mean": 0.5524,
+        "delta_macro_f1_vs_baseline_mean": -0.1217,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            -0.1286,
+            -0.142,
+            -0.0986
+          ],
+          "43": [
+            -0.1311,
+            -0.1429,
+            -0.1006
+          ],
+          "44": [
+            -0.1069,
+            -0.1358,
+            -0.1088
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7942,
+          "SCC_recall": 0.5216,
+          "SCC_to_BCC": 0.2877
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": 0.0617,
+          "SCC_recall": 0.2047,
+          "SCC_to_BCC": -0.1906
+        }
+      },
+      "sw05_lr_macrof1": {
+        "macro_f1_mean": 0.6881,
+        "delta_macro_f1_vs_baseline_mean": 0.014,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.0263,
+            0.0145,
+            0.0199
+          ],
+          "43": [
+            0.0254,
+            0.0113,
+            0.0023
+          ],
+          "44": [
+            0.0218,
+            0.0101,
+            -0.0056
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.679,
+          "SCC_recall": 0.2281,
+          "SCC_to_BCC": 0.5556
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.0535,
+          "SCC_recall": -0.0889,
+          "SCC_to_BCC": 0.0772
+        }
+      },
+      "sw075_lr_macrof1": {
+        "macro_f1_mean": 0.6809,
+        "delta_macro_f1_vs_baseline_mean": 0.0068,
+        "delta_macro_f1_by_encoder_seed": {
+          "42": [
+            0.01,
+            0.008,
+            0.0124
+          ],
+          "43": [
+            0.0092,
+            0.0137,
+            -0.0038
+          ],
+          "44": [
+            0.0231,
+            -0.0041,
+            -0.0075
+          ]
+        },
+        "targets_mean": {
+          "MEL_recall": 0.7078,
+          "SCC_recall": 0.2854,
+          "SCC_to_BCC": 0.5146
+        },
+        "delta_targets_vs_baseline_mean": {
+          "MEL_recall": -0.0247,
+          "SCC_recall": -0.0316,
+          "SCC_to_BCC": 0.0363
+        }
+      }
+    }
+  },
+  "verdict": {
+    "H1_selection_by_bacc_or_minrec": "REFUTED as improvement. HAM: macro-F1 drops 0.03-0.09 on every encoder seed at both resolutions. PAD 448: -0.005 (bacc) / -0.026 (minrec). HAM 448 mel->NV falls 0.197 -> 0.118 (bacc) / 0.108 (minrec) with mel recall +0.03: the endpoint gain is bought with minority precision (seed 42 pilot: mel precision 0.39 -> 0.33, df 0.62 -> 0.31).",
+    "H2_logit_adjustment_inner_tau": "NOT SUPPORTED. 448 HAM -0.003 macro-F1 (seed deltas -0.008, +0.002, -0.003), mel->NV +0.067 worse; 448 PAD -0.005, SCC->BCC +0.05 worse. 224: HAM -0.007, PAD +0.004 (within noise). Inner-chosen tau in the pilot job: 0.25-0.75.",
+    "H3_oversampling": "NEUTRAL. HAM 448 +0.004 (seed deltas +0.005, +0.006, 0.000) with mel->NV +0.04; PAD 448 -0.011 (all seeds negative). Undersampling: -0.12 to -0.16 on every job (discards majority rows).",
+    "H4_sample_weight_exponents": "MONOTONE TRADE-OFF, not a free gain. alpha 0 -> 0.5 -> 0.75 -> 1 moves HAM 448 mel->NV 0.41 -> 0.30 -> 0.24 -> 0.20 and macro-F1 0.598 -> 0.624 -> 0.620 -> 0.614. alpha 0.5 gives +0.010 HAM 448 and +0.014 PAD 224 macro-F1 (same sign on all 3 encoder seeds), but worsens mel->NV (+0.10 HAM 448), SCC recall (-0.09 to -0.10 PAD) and SCC->BCC (+0.08 to +0.09 PAD).",
+    "overall": "No reader-side arm improved macro-F1 and the target endpoints together. Reader-side balancing moves along one frontier (macro-F1 vs mel->NV / SCC->BCC); it does not move the frontier. Consistent with the earlier negative inner-tuned per-class offsets."
+  },
+  "caveats": [
+    "3 encoder seeds x 3 CV seeds; CV seeds share data, not independent replicates. No p-values reported (uncentered bootstrap avoided per brief).",
+    "Dev cohorts only; selection of arm was not tuned on holdout. Effects of 0.005-0.01 macro-F1 are within seed-to-seed spread (HAM 448 CV-seed range 0.60-0.62).",
+    "Balanced-LR baseline reproduces historical readouts exactly for s42 448 cls4_d4 HAM (0.6157/0.6028/0.6222) and matches brief numbers within 0.003 for 224 and 448 (same environment rerun).",
+    "Incident: pilot job r448cls4d4-s42-HAM was duplicated by the runner and the duplicate was killed (pid 2186281, mine). Two jobs (r448cls4d4-s44-HAM, r224cls4-s44-HAM) were terminated mid-run by an external SIGTERM (runner.log 'Terminated', origin not identified; not mine); both were rerun from scratch, outputs complete. Pilot's stdout log was truncated by the duplicate; its JSON is complete and is the artifact of record.",
+    "Cluster load average was ~50-115 during the run; per-job runtimes 32-69 min (not a timing benchmark)."
+  ],
+  "skills_invoked": [],
+  "skills_note": "No skill was invoked (scientific-critical-thinking and strict-tdd were not loaded). Self-check was a synthetic assertion block inside the script, not a TDD RED/GREEN cycle."
+}

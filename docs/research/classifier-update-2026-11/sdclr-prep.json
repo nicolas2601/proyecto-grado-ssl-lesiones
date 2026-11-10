@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "date": "2026-11-09",
+    "status": "SMOKE_DONE_FULL_RUN_NOT_LAUNCHED",
+    "gpu_training_started": "40-step smoke only, GPU0, pid 2186842 (authorized by main). Full 6000-step run NOT launched.",
+    "skills_invoked": [
+      "strict-tdd",
+      "systematic-debugging"
+    ],
+    "paper": "arXiv 2106.02990, Self-Damaging Contrastive Learning (Jiang et al. 2021)",
+    "paper_read": "read_arxiv_paper full text obtained (55,821 chars). Method sections 3.1-3.3, the pruning-ratio statement in 4.1 and the epoch/lr statements in 8.1 extracted by regex, not read sequentially. No result tables quoted."
+  },
+  "decisions_from_main": {
+    "heads_pruned": false,
+    "prune_ratio_default": 0.3,
+    "prune_ratio_cli_option": "--prune-ratio 0.9 (CIFAR setting; not default)",
+    "extraction": "features_from_weights.py (copy of variant_features.py with --weights, --weights-sha, --out)",
+    "smoke_authorized": true,
+    "full_run_authorized": false
+  },
+  "artifacts": {
+    "runtime_local": "sdclr/sdclr_runtime.py",
+    "selfcheck_local": "sdclr/sdclr_selfcheck.py",
+    "features_local": "sdclr/features_from_weights.py",
+    "plan_local": "sdclr/plan.json",
+    "configs_local": "sdclr/configs/",
+    "cluster_scripts": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-sdclr-20261109/scripts/",
+    "cluster_smoke": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-sdclr-20261109/smoke-s42/"
+  },
+  "tdd": {
+    "cycle_0_red": "ModuleNotFoundError: No module named 'sdclr_runtime'",
+    "cycle_1_mask_tie_bug": "FAIL test_mask_sparsity_exact and test_mask_sparsity_triangulated_ratio: blocks.2.norm.weight zeros=8 numel=8 (expected 7). Cause: threshold rule dropped tied magnitudes (LayerNorm weight init 1.0). Fix: stable argsort, exactly phase(ratio*numel) zeros.",
+    "cycle_2_default_ratio_red": "FAIL test_default_prune_ratio_is_0_3 (ratio was 0.9); FAIL test_cli_override_wins_over_config: TypeError unexpected keyword 'override'. Fix: default 0.3, sdclr_options(config, override), CLI --prune-ratio.",
+    "green": "SUMMARY passed=10 failed=0 total=10 (cluster CPU, CUDA_VISIBLE_DEVICES empty, python -s)"
+  },
+  "checks": {
+    "py_compile_cluster": "COMPILE_OK (all three files)",
+    "wiring_vs_v4_runtime": "all referenced moco_v4_20261107_runtime attributes present; signatures match calls in run()",
+    "guard_features_from_weights": "wrong --weights-sha -> ValueError: student checkpoint hash mismatch, out dir not created",
+    "compare_variants_cli": "positional labels only; no --help. Ran with existing label r224-cls4_d4 -> 9 readers, JSON report printed",
+    "line_counts": {
+      "sdclr_runtime.py": 190,
+      "sdclr_selfcheck.py": 159,
+      "features_from_weights.py": 116,
+      "limit": 300
+    }
+  },
+  "smoke_s42": {
+    "pid": 2186842,
+    "gpu": "GPU0, CUDA_VISIBLE_DEVICES=0; co-tenants untouched (V10_C1M_LUM pids 2177506/2177508/2177510, supervised FT pids 2184292/2184293, readout 2184557)",
+    "steps": 40,
+    "reprune_steps_in_smoke": 20,
+    "mask_recomputations": 2,
+    "loss_step20": 2.8271484375,
+    "loss_step40": 2.45465087890625,
+    "losses_finite": true,
+    "peak_vram_gib": 3.4823317527770996,
+    "wall_hours": 0.21598076316631504,
+    "wall_note": "~19 s/step: load average ~105 on 48 threads (CPU contention). quota4 receipt was 0.27 s/step. Smoke is not a valid time estimate for the full run."
+  },
+  "method_adaptation": {
+    "pruning": "per-tensor magnitude, exactly phase(ratio*numel) zeros, trainable backbone params only (blocks 8-11 + final norm), ratio 0.3 default",
+    "mask_schedule": "steps 1, 2174, 4347 for 6000 steps (reprune = ceil(34754/16) = 2173)",
+    "loss": "moco_symmetric(dense) + [InfoNCE(q_dense1, q_sparse2) + InfoNCE(q_sparse1, q_dense2)]/2, T=0.2",
+    "independent_bn": "not applicable (ViT LayerNorm)",
+    "heads_pruned": false
+  },
+  "estimates": {
+    "source": "quota4 s42 receipt: wall 0.449 h, max_memory 2.164 GiB, 6000 steps (no contention known)",
+    "full_run_wall": "NOT estimable from smoke because of contention. Re-check load before launching.",
+    "max_memory_gib": "smoke measured 3.48 GiB; full run expected similar"
+  },
+  "plan": "sdclr/plan.json (status SMOKE_DONE_FULL_RUN_NOT_LAUNCHED; exact commands A-G, no variables; placeholder only in E2 for the backbone sha known after training)",
+  "answers_for_agency_critic": {
+    "final_step_predeclared": 6000,
+    "final_checkpoint": "train-s42/simsiam_dinov2_backbone_final.pt (config sdclr-s42.json, max_steps 6000)",
+    "intermediate_checkpoints": "CONFIGURED by main: checkpoint_steps [2000, 4000] in sdclr-s42.json -> train-s42/checkpoints/backbone_step2000.pt and backbone_step4000.pt; final at 6000. validate_config accepts it; write path checked by code reading only. Readouts at 2000/4000 are NOT in plan yet (need features_from_weights + F-readouts per checkpoint).",
+    "ssl_arms_tested_on_dev_for_sdclr": 0,
+    "sdclr_smoke_runs": "1 (40 steps, not evaluated, not an arm)",
+    "dinov2_v4_arms_on_cluster_context": "directories exist for moco-v4 freeze10, l2sp, lr5e6, m0, mom996, quota4, quota4l2sp, steps3000, steps12000, temp01 (seeds 42-44 evaluation dirs). Count from directory names only; I did not review each result."
+  },
+  "blockers_and_risks": [
+    "Full run timing: high CPU contention on the cluster. Recheck uptime and nvidia-smi before launch.",
+    "features_from_weights.py real extraction path not run (only its guard was run on CPU).",
+    "E2 needs the backbone sha printed by E1 after training (placeholder by design).",
+    "F-readouts and E2 write new files into shared variants readouts/ and logs/ with new names only; nothing overwritten."
+  ]
+}

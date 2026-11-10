@@ -1,0 +1,433 @@
+{
+  "date": "2026-11-09",
+  "status": "NEGATIVE_SEED42_ABLATION_DONE",
+  "decision": "Cluster-balanced arm (source+pad cluster-balanced), seed 42: no consistent target-error improvement at 224 or 448+D4. Per the brief rule, seeds 43/44 of that arm were NOT run. PAD-uniform ablation (source-only cluster balance), seed 42, run to 6000 steps with checkpoints 2000/4000: HAM macro-F1 consistently slightly lower; PAD endpoints mixed in sign across CV seeds (no consistent gain). Seeds 43/44 of the ablation not run.",
+  "ablation_padu": {
+    "description": "Cluster-balanced SOURCE slots + UNIFORM PAD slots (v4 pad behaviour). Same clusters, composition, hyperparameters, seed 42.",
+    "files": "scripts/arms/moco_v10_cluster_padu_{sampler,runtime,selfcheck}_20261109.py; config results/.../config-cluster-padu-s42.json (checkpoint_steps [2000,4000], verified in resolved-params.json)",
+    "run": {
+      "output": "results/moco-v10-cluster-balanced-20261109/train-padu-s42",
+      "pid": 2196807,
+      "status": "COMPLETE",
+      "steps": 6000,
+      "backbone_sha256": "b32725115e3da45c34312db27cee339c65f41e9630b05cefe1f3d634347ac35a",
+      "checkpoints": [
+        "backbone_step2000.pt",
+        "backbone_step4000.pt",
+        "simsiam_dinov2_backbone_final.pt (6000)"
+      ]
+    },
+    "pad_draw_histogram": {
+      "source": "pad-draw-histogram.json (live counts)",
+      "draws_total": 24000,
+      "distinct_images": 1134,
+      "never_drawn": 0,
+      "max_draws_one_image": 37,
+      "note": "uniform, expectation ~21.2 per image"
+    },
+    "pad_draw_histogram_s42_cluster_arm": {
+      "source": "replay of the seeded sampler (python random only consumed by the sampler in that run)",
+      "distinct_images_drawn": 1030,
+      "never_drawn": 104,
+      "max_draws_one_image": 810,
+      "images_in_le3_row_clusters_mean_draws": 420.6,
+      "other_images_mean_draws": 9.9
+    },
+    "endpoints_224_cls4": {
+      "HAM_macro_f1_base_vs_ckpt_delta_per_cv_seed": {
+        "step2000": [
+          -0.024,
+          -0.025,
+          -0.005
+        ],
+        "step4000": [
+          -0.033,
+          -0.014,
+          -0.017
+        ],
+        "final6000": [
+          -0.032,
+          0.003,
+          -0.025
+        ]
+      },
+      "HAM_mel_recall_delta_per_cv_seed": {
+        "step2000": [
+          0.012,
+          0.030,
+          0.018
+        ],
+        "step4000": [
+          -0.006,
+          0.041,
+          0.018
+        ],
+        "final6000": [
+          -0.006,
+          0.012,
+          -0.012
+        ]
+      },
+      "HAM_mel_to_nv_delta_per_cv_seed": {
+        "step2000": [
+          -0.006,
+          -0.006,
+          -0.018
+        ],
+        "step4000": [
+          0.018,
+          -0.024,
+          0.006
+        ],
+        "final6000": [
+          0.030,
+          0.0,
+          0.018
+        ]
+      },
+      "PAD_macro_f1_delta_per_cv_seed": {
+        "step2000": [
+          -0.002,
+          -0.024,
+          -0.019
+        ],
+        "step4000": [
+          0.006,
+          -0.005,
+          -0.006
+        ],
+        "final6000": [
+          0.003,
+          0.005,
+          0.001
+        ]
+      },
+      "PAD_MEL_recall_delta_per_cv_seed": {
+        "step2000": [
+          0.0,
+          -0.111,
+          -0.037
+        ],
+        "step4000": [
+          0.0,
+          0.0,
+          0.037
+        ],
+        "final6000": [
+          -0.037,
+          0.037,
+          0.074
+        ]
+      },
+      "PAD_SCC_recall_delta_per_cv_seed": {
+        "step2000": [
+          -0.042,
+          0.053,
+          -0.011
+        ],
+        "step4000": [
+          0.0,
+          0.011,
+          0.042
+        ],
+        "final6000": [
+          -0.011,
+          0.063,
+          0.032
+        ]
+      },
+      "PAD_SCC_to_BCC_delta_per_cv_seed": {
+        "step2000": [
+          0.0,
+          0.0,
+          0.021
+        ],
+        "step4000": [
+          -0.032,
+          0.011,
+          -0.042
+        ],
+        "final6000": [
+          0.011,
+          0.0,
+          -0.053
+        ]
+      },
+      "absolute_means": {
+        "HAM_macro_f1": {
+          "base": 0.6328,
+          "step2000": 0.6147,
+          "step4000": 0.6116,
+          "final6000": 0.6148
+        },
+        "HAM_mel_recall": {
+          "base": 0.5365,
+          "step2000": 0.5562,
+          "step4000": 0.5542,
+          "final6000": 0.5345
+        },
+        "HAM_mel_to_nv": {
+          "base": 0.2347,
+          "step2000": 0.2249,
+          "step4000": 0.2347,
+          "final6000": 0.2505
+        },
+        "PAD_macro_f1": {
+          "base": 0.6732,
+          "step2000": 0.658,
+          "step4000": 0.6715,
+          "final6000": 0.6763
+        },
+        "PAD_MEL_recall": {
+          "base": 0.7407,
+          "step2000": 0.6914,
+          "step4000": 0.7531,
+          "final6000": 0.7654
+        },
+        "PAD_SCC_recall": {
+          "base": 0.2982,
+          "step2000": 0.2982,
+          "step4000": 0.3158,
+          "final6000": 0.3263
+        },
+        "PAD_SCC_to_BCC": {
+          "base": 0.4947,
+          "step2000": 0.5018,
+          "step4000": 0.4737,
+          "final6000": 0.4807
+        }
+      }
+    },
+    "reading": "HAM (inductive, valid): macro-F1 is below baseline at all checkpoints; mel endpoints move within noise. PAD (transductive-clean for this arm): final checkpoint shows a small mean MEL (+0.025) and SCC (+0.028) recall gain, but signs flip across CV seeds and it is one training seed, so it does not meet the consistency rule. Checkpoints show no collapse with more steps (HAM macro-F1 flat 2000->6000). Non-monotone PAD curve at 2000 suggests readout noise is of the same size as the effect."
+  },
+  "cluster_arm_s42_loss": "curves/loss-curves.json: mean SSL loss steps 1-500 0.511, steps 5001-6000 0.142, final 0.151 (cluster-balanced); ablation 0.542 / 0.144 / 0.133. Training-loss only; no val loss exists.",
+  "hierarchical_sampler": {
+    "status": "PREPARED_NOT_LAUNCHED",
+    "files": "moco_v10_hier_assign_20261109.py, moco_v10_hier_sampler_20261109.py, moco_v10_hier_selfcheck_20261109.py",
+    "assignments": "clusters/assignments-hier-k50x5-s42.json (K1=50, K2=5, 250 leaves)",
+    "nmi_coarse_vs_role": 0.0497,
+    "nmi_leaf_vs_role": 0.0384,
+    "selfcheck": "PASS coarse shares 0.333/0.335/0.332; sub share 0.501",
+    "caveat": "NMI vs role only; device/site metadata not checked"
+  },
+  "intervention": {
+    "description": "Label-free cluster-balanced sampling of the SSL pool. Only the batch sampler changed; V4 quota4 composition (12 source_fit + 4 pad_adapt), loss, optimizer, EMA, transforms, batch 16, 6000 steps kept.",
+    "clustering": "MiniBatchKMeans k=64, seed 42, on L2-normalised frozen public DINOv2 ViT-B/14 CLS at 224. Labels never read.",
+    "sampler": "Each slot picks a cluster uniformly within its role pool, then a row uniformly inside it; rows distinct within a batch.",
+    "pool_stats": {
+      "source_fit": {
+        "clusters": 64,
+        "min_size": 188,
+        "max_size": 1295
+      },
+      "pad_adapt": {
+        "clusters": 29,
+        "min_size": 1,
+        "max_size": 499,
+        "clusters_le_3_rows": 16
+      }
+    },
+    "repetition_tradeoff": {
+      "pad_singleton_draws_over_6000_steps": 828,
+      "pad_uniform_v4_draws_per_image": 21.2,
+      "source_min_cluster_draws_per_image": 6.0,
+      "source_uniform_v4_draws_per_image": 2.14
+    }
+  },
+  "files": {
+    "sampler": "scripts/arms/moco_v10_cluster_sampler_20261109.py",
+    "runtime_wrapper": "scripts/arms/moco_v10_cluster_runtime_20261109.py",
+    "selfcheck": "scripts/arms/moco_v10_cluster_selfcheck_20261109.py",
+    "cluster_assign": "scripts/moco_v10_cluster_assign_20261109.py",
+    "feature_extract": "scripts/extract_cluster_balanced_20261109.py",
+    "endpoints": "scripts/endpoints_cluster_20261109.py",
+    "root": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-cluster-balanced-20261109",
+    "assignments": "results/moco-v10-cluster-balanced-20261109/clusters/assignments-k64-s42.json (sha256 044fb70ce122c66e1c410e63dee140b6b4a8378fa525119b15b1f3150c5c2523)",
+    "checkpoint_sha256": "7778c1d88f3ef211d9a98eb985c499f1e8fb0f0a0087a7125d4ee0476c3408ec"
+  },
+  "commands": {
+    "selfcheck": "cd scripts/arms && OMP_NUM_THREADS=3 /home/jovyan/work/proyectonp/.venv/bin/python -s moco_v10_cluster_selfcheck_20261109.py",
+    "assign": "CUDA_VISIBLE_DEVICES=0 nohup /home/jovyan/work/proyectonp/.venv/bin/python -s scripts/moco_v10_cluster_assign_20261109.py",
+    "train_final": "cd scripts/arms && CUDA_VISIBLE_DEVICES=0 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 CLUSTER_ASSIGN_JSON=<root>/clusters/assignments-k64-s42.json python -s moco_v10_cluster_runtime_20261109.py <root>/config-cluster-balanced-s42.json",
+    "extract": "CUDA_VISIBLE_DEVICES=0 python -s scripts/extract_cluster_balanced_20261109.py --size {224|448} --weights-sha 7778c1d88f3ef211d9a98eb985c499f1e8fb0f0a0087a7125d4ee0476c3408ec",
+    "readout": "OMP/OPENBLAS/MKL_NUM_THREADS=3 python -s scripts/evaluate_overlay_readout.py --kind {HAM|PAD} --features <root>/variants/s42-r{224 cls4|448 cls4_d4}/{ham_dev|pad_adapt}-{mode}.npz --manifest results/content-exclusion-overlay-v1/{role}.jsonl --receipt ... (same metadata/sha args as run_readouts.sh)",
+    "endpoints": "python -s scripts/endpoints_cluster_20261109.py name=readout.json ..."
+  },
+  "pids_and_runtimes": {
+    "assign_pid": 2184557,
+    "assign_note": "Embedding 34754 images at ~16 img/s under host load ~70; receipt write crashed after assignments and features were saved (ops.PUBLIC is a Path). Receipt rebuilt by a repair step; inertia not recorded. Features and assignments validated: 34754 rows, all assigned, 64 clusters.",
+    "train_attempt_A": {
+      "pid": 2190088,
+      "outcome": "stopped by me at step ~60 (~7 min); host contention with OMP default threads (~75 threads, 6 steps/min then ~23/min). Artifacts kept at train-s42-aborted-threads-default/ and train-s42-aborted-threads-default.log"
+    },
+    "train_attempt_B": {
+      "pid": 2190627,
+      "threads": "OMP_NUM_THREADS=4 MKL_NUM_THREADS=4",
+      "status": "COMPLETE",
+      "steps": 6000,
+      "wall_hours": 1.2236,
+      "max_memory_gib": 2.1636,
+      "backbone_sha256": "7778c1d88f3ef211d9a98eb985c499f1e8fb0f0a0087a7125d4ee0476c3408ec"
+    },
+    "quota4_reference": {
+      "wall_hours": 0.4490,
+      "max_memory_gib": 2.1636,
+      "source": "runs/moco-v4-quota4-s42-full-20261107/result.json"
+    },
+    "extract_224_seconds": 450.1,
+    "extract_448_seconds": 361.6,
+    "readouts": "8 readouts (HAM/PAD x 224 cls4 / 448 cls4_d4 cluster-balanced; 448 baselines reused). Launched via setsid; PIDs not recorded individually."
+  },
+  "endpoints_seed42_mean_over_cv_seeds": {
+    "224_cls4": {
+      "HAM": {
+        "macro_f1": {
+          "base": 0.6328,
+          "cb": 0.5960,
+          "delta_per_cv": [
+            -0.041,
+            -0.048,
+            -0.022
+          ]
+        },
+        "mel_recall": {
+          "base": 0.5365,
+          "cb": 0.5128,
+          "delta_per_cv": [
+            -0.030,
+            -0.012,
+            -0.030
+          ]
+        },
+        "mel_to_nv": {
+          "base": 0.2347,
+          "cb": 0.2584,
+          "delta_per_cv": [
+            0.041,
+            0.000,
+            0.030
+          ]
+        }
+      },
+      "PAD": {
+        "macro_f1": {
+          "base": 0.6732,
+          "cb": 0.6648,
+          "delta_per_cv": [
+            -0.005,
+            -0.005,
+            -0.015
+          ]
+        },
+        "MEL_recall": {
+          "base": 0.7407,
+          "cb": 0.6790,
+          "delta_per_cv": [
+            -0.074,
+            -0.037,
+            -0.074
+          ]
+        },
+        "SCC_recall": {
+          "base": 0.2982,
+          "cb": 0.3088,
+          "delta_per_cv": [
+            0.000,
+            0.042,
+            -0.011
+          ]
+        },
+        "SCC_to_BCC": {
+          "base": 0.4947,
+          "cb": 0.4807,
+          "delta_per_cv": [
+            -0.011,
+            -0.032,
+            0.000
+          ]
+        }
+      }
+    },
+    "448_cls4_d4": {
+      "HAM": {
+        "macro_f1": {
+          "base": 0.6136,
+          "cb": 0.6128,
+          "delta_per_cv": [
+            0.008,
+            -0.006,
+            -0.004
+          ]
+        },
+        "mel_recall": {
+          "base": 0.5661,
+          "cb": 0.5286,
+          "delta_per_cv": [
+            0.012,
+            -0.059,
+            -0.065
+          ]
+        },
+        "mel_to_nv": {
+          "base": 0.1913,
+          "cb": 0.2071,
+          "delta_per_cv": [
+            -0.012,
+            0.024,
+            0.036
+          ]
+        }
+      },
+      "PAD": {
+        "macro_f1": {
+          "base": 0.6762,
+          "cb": 0.6692,
+          "delta_per_cv": [
+            -0.006,
+            -0.007,
+            -0.008
+          ]
+        },
+        "MEL_recall": {
+          "base": 0.7284,
+          "cb": 0.7037,
+          "delta_per_cv": [
+            0.000,
+            -0.074,
+            0.000
+          ]
+        },
+        "SCC_recall": {
+          "base": 0.3193,
+          "cb": 0.3333,
+          "delta_per_cv": [
+            0.000,
+            0.042,
+            0.000
+          ]
+        },
+        "SCC_to_BCC": {
+          "base": 0.4596,
+          "cb": 0.4491,
+          "delta_per_cv": [
+            0.011,
+            -0.032,
+            -0.011
+          ]
+        }
+      }
+    }
+  },
+  "baseline_sources": {
+    "224": "results/moco-v10-teacher-cls4-20261108/readouts/student-s42-{HAM,PAD}.json",
+    "448_d4": "results/moco-v10-variants-20261109/readouts/s42-r448-cls4_d4-{HAM,PAD}.json"
+  },
+  "skills_invoked": [],
+  "skills_note": "No Skill tool was invoked. TDD RED->GREEN was applied manually: selfcheck failed on missing module, then passed after implementation; one fixture bias (10-row cluster) was found and fixed by making the fixture realistic.",
+  "caveats": [
+    "Single seed (42). CV seeds are not independent training replicates.",
+    "Cluster-uniform sampling also cluster-uniform on pad_adapt, which over-repeats singleton pad images (~39x vs V4). Confounds the PAD endpoints. Ablation (source-only cluster balance) not run.",
+    "Training wall time was inflated by host contention (load ~70 on 48 cores) and one restart. Thread count changed only on the CPU side; GPU numerics path identical. Quota4 used default threads on a quieter host, so wall time is not a like-for-like comparison.",
+    "The brief's 3-seed baseline means differ from the fresh s42 baselines used here (e.g. HAM 224 macro-F1 0.621 vs 0.633). Comparisons use the fresh s42 files as the brief prescribes."
+  ]
+}

@@ -1,0 +1,368 @@
+{
+  "meta": {
+    "question": "Which 2023-2026 label-free SSL advances (DINOv3, continued/domain-adaptive SSL such as ExPLoRA, JEPA-style latent prediction, SSL data curation such as Vo 2024, dense/patch objectives, high-resolution SSL, medical SSL foundation models) can be turned into concrete label-free experiments for our MoCo-v3-style continued pretraining of DINOv2 ViT-B/14 (blocks 8-11 trainable, 6000 steps, batch 16, dermoscopy + smartphone images)?",
+    "date_of_search": "2026-11-09",
+    "scope": "Bounded scoping review for an engineering decision. Not a systematic review; no reproducible protocol.",
+    "sources_used": "paper-search MCP: openalex (main), pubmed (0 results for derm SSL query), arxiv read tool for full-text extraction. arXiv search backend not used for discovery (returned 0 in the imbalance reviewer's session). Semantic Scholar not used. Sci-Hub never used (use_scihub=false; download_scihub not called).",
+    "searches_used": 9,
+    "searches_budget": 14,
+    "full_text_extractions": 4,
+    "experiments_run": 0,
+    "skills_invoked": [
+      "literature-review",
+      "academic-researcher"
+    ],
+    "skills_not_invoked": [
+      "scientific-critical-thinking (not loaded in this session)"
+    ],
+    "extraction_caveat": "read_arxiv_paper returned 93k-232k character outputs saved to tool-results files. Numbers were extracted with targeted rg passages on those files, NOT by a complete sequential read. Tables cited are the ones whose cells were visible in the extraction. Treat as verified-by-extraction, not full-read. Column-to-metric mapping for Vo 2024 Table 3-4 was inferred from the header row and should be re-checked against the PDF before quoting in the thesis."
+  },
+  "search_log": [
+    {
+      "id": "S1",
+      "source": "openalex",
+      "query": "automatic data curation for self-supervised learning clustering-based hierarchical k-means",
+      "filter": "publication_year:2023-2026",
+      "n_results": 8,
+      "notes": "Vo et al. 2024 (arXiv 2405.15613, DOI 10.48550/arxiv.2405.15613) found. Venue not given by OpenAlex; cite as arXiv preprint unless verified otherwise."
+    },
+    {
+      "id": "S2",
+      "source": "openalex",
+      "query": "ExPLoRA parameter-efficient extended pre-training self-supervised foundation model domain adaptation",
+      "filter": "publication_year:2023-2026",
+      "n_results": 8,
+      "notes": "ExPLoRA (arXiv 2406.10973) found. Also GLARE continual SSL with UniAdapter (2509.17816, abstract only), BiSSLight (2609.33424, ViT-H, LoRA + bilevel; not used)."
+    },
+    {
+      "id": "S3",
+      "source": "openalex",
+      "query": "DINOv3 self-supervised vision foundation model Gram anchoring",
+      "filter": "publication_year:2025-2026",
+      "n_results": 8,
+      "notes": "Primary DINOv3 paper not returned by OpenAlex in this query; full text retrieved by ID 2508.10104 via read tool. Several 2026 downstream DINOv3 papers returned (INSID3, DinoDental, FetalUS, MedDINOv3 2509.02379)."
+    },
+    {
+      "id": "S4",
+      "source": "pubmed",
+      "query": "self-supervised foundation model dermoscopy skin lesion pretraining DINOv2 melanoma",
+      "filter": "none",
+      "n_results": 0,
+      "notes": "Empty. Not a tool failure claim; the query was too narrow for PubMed."
+    },
+    {
+      "id": "S5",
+      "source": "openalex",
+      "query": "DINOv3 Siméoni Gram anchoring dense features high resolution",
+      "filter": "publication_year:2025-2026",
+      "n_results": 6,
+      "notes": "Mostly downstream applications of DINOv3 (GramLoop 2608.29113, INSID3, FSSDINO 2602.07550). No new label-free pretraining recipe beyond DINOv3 itself."
+    },
+    {
+      "id": "S6",
+      "source": "openalex",
+      "query": "dermatology foundation model self-supervised pretraining dermoscopic images PanDerm Derm Foundation",
+      "filter": "publication_year:2023-2026",
+      "n_results": 8,
+      "notes": "PanDerm (Nature Medicine 2025, DOI 10.1038/s41591-025-03747-y) found: SSL on 2M images. DermFM-Zero, UniDerm, DermoGPT found but are image-text or MLLM, not pure label-free image SSL."
+    },
+    {
+      "id": "S7",
+      "source": "openalex",
+      "query": "continued self-supervised pretraining DINOv2 skin lesion dermoscopy domain adaptation unlabeled",
+      "filter": "publication_year:2023-2026",
+      "n_results": 8,
+      "notes": "No derm paper found that does continued DINO/MoCo pretraining with minority-class recall endpoints. AME-Derm (2026-10-31) is supervised MoE + VLM verification, excluded from Track A."
+    },
+    {
+      "id": "S8",
+      "source": "openalex",
+      "query": "I-JEPA joint-embedding predictive architecture self-supervised latent prediction images video",
+      "filter": "publication_year:2023-2026",
+      "n_results": 6,
+      "notes": "V-JEPA 2 (video), MC-JEPA, US-JEPA (2602.19322, ultrasound, static teacher SALT, abstract only). No medical dermatology JEPA result."
+    },
+    {
+      "id": "S9",
+      "source": "openalex",
+      "query": "hierarchical k-means balanced curated pretraining dataset medical imaging self-supervised",
+      "filter": "publication_year:2024-2026",
+      "n_results": 6,
+      "notes": "Espis et al. 2025 (Sci Rep, DOI 10.1038/s41598-025-99000-0): SSL vs SL on small imbalanced medical sets, SL usually wins at small n (abstract only). No medical application of Vo 2024 curation found."
+    },
+    {
+      "id": "PhA",
+      "source": "read_arxiv_paper",
+      "query": "2405.15613 (Vo 2024 full text)",
+      "notes": "Extracted via rg passages: hierarchical vs flat sampling, k-means++ vs random init, ViT-L ablations."
+    },
+    {
+      "id": "PhB",
+      "source": "read_arxiv_paper",
+      "query": "2406.10973 (ExPLoRA full text)",
+      "notes": "Extracted via rg passages: method, Table 1-2 fMoW linear probing, unfreeze 1-2 blocks, LoRA on others."
+    },
+    {
+      "id": "R3",
+      "source": "read_arxiv_paper",
+      "query": "2508.10104 (DINOv3 full text)",
+      "notes": "Extracted via rg passages: Gram anchoring objective and ablation table, high-resolution post-training, distilled ViT-S/B/L."
+    },
+    {
+      "id": "R4",
+      "source": "read_arxiv_paper",
+      "query": "2509.02379 (MedDINOv3 full text)",
+      "notes": "Extracted via rg passages: Table 1 AMOS22 ablation, Table 3 multi-stage ablation, Gram anchoring described as optional in their setting."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "identifier": "arXiv:2405.15613 (Vo et al. 2024, Meta; DOI 10.48550/arxiv.2405.15613)",
+      "title": "Automatic Data Curation for Self-Supervised Learning: A Clustering-Based Approach",
+      "label_free": true,
+      "design": "Successive hierarchical k-means on a large unlabeled pool, then hierarchical balanced sampling across cluster levels (sampling method r = resampling-based; flat = single-level). Curated set used to pretrain DINOv2-reg ViT-L.",
+      "dataset": "Pool of ~743M images; curated sets ~100M images. Also satellite and text domains in the abstract. No dermatology.",
+      "baseline": "Uncurated raw pool; flat sampling; random k-means init; manually curated ImageNet-1k and ImageNet-22k.",
+      "result": "Full text, PARTIAL extraction. Table 3b (ViT-L, kNN ImageNet / ImageNet-val / in-A / sketch / iNat18 / iNat21 / Oxford-H retrieval): hierarchical '4r' 79.6 / 84.7 / 66.4 / 60.5 / 75.7 / 82.3 / 32.1 vs flat '4r-flat' 78.9 / 84.4 / 64.6 / 59.2 / 74.6 / 81.5 / 18.3. Table 3c: k-means++ init 79.6 kNN vs random init 74.0 kNN (same other settings). Table 3a: raw pool kNN 73.6 vs 4r 79.6. Table 4 (vs base feature extractor): base kNN 81.3, in-A 38.8, sketch 34.7, iNat18 64.1, iNat21 71.6, Oxford-H 14.9 vs 4r kNN 79.6, in-A 66.4, sketch 60.5, iNat18 75.7, iNat21 82.3, Oxford-H 32.1.",
+      "which_class": "Not per-class. Long-tailed proxy = iNaturalist 2018/2021 (fine-grained, long-tailed), not medical.",
+      "fulltext_or_abstract": "Full text, PARTIAL extraction (tables 3-4 and sampling section 3.3 passages). Seed count not verified in extraction.",
+      "limitation": "Scale: 743M-image pool and 100M curated set; our pool is ~2.7k images (HAM dev 1528 + PAD adapt 1134). Hierarchical k-means at our size yields few clusters and noisy partitions. Curated set underperforms base on ImageNet kNN (-1.7 pp). Gains on long-tail/retrieval are on natural images. Single-run ablation tables as far as extracted.",
+      "relevance_to_us": "Directly targets our cluster sampler: our PhA (inverse cluster-size weighting) is the flat, alpha-weighted variant. Vo's hierarchical balanced sampling (uniform over clusters at each level, then uniform within) is a different, more principled sampler, and the flat-vs-hierarchical ablation (+0.7 kNN, +1.1 iNat18, +13.8 retrieval) is the closest evidence we have for it. Not measured in our brief."
+    },
+    {
+      "id": "E2",
+      "identifier": "arXiv:2406.10973 (ExPLoRA; Khanna et al., Stanford)",
+      "title": "ExPLoRA: Parameter-Efficient Extended Pre-Training to Adapt Vision Transformers under Domain Shifts",
+      "label_free": true,
+      "design": "Initialize ViT from DINOv2 or MAE weights; continue the SSL objective on the new domain; unfreeze 1-2 ViT blocks (plus norms) and train all other layers with LoRA (rank r, on Q and V). Then supervised fine-tune with LoRA or linear probe.",
+      "dataset": "Satellite imagery (fMoW-RGB and WILDS datasets). No dermatology.",
+      "baseline": "DINOv2 ViT-L linear probe; domain-specific SSL FMs (SatMAE, ScaleMAE, etc.).",
+      "result": "Full text, PARTIAL extraction. Table 2 linear probing fMoW-RGB: DinoV2 ViT-L 67.60 -> ExPLoRA D-[L]-r64 76.86 (+9.3 pp). The dagger rows (DinoV2 69.00 -> D-[L]-r64 77.48) are not defined in the extracted text. Text claims +8.2 pp linear probing on fMoW (inconsistent with the table difference; resolve against the PDF). Compute claim: ~100 GPU h vs 960+ h for full pretraining (author-reported).",
+      "which_class": "Not per-class.",
+      "fulltext_or_abstract": "Full text, PARTIAL extraction (abstract, intro, Table 1-2, ablation pointer). Ablation Table 3 not read.",
+      "limitation": "Satellite domain shift is far larger than dermoscopy vs natural photos. Method reads as ~1-2 unfrozen blocks plus LoRA on frozen blocks; our setup already unfreezes blocks 8-11 with full weights, which is a close relative. The brief's freeze arm and L2-SP arm are negative, so an ExPLoRA variant is probably redundant with those results.",
+      "relevance_to_us": "Our current arm is already ExPLoRA-like (unfrozen top blocks). The only new element is LoRA in frozen blocks 0-7 (extra adaptation capacity at low cost). Expected effect low; see experiment X3."
+    },
+    {
+      "id": "E3",
+      "identifier": "arXiv:2508.10104 (DINOv3; Meta, 2025)",
+      "title": "DINOv3",
+      "label_free": true,
+      "design": "Scales DINOv2-style SSL to a 7B ViT. Adds Gram anchoring: a regularizer that matches patch-level cosine-similarity structure (Gram matrix) to an earlier, cleaner teacher, to stop dense-feature degradation during long training. Then high-resolution post-training stage and distillation to ViT-S/B/L and ConvNeXt variants.",
+      "dataset": "Large web-scale image corpus (Meta, ~1.7B images per the DinoDental citation of DINOv3). Downstream: ADE20K, NYU depth, ImageNet, ObjectNet, DAVIS.",
+      "baseline": "DINOv2 and the DINOv3 model before Gram anchoring (ablation table).",
+      "result": "Full text, PARTIAL extraction. Gram ablation (Fig. 9b table): Baseline linear ImageNet 88.2 / ADE mIoU 50.3 / NYU RMSE 0.307; GRAM 200k x1: 88.0 / 53.6 / 0.285; GRAM 200k x2: 88.0 / 55.7 / 0.281. So Gram anchoring trades about 0.2 pp global linear accuracy for +3.3 to +5.4 mIoU and lower depth RMSE. High-resolution adaptation: linear, OOD, segmentation and DAVIS improve after resolution scaling (Fig. 11).",
+      "which_class": "Not applicable.",
+      "fulltext_or_abstract": "Full text, PARTIAL extraction (Sec. 4 passages, Fig. 9b table, Sec. 5 headings). Full training recipe not read.",
+      "limitation": "Gram anchoring is designed for 7B-scale long schedules on web data. Its benefit for a 6000-step, 2.7k-image continued run is untested. The regularizer pulls toward the teacher, which is the same mechanism as the negative L2-SP arm.",
+      "relevance_to_us": "The only label-free method in this set that directly targets dense-feature quality under continued training. Our brief has patch-level (cls4patch) readouts but no Gram-type regularizer. Expected effect on CLS4 readout is small (DINOv3 saw -0.2 pp linear); benefit would show mainly on patch-level endpoints. See X2."
+    },
+    {
+      "id": "E4",
+      "identifier": "arXiv:2509.02379 (MedDINOv3; Li et al.)",
+      "title": "MedDINOv3: How to adapt vision foundation models for medical image segmentation?",
+      "label_free": true,
+      "design": "Adapts DINOv3 to CT segmentation: multi-scale token aggregation from intermediate blocks, then domain-adaptive pretraining on CT-3M (3.87M axial CT slices) in three stages: DINOv2-style self-distillation, Gram anchoring, high-resolution (896) stage.",
+      "dataset": "CT-3M (16 CT datasets). Evaluation: AMOS22, BTCV, KiTS23, LiTS. Segmentation with nnU-Net framework.",
+      "baseline": "Random-init ViT; DINOv3-init ViT; nnU-Net; other medical FMs.",
+      "result": "Full text, PARTIAL extraction. Table 1 (AMOS22 DSC): random init 78.39 -> DINOv3 init 81.35 -> + multi-scale features 83.45 -> + 896 resolution 85.51. Ablation Table 3 (multi-stage pretraining): stage 1 (DINOv2-style) improves DSC by about 1.07 pts; the paper states Gram anchoring is optional in their setting.",
+      "which_class": "Not applicable (organ/tumor segmentation).",
+      "fulltext_or_abstract": "Full text, PARTIAL extraction (Table 1, Sec. 4.3 passages).",
+      "limitation": "Segmentation, not classification with frozen readouts. CT, not dermoscopy. Single fold on some tasks (stated).",
+      "relevance_to_us": "Strongest direct precedent for continued DINO-style SSL on a medical domain with a frozen-to-trainable ladder. It supports the high-res stage (which our 448 arm already partly tests) and makes Gram anchoring look optional, which lowers the priority of X2."
+    },
+    {
+      "id": "E5",
+      "identifier": "arXiv:2602.19322 (US-JEPA; Radhachandran et al.)",
+      "title": "US-JEPA: A Joint Embedding Predictive Architecture for Ultrasound",
+      "label_free": true,
+      "design": "Masked latent prediction with a frozen, domain-specific static teacher (SALT objective) instead of an EMA teacher, to stabilize latent targets.",
+      "dataset": "UltraBench (public ultrasound benchmark, multiple organs).",
+      "baseline": "Ultrasound FMs and universal VFMs under linear probing.",
+      "result": "Abstract only. Claims competitive or superior linear-probe performance vs domain-specific and universal baselines.",
+      "which_class": "Not per-class in abstract.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Abstract only, no numbers in hand. Needs a new predictor and masked-latent loss; not a drop-in change to our MoCo key encoder.",
+      "relevance_to_us": "Relevant only as a variant of teacher design. Our brief lists EMA-teacher CLS4 as negative, but a frozen static teacher is a different choice. Low priority (X5)."
+    },
+    {
+      "id": "E6",
+      "identifier": "arXiv:2509.17816 (GLARE; Ebouky et al.)",
+      "title": "Enhancing Semantic Segmentation with Continual Self-Supervised Pre-training",
+      "label_free": true,
+      "design": "Continual SSL pretraining of ViTs initialized from existing SSL weights; only UniAdapter modules are updated; GLARE adds patch-level augmentation consistency and regional consistency.",
+      "dataset": "Low-data target domains, segmentation benchmarks.",
+      "baseline": "Frozen SSL backbone; adapter-only fine-tuning.",
+      "result": "Abstract only. Claims consistent segmentation gains with minimal parameter overhead.",
+      "which_class": "Not applicable.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Segmentation; abstract only; adapter-based, close to the LoRA variant (X3).",
+      "relevance_to_us": "Corroborates that continued SSL under low data is an active direction. Not used beyond that."
+    },
+    {
+      "id": "E7",
+      "identifier": "DOI 10.1038/s41591-025-03747-y (PanDerm; Nature Medicine 2025)",
+      "title": "A multimodal vision foundation model for clinical dermatology",
+      "label_free": true,
+      "design": "Self-supervised pretraining on ~2M real-world skin images from 11 institutions, 4 imaging modalities.",
+      "dataset": "Private clinical dermatology cohorts plus public benchmarks.",
+      "baseline": "Existing derm and general FMs.",
+      "result": "Abstract only. Claims SOTA on 28 benchmarks, outperforming others with 10% labels.",
+      "which_class": "Melanoma detection via longitudinal analysis (abstract), not per-class recall tables.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Private pretraining cohort, not reproducible for us. Scale is 2M images vs our ~2.7k.",
+      "relevance_to_us": "Reference point for the medical-FM SSL class; not a method we can copy. Marked as medical SSL foundation model, not used for numbers."
+    },
+    {
+      "id": "E8",
+      "identifier": "DOI 10.1038/s41598-025-99000-0 (Espis et al. 2025, Sci Rep)",
+      "title": "Comparative analysis of supervised and self-supervised learning with small and imbalanced medical imaging datasets",
+      "label_free": true,
+      "design": "Compares SSL vs supervised learning on small, imbalanced medical sets (train sizes ~771 to 33k images), several label fractions and class frequencies, repeated seeds.",
+      "dataset": "Brain MRI, chest X-ray, OCT retina.",
+      "baseline": "Supervised learning on the same labeled subsets.",
+      "result": "Abstract only. In most small-training-set experiments SL outperformed the selected SSL paradigms, even with limited labels.",
+      "which_class": "Not per-class in abstract.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Abstract only. Not dermatology. Pretraining protocol differs from our continued-MoCo setup.",
+      "relevance_to_us": "Risk flag, not an experiment: on ~2.7k images, SSL may not beat a supervised comparator on the same data. Our Track B comparison already covers the supervised gap; this supports keeping that comparison in the report."
+    },
+    {
+      "id": "E9",
+      "identifier": "arXiv:2504.06962 (dynamic dataset pruning for SSL in Earth observation; Nereus-SAR)",
+      "title": "Efficient Self-Supervised Learning for Earth Observation via Dynamic Dataset Curation",
+      "label_free": true,
+      "design": "Iterative dataset pruning during SSL to maximize diversity and balance without a pre-existing feature extractor.",
+      "dataset": "Sentinel-1 WV SAR archive (10 years).",
+      "baseline": "Full-dataset SSL.",
+      "result": "Abstract only. Claims better compute efficiency and feature quality.",
+      "which_class": "Not applicable.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Pruning assumes a large redundant pool. Our pool is small and pruning would remove scarce minority samples.",
+      "relevance_to_us": "Rejected for our pool size. Recorded so it is not re-proposed."
+    },
+    {
+      "id": "E10",
+      "identifier": "DOI 10.1007/s00521-026-12210-z (Neural Computing and Applications 2026; no arXiv ID verified)",
+      "title": "Challenging DINOv3 foundation model under low inter-class variability: a case study on fetal brain ultrasound",
+      "label_free": true,
+      "design": "DINOv3 self-supervised pretraining on 188k fetal ultrasound images vs initialization from natural-image DINOv3 weights; linear probe and full fine-tuning.",
+      "dataset": "FetalUS-188K (multicenter).",
+      "baseline": "Natural-image DINOv3 init.",
+      "result": "Abstract only. Domain-pretrained vs natural init: weighted F1 0.73 vs 0.52 for ViT-B/16 (up to +21 points). Natural init collapses on one class (F1 at most 16%).",
+      "which_class": "Yes, low-margin fetal brain planes (TT, TV, TC); class-level collapse reported for TV.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Large domain-specific corpus (188k) vs ours (2.7k). Ultrasound, not dermoscopy.",
+      "relevance_to_us": "Supports the value of continued domain SSL when classes are visually close. Also shows the failure mode we care about (one class collapsing under natural-image init). Used as motivation, not as a number for our setup."
+    }
+  ],
+  "experiments_ranked": [
+    {
+      "rank": 1,
+      "id": "X1",
+      "name": "Vo 2024 hierarchical balanced sampler (replaces our flat cluster sampler)",
+      "label_free": true,
+      "exact_change": "Replace the PhA flat inverse-cluster-size sampler with two-level hierarchical sampling. Every 5 epochs: encode the pool with the current query encoder (CLS4, pre-projection, L2), PCA to 128 dims, L2-normalize. Level 1: k-means++ (n_init=3, fixed seed) with K1 about 50 (average top cluster size about 53 at N=2662). Level 2: inside each top cluster run k-means with K2 about 5 (average leaf size about 10). Sample a top cluster uniformly, then a leaf uniformly, then an image uniformly. The MoCo queue, key encoder and loss are unchanged. Use k-means++ init, not random (Vo Table 3c). Log leaf-size histogram and the fraction in the largest top cluster.",
+      "why": "Vo 2024 shows hierarchical sampling beats flat sampling on the same pool (ViT-L, kNN 79.6 vs 78.9; iNat18 75.7 vs 74.6; Oxford-H retrieval 32.1 vs 18.3) and that k-means++ matters (79.6 vs 74.0 kNN). Our PhA uses flat alpha weighting. Uniform-over-clusters at each level is a different balance rule and has direct evidence, unlike PhA.",
+      "arms": "A: uniform (already measured, baseline). B: PhA alpha=0.5 (cluster-size weighting, from imbalance research). C: X1 hierarchical-uniform. Seeds 42/43/44, 224 px, 1 view. Compare every arm against a baseline refit in the same environment. Endpoints per the brief: HAM mel recall and mel->NV; PAD MEL recall, SCC recall, SCC->BCC; per-class precision and recall; seed-wise deltas.",
+      "expected_effect": "Small to moderate. Subjective probability about 30% of a seed-consistent melanoma-recall gain with macro-F1 non-decreasing; about 60% chance of no change beyond seed noise. Large SCC gain (>3 pp) unlikely.",
+      "cost": "CPU k-means on about 2.7k x 128 for two levels, seconds. One forward pass over the pool every 5 epochs (GPU0, under 1 min estimated, to verify). No extra training FLOPs. Compute is negligible versus training.",
+      "risk": "(1) Top-level clusters may encode acquisition (ISIC vs PAD device, rulers, vignetting). Run the brief's offline NMI check against acquisition metadata first; discard the arm if NMI is high. (2) At N=2.7k, k-means partitions are unstable: require ARI >= 0.5 between two seeds, as in PhA. (3) Oversampling small leaves amplifies noise. (4) Overlaps with PhA (same family): run as a replacement for PhA arm B, not stacked on it, to avoid a double count.",
+      "evidence_strength": "Moderate for the mechanism (E1 full text, partial extraction, large pool). Low for transfer to dermoscopy at 2.7k images."
+    },
+    {
+      "rank": 2,
+      "id": "X4",
+      "name": "Backbone fork: continue DINOv3 ViT-B (distilled) instead of DINOv2 ViT-B/14",
+      "label_free": true,
+      "exact_change": "Same MoCo continued-pretraining recipe, but initialized from the public distilled DINOv3 ViT-B weights (full text confirms ViT-S/B/L distilled variants exist). Patch size, embedding dim, input resolution and token count will likely change vs ViT-B/14; verify before any run. Requires a new baseline of the frozen-readout pipeline.",
+      "why": "DINOv3 reports better dense features and robustness than DINOv2 (E3); DinoDental and FetalUS show DINOv3 is competitive on medical image tasks (abstract-level evidence). Starting point matters more than the SSL hyperparameters the brief has already exhausted.",
+      "arms": "A: DINOv2 ViT-B/14 continued (current, measured). B: DINOv3 ViT-B continued with the same trainable-block ladder. Frozen-readout protocol unchanged. Seeds 42/43/44 for encoder; same-environment baseline refit for both.",
+      "expected_effect": "Uncertain. Subjective about 35% chance of macro-F1 change greater than 0.5 pp in either direction; direction unknown a priori.",
+      "cost": "Full new SSL run per seed (6000 steps each) on GPU0, plus new variant features and readouts. Highest cost of the list (several GPU hours per seed, to verify on the cluster). Needs a new baseline set.",
+      "risk": "Breaks comparability with every historical arm in the brief. Architecture or patch-size change may invalidate the blocks 8-11 trainable ladder. This is a real fork (backbone choice). Present to project owner with the trade-off: keep DINOv2 for comparability, or spend compute to test DINOv3 as a new base.",
+      "evidence_strength": "Moderate for DINOv3 vs DINOv2 dense features (E3, full text partial). Low for dermoscopy outcomes (no direct derm evidence in this set)."
+    },
+    {
+      "rank": 3,
+      "id": "X2",
+      "name": "Gram-anchoring patch regularizer against the frozen initial DINOv2 teacher",
+      "label_free": true,
+      "exact_change": "Add a term L_gram = lambda * || G_student - G_teacher ||_F^2 / N^2 on L2-normalized patch tokens (G = patch-cosine Gram matrix). Teacher = frozen initial DINOv2 ViT-B/14 (no labels). Start lambda in {0.05, 0.1}, chosen by a fixed rule on the SSL loss curve, not on held-out tasks. Apply at 224 px only (high-res Gram is a separate arm).",
+      "why": "DINOv3 shows Gram anchoring keeps dense features clean during long training (E3: ADE mIoU 50.3 -> 53.6 with linear accuracy -0.2 pp). Our brief has patch-level readouts but no regularizer targeting patch structure. MedDINOv3 (E4) found Gram anchoring optional, so the gain is uncertain.",
+      "arms": "A: current (baseline). B: + L_gram lambda 0.05. C: + L_gram lambda 0.1. Seeds 42/43/44. Endpoints as in brief; add the cls4patch readout as a secondary endpoint.",
+      "expected_effect": "Small on CLS4 readout (about 25% chance of a macro-F1 gain above 0.5 pp). Possible gain on patch-level readouts (about 40%). Mechanism is close to the negative L2-SP arm, so expect a trade-off, not a clear win.",
+      "cost": "One extra frozen teacher forward per step (no backward through teacher). Roughly +25-35% per-step time (estimate; to measure). No new data.",
+      "risk": "Pulling toward the initial DINOv2 may replicate the negative L2-SP and freeze arms, reducing domain adaptation. Watch the mel->NV and SCC->BCC endpoints for a loss of adaptation.",
+      "evidence_strength": "Moderate for mechanism (E3, DINOv3 full text partial). Low for our task (E4 says optional)."
+    },
+    {
+      "rank": 4,
+      "id": "X3",
+      "name": "ExPLoRA-style LoRA on the frozen blocks 0-7 (extra adaptation capacity)",
+      "label_free": true,
+      "exact_change": "Keep blocks 8-11 fully trainable as now. Add LoRA (rank r=8, on Q and V) to blocks 0-7 with base weights frozen; train LoRA and LayerNorm in all blocks. Same MoCo loss, queue, schedule and 6000 steps.",
+      "why": "ExPLoRA (E2) continues SSL with LoRA on frozen blocks and unfrozen top blocks; reports strong linear-probe gains on a far larger domain shift (satellite). Our setup is close but has no LoRA on lower blocks.",
+      "arms": "A: current (baseline). B: + LoRA r=8 on blocks 0-7. Seeds 42/43/44. Endpoints as in brief.",
+      "expected_effect": "Low. About 15% chance of a macro-F1 gain above 0.5 pp. Likely near the freeze and L2-SP arms, which are already negative.",
+      "cost": "Low. Small added parameter count, similar compute to baseline. Needs a LoRA module in the encoder.",
+      "risk": "High redundancy with tested negatives (freeze, L2-SP). Adds a hyperparameter (rank, alpha). Low expected information value; run only if X1 and X2 are flat.",
+      "evidence_strength": "Moderate for the mechanism in satellite (E2, partial extraction). Low for dermoscopy."
+    },
+    {
+      "rank": 5,
+      "id": "X5",
+      "name": "Static frozen-teacher masked-latent prediction (SALT-style) as an extra loss",
+      "label_free": true,
+      "exact_change": "Add a masked-patch latent prediction head: a student predictor regresses the frozen initial DINOv2 patch features at masked positions. Teacher is static (not EMA). Loss weight small, added to the MoCo loss.",
+      "why": "US-JEPA (E5) reports that a static teacher gives stable latent targets and competitive linear-probe results on ultrasound. It differs from the EMA teacher listed as negative in the brief.",
+      "arms": "A: current. B: + masked latent loss with static teacher. Seeds 42/43/44.",
+      "expected_effect": "Low to uncertain. About 15% chance of a macro-F1 gain above 0.5 pp. Abstract-only evidence.",
+      "cost": "Medium to high. New predictor and masking code; extra forward through the teacher; extra hyperparameters (mask ratio, loss weight).",
+      "risk": "Abstract-only evidence. Implementation risk high for the time budget. Possible conflict with the MoCo contrastive loss.",
+      "evidence_strength": "Low (E5, abstract only)."
+    }
+  ],
+  "rejected_or_deferred": [
+    {
+      "id": "D1",
+      "item": "Dynamic dataset pruning (E9)",
+      "reason": "Designed for large redundant pools. Pruning removes scarce minority samples in our 2.7k pool."
+    },
+    {
+      "id": "D2",
+      "item": "Temperature schedule (Kukleva 2023, from imbalance research E4)",
+      "reason": "Overlaps the brief's negative temperature arm. Not re-proposed."
+    },
+    {
+      "id": "D3",
+      "item": "Hierarchical clustering as hard negatives (Divide and Contrast, 2105.08054)",
+      "reason": "Abstract-only evidence; the brief's sampler audit already shows low same-component collision rate. Could be revisited after X1 if X1 shows any signal."
+    },
+    {
+      "id": "D4",
+      "item": "JEPA video models (V-JEPA 2, MC-JEPA)",
+      "reason": "Video or motion targets, not static dermoscopy."
+    },
+    {
+      "id": "D5",
+      "item": "Vision-language derm FMs (DermFM-Zero, UniDerm, DermoGPT)",
+      "reason": "Use paired text or are MLLMs; not label-free image SSL. Excluded from Track A."
+    },
+    {
+      "id": "D6",
+      "item": "AME-Derm (2026-10-31, rare-class VLM verification)",
+      "reason": "Supervised MoE with a VLM stage. Track B at most; not label-free."
+    }
+  ],
+  "gaps": [
+    "No dermatology or dermoscopy paper found that tests continued DINO/MoCo SSL with minority-class recall endpoints.",
+    "No paper found applying Vo 2024 hierarchical curation to medical or small (<10k) pools.",
+    "DINOv3 ViT-B patch size and training details for the distilled variant were not verified in the extracted text.",
+    "Vo 2024 and ExPLoRA tables were read by targeted extraction; column mapping and the ExPLoRA +8.2 vs +9.3 pp discrepancy need the PDF.",
+    "arXiv search backend did not return discovery results in this session; arXiv items were found via OpenAlex and read by ID.",
+    "Abstract-only items: US-JEPA, GLARE, PanDerm, Espis 2025, dynamic pruning EO, FetalUS, DnC. Numbers attributed to them are abstract-level."
+  ],
+  "status": "PARTIAL but usable. 9 of 14 searches used (OpenAlex x8, PubMed x1). 4 arXiv full-text reads by targeted extraction (Vo 2024, ExPLoRA, DINOv3, MedDINOv3), not sequential full reads. 0 experiments run. Five label-free experiments X1-X5 ranked; X1 (Vo hierarchical sampler) is the only one with direct full-text ablation evidence for the sampler mechanism."
+}

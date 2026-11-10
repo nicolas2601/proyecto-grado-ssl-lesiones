@@ -1,0 +1,192 @@
+{
+  "meta": {
+    "date": "2026-11-10",
+    "scope": "Búsqueda acotada, no revisión sistemática. Sin entrenamiento. Solo fuentes gratuitas. use_scihub=false.",
+    "tools_used": [
+      "mcp__paper-search: search_arxiv (siempre devolvió vacío en esta sesión), search_pubmed, search_papers, search_openalex (salida > límite; leída con jq), search_pmc, read_arxiv_paper (texto completo)",
+      "mcp__hf-mcp-server: hub_repo_search, hf_fs (cat)",
+      "gh search repos / gh api (README y licencias)"
+    ],
+    "skills_invoked": [],
+    "skills_note": "Ninguna skill se invocó con la herramienta Skill en esta ronda; el método siguió el brief (scoping, abstract vs full text marcado a mano).",
+    "tooling_issues": [
+      "search_arxiv devolvió [] para todas las consultas (incluidas consultas que sí tienen resultados conocidos); se usó search_papers y búsquedas por DOI/README como alternativa.",
+      "gh search code devolvió [] para todas las consultas; gh search repos sí funcionó.",
+      "google/derm-foundation: HF_FS_ACCESS_DENIED (repo gated, sin acceso para este token). No se pudo leer su model card ni licencia detallada.",
+      "read_pubmed_paper no lee texto completo; PanDerm se leyó desde arXiv 2410.15038 (preprint), no desde la versión Nature Medicine. Las cifras del paper publicado pueden diferir del preprint."
+    ]
+  },
+  "search_log": [
+    {
+      "q": "dinov2 dermatology / skin lesion self-supervised / derm foundation (HF models+datasets)",
+      "result": "Solo google/derm-foundation (gated) y un derivado tflite; ningún DINOv2 adaptado a piel."
+    },
+    {
+      "q": "dinov2 medical (HF models)",
+      "result": "Vacío."
+    },
+    {
+      "q": "dinov2 (HF, sort downloads, top 30)",
+      "result": "Solo checkpoints genéricos facebook/timm DINOv2 (Apache-2.0) y StanfordAIMI/dinov2-base-xray-224 (radiografía). Ninguno derm."
+    },
+    {
+      "q": "gh search repos: dermatology self-supervised; dinov2 skin lesion; dermoscopy moco contrastive; melanoma contrastive; skin lesion moco; hair removal dermoscopy",
+      "result": "Mayormente vacío. Hits útiles: SiyuanYan1/PanDerm, SiyuanYan1/DermFM-Zero, Linwei-Chen/UniDerm-demo, nickshawn/Shades_of_Gray-color_constancy_transformation."
+    },
+    {
+      "q": "search_pubmed/search_papers/search_pmc: PanDerm, SCC vs BCC dermoscopy, color constancy/hair removal, DINO lesion localization",
+      "result": "Mayoría fuera de tema. Hits: PMID 42252869 (Kommoss 2026), PMID 41111767 (Pattnaik 2025), DOI 10.1016/j.bspc.2023.105769 (USL-Net, unsupervised lesion segmentation, solo título/metadatos)."
+    },
+    {
+      "q": "read_arxiv_paper: 2601.12382 (DERM12345 benchmark), 2304.07193 (DINOv2), 2410.15038 (PanDerm)",
+      "result": "Texto completo leído y buscado por términos (rg) en los tres."
+    },
+    {
+      "q": "read_arxiv_paper: 2602.10624 (DermFM-Zero)",
+      "result": "No leído en texto completo; solo README del repo y abstract vía búsqueda."
+    }
+  ],
+  "findings_ranked": [
+    {
+      "rank": 1,
+      "name": "Augmentación mínima (RRC + flip, sin jitter de color) en el preentrenamiento de PanDerm: contraste directo con el jitter fuerte de SimCLR/MoCo",
+      "what_it_is": "PanDerm usa en preentrenamiento solo random resized crop y horizontal flip, con 50% de masking y 224 px. Los papers de SSL en piel que comparamos (Chaves 2021, Azizi 2021) usan jitter de color fuerte como parte de su receta.",
+      "evidence": [
+        {
+          "tipo": "FULL TEXT (arXiv 2410.15038, sección Methods, pretraining)",
+          "dato": "'We apply simple data augmentation such as random resized cropping and horizontal flipping during pretraining.' 500 épocas, lr 1.5e-3, batch efectivo 1920."
+        },
+        {
+          "tipo": "FULL TEXT (arXiv 2106.09229, Chaves 2021, previamente leído)",
+          "dato": "SimCLR con colour jitter, flips, random resized crop, grayscale; sin ablación de jitter."
+        },
+        {
+          "tipo": "FULL TEXT (arXiv 2101.05224, Azizi 2021, previamente leído)",
+          "dato": "Colour distortion fuerte (strength 1.0) en SimCLR; el texto dice que el set de aumentos es 'critical', sin ablación por componente."
+        }
+      ],
+      "url": "https://arxiv.org/abs/2410.15038 ; https://github.com/SiyuanYan1/PanDerm",
+      "how_to_apply": "Ablación de color en el pipeline MoCo DINOv2 ViT-B/14 (ya en el plan de Fase A como E4, pero con esta referencia directa): arm 1 = jitter de color reducido (brillo/saturación sin hue), arm 2 = sin jitter de color, con RRC+flip como PanDerm. Seed 42 exploratorio, regla predeclarada antes de 43/44, checkpoints 2000/4000/6000. Antes: verificar en la config real qué augmentaciones usa nuestro pipeline (no leí esa config en esta ronda).",
+      "cost": "Bajo: 2 a 3 corridas de encoder en GPU0 + readouts.",
+      "risk": "ALTO de confusión con el objetivo: PanDerm no es MoCo ni DINOv2 (es masked latent alignment con teacher CLIP), así que su receta no transfiere limpia. El color de la lesión (variegación de pigmento) es señal diagnóstica; quitar jitter puede aumentar el shortcut de dispositivo/color (CAMEO, ya en literature.json). Esto último es INFERENCIA, no probado en ningún paper leído.",
+      "evidence_level": "FULL TEXT (receta de PanDerm); cero evidencia de ablación de color en derm SSL encontrada."
+    },
+    {
+      "rank": 2,
+      "name": "Auditoría de solapamiento con deduplicación SSCD (como hace DermFM-Zero)",
+      "what_it_is": "El repo DermFM-Zero publica un pipeline de deduplicación: embeddings de copia SSCD, umbral coseno ≥ 0.75 para marcar near-duplicates entre el corpus de preentrenamiento y cada set de evaluación, con estadísticas por dataset.",
+      "evidence": [
+        {
+          "tipo": "README del repo SiyuanYan1/DermFM-Zero (leído vía gh api)",
+          "dato": "data_deduplication/ cuantifica near-duplicate overlap con SSCD, umbral 0.75; 'results/' y 'results_released/' contienen las estadísticas. Pesos bajo CC BY-NC 4.0 (uso académico no comercial)."
+        },
+        {
+          "tipo": "FULL TEXT DINOv2 (arXiv 2304.07193, Apéndice A.3)",
+          "dato": "LVD-142M se deduplicó contra los train/test de los datasets de evaluación, pero la lista de evaluación del paper son benchmarks de imagen natural. No vi que ISIC/HAM/PAD estén en esa lista (la Tabla 15 completa no se extrajo)."
+        },
+        {
+          "tipo": "FULL TEXT PanDerm (arXiv 2410.15038, Discussion)",
+          "dato": "Los autores afirman que SwAVDerm, entrenado con imágenes web de piel, incluyó imágenes de ISIC y DermNet, 'increasing the risk of data leakage'. Afirmación de los autores, no verificada por mí."
+        }
+      ],
+      "url": "https://github.com/SiyuanYan1/DermFM-Zero (carpeta data_deduplication/)",
+      "how_to_apply": "Antes de cualquier claim de SSL, correr el mismo test SSCD entre (a) nuestro pool de preentrenamiento mixed-fit.jsonl (34,754 filas) y (b) ham_holdout / pad_test. El receipt actual solo tiene pHash ≤ 4 y lo declara explícitamente insuficiente ('may miss transformed duplicates'). Esto cierra el hueco de la auditoría de contenido sin abrir los manifiestos sellados si se corre con IDs/embeddings que el coordinator autorice.",
+      "cost": "Bajo-medio: embeddings SSCD de ~35k imágenes (CPU/GPU corto) + comparación. No requiere entrenar.",
+      "risk": "SSCD está entrenado para copy-detection de imagen natural; puede dar falsos negativos en near-duplicates dermatológicos. Umbral 0.75 es el de ellos, no calibrado en nuestro dominio. Hay que validar el umbral con pares conocidos.",
+      "evidence_level": "Repo + README leídos; método sin paper propio leído."
+    },
+    {
+      "rank": 3,
+      "name": "Color constancy (Shades-of-Gray) y hair removal como preprocesamiento label-free",
+      "what_it_is": "Shades-of-Gray normaliza el color del iluminante con una norma de Minkowski. Hair removal estilo DullRazor o Canny+inpainting elimina vello. Ambos son label-free y permitidos por el brief.",
+      "evidence": [
+        {
+          "tipo": "ABSTRACT ONLY (PMID 41111767, Pattnaik et al., Cureus 2025, DOI 10.7759/cureus.92432)",
+          "dato": "Pipeline con color-constancy correction, hair removal y tight cropping sobre 8,000 imágenes ISIC (4 clases). Modelos ML (RF/GBDT) con accuracy 89% y F1 0.88. No hay ablación por paso en el abstract. Es clasificación con features clásicos, no SSL."
+        },
+        {
+          "tipo": "ABSTRACT ONLY (DOI 10.17485/ijst/v19i20.314, Divya 2026, reportado en E-X8 de Fase A)",
+          "dato": "DullRazor (Canny) + Gray World: 6.8% de reducción de error en ISIC. Sin verificar. No usar el número."
+        },
+        {
+          "tipo": "Repo GitHub nickshawn/Shades_of_Gray-color_constancy_transformation",
+          "dato": "Código de preprocesamiento de lesiones de piel con Shades-of-Gray. Licencia no declarada. Úsalo solo como referencia; reimplementar la norma es trivial (~20 líneas) y evita depender de un repo sin licencia."
+        },
+        {
+          "tipo": "ABSTRACT ONLY (Jutte et al. 2024, 10.1117/1.jbo.29.11.116003)",
+          "dato": "Benchmark sintético de vello + CNN de remoción que preserva detalle de lesión. Sin métrica de clasificación en el abstract."
+        }
+      ],
+      "how_to_apply": "Test barato sobre el pipeline existente, sin tocar el encoder: (a) Shades-of-Gray en las dos cohortes dev antes de la inferencia del encoder (cambia input, no preentrenamiento), readout balanced LR igual; (b) remoción de vello como arm separado. Reportar mel->nv y SCC->BCC además de macro-F1. Evaluar sobre dev, nunca holdout.",
+      "cost": "Bajo: CPU para preprocesar ~2,700 imágenes dev; 1 readout por arm.",
+      "risk": "Normalizar color destruye señal diagnóstica si la diferencia de color entre nevus y melanoma se debe al iluminante (no a pigmento). Shades-of-Gray asume iluminante uniforme; las fotos clínicas de PAD (celular) pueden violar eso. Ninguna evidencia encontrada sobre este efecto en melanoma-vs-nevus. Riesgo de multiplicidad: es un arm más sobre ~16 SSL arms ya en dev.",
+      "evidence_level": "Abstracts + código. Ningún full text leído. Evidencia de beneficio débil."
+    },
+    {
+      "rank": 4,
+      "name": "PanDerm_base (ViT-B/16) como arm de referencia, no como encoder",
+      "what_it_is": "Foundation model dermatológico preentrenado con masked latent alignment (teacher CLIP) sobre 2.15M imágenes (dermoscopía 384k, clínica 460k, TBP 758k, dermatopatología 537k). Repo oficial publicó PanDerm_base (ViT-B) el 2025-04-29 y un enlace HF para DermLIP_PanDerm base.",
+      "evidence": [
+        {
+          "tipo": "FULL TEXT (arXiv 2410.15038)",
+          "dato": "Pretrain desde ImageNet-1K ViT-L/24 (1024 dim), 500 épocas. Comparación contra DINOv2 con el mismo backbone ViT-L en linear probing: PanDerm supera a DINOv2 en su set (Fig. 1f y tablas extendidas). Los números por dataset no se extrajeron del texto completo."
+        },
+        {
+          "tipo": "README PanDerm (leído)",
+          "dato": "Pesos en Google Drive y HF (redlessone/DermLIP_PanDerm-base-w-PubMed-256). Repo sin licencia declarada. PanDerm_Base_LP usa panderm_bb_data6_checkpoint-499.pth."
+        },
+        {
+          "tipo": "FULL TEXT DERM12345 (arXiv 2601.12382, leído)",
+          "dato": "Ver finding 6: en embeddings congelados con adapters, PanDerm-Base queda por debajo de DINOv2-Base (64.12 vs 65.95 en la columna que el texto usa como leaderboard final; el header de la tabla no se decodificó)."
+        }
+      ],
+      "url": "https://github.com/SiyuanYan1/PanDerm ; https://huggingface.co/redlessone/DermLIP_PanDerm-base-w-PubMed-256",
+      "how_to_apply": "Solo como referencia: extraer features PanDerm_base sobre ham_dev y pad_adapt y correr el mismo readout balanced LR con grouped CV. Sirve para decir si un derm FM congelado supera a nuestro encoder DINOv2+MoCo en mel->nv y SCC->BCC. NO puede reemplazar al encoder: el brief exige que el encoder siga siendo DINOv2 (ViT-S/B/L/g). Track A no admite esto como encoder.",
+      "cost": "Medio: descarga ViT-B, extracción de features ~2,700 imágenes (GPU corta), readout.",
+      "risk": "Pesos de PanDerm (base) y dataset de preentrenamiento privado: no reproducible. Sin licencia clara en el repo. El 2M incluye datos in-house de Australia con 51% Fitzpatrick I: sesgo de población. No sabemos si HAM10000 o PAD-UFES están en su corpus de preentrenamiento (el paper los usa como downstream; el solapamiento no se verificó).",
+      "evidence_level": "FULL TEXT del preprint + README del repo."
+    },
+    {
+      "rank": 5,
+      "name": "Evidencia de frozen features derm (DERM12345) y DINOv2 como baseline fuerte",
+      "what_it_is": "Benchmark jerárquico de embeddings congelados + adapters (KNN, LR, SVM, RF, MLP, XGBoost) en DERM12345 (dermoscopia, 40 subclases, Türkiye, split por paciente).",
+      "evidence": [
+        {
+          "tipo": "FULL TEXT (arXiv 2601.12382, leído)",
+          "dato": "Leaderboard del texto (nivel más fino, 40 subclases, según la frase del texto): MedSigLip 69.79, Derm Foundation 69.50, MONET 69.31, DINOv2-Giant 68.00, DINOv2-Base 65.95, PanDerm-Base 64.12, PanDerm-Large 36.65 (colapso). Autores: 'simple linear probing is insufficient'."
+        },
+        {
+          "tipo": "FULL TEXT DERM12345",
+          "dato": "Split 9,860 train / 2,485 test por paciente. Limitación de los autores: solo dermoscopia, solo Türkiye."
+        }
+      ],
+      "url": "https://arxiv.org/abs/2601.12382 (ya en literature.json; no es evidencia nueva de método)",
+      "how_to_apply": "Argumento para la tesis, no un arm: con embeddings congelados, DINOv2 genérico queda a ~3 pp de los FM derm especializados, así que el encoder DINOv2 es defendible. Lo que no soporta: que un FM derm supere a DINOv2+MoCo en nuestros endpoints (no hay per-class en el paper).",
+      "cost": "Cero (lectura).",
+      "risk": "Las columnas de la tabla no se decodificaron; las cifras son del texto. Adapters no lineales: no es comparable con nuestro readout balanced LR.",
+      "evidence_level": "FULL TEXT."
+    }
+  ],
+  "answers_to_brief_questions": {
+    "1_foundation_models_SSL_derm": {
+      "PanDerm": "Objetivo: masked latent alignment + visible latent alignment con teacher CLIP (no contrastivo, no DINO, no MoCo). Augment: RRC + flip, 224 px. Melanoma vs nevus y SCC vs BCC: no encontré cifras por clase en el texto leído; el paper reporta resultados por tarea en tablas extendidas que no extraje completas. Marcar: NO VERIFICADO por clase.",
+      "DermFM-Zero": "arXiv 2602.10624: MIM + bootstrapped contrastive image-texto (1M pares). Usa texto = diagnósticos implícitos: Track B, no Track A. Arquitectura no DINOv2. Pesos CC BY-NC 4.0 (gated auto). No leí texto completo.",
+      "Derm Foundation (Google)": "Bloqueado: gated en HF, sin acceso para el token de esta sesión. Sin evidencia verificada.",
+      "MONET": "Repo suinleelab/MONET, licencia 'other', contrastivo imagen-texto (CLIP-like). Track B. Sin lectura de texto completo.",
+      "SkinGPT, DermSynth": "No buscados en profundidad en esta ronda; sin evidencia encontrada en las búsquedas.",
+      "SSL en ISIC (SimCLR/BYOL/DINO/MoCo)": "Chaves 2021 (full text, Fase A): MoCo-v2 el peor de 5 SSL en ISIC-19 validación (93.9 vs 94.8 supervisado AUC). Sirotkin 2021 (Fase A): MoCo-v2 72.7% single-source en ISIC-19 8 clases. Ninguno reporta por clase."
+    },
+    "2_checkpoints_DINOv2_derm": "No existe en HF un checkpoint DINOv2 adaptado a piel/médico en las búsquedas hechas (query 'dinov2 dermatology', 'dinov2 medical', top 30 por descargas). Los únicos médicos son StanfordAIMI/dinov2-base-xray-224 (radiografía, licencia Apache-2.0 declarada en tags). Recomendación: quedarse con facebook/dinov2 (ViT-B/14, Apache-2.0 en tags). Riesgo de fuga: LVD-142M no excluye explícitamente derm; ver finding 2. Fuente de licencia: tags HF.",
+    "3_preprocesamiento_label_free": "Shades-of-Gray y hair removal: ver finding 3. Recorte no supervisado: no encontré método derm con DINOv2 attention maps; sí USL-Net (unsupervised skin lesion segmentation, bspc 2023, DOI 10.1016/j.bspc.2023.105769) y SAAL (EMBC 2022, repo jacobzhaoziyuan/SAAL). Solo metadatos/abstract; no leídos. Corrección de dominio clínico vs dermoscopia: no encontré método label-free publicado que lo evalúe.",
+    "4_augmentations": "Dañinas o dudosas: jitter de color fuerte (finding 1; PanDerm no lo usa). Útiles documentadas: RRC y flip (PanDerm, Azizi). Sin paper leído que ablate hue o saturación en melanoma vs nevus. Pregunta abierta, marcada como INFERENCIA.",
+    "5_tricks_SCC_BCC_melanoma_nevus": "No encontré trucos documentados con números para SCC vs BCC ni para melanoma vs nevus en SSL. Único dato relacionado: Kommoss 2026 (PMID 42252869, abstract only): CNN multiclase vs 96 dermatólogos; sensibilidad de dermatólogos 69.4% solo dermatoscopia, 76.0% con información clínica completa. Esto apunta a que el contexto clínico ayuda, pero es Track B."
+  },
+  "gaps": [
+    "Ningún paper leído reporta SSL en dermatología con endpoints por clase (SCC, BCC, mel, nv) con full text.",
+    "No hay checkpoint DINOv2 adaptado a derm en HF accesible sin token.",
+    "Derm Foundation bloqueado (gated). No se pudo evaluar su licencia ni su set de entrenamiento.",
+    "search_arxiv devolvió vacío en esta sesión: posible cobertura incompleta de arXiv para las consultas de derm. No se puede afirmar ausencia en arXiv.",
+    "PanDerm: leído el preprint; la versión Nature Medicine no se leyó. Cifras por clase pendientes."
+  ],
+  "multiplicity_note": "Todas las propuestas son arms nuevos sobre el dev ya muy explorado (~16 SSL arms, ~32 readouts). Cualquier hallazgo de este informe debe declararse en el multiplicity log como Fase B y predeclararse antes de correr seeds 43/44."
+}

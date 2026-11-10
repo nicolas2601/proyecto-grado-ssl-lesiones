@@ -1,0 +1,243 @@
+{
+  "label_regime": "SUPERVISED (Track B). Not SSL. Diagnosis labels used in training/fusion.",
+  "cluster_root": "/home/jovyan/work/clf1_clinical_reference_20261024",
+  "gpu": "GPU1 only (CUDA_VISIBLE_DEVICES=1). GPU1 shared with another user's V10_C1M job (PID 2177508); nothing of others was touched.",
+  "skills_invoked": [],
+  "skills_note": "scientific-critical-thinking and strict-tdd were not invoked. The change was a single new script that reuses ft_pilot.py; verified by running it end to end and by in-code asserts (inner/outer overlap, identity leak, fold layout), not by a RED/GREEN cycle.",
+  "protocol": {
+    "dev_only": true,
+    "sealed_not_opened": [
+      "ham_holdout",
+      "pad_test",
+      "target_test"
+    ],
+    "outer_folds": 5,
+    "inner_folds": 3,
+    "cv_seed_run": 20261025,
+    "cv_seeds_not_run": [
+      20261026,
+      20261027
+    ],
+    "encoder_seeds": [
+      42,
+      43,
+      44
+    ],
+    "selection": "Nested: per outer fold, epochs {3,6,10} x lr_blocks {5e-6,1e-5,3e-5} chosen by mean inner macro-F1 on outer-train rows only; refit on full outer-train; predict outer test.",
+    "reuse_note": "Seeds 43/44 reuse the per-fold configs chosen by the seed-42 nested run (selection never saw outer test rows of that fold; encoder seed 43/44 features were not used for selection).",
+    "architecture": "ft_pilot.py: blocks 8-11 + norm trainable, CLS4 head, batch 32, lr_head 1e-3, wd 0.05, class-weighted CE, bf16 autocast."
+  },
+  "supervised_finetune": {
+    "script": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-supervised-ft-nested-20261109/scripts/ft_select.py",
+    "outputs": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-supervised-ft-nested-20261109/nested-s{42,43,44}-cv20261025-{HAM,PAD}.json",
+    "per_encoder_seed_macro_f1": {
+      "HAM_nested": {
+        "42": 0.6523,
+        "43": 0.6206,
+        "44": 0.6359,
+        "mean": 0.6363
+      },
+      "HAM_probe_224_same_folds": {
+        "42": 0.6549,
+        "43": 0.6234,
+        "44": 0.6311,
+        "mean": 0.6365
+      },
+      "HAM_delta_nested_minus_probe": {
+        "42": -0.0026,
+        "43": -0.0028,
+        "44": 0.0048,
+        "mean": -0.0002
+      },
+      "PAD_nested": {
+        "42": 0.6852,
+        "43": 0.6896,
+        "44": 0.6873,
+        "mean": 0.6874
+      },
+      "PAD_probe_224_same_folds": {
+        "42": 0.6793,
+        "43": 0.6709,
+        "44": 0.6633,
+        "mean": 0.6712
+      },
+      "PAD_delta_nested_minus_probe": {
+        "42": 0.0059,
+        "43": 0.0187,
+        "44": 0.0240,
+        "mean": 0.0162
+      }
+    },
+    "pilot_fixed_10_epochs_seed42": {
+      "HAM": 0.6393,
+      "PAD": 0.6771
+    },
+    "selected_configs_per_outer_fold_seed42": {
+      "HAM": [
+        [
+          10,
+          0.00003
+        ],
+        [
+          6,
+          0.00003
+        ],
+        [
+          10,
+          0.000005
+        ],
+        [
+          10,
+          0.00003
+        ],
+        [
+          10,
+          0.00003
+        ]
+      ],
+      "PAD": [
+        [
+          10,
+          0.00003
+        ],
+        [
+          10,
+          0.00003
+        ],
+        [
+          6,
+          0.00001
+        ],
+        [
+          10,
+          0.00003
+        ],
+        [
+          6,
+          0.00003
+        ]
+      ],
+      "note": "Most folds sit on the grid edge (10 epochs, lr 3e-5): the optimum may lie outside the grid."
+    },
+    "endpoints_mean_over_encoder_seeds_vs_probe_seed_matched": {
+      "HAM_mel_recall": {
+        "nested": 0.598,
+        "probe": 0.531,
+        "delta_pp": 6.7
+      },
+      "HAM_mel_to_nv": {
+        "nested": 0.219,
+        "probe": 0.247,
+        "delta_pp": -2.8
+      },
+      "PAD_MEL_recall": {
+        "nested": 0.568,
+        "probe": 0.729,
+        "delta_pp": -16.1
+      },
+      "PAD_SCC_recall": {
+        "nested": 0.239,
+        "probe": 0.305,
+        "delta_pp": -6.6
+      },
+      "PAD_SCC_to_BCC": {
+        "nested": 0.428,
+        "probe": 0.516,
+        "delta_pp": -8.8
+      }
+    },
+    "budget": {
+      "gpu_process_seconds": {
+        "PAD_nested_s42": 5518,
+        "HAM_nested_s42": 6390,
+        "PAD_reuse_s43": 215,
+        "PAD_reuse_s44": 213,
+        "HAM_reuse_s43": 257,
+        "HAM_reuse_s44": 258
+      },
+      "gpu_process_hours_total": 3.57,
+      "gpu1_wall_hours_approx": 2.0,
+      "pids": {
+        "HAM_nested_s42": 2184292,
+        "PAD_nested_s42": 2184293,
+        "reuse_and_finals_pids": "not captured"
+      },
+      "note": "Within ~3 GPU-h if counted as GPU1 wall time (two concurrent processes); about 3.6 if counted per process. Slowdown came from cluster CPU contention (load average ~77 on 48 cores) since augmentation is CPU-bound."
+    }
+  },
+  "metadata_fusion_448d4_PAD": {
+    "features": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-variants-20261109/s{42,43,44}-r448/pad_adapt-cls4_d4.npz",
+    "script": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-variants-20261109/scripts/metadata_readout.py",
+    "flags": "--strict-unknown; --extended not used; fused meta_weight 0.1; arms image vs fused; full = 1134 rows, phase-complete = 723 rows",
+    "outputs_dir": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-trackb-fusion-448d4-20261109/",
+    "full_1134": {
+      "image_macro_f1_mean": 0.6784,
+      "fused_macro_f1_mean": 0.7372,
+      "delta": 0.0588,
+      "per_seed_image": {
+        "42": 0.6795,
+        "43": 0.6717,
+        "44": 0.6841
+      },
+      "per_seed_fused": {
+        "42": 0.7381,
+        "43": 0.7304,
+        "44": 0.7432
+      },
+      "SCC_recall_image_to_fused": [
+        0.342,
+        0.440
+      ],
+      "SCC_to_BCC_image_to_fused": [
+        0.451,
+        0.387
+      ],
+      "MEL_recall_image_to_fused": [
+        0.737,
+        0.770
+      ]
+    },
+    "phase_complete_723": {
+      "image_macro_f1_mean": 0.5637,
+      "fused_macro_f1_mean": 0.6564,
+      "delta": 0.0927,
+      "per_seed_image": {
+        "42": 0.5579,
+        "43": 0.5608,
+        "44": 0.5724
+      },
+      "per_seed_fused": {
+        "42": 0.6520,
+        "43": 0.6533,
+        "44": 0.6640
+      },
+      "SCC_recall_image_to_fused": [
+        0.320,
+        0.382
+      ],
+      "SCC_to_BCC_image_to_fused": [
+        0.437,
+        0.409
+      ],
+      "MEL_recall_image_to_fused": [
+        0.753,
+        0.823
+      ]
+    },
+    "budget": "3 CPU lanes (one per encoder seed), 4 runs each, 3 BLAS threads per process; all 12 finished. PIDs not captured."
+  },
+  "metadata_fusion_HAM_existing_optional": {
+    "source": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-variants-20261109/meta/strict-HAM-*.json (already computed, not re-run)",
+    "meta_only_macro_f1_mean": 0.1624,
+    "image_224_strict_mean": 0.6214,
+    "fused_w0.1_224_strict_mean": 0.5914,
+    "delta": -0.0300,
+    "reading": "Fusion hurts HAM; mel recall unchanged (~0.54 image vs ~0.54 fused, seed 42)."
+  },
+  "caveats": [
+    "CV seeds 20261026/20261027 not run: the nested selection costs ~1.5-1.8 h per kind on this cluster.",
+    "Track B results are supervised. They must be reported as gap vs Track A, not as SSL.",
+    "Per-fold configs at the grid edge (10 epochs, 3e-5): the grid may be too narrow.",
+    "PAD SCC and MEL recall fall under fine-tuning even though macro-F1 rises; the macro gain does not mean the clinical endpoints improved."
+  ]
+}

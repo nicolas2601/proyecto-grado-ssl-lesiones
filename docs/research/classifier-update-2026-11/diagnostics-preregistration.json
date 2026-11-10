@@ -1,0 +1,34 @@
+{
+  "status": "IN_PROGRESS",
+  "preregistration_v2": {
+    "timestamp_utc": "2026-11-10T15:27:17Z",
+    "supersedes": "v1 timestamp 2026-11-10T15:25:40Z (which included seed 42 in the rule; rejected by statistical review)",
+    "order_of_events": "v2 written after extraction for seeds 43/44 had started (T1 v10 s43 at 15:26:50Z) and BEFORE any 43/44 readout was run or viewed",
+    "scope": "dev cohorts only (ham_dev, pad_adapt); encoders V10 (moco-v4-quota4) and queue4096; 448+D4; CLS4; CV seeds 20261025/26/27",
+    "confirmatory_seeds": [
+      43,
+      44
+    ],
+    "exploratory_seed": 42,
+    "treatments": {
+      "T1_dullrazor_HAM_only": "post-hoc hypothesis generated from seed-42 results; DullRazor on HAM only, PAD unchanged (modality justification)",
+      "T2_crop_both": "post-hoc hypothesis generated from seed-42 results; aspect-preserving short-side resize + centre crop on HAM and PAD",
+      "T3_dullrazor_crop_HAM_only": "post-hoc hypothesis generated from seed-42 results; DullRazor then crop on HAM only"
+    },
+    "negatives_declared": [
+      "SoG_p6_both (seed 42 only, negative)",
+      "geom_pad_both (seed 42 only, neutral)"
+    ],
+    "multiplicity": {
+      "confirmatory_tests": "3 treatments x 2 encoders = 6, each on seeds 43/44",
+      "exploratory_readouts_already_seen": "seed 42: SoG x2 encoders, DullRazor (both HAM and PAD) x2, crop x2, geom-pad x2 (both datasets)"
+    },
+    "success_rule_per_treatment_and_encoder": {
+      "HAM_macro_F1_delta": "> 0 on seed 43 AND seed 44",
+      "HAM_macro_F1_mean_delta_43_44": ">= +0.010",
+      "HAM_mel_to_NV_mean_delta_43_44": "<= +1.0 pp (tolerance ~1.6 images of mel n=169)"
+    },
+    "PAD": "reported as-is; T1 and T3 PAD unchanged by construction (baseline features copied)",
+    "paired_bootstrap": "reported separately by statistical review"
+  }
+}

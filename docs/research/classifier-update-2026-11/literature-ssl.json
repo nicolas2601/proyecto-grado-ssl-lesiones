@@ -1,0 +1,334 @@
+{
+  "meta": {
+    "date": "2026-11-10",
+    "question": "Label-free SSL methods NOT yet tested in our arms that could improve MEL-vs-NEV (HAM mel->NV) and SCC-vs-BCC (PAD SCC->BCC) on the frozen CLS4 + balanced-LR readout, keeping DINOv2 ViT-B/14 MoCo continued (blocks 8-11, batch 16, 6000 steps, T=0.2, EMA 0.99).",
+    "scope": "Bounded scoping review. Not systematic. No protocol. No experiments run, no training.",
+    "tools_used": {
+      "paper-search search_arxiv": "7 queries; returned hits only for FNC (2011.11765). Other queries returned [] (consistent with Phase A reports that arXiv discovery is unreliable here).",
+      "paper-search search_openalex": "12 queries (negatives, hard-negative mixing, long-tail contrastive, temperature, registers, derm UDA/TTA, patch-level SSL, DINOv2 continued pretraining).",
+      "paper-search read_arxiv_paper (full text, saved and grepped)": "3 papers: 2011.11765 (FNC, sections 3.2 and 4.1 read), 2010.01028 (MoCHi, method sec 4.1, ablations and default-config text read via grep; not a sequential full read), 2412.00702 (ADA skin, grep only).",
+      "hf-mcp-server hub_repo_search": "1 query: dinov2-with-registers checkpoints confirmed on the Hub (facebook/dinov2-with-registers-{small,base,large,giant}).",
+      "gh search repos / gh search code": "4 queries, all returned []. No code repository was verified for any method. Official URLs quoted from abstracts are NOT fetched or verified.",
+      "pool check (local)": "config/cluster-ssl.json and config-cluster-balanced-s42.json read via rg."
+    },
+    "skills_invoked": "none (no Skill tool call made in this session). Practices of literature-review applied manually: abstract vs full-text labelling, screening, evidence table.",
+    "verification_of_brief_claims": [
+      {
+        "claim": "SSL pool is ~2.7k images (HAM dev 1528 + PAD adapt 1134)",
+        "status": "CONTRADICTED by local configs. config-cluster-balanced-s42.json points to config/ssl-overlay-v1/mixed-fit.jsonl with manifest_roles [source_fit, pad_adapt]. cluster-ssl.json pool_stats: source_fit 33,620 images + pad_adapt 1,134 = 34,754 rows, embedded and assigned into 64 source clusters and 29 pad clusters. Per step the batch is 12 source_fit + 4 pad_adapt (V4 quota4). The ~2.7k figure is the dev-cohort size, not the SSL training pool.",
+        "consequence": "Affects frequency of false negatives in queue and batch (ISIC 2019/2020 contain multiple images per lesion, and lesion_id is absent in mixed-fit.jsonl per pool_and_leakage_check), and affects the feasibility of hierarchical k-means (X1 in ssl-recent) at 34.7k rows, which is closer to the regime Vo et al. studied than the 2.7k assumed. Needs correction in the other study reports before the thesis cites pool size."
+      },
+      {
+        "claim": "Queue4096 is the only arm with a signal",
+        "status": "CONSISTENT with brief and ssl-arms statistical reviewer: 448D4 queue4096 HAM +0.017 (CI lower bound +0.001 at s42; seeds 42/43/44 deltas +0.017/+0.020/+0.014 per coordinator's predeclared check; PAD ~0). Not a confirmed winner."
+      }
+    ]
+  },
+  "search_log_summary": [
+    "Hits used with full text: FNC (Huynh et al., 2011.11765) method and ablation text; MoCHi (Kalantidis et al., 2010.01028) method and config text.",
+    "Not retrieved despite search: Chuang et al. 2020 debiased contrastive loss (query returned only graph/recsys papers). Kukleva et al. 2023 temperature schedules (only MM-TS 2026 multimodal, by a co-author, surfaced). These are marked UNVERIFIED and not recommended.",
+    "GitHub code for every method: not verified (gh returned empty). Repository URLs below are copied from abstracts only."
+  ],
+  "methods_ranked": [
+    {
+      "rank": 1,
+      "id": "PhB-M1",
+      "name": "MoCHi hard-negative mixing on the 4096 queue (Kalantidis et al., NeurIPS 2020)",
+      "label_free": true,
+      "evidence_level": "FULL TEXT (method section 4.1 and ablation text read via grep; not a complete sequential read). Gains reported on ImageNet-100 (MoCo-v2) and ImageNet-1K linear eval; no medical or derm data.",
+      "mechanism": "For each query q with queue Q (K negatives), sort negatives by q.n (descending) and keep the top-N hardest. Synthesize s extra negatives h_k = normalize(a_k n_i + (1 - a_k) n_j), with i, j sampled from the top-N, a_k ~ U(0,1). Append exp(q.h_k / T) to the softmax denominator. Cost is s dot products per query.",
+      "exact_change": "In the MoCo InfoNCE denominator (T=0.2), keep the 4096-key queue (already implemented in queue4096 arm). Compute top-N = 1024 hardest negatives per query by q.n. Sample s synthetic negatives per query: s = 128 for arm B1 (MoCHi(N=1024, s=128, s'=0)); s = 256 for arm B2 (MoCHi(N=1024, s=256, s'=0)). Keep positive pair, EMA 0.99, 2 views, batch 16, 6000 steps unchanged. Do not mix query-side features unless s' is defined and checked (see verify list).",
+      "why_here": "Our only positive arm is queue4096 (HAM +0.017 at 448D4). MoCHi is the direct, cheap extension of that exact arm: it spends the same memory on harder negatives. The brief's hypothesis (mel vs nevus confusers are near-duplicates in embedding space) matches the mechanism: MoCHi pushes the query away from its closest negatives, which are the hardest confusers. Paper reports MoCHi with K=4k matches MoCo-v2 with K=16k (ImageNet-100 ablation).",
+      "hyperparameters": {
+        "N_hardest": 1024,
+        "s_synthetic_per_query": "128 (B1), 256 (B2)",
+        "alpha_mixing": "U(0,1) per synthetic point",
+        "queue_K": 4096,
+        "temperature_T": 0.2,
+        "s_prime": "0 for first arm; s' is the paper's query-side mixing count, definition to verify in paper sec 4.2 before coding"
+      },
+      "expected_effect": "~30% chance of a seed-consistent HAM mel->NV reduction (>=1 pp) with macro-F1 non-decreasing (subjective prior, not measured). Largest risk: hard negatives include same-class (false) negatives, which push same-diagnosis lesions apart. This is why PhB-M2 should be run first or in the same arm.",
+      "gpu_cost_vs_baseline": "~1.0x (s extra dot products per query; no extra forward passes). Not timed.",
+      "risk": "Pushes apart same-lesion/same-diagnosis near-duplicates present in ISIC 2019/2020 (no lesion_id). Overlap with FNC: the two must be ablated jointly or sequentially. Paper's sensitivity to N and s is reported on ImageNet-100 only.",
+      "code": "Official repo not verified. Paper states it builds on facebookresearch/moco (footnote 2, URL from paper text). Implement as a loss change in our existing queue path; unit-test the logits shape and the mix formula (RED first).",
+      "predeclared_success_rule_for_run": "Seed 42 exploratory vs same-environment queue4096+448D4 s42 baseline: PASS if HAM macro-F1 delta >= +0.005 AND HAM mel->NV delta <= -1.0 pp AND PAD macro-F1 delta >= -0.01. Seeds 43/44 confirm: PASS if HAM mel->NV delta <= 0 AND HAM macro-F1 delta >= 0 in both seeds. Checkpoints 2000, 4000, 6000 (mandatory). Multiplicity: report as a new arm in the log; no correction is applied to the gain claim beyond the rule."
+    },
+    {
+      "rank": 2,
+      "id": "PhB-M2",
+      "name": "False-negative elimination on the queue (Huynh et al., 2022; code URL in abstract: github.com/google-research/fnc, not verified)",
+      "label_free": true,
+      "evidence_level": "FULL TEXT (sections 3.2.1, 3.2.2 and 4.1 read via grep). Ablations on ImageNet SimCLR v2 setup (batch 4096, 100 epochs). Threshold sensitivity: elimination is 'not very sensitive to thresholds' (Fig 4 right, text). Support-set construction (sec 3.2.3) NOT read in detail.",
+      "mechanism": "For anchor i, a candidate negative k is a false negative if its similarity to a support set S exceeds a threshold t (aggregation: mean or max over S; screening: threshold). False-negative elimination removes k from the denominator: L = -log exp(sim(z_i,z_j)/T) / sum_{k != i, k not in F_i} exp(sim(z_i,z_k)/T). Attraction variant (not first arm) moves F_i into the positive set.",
+      "exact_change": "CORRECTED (sec 3.2.3 read in full): support set S_i = additional augmented views of the SAME anchor image (not the queue, not other images). Per anchor: generate |S| extra views (paper: 'other support views from the same image besides the two main views'). Score each queue key m: score_m,i = aggregate_{s in S_i} cos(z_m, z_s), aggregate = mean (paper default option) or max. Candidate FN set F_i = keys with score_m,i > t (threshold screening; top-k is the alternative). Eliminate F_i from the denominator. Elimination only (attraction is sub-arm B2b). T=0.2, EMA 0.99 unchanged. Cost: |S| extra encoder forwards per anchor, NOT free (see cost).",
+      "hyperparameters": {
+        "threshold_t": "0.8 (primary); 0.9 (sensitivity arm)",
+        "aggregation": "mean over support (paper's default screening: threshold)",
+        "support_set": "other augmented views of the same anchor image (|S| extra views; |S| value not stated in the extracted text, choose 1-2 and report); NOT the queue",
+        "attraction_variant": "sub-arm only if elimination shows a signal"
+      },
+      "why_here": "Our SSL pool is ~34.7k images (see meta.verification_of_brief_claims) including multiple images per ISIC lesion, so false negatives in the 4096 queue are plausible and are never removed by the current loss. The sampler audit (0.49% same-component collisions) does not state whether it covered batch or queue negatives (not verified in the brief), so it does not rule out queue-level false negatives. The paper reports the gap from elimination grows with bigger crops (more shared content), which is our case of 224/448 global views of dermoscopy with heavy overlap.",
+      "expected_effect": "~20-25% chance of a seed-consistent gain on HAM mel recall or mel->NV; effect likely small (paper: ~0.2% for elimination in its setup, ~1% total from FN count at 4096 negatives). Subjective prior.",
+      "gpu_cost_vs_baseline": "CORRECTED: ~1.0 + |S|/2 x encoder cost (each support view is an extra 224 forward through the student, no backward through it required only if detached; verify). With |S|=1 expect ~1.3-1.5x; NOT timed. The earlier ~1.0x assumed the queue as support and is void.",
+      "risk": "Mis-detected FNs (true hard negatives) removed; threshold depends on feature scale (448 features with row-L2). Interacts with PhB-M1 (both change negative set). Must log fraction of eliminated keys per step and check it is not ~0 or ~50%.",
+      "code": "URL from abstract only, not fetched. Implement from paper eq. (2).",
+      "label_policy": "Label-free. Lesion_id and diagnosis must NOT be used to detect FNs. Offline audit only: fraction of eliminated keys sharing diagnosis (diagnosis used only for audit, never in the loss).",
+      "predeclared_success_rule_for_run": "Same as PhB-M1 (seed 42 exploratory, 43/44 confirm), plus: eliminated fraction per step logged; arm reported as NULL-mechanism if eliminated fraction < 0.1%."
+    },
+    {
+      "rank": 3,
+      "id": "PhB-M3",
+      "name": "Test-time registers on existing DINOv2 base features (training-free; Jiang et al. 2025, 2506.08010)",
+      "label_free": true,
+      "evidence_level": "ABSTRACT ONLY. Claims: training-free register-neuron shift yields cleaner attention and feature maps; results comparable to models trained with registers across downstream tasks.",
+      "mechanism": "Identify a sparse set of register neurons that concentrate high-norm activations on outlier tokens; shift those activations into an extra untrained token at inference. Removes high-norm artifact tokens that DINOv2 base shows in background regions.",
+      "exact_change": "Post-process frozen DINOv2 ViT-B/14 features at extraction time only (no training). Compare CLS4 features and cls4patch features with and without the test-time register on HAM dev and PAD dev, same readout (balanced LR, grouped CV). Keep 224 and 448 resolutions.",
+      "hyperparameters": "Neuron-selection rule and threshold from the paper (not read in full; verify before running). No new training hyperparameters.",
+      "why_here": "Cheap diagnostic of whether the artifact tokens we see at 448 px contribute to the CLS readout. Allowed under the brief (label-free feature post-processing, no diagnosis labels). Can be run as a single feature-extraction pass plus readouts.",
+      "expected_effect": "Low on CLS4 (~15% chance of a macro-F1 gain > 0.5 pp). Possibly larger on patch-level readouts. Subjective prior.",
+      "gpu_cost_vs_baseline": "~0.05x (one forward pass per split, no training).",
+      "risk": "Post-hoc feature modification with selection on dev: multiplicity counts. Must be reported as a feature variant, not an SSL arm.",
+      "predeclared_success_rule_for_run": "Dev only. Positive only if HAM and PAD macro-F1 both improve by >= +0.005 in all 3 encoder seeds, with the paired group bootstrap CI excluding 0 on at least one dataset. Otherwise negative."
+    },
+    {
+      "rank": 4,
+      "id": "PhB-M4",
+      "name": "Backbone fork: DINOv2-with-registers ViT-B/14 as the continued-MoCo init (public weights)",
+      "label_free": true,
+      "evidence_level": "Model existence VERIFIED on the Hub (facebook/dinov2-with-registers-base, Apache-2.0, 288.6K downloads, arXiv 2309.16588). Benefit for our task: ABSTRACT ONLY (Darcet et al. 2023; Jiang et al. 2025 abstract). A 2026 cross-architecture reproduction (2603.25803, abstract only) reports some claims do not generalize to all models.",
+      "mechanism": "Same DINOv2 family and objective, but trained with 4 extra register tokens that absorb high-norm artifact tokens. Starting point changes the dense/attention structure at 448 px.",
+      "exact_change": "Replace init with facebook/dinov2-with-registers-base (ViT-B/14 + 4 registers). Keep blocks 8-11 trainable, MoCo loss, queue4096 config for the new baseline (because queue4096 is the only positive arm) and plain 224 cls4 baseline. Refit baselines in the same environment for seeds 42/43/44.",
+      "why_here": "The brief keeps the encoder in DINOv2 family; registers are a family variant. Evidence in medical CXR (abstract, 2026 DINOv3 study W7212050844) shows that resolution-dependent gains matter most for small focal findings at 512 px; this supports testing the 448 path with a cleaner backbone. Requires new baseline set.",
+      "expected_effect": "Uncertain, direction unknown a priori (~35% chance of macro-F1 change > 0.5 pp in either direction).",
+      "gpu_cost_vs_baseline": "High: new 6000-step SSL run per seed (3 runs) plus new variant features and readouts. Not timed.",
+      "risk": "Breaks comparability with historical arms; a backbone fork is a real decision for project owner (keep comparability vs new base). Patch-size and register count checks needed before run.",
+      "decision_for_lead": "Real fork: keep DINOv2 (comparable, cheaper) vs test registers init (new baseline, more GPU). Present to project owner with this tradeoff; not recommended until PhB-M1/M2 are resolved."
+    },
+    {
+      "rank": 5,
+      "id": "PhB-M5",
+      "name": "Hard-negative importance reweighting (Robinson et al., ICLR 2021, 2010.04592)",
+      "label_free": true,
+      "evidence_level": "ABSTRACT ONLY (search result). Claims: unsupervised hard-negative sampling with user-controlled hardness, no computational overhead, improves multiple modalities. Full text NOT read; hyperparameter names and values not verified.",
+      "mechanism": "Reweight negatives in the InfoNCE denominator by w_k proportional to exp(beta * q.n_k) (hardness parameter beta), a debiased-style estimator without labels.",
+      "exact_change": "Replace uniform negative weights in the 4096-queue denominator by normalized exp(beta q.n_k) weights. beta grid {0.5, 1.0} (to be verified in full text before coding).",
+      "why_here": "Overlaps with PhB-M1 (both emphasize hard negatives). Use only as the fallback if MoCHi fails, to test whether it is the hardness or the synthetic mixing that matters.",
+      "expected_effect": "Low-to-moderate, overlapping with PhB-M1 (~20% chance of seed-consistent gain). Subjective.",
+      "gpu_cost_vs_baseline": "~1.0x.",
+      "risk": "Without full text, the estimator's exact form and beta scale (dependence on T and feature norm) are unknown. Must read full text before implementation."
+    },
+    {
+      "rank": 6,
+      "id": "PhB-M6",
+      "name": "Patch-level / local-global objectives (VICRegL 2210.01571; LOCA 2212.02400; JEM 2610.10013)",
+      "label_free": true,
+      "evidence_level": "ABSTRACT ONLY for all three. VICRegL: CNN, local-feature VICReg with geometric correspondence. LOCA (WACV 2024): patch clustering pseudo-labels + relative location. JEM (Oct 2026): patch-level student-teacher with info-theoretic terms, claims beats DINOv2 on segmentation at 300M-7B scale.",
+      "mechanism": "Add a dense patch-to-patch alignment loss between two views (correspondence via geometry or patch clustering) to improve patch-level features used by cls4patch/448 readouts.",
+      "exact_change": "Not specified to implementation level: each method needs a new loss path (correspondence mask or patch-cluster targets). Recommend not implementing before PhB-M1/M2 and PhB-M3.",
+      "why_here": "Our best patch readouts are 448 cls4patch (HAM 0.626) but cls4patch at 224 is worse (0.604); a patch objective may close that gap. CLS4 readout (the endpoint) likely changes little.",
+      "expected_effect": "Low on CLS4 (~10-15%); uncertain on patch readouts. Subjective.",
+      "gpu_cost_vs_baseline": "Medium-high: extra loss, patch matching, possibly extra forward. Not timed.",
+      "risk": "Abstract-only evidence; no verified code; JEM is 2026 and large-scale. Implementation risk high for our time budget."
+    }
+  ],
+  "excluded_with_reason": [
+    {
+      "item": "BCL: Balanced Contrastive Learning (Zhu et al., CVPR 2022, 2207.09052)",
+      "reason": "Requires class labels (supervised contrastive). Violates the no-diagnosis-label constraint for representation learning."
+    },
+    {
+      "item": "ProCo (2403.06726), Reb-SupCon (MDPI 2025), probabilistic/vMF long-tail contrastive",
+      "reason": "Supervised or pseudo-label based long-tail methods. Not label-free for Track A."
+    },
+    {
+      "item": "TASE: Temperature Auxiliary Sample-level Encouragement (2410.22883)",
+      "reason": "Abstract says it introduces pseudo-labels to drive per-sample temperature. Pseudo-label source not verified and treated as label use. Also temperature arm is already negative in the brief."
+    },
+    {
+      "item": "FASSL: frequency-aware SSL long-tail (2309.04723)",
+      "reason": "Abstract only. Prototype/cluster-based frequency estimation overlaps closed cluster-sampler arms (k-means flat, hierarchical, PAD-uniform)."
+    },
+    {
+      "item": "DySTreSS: dynamically scaled temperature (2308.01140)",
+      "reason": "Abstract only. Temperature family is already negative in the brief."
+    },
+    {
+      "item": "Debiased contrastive loss, Chuang et al. 2020 (arXiv 2007.00224)",
+      "reason": "Now FULL TEXT in second pass: moved to candidate PhB-M9 (second_pass_2026-11-10.candidates). Not excluded."
+    },
+    {
+      "item": "MM-TS (2603.08202)",
+      "reason": "Multimodal image-text method; not applicable to our image-only SSL. The applicable reference is Kukleva et al. 2023 (ICLR, arXiv 2303.13664), now FULL TEXT and moved to candidate PhB-M8."
+    },
+    {
+      "item": "Domain adaptation for PAD->ISIC: UDA benchmark (W4389431659, 8 UDA methods on 10 dermoscopy datasets, abstract only) and DANN skin (W4401589020, abstract only)",
+      "reason": "Abstract only. Domain-adversarial methods use domain (source) labels, not diagnosis labels, so they are compatible with the brief in principle, but they can remove acquisition signal that the readout needs. Low priority; list as a possible later arm, not in top 5."
+    },
+    {
+      "item": "ADA: SSL retraining on all skin data + active domain adaptation (W4416964692, 2412.00702 full text grepped)",
+      "reason": "Active DA queries target labels (uses labels). Excluded for Track A. The SSL-retraining-on-all-skin-data part is equivalent to our existing pool (already includes ISIC 2019/2020 + PAD adapt)."
+    },
+    {
+      "item": "I-JEPA (2301.08243) and masked latent prediction with static teacher",
+      "reason": "Abstract only here; overlaps prior report X5 (SALT-style static teacher). Medium-high cost."
+    },
+    {
+      "item": "Partial-freeze continued DINOv2 on CXR (W7212076672, 2026, abstract only)",
+      "reason": "Already our setting (blocks 8-11 trainable, bottom frozen). No new information."
+    }
+  ],
+  "evidence_supporting_top_ranked": [
+    {
+      "id": "EV1",
+      "source": "Huynh et al. 2022, arXiv 2011.11765 (FULL TEXT, sections 3.2 and 4.1)",
+      "finding": "Elimination of detected false negatives consistently improves SimCLR (crop-ratio sweep); elimination is not very sensitive to threshold, attraction is. Only ~2 of 8190 negatives eliminated per anchor at batch 4096, yet top-1 changed up to 1%."
+    },
+    {
+      "id": "EV2",
+      "source": "Kalantidis et al. 2020, arXiv 2010.01028 (FULL TEXT method sec 4.1, ablation text)",
+      "finding": "Hard-negative mixing from the top-N queue negatives (N=1024 in main configs) with synthetic points as convex combinations; with K=4k matches MoCo-v2 with K=16k on ImageNet-100 (appendix C.2, text)."
+    },
+    {
+      "id": "EV3",
+      "source": "Robinson et al. 2021, arXiv 2010.04592 (ABSTRACT ONLY, 689 citations)",
+      "finding": "Unsupervised hard negative sampling with controllable hardness improves downstream across modalities at no overhead. Not read in full."
+    },
+    {
+      "id": "EV4",
+      "source": "Darcet et al. 2023 (arXiv 2309.16588, ABSTRACT ONLY) and 2506.08010 (ABSTRACT ONLY)",
+      "finding": "High-norm artifact tokens in ViTs in low-information background areas; registers (trained) and test-time registers (training-free) remove them. Cross-model reproduction (2603.25803, abstract) reports partial generalization."
+    },
+    {
+      "id": "EV5",
+      "source": "W7212050844 (2026, ABSTRACT ONLY)",
+      "finding": "Adult CXR: DINOv3 best at 512 px for small focal / boundary-dependent findings; 1024 px rarely helps; gains largest for small focal abnormalities. Supports resolution-sensitive dense features, not a dermatology result."
+    }
+  ],
+  "verify_before_implementing": [
+    "MoCHi s' definition and default config for ImageNet-100 (paper sec 4.2 and Table 3 appendix) before coding B1/B2.",
+    "FNC support-set construction (sec 3.2.3) and its aggregation formula; my proxy uses the queue as support.",
+    "Robinson 2021 estimator and beta scale (full text not read).",
+    "Test-time registers neuron-selection rule (2506.08010 full text).",
+    "Whether the SSL sampler truly uses the 34.7k mixed-fit pool at every step (per configs yes; confirm in the training script before writing the report)."
+  ],
+  "second_pass_2026-11-10": {
+    "requested_by": "coordinator (main): full text of Chuang 2020, Kukleva 2023, ExPLoRA, DINOv2 with exact loss pseudocode and default hyperparameters; repos; new searches.",
+    "full_text_read_this_pass": [
+      "2007.00224 Chuang et al. 2020, Debiased Contrastive Learning (sections 4-5, Fig. 3 pseudocode lines 8-9, Sec. 5 hyperparameters). Sections 1-3 and proofs only skimmed via grep; not a sequential read.",
+      "2303.13664 Kukleva et al. 2023, Temperature Schedules (ICLR 2023) (Sec 3.3 eq. 5, Sec 4 setup, appendix A.1 Algorithm 1 and A.2). Grep-based extraction, not sequential.",
+      "2406.10973 ExPLoRA (ICML 2025) (Sec 3 Algorithm 1 and eq. 5, Sec 6 Table 3 ablation text, appendix C.1 DINOv2 pre-training hyperparameters). Grep-based extraction, not sequential.",
+      "2304.07193 DINOv2 (TMLR 2024) (Sec 4 objectives and KoLeo, Sec B.1, Table 16 values partly garbled in text extraction). Grep-based extraction, not sequential."
+    ],
+    "repos_verified_gh_repo_view": {
+      "facebookresearch/dino": "exists, 7607 stars",
+      "facebookresearch/dinov2": "exists, 13519 stars (official DINOv2 code and weights)",
+      "facebookresearch/moco-v3": "exists, 1322 stars",
+      "chingyaoc/DCL": "exists, 286 stars, 'NeurIPS 2020, Debiased Contrastive Learning' (official Chuang code)",
+      "google-research/fnc": "exists, 28 stars, empty description (official FNC code, unverified for content)",
+      "vibalcam/GloFND": "URL from OpenReview abstract (GloFND, ICML 2025); not fetched"
+    },
+    "repos_not_found": "gh search repos for 'hard negative mixing pytorch' and 'false negative cancellation contrastive pytorch' returned []. No official MoCHi repo verified; paper footnote points to facebookresearch/moco.",
+    "new_searches_this_pass": {
+      "openreview": "2 queries. New hits: GloFND (ICML 2025; learns per-anchor FN threshold globally, abstract only); SynCo (openreview, rejected by TMLR; claims +1.0% over MoCHi on ImageNet linear eval, abstract only, not peer-accepted); DySTreSS (openreview, submitted to ICLR 2024; abstract only). No openreview hit on temperature schedules beyond MM-TS.",
+      "hf_fs search hf://papers (3 queries)": "Returned generic paper IDs; none of the method IDs (2011.11765, 2303.13664, 2207.09052, 2308.01140, 2410.22883, 2309.16588, 2506.08010, 2406.10973, 2304.07193, 2301.08243) appeared. Not useful for this topic.",
+      "openalex and arxiv": "Not repeated this pass beyond the above."
+    },
+    "candidates": [
+      {
+        "id": "PhB-M8",
+        "name": "Cosine temperature schedule for InfoNCE (Kukleva et al., ICLR 2023)",
+        "evidence_level": "FULL TEXT (grep-extracted). Gains on CIFAR10/100-LT and ImageNet100-LT with MoCo and SimCLR (kNN and linear). Our brief tested constant temperature arms (negative) but NOT a time-varying schedule.",
+        "pseudocode": [
+          "# per step s (converted from epochs, see below); tau_minus=0.1, tau_plus=1.0 (paper default)",
+          "tau = (tau_plus - tau_minus) * (1 + cos(2*pi*s / P)) / 2 + tau_minus",
+          "logits = q . k / tau  (queue + positive, as in our MoCo code; replace fixed T=0.2)",
+          "loss = cross_entropy(logits, label=0)  # unchanged MoCo loss"
+        ],
+        "paper_defaults": "Eq. (5): tau_cos(t) = (tau+ - tau-) * (1 + cos(2 pi t / T)) / 2 + tau-, t in epochs. Default T=400 epochs, tau+=1.0, tau-=0.1. Paper also tests tau- in {0.07, 0.1, 0.2} and tau+ in {0.2,...,1.0} (Table 4) and linear oscillation in [0.1,0.5] every 200 epochs (Table 5). Optimizer for their runs: SGD, wd 1e-4, lr 0.5 cosine with 10-epoch warmup; MoCo dictionary 10000, projection 128, one linear layer; SimCLR batch 512. These are from-scratch LT settings, not continued pretraining; do not copy the optimizer.",
+        "critical_conversion_for_our_run": "Paper period T is in EPOCHS (400 epochs in runs of 800-2000 epochs). Our run is 6000 steps x batch 16 = 96k samples over a 34,754-row pool = ~2.8 epochs. A 400-epoch period would never complete. Use step-based period P: propose P=2000 steps (3 cycles in 6000) with tau-=0.1, tau+=0.5 (paper alternative range), seed 42 exploratory. Paper reports robustness to T in 400-4000 epochs, so 3 cycles is a stronger test than the paper's, not a copy of it.",
+        "checkpoint_warning": "Paper appendix A.1: performance depends on relative position within a period, and they select checkpoints by validation. Our checkpoints 2000/4000/6000 land at different cosine phases (2000 = max tau for P=2000 steps; 4000 = max again; 6000 = max again). Predeclare: report checkpoint 6000 only as primary (phase = end of cycle, tau = tau+). Mark 2000/4000 as descriptive.",
+        "why_here": "Two-stage in-run schedule alternates instance discrimination (small tau) and group discrimination (large tau). The brief's constant T=0.2 arm is negative; a cycle is a different intervention. For long-tail data, the paper's argument is that tail classes benefit from instance discrimination; our endpoints are tail-like (mel, SCC).",
+        "cost": "~1.0x (one scalar per step).",
+        "expected_effect": "Low-to-moderate, ~15-20% chance of seed-consistent gain (subjective). Risk: with queue4096 and tau near 0.1, similar-to-constant behaviour or instability."
+      },
+      {
+        "id": "PhB-M9",
+        "name": "Debiased contrastive loss (Chuang et al., NeurIPS 2020; official code chingyaoc/DCL)",
+        "evidence_level": "FULL TEXT (sections 4-5, Fig 3). Gains on CIFAR10, STL10 (SimCLR), sentence embeddings, and RL; no medical or dermoscopy evidence; Fig 4 shows M=1 variant is trained on the same batch as biased baseline.",
+        "pseudocode": [
+          "# x: anchor embedding (L2-normalized), x_plus: positive view (M=1), u_1..u_N: negatives from p (our queue/batch)",
+          "pos = exp(x . x_plus / t)            # t = temperature",
+          "neg = sum_i exp(x . u_i / t)          # i = 1..N",
+          "Ng  = max( (-N * tau_plus * pos + neg) / (1 - tau_plus),  N * exp(-1/t) )",
+          "loss = -log( pos / (pos + Ng) )"
+        ],
+        "paper_defaults": "Official Fig. 3 pseudocode (lines 8-9 read verbatim; the definitions of pos and neg are the standard exp(sim/t) reading, verify against the figure's line 7 in the PDF). Temperature t=0.5 for CIFAR10/STL10 SimCLR (following SimCLR); latent dim 128; Adam lr 1e-3; 400 epochs; evaluation by linear classifier. tau_plus (class prior) is a hyperparameter with values tested in {0.005, 0.01, 0.1}; the paper says tau_plus can be estimated from data or treated as a hyperparameter. Estimator clamp: g >= exp(-1/t). M positives can be increased (their Fig 4c: M=1,2,4,8).",
+        "label_policy": "tau_plus is the class prior of same-class negatives. Estimating it from labels would violate the brief. Use it only as a fixed hyperparameter (sweep 0.005 / 0.01 / 0.1 on seed 42 dev). State this explicitly in the report. With M=1 (only our second augmented view), no positive from p+ is available, so the correction works only on the negative term.",
+        "why_here": "Corrects the sampling bias of negatives: a fraction of our queue negatives is same-class (ISIC has multiple images per lesion; mel vs nevus is a visually close pair). Alternative to FNC elimination (PhB-M2): soft correction, no threshold, cost 1.0x.",
+        "expected_effect": "Low-to-moderate, overlapping FNC and MoCHi. ~15-20% chance of seed-consistent gain (subjective).",
+        "risk": "The paper's gains are on SimCLR with batch 256-4096 and CIFAR-scale data; with queue4096 and T=0.2 the clamp term may dominate. Must log the fraction of samples hitting the clamp."
+      },
+      {
+        "id": "M10",
+        "name": "DINOv2-native objective continuation (DINO + iBOT + KoLeo + SK centering) instead of MoCo (Oquab et al. 2024; ExPLoRA recipe)",
+        "evidence_level": "FULL TEXT for DINOv2 (objective, KoLeo, hyperparameters). ExPLoRA (ICML 2025, full text grep): continued pre-training on a new domain should use the SAME unsupervised loss used to train W_S (their finding, section 3, 'we find that using the same unsupervised loss C_S as was used for W_S is beneficial'); DINOv2 continuation in ExPLoRA reaches +9.3 pp linear probe over DINOv2 ViT-L on fMoW (Table 2, satellite, not dermatology).",
+        "why_here": "Our continued pretraining replaces the native DINOv2 objective with MoCo. ExPLoRA's ablation suggests the objective mismatch is a candidate cause of the ceiling we see. This is the most direct test of whether the MoCo choice is the bottleneck. Label-free.",
+        "pseudocode": [
+          "# student s, teacher t = EMA(s); heads: DINO head h_d, iBOT head h_i (separate, untied)",
+          "# two global crops (224) + local crops (98), per sample",
+          "L_dino = mean_{crops} CE( softmax((h_d(t_cls)-c)/tau_t) , softmax(h_d(s_cls)/tau_s) )   # c: centering (SK or moving average)",
+          "L_ibot = mean_{masked i} CE( softmax((h_i(t_patch_i)-c')/tau_t) , softmax(h_i(s_patch_i)/tau_s) )  # student masked, teacher unmasked",
+          "L_koleo = -(1/n) sum_i log( min_{j!=i} || l2norm(x_i) - l2norm(x_j) || )   # on class tokens of first global crop",
+          "L = L_dino + L_ibot + 0.1 * L_koleo",
+          "# teacher: EMA with momentum m_t cosine 0.994 -> 1.0; SK centering 3 iterations (teacher), softmax (student)"
+        ],
+        "default_hyperparameters_DINOv2_appendix_B1_C1_Table16": [
+          "AdamW, weight decay cosine 0.04 -> 0.2, no weight decay in ExPLoRA continuation (their C.1)",
+          "LayerScale init 1e-5",
+          "Learning rate: 1e-3 for ViT-B/14 distilled, batch 2048 (Table 16 row); ExPLoRA continuation used base lr 2e-3, batch 1024 effective (32 x 32 grad accum), 200k iterations, linear warmup + cosine",
+          "Teacher temperatures: warmup 0.04 and final 0.07 (ExPLoRA C.1 paraphrase of DINOv2 defaults; primary DINOv2 text does not list the value; verify in Table 16 of the PDF)",
+          "Crops: global 224 (>32% of image), local 98 (5-32%); KoLeo weight 0.1 on first global crop",
+          "iBOT mask ratio: 0.1-0.5, half of samples masked (ExPLoRA C.1)",
+          "Linear DINO-iBOT head: 3 layers, bottleneck 256, hidden 2048, out 65536; head frozen first 3k iterations (ExPLoRA C.1; DINOv2 publishes no DINO/iBOT heads, so heads are re-initialised)",
+          "Sinkhorn-Knopp 3 iterations on teacher; untied DINO and iBOT heads (DINOv2 Sec 4)"
+        ],
+        "critical_caveat": "DINOv2 public checkpoints do not include DINO or iBOT heads (ExPLoRA C.1). Heads are trained from scratch, so the native objective starts from a random head against a strong backbone: a head warm-up (frozen 3k iterations, as ExPLoRA) is required. Also, this changes the objective from the MoCo loss described in the brief; treat as a new arm, not a MoCo hyperparameter.",
+        "cost": "Higher than MoCo: teacher and student forward on 2 global + local crops, plus masked student forward for iBOT. Estimate ~1.5-2.5x per step; NOT timed. Measure 50 steps before scheduling.",
+        "risk": "Large objective change; fails silently if head warm-up or EMA schedule is wrong. Requires a unit test on the loss with a fixed seed (RED first)."
+      },
+      {
+        "id": "PhB-M1-verified",
+        "note": "MoCHi (2010.01028) full text confirmed; default hyperparameters for MoCo-v2 on ImageNet-100 in the paper: lr 0.03, batch 128 (ImageNet-100) and 256 (ImageNet-1K), embedding dim 128, cosine lr schedule, pretraining 100 epochs taken from 200-epoch run checkpoint. The main MoCHi tuple (N, s, s') examples in Fig 3a: (1024,128,256), (1024,256,512), (1024,1024,128). The MoCHi default configuration was not identified with certainty; use (1024,128,0) as the seed-42 exploratory arm and verify s' definition before coding."
+      },
+      {
+        "id": "PhB-M2-note",
+        "note": "RESOLVED. FNC sec 3.2.3 read: support set = other augmented views of the anchor image; screening by aggregated similarity of negatives to those views; threshold or top-k. The queue-as-support proxy in PhB-M2 was WRONG and is replaced. Cost rises with |S| extra encoder forwards per anchor."
+      },
+      {
+        "id": "PhB-M1-s-prime-resolved",
+        "note": "RESOLVED. MoCHi sec 4.2: s' synthetic hard negatives mix the QUERY with a random hardest negative: h' = normalize(beta*q + (1-beta)*n_j), beta ~ U(0, 0.5), n_j from the top-N set; computed in the loss space (after the 2-layer MLP head). Extra cost ~ s' dot products. Paper Sec 4.3: s'=0 (negative-negative mixing only) keeps final proxy-task difficulty near MoCo-v2; s'>0 makes the proxy harder. Default (N,s,s') used in the paper's main results is still not confirmed; Fig 3a sweeps (N,s) with N up to 16384 and s in {128..1024}. Run B1 = (1024,128,0); optional B3 = (1024,128,256) on the paper's sweep grid."
+      },
+      {
+        "id": "M10-status",
+        "note": "coordinator reports M10 (native DINOv2 objective) ALREADY TESTED: results/dino-ibot-v1 and dino-ibot-{,s43-,s44-}evaluation-v1, code scripts/dino_ibot_objectives.py (also BYOL, SimSiam, Barlow, VICReg, SwAV, MSN, MaskFeat, DIET). Not verified by this reviewer; mark as tested per coordinator. Do not re-propose as new."
+      }
+    ],
+    "exact_numbers_from_full_text": {
+      "Kukleva_Table_7_or_grid": "Cosine boundaries table: tau+ in {0.2,0.3,0.4,0.5,1.0} x tau- in {0.07, 0.1, 0.2, ...}; best reported at tau-=0.07 with tau+=1.0 (73.26) and tau- 0.1 ... (values partly garbled in extraction; verify).",
+      "ExPLoRA_Table_2": "fMoW-RGB linear probe: DinoV2 ViT-L 67.60 -> D-[L]-r64 76.86 (+9.3 pp). Text states +8.2 pp; mismatch noted in ssl-recent.",
+      "ExPLoRA_Table_3": "Ablation on fMoW linear probe: rank 8->32 +0.09; 32->64 +1.08; unfreeze {L-1,L} +0.28; {1,L-1,L} +0.28 more."
+    },
+    "updates_to_prior_claims": [
+      "Kukleva 2023 was listed as UNVERIFIED in the first pass. It is now full-text verified: a cosine schedule on tau with step-converted period is a new candidate (PhB-M8), not a repeat of the constant-T negative arm.",
+      "Chuang 2020 was listed as UNVERIFIED. Now verified: PhB-M9.",
+      "ExPLoRA: the lesson is not only LoRA on frozen blocks (PhB X3 in prior reports), but using the SAME unsupervised loss as the original pre-training. This is M10."
+    ]
+  },
+  "gaps": [
+    "No dermatology or dermoscopy paper found for any of the top 6 methods (FNC, MoCHi, test-time registers, registers init, Robinson, patch-level). All evidence is natural-image or CXR.",
+    "No lesion_id in mixed-fit.jsonl: FN-related methods cannot use lesion grouping in training; only offline audits.",
+    "arXiv discovery backend returned empty for 6 of 7 queries; gh code search returned nothing. Code availability for every method is unverified.",
+    "Second pass: Chuang 2020 and Kukleva 2023 are now FULL TEXT (see second_pass_2026-11-10). Robinson 2021 (PhB-M5) and SynCo/GloFND/VICRegL/JEM remain abstract only."
+  ],
+  "status": "PARTIAL. 2 full-text reads (FNC, MoCHi) with targeted extraction; 4 abstract-only candidates; 1 verified model (registers on Hub). 0 experiments run by this reviewer. Cross-check with phase-b-inventory (docs/phase-b-inventory.md, clf1): PhB-M9 (DCL debiased) already IN PROGRESS as debiased-s42; queue16384-s42 IN PROGRESS; M10 native DINOv2 already run as dino-ibot s42/43/44 (PAD .607, HAM .527); PhB-M2 FNC has no lesion_id in mixed-fit (offline audit only). NOT found in results/: MoCHi (PhB-M1), PhB-M5, PhB-M6, registers (PhB-M3/M4), Kukleva schedule (only fixed temperature). Do not re-propose items in progress or already run. Inventory v2 correction: old readouts use 768-d CLS; V10 CLS4 is 3072-d; they are NOT directly comparable. Priority gap (not a new method): CLS vs CLS4 on the same encoder, to be measured before any new arm is judged."
+}

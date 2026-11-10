@@ -1,0 +1,934 @@
+{
+  "status": "PROVISIONAL (statistical review). Verified on cluster read-only; reviewer reports pending for overfitting and SSL checkpoints.",
+  "scope": "Dev cohorts only: HAM ham_dev (1528 img, 1152 groups, 7 classes) and PAD pad_adapt (1134 img, 682 groups, 6 classes). No holdout or target_test opened.",
+  "protocol": {
+    "readout": "balancedLR, row-L2, nested grouped CV outer5/inner3, CV seeds 20261025/26/27, C grid .3..100 (scripts/evaluate_overlay_readout.py)",
+    "encoder_seeds": [
+      42,
+      43,
+      44
+    ],
+    "same_environment_baseline": "student-sXX (224, cls4) refit in the same environment; control-student-s42-HAM is the same file as student-s42-HAM (copy, per coordinator); control2 is an identical rerun. Counted as ONE arm."
+  },
+  "verification": {
+    "macro_f1_recomputed_from_confusion_matrix": "matches stored value for all 9-run readouts (exact)",
+    "identity_sets": "image_id sets identical across all readouts of each kind",
+    "noise_floor": "SD of macro-F1 across CV seeds per encoder ~0.008-0.010 (coordinator correction; brief's 0.002-0.006 is too low). Single-encoder CV-seed range up to ~0.06 on HAM (s43 r224 cls4patch: 0.5607-0.6218)."
+  },
+  "track_A": {
+    "definition": "SSL encoder (DINOv2 ViT-B/14, MoCo) + balancedLR readout. Readout uses labels by necessity.",
+    "arms_dev": {
+      "A_224_cls4_baseline": {
+        "HAM_macro_f1": 0.6210,
+        "PAD_macro_f1": 0.6745,
+        "HAM_mel_recall": 0.5378,
+        "HAM_mel_to_nv": 0.2439,
+        "PAD_MEL_recall": 0.7325,
+        "PAD_SCC_recall": 0.3170,
+        "PAD_SCC_to_BCC": 0.4784
+      },
+      "A_448_cls4_d4": {
+        "HAM_macro_f1": 0.6139,
+        "PAD_macro_f1": 0.6784,
+        "HAM_mel_recall": 0.5575,
+        "HAM_mel_to_nv": 0.1966,
+        "PAD_MEL_recall": 0.7325,
+        "PAD_SCC_recall": 0.3392,
+        "PAD_SCC_to_BCC": 0.4480
+      },
+      "A_448_cls4patch": {
+        "HAM_macro_f1": 0.6263,
+        "PAD_macro_f1": 0.6752,
+        "HAM_mel_recall": 0.5510,
+        "HAM_mel_to_nv": 0.2117,
+        "PAD_MEL_recall": 0.6996,
+        "PAD_SCC_recall": 0.3251,
+        "PAD_SCC_to_BCC": 0.4386
+      },
+      "A_448_cls4": {
+        "HAM_macro_f1": 0.6136,
+        "PAD_macro_f1": 0.6785,
+        "HAM_mel_recall": 0.5352,
+        "HAM_mel_to_nv": 0.2163,
+        "PAD_MEL_recall": 0.7119,
+        "PAD_SCC_recall": 0.3333,
+        "PAD_SCC_to_BCC": 0.4386
+      },
+      "A_224_cls4_d4": {
+        "HAM_macro_f1": 0.6182,
+        "PAD_macro_f1": 0.6741,
+        "HAM_mel_recall": 0.5523,
+        "HAM_mel_to_nv": 0.2216,
+        "PAD_MEL_recall": 0.7202,
+        "PAD_SCC_recall": 0.3216,
+        "PAD_SCC_to_BCC": 0.4912
+      },
+      "A_224_cls4patch": {
+        "HAM_macro_f1": 0.6036,
+        "PAD_macro_f1": 0.6647,
+        "HAM_mel_recall": 0.5319,
+        "HAM_mel_to_nv": 0.2347,
+        "PAD_MEL_recall": 0.6626,
+        "PAD_SCC_recall": 0.3146,
+        "PAD_SCC_to_BCC": 0.4971
+      }
+    },
+    "paired_vs_baseline_per_encoder_seed": {
+      "A_448_cls4_d4": {
+        "HAM_macro_f1_delta": {
+          "per_seed_42_43_44": [
+            -0.0192,
+            -0.0008,
+            -0.0012
+          ],
+          "bootstrap_95ci_per_seed": [
+            [
+              -0.0519,
+              0.0111
+            ],
+            [
+              -0.0267,
+              0.0239
+            ],
+            [
+              -0.0274,
+              0.0271
+            ]
+          ],
+          "reading": "no consistent sign; CIs include 0"
+        },
+        "HAM_mel_recall_delta": {
+          "per_seed_42_43_44": [
+            0.0296,
+            -0.0059,
+            0.0355
+          ],
+          "bootstrap_95ci_per_seed": [
+            [
+              -0.0186,
+              0.0784
+            ],
+            [
+              -0.0525,
+              0.0436
+            ],
+            [
+              -0.0113,
+              0.0818
+            ]
+          ]
+        },
+        "HAM_mel_to_nv_delta_pp": {
+          "per_seed_42_43_44": [
+            -4.34,
+            -4.14,
+            -5.72
+          ],
+          "bootstrap_95ci_per_seed_pp": [
+            [
+              -8.76,
+              -0.10
+            ],
+            [
+              -9.01,
+              0.76
+            ],
+            [
+              -9.88,
+              -1.74
+            ]
+          ],
+          "reading": "same sign in 3/3 encoder seeds; 2 of 3 CIs exclude 0; conditional on fixed OOF; mel n=169 images"
+        },
+        "PAD_SCC_to_BCC_delta_pp": {
+          "per_seed_42_43_44": [
+            -3.51,
+            -3.16,
+            -2.46
+          ],
+          "bootstrap_95ci_per_seed_pp": [
+            [
+              -8.02,
+              0.90
+            ],
+            [
+              -8.10,
+              1.90
+            ],
+            [
+              -6.87,
+              1.42
+            ]
+          ],
+          "reading": "same sign 3/3 but all CIs include 0"
+        },
+        "PAD_macro_f1_delta": {
+          "per_seed_42_43_44": [
+            0.0030,
+            0.0003,
+            0.0083
+          ],
+          "bootstrap_95ci_per_seed": [
+            [
+              -0.0186,
+              0.0232
+            ],
+            [
+              -0.0195,
+              0.0182
+            ],
+            [
+              -0.0097,
+              0.0262
+            ]
+          ],
+          "reading": "non-negative in 3/3 seeds, CIs include 0"
+        },
+        "PAD_SCC_recall_delta": {
+          "per_seed_42_43_44_point": [
+            0.0211,
+            0.0175,
+            0.0281
+          ],
+          "bootstrap_95ci_per_seed": [
+            [
+              -0.0264,
+              0.0688
+            ],
+            [
+              -0.0365,
+              0.0765
+            ],
+            [
+              -0.0178,
+              0.0818
+            ]
+          ]
+        }
+      }
+    },
+    "arms_tried_on_dev": {
+      "readout_variants_on_frozen_features": 7,
+      "ssl_hyperparameter_arms_v4_folders": 10,
+      "negative_ssl_or_readout_arms_from_brief": "EMA-teacher CLS4, cosine prototypes, per-class logit offsets, 224 patch pooling, sampler audit (not a training arm)",
+      "fusion_weights_track_B": 3,
+      "note": "No multiplicity correction. Any post-hoc winner on dev is optimistic."
+    }
+  },
+  "track_B": {
+    "definition": "Supervised additions (metadata fusion). Comparison only, not SSL.",
+    "strict_meta_means_3_encoder_seeds": {
+      "PAD_image_224_macro_f1": 0.6756,
+      "PAD_fused_224_w0.1_macro_f1": 0.7448,
+      "PAD_fused_224_SCC_recall": 0.4094,
+      "PAD_fused_224_SCC_to_BCC": 0.4175,
+      "PAD_image_448d4_macro_f1": 0.6791,
+      "PAD_fused_448d4_w0.1_macro_f1": 0.7365,
+      "PAD_fused_448d4_SCC_recall": 0.4409,
+      "PAD_fused_448d4_SCC_to_BCC": 0.3871,
+      "HAM_image_224_macro_f1": 0.6214,
+      "HAM_fused_224_w0.1_macro_f1": 0.5913,
+      "HAM_image_448d4_mel_to_nv": null,
+      "HAM_fused_448d4_w0.1_macro_f1": 0.6187,
+      "HAM_fused_448d4_w0.1_mel_to_nv": 0.1749
+    },
+    "verified_by": "statistical review recomputed from meta/strict-*-s{42,43,44}-*.json (3 CV runs each, mean)",
+    "phase_complete_PAD_only_rows": {
+      "image_macro_f1": 0.566,
+      "fused_macro_f1": 0.663,
+      "note": "coordinator figure; not re-verified here"
+    },
+    "meta_only_arm": {
+      "PAD_macro_f1": 0.5683,
+      "HAM_macro_f1": 0.1624,
+      "anomaly": "HAM meta-only macro-F1 0.16 is near chance for 7 classes; verify before citing"
+    },
+    "open_issues": [
+      "fused w=0.1 chosen among {0.1, 0.3, 1.0} on dev: selection exposure",
+      "meta/ JSON has no OOF; CIs computed on re-run OOF arms (see paired_group_bootstrap_on_OOF_rerun). FT (supervised-b) has no OOF export: no CI.",
+      "extended metadata leaks collection phase (discarded by coordinator)"
+    ]
+  },
+  "track_B_supervised_ft_nested": {
+    "source": "docs/supervised-b.json ( supervised-b); seed 42 CV 20261025 only (CV 26/27 NOT run); nested epochs{3,6,10} x lr{5e-6,1e-5,3e-5}",
+    "HAM_macro_f1_ft_vs_probe224_same_folds": {
+      "ft": 0.6363,
+      "probe": 0.6365,
+      "delta": -0.0002
+    },
+    "HAM_mel_recall_delta_pp": 6.7,
+    "HAM_mel_to_nv_delta_pp": -2.8,
+    "PAD_macro_f1_ft_vs_probe224_same_folds": {
+      "ft": 0.6874,
+      "probe": 0.6712,
+      "delta": 0.0162
+    },
+    "PAD_MEL_recall_delta_pp": -16.1,
+    "PAD_SCC_recall_delta_pp": -6.6,
+    "PAD_SCC_to_BCC_delta_pp": -8.8,
+    "reading": "PAD macro-F1 gain comes with a large MEL recall loss (-16 pp) and SCC recall loss; not a clinical improvement. Not an SSL result.",
+    "critic_flags": [
+      "Most selected configs sit on the grid edge (10 epochs, lr 3e-5): grid may be too narrow; nested result is a lower bound on this search space.",
+      "Seeds 43/44 reuse seed-42 fold configs (noted by reviewer, not a separate selection).",
+      "No bootstrap CI computed for FT; IC pending OOF export.",
+      "Budget: ~3.6 GPU-process hours; 2 h wall on GPU1."
+    ],
+    "skills_invoked": []
+  },
+  "track_B_fusion_448d4_PAD_agent_report": {
+    "full_1134": {
+      "image_mean": 0.6784,
+      "fused_mean": 0.7372,
+      "delta": 0.0588
+    },
+    "phase_complete_723": {
+      "image_mean": 0.5637,
+      "fused_mean": 0.6564,
+      "delta": 0.0927
+    },
+    "critic_note": "My recomputation from meta/strict-PAD-*-r448d4 gave fused 0.7365 (vs reviewer 0.7372): same 3 seeds, small difference attributable to flags; not material.",
+    "phase_complete_feature_sets_reconciled_per_lead": {
+      "224_cls4_first_round (meta/phase-PAD-*)": {
+        "image": 0.566,
+        "fused": 0.663,
+        "source": "coordinator; not re-verified by statistical reviewer"
+      },
+      "448_cls4_d4 (trackb-fusion-448d4)": {
+        "image": 0.5637,
+        "fused": 0.6564,
+        "source": " supervised-b; moco-v10-trackb-fusion-448d4-20261109/fused-phase-s*.json"
+      }
+    },
+    "email_2_to_Nico_cited": "full 448D4 only (0.678 -> 0.737), not phase-complete",
+    "paired_group_bootstrap_on_OOF_rerun (statistical reviewer, 500 resamples, docs/oof-arms npz, fused minus image, per encoder seed)": {
+      "PAD_full_448d4_w0.1": {
+        "delta_per_seed": [
+          0.0586,
+          0.0587,
+          0.0591
+        ],
+        "ci95_per_seed": [
+          [
+            0.0340,
+            0.0896
+          ],
+          [
+            0.0312,
+            0.0936
+          ],
+          [
+            0.0360,
+            0.0876
+          ]
+        ],
+        "n": 1134,
+        "groups": 682
+      },
+      "PAD_phase_448d4_w0.1": {
+        "delta_per_seed": [
+          0.0942,
+          0.0924,
+          0.0916
+        ],
+        "ci95_per_seed": [
+          [
+            0.0457,
+            0.1492
+          ],
+          [
+            0.0405,
+            0.1455
+          ],
+          [
+            0.0375,
+            0.1461
+          ]
+        ],
+        "n": 723,
+        "groups": 391
+      },
+      "HAM_224_w0.1": {
+        "delta_per_seed": [
+          -0.0402,
+          -0.0240,
+          -0.0322
+        ],
+        "ci95_per_seed": [
+          [
+            -0.0687,
+            -0.0124
+          ],
+          [
+            -0.0507,
+            0.0028
+          ],
+          [
+            -0.0538,
+            -0.0109
+          ]
+        ],
+        "n": 1528,
+        "groups": 1152,
+        "reading": "fusion significantly HURTS HAM at 224 in 2/3 seeds"
+      },
+      "HAM_448d4_w0.1": {
+        "delta_per_seed": [
+          0.0022,
+          0.0038,
+          0.0082
+        ],
+        "ci95_per_seed": [
+          [
+            -0.0271,
+            0.0268
+          ],
+          [
+            -0.0192,
+            0.0236
+          ],
+          [
+            -0.0204,
+            0.0350
+          ]
+        ],
+        "n": 1528,
+        "groups": 1152,
+        "reading": "no effect"
+      },
+      "caveat": "OOF re-run differs from stored meta/*.json by up to 0.011 (HAM-fused-224-w0.1); CIs are conditional on fixed OOF; w weight selected on this dev cohort (optimistic)."
+    }
+  },
+  "per_class_recall": "HAM and PAD per-class means for A candidate: see readouts; HAM candidate df recall paired delta -0.111/-0.056/-0.074 (df n=18 images, 6 groups; unstable)",
+  "reader_imbalance_arms": {
+    "source": "docs/reader-imbalance.json ( reader-imbalance); baseline numbers re-verified by statistical reviewer (448 HAM 0.6139 / mel->NV 0.1966; 448 PAD 0.6784 / SCC->BCC 0.448; 224 PAD 0.6741 matched)",
+    "HAM_448_delta_macro_f1": {
+      "bacc": -0.0456,
+      "minrec": -0.0584,
+      "plain_lr": -0.0159,
+      "logit_adj_tau": -0.0032,
+      "oversample": 0.0036,
+      "undersample": -0.1498,
+      "sw05": 0.0096,
+      "sw075": 0.0056
+    },
+    "HAM_448_delta_mel_to_nv": {
+      "bacc": -0.0782,
+      "minrec": -0.0888,
+      "logit_adj_tau": 0.0671,
+      "sw05": 0.1032,
+      "sw075": 0.0447
+    },
+    "reading": "Every arm that raises macro-F1 worsens mel->NV or SCC->BCC; arms that lower mel->NV lose macro-F1. Single frontier, no free gain. Caveats from reviewer: CV seeds are not independent replicates; two jobs rerun after external SIGTERM; no p-values.",
+    "skills_invoked": []
+  },
+  "overfitting_checks": {
+    "track_b_train_vs_oof_gap_macro_f1_mean": {
+      "source": "docs/track-b-oof-and-weights.json ( supervised-b)",
+      "PAD_image_448d4_full": {
+        "oof": 0.6784,
+        "train": 0.9348,
+        "gap": 0.2563
+      },
+      "PAD_fused_448d4_full_w0.1": {
+        "oof": 0.7372,
+        "train": 0.9287,
+        "gap": 0.1914
+      },
+      "PAD_fused_224_w0.1": {
+        "oof": 0.7449,
+        "train": 0.9362,
+        "gap": 0.1912
+      },
+      "HAM_image_224": {
+        "oof": 0.6219,
+        "train": 0.9363,
+        "gap": 0.3143
+      },
+      "HAM_fused_224_w0.1": {
+        "oof": 0.5898,
+        "train": 0.9090,
+        "gap": 0.3192
+      },
+      "HAM_fused_224_w0.3": {
+        "oof": 0.5666,
+        "train": 0.9298,
+        "gap": 0.3632
+      },
+      "reading": "Gaps 0.19-0.36 for all arms, image-only included: overfit is not specific to fusion. LR at high C fits training folds nearly perfectly."
+    },
+    "reader_train_vs_oof_gap": {
+      "source": "docs/reader-gap-r4.json ( reader-imbalance); baseline balanced-LR per job, macro-F1 mean over CV seeds",
+      "448cls4_d4_HAM_per_encoder_seed": {
+        "42": 0.304,
+        "43": 0.343,
+        "44": 0.291
+      },
+      "448cls4_d4_PAD_per_encoder_seed": {
+        "42": 0.264,
+        "43": 0.266,
+        "44": 0.244
+      },
+      "224cls4_HAM_per_encoder_seed": {
+        "42": 0.319,
+        "43": 0.334,
+        "44": 0.306
+      },
+      "224cls4_PAD_per_encoder_seed": {
+        "42": 0.262,
+        "43": 0.263,
+        "44": 0.256
+      },
+      "reading": "Train macro-F1 ~0.90-0.97 vs OOF ~0.6-0.7: gap ~0.25-0.34 in every job. Strong overfit of the frozen-feature LR, not specific to any arm."
+    },
+    "reader_inner_cv_vs_outer_oof_gap": {
+      "448cls4_d4_HAM_range": "-0.029 to -0.020",
+      "448cls4_d4_PAD_range": "-0.015 to -0.008",
+      "224cls4_HAM_range": "-0.048 to -0.040",
+      "224cls4_PAD_range": "-0.019 to -0.012",
+      "reading": "Inner CV is pessimistic by construction (trains on 2/3 of outer train). Negative gap means the inner selection score is LOWER than outer OOF, so inner-based selection is not optimistic here; the C/tau selection is not inflating the reported OOF."
+    },
+    "reader_selection_count": "16 configs per feature set (9 arms + 6 R4 points + 1 joint R4 config), 2 feature sets: ~32 reader configs in dev, all reported.",
+    "reader_R4_logit_adjust_result": "NEGATIVE in all four tag-cohort blocks; joint (tau,C) macro-F1 delta -0.006 to +0.007 across encoder seeds; pre-registered rule not met. Reader incident reports conflict on whether the external SIGTERM affected 2 or 0 jobs; does not change the verdict.",
+    "ssl_intermediate_checkpoints_2000_4000_6000": {
+      "cluster_balanced_s42": "PARTIAL CONTROL: only final 6000 trained and evaluated; no 2000/4000 checkpoints.",
+      "SDCLR_s42": "TRAINED; checkpoints 2000/4000/6000 under evaluation by  ssl-arms (readouts in results/moco-v10-sdclr-20261109/readouts/). PENDING.",
+      "d4_color_queue4096_d4_only": "TRAINED; checkpoints 2000/4000/6000 under evaluation by  ssl-arms. PENDING.",
+      "rule": "Same Δ vs baseline s42 same environment, paired group bootstrap on macro-F1 and mel->NV / SCC->BCC rates, curve 2000/4000/6000. If 2000 improves and 6000 falls, report as SSL overfitting. Do NOT switch to another checkpoint post-hoc without marking it."
+    },
+    "ssl_checkpoint_curves_critic_bootstrap": {
+      "method": "statistical reviewer, 500 paired group resamples, conditional on fixed OOF, vs fresh s42 baseline 224 cls4 (HAM F1 0.6328; PAD F1 0.6732), macro-F1 averaged over 3 CV seeds; script /tmp/statistical reviewer/ssl_arm_boot.py",
+      "cluster_balanced_final6000_224": {
+        "HAM_F1_delta": -0.0368,
+        "HAM_F1_ci95": [
+          -0.0607,
+          -0.0102
+        ],
+        "HAM_mel_to_nv_delta": 0.0237,
+        "HAM_mel_to_nv_ci95": [
+          0.0092,
+          0.0402
+        ],
+        "PAD_F1_delta": -0.0084,
+        "PAD_F1_ci95": [
+          -0.0266,
+          0.0088
+        ],
+        "PAD_SCC_to_BCC_delta": -0.0140,
+        "PAD_SCC_to_BCC_ci95": [
+          -0.0609,
+          0.0315
+        ],
+        "caveat": "PAD endpoints confounded (singleton PAD images drawn up to 810 times)"
+      },
+      "cluster_balanced_final6000_448D4": {
+        "HAM_F1_delta": -0.0007,
+        "HAM_F1_ci95": [
+          -0.0266,
+          0.0200
+        ],
+        "HAM_mel_to_nv_delta": 0.0158,
+        "HAM_mel_to_nv_ci95": [
+          -0.0082,
+          0.0417
+        ],
+        "PAD_F1_delta": -0.0071,
+        "PAD_F1_ci95": [
+          -0.0199,
+          0.0058
+        ],
+        "PAD_SCC_to_BCC_delta": -0.0105,
+        "PAD_SCC_to_BCC_ci95": [
+          -0.0599,
+          0.0329
+        ]
+      },
+      "padu_uniform_ablation_224": {
+        "HAM_F1_delta_step2000": -0.0181,
+        "HAM_F1_ci95_2000": [
+          -0.0400,
+          0.0059
+        ],
+        "HAM_F1_delta_step4000": -0.0211,
+        "HAM_F1_ci95_4000": [
+          -0.0421,
+          0.0003
+        ],
+        "HAM_F1_delta_step6000": -0.0180,
+        "HAM_F1_ci95_6000": [
+          -0.0389,
+          0.0013
+        ],
+        "HAM_mel_to_nv_delta_6000": 0.0158,
+        "HAM_mel_to_nv_ci95_6000": [
+          -0.0021,
+          0.0356
+        ],
+        "PAD_F1_delta_step2000": -0.0152,
+        "PAD_F1_delta_step4000": -0.0018,
+        "PAD_F1_delta_step6000": 0.0031,
+        "PAD_F1_ci95_6000": [
+          -0.0138,
+          0.0207
+        ],
+        "PAD_SCC_to_BCC_delta_6000": -0.0140,
+        "curve_reading": "No step improves over base on HAM; 2000 is not better than 6000 (no SSL overfitting pattern as defined by coordinator rule). HAM is lower than baseline at every checkpoint, so the HAM drop is from the cluster-balanced source sampler, not PAD repetition."
+      },
+      "pad_repetition_confound": "cluster s42 arm: 1030 distinct PAD drawn, 104 never drawn, max 810 draws for one image; PAD-uniform: max 37 draws, none never drawn."
+    },
+    "ssl_arms_seed42_checkpoint_curves_critic_bootstrap": {
+      "method": "statistical reviewer paired group bootstrap, 500 resamples, conditional on OOF; base = same-environment s42 readout (224: student-s42; 448D4: s42-r448-cls4_d4); F1 = mean over 3 CV seeds; script /tmp/statistical reviewer/arm_ckpt_boot.py on cluster readouts",
+      "queue4096": {
+        "448D4_HAM_F1_delta_2000_4000_6000": [
+          0.0215,
+          0.0149,
+          0.0172
+        ],
+        "448D4_HAM_F1_ci95_6000": [
+          0.0009,
+          0.0362
+        ],
+        "448D4_HAM_mel_to_nv_delta_6000": [
+          0.0039,
+          [
+            -0.0188,
+            0.0250
+          ]
+        ],
+        "448D4_PAD_F1_delta_6000": [
+          0.0013,
+          [
+            -0.0133,
+            0.0172
+          ]
+        ],
+        "224_HAM_F1_delta_2000_4000_6000": [
+          0.0026,
+          -0.0149,
+          -0.0226
+        ],
+        "224_HAM_F1_ci95_6000": [
+          -0.0417,
+          -0.0023
+        ],
+        "224_PAD_F1_delta_2000_4000_6000": [
+          0.0001,
+          0.0067,
+          0.0182
+        ],
+        "224_PAD_F1_ci95_6000": [
+          0.0029,
+          0.0350
+        ],
+        "224_PAD_SCC_to_BCC_delta_6000": [
+          -0.0281,
+          [
+            -0.0606,
+            0.0000
+          ]
+        ],
+        "reading": "Only arm with a HAM-448 macro-F1 gain whose CI lower bound is ~0 at 6000. That gain does NOT move the candidate's endpoint (mel->NV unchanged). At 224 the HAM curve declines 2000->6000 (+0.003 -> -0.023), a decline without a clear 2000 peak. PAD-224 gain increases with steps. Not a clean winner; mixed across resolution. Needs seeds 43/44 with predeclared rule before any claim."
+      },
+      "d4_color": {
+        "224_HAM_F1_delta_2000_4000_6000": [
+          -0.0362,
+          -0.0204,
+          -0.0401
+        ],
+        "448D4_HAM_F1_delta_6000": [
+          0.0020,
+          [
+            -0.0157,
+            0.0213
+          ]
+        ],
+        "448D4_HAM_mel_to_nv_delta_6000": [
+          0.0276,
+          [
+            0.0000,
+            0.0618
+          ]
+        ],
+        "448D4_PAD_F1_delta_6000": [
+          0.0034,
+          [
+            -0.0101,
+            0.0169
+          ]
+        ],
+        "reading": "Negative at 224 HAM at all checkpoints; 448 null, mel->NV worse at 6000 (lower CI bound 0.0). Negative/neutral."
+      },
+      "d4_only": {
+        "224_HAM_F1_delta_2000_4000_6000": [
+          -0.0285,
+          -0.0059,
+          -0.0065
+        ],
+        "448D4_HAM_F1_delta_2000_4000_6000": [
+          0.0039,
+          0.0123,
+          0.0121
+        ],
+        "448D4_HAM_mel_to_nv_delta_2000_4000_6000": [
+          0.0296,
+          0.0296,
+          0.0059
+        ],
+        "448D4_HAM_mel_to_nv_ci95_2000": [
+          0.0009,
+          0.0646
+        ],
+        "448D4_PAD_F1_delta_6000": [
+          -0.0072,
+          [
+            -0.0191,
+            0.0043
+          ]
+        ],
+        "reading": "Negative/neutral; 448 HAM mel->NV worse at 2000 and 4000 (CI excludes 0)."
+      },
+      "SDCLR_s42": {
+        "224_HAM_F1_delta_2000_4000_6000": [
+          -0.0284,
+          -0.0312,
+          -0.0288
+        ],
+        "224_HAM_F1_ci95_6000": [
+          -0.0551,
+          -0.0047
+        ],
+        "448D4_HAM_F1_delta_2000_4000_6000": [
+          0.0105,
+          0.0205,
+          0.0082
+        ],
+        "448D4_HAM_F1_ci95_4000": [
+          0.0019,
+          0.0396
+        ],
+        "448D4_HAM_mel_to_nv_delta_6000": [
+          0.0118,
+          [
+            -0.0241,
+            0.0449
+          ]
+        ],
+        "448D4_PAD_F1_delta_2000_4000_6000": [
+          -0.0199,
+          -0.0212,
+          -0.0127
+        ],
+        "448D4_PAD_F1_ci95_2000": [
+          -0.0426,
+          -0.0022
+        ],
+        "reading": "224 HAM negative at all checkpoints (CI excludes 0); 448 HAM mixed (only 4000 CI excludes 0), PAD-448 negative at 2000/4000. Curve flat, no peak-then-fall pattern. Negative."
+      },
+      "hierarchical_padu_s42_224_only": {
+        "source": "docs/cluster-ssl-src/readouts-hier ( cluster-ssl); 448 NOT evaluated",
+        "HAM_F1_delta_2000_4000_6000": [
+          -0.0312,
+          -0.0071,
+          -0.0199
+        ],
+        "HAM_F1_ci95_6000": [
+          -0.0407,
+          0.0011
+        ],
+        "HAM_mel_to_nv_delta_2000_4000_6000": [
+          0.0020,
+          0.0059,
+          -0.0296
+        ],
+        "HAM_mel_to_nv_ci95_6000": [
+          -0.0556,
+          -0.0083
+        ],
+        "PAD_F1_delta_2000_4000_6000": [
+          -0.0054,
+          -0.0045,
+          -0.0087
+        ],
+        "PAD_SCC_to_BCC_delta_6000": -0.0246,
+        "reading": "The only SSL arm where the HAM mel->NV CI excludes 0 at a checkpoint, and only at 6000 (the pre-declared final). The gain is absent at 2000 and 4000, and macro-F1 falls with it. This is the same macro-F1 vs mel->NV trade-off seen in reader-side balancing, not a free gain. Single seed, not confirmed; 448 not run."
+      },
+      "queue4096_predeclared_rule_check_seeds_42_43_44_ck6000": {
+        "rule_source": "docs/ssl-arms.json predeclaration (written before s43/s44 launch): same positive macro-F1 sign in seeds 42,43,44 on at least one dataset AND the other dataset not worse than -0.01 in those seeds. Primary checkpoint 6000; features 224 cls4 and 448 cls4_d4.",
+        "r448_cls4_d4": {
+          "HAM_F1_delta_s42_s43_s44": [
+            0.0172,
+            0.0199,
+            0.0136
+          ],
+          "HAM_F1_ci95": [
+            [
+              0.0009,
+              0.0362
+            ],
+            [
+              0.0031,
+              0.0411
+            ],
+            [
+              -0.0079,
+              0.0364
+            ]
+          ],
+          "PAD_F1_delta_s42_s43_s44": [
+            0.0013,
+            -0.0050,
+            -0.0013
+          ],
+          "HAM_mel_to_nv_delta_pp": [
+            0.4,
+            -1.4,
+            0.8
+          ],
+          "PAD_SCC_to_BCC_delta_pp": [
+            0.7,
+            0.4,
+            7.0
+          ],
+          "PAD_SCC_to_BCC_ci95_s44": [
+            0.9,
+            14.9
+          ],
+          "verdict": "PASSES the literal predeclared rule (HAM positive 3/3; PAD never worse than -0.01). Gain is small and its IC in s44 includes 0. Endpoint not improved (mel->NV unchanged). PAD SCC->BCC worse in s44 (CI excludes 0), outside the rule but reported."
+        },
+        "r224_cls4": {
+          "HAM_F1_delta_s42_s43_s44": [
+            -0.0226,
+            -0.0065,
+            -0.0055
+          ],
+          "PAD_F1_delta_s42_s43_s44": [
+            0.0182,
+            -0.0010,
+            0.0071
+          ],
+          "verdict": "FAILS: HAM negative in 3/3 seeds (sign not positive), PAD sign not consistent, and HAM at s42 worse by more than 0.01."
+        },
+        "note": "Seed-42 readout was used for selection; a confirmatory reading is seeds 43/44 only: 448 HAM still positive in both (+0.020, +0.014). Checkpoints 2000/4000 are descriptive only."
+      },
+      "cluster_line_status": "CLOSED by coordinator decision ( cluster-ssl final report). Hier HAM F1 2000/4000/6000 = 0.602/0.626/0.613 vs base 0.633, matches statistical reviewer bootstrap.",
+      "multiplicity": "SSL arms on dev now ~16 (cluster x2, d4_color, queue4096, d4_only, SDCLR, plus v4 folders) x 3 checkpoints x 2 resolutions; no correction. queue4096 HAM-448 lower bound (+0.0009) would not survive correction.",
+      "overfitting_check_rule": "Coordinator rule: improves at 2000 and falls at 6000 = SSL overfit. queue4096 224 HAM partially matches (declines 2000->6000) but 2000 is not an improvement (+0.003, CI includes 0). No other arm shows a peak-then-fall pattern."
+    },
+    "ssl_cluster_balanced_arm_seed42_only": {
+      "source": "docs/cluster-ssl.json ( cluster-ssl), status NEGATIVE_SEED42, seeds 43/44 not run (brief rule), checkpoint sha256 7778c1d8...",
+      "compared_against": "fresh s42 baselines (224 HAM 0.633, not 3-seed 0.621), per CV seed deltas",
+      "224_cls4_HAM_macro_f1": {
+        "base": 0.6328,
+        "cb": 0.596,
+        "delta_per_cv": [
+          -0.041,
+          -0.048,
+          -0.022
+        ]
+      },
+      "224_cls4_HAM_mel_to_nv": {
+        "base": 0.2347,
+        "cb": 0.2584,
+        "delta_per_cv": [
+          0.041,
+          0.0,
+          0.03
+        ]
+      },
+      "224_cls4_PAD_MEL_recall": {
+        "base": 0.7407,
+        "cb": 0.679,
+        "delta_per_cv": [
+          -0.074,
+          -0.037,
+          -0.074
+        ]
+      },
+      "448_cls4_d4_HAM_macro_f1": {
+        "base": 0.6136,
+        "cb": 0.6128,
+        "delta_per_cv": [
+          0.008,
+          -0.006,
+          -0.004
+        ]
+      },
+      "448_cls4_d4_HAM_mel_to_nv": {
+        "base": 0.1913,
+        "cb": 0.2071,
+        "delta_per_cv": [
+          -0.012,
+          0.024,
+          0.036
+        ]
+      },
+      "448_cls4_d4_HAM_mel_recall": {
+        "base": 0.5661,
+        "cb": 0.5286,
+        "delta_per_cv": [
+          0.012,
+          -0.059,
+          -0.065
+        ]
+      },
+      "reading": "Negative at 224 (HAM macro-F1 lower on all 3 CV seeds). At 448+D4 no consistent target gain; HAM mel recall worse on 2 of 3 CV seeds.",
+      "confound": "pad_adapt clusters: 16 of 29 have <=3 rows, so singleton PAD images are drawn ~39x more often than V4 uniform. PAD endpoints are confounded; source-only ablation not run.",
+      "critic_note": "Mel->NV worsens at 224 by +2.4 pp mean (inconsistent), so this arm does not improve the candidate endpoints either. Overfit check for this arm limited to one seed and no intermediate checkpoints."
+    },
+    "ssl_final_step_predeclared": 6000,
+    "seed_stability": "see per-seed deltas above; PAD candidate non-negative 3/3, HAM mixed",
+    "cv_seed_stability": "PENDING per-CV-seed table from  reader-imbalance"
+  },
+  "pool_and_leakage_check": {
+    "pool_file": "config/ssl-overlay-v1/mixed-fit.jsonl",
+    "rows": 34754,
+    "roles": {
+      "source_fit": 33620,
+      "pad_adapt": 1134
+    },
+    "source_fit_sources": {
+      "isic2020_train": 19548,
+      "isic2019_train": 14072
+    },
+    "no_lesion_id_field": true,
+    "ham_dev_image_id_overlap_with_pool": 0,
+    "ham_dev_identity_component_overlap_with_pool": 0,
+    "ham_fit_overlap_with_pool": {
+      "image_ids": 6221,
+      "components": 4701,
+      "of": 6249
+    },
+    "pad_adapt_overlap_with_pool": 1134,
+    "sealed_roles_separation": {
+      "status": "EXCLUDED BY DOCUMENTED POLICY; NOT INDEPENDENTLY VERIFIED",
+      "source": "results/content-exclusion-overlay-v1/receipt.json (status COMPLETE)",
+      "protected_roles": [
+        "ham_holdout",
+        "pad_test"
+      ],
+      "policy": "Exclude any candidate row whose identity_component_id occurs in ham_holdout or pad_test",
+      "additional_filter": "pHash <= 4: 1128 excluded candidate pairs",
+      "protected_components_removed_from_eligible": 0,
+      "per_role_excluded": {
+        "ham_dev": 74,
+        "ham_fit": 161,
+        "pad_adapt": 7,
+        "source_dev": 445,
+        "source_fit": 710
+      },
+      "limits_from_receipt": [
+        "No embedding full-pool audit was conducted.",
+        "Fixed pHash distance <=4 has limited coverage and may miss transformed duplicates.",
+        "Zero exact-RGB disjoint conflicts does not exonerate transformed content leakage.",
+        "This overlay cannot guarantee all protected image content is absent.",
+        "No training, external upload, canonical edit, or patient-component closure was performed."
+      ],
+      "critic_note": "Sealed manifests were not opened by the statistical reviewer (per coordinator). The 0 overlap for ham_dev and pad_adapt with the SSL pool is verified from IDs only; the absence of overlap with ham_holdout and pad_test is taken from the receipt and is not independently verified."
+    }
+  },
+  "predeclaration": {
+    "track_A_candidate_for_blind_test": "ACCEPTED by coordinator (2026-11-09): A_448_cls4_d4, marked POST-HOC on dev (~60 comparisons, no correction). Coordinator to confirm with project owner in final email. Not a confirmed winner.",
+    "track_A_final_ssl_step": 6000,
+    "track_B_fusion_weight": "PENDING; w=0.1 is post-hoc among 3"
+  },
+  "conclusion_so_far": "No Track A arm shows a statistically supported macro-F1 gain over the same-environment baseline on HAM dev or PAD dev (all paired CIs include 0). HAM mel->NV reduction for 448_cls4_d4 is consistent in direction across 3/3 encoder seeds but is point-estimate only. Track B metadata fusion gives the largest PAD gain (+0.07 at 224), but its HAM effect is negative at 224 and has no OOF-based CI yet."
+}

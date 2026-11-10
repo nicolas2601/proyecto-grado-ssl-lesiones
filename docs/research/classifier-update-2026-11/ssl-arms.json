@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "date": "2026-11-09 / 2026-11-10",
+    "scope": "Q2 (D4 + colour views, with colour-off control), Q3 (K=4096 teacher-key queue), Q4 gate, ViT-L/14 feasibility. Track A only. Seeds 42/43/44.",
+    "status": "IN PROGRESS. Predeclaration written before seeds 43/44 were launched; numbers below are filled from readouts only."
+  },
+  "predeclaration": {
+    "written_at": "2026-11-10, before queue4096 s43/s44 were launched",
+    "disclosure": "Seed-42 readouts of all arms were reviewed by coordinator before this predeclaration was written. Seed 42 therefore cannot confirm the queue arm; it only selected it. The confirmatory test is seeds 43 and 44, which had no readouts when this was written.",
+    "arm": "queue4096 (Q3): MoCo key queue K=4096 of teacher keys, FIFO, both views enqueued, symmetric InfoNCE over in-batch + queue negatives. Otherwise quota4 recipe, 6000 steps, batch 16, T=0.2, momentum 0.99.",
+    "primary_checkpoint": 6000,
+    "primary_features": [
+      "224 CLS4 (cls4)",
+      "448 CLS4 + D4 TTA (cls4_d4)"
+    ],
+    "primary_endpoints": [
+      "macro-F1 HAM (ham_dev)",
+      "macro-F1 PAD (pad_adapt)",
+      "HAM mel->NV",
+      "PAD SCC->BCC"
+    ],
+    "baselines": {
+      "224 cls4": "results/moco-v10-teacher-cls4-20261108/readouts/student-s{seed}-{HAM,PAD}.json",
+      "448 cls4_d4": "results/moco-v10-variants-20261109/readouts/s{seed}-r448-cls4_d4-{HAM,PAD}.json"
+    },
+    "success_rule": "Success if the macro-F1 delta (arm minus fresh same-environment baseline) has the same positive sign in seeds 42, 43 and 44 on at least one dataset, AND the other dataset does not worsen by more than 0.01 macro-F1 in those seeds.",
+    "failure_rule": "Anything else is not success. Other checkpoints (2000, 4000) and other arms are reported as descriptive only.",
+    "not_run": "No further arms; d4_color, d4_only and SDCLR are closed as neutral or negative. No seeds beyond 42/43/44."
+  },
+  "arms": {
+    "d4_color": {
+      "state": "COMPLETE",
+      "gpu": 0,
+      "note": "reported by coordinator: neutral/negative"
+    },
+    "d4_only": {
+      "state": "COMPLETE",
+      "gpu": 1,
+      "note": "reported by coordinator: neutral/negative"
+    },
+    "queue4096_s42": {
+      "state": "COMPLETE",
+      "note": "reported by coordinator: only arm with signal on s42 (448 D4 HAM +0.017 at all three ckpts; PAD 224 +0.018 at ck2000 and decaying to HAM 224 -0.023 at ck6000)"
+    }
+  },
+  "q4_gate": {
+    "state": "DEFERRED (coordinator decision)",
+    "result_file": "results/moco-v10-ssl-arms-20261109/q4-gate/gate.json",
+    "findings": {
+      "HAM_source_fit": "2693 images with a same-lesion partner in the pool (1173 lesions, 1916 pairs). Uses HAM10000 lesion_id on the 6221 pool images that are in ham_fit. Not a dummy grouping; a real lesion key.",
+      "PAD_pad_adapt": "377 images with a partner (173 lesions, 247 pairs). Matches coordinator count."
+    },
+    "caveat": "Pre-declared threshold of 200 images per dataset was arbitrary; coordinator used a ~1% noise criterion. Lesion purity audit not done (needs diagnosis, not allowed in this gate)."
+  },
+  "vit_l_feasibility": {
+    "state": "PLAN ONLY",
+    "weights": "dinov2_vitl14_pretrain.pth downloadable from dl.fbaipublicfiles.com from the cluster (HTTP 200, 1,217,586,395 bytes); not in torch hub cache",
+    "code_changes": "EMBED_DIM=768 and HEAD sizes are fixed in moco_v3_20261029_helpers.py; the runtime, heads, feature script (ops.PUBLIC, get_intermediate_layers) and checks all assume ViT-B. ViT-L needs embed_dim 1024 and a 24-block freeze plan (freeze_blocks=20 for 'last 4 trainable').",
+    "vram_estimate": "not measured. Weights bf16 about 0.6 GB; fp32 teacher copy 1.2 GB; trainable last 4 blocks ~50M parameters with AdamW state; activations for batch 16 x 2 views at 257 tokens. Expected to fit under ~10 GB, unverified.",
+    "compute": "~3.5x ViT-B per step (estimate, not timed). ViT-B run took 0.45 h wall for 6000 steps, so ViT-L is roughly 1.5-2 h per seed.",
+    "recommendation": "Only after queue4096 s43/s44 are decided; it changes the backbone, so it is a new base and not an arm of this comparison."
+  },
+  "skills_invoked": {
+    "strict-tdd": "Real RED then GREEN for queue/transform/loss helpers: selfcheck run failed on missing module before implementation, then 8/8 PASS on CPU.",
+    "systematic-debugging": "Not invoked as a Skill. The queue was checked by reading process state and logs directly; the GPU rule was changed on coordinator instruction, not by a debugging cycle."
+  }
+}
