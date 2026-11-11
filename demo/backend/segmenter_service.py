@@ -1,8 +1,9 @@
 """Optional lesion segmenter (ONNX) for /api/analyze. It never alters the classifier input.
 
 Artifacts: ``segmenter_manifest.json`` (schema dermssl.segmenter.v1, pinned by SHA256 from the
-environment) and ``segmenter.onnx`` (hash listed in the manifest). Preprocessing is read from the
-manifest ``input`` block; the output is ``logits`` (1, 1, S, S) thresholded at sigmoid > 0.5.
+environment) and the ONNX file named in its ``onnx`` block (hash checked). Preprocessing and
+postprocessing follow the manifest and ``segmenter_preprocess``; the raw mask is the thresholded
+probability map, and the contour is the outer boundary of its largest connected component.
 """
 
 from __future__ import annotations
@@ -25,6 +26,14 @@ from .segmenter_geometry import (
     outer_contour,
     simplify_contour,
 )
+from .segmenter_preprocess import (
+    Preprocessing,
+    PreprocessError,
+    parse_preprocessing,
+    preprocess,
+    probability_to_mask,
+    require_opencv,
+)
 from .tone_sim import MAX_AREA_FRACTION, MIN_AREA_FRACTION
 
 SCHEMA = "dermssl.segmenter.v1"
@@ -34,8 +43,8 @@ THRESHOLD = 0.5
 THREADS = 2
 MAX_MASK_SIDE = 512
 SHA256_PATTERN = r"[a-f0-9]{64}"
-LOGIT_CLIP = 60.0
 PROBABILITY_DECIMALS = 4
+PNG_SEGMENTATION_THRESHOLD = 128
 
 
 class SegmenterError(RuntimeError):
@@ -47,18 +56,10 @@ class SegmenterError(RuntimeError):
 
 
 @dataclass(frozen=True)
-class InputConfig:
-    size: int
-    scale: float
-    mean: np.ndarray
-    std: np.ndarray
-
-
-@dataclass(frozen=True)
 class Loaded:
     session: Any
     input_name: str
-    config: InputConfig
+    config: Preprocessing
     identity: dict[str, Any]
 
 
@@ -104,35 +105,31 @@ def _read_manifest(directory: Path, expected_sha256: str | None) -> dict[str, An
     return manifest
 
 
-def _input_config(manifest: dict[str, Any]) -> InputConfig:
+def _model_sha(manifest: dict[str, Any]) -> str:
+    block = manifest.get("onnx")
+    if not isinstance(block, dict) or block.get("file") != MODEL_NAME:
+        raise SegmenterError("segmenter_error", "segmenter manifest onnx block must name segmenter.onnx")
+    sha = block.get("sha256")
+    if not isinstance(sha, str) or not re.fullmatch(SHA256_PATTERN, sha):
+        raise SegmenterError("segmenter_error", "segmenter manifest has no valid model SHA256")
+    return sha
+
+
+def _input_config(manifest: dict[str, Any]) -> Preprocessing:
     block = manifest.get("input")
     shape = block.get("shape") if isinstance(block, dict) else None
     if (not isinstance(block, dict) or block.get("name") != "pixel_values" or block.get("dtype") != "float32"
-            or block.get("color") != "RGB" or not isinstance(shape, list) or len(shape) != 4):
+            or not isinstance(shape, list) or len(shape) != 4 or shape[1] != 3):
         raise SegmenterError("segmenter_error", "segmenter input block does not match the contract")
     size = shape[2]
-    if shape[1] != 3 or shape[2] != shape[3] or not isinstance(size, int) or size <= 0:
-        raise SegmenterError("segmenter_error", "segmenter input shape must be (batch, 3, S, S)")
-    scale, mean, std = block.get("scale"), block.get("mean"), block.get("std")
-    if not isinstance(scale, (int, float)) or scale <= 0:
-        raise SegmenterError("segmenter_error", "segmenter input scale is invalid")
-    if not (isinstance(mean, list) and isinstance(std, list) and len(mean) == 3 and len(std) == 3
-            and all(value > 0 for value in std)):
-        raise SegmenterError("segmenter_error", "segmenter mean/std are invalid")
-    return InputConfig(size=size, scale=float(scale), mean=np.asarray(mean, np.float32),
-                       std=np.asarray(std, np.float32))
-
-
-def preprocess(rgb: np.ndarray, config: InputConfig) -> np.ndarray:
-    """Single configurable preprocessing path: RGB, bilinear resize to S, scale, normalise, NCHW."""
-    resized = Image.fromarray(rgb, mode="RGB").resize((config.size, config.size), Image.Resampling.BILINEAR)
-    pixels = np.asarray(resized, dtype=np.float32) / np.float32(config.scale)
-    pixels = (pixels - config.mean) / config.std
-    return np.ascontiguousarray(pixels.transpose(2, 0, 1)[None], dtype=np.float32)
-
-
-def _sigmoid(logits: np.ndarray) -> np.ndarray:
-    return 1.0 / (1.0 + np.exp(-np.clip(logits, -LOGIT_CLIP, LOGIT_CLIP)))
+    if shape[2] != shape[3] or not isinstance(size, int) or size <= 0:
+        raise SegmenterError("segmenter_error", "segmenter input shape must be (N, 3, S, S)")
+    try:
+        config = parse_preprocessing(block, size)
+        require_opencv(config)
+    except PreprocessError as exc:
+        raise SegmenterError("segmenter_error", str(exc)) from exc
+    return config
 
 
 def _raster_size(width: int, height: int) -> tuple[int, int]:
@@ -179,11 +176,8 @@ class SegmenterService:
 
     def _load(self) -> Loaded:
         manifest = _read_manifest(self._dir, self._pin)
+        model_sha = _model_sha(manifest)
         config = _input_config(manifest)
-        files = manifest.get("files")
-        model_sha = files.get(MODEL_NAME) if isinstance(files, dict) else None
-        if not isinstance(model_sha, str) or not re.fullmatch(SHA256_PATTERN, model_sha):
-            raise SegmenterError("segmenter_error", "segmenter manifest has no model SHA256")
         model_path = self._dir / MODEL_NAME
         if not model_path.is_file() or _sha256(model_path) != model_sha:
             raise SegmenterError("segmenter_error", "segmenter ONNX is missing or does not match the manifest")
@@ -196,7 +190,6 @@ class SegmenterService:
             "run": manifest.get("run"),
             "release": manifest.get("release"),
             "model_sha256": model_sha,
-            "supervision": manifest.get("supervision"),
             "input_size": config.size,
         }
         return Loaded(session=session, input_name=inputs[0].name, config=config, identity=identity)
@@ -211,25 +204,20 @@ class SegmenterService:
     def segment(self, rgb: np.ndarray) -> Segmentation:
         loaded = self._ensure_loaded()
         logits = self._run(loaded, rgb)
-        probabilities = _sigmoid(logits)
-        kept = largest_component(probabilities > THRESHOLD)
-        if not kept.any():
-            raise SegmenterError("empty_mask")
         height, width = rgb.shape[:2]
-        full = np.asarray(
-            Image.fromarray(np.where(kept, probabilities, 0.0).astype(np.float32), mode="F")
-            .resize((width, height), Image.Resampling.BILINEAR)
-        )
-        full_mask = full > THRESHOLD
+        full_mask = probability_to_mask(logits, width, height, THRESHOLD)
+        if not full_mask.any():
+            raise SegmenterError("empty_mask")
         self._check_area(full_mask)
         return Segmentation(payload=self._payload(full_mask, width, height, loaded), full_mask=full_mask)
 
     def _run(self, loaded: Loaded, rgb: np.ndarray) -> np.ndarray:
         size = loaded.config.size
         try:
-            outputs = loaded.session.run(["logits"], {loaded.input_name: preprocess(rgb, loaded.config)})
+            batch = preprocess(rgb, loaded.config)
+            outputs = loaded.session.run(["logits"], {loaded.input_name: batch})
             logits = np.asarray(outputs[0], dtype=np.float32)
-        except Exception as exc:  # noqa: BLE001 - ONNX inference boundary
+        except Exception as exc:  # noqa: BLE001 - preprocessing and ONNX inference boundary
             raise SegmenterError("segmenter_error", "segmenter inference failed") from exc
         if logits.shape != (1, 1, size, size) or not np.isfinite(logits).all():
             raise SegmenterError("segmenter_error", "segmenter returned invalid logits")
@@ -237,17 +225,13 @@ class SegmenterService:
 
     @staticmethod
     def _check_area(mask: np.ndarray) -> None:
-        if not mask.any():
-            raise SegmenterError("empty_mask")
         area = float(mask.mean())
         if not MIN_AREA_FRACTION <= area <= MAX_AREA_FRACTION:
             raise SegmenterError("degenerate_mask")
 
     def _payload(self, full_mask: np.ndarray, width: int, height: int, loaded: Loaded) -> dict[str, Any]:
         raster_wh = _raster_size(width, height)
-        raster = np.asarray(
-            Image.fromarray(full_mask.astype(np.uint8) * 255, mode="L").resize(raster_wh, Image.Resampling.NEAREST)
-        ) >= 128
+        raster = _resize_mask(full_mask, raster_wh)
         contour = simplify_contour(outer_contour(largest_component(raster)))
         return {
             "image_width": width,
@@ -260,3 +244,8 @@ class SegmenterService:
             "threshold": THRESHOLD,
             "identity": dict(loaded.identity),
         }
+
+
+def _resize_mask(mask: np.ndarray, size: tuple[int, int]) -> np.ndarray:
+    image = Image.fromarray(mask.astype(np.uint8) * 255, mode="L").resize(size, Image.Resampling.NEAREST)
+    return np.asarray(image) >= PNG_SEGMENTATION_THRESHOLD

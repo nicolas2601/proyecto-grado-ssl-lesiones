@@ -4,6 +4,7 @@ import base64
 import hashlib
 import io
 import json
+import sys
 from types import SimpleNamespace
 
 import numpy as np
@@ -21,6 +22,8 @@ from demo.backend.segmenter_geometry import (
 from demo.backend.segmenter_service import SegmenterError, SegmenterService
 
 SIZE = 224
+DEFAULT_STEPS = ("resize 224x224 bilinear", "float32 /255")
+HAIR_STEP = "hair removal: cv2 black-hat (kernel 9 ellipse, threshold 10) + Telea inpaint radius 3, shaped=False"
 
 
 def _square(h=10, w=12, top=2, left=3):
@@ -84,28 +87,29 @@ def test_mask_png_round_trips_as_binary_grayscale():
     assert Image.open(io.BytesIO(payload)).mode == "L"
 
 
-def _write_segmenter(tmp_path, *, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0), threshold=0.5):
+def _write_segmenter(tmp_path, *, steps=DEFAULT_STEPS, threshold=0.5, release=None):
     onnx_bytes = b"synthetic segmenter"
     (tmp_path / "segmenter.onnx").write_bytes(onnx_bytes)
     manifest = {
         "schema": "dermssl.segmenter.v1",
-        "model_id": "dermlip-resnet34-unet-teacher",
-        "run": "abl0xx-ima-sNN",
-        "release": "v10.2.0",
-        "supervision": "semi-supervised (PH2 + IMA++ masks, unlabeled ISIC pool)",
+        "model_id": "dermlip-resnet34-unet-student",
+        "run": "dermlip-test-run",
+        "onnx": {"file": "segmenter.onnx", "sha256": hashlib.sha256(onnx_bytes).hexdigest(), "opset": 17},
         "input": {
             "name": "pixel_values",
             "dtype": "float32",
-            "shape": ["batch", 3, SIZE, SIZE],
-            "color": "RGB",
-            "scale": 255.0,
-            "mean": list(mean),
-            "std": list(std),
+            "shape": ["N", 3, SIZE, SIZE],
+            "layout": "NCHW",
+            "range": "[0,1] RGB; ImageNet normalisation is inside the graph",
+            "resize": "bilinear",
+            "preprocessing_required": list(steps),
         },
-        "output": {"name": "logits", "shape": ["batch", 1, SIZE, SIZE]},
+        "output": {"name": "logits", "shape": ["N", 1, SIZE, SIZE], "dtype": "float32",
+                   "activation": "apply sigmoid outside the graph"},
         "threshold": threshold,
-        "files": {"segmenter.onnx": hashlib.sha256(onnx_bytes).hexdigest()},
     }
+    if release is not None:
+        manifest["release"] = release
     content = json.dumps(manifest).encode("utf-8")
     (tmp_path / "segmenter_manifest.json").write_bytes(content)
     return hashlib.sha256(content).hexdigest()
@@ -129,7 +133,7 @@ class FakeSegSession:
         yy, xx = np.mgrid[:SIZE, :SIZE]
         disk = (yy - 112) ** 2 + (xx - 112) ** 2 <= 60**2
         logits = np.where(disk, 5.0, -5.0).astype(np.float32)
-        logits[0:3, 0:3] = 5.0  # isolated speck, must be dropped
+        logits[0:3, 0:3] = 5.0  # isolated speck, dropped from the contour (largest component only)
         return [logits[None, None]]
 
 
@@ -137,7 +141,7 @@ def _image(width=640, height=480, value=(128, 96, 80)):
     return np.full((height, width, 3), value, dtype=np.uint8)
 
 
-def test_segment_returns_largest_component_mask_and_contour(tmp_path):
+def test_segment_returns_mask_and_largest_component_contour(tmp_path):
     pin = _write_segmenter(tmp_path)
     service = SegmenterService(tmp_path, pin, session_factory=lambda _: FakeSegSession())
 
@@ -151,13 +155,16 @@ def test_segment_returns_largest_component_mask_and_contour(tmp_path):
     contour = result.payload["contour"]
     assert len(contour) <= 256
     assert min(x for x, _ in contour) > 0.05 * 640
-    assert result.payload["identity"]["model_sha256"]
+    identity = result.payload["identity"]
+    assert identity["model_sha256"] and identity["model_id"] == "dermlip-resnet34-unet-student"
+    assert identity["release"] is None
+    assert "supervision" not in identity
     mask_png = base64.b64decode(result.payload["mask_png_base64"])
     assert set(np.unique(np.asarray(Image.open(io.BytesIO(mask_png))))) <= {0, 255}
 
 
-def test_preprocessing_follows_manifest_input_block(tmp_path):
-    pin = _write_segmenter(tmp_path, mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+def test_default_preprocessing_is_resize_then_scale_without_hair_step(tmp_path):
+    pin = _write_segmenter(tmp_path, steps=DEFAULT_STEPS)
     session = FakeSegSession()
     service = SegmenterService(tmp_path, pin, session_factory=lambda _: session)
 
@@ -167,6 +174,47 @@ def test_preprocessing_follows_manifest_input_block(tmp_path):
     assert feed.shape == (1, 3, SIZE, SIZE)
     assert feed.dtype == np.float32
     assert np.allclose(feed, 1.0)
+
+
+def test_hair_step_removes_a_thin_dark_line_before_inference(tmp_path):
+    pin = _write_segmenter(tmp_path, steps=(DEFAULT_STEPS[0], HAIR_STEP, DEFAULT_STEPS[1]))
+    session = FakeSegSession()
+    service = SegmenterService(tmp_path, pin, session_factory=lambda _: session)
+    skin = np.full((SIZE, SIZE, 3), 200, dtype=np.uint8)
+    skin[:, 100] = 0  # a black hair across the whole image
+
+    service.segment(skin)
+
+    feed = session.feeds[0]
+    line = feed[0, 0, 50, 100] * 255.0
+    assert line > 150.0, "the inpainted hair pixel should look like the surrounding skin"
+
+
+def test_unknown_preprocessing_step_fails_closed(tmp_path):
+    pin = _write_segmenter(tmp_path, steps=(DEFAULT_STEPS[0], "magic normalisation"))
+    service = SegmenterService(tmp_path, pin, session_factory=lambda _: FakeSegSession())
+
+    status = service.status()
+    assert status["ready"] is False
+    assert status["reason"] == "segmenter_error"
+
+
+def test_hair_step_without_opencv_fails_closed_at_load(tmp_path, monkeypatch):
+    pin = _write_segmenter(tmp_path, steps=(DEFAULT_STEPS[0], HAIR_STEP, DEFAULT_STEPS[1]))
+    monkeypatch.setitem(sys.modules, "cv2", None)
+    service = SegmenterService(tmp_path, pin, session_factory=lambda _: FakeSegSession())
+
+    assert service.status()["ready"] is False
+    with pytest.raises(SegmenterError) as caught:
+        service.segment(_image())
+    assert caught.value.reason == "segmenter_error"
+
+
+def test_manifest_release_is_reported_when_present(tmp_path):
+    pin = _write_segmenter(tmp_path, release="v10.2.0")
+    service = SegmenterService(tmp_path, pin, session_factory=lambda _: FakeSegSession())
+
+    assert service.status()["identity"]["release"] == "v10.2.0"
 
 
 def test_empty_mask_is_reported_as_reason(tmp_path):
@@ -214,3 +262,11 @@ def test_missing_artifacts_are_unavailable_not_fatal(tmp_path):
 
     assert service.status()["ready"] is False
     assert service.status()["reason"]
+
+
+@pytest.mark.parametrize("resize_step", ["resize 224 bilinear", "resize 224x224 bilinear"])
+def test_both_resize_spellings_of_the_release_manifest_are_accepted(tmp_path, resize_step):
+    pin = _write_segmenter(tmp_path, steps=(resize_step, DEFAULT_STEPS[1]))
+    service = SegmenterService(tmp_path, pin, session_factory=lambda _: FakeSegSession())
+
+    assert service.status()["ready"] is True
