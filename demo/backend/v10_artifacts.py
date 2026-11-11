@@ -78,6 +78,8 @@ class BundleSpec:
     required_files: frozenset[str]
     report_file: str | None
     recipe_error: str
+    # Listed in the manifest but not shipped with the ONNX runtime (torch-only). Hash-checked if present.
+    optional_files: frozenset[str] = frozenset()
 
 
 BUNDLE_SPECS = {
@@ -104,6 +106,7 @@ BUNDLE_SPECS = {
         required_files=V2_REQUIRED_FILES,
         report_file=None,
         recipe_error="V10 manifest recipe does not match the v2 D4 contract",
+        optional_files=frozenset({"classifier.pt"}),
     ),
 }
 
@@ -196,10 +199,14 @@ def verify_bundle_files(bundle_dir: Path, manifest: dict[str, Any]) -> dict[str,
     files = manifest.get("files")
     if not isinstance(files, dict):
         raise V10ArtifactError("V10 manifest is missing file hashes")
-    paths = {relative: verify_bundle_file(bundle_dir, manifest, relative) for relative in files}
-    # Unknown schemas fall back to the strictest (v1) file set: fail closed.
-    required = BUNDLE_SPECS.get(manifest.get("schema"), BUNDLE_SPECS[SCHEMA_V1]).required_files
-    if not required.issubset(files):
+    # Unknown schemas fall back to the strictest (v1) contract: fail closed.
+    spec = BUNDLE_SPECS.get(manifest.get("schema"), BUNDLE_SPECS[SCHEMA_V1])
+    paths = {
+        relative: verify_bundle_file(bundle_dir, manifest, relative)
+        for relative in files
+        if relative not in spec.optional_files or (bundle_dir / relative).is_file()
+    }
+    if not spec.required_files.issubset(files):
         raise V10ArtifactError("V10 manifest is missing required runtime files")
     if files["preprocess.py"] != files["code/dermssl/release/moco_preprocess.py"]:
         raise V10ArtifactError("V10 bundled preprocessing copies differ")

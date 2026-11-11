@@ -62,6 +62,8 @@ def _bundle(tmp_path, *, schema=SCHEMA_V2, input_size=448, recipe=None, drop=())
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(payload)
         files[name] = hashlib.sha256(payload).hexdigest()
+    # The real v10.1.0 manifest lists the torch-only checkpoint, which the ONNX runtime does not ship.
+    files["classifier.pt"] = hashlib.sha256(b"torch checkpoint").hexdigest()
     manifest = {
         "schema": schema,
         "release": "v10.1.0",
@@ -138,6 +140,14 @@ def test_v2_missing_pad_head_fails_closed(tmp_path):
 
 def test_v2_rejects_unknown_schema(tmp_path):
     service, _ = _service(tmp_path, V2Session(), schema="dermssl.moco-bundle.v9")
+
+    with pytest.raises(V10ArtifactError):
+        service.predict(Image.new("RGB", (8, 8)), model_key="MOCO_HAM7")
+
+
+def test_v2_present_torch_checkpoint_must_match_its_hash(tmp_path):
+    service, _ = _service(tmp_path, V2Session())
+    (tmp_path / "classifier.pt").write_bytes(b"tampered checkpoint")
 
     with pytest.raises(V10ArtifactError):
         service.predict(Image.new("RGB", (8, 8)), model_key="MOCO_HAM7")
