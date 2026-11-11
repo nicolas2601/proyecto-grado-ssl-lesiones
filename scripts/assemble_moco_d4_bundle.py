@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from dermssl.release.moco_d4 import RECIPE  # noqa: E402
 RELEASE_SCRIPTS = ROOT / "scripts/release_v10"
-RELEASE = "v10.1.0-candidate"
+RELEASE = "v10.1.0"
 PREPROCESS = {"exif_transpose": True, "color_mode": "RGB", "resize": [448, 448], "interpolation": "PIL.BICUBIC",
               "crop": None, "mean": [.485, .456, .406], "std": [.229, .224, .225]}
 
@@ -75,7 +75,7 @@ def main():
                                   "output_name": "pad6_probabilities", "model_key": "MOCO_PAD6"}},
                 "source_commit": args.source_commit, "feature_dim": 3072, "views": 8,
                 "input": {"name": "pixel_values", "dtype": "float32", "shape": ["batch", 3, 448, 448]},
-                "preprocessing": PREPROCESS, "recipe": RECIPE, "scope": "Research only; candidate, not published"}
+                "preprocessing": PREPROCESS, "recipe": RECIPE, "scope": "Research only; not a clinical diagnosis"}
     files = {}
     for path in sorted(p for p in bundle.rglob("*") if p.is_file()):
         files[str(path.relative_to(bundle))] = sha256(path)
