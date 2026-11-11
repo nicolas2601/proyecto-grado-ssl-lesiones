@@ -45,3 +45,10 @@ def test_manifest_rejects_wrong_class_order(tmp_path):
     (tmp_path / "manifest.json").write_text(json.dumps(document))
     with pytest.raises(ValueError, match="task|class"):
         runner.verify_bundle(tmp_path)
+
+
+def test_input_size_comes_from_the_manifest_and_defaults_to_224():
+    assert runner.input_size({"input": {"shape": ["batch", 3, 448, 448]}}) == 448
+    assert runner.input_size({}) == 224
+    with pytest.raises(ValueError, match="input shape"):
+        runner.input_size({"input": {"shape": ["batch", 3, 448, 224]}})

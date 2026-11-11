@@ -17,6 +17,10 @@ TASKS = {"HAM": {"classes": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
                  "output_name": "pad6_probabilities", "model_key": "MOCO_PAD6"}}
 
 
+SCHEMAS = ("dermssl.moco-bundle.v1", "dermssl.moco-bundle.v2")
+DEFAULT_SIZE = 224
+
+
 def sha256_file(path):
     digest = hashlib.sha256()
     with Path(path).open("rb") as stream:
@@ -31,7 +35,7 @@ def verify_bundle(root, expected_manifest_sha256=None, runtime=None):
     if expected_manifest_sha256 and sha256_file(manifest_path) != expected_manifest_sha256:
         raise ValueError("Manifest digest mismatch")
     manifest = json.loads(manifest_path.read_text())
-    if manifest.get("schema") != "dermssl.moco-bundle.v1":
+    if manifest.get("schema") not in SCHEMAS:
         raise ValueError("Unsupported bundle schema")
     if manifest.get("tasks") != TASKS:
         raise ValueError("Native task/class contract mismatch")
@@ -47,12 +51,27 @@ def verify_bundle(root, expected_manifest_sha256=None, runtime=None):
     return manifest
 
 
-def infer(root, pixels, runtime, task):
+def input_size(manifest):
+    shape = manifest.get("input", {}).get("shape", ["batch", 3, DEFAULT_SIZE, DEFAULT_SIZE])
+    if shape[1:2] != [3] or shape[2] != shape[3]:
+        raise ValueError("Unsupported input shape in manifest")
+    return int(shape[2])
+
+
+def load_torch_model(root, schema):
+    if schema == "dermssl.moco-bundle.v2":
+        from dermssl.release.moco_d4 import load_checkpoint
+    else:
+        from dermssl.release.moco_bundle import load_checkpoint
+    model, _ = load_checkpoint(root / "classifier.pt")
+    return model
+
+
+def infer(root, pixels, runtime, task, schema="dermssl.moco-bundle.v1"):
     if runtime == "torch":
         import torch
-        from dermssl.release.moco_bundle import load_checkpoint
         torch.set_num_threads(2)
-        model, _ = load_checkpoint(root / "classifier.pt")
+        model = load_torch_model(root, schema)
         with torch.inference_mode():
             return model(torch.from_numpy(pixels))[0 if task == "HAM" else 1].numpy()
     import onnxruntime as ort
@@ -75,11 +94,12 @@ def main():
     manifest = verify_bundle(root, args.manifest_sha256, runtime=args.runtime)
     sys.path.insert(0, str(root / "code"))
     from dermssl.release.moco_preprocess import preprocess_image
+    size = input_size(manifest)
     with Image.open(args.image) as image:
         if image.width * image.height > 20_000_000:
             raise ValueError("Image exceeds 20 megapixels")
-        pixels = preprocess_image(image)
-    probabilities = np.asarray(infer(root, pixels, args.runtime, args.task), dtype=float)
+        pixels = preprocess_image(image, size)
+    probabilities = np.asarray(infer(root, pixels, args.runtime, args.task, manifest["schema"]), dtype=float)
     classes = TASKS[args.task]["classes"]
     if (probabilities.shape != (1, len(classes)) or not np.isfinite(probabilities).all()
             or np.any(probabilities < 0) or not np.allclose(probabilities.sum(1), 1, atol=1e-5)):
