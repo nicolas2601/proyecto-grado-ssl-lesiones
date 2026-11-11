@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import io
 import os
 import threading
 from pathlib import Path
@@ -10,9 +9,12 @@ from typing import Any
 from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import Image
 
+from .analyze_routes import register_analyze_routes
 from .request_limits import InferenceLimits
+from .segmenter_service import SegmenterService
+from .v10_http import error_response, read_image
 from .v10_report import V10ReportError, build_v10_report
 from .v10_service import (
     MoCoArtifactError,
@@ -23,37 +25,11 @@ from .v10_service import (
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_PIXELS = 20_000_000
-ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MODEL_KEYS = ("MOCO_HAM7", "MOCO_PAD6")
 MODEL_PATTERN = "^(" + "|".join(MODEL_KEYS) + ")$"
 DEFAULT_MODEL = "MOCO_HAM7"
 FRONTEND_ORIGIN = "https://dermssl-phone.vercel.app"
-
-
-def _error(status_code: int, code: str, message: str) -> JSONResponse:
-    return JSONResponse(
-        status_code=status_code,
-        content={"error": {"code": code, "message": message}},
-        headers={"Cache-Control": "no-store"},
-    )
-
-
-async def _read_image(upload: UploadFile) -> Image.Image | JSONResponse:
-    if upload.content_type not in ALLOWED_CONTENT_TYPES:
-        return _error(415, "UNSUPPORTED_MEDIA_TYPE", "Upload a JPEG, PNG, or WebP image.")
-    content = await upload.read(MAX_UPLOAD_BYTES + 1)
-    if len(content) > MAX_UPLOAD_BYTES:
-        return _error(413, "IMAGE_TOO_LARGE", "Image exceeds the 10 MiB limit.")
-    try:
-        image = Image.open(io.BytesIO(content))
-        if image.width * image.height > MAX_IMAGE_PIXELS:
-            return _error(413, "IMAGE_TOO_LARGE", "Image exceeds the 20 megapixel limit.")
-        image.load()
-        return ImageOps.exif_transpose(image).convert("RGB")
-    except Image.DecompressionBombError:
-        return _error(413, "IMAGE_TOO_LARGE", "Image exceeds the safe decompression limit.")
-    except (UnidentifiedImageError, OSError, ValueError):
-        return _error(400, "INVALID_IMAGE", "File does not contain a valid image.")
+DEFAULT_SEGMENTER_DIR = "/models/segmenter"
 
 
 class _UnconfiguredMoCoService:
@@ -83,25 +59,39 @@ def _default_moco_service(release_root: Path) -> Any:
         return _UnconfiguredMoCoService(str(exc))
 
 
+def _default_segmenter() -> SegmenterService:
+    return SegmenterService(
+        segmenter_dir=os.getenv("SEGMENTER_DIR", DEFAULT_SEGMENTER_DIR),
+        expected_manifest_sha256=os.getenv("SEGMENTER_MANIFEST_SHA256"),
+    )
+
+
 def _public_status(service: Any) -> dict[str, Any]:
     return {key: value for key, value in service.status().items() if not key.endswith("_path")}
+
+
+def _segmenter_summary(segmenter: Any) -> dict[str, Any]:
+    status = segmenter.status()
+    return {"ready": status["ready"], "reason": status["reason"], "identity": status.get("identity")}
 
 
 def create_app(
     repo_root: Path | None = None,
     moco_service: Any | None = None,
     report_path: Path | None = None,
+    segmenter_service: Any | None = None,
 ) -> FastAPI:
     del repo_root
     release_root = Path(os.getenv("MOCO_RELEASE_ROOT", "/models/v10"))
     report_file = report_path or release_root / "report.json"
     moco = moco_service if moco_service is not None else _default_moco_service(release_root)
+    segmenter = segmenter_service if segmenter_service is not None else _default_segmenter()
     services = {key: moco for key in MODEL_KEYS}
     inference_lock = threading.Lock()
     app = FastAPI(
         title="DermSSL research API",
-        version="10.0.0",
-        description="Research-only MoCo V10 classifier endpoints; legacy models are retired.",
+        version="10.2.0",
+        description="Research-only MoCo V10 classifier, lesion segmentation and tone simulation endpoints.",
         docs_url=None,
     )
     app.state.model_services = services
@@ -145,11 +135,19 @@ def create_app(
                 raise MoCoServiceError("selected model is unavailable")
             return service.predict(image, model_key=model_key, mode=mode)
 
+    def run_exclusive(function: Any, *args: Any) -> Any:
+        with inference_lock:
+            return function(*args)
+
+    async def read_upload(upload: UploadFile) -> Image.Image | JSONResponse:
+        return await read_image(upload, MAX_UPLOAD_BYTES, MAX_IMAGE_PIXELS)
+
     @app.get("/api/status")
     async def api_status(
         model: str = Query(default=DEFAULT_MODEL, pattern=MODEL_PATTERN),
     ) -> dict[str, Any]:
-        return await asyncio.to_thread(get_status, model)
+        status = await asyncio.to_thread(get_status, model)
+        return {**status, "segmenter": await asyncio.to_thread(_segmenter_summary, segmenter)}
 
     @app.get("/api/models")
     async def api_models() -> dict[str, Any]:
@@ -162,7 +160,7 @@ def create_app(
     async def health() -> dict[str, Any] | JSONResponse:
         status = await asyncio.to_thread(get_status, DEFAULT_MODEL)
         if not status.get("classification_ready"):
-            return _error(503, "MODEL_NOT_READY", "Default V10 model is not ready.")
+            return error_response(503, "MODEL_NOT_READY", "Default V10 model is not ready.")
         return {"status": "ready", "model_key": DEFAULT_MODEL, "release": "v10.0.0"}
 
     @app.get("/api/report", response_model=None)
@@ -175,7 +173,7 @@ def create_app(
                 expected_sha = await asyncio.to_thread(moco.verify_artifact, "report.json")
             report = await asyncio.to_thread(build_v10_report, report_file, expected_sha)
         except (MoCoArtifactError, V10ReportError):
-            return _error(503, "REPORT_NOT_READY", "V10 research report is not available.")
+            return error_response(503, "REPORT_NOT_READY", "V10 research report is not available.")
         model_status = await asyncio.to_thread(get_status, DEFAULT_MODEL)
         return {
             **report,
@@ -185,7 +183,7 @@ def create_app(
 
     @app.post("/api/features")
     async def api_features() -> JSONResponse:
-        return _error(501, "FEATURES_UNSUPPORTED", "Feature-vector extraction is not supported.")
+        return error_response(501, "FEATURES_UNSUPPORTED", "Feature-vector extraction is not supported.")
 
     @app.post("/api/predict", response_model=None)
     async def predict(
@@ -194,17 +192,26 @@ def create_app(
         mode: str = Query(default="base", pattern="^(base|tta)$"),
     ) -> dict[str, Any] | JSONResponse:
         if mode == "tta":
-            return _error(422, "UNSUPPORTED_INFERENCE_MODE", "TTA is not supported for MoCo V10.")
-        image = await _read_image(file)
+            return error_response(422, "UNSUPPORTED_INFERENCE_MODE", "TTA is not supported for MoCo V10.")
+        image = await read_upload(file)
         if isinstance(image, JSONResponse):
             return image
         try:
             return await asyncio.to_thread(run_model, model, image, mode)
         except MoCoUnsupportedModeError:
-            return _error(422, "UNSUPPORTED_INFERENCE_MODE", "TTA is not supported for MoCo V10.")
+            return error_response(422, "UNSUPPORTED_INFERENCE_MODE", "TTA is not supported for MoCo V10.")
         except (MoCoArtifactError, MoCoServiceError):
-            return _error(503, "MODEL_NOT_READY", "Selected model is not ready to classify.")
+            return error_response(503, "MODEL_NOT_READY", "Selected model is not ready to classify.")
 
+    register_analyze_routes(
+        app,
+        run_model=run_model,
+        run_exclusive=run_exclusive,
+        read_upload=read_upload,
+        segmenter=segmenter,
+        default_model=DEFAULT_MODEL,
+        model_pattern=MODEL_PATTERN,
+    )
     return app
 
 

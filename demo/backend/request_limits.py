@@ -6,10 +6,15 @@ from collections import deque
 from starlette.responses import JSONResponse
 
 
+GUARDED_PATHS = frozenset({"/api/predict", "/api/features", "/api/analyze", "/api/simulate-tone"})
+# 10 MiB image (enforced again by the handler) plus room for a mask PNG and multipart framing.
+DEFAULT_MAX_BODY_BYTES = 11 * 1024 * 1024
+
+
 class InferenceLimits:
     """Bound upload buffering and reject excess work before multipart parsing."""
 
-    def __init__(self, app, max_bytes=10 * 1024 * 1024 + 65536, max_inflight=2, upload_timeout=30,
+    def __init__(self, app, max_bytes=DEFAULT_MAX_BODY_BYTES, max_inflight=2, upload_timeout=30,
                  max_requests=30):
         self.app = app
         self.max_bytes = max_bytes
@@ -20,7 +25,7 @@ class InferenceLimits:
 
     async def __call__(self, scope, receive, send):
         if (scope["type"] != "http" or scope.get("method") != "POST"
-                or scope.get("path") not in {"/api/predict", "/api/features"}):
+                or scope.get("path") not in GUARDED_PATHS):
             return await self.app(scope, receive, send)
         if self.slots.locked():
             return await self._reject(scope, receive, send, 429, "INFERENCE_BUSY")
