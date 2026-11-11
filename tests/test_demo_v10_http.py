@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from demo.backend.v10_app import create_app
@@ -25,9 +26,30 @@ class StubService:
         }
 
 
+def test_only_moco_heads_are_registered_and_advertised(tmp_path) -> None:
+    app = create_app(moco_service=StubService(), report_path=tmp_path / "report.json")
+    client = TestClient(app)
+    models = client.get("/api/models").json()
+    assert models["default_model"] == "MOCO_HAM7"
+    assert [item["model_key"] for item in models["models"]] == ["MOCO_HAM7", "MOCO_PAD6"]
+    assert set(app.state.model_services) == {"MOCO_HAM7", "MOCO_PAD6"}
+
+
+@pytest.mark.parametrize("model", ["A71", "B71"])
+@pytest.mark.parametrize("method", ["GET", "POST"])
+def test_retired_models_are_rejected_without_aliasing(tmp_path, model, method) -> None:
+    client = TestClient(create_app(moco_service=StubService(), report_path=tmp_path / "report.json"))
+    if method == "GET":
+        response = client.get(f"/api/status?model={model}")
+    else:
+        response = client.post(f"/api/predict?model={model}",
+                               files={"file": ("image.png", b"not decoded", "image/png")})
+    assert response.status_code == 422
+
+
 def test_default_status_and_health_use_moco_ham7(tmp_path) -> None:
     app = create_app(
-        moco_service=StubService(), legacy_services={}, report_path=tmp_path / "report.json"
+        moco_service=StubService(), report_path=tmp_path / "report.json"
     )
     client = TestClient(app)
 
@@ -42,7 +64,7 @@ def test_default_status_and_health_use_moco_ham7(tmp_path) -> None:
 
 def test_tta_is_rejected_with_explicit_error_code(tmp_path) -> None:
     app = create_app(
-        moco_service=StubService(), legacy_services={}, report_path=tmp_path / "report.json"
+        moco_service=StubService(), report_path=tmp_path / "report.json"
     )
     client = TestClient(app)
 
@@ -57,7 +79,7 @@ def test_tta_is_rejected_with_explicit_error_code(tmp_path) -> None:
 
 def test_report_endpoint_fails_closed_when_generated_report_is_missing(tmp_path) -> None:
     client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={}, report_path=tmp_path / "missing.json"
+        moco_service=StubService(), report_path=tmp_path / "missing.json"
     ))
 
     response = client.get("/api/report")
@@ -68,7 +90,7 @@ def test_report_endpoint_fails_closed_when_generated_report_is_missing(tmp_path)
 
 def test_non_image_mime_is_rejected_before_inference(tmp_path) -> None:
     client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={}, report_path=tmp_path / "report.json"
+        moco_service=StubService(), report_path=tmp_path / "report.json"
     ))
 
     response = client.post(
@@ -98,7 +120,7 @@ def test_image_exif_orientation_is_applied_before_inference(tmp_path) -> None:
     image.save(content, format="JPEG", exif=exif)
     service = CaptureService()
     client = TestClient(create_app(
-        moco_service=service, legacy_services={}, report_path=tmp_path / "report.json"
+        moco_service=service, report_path=tmp_path / "report.json"
     ))
 
     response = client.post(
@@ -111,7 +133,7 @@ def test_image_exif_orientation_is_applied_before_inference(tmp_path) -> None:
 
 def test_supported_mime_with_corrupt_image_bytes_returns_400(tmp_path) -> None:
     client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={}, report_path=tmp_path / "report.json"
+        moco_service=StubService(), report_path=tmp_path / "report.json"
     ))
 
     response = client.post(
@@ -128,7 +150,7 @@ def test_report_rejects_historical_release_metrics(tmp_path) -> None:
         '{"release":"v9.0.0","classification":{"macro_f1":0.99}}', encoding="utf-8"
     )
     client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={}, report_path=report_path
+        moco_service=StubService(), report_path=report_path
     ))
 
     response = client.get("/api/report")
@@ -137,58 +159,14 @@ def test_report_rejects_historical_release_metrics(tmp_path) -> None:
     assert response.json()["error"]["code"] == "REPORT_NOT_READY"
 
 
-def test_switching_from_legacy_to_moco_unloads_legacy_service(tmp_path) -> None:
-    class LegacyService(StubService):
-        unload_count = 0
-
-        def unload(self):
-            self.unload_count += 1
-
-    legacy = LegacyService()
-    client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={"A71": legacy},
-        report_path=tmp_path / "report.json",
-    ))
-
-    assert client.get("/api/status?model=A71").status_code == 200
-    assert client.get("/api/status?model=MOCO_HAM7").status_code == 200
-    assert legacy.unload_count == 1
-
-
-def test_legacy_a71_keeps_v9_identity_and_tta_behavior(tmp_path) -> None:
-    from io import BytesIO
-
-    from PIL import Image
-
-    class LegacyService(StubService):
-        requested_mode = None
-
-        def status(self):
-            return {"identity": {"release": "v9.0.0", "arm": "A71"}}
-
-        def predict(self, image, mode="base"):
-            self.requested_mode = mode
-            return {"pred": "nv", "classes": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
-                    "mode": mode, "inference_mode": "D4", "views": 8}
-
-    image = Image.new("RGB", (4, 4), color="blue")
-    content = BytesIO()
-    image.save(content, format="PNG")
-    legacy = LegacyService()
-    client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={"A71": legacy},
-        report_path=tmp_path / "report.json",
-    ))
-
-    response = client.post(
-        "/api/predict?model=A71&mode=tta",
-        files={"file": ("image.png", content.getvalue(), "image/png")},
-    )
-
-    assert response.status_code == 200
-    assert response.json()["identity"]["release"] == "v9.0.0"
-    assert response.json()["model_key"] == "A71"
-    assert legacy.requested_mode == "tta"
+def test_moco_heads_share_one_service_and_both_remain_available(tmp_path) -> None:
+    app = create_app(moco_service=StubService(), report_path=tmp_path / "report.json")
+    client = TestClient(app)
+    assert app.state.model_services["MOCO_HAM7"] is app.state.model_services["MOCO_PAD6"]
+    for model in ("MOCO_HAM7", "MOCO_PAD6"):
+        response = client.get(f"/api/status?model={model}")
+        assert response.status_code == 200
+        assert response.json()["model_key"] == model
 
 
 def test_image_pixel_limit_rejects_oversized_dimensions(tmp_path, monkeypatch) -> None:
@@ -203,7 +181,7 @@ def test_image_pixel_limit_rejects_oversized_dimensions(tmp_path, monkeypatch) -
     content = BytesIO()
     image.save(content, format="PNG")
     client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={}, report_path=tmp_path / "report.json"
+        moco_service=StubService(), report_path=tmp_path / "report.json"
     ))
 
     response = client.post(
@@ -225,7 +203,7 @@ def test_upload_byte_limit_rejects_oversized_image(tmp_path, monkeypatch) -> Non
     content = BytesIO()
     Image.new("RGB", (4, 4), color="red").save(content, format="PNG")
     client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={}, report_path=tmp_path / "report.json"
+        moco_service=StubService(), report_path=tmp_path / "report.json"
     ))
 
     response = client.post(
@@ -244,7 +222,7 @@ def test_v10_report_preserves_evidence_scope_and_adds_research_disclaimer(tmp_pa
         encoding="utf-8",
     )
     client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={}, report_path=report_path
+        moco_service=StubService(), report_path=report_path
     ))
 
     response = client.get("/api/report")
@@ -255,11 +233,12 @@ def test_v10_report_preserves_evidence_scope_and_adds_research_disclaimer(tmp_pa
     assert "research use only" in body["api_scope"]
     assert "not calibrated clinical probabilities" in body["disclaimer"]
     assert body["classification"]["split"] == "development"
+    assert body["models"] == ["MOCO_HAM7", "MOCO_PAD6"]
 
 
 def test_cors_allows_only_the_existing_phone_frontend(tmp_path) -> None:
     client = TestClient(create_app(
-        moco_service=StubService(), legacy_services={}, report_path=tmp_path / "report.json"
+        moco_service=StubService(), report_path=tmp_path / "report.json"
     ))
     headers = {
         "Origin": "https://dermssl-phone.vercel.app",

@@ -12,7 +12,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image, ImageOps, UnidentifiedImageError
 
-from .model_service import ModelServiceError
 from .request_limits import InferenceLimits
 from .v10_report import V10ReportError, build_v10_report
 from .v10_service import (
@@ -21,12 +20,12 @@ from .v10_service import (
     MoCoServiceError,
     MoCoUnsupportedModeError,
 )
-from .v9_service import V9ModelService, V9ServiceError
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_PIXELS = 20_000_000
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
-MODEL_KEYS = ("MOCO_HAM7", "MOCO_PAD6", "A71", "B71")
+MODEL_KEYS = ("MOCO_HAM7", "MOCO_PAD6")
+MODEL_PATTERN = "^(" + "|".join(MODEL_KEYS) + ")$"
 DEFAULT_MODEL = "MOCO_HAM7"
 FRONTEND_ORIGIN = "https://dermssl-phone.vercel.app"
 
@@ -84,14 +83,6 @@ def _default_moco_service(release_root: Path) -> Any:
         return _UnconfiguredMoCoService(str(exc))
 
 
-def _default_legacy_services() -> dict[str, V9ModelService]:
-    bundle_root = Path(os.getenv("DEMO_V9_MODEL_DIR", "/models/v9"))
-    return {
-        key: V9ModelService(bundle_root / key, expected_arm=key)
-        for key in ("A71", "B71")
-    }
-
-
 def _public_status(service: Any) -> dict[str, Any]:
     return {key: value for key, value in service.status().items() if not key.endswith("_path")}
 
@@ -99,21 +90,18 @@ def _public_status(service: Any) -> dict[str, Any]:
 def create_app(
     repo_root: Path | None = None,
     moco_service: Any | None = None,
-    legacy_services: dict[str, Any] | None = None,
     report_path: Path | None = None,
 ) -> FastAPI:
     del repo_root
     release_root = Path(os.getenv("MOCO_RELEASE_ROOT", "/models/v10"))
     report_file = report_path or release_root / "report.json"
     moco = moco_service if moco_service is not None else _default_moco_service(release_root)
-    legacy = _default_legacy_services() if legacy_services is None else legacy_services
-    services = {"MOCO_HAM7": moco, "MOCO_PAD6": moco, **legacy}
+    services = {key: moco for key in MODEL_KEYS}
     inference_lock = threading.Lock()
-    active_service: Any | None = None
     app = FastAPI(
         title="DermSSL research API",
         version="10.0.0",
-        description="Research-only MoCo V10 and preserved V9 classifier endpoints.",
+        description="Research-only MoCo V10 classifier endpoints; legacy models are retired.",
         docs_url=None,
     )
     app.state.model_services = services
@@ -143,43 +131,23 @@ def create_app(
             response.headers["Cache-Control"] = "no-store"
         return response
 
-    def activate_model(model_key: str) -> Any | None:
-        nonlocal active_service
-        service = services.get(model_key)
-        if service is None:
-            return None
-        if service is not active_service:
-            unloaded: set[int] = set()
-            for other in services.values():
-                if other is service or id(other) in unloaded or not hasattr(other, "unload"):
-                    continue
-                unloaded.add(id(other))
-                other.unload()
-            active_service = service
-        return service
-
     def get_status(model_key: str) -> dict[str, Any]:
         with inference_lock:
-            service = activate_model(model_key)
+            service = services.get(model_key)
             if service is None:
                 return {"backbone_ready": False, "classification_ready": False, "reason": "model unavailable"}
             return {**_public_status(service), "model_key": model_key}
 
     def run_model(model_key: str, image: Image.Image, mode: str) -> dict[str, Any]:
         with inference_lock:
-            service = activate_model(model_key)
+            service = services.get(model_key)
             if service is None:
                 raise MoCoServiceError("selected model is unavailable")
-            if model_key.startswith("MOCO_"):
-                return service.predict(image, model_key=model_key, mode=mode)
-            prediction = service.predict(image, mode=mode)
-            prediction["model_key"] = model_key
-            prediction["identity"] = service.status().get("identity")
-            return prediction
+            return service.predict(image, model_key=model_key, mode=mode)
 
     @app.get("/api/status")
     async def api_status(
-        model: str = Query(default=DEFAULT_MODEL, pattern="^(MOCO_HAM7|MOCO_PAD6|A71|B71)$"),
+        model: str = Query(default=DEFAULT_MODEL, pattern=MODEL_PATTERN),
     ) -> dict[str, Any]:
         return await asyncio.to_thread(get_status, model)
 
@@ -187,12 +155,7 @@ def create_app(
     async def api_models() -> dict[str, Any]:
         return {
             "default_model": DEFAULT_MODEL,
-            "models": [
-                {"model_key": "MOCO_HAM7", "release": "v10.0.0"},
-                {"model_key": "MOCO_PAD6", "release": "v10.0.0"},
-                {"model_key": "A71", "release": "v9.0.0"},
-                {"model_key": "B71", "release": "v9.0.0"},
-            ],
+            "models": [{"model_key": key, "release": "v10.0.0"} for key in MODEL_KEYS],
         }
 
     @app.get("/health", response_model=None)
@@ -217,7 +180,7 @@ def create_app(
         return {
             **report,
             "model": model_status,
-            "models": ["MOCO_HAM7", "MOCO_PAD6", "A71", "B71"],
+            "models": list(MODEL_KEYS),
         }
 
     @app.post("/api/features")
@@ -227,10 +190,10 @@ def create_app(
     @app.post("/api/predict", response_model=None)
     async def predict(
         file: UploadFile = File(...),
-        model: str = Query(default=DEFAULT_MODEL, pattern="^(MOCO_HAM7|MOCO_PAD6|A71|B71)$"),
+        model: str = Query(default=DEFAULT_MODEL, pattern=MODEL_PATTERN),
         mode: str = Query(default="base", pattern="^(base|tta)$"),
     ) -> dict[str, Any] | JSONResponse:
-        if model.startswith("MOCO_") and mode == "tta":
+        if mode == "tta":
             return _error(422, "UNSUPPORTED_INFERENCE_MODE", "TTA is not supported for MoCo V10.")
         image = await _read_image(file)
         if isinstance(image, JSONResponse):
@@ -239,7 +202,7 @@ def create_app(
             return await asyncio.to_thread(run_model, model, image, mode)
         except MoCoUnsupportedModeError:
             return _error(422, "UNSUPPORTED_INFERENCE_MODE", "TTA is not supported for MoCo V10.")
-        except (MoCoArtifactError, MoCoServiceError, V9ServiceError, ModelServiceError):
+        except (MoCoArtifactError, MoCoServiceError):
             return _error(503, "MODEL_NOT_READY", "Selected model is not ready to classify.")
 
     return app
