@@ -59,7 +59,7 @@ def _unavailable_photometry(reason: str) -> dict[str, Any]:
         "median_b": None,
         "ita_deg": None,
         "ita_category": None,
-        "n_px": 0,
+        "n_px": None,
         "valid_fraction": None,
     }
 
