@@ -15,6 +15,7 @@ from .v10_artifacts import (
     V10ArtifactError as MoCoArtifactError,
     load_preprocessor,
     read_manifest,
+    spec_for_manifest,
     verify_bundle_file,
     verify_bundle_files,
 )
@@ -92,10 +93,11 @@ class MoCoModelService:
         if self._session is not None and self._manifest_fingerprint == fingerprint:
             return manifest, self._session
         self.unload()
+        spec = spec_for_manifest(manifest)
         paths = self._verify_bundle_files(manifest)
         if self._preprocess_fn is None:
-            self._preprocess_fn = load_preprocessor(paths["preprocess.py"])
-        warmup_input = self._preprocess(Image.new("RGB", (224, 224)))
+            self._preprocess_fn = load_preprocessor(paths["preprocess.py"], spec.input_size)
+        warmup_input = self._preprocess(Image.new("RGB", (spec.input_size, spec.input_size)), spec.input_size)
         session = self._session_factory(paths["model.onnx"])
         inputs = session.get_inputs()
         outputs = session.get_outputs()
@@ -125,7 +127,7 @@ class MoCoModelService:
         }
         return manifest, session
 
-    def _preprocess(self, image: Any) -> np.ndarray:
+    def _preprocess(self, image: Any, size: int) -> np.ndarray:
         preprocess = self._preprocess_fn
         if preprocess is None:
             raise MoCoServiceError("hash-verified V10 preprocessing is unavailable")
@@ -133,7 +135,7 @@ class MoCoModelService:
             batch = np.asarray(preprocess(image), dtype=np.float32)
         except Exception as exc:  # noqa: BLE001 - image preprocessing boundary
             raise MoCoServiceError("canonical V10 preprocessing failed") from exc
-        if batch.shape != (1, 3, 224, 224) or not np.isfinite(batch).all():
+        if batch.shape != (1, 3, size, size) or not np.isfinite(batch).all():
             raise MoCoServiceError("canonical V10 preprocessing returned invalid input")
         return np.ascontiguousarray(batch)
 
@@ -148,7 +150,8 @@ class MoCoModelService:
         classes = TASK_CLASSES[model_key]
         with self._lock:
             manifest, session = self._ensure_ready()
-            batch = self._preprocess(image)
+            spec = spec_for_manifest(manifest)
+            batch = self._preprocess(image, spec.input_size)
             try:
                 outputs = session.run(list(OUTPUT_NAMES), {self._input_name: batch})
             except Exception as exc:  # noqa: BLE001 - ONNX inference boundary
@@ -160,7 +163,7 @@ class MoCoModelService:
             probabilities = ham if task_name == "HAM" else pad
             scores = probabilities[0]
             index = int(np.argmax(scores))
-            head_sha = manifest["files"][f"heads/{task_name}-reader.npz"]
+            head_sha = manifest["files"][f"heads/{task_name}-reader.{spec.head_ext}"]
             task_sha = manifest["files"][f"heads/{task_name}-reader.json"]
             sha256 = {
                 "model": manifest["files"]["model.onnx"],
@@ -187,8 +190,8 @@ class MoCoModelService:
                 "feature_dim": 3072,
                 "mode": "base",
                 "requested_mode": mode,
-                "inference_mode": "single_view",
-                "views": 1,
+                "inference_mode": spec.inference_mode,
+                "views": spec.views,
                 "model_key": model_key,
                 "identity": identity,
             }
