@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -13,8 +14,16 @@ ENCODER_SHA256 = "fe64610560880e2df1185bf17fbe49e2da46a31e0644ddad76bfa7e8651aab
 CLASSES = {"HAM": ("akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"),
            "PAD": ("ACK", "BCC", "MEL", "NEV", "SCC", "SEK")}
 ROLES = {"HAM": "ham_dev", "PAD": "pad_adapt"}
-META = {"PAD": ("/home/jovyan/work/pad_ufes_20/metadata.csv", "14d145235cedb022548257acb0d84dcd949e2c916f65d2baa7c38ed5339e9527"),
-        "HAM": ("/home/jovyan/work/datos/ham10000/HAM10000_metadata.csv", "06aee5e603d313ba69de38263053c792a1dff030eb9c44a96ceb477ceefb99a5")}
+# Metadata paths are relative to DERMSSL_DATA_ROOT (set it before loading labels).
+META = {"PAD": ("pad_ufes_20/metadata.csv", "14d145235cedb022548257acb0d84dcd949e2c916f65d2baa7c38ed5339e9527"),
+        "HAM": ("ham10000/HAM10000_metadata.csv", "06aee5e603d313ba69de38263053c792a1dff030eb9c44a96ceb477ceefb99a5")}
+
+
+def data_root():
+    root = os.environ.get("DERMSSL_DATA_ROOT")
+    if not root:
+        raise RuntimeError("set DERMSSL_DATA_ROOT to the directory holding the metadata CSVs")
+    return Path(root)
 
 
 def sha256_file(path):
@@ -39,7 +48,8 @@ def load_feature_matrix(path, rows, dimension=3072):
 
 
 def _load_labels(task, rows):
-    path, expected = META[task]
+    rel, expected = META[task]
+    path = data_root() / rel
     if sha256_file(path) != expected:
         raise ValueError("Diagnostic metadata digest mismatch")
     wanted = {r["image_id"] for r in rows}

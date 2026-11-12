@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import time
 import urllib.request
 from pathlib import Path
 
-ROOT = Path("/home/tikno/derm-app/v10-20261108")
+ROOT = Path(os.environ.get("DERMSSL_API_RELEASE_DIR", ""))
+V9_MODELS = Path(os.environ.get("DERMSSL_V9_MODELS_DIR", ""))
 OLD_NAME = "derm-api-v9-rollback-20261108"
 NEW_IMAGE = "sha256:aa55c4e8bfeb6276dce0fe811e306e9531111dba85acc9965d9d89d67b399008"
 OLD_IMAGE = "sha256:2a67b4d785da9c23c2db72caa619a0a1341774c61b9bf1195b2ef62002838748"
@@ -20,6 +22,8 @@ def run(*command):
 
 
 def main():
+    if not (ROOT.parts and V9_MODELS.parts):
+        raise SystemExit("set DERMSSL_API_RELEASE_DIR and DERMSSL_V9_MODELS_DIR")
     candidate = json.loads((ROOT / "candidate-http-validation.json").read_text())
     if not candidate["passed"] or candidate["manifest_sha256"] != MANIFEST:
         raise ValueError("Candidate gate is incomplete")
@@ -39,7 +43,7 @@ def main():
             "--memory", "2500m", "--read-only", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--cap-drop", "ALL",
             "--security-opt", "no-new-privileges", "-p", "127.0.0.1:3200:3200",
             "-v", str(ROOT / "models/bundle") + ":/models/v10:ro",
-            "-v", "/home/tikno/derm-app/v9-20261020/models:/models/v9:ro",
+            "-v", f"{V9_MODELS}:/models/v9:ro",
             "-e", "MOCO_MANIFEST_SHA256=" + MANIFEST, NEW_IMAGE)
         for attempt in range(30):
             try:
