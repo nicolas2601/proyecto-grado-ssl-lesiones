@@ -40,6 +40,11 @@ imagehash>=4.3
 # Confusion-matrix rendering test; CI rejects missing-import skips.
 matplotlib>=3.9,<4
 
+# Demo backend API tests (tests/test_demo_v10_*.py); same pins as scripts/release_v10/requirements-api.txt.
+fastapi>=0.115
+httpx>=0.27
+python-multipart>=0.0.9
+
 # Release package of the v7 classifier (tests/test_release_*.py): safetensors
 # for the weight files, transformers for the Dinov2Model form, onnx +
 # onnxruntime + onnxconverter-common for the ONNX export and its fp16 copy.

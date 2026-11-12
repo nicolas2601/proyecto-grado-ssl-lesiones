@@ -59,3 +59,15 @@ def test_delta_grid_is_the_declared_one():
     grid = ss.DELTA_GRID
     assert grid[0] == 0.0 and grid[-1] == 3.0 and len(grid) == 13
     assert np.allclose(np.diff(grid), 0.25)
+
+
+def test_operating_curve_covers_the_declared_grid():
+    classes = ["mel", "nv", "bkl"]
+    y = np.array([0, 0, 1, 1, 2])
+    probs = np.array([[0.4, 0.6, 0.0], [0.7, 0.3, 0.0], [0.1, 0.9, 0.0], [0.3, 0.7, 0.0], [0.0, 0.1, 0.9]])
+
+    curve = ss.operating_curve(y, probs, classes, target="mel", nevus="nv")
+
+    assert list(curve) == list(ss.DELTA_GRID)
+    assert curve[0.0]["target_recall"] == pytest.approx(0.5)
+    assert curve[3.0]["target_recall"] == pytest.approx(1.0)

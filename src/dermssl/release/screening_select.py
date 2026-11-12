@@ -53,3 +53,14 @@ def operating_metrics(
         "macro_f1": float(f1_score(y, pred, labels=range(len(classes)), average="macro", zero_division=0)),
         "balanced_accuracy": float(balanced_accuracy_score(y, pred)),
     }
+
+
+def operating_curve(
+    y: np.ndarray, probabilities: np.ndarray, classes: Sequence[str], target: str, nevus: str
+) -> dict[float, dict[str, float]]:
+    """Operating metrics at every declared grid value of delta."""
+    t = list(classes).index(target)
+    return {
+        delta: operating_metrics(y, screening_predictions(probabilities, t, delta), classes, target, nevus)
+        for delta in DELTA_GRID
+    }

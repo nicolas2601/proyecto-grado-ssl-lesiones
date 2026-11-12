@@ -75,11 +75,7 @@ def oof_probabilities(x, y, groups, cv_seed: int) -> np.ndarray:
 
 
 def curve(y, probabilities, classes, target, nevus) -> dict[float, dict]:
-    t = classes.index(target)
-    return {
-        delta: ss.operating_metrics(y, ss.screening_predictions(probabilities, t, delta), classes, target, nevus)
-        for delta in ss.DELTA_GRID
-    }
+    return ss.operating_curve(y, probabilities, classes, target, nevus)
 
 
 def nested_estimate(y, groups, probabilities, classes, target, nevus, cv_seed: int) -> dict:
