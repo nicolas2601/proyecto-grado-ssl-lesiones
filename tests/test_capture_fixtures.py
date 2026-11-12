@@ -44,6 +44,7 @@ class FakeClient:
                 "identity": {"model_id": "m", "run": "r", "release": "v10.2.0", "model_sha256": "d" * 64,
                              "input_size": 224},
             },
+            "screening": {"ready": True, "reason": "ready", "rule_id": "melanoma-priority-v1", "sha256": "e" * 64},
         })
 
     def post(self, path, files=None, data=None):
@@ -113,6 +114,8 @@ def test_run_capture_writes_analyze_simulations_and_manifest(tmp_path):
     assert manifest["images"][0]["sha256"] == hashlib.sha256(image.read_bytes()).hexdigest()
     assert manifest["images"][0]["simulations"] == "captured"
     assert manifest["segmenter"]["identity"]["model_sha256"] == "d" * 64
+    assert manifest["screening"] == {"ready": True, "reason": "ready", "rule_id": "melanoma-priority-v1",
+                                     "sha256": "e" * 64}
 
 
 def test_unavailable_segmentation_is_recorded_not_fabricated(tmp_path):

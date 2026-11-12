@@ -153,6 +153,7 @@ def run_capture(client: Any, images: Iterable[Path], out_dir: Path, *, clock: Ca
                        "identity": status.get("identity")},
         "segmenter": {**{k: v for k, v in pins.items() if k.startswith("segmenter")},
                       "identity": (status.get("segmenter") or {}).get("identity")},
+        "screening": status.get("screening"),
         "images": entries,
     }
     path = out_dir / manifest_name
