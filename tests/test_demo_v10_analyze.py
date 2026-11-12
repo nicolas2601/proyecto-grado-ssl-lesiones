@@ -221,3 +221,30 @@ def test_run_extras_contains_unexpected_photometry_failure(monkeypatch):
     assert result["photometry"]["status"] == "unavailable"
     assert result["photometry"]["reason"] == "photometry_error"
     assert result["segmentation"]["status"] == "ok"
+
+
+class _ReleaseMoCo(FakeMoCo):
+    def __init__(self, release, ready=True):
+        super().__init__()
+        self._release = release
+        self._ready = ready
+
+    def status(self):
+        return {"backbone_ready": self._ready, "classification_ready": self._ready,
+                "reason": "ready" if self._ready else "not ready", "release": self._release}
+
+
+def test_health_and_models_report_the_loaded_release():
+    client = _client(moco=_ReleaseMoCo("v10.1.0"), segmenter=FakeSegmenter())
+
+    assert client.get("/health").json()["release"] == "v10.1.0"
+    models = client.get("/api/models").json()["models"]
+    assert [item["release"] for item in models] == ["v10.1.0", "v10.1.0"]
+
+
+def test_health_and_models_report_null_release_when_not_ready():
+    client = _client(moco=_ReleaseMoCo(None, ready=False), segmenter=FakeSegmenter())
+
+    assert client.get("/health").status_code == 503
+    models = client.get("/api/models").json()["models"]
+    assert [item["release"] for item in models] == [None, None]

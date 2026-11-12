@@ -41,7 +41,7 @@ class _UnconfiguredMoCoService:
             "backbone_ready": False,
             "classification_ready": False,
             "reason": self.reason,
-            "release": "v10.0.0",
+            "release": None,
         }
 
     def predict(self, image: Image.Image, model_key: str, mode: str) -> dict[str, Any]:
@@ -64,6 +64,12 @@ def _default_segmenter() -> SegmenterService:
         segmenter_dir=os.getenv("SEGMENTER_DIR", DEFAULT_SEGMENTER_DIR),
         expected_manifest_sha256=os.getenv("SEGMENTER_MANIFEST_SHA256"),
     )
+
+
+def _loaded_release(service: Any) -> str | None:
+    """The release of the bundle the service actually loaded; None when it is not ready (never a default)."""
+    status = service.status()
+    return status.get("release") if status.get("classification_ready") else None
 
 
 def _public_status(service: Any) -> dict[str, Any]:
@@ -153,7 +159,7 @@ def create_app(
     async def api_models() -> dict[str, Any]:
         return {
             "default_model": DEFAULT_MODEL,
-            "models": [{"model_key": key, "release": "v10.0.0"} for key in MODEL_KEYS],
+            "models": [{"model_key": key, "release": _loaded_release(services[key])} for key in MODEL_KEYS],
         }
 
     @app.get("/health", response_model=None)
@@ -161,7 +167,7 @@ def create_app(
         status = await asyncio.to_thread(get_status, DEFAULT_MODEL)
         if not status.get("classification_ready"):
             return error_response(503, "MODEL_NOT_READY", "Default V10 model is not ready.")
-        return {"status": "ready", "model_key": DEFAULT_MODEL, "release": "v10.0.0"}
+        return {"status": "ready", "model_key": DEFAULT_MODEL, "release": _loaded_release(services[DEFAULT_MODEL])}
 
     @app.get("/api/report", response_model=None)
     async def api_report() -> dict[str, Any] | JSONResponse:

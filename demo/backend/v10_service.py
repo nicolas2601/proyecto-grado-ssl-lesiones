@@ -205,7 +205,7 @@ class MoCoModelService:
                     "backbone_ready": False,
                     "classification_ready": False,
                     "reason": str(exc) or "V10 model is not ready",
-                    "release": "v10.0.0",
+                    "release": None,
                     "release_arm": None,
                     "model_key": None,
                 }
