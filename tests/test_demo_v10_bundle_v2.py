@@ -163,3 +163,13 @@ def test_v2_manifest_sha_pin_is_still_enforced(tmp_path):
 
     with pytest.raises(V10ArtifactError):
         service.predict(Image.new("RGB", (8, 8)), model_key="MOCO_HAM7")
+
+
+def test_v2_status_identity_reports_model_backbone_and_recipe(tmp_path):
+    service, files = _service(tmp_path, V2Session())
+
+    identity = service.status()["identity"]
+
+    assert identity["model_sha256"] == files["model.onnx"]
+    assert identity["backbone_sha256"] == BACKBONE_SHA256
+    assert identity["recipe"] == V2_RECIPE
