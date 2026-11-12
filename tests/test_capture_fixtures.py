@@ -161,3 +161,18 @@ def test_git_state_from_explicit_commit_records_archive_provenance_without_fabri
 def test_git_state_rejects_malformed_commit():
     with pytest.raises(cf.CaptureError, match="commit"):
         cf.git_state_from_argument("not a sha")
+
+
+def test_manifest_name_lets_independent_parallel_captures_share_an_output_dir(tmp_path):
+    image = tmp_path / "one.webp"
+    image.write_bytes(b"bytes")
+    out = tmp_path / "out"
+
+    path = cf.run_capture(FakeClient(), [image], out, clock=lambda: datetime(2026, 1, 1, tzinfo=timezone.utc),
+                          git={"commit": "abc", "dirty": False},
+                          pins={"classifier_manifest_sha256": "a" * 64, "segmenter_manifest_sha256": "b" * 64},
+                          manifest_name="capture_manifest-one.json")
+
+    assert path.name == "capture_manifest-one.json"
+    assert (out / "capture_manifest-one.json").is_file()
+    assert not (out / "capture_manifest.json").exists()

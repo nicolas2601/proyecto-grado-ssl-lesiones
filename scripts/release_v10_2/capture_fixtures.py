@@ -137,7 +137,7 @@ def _capture_one(client: Any, image: Path, out_dir: Path) -> dict[str, Any]:
 
 
 def run_capture(client: Any, images: Iterable[Path], out_dir: Path, *, clock: Callable[[], datetime],
-                git: dict[str, Any], pins: dict[str, str]) -> Path:
+                git: dict[str, Any], pins: dict[str, str], manifest_name: str = "capture_manifest.json") -> Path:
     checked = _validate_images(images)
     status = client.get("/api/status").json()
     _check_ready(status)
@@ -155,7 +155,7 @@ def run_capture(client: Any, images: Iterable[Path], out_dir: Path, *, clock: Ca
                       "identity": (status.get("segmenter") or {}).get("identity")},
         "images": entries,
     }
-    path = out_dir / "capture_manifest.json"
+    path = out_dir / manifest_name
     _write_json(path, manifest)
     return path
 
@@ -196,6 +196,8 @@ def _parse(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--segmenter-manifest-sha256", required=True)
     parser.add_argument("--image", type=Path, action="append", required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--manifest-name", default="capture_manifest.json",
+                        help="file name for this run's manifest (distinct per parallel process)")
     parser.add_argument("--git-commit", default=None,
                         help="commit id for a source archive without .git; omitted = read the repository")
     return parser.parse_args(argv)
@@ -217,6 +219,7 @@ def main(argv: list[str] | None = None, *, clock: Callable[[], datetime] | None 
         clock=clock or (lambda: datetime.now(timezone.utc)),
         git=(git_reader or (lambda: git_state_from_argument(args.git_commit) if args.git_commit else _git_state()))(),
         pins=pins,
+        manifest_name=args.manifest_name,
     )
     print(f"wrote {path}")
     return 0
