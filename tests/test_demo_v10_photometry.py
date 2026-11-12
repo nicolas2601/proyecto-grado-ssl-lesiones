@@ -118,3 +118,19 @@ def test_mask_on_wrong_grid_raises_instead_of_guessing():
 
     with pytest.raises(ValueError):
         measure_photometry(image, np.zeros((10, 10), dtype=bool))
+
+
+def test_hair_lines_are_excluded_from_the_ring():
+    from demo.backend.segmenter_preprocess import Preprocessing, HairParams
+
+    image, lesion = _scene(size=200, radius=20)
+    hairy = image.copy()
+    hairy[:, 30:32] = (70, 50, 45)
+    hairy[60:62, :] = (70, 50, 45)
+    config = Preprocessing(size=224, hair=HairParams(kernel=9, threshold=10, radius=3))
+
+    without = measure_photometry(hairy, lesion)
+    with_hair = measure_photometry(hairy, lesion, hair=config)
+
+    assert with_hair["n_px"] < without["n_px"]
+    assert abs(with_hair["median_L"] - without["median_L"]) < 1.0

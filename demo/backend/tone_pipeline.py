@@ -55,7 +55,7 @@ def _resize_pair(image: Image.Image, mask: np.ndarray) -> tuple[np.ndarray, np.n
     return resized_image, resized_mask
 
 
-def simulate_for_image(image: Image.Image, mask_b64: str, delta_text: str) -> dict[str, Any]:
+def simulate_for_image(image: Image.Image, mask_b64: str, delta_text: str, hair: Any = None) -> dict[str, Any]:
     """Validate the form fields, run the tone transform and assemble the contract response."""
     delta = parse_delta(delta_text)
     mask = decode_mask_field(mask_b64, image.width, image.height)
@@ -71,5 +71,5 @@ def simulate_for_image(image: Image.Image, mask_b64: str, delta_text: str) -> di
         "height": height,
         "lesion_pixels_preserved": result.lesion_preserved,
         "clipped_fraction": round(result.clipped_fraction, CLIPPED_DECIMALS),
-        "photometry": measure_photometry(result.rgb, out_mask),
+        "photometry": measure_photometry(result.rgb, out_mask, hair=hair),
     }

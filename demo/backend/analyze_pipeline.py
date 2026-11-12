@@ -64,9 +64,15 @@ def _unavailable_photometry(reason: str) -> dict[str, Any]:
     }
 
 
-def _photometry(rgb: np.ndarray, mask: np.ndarray | None) -> dict[str, Any]:
+def preprocessing_of(segmenter: Any) -> Any:
+    """The segmenter's preprocessing config when it is loaded; None otherwise (no hair exclusion then)."""
+    getter = getattr(segmenter, "preprocessing", None)
+    return getter() if callable(getter) else None
+
+
+def _photometry(rgb: np.ndarray, mask: np.ndarray | None, hair: Any = None) -> dict[str, Any]:
     try:
-        return measure_photometry(rgb, mask)
+        return measure_photometry(rgb, mask, hair=hair)
     except Exception:  # noqa: BLE001 - photometry must never fail the request
         return _unavailable_photometry(PHOTOMETRY_ERROR)
 
@@ -76,7 +82,7 @@ def run_extras(segmenter: Any, rgb: np.ndarray) -> dict[str, Any]:
     started = perf_counter()
     segmentation, mask = _segmentation(segmenter, rgb)
     segmented = perf_counter()
-    photometry = _photometry(rgb, mask)
+    photometry = _photometry(rgb, mask, preprocessing_of(segmenter))
     finished = perf_counter()
     return {
         "segmentation": segmentation,

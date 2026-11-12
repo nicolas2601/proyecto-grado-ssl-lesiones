@@ -194,6 +194,13 @@ class SegmenterService:
         }
         return Loaded(session=session, input_name=inputs[0].name, config=config, identity=identity)
 
+    def preprocessing(self) -> Preprocessing | None:
+        """The loaded preprocessing contract (used by photometry hair exclusion), or None when unavailable."""
+        try:
+            return self._ensure_loaded().config
+        except SegmenterError:
+            return None
+
     def status(self) -> dict[str, Any]:
         try:
             loaded = self._ensure_loaded()

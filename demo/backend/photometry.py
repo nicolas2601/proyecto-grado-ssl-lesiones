@@ -15,6 +15,8 @@ import numpy as np
 
 from dermssl import e5_roi
 
+from .segmenter_preprocess import Preprocessing, hair_mask_at_image_size
+
 REGION = "perilesional_ring"
 CATEGORY_SCHEME = "Chardon 1991 / Del Bino 2006 ITA categories (colorimetric, not Fitzpatrick)"
 ITA_INDETERMINATE = "ita_indeterminate"
@@ -88,13 +90,21 @@ def _unavailable(estimate: e5_roi.RoiEstimate) -> dict:
     }
 
 
-def measure_photometry(rgb: np.ndarray, lesion: np.ndarray | None) -> dict:
+def _hair_detector(hair: Preprocessing | None):
+    if hair is None or hair.hair is None:
+        return None
+    return lambda rgb_u8: hair_mask_at_image_size(rgb_u8, hair)
+
+
+def measure_photometry(rgb: np.ndarray, lesion: np.ndarray | None, hair: Preprocessing | None = None) -> dict:
     """Photometry block of the analyze contract for a uint8 RGB image and an optional lesion mask.
 
-    A mask on a different grid raises ``ValueError`` (a caller bug, not a result to report).
+    ``hair`` is the segmenter's preprocessing config; when it has a hair step, hair is excluded from the ring
+    with the same kernel and threshold the segmenter uses. A mask on a different grid raises ``ValueError``.
     """
     image = np.asarray(rgb, dtype=np.float64) / 255.0
-    estimate = e5_roi.ring_estimate(image, lesion)
+    hair_fn = _hair_detector(hair)
+    estimate = e5_roi.ring_estimate(image, lesion, hair_fn=hair_fn)
     if estimate.status == e5_roi.OK:
         return _ok(estimate)
     if estimate.status in _UNAVAILABLE:

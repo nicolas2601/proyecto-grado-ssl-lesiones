@@ -77,16 +77,34 @@ def require_opencv(config: Preprocessing) -> None:
         raise PreprocessError("OpenCV is required by the segmenter hair removal step") from exc
 
 
-def remove_hair(rgb: np.ndarray, params: HairParams) -> np.ndarray:
+def hair_mask(rgb: np.ndarray, params: HairParams) -> np.ndarray:
+    """Boolean mask of thin dark structures (black-hat above the threshold), on the given grid."""
     import cv2
 
     grey = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
     element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (params.kernel, params.kernel))
     response = cv2.morphologyEx(grey, cv2.MORPH_BLACKHAT, element)
-    mask = (response > params.threshold).astype(np.uint8)
+    return response > params.threshold
+
+
+def remove_hair(rgb: np.ndarray, params: HairParams) -> np.ndarray:
+    import cv2
+
+    mask = hair_mask(rgb, params).astype(np.uint8)
     if not mask.any():
         return rgb.copy()
     return cv2.inpaint(np.ascontiguousarray(rgb), mask, params.radius, cv2.INPAINT_TELEA)
+
+
+def hair_mask_at_image_size(rgb: np.ndarray, config: Preprocessing) -> np.ndarray:
+    """Hair mask computed at the segmenter input scale (where the kernel is tuned), upsampled to the image."""
+    if config.hair is None:
+        raise PreprocessError("no hair removal step is configured")
+    height, width = rgb.shape[:2]
+    small = Image.fromarray(rgb, mode="RGB").resize((config.size, config.size), Image.Resampling.BILINEAR)
+    small_mask = hair_mask(np.asarray(small, dtype=np.uint8), config.hair).astype(np.uint8) * 255
+    full = Image.fromarray(small_mask, mode="L").resize((width, height), Image.Resampling.NEAREST)
+    return np.asarray(full) >= 128
 
 
 def preprocess(rgb: np.ndarray, config: Preprocessing) -> np.ndarray:

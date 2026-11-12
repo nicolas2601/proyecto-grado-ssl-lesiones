@@ -15,7 +15,7 @@ import numpy as np
 from fastapi import FastAPI, File, Form, Query, UploadFile
 from fastapi.responses import JSONResponse
 
-from .analyze_pipeline import run_extras
+from .analyze_pipeline import preprocessing_of, run_extras
 from .tone_pipeline import simulate_for_image
 from .tone_sim import ToneSimulationError
 from .v10_http import error_response
@@ -40,6 +40,9 @@ def register_analyze_routes(
     default_model: str,
     model_pattern: str,
 ) -> None:
+    def _simulate(image: Any, mask_b64: str, delta_text: str) -> dict[str, Any]:
+        return simulate_for_image(image, mask_b64, delta_text, preprocessing_of(segmenter))
+
     @app.post("/api/analyze", response_model=None)
     async def analyze(
         file: UploadFile = File(...),
@@ -74,6 +77,6 @@ def register_analyze_routes(
         if isinstance(image, JSONResponse):
             return image
         try:
-            return await asyncio.to_thread(run_exclusive, simulate_for_image, image, mask_png_base64, delta_l)
+            return await asyncio.to_thread(run_exclusive, _simulate, image, mask_png_base64, delta_l)
         except ToneSimulationError as exc:
             return error_response(422, exc.code, str(exc))
