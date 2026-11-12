@@ -65,12 +65,16 @@ WIRED = {
     "scripts/c1_predict_masks.py": "the masks manifest",
     "plan-segmentacion/comun/evaluacion/fst_pseudo_manifest.py": "the FST manifest JSON (the CSV is untouched)",
     "plan-segmentacion/comun/evaluacion/compare_fst_manifests.py": "the manifest comparison JSON",
+    "scripts/build_moco_d4.py": "validation.json and provenance.json of the 448 D4 bundle",
+    "scripts/moco_d4_fixture_expectations.py": "parity-fixtures.json: expected probabilities of the synthetic release fixtures",
+    "scripts/score_moco_sealed.py": "candidate reader heads and the one-shot sealed results.json (sidecar next to each)",
 }
 
 _GENERATED = "generates notebooks, tables or site data from committed files; must stay byte-identical"
 _DATA_PREP = "data preparation (split, index, exclusion or manifest of inputs), no evaluated number"
 # script -> why it writes JSON without the block.
 EXEMPT = {
+    "scripts/assemble_moco_d4_bundle.py": "packaging index only: sha256 of the bundle files, no evaluated number",
     "scripts/build_moco_bank_comparison.py": "derived aggregate tables; raw input SHA recorded, no new evaluation",
     "scripts/build_moco_bundle.py": "release provenance records software/source hashes and separate numerical validation",
     "scripts/fit_moco_release_readers.py": "reader artifact records software/source hashes and fixed BLAS threads; no independent evaluation",

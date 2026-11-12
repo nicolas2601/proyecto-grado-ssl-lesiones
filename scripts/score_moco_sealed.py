@@ -10,17 +10,21 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-ROOT = Path("/home/jovyan/work/clf1_clinical_reference_20261024")
+# Locations come from the environment, never from a cluster default:
+# DERMSSL_CLF1_ROOT = clinical reference workspace, DERMSSL_CANONICAL_DIR = canonical inputs.
+ROOT = Path(os.environ.get("DERMSSL_CLF1_ROOT", ""))
 VARIANTS = ROOT / "results/moco-v10-variants-20261109"
 PLAN = ROOT / "config/cross-role-content-plan-v1.json"
-CANONICAL = Path("/home/jovyan/work/clf1_ssl_phone_20261024/inputs/canonical")
+CANONICAL = Path(os.environ.get("DERMSSL_CANONICAL_DIR", ""))
 SRC = Path(__file__).resolve().parents[1] / "src"
 sys.path.insert(0, str(SRC))
+from dermssl import run_environment  # noqa: E402
 from dermssl.release import moco_head_fit, moco_inputs, moco_sealed  # noqa: E402
 from dermssl.release.moco_head_fit import reader_probabilities  # noqa: E402
 
@@ -68,6 +72,7 @@ def fit_candidate(features_dir, out):
     out.mkdir(parents=True, exist_ok=False)
     for task, artifact in heads.items():
         moco_sealed.write_json(out / f"{task}-candidate-reader.json", artifact)
+        run_environment.write_sidecar(out / f"{task}-candidate-reader.json")
     return {task: {"C": heads[task]["C"], "n_images": heads[task]["n_images"]} for task in TASKS}
 
 
@@ -131,6 +136,7 @@ def sealed(candidate_dir, reference_dir, confirm, out):
             labels, reader_probabilities(feats_448, candidate_heads[task]), CLASSES[task]) | {"role": role}
     results["release_rule"] = moco_sealed.release_rule(results["candidate"], results["reference_A"])
     moco_sealed.write_json(out, results)
+    run_environment.write_sidecar(out)
     return results["release_rule"]
 
 
@@ -156,6 +162,8 @@ def main():
     seal.add_argument("--confirm-candidate", required=True)
     seal.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
+    if not (ROOT.parts and CANONICAL.parts):
+        parser.error("set DERMSSL_CLF1_ROOT and DERMSSL_CANONICAL_DIR")
     if args.mode == "dev-check":
         print(json.dumps(dev_check(args.readouts), indent=2, allow_nan=False))
     elif args.mode == "extract-check":

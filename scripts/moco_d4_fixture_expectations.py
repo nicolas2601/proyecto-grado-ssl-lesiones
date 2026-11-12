@@ -15,6 +15,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+from dermssl import run_environment  # noqa: E402
 from dermssl.release import moco_d4  # noqa: E402
 from dermssl.release.moco_head_fit import reader_probabilities  # noqa: E402
 from dermssl.release.moco_inputs import ENCODER_SHA256, sha256_file  # noqa: E402
@@ -52,6 +53,7 @@ def main():
     with args.output.open("x") as stream:
         json.dump(cases, stream, indent=2, allow_nan=False)
         stream.write("\n")
+    run_environment.write_sidecar(args.output, args)
     print(json.dumps({"cases": len(cases), "output": str(args.output)}))
 
 

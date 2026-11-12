@@ -19,6 +19,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+from dermssl import run_environment  # noqa: E402
 from dermssl.release import moco_d4, moco_inputs, torch_convert, torch_export  # noqa: E402
 from dermssl.release.moco_build import load_reader, probability_gate  # noqa: E402
 from dermssl.release.moco_bundle import OUTPUT_NAMES  # noqa: E402
@@ -157,7 +158,9 @@ def main():
                   "dev_drift": drift,
                   "onnx_sha256": hashlib.sha256((args.output / "model.onnx").read_bytes()).hexdigest()}
     write_json(args.output / "validation.json", validation)
+    run_environment.write_sidecar(args.output / "validation.json", args)
     write_json(args.output / "provenance.json", provenance)
+    run_environment.write_sidecar(args.output / "provenance.json", args)
     print(json.dumps({"passed": passed, "feature_gap": feature_gap,
                       "max_probability_difference": max(c["max_abs_diff"] for c in checks)}), flush=True)
 
