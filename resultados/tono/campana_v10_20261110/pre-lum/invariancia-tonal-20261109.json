@@ -1,0 +1,296 @@
+{
+  "analisis": "invariancia-tonal-y-contrafactual",
+  "brazos": [
+    "V10_T0",
+    "V10_C1",
+    "V10_C1M"
+  ],
+  "criterios_declarados": {
+    "B1": "PRIMARIO: tasa de volteo de C1M < T0 a |delta_b|=6,25, IC excluye cero",
+    "I0": "a dosis 0 el ida y vuelta reproduce la entrada, max|dif| < 1e-3",
+    "I1": "el desplazamiento crece monotonamente con |dosis| en todos los brazos",
+    "I2": "PRIMARIO: desplazamiento relativo de C1M < T0 a |delta_b|=6,25, IC excluye cero",
+    "I3": "lo mismo para C1"
+  },
+  "dosis_delta_b": [
+    -12.5,
+    -6.25,
+    0.0,
+    6.25,
+    12.5
+  ],
+  "dosis_primaria": 6.25,
+  "estimulo": "desplazamiento Lab de campo completo con lab_objetivo(w=1, delta_b), delta_L = -0,24 * delta_b, aplicado despues del redimensionado a 224",
+  "generated_utc": "2026-11-09T03:49:57Z",
+  "no_es": "la transformacion de produccion (que usa mascara de lesion y acople m)",
+  "por_banco": {
+    "bosque": {
+      "A_desplazamiento_relativo": {
+        "V10_C1": {
+          "+12.50": {
+            "media": 0.10355895757675171,
+            "mediana": 0.10194327682256699
+          },
+          "+6.25": {
+            "media": 0.06119938939809799,
+            "mediana": 0.05834491178393364
+          },
+          "-12.50": {
+            "media": 0.10592222213745117,
+            "mediana": 0.10441335290670395
+          },
+          "-6.25": {
+            "media": 0.058496322482824326,
+            "mediana": 0.05689813196659088
+          }
+        },
+        "V10_C1M": {
+          "+12.50": {
+            "media": 0.10557812452316284,
+            "mediana": 0.1035814881324768
+          },
+          "+6.25": {
+            "media": 0.06232170760631561,
+            "mediana": 0.05908016860485077
+          },
+          "-12.50": {
+            "media": 0.10734304040670395,
+            "mediana": 0.10625574737787247
+          },
+          "-6.25": {
+            "media": 0.05922434851527214,
+            "mediana": 0.0576920248568058
+          }
+        },
+        "V10_T0": {
+          "+12.50": {
+            "media": 0.1510150283575058,
+            "mediana": 0.15013505518436432
+          },
+          "+6.25": {
+            "media": 0.08634877949953079,
+            "mediana": 0.08387371897697449
+          },
+          "-12.50": {
+            "media": 0.1551039218902588,
+            "mediana": 0.1550581306219101
+          },
+          "-6.25": {
+            "media": 0.08364109694957733,
+            "mediana": 0.08100812882184982
+          }
+        }
+      },
+      "I0_holds": true,
+      "I0_max_dif_dosis_cero": 0.0,
+      "I1_monotonia": true,
+      "I2_I3_contrastes_a_dosis_primaria": {
+        "V10_C1M_vs_V10_T0": {
+          "candidato": 0.06077301502227783,
+          "delta": -0.02422192692756653,
+          "ic95": [
+            -0.025937845464795828,
+            -0.022452561743557455
+          ],
+          "lectura": "MAS INVARIANTE",
+          "referencia": 0.08499494194984436,
+          "resamples": 1000,
+          "veredicto": "NEGATIVO"
+        },
+        "V10_C1_vs_V10_T0": {
+          "candidato": 0.059847861528396606,
+          "delta": -0.025147080421447754,
+          "ic95": [
+            -0.026896700169891118,
+            -0.02328630555421114
+          ],
+          "lectura": "MAS INVARIANTE",
+          "referencia": 0.08499494194984436,
+          "resamples": 1000,
+          "veredicto": "NEGATIVO"
+        }
+      },
+      "grupos": 139,
+      "n": 151
+    },
+    "ddi": {
+      "A_desplazamiento_relativo": {
+        "V10_C1": {
+          "+12.50": {
+            "media": 0.1046367734670639,
+            "mediana": 0.09901979565620422
+          },
+          "+6.25": {
+            "media": 0.0596855953335762,
+            "mediana": 0.05596868693828583
+          },
+          "-12.50": {
+            "media": 0.11339378356933594,
+            "mediana": 0.10857102274894714
+          },
+          "-6.25": {
+            "media": 0.06188233196735382,
+            "mediana": 0.05817332863807678
+          }
+        },
+        "V10_C1M": {
+          "+12.50": {
+            "media": 0.10535498708486557,
+            "mediana": 0.09959982335567474
+          },
+          "+6.25": {
+            "media": 0.0600610114634037,
+            "mediana": 0.0564386248588562
+          },
+          "-12.50": {
+            "media": 0.11398767679929733,
+            "mediana": 0.10916145145893097
+          },
+          "-6.25": {
+            "media": 0.062184158712625504,
+            "mediana": 0.05845223739743233
+          }
+        },
+        "V10_T0": {
+          "+12.50": {
+            "media": 0.1226113960146904,
+            "mediana": 0.1167660802602768
+          },
+          "+6.25": {
+            "media": 0.06903915852308273,
+            "mediana": 0.06579984724521637
+          },
+          "-12.50": {
+            "media": 0.13809984922409058,
+            "mediana": 0.13387712836265564
+          },
+          "-6.25": {
+            "media": 0.07306356728076935,
+            "mediana": 0.0700652077794075
+          }
+        }
+      },
+      "I0_holds": true,
+      "I0_max_dif_dosis_cero": 0.0,
+      "I1_monotonia": true,
+      "I2_I3_contrastes_a_dosis_primaria": {
+        "V10_C1M_vs_V10_T0": {
+          "candidato": 0.0611225925385952,
+          "delta": -0.009928759187459946,
+          "ic95": [
+            -0.010386893898248673,
+            -0.009480526484549046
+          ],
+          "lectura": "MAS INVARIANTE",
+          "referencia": 0.07105135172605515,
+          "resamples": 1000,
+          "veredicto": "NEGATIVO"
+        },
+        "V10_C1_vs_V10_T0": {
+          "candidato": 0.06078396737575531,
+          "delta": -0.010267384350299835,
+          "ic95": [
+            -0.010734232515096665,
+            -0.009815733600407838
+          ],
+          "lectura": "MAS INVARIANTE",
+          "referencia": 0.07105135172605515,
+          "resamples": 1000,
+          "veredicto": "NEGATIVO"
+        }
+      },
+      "grupos": 656,
+      "n": 656
+    },
+    "pad_holdout": {
+      "A_desplazamiento_relativo": {
+        "V10_C1": {
+          "+12.50": {
+            "media": 0.10012735426425934,
+            "mediana": 0.09617909789085388
+          },
+          "+6.25": {
+            "media": 0.05632760748267174,
+            "mediana": 0.053402502089738846
+          },
+          "-12.50": {
+            "media": 0.11968030035495758,
+            "mediana": 0.1163620576262474
+          },
+          "-6.25": {
+            "media": 0.06287800520658493,
+            "mediana": 0.06071610376238823
+          }
+        },
+        "V10_C1M": {
+          "+12.50": {
+            "media": 0.1009371280670166,
+            "mediana": 0.0969187542796135
+          },
+          "+6.25": {
+            "media": 0.05674322322010994,
+            "mediana": 0.053738921880722046
+          },
+          "-12.50": {
+            "media": 0.12049956619739532,
+            "mediana": 0.1169770136475563
+          },
+          "-6.25": {
+            "media": 0.06327415257692337,
+            "mediana": 0.06113829091191292
+          }
+        },
+        "V10_T0": {
+          "+12.50": {
+            "media": 0.13872233033180237,
+            "mediana": 0.13123224675655365
+          },
+          "+6.25": {
+            "media": 0.07779186964035034,
+            "mediana": 0.0741550475358963
+          },
+          "-12.50": {
+            "media": 0.17711439728736877,
+            "mediana": 0.17036522924900055
+          },
+          "-6.25": {
+            "media": 0.09023125469684601,
+            "mediana": 0.08588127046823502
+          }
+        }
+      },
+      "I0_holds": true,
+      "I0_max_dif_dosis_cero": 0.0,
+      "I1_monotonia": true,
+      "I2_I3_contrastes_a_dosis_primaria": {
+        "V10_C1M_vs_V10_T0": {
+          "candidato": 0.060008689761161804,
+          "delta": -0.02400287240743637,
+          "ic95": [
+            -0.024838590156286956,
+            -0.02317897407338023
+          ],
+          "lectura": "MAS INVARIANTE",
+          "referencia": 0.08401156216859818,
+          "resamples": 1000,
+          "veredicto": "NEGATIVO"
+        },
+        "V10_C1_vs_V10_T0": {
+          "candidato": 0.059602804481983185,
+          "delta": -0.02440875768661499,
+          "ic95": [
+            -0.025245971512049437,
+            -0.023583860043436287
+          ],
+          "lectura": "MAS INVARIANTE",
+          "referencia": 0.08401156216859818,
+          "resamples": 1000,
+          "veredicto": "NEGATIVO"
+        }
+      },
+      "grupos": 691,
+      "n": 1155
+    }
+  },
+  "prediccion_registrada": "I2 e I3 POSITIVOS; B1 positivo pero mas debil"
+}

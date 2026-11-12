@@ -57,7 +57,7 @@ fototipo: publicado **0,433**, L\* puro **0,978**.
 1. **H1 no es un preregistro estricto.** Los resultados de T3 contra el control ya
    se conocían cuando se escribió el contraste. Lo pre-especificado era la
    **hipótesis y su mecanismo** (criterios P0-P5 de `causa-fisica-ddi-20261109.json`;
-   W0-W7 de `lanzar_lum_v10.py`, **antes de entrenar**). Lo auditable es que el
+   W0-W6 de `lanzar_lum_v10.py`, **antes de entrenar**). Lo auditable es que el
    script, con su regla de decisión y su margen, se congeló antes de calcular el
    número. El propio docstring lo declara con estas palabras.
 2. **El margen `+0,0139` sale de estos mismos datos** (la mitad del daño medido de
@@ -100,11 +100,63 @@ clasificador:
 La imagen completa gana en los dos bancos. **Las máscaras no entran al camino de
 predicción**; sirven como capa de explicabilidad.
 
-## Dependencias externas al repositorio
+## Sincronización con el clúster y el directorio `pre-lum/`
 
-- **`lanzar_lum_v10.py` no está en el repo.** Es la única fuente de los criterios
-  W0-W7 declarados antes de entrenar, y vive solo en UNABIA. Traerlo es condición
-  para poder citar esa pre-especificación en el informe.
-- La copia de `t3-zeroshot-20261109.json` de este directorio tiene **cuatro
-  brazos** y no incluye `V10_C1M_LUM`; la del clúster sí. No citar un AUC global
-  del brazo LUM desde este archivo.
+**Corregido el 2026-11-11.** El primer commit de este directorio (`b350d26`)
+subió **cinco archivos en su versión anterior al brazo LUM**. Lo detectó Nicolás
+comparando byte a byte contra el clúster. Consecuencia medida: el gate R0 de
+`primario_lum_vs_c1m.py` (líneas 180-193) lee
+`t3["por_brazo"]["V10_C1M_LUM"]`, y con la copia vieja daba
+`KeyError: 'V10_C1M_LUM'` — **el gate de reproducción del resultado primario no
+se podía correr desde git**, que es justo lo que lo hace creíble.
+
+Los cinco se reemplazaron por la copia del clúster
+(`/home/jovyan/work/moco-tono-20261107/v10_tono_20261108/`) y **las versiones
+viejas se conservan en `pre-lum/`**, no con sufijo en este directorio: un
+nombre parecido al lado del bueno es exactamente como se termina citando el
+archivo equivocado.
+
+**`pre-lum/` es histórico. No citar ninguna cifra desde ahí.**
+
+SHA-256 de lo que hay ahora en este directorio, idéntico al clúster en los seis
+(verificado calculando el hash en los dos extremos):
+
+| archivo | sha256 |
+|---|---|
+| `t3-zeroshot-20261109.json` | `495e84c6efa4f7b8430d45fada39d4fc9961a0e820db27c58b048de779c6b375` |
+| `cierre-estadistico-20261108.json` | `d87eff9b8e9c56423b21fa07ad6ec9f0b244935e55ba20c0b081eafb6561631a` |
+| `escalera-externa-cls-20261108.json` | `6859f1a411b0615ba712dcd37e0628f88036929f1698ffbb92d8701751c54e0b` |
+| `escalera-externa-cls4-20261108.json` | `6c9a832e4d59b758d7a7cca1f14983c26a0b34e1d5f96a8833b6dd0beda56b5f` |
+| `invariancia-tonal-20261109.json` | `e4d3c910ddedb611959d81621394b6578f50d647a22c867a7f53d1a9cca27e96` |
+| `lanzar_lum_v10.py` | `3468a35f2af09d98fd719c6a6db81aea349e2c2e08d858c040436fc6ac011c10` |
+
+`t3-zeroshot-20261109.json` ahora tiene los **cinco** brazos
+(`V10_C1`, `V10_C1M`, `V10_C1M_LUM`, `V10_C1M_asym`, `V10_T0`) y
+`cierre-estadistico-20261108.json` también. El AUC global del brazo corregido,
+**ya citable desde el repositorio**:
+
+| brazo | global | banda 12 | banda 34 | banda 56 |
+|---|---:|---:|---:|---:|
+| `V10_T0` | 0,7168445167902574 | 0,6891 | 0,7828 | 0,6584 |
+| `V10_C1M` | 0,7167962862482667 | 0,7061 | 0,7789 | 0,6476 |
+| **`V10_C1M_LUM`** | **0,7349369988545247** | 0,6853 | **0,8120** | **0,6882** |
+
+**`lanzar_lum_v10.py` ya está en el repositorio** (15.038 bytes). Es la fuente de
+los criterios declarados **antes de entrenar**, y son **W0 a W6** — siete, con
+`W5a/W5b` y `W6a/W6b/W6c` anidados. **No hay ningún W7**: `grep -c "W7"` sobre
+el archivo da **0**. El script y el JSON que los citan dicen «W0-W7» y están
+corridos por uno; no reproducir ese error en el informe.
+
+`W1` merece mención: re-entrena `V10_C1M` 40 pasos en un directorio nuevo y
+exige que su `backbone_sha256` iguale al histórico, o se detiene todo. Existe
+porque en la campaña `asym` el chequeo equivalente comparaba un archivo contra
+sí mismo y no podía fallar.
+
+### Lo que sigue sin poder verificarse desde el repositorio
+
+El gate R0 **completo** no corre acá: recalcula los AUC desde
+`evaluacion/{brazo}-s{s}/pad_adapt-cls4.npz` y
+`evaluacion_externa/{brazo}-s{s}/ddi-cls4.npz`, que son rutas del clúster y no
+están versionadas. Lo que sí quedó verificado localmente es que **los tres
+brazos que R0 busca resuelven y todos sus campos existen**. Correr R0 de punta a
+punta sigue requiriendo UNABIA.

@@ -1,0 +1,821 @@
+{
+  "A_cobertura": {
+    "con_fst_I_a_IV": 759,
+    "grupos_III_IV": 130,
+    "grupos_I_II": 269,
+    "n_III_IV": 241,
+    "n_I_II": 518,
+    "n_holdout": 1155,
+    "nota": "el DiD solo usa filas con FST anotado I-IV; V-VI (n=5) y sin dato quedan fuera",
+    "sin_fst_o_V_VI": 396
+  },
+  "A_criterio": "el IC95 del DiD excluye cero o no; sin reinterpretacion del signo si cruza",
+  "A_diff_in_diff": {
+    "DiD_V10_C1M_asym_vs_V10_T0": {
+      "candidato": -0.014837896580635149,
+      "delta": -0.03435652605777084,
+      "ic95": [
+        -0.06476750523425565,
+        -0.002251409490371856
+      ],
+      "referencia": 0.01951862947713569,
+      "resamples": 1000,
+      "veredicto": "NEGATIVO"
+    },
+    "DiD_V10_C1M_vs_V10_T0": {
+      "candidato": -0.005089262350673159,
+      "delta": -0.02460789182780885,
+      "ic95": [
+        -0.05299647698139736,
+        0.004014433186199992
+      ],
+      "referencia": 0.01951862947713569,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "DiD_V10_C1_vs_V10_T0": {
+      "candidato": -0.0050892623506731405,
+      "delta": -0.02460789182780883,
+      "ic95": [
+        -0.053201703474992465,
+        0.0033740701105814384
+      ],
+      "referencia": 0.01951862947713569,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    }
+  },
+  "B_criterio": "con umbral de Youden calibrado solo en ham_dev, el contraste de balanced accuracy en I-III sigue negativo con IC que excluye cero, o no. Si deja de serlo, la caida era del umbral y se reporta asi",
+  "B_umbral_calibrado": {
+    "nota_youden_vs_f1": "Youden (sens+spec-1) es invariante a la prevalencia, asi que transferirlo de ham_dev a BOSQUE es legitimo y es el PRIMARIO. F1 depende de la prevalencia y al transferirlo entre 19,8 % y 64,9 % queda mal puesto por construccion: va como CONTROL",
+    "por_umbral": {
+      "f1_ham": {
+        "contrastes": {
+          "balacc_I-III_V10_C1M_asym_vs_V10_T0": {
+            "candidato": 0.762987012987013,
+            "delta": -0.01461038961038963,
+            "ic95": [
+              -0.04333519269776866,
+              0.013211785391663414
+            ],
+            "referencia": 0.7775974025974026,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_I-III_V10_C1M_vs_V10_T0": {
+            "candidato": 0.7819264069264068,
+            "delta": 0.004329004329004182,
+            "ic95": [
+              -0.023868903720832415,
+              0.03464975297439005
+            ],
+            "referencia": 0.7775974025974026,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_I-III_V10_C1_vs_V10_T0": {
+            "candidato": 0.7662337662337663,
+            "delta": -0.011363636363636354,
+            "ic95": [
+              -0.04003349322091946,
+              0.01783880088477785
+            ],
+            "referencia": 0.7775974025974026,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_IV-VI_V10_C1M_asym_vs_V10_T0": {
+            "candidato": 0.7707936507936507,
+            "delta": -0.04634920634920636,
+            "ic95": [
+              -0.09039772727272728,
+              -0.0029732142857141707
+            ],
+            "referencia": 0.8171428571428571,
+            "resamples": 1000,
+            "veredicto": "NEGATIVO"
+          },
+          "balacc_IV-VI_V10_C1M_vs_V10_T0": {
+            "candidato": 0.7946031746031745,
+            "delta": -0.022539682539682526,
+            "ic95": [
+              -0.06586327561327562,
+              0.01789682539682541
+            ],
+            "referencia": 0.8171428571428571,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_IV-VI_V10_C1_vs_V10_T0": {
+            "candidato": 0.7799999999999999,
+            "delta": -0.037142857142857144,
+            "ic95": [
+              -0.08244290339895763,
+              0.0069602272727271285
+            ],
+            "referencia": 0.8171428571428571,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          }
+        },
+        "por_brazo": {
+          "V10_C1": {
+            "I-III": {
+              "accuracy_cruda": 0.7238095238095239,
+              "auc_roc": 0.8749226963512678,
+              "balanced_accuracy": 0.7662337662337663,
+              "benignos": 28,
+              "especificidad": 0.8571428571428571,
+              "f1_cruda": 0.7816250358886018,
+              "fn": 23,
+              "fp": 4,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8973410811762634,
+              "precision_cruda": 0.9290450928381963,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.6753246753246752,
+              "tn": 24,
+              "tp": 54
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.7898550724637681,
+              "auc_roc": 0.7892063492063492,
+              "balanced_accuracy": 0.7799999999999999,
+              "benignos": 25,
+              "especificidad": 0.8933333333333334,
+              "f1_cruda": 0.7390067708726623,
+              "fn": 5,
+              "fp": 4,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.9203606311044329,
+              "precision_cruda": 0.8428355957767723,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.6666666666666666,
+              "tn": 21,
+              "tp": 16
+            }
+          },
+          "V10_C1M": {
+            "I-III": {
+              "accuracy_cruda": 0.7523809523809524,
+              "auc_roc": 0.8787878787878788,
+              "balanced_accuracy": 0.7819264069264068,
+              "benignos": 28,
+              "especificidad": 0.8452380952380952,
+              "f1_cruda": 0.8097470872406934,
+              "fn": 21,
+              "fp": 5,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8956793437117176,
+              "precision_cruda": 0.9274798555154208,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.7186147186147186,
+              "tn": 23,
+              "tp": 56
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.8043478260869565,
+              "auc_roc": 0.7898412698412699,
+              "balanced_accuracy": 0.7946031746031745,
+              "benignos": 25,
+              "especificidad": 0.9066666666666667,
+              "f1_cruda": 0.7596596596596595,
+              "fn": 5,
+              "fp": 3,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.931139021221308,
+              "precision_cruda": 0.8612573099415205,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.6825396825396824,
+              "tn": 22,
+              "tp": 16
+            }
+          },
+          "V10_C1M_asym": {
+            "I-III": {
+              "accuracy_cruda": 0.7301587301587302,
+              "auc_roc": 0.8744588744588745,
+              "balanced_accuracy": 0.762987012987013,
+              "benignos": 28,
+              "especificidad": 0.8333333333333334,
+              "f1_cruda": 0.7870476190476191,
+              "fn": 19,
+              "fp": 5,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8848508789255383,
+              "precision_cruda": 0.9193121693121693,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.6926406926406926,
+              "tn": 23,
+              "tp": 58
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.7826086956521738,
+              "auc_roc": 0.7917460317460318,
+              "balanced_accuracy": 0.7707936507936507,
+              "benignos": 25,
+              "especificidad": 0.9066666666666666,
+              "f1_cruda": 0.7231231231231231,
+              "fn": 5,
+              "fp": 3,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.9263547938860582,
+              "precision_cruda": 0.8570906432748537,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.6349206349206349,
+              "tn": 22,
+              "tp": 16
+            }
+          },
+          "V10_T0": {
+            "I-III": {
+              "accuracy_cruda": 0.7682539682539682,
+              "auc_roc": 0.8647186147186147,
+              "balanced_accuracy": 0.7775974025974026,
+              "benignos": 28,
+              "especificidad": 0.7976190476190476,
+              "f1_cruda": 0.8273836874675952,
+              "fn": 20,
+              "fp": 6,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8737629122033855,
+              "precision_cruda": 0.9114430708180707,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.7575757575757577,
+              "tn": 22,
+              "tp": 57
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.8260869565217392,
+              "auc_roc": 0.7936507936507936,
+              "balanced_accuracy": 0.8171428571428571,
+              "benignos": 25,
+              "especificidad": 0.92,
+              "f1_cruda": 0.7877492877492877,
+              "fn": 5,
+              "fp": 2,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.9428879310344829,
+              "precision_cruda": 0.8814814814814814,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.7142857142857143,
+              "tn": 23,
+              "tp": 16
+            }
+          }
+        }
+      },
+      "fijo_0.5": {
+        "contrastes": {
+          "balacc_I-III_V10_C1M_asym_vs_V10_T0": {
+            "candidato": 0.7224025974025974,
+            "delta": -0.04816017316017318,
+            "ic95": [
+              -0.08438898575995346,
+              -0.013221223221223363
+            ],
+            "referencia": 0.7705627705627706,
+            "resamples": 1000,
+            "veredicto": "NEGATIVO"
+          },
+          "balacc_I-III_V10_C1M_vs_V10_T0": {
+            "candidato": 0.7408008658008658,
+            "delta": -0.029761904761904767,
+            "ic95": [
+              -0.062255271084337344,
+              0.006263855355575033
+            ],
+            "referencia": 0.7705627705627706,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_I-III_V10_C1_vs_V10_T0": {
+            "candidato": 0.7283549783549784,
+            "delta": -0.04220779220779214,
+            "ic95": [
+              -0.06944444444444431,
+              -0.012883832846003937
+            ],
+            "referencia": 0.7705627705627706,
+            "resamples": 1000,
+            "veredicto": "NEGATIVO"
+          },
+          "balacc_IV-VI_V10_C1M_asym_vs_V10_T0": {
+            "candidato": 0.7552380952380952,
+            "delta": -0.03428571428571425,
+            "ic95": [
+              -0.07936507936507942,
+              0.016419050819252545
+            ],
+            "referencia": 0.7895238095238094,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_IV-VI_V10_C1M_vs_V10_T0": {
+            "candidato": 0.7657142857142857,
+            "delta": -0.023809523809523725,
+            "ic95": [
+              -0.07017543859649134,
+              0.01587301587301582
+            ],
+            "referencia": 0.7895238095238094,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_IV-VI_V10_C1_vs_V10_T0": {
+            "candidato": 0.7419047619047618,
+            "delta": -0.04761904761904756,
+            "ic95": [
+              -0.0959058302808302,
+              0.0015671182266009458
+            ],
+            "referencia": 0.7895238095238094,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          }
+        },
+        "por_brazo": {
+          "V10_C1": {
+            "I-III": {
+              "accuracy_cruda": 0.6571428571428571,
+              "auc_roc": 0.8749226963512678,
+              "balanced_accuracy": 0.7283549783549784,
+              "benignos": 28,
+              "especificidad": 0.880952380952381,
+              "f1_cruda": 0.708691420320441,
+              "fn": 36,
+              "fp": 3,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8994238001587138,
+              "precision_cruda": 0.9321599453178401,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.5757575757575758,
+              "tn": 25,
+              "tp": 41
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.7608695652173912,
+              "auc_roc": 0.7892063492063492,
+              "balanced_accuracy": 0.7419047619047618,
+              "benignos": 25,
+              "especificidad": 0.96,
+              "f1_cruda": 0.6583825204514859,
+              "fn": 10,
+              "fp": 1,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.9603392367173859,
+              "precision_cruda": 0.9305555555555555,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.5238095238095238,
+              "tn": 24,
+              "tp": 11
+            }
+          },
+          "V10_C1M": {
+            "I-III": {
+              "accuracy_cruda": 0.6698412698412698,
+              "auc_roc": 0.8787878787878788,
+              "balanced_accuracy": 0.7408008658008658,
+              "benignos": 28,
+              "especificidad": 0.8928571428571429,
+              "f1_cruda": 0.7223055732146642,
+              "fn": 36,
+              "fp": 3,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.9103980600761625,
+              "precision_cruda": 0.937571469411092,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.5887445887445887,
+              "tn": 25,
+              "tp": 41
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.7826086956521738,
+              "auc_roc": 0.7898412698412699,
+              "balanced_accuracy": 0.7657142857142857,
+              "benignos": 25,
+              "especificidad": 0.96,
+              "f1_cruda": 0.7051353874883288,
+              "fn": 9,
+              "fp": 1,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.9635237439779766,
+              "precision_cruda": 0.9227716727716727,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.5714285714285715,
+              "tn": 24,
+              "tp": 12
+            }
+          },
+          "V10_C1M_asym": {
+            "I-III": {
+              "accuracy_cruda": 0.653968253968254,
+              "auc_roc": 0.8744588744588745,
+              "balanced_accuracy": 0.7224025974025974,
+              "benignos": 28,
+              "especificidad": 0.8690476190476191,
+              "f1_cruda": 0.707809805370781,
+              "fn": 34,
+              "fp": 3,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8904678132845992,
+              "precision_cruda": 0.9247020253086987,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.5757575757575758,
+              "tn": 25,
+              "tp": 43
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.7753623188405797,
+              "auc_roc": 0.7917460317460318,
+              "balanced_accuracy": 0.7552380952380952,
+              "benignos": 25,
+              "especificidad": 0.9866666666666667,
+              "f1_cruda": 0.6771241830065361,
+              "fn": 10,
+              "fp": 1,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.9864207020240842,
+              "precision_cruda": 0.9722222222222222,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.5238095238095238,
+              "tn": 24,
+              "tp": 11
+            }
+          },
+          "V10_T0": {
+            "I-III": {
+              "accuracy_cruda": 0.7301587301587301,
+              "auc_roc": 0.8647186147186147,
+              "balanced_accuracy": 0.7705627705627706,
+              "benignos": 28,
+              "especificidad": 0.8571428571428571,
+              "f1_cruda": 0.7857983193277311,
+              "fn": 32,
+              "fp": 3,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8985086752161551,
+              "precision_cruda": 0.930112770155143,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.683982683982684,
+              "tn": 25,
+              "tp": 45
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.8043478260869565,
+              "auc_roc": 0.7936507936507936,
+              "balanced_accuracy": 0.7895238095238094,
+              "benignos": 25,
+              "especificidad": 0.96,
+              "f1_cruda": 0.7401115401115402,
+              "fn": 10,
+              "fp": 1,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.9662348693990231,
+              "precision_cruda": 0.9275793650793651,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.6190476190476191,
+              "tn": 24,
+              "tp": 11
+            }
+          }
+        }
+      },
+      "youden_ham": {
+        "contrastes": {
+          "balacc_I-III_V10_C1M_asym_vs_V10_T0": {
+            "candidato": 0.8062770562770561,
+            "delta": 0.021645021645021467,
+            "ic95": [
+              -0.011245250219969347,
+              0.05872570519435844
+            ],
+            "referencia": 0.7846320346320347,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_I-III_V10_C1M_vs_V10_T0": {
+            "candidato": 0.7905844155844156,
+            "delta": 0.005952380952380931,
+            "ic95": [
+              -0.026723179871696107,
+              0.04025008941944413
+            ],
+            "referencia": 0.7846320346320347,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_I-III_V10_C1_vs_V10_T0": {
+            "candidato": 0.7824675324675324,
+            "delta": -0.0021645021645022577,
+            "ic95": [
+              -0.035118369153575656,
+              0.0338909097589653
+            ],
+            "referencia": 0.7846320346320347,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_IV-VI_V10_C1M_asym_vs_V10_T0": {
+            "candidato": 0.7555555555555555,
+            "delta": -0.0066666666666664876,
+            "ic95": [
+              -0.05358018207282906,
+              0.043216586151368835
+            ],
+            "referencia": 0.762222222222222,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_IV-VI_V10_C1M_vs_V10_T0": {
+            "candidato": 0.7504761904761904,
+            "delta": -0.011746031746031615,
+            "ic95": [
+              -0.07292067307692293,
+              0.0513300120772948
+            ],
+            "referencia": 0.762222222222222,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          },
+          "balacc_IV-VI_V10_C1_vs_V10_T0": {
+            "candidato": 0.7609523809523809,
+            "delta": -0.0012698412698410877,
+            "ic95": [
+              -0.05328085839599012,
+              0.0576923076923076
+            ],
+            "referencia": 0.762222222222222,
+            "resamples": 1000,
+            "veredicto": "NEUTRO (IC cruza cero)"
+          }
+        },
+        "por_brazo": {
+          "V10_C1": {
+            "I-III": {
+              "accuracy_cruda": 0.7809523809523808,
+              "auc_roc": 0.8749226963512678,
+              "balanced_accuracy": 0.7824675324675324,
+              "benignos": 28,
+              "especificidad": 0.7857142857142857,
+              "f1_cruda": 0.8388937252024865,
+              "fn": 16,
+              "fp": 6,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8705307572729292,
+              "precision_cruda": 0.9094511081804627,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.7792207792207794,
+              "tn": 22,
+              "tp": 61
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.7608695652173912,
+              "auc_roc": 0.7892063492063492,
+              "balanced_accuracy": 0.7609523809523809,
+              "benignos": 25,
+              "especificidad": 0.7600000000000001,
+              "f1_cruda": 0.7452113104287017,
+              "fn": 5,
+              "fp": 7,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.8544400366188588,
+              "precision_cruda": 0.736328502415459,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.7619047619047619,
+              "tn": 18,
+              "tp": 16
+            }
+          },
+          "V10_C1M": {
+            "I-III": {
+              "accuracy_cruda": 0.7873015873015873,
+              "auc_roc": 0.8787878787878788,
+              "balanced_accuracy": 0.7905844155844156,
+              "benignos": 28,
+              "especificidad": 0.7976190476190476,
+              "f1_cruda": 0.8437746256895192,
+              "fn": 16,
+              "fp": 6,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8774346734600497,
+              "precision_cruda": 0.9142568407960199,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.7835497835497836,
+              "tn": 22,
+              "tp": 61
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.753623188405797,
+              "auc_roc": 0.7898412698412699,
+              "balanced_accuracy": 0.7504761904761904,
+              "benignos": 25,
+              "especificidad": 0.7866666666666667,
+              "f1_cruda": 0.7244626718310929,
+              "fn": 5,
+              "fp": 7,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.8609380124631028,
+              "precision_cruda": 0.7407542727235822,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.7142857142857143,
+              "tn": 18,
+              "tp": 16
+            }
+          },
+          "V10_C1M_asym": {
+            "I-III": {
+              "accuracy_cruda": 0.815873015873016,
+              "auc_roc": 0.8744588744588745,
+              "balanced_accuracy": 0.8062770562770561,
+              "benignos": 28,
+              "especificidad": 0.7857142857142857,
+              "f1_cruda": 0.8678564180618974,
+              "fn": 16,
+              "fp": 6,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8770704964505776,
+              "precision_cruda": 0.9137664862109939,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.8268398268398268,
+              "tn": 22,
+              "tp": 61
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.7536231884057972,
+              "auc_roc": 0.7917460317460318,
+              "balanced_accuracy": 0.7555555555555555,
+              "benignos": 25,
+              "especificidad": 0.7333333333333334,
+              "f1_cruda": 0.7427693079866993,
+              "fn": 5,
+              "fp": 7,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.8435809149040826,
+              "precision_cruda": 0.7125189786059352,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.7777777777777777,
+              "tn": 18,
+              "tp": 16
+            }
+          },
+          "V10_T0": {
+            "I-III": {
+              "accuracy_cruda": 0.8063492063492065,
+              "auc_roc": 0.8647186147186147,
+              "balanced_accuracy": 0.7846320346320347,
+              "benignos": 28,
+              "especificidad": 0.7380952380952381,
+              "f1_cruda": 0.8626870247731174,
+              "fn": 16,
+              "fp": 6,
+              "malignos": 77,
+              "n": 105,
+              "ppv_estandarizado": 0.8543989102054717,
+              "precision_cruda": 0.8975835373300104,
+              "prevalencia": 0.7333333333333333,
+              "sensibilidad": 0.8311688311688311,
+              "tn": 22,
+              "tp": 61
+            },
+            "IV-VI": {
+              "accuracy_cruda": 0.7608695652173912,
+              "auc_roc": 0.7936507936507936,
+              "balanced_accuracy": 0.762222222222222,
+              "benignos": 25,
+              "especificidad": 0.7466666666666667,
+              "f1_cruda": 0.7508397932816537,
+              "fn": 5,
+              "fp": 3,
+              "malignos": 21,
+              "n": 46,
+              "ppv_estandarizado": 0.8502305289772445,
+              "precision_cruda": 0.7330025400200838,
+              "prevalencia": 0.45652173913043476,
+              "sensibilidad": 0.7777777777777777,
+              "tn": 22,
+              "tp": 16
+            }
+          }
+        }
+      }
+    },
+    "prevalencia_bosque": 0.6490066225165563,
+    "prevalencia_ham_dev": 0.19829842931937172,
+    "umbrales_por_brazo_y_semilla": {
+      "V10_C1": {
+        "42": {
+          "f1": 0.1501,
+          "f1_valor_en_ham": 0.6481994459833795,
+          "youden": 0.0655,
+          "youden_valor_en_ham": 0.6457008149794572
+        },
+        "43": {
+          "f1": 0.2391,
+          "f1_valor_en_ham": 0.6347826086956522,
+          "youden": 0.0614,
+          "youden_valor_en_ham": 0.6118111402977031
+        },
+        "44": {
+          "f1": 0.4139,
+          "f1_valor_en_ham": 0.6349693251533743,
+          "youden": 0.0642,
+          "youden_valor_en_ham": 0.6119162120293662
+        }
+      },
+      "V10_C1M": {
+        "42": {
+          "f1": 0.1261,
+          "f1_valor_en_ham": 0.652232746955345,
+          "youden": 0.0596,
+          "youden_valor_en_ham": 0.6556018050784671
+        },
+        "43": {
+          "f1": 0.2247,
+          "f1_valor_en_ham": 0.6376811594202899,
+          "youden": 0.055,
+          "youden_valor_en_ham": 0.614365191621203
+        },
+        "44": {
+          "f1": 0.2565,
+          "f1_valor_en_ham": 0.6289855072463768,
+          "youden": 0.0943,
+          "youden_valor_en_ham": 0.6075543880918706
+        }
+      },
+      "V10_C1M_asym": {
+        "42": {
+          "f1": 0.112,
+          "f1_valor_en_ham": 0.6497326203208557,
+          "youden": 0.0758,
+          "youden_valor_en_ham": 0.6463770458678519
+        },
+        "43": {
+          "f1": 0.1863,
+          "f1_valor_en_ham": 0.6336633663366337,
+          "youden": 0.0256,
+          "youden_valor_en_ham": 0.6024355088570081
+        },
+        "44": {
+          "f1": 0.4097,
+          "f1_valor_en_ham": 0.6296296296296297,
+          "youden": 0.0237,
+          "youden_valor_en_ham": 0.6058759345322287
+        }
+      },
+      "V10_T0": {
+        "42": {
+          "f1": 0.1154,
+          "f1_valor_en_ham": 0.6532797858099063,
+          "youden": 0.0892,
+          "youden_valor_en_ham": 0.650423654610359
+        },
+        "43": {
+          "f1": 0.2266,
+          "f1_valor_en_ham": 0.6422287390029326,
+          "youden": 0.0142,
+          "youden_valor_en_ham": 0.6076837071462249
+        },
+        "44": {
+          "f1": 0.4016,
+          "f1_valor_en_ham": 0.631578947368421,
+          "youden": 0.0377,
+          "youden_valor_en_ham": 0.6228086482117599
+        }
+      }
+    }
+  },
+  "analisis": "cierre-estadistico-escalera-externa",
+  "brazos": [
+    "V10_T0",
+    "V10_C1",
+    "V10_C1M",
+    "V10_C1M_asym"
+  ],
+  "fuente": "escalera-externa-cls4-20261108.json",
+  "generated_utc": "2026-11-09T15:03:20Z",
+  "modo": "cls4",
+  "segundos": 131.9
+}

@@ -156,6 +156,37 @@
           "especificidad": 0.5660377358490566
         }
       }
+    },
+    "V10_C1M_LUM": {
+      "umbral_youden_pad": 0.2773333377360056,
+      "global": {
+        "n": 656,
+        "auc_roc": 0.7349369988545247,
+        "balanced_accuracy": 0.6275758123831916
+      },
+      "por_banda": {
+        "12": {
+          "n": 208,
+          "auc_roc": 0.6852778847388011,
+          "balanced_accuracy": 0.5598767809010397,
+          "sensibilidad": 0.8367346938775511,
+          "especificidad": 0.2830188679245283
+        },
+        "34": {
+          "n": 241,
+          "auc_roc": 0.8120245994497491,
+          "balanced_accuracy": 0.6832416248583913,
+          "sensibilidad": 0.9054054054054054,
+          "especificidad": 0.46107784431137727
+        },
+        "56": {
+          "n": 207,
+          "auc_roc": 0.6881551362683438,
+          "balanced_accuracy": 0.6183176100628931,
+          "sensibilidad": 0.7083333333333334,
+          "especificidad": 0.5283018867924528
+        }
+      }
     }
   },
   "brecha_auc_I_II_menos_V_VI": {
@@ -190,6 +221,14 @@
         0.17785476184879623
       ],
       "veredicto": "SIN BRECHA (IC cruza cero)"
+    },
+    "V10_C1M_LUM": {
+      "punto": -0.002877251529542657,
+      "ic95": [
+        -0.1234938197378169,
+        0.12302695919295781
+      ],
+      "veredicto": "SIN BRECHA (IC cruza cero)"
     }
   },
   "Z4_contraste_de_brecha": {
@@ -220,6 +259,16 @@
       "ic95": [
         -0.0017877811581581886,
         0.04454333184422227
+      ],
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "V10_C1M_LUM_vs_V10_T0": {
+      "brecha_T0": 0.030716531895777166,
+      "brecha_candidato": -0.002877251529542657,
+      "delta": -0.03359378342531982,
+      "ic95": [
+        -0.0755149688210767,
+        0.005474712351378293
       ],
       "veredicto": "NEUTRO (IC cruza cero)"
     }

@@ -1,0 +1,1636 @@
+{
+  "T1_T2_pad_holdout_cls": {
+    "V10_C1": {
+      "T1_holdout_completo": {
+        "C_elegida_por_semilla": {
+          "42": 0.01,
+          "43": 0.01,
+          "44": 0.01
+        },
+        "grupos": 691,
+        "macro_f1_mean": 0.660824758682307,
+        "macro_f1_sd_encoders": 0.006047949116441322,
+        "n": 1155,
+        "por_semilla": {
+          "42": 0.6652226406702803,
+          "43": 0.653927768728384,
+          "44": 0.6633238666482565
+        },
+        "tasa_error_mean": 0.2958152958152958
+      },
+      "T2_estratos_fst": {
+        "I-II": {
+          "composicion_de_clases": {
+            "ACK": 98,
+            "BCC": 304,
+            "MEL": 15,
+            "NEV": 20,
+            "SCC": 69,
+            "SEK": 12
+          },
+          "grupos": 269,
+          "n": 518,
+          "reportable": true,
+          "tasa_error_mean": 0.359073359073359,
+          "tasa_error_sd_encoders": 0.01901323899960637
+        },
+        "III-IV": {
+          "composicion_de_clases": {
+            "ACK": 52,
+            "BCC": 116,
+            "MEL": 10,
+            "NEV": 27,
+            "SCC": 26,
+            "SEK": 10
+          },
+          "grupos": 130,
+          "n": 241,
+          "reportable": true,
+          "tasa_error_mean": 0.351313969571231,
+          "tasa_error_sd_encoders": 0.02088474255953182
+        },
+        "V-VI": {
+          "motivo": "n < 30 (umbral declarado)",
+          "n": 5,
+          "reportable": false
+        }
+      }
+    },
+    "V10_C1M": {
+      "T1_holdout_completo": {
+        "C_elegida_por_semilla": {
+          "42": 0.01,
+          "43": 0.01,
+          "44": 0.01
+        },
+        "grupos": 691,
+        "macro_f1_mean": 0.6587806507918431,
+        "macro_f1_sd_encoders": 0.0033486856867147225,
+        "n": 1155,
+        "por_semilla": {
+          "42": 0.6626401985987566,
+          "43": 0.65664688210164,
+          "44": 0.6570548716751324
+        },
+        "tasa_error_mean": 0.2961038961038961
+      },
+      "T2_estratos_fst": {
+        "I-II": {
+          "composicion_de_clases": {
+            "ACK": 98,
+            "BCC": 304,
+            "MEL": 15,
+            "NEV": 20,
+            "SCC": 69,
+            "SEK": 12
+          },
+          "grupos": 269,
+          "n": 518,
+          "reportable": true,
+          "tasa_error_mean": 0.3597168597168597,
+          "tasa_error_sd_encoders": 0.020821994449631183
+        },
+        "III-IV": {
+          "composicion_de_clases": {
+            "ACK": 52,
+            "BCC": 116,
+            "MEL": 10,
+            "NEV": 27,
+            "SCC": 26,
+            "SEK": 10
+          },
+          "grupos": 130,
+          "n": 241,
+          "reportable": true,
+          "tasa_error_mean": 0.3471645919778699,
+          "tasa_error_sd_encoders": 0.016769509893474602
+        },
+        "V-VI": {
+          "motivo": "n < 30 (umbral declarado)",
+          "n": 5,
+          "reportable": false
+        }
+      }
+    },
+    "V10_C1M_asym": {
+      "T1_holdout_completo": {
+        "C_elegida_por_semilla": {
+          "42": 0.01,
+          "43": 0.01,
+          "44": 0.01
+        },
+        "grupos": 691,
+        "macro_f1_mean": 0.65759746590382,
+        "macro_f1_sd_encoders": 0.0008796192892795301,
+        "n": 1155,
+        "por_semilla": {
+          "42": 0.6585888490679095,
+          "43": 0.6572930846992838,
+          "44": 0.6569104639442666
+        },
+        "tasa_error_mean": 0.2958152958152958
+      },
+      "T2_estratos_fst": {
+        "I-II": {
+          "composicion_de_clases": {
+            "ACK": 98,
+            "BCC": 304,
+            "MEL": 15,
+            "NEV": 20,
+            "SCC": 69,
+            "SEK": 12
+          },
+          "grupos": 269,
+          "n": 518,
+          "reportable": true,
+          "tasa_error_mean": 0.35714285714285715,
+          "tasa_error_sd_encoders": 0.016829725650736187
+        },
+        "III-IV": {
+          "composicion_de_clases": {
+            "ACK": 52,
+            "BCC": 116,
+            "MEL": 10,
+            "NEV": 27,
+            "SCC": 26,
+            "SEK": 10
+          },
+          "grupos": 130,
+          "n": 241,
+          "reportable": true,
+          "tasa_error_mean": 0.3609958506224067,
+          "tasa_error_sd_encoders": 0.012448132780082999
+        },
+        "V-VI": {
+          "motivo": "n < 30 (umbral declarado)",
+          "n": 5,
+          "reportable": false
+        }
+      }
+    },
+    "V10_T0": {
+      "T1_holdout_completo": {
+        "C_elegida_por_semilla": {
+          "42": 0.1,
+          "43": 0.1,
+          "44": 0.01
+        },
+        "grupos": 691,
+        "macro_f1_mean": 0.6440550968819255,
+        "macro_f1_sd_encoders": 0.006464901892974731,
+        "n": 1155,
+        "por_semilla": {
+          "42": 0.6457618004440747,
+          "43": 0.6494954188053734,
+          "44": 0.6369080713963283
+        },
+        "tasa_error_mean": 0.2961038961038961
+      },
+      "T2_estratos_fst": {
+        "I-II": {
+          "composicion_de_clases": {
+            "ACK": 98,
+            "BCC": 304,
+            "MEL": 15,
+            "NEV": 20,
+            "SCC": 69,
+            "SEK": 12
+          },
+          "grupos": 269,
+          "n": 518,
+          "reportable": true,
+          "tasa_error_mean": 0.3352638352638353,
+          "tasa_error_sd_encoders": 0.01751693383374028
+        },
+        "III-IV": {
+          "composicion_de_clases": {
+            "ACK": 52,
+            "BCC": 116,
+            "MEL": 10,
+            "NEV": 27,
+            "SCC": 26,
+            "SEK": 10
+          },
+          "grupos": 130,
+          "n": 241,
+          "reportable": true,
+          "tasa_error_mean": 0.367911479944675,
+          "tasa_error_sd_encoders": 0.00479128854099276
+        },
+        "V-VI": {
+          "motivo": "n < 30 (umbral declarado)",
+          "n": 5,
+          "reportable": false
+        }
+      }
+    }
+  },
+  "T2b_ham_a_bosque_cls": {
+    "V10_C1": {
+      "C_elegida_por_semilla": {
+        "42": 0.1,
+        "43": 0.1,
+        "44": 10.0
+      },
+      "banda_fina": {
+        "I-II": {
+          "accuracy_cruda": 0.5454545454545454,
+          "auc_roc": 0.5595238095238095,
+          "balanced_accuracy": 0.5892857142857143,
+          "benignos": 4,
+          "especificidad": 0.75,
+          "f1_cruda": 0.5484848484848485,
+          "fn": 4,
+          "fp": 2,
+          "grupos": 10,
+          "malignos": 7,
+          "motivo_no_reportable": "solo 7 malignos (umbral 10)",
+          "n": 11,
+          "ppv_estandarizado_a_prev_comun": 0.7601809954751131,
+          "precision_cruda": 0.7833333333333333,
+          "prevalencia": 0.6363636363636364,
+          "reportable_malignidad": false,
+          "sensibilidad": 0.42857142857142855,
+          "tn": 2,
+          "tp": 3
+        },
+        "III-IV": {
+          "accuracy_cruda": 0.5625,
+          "auc_roc": 0.8183235867446393,
+          "balanced_accuracy": 0.653411306042885,
+          "benignos": 38,
+          "especificidad": 0.8771929824561403,
+          "f1_cruda": 0.5770588717357454,
+          "fn": 46,
+          "fp": 6,
+          "grupos": 118,
+          "ic95_balanced_accuracy": [
+            0.6038273580205739,
+            0.7410590339866008
+          ],
+          "ic95_sensibilidad": [
+            0.3595291890571568,
+            0.5529474342928661
+          ],
+          "malignos": 90,
+          "n": 128,
+          "ppv_estandarizado_a_prev_comun": 0.8661090215011508,
+          "precision_cruda": 0.8972447883086181,
+          "prevalencia": 0.703125,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.4296296296296296,
+          "tn": 32,
+          "tp": 44
+        },
+        "V-VI": {
+          "accuracy_cruda": 0.8055555555555555,
+          "auc_roc": 0.12121212121212122,
+          "balanced_accuracy": 0.4393939393939394,
+          "benignos": 11,
+          "especificidad": 0.8787878787878788,
+          "f1_cruda": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "grupos": 11,
+          "malignos": 1,
+          "motivo_no_reportable": "solo 1 malignos (umbral 10)",
+          "n": 12,
+          "ppv_estandarizado_a_prev_comun": 0.0,
+          "precision_cruda": 0.0,
+          "prevalencia": 0.08333333333333333,
+          "reportable_malignidad": false,
+          "sensibilidad": 0.0,
+          "tn": 11,
+          "tp": 0
+        }
+      },
+      "banda_paper_I-III_vs_IV-VI": {
+        "I-III": {
+          "accuracy_cruda": 0.5619047619047619,
+          "auc_roc": 0.8291589363017934,
+          "balanced_accuracy": 0.670995670995671,
+          "benignos": 28,
+          "especificidad": 0.9047619047619048,
+          "f1_cruda": 0.5911972664373378,
+          "fn": 38,
+          "fp": 3,
+          "grupos": 96,
+          "ic95_balanced_accuracy": [
+            0.6268354924818966,
+            0.7684710250885024
+          ],
+          "ic95_sensibilidad": [
+            0.3661885949845414,
+            0.5797444183313748
+          ],
+          "malignos": 77,
+          "n": 105,
+          "ppv_estandarizado_a_prev_comun": 0.8946131597975415,
+          "precision_cruda": 0.9268861809696656,
+          "prevalencia": 0.7333333333333333,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.4372294372294372,
+          "tn": 25,
+          "tp": 39
+        },
+        "IV-VI": {
+          "accuracy_cruda": 0.6231884057971014,
+          "auc_roc": 0.7187301587301588,
+          "balanced_accuracy": 0.6038095238095238,
+          "benignos": 25,
+          "especificidad": 0.8266666666666667,
+          "f1_cruda": 0.48142414860681115,
+          "fn": 13,
+          "fp": 5,
+          "grupos": 43,
+          "ic95_balanced_accuracy": [
+            0.5092193486590039,
+            0.7372739719712337
+          ],
+          "ic95_sensibilidad": [
+            0.18181818181818182,
+            0.5714285714285714
+          ],
+          "malignos": 21,
+          "n": 46,
+          "ppv_estandarizado_a_prev_comun": 0.8025222126683863,
+          "precision_cruda": 0.7149321266968326,
+          "prevalencia": 0.45652173913043476,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.38095238095238093,
+          "tn": 20,
+          "tp": 8
+        }
+      },
+      "prevalencia_comun_usada": 0.6490066225165563,
+      "secundario_7_clases": {
+        "advertencia": "macro-F1 de 7 clases sobre 151 imagenes con vasc n=3 y df n=9: el F1 de vasc se mueve en escalones de ~0,33. NO es endpoint primario",
+        "macro_f1_mean": 0.2229055442613478,
+        "macro_f1_sd_encoders": 0.04581968158543042,
+        "soporte_por_clase": {
+          "akiec": 17,
+          "bcc": 62,
+          "bkl": 21,
+          "df": 9,
+          "mel": 19,
+          "nv": 20,
+          "vasc": 3
+        }
+      }
+    },
+    "V10_C1M": {
+      "C_elegida_por_semilla": {
+        "42": 1.0,
+        "43": 0.01,
+        "44": 10.0
+      },
+      "banda_fina": {
+        "I-II": {
+          "accuracy_cruda": 0.48484848484848486,
+          "auc_roc": 0.5595238095238095,
+          "balanced_accuracy": 0.5238095238095238,
+          "benignos": 4,
+          "especificidad": 0.6666666666666666,
+          "f1_cruda": 0.48484848484848486,
+          "fn": 5,
+          "fp": 2,
+          "grupos": 10,
+          "malignos": 7,
+          "motivo_no_reportable": "solo 7 malignos (umbral 10)",
+          "n": 11,
+          "ppv_estandarizado_a_prev_comun": 0.6787878787878788,
+          "precision_cruda": 0.6666666666666666,
+          "prevalencia": 0.6363636363636364,
+          "reportable_malignidad": false,
+          "sensibilidad": 0.38095238095238093,
+          "tn": 2,
+          "tp": 2
+        },
+        "III-IV": {
+          "accuracy_cruda": 0.5963541666666666,
+          "auc_roc": 0.8316764132553606,
+          "balanced_accuracy": 0.6825536062378168,
+          "benignos": 38,
+          "especificidad": 0.8947368421052632,
+          "f1_cruda": 0.6198573744743375,
+          "fn": 43,
+          "fp": 7,
+          "grupos": 118,
+          "ic95_balanced_accuracy": [
+            0.6150169745317482,
+            0.7577118510498327
+          ],
+          "ic95_sensibilidad": [
+            0.37927203065134096,
+            0.5814209046767186
+          ],
+          "malignos": 90,
+          "n": 128,
+          "ppv_estandarizado_a_prev_comun": 0.892038295849774,
+          "precision_cruda": 0.9192576076634048,
+          "prevalencia": 0.703125,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.4703703703703703,
+          "tn": 31,
+          "tp": 47
+        },
+        "V-VI": {
+          "accuracy_cruda": 0.8333333333333334,
+          "auc_roc": 0.0909090909090909,
+          "balanced_accuracy": 0.4545454545454546,
+          "benignos": 11,
+          "especificidad": 0.9090909090909092,
+          "f1_cruda": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "grupos": 11,
+          "malignos": 1,
+          "motivo_no_reportable": "solo 1 malignos (umbral 10)",
+          "n": 12,
+          "ppv_estandarizado_a_prev_comun": 0.0,
+          "precision_cruda": 0.0,
+          "prevalencia": 0.08333333333333333,
+          "reportable_malignidad": false,
+          "sensibilidad": 0.0,
+          "tn": 11,
+          "tp": 0
+        }
+      },
+      "banda_paper_I-III_vs_IV-VI": {
+        "I-III": {
+          "accuracy_cruda": 0.5873015873015873,
+          "auc_roc": 0.8365800865800866,
+          "balanced_accuracy": 0.6883116883116882,
+          "benignos": 28,
+          "especificidad": 0.9047619047619048,
+          "f1_cruda": 0.6255098985336139,
+          "fn": 37,
+          "fp": 4,
+          "grupos": 96,
+          "ic95_balanced_accuracy": [
+            0.6113103318744486,
+            0.766560230050765
+          ],
+          "ic95_sensibilidad": [
+            0.3835405039742939,
+            0.6000568181818181
+          ],
+          "malignos": 77,
+          "n": 105,
+          "ppv_estandarizado_a_prev_comun": 0.9015867656988521,
+          "precision_cruda": 0.9331054910002278,
+          "prevalencia": 0.7333333333333333,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.4718614718614718,
+          "tn": 24,
+          "tp": 40
+        },
+        "IV-VI": {
+          "accuracy_cruda": 0.6521739130434783,
+          "auc_roc": 0.7346031746031746,
+          "balanced_accuracy": 0.633015873015873,
+          "benignos": 25,
+          "especificidad": 0.8533333333333334,
+          "f1_cruda": 0.5220032840722496,
+          "fn": 12,
+          "fp": 5,
+          "grupos": 43,
+          "ic95_balanced_accuracy": [
+            0.5092193486590039,
+            0.7372739719712337
+          ],
+          "ic95_sensibilidad": [
+            0.18181818181818182,
+            0.5714285714285714
+          ],
+          "malignos": 21,
+          "n": 46,
+          "ppv_estandarizado_a_prev_comun": 0.8387869849755739,
+          "precision_cruda": 0.7476190476190476,
+          "prevalencia": 0.45652173913043476,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.41269841269841273,
+          "tn": 20,
+          "tp": 9
+        }
+      },
+      "prevalencia_comun_usada": 0.6490066225165563,
+      "secundario_7_clases": {
+        "advertencia": "macro-F1 de 7 clases sobre 151 imagenes con vasc n=3 y df n=9: el F1 de vasc se mueve en escalones de ~0,33. NO es endpoint primario",
+        "macro_f1_mean": 0.23177434977530442,
+        "macro_f1_sd_encoders": 0.048809211420179646,
+        "soporte_por_clase": {
+          "akiec": 17,
+          "bcc": 62,
+          "bkl": 21,
+          "df": 9,
+          "mel": 19,
+          "nv": 20,
+          "vasc": 3
+        }
+      }
+    },
+    "V10_C1M_asym": {
+      "C_elegida_por_semilla": {
+        "42": 0.01,
+        "43": 0.01,
+        "44": 0.1
+      },
+      "banda_fina": {
+        "I-II": {
+          "accuracy_cruda": 0.5454545454545454,
+          "auc_roc": 0.5952380952380952,
+          "balanced_accuracy": 0.5714285714285715,
+          "benignos": 4,
+          "especificidad": 0.6666666666666666,
+          "f1_cruda": 0.5707070707070706,
+          "fn": 4,
+          "fp": 2,
+          "grupos": 10,
+          "malignos": 7,
+          "motivo_no_reportable": "solo 7 malignos (umbral 10)",
+          "n": 11,
+          "ppv_estandarizado_a_prev_comun": 0.7253886010362693,
+          "precision_cruda": 0.7166666666666668,
+          "prevalencia": 0.6363636363636364,
+          "reportable_malignidad": false,
+          "sensibilidad": 0.4761904761904761,
+          "tn": 2,
+          "tp": 3
+        },
+        "III-IV": {
+          "accuracy_cruda": 0.6614583333333334,
+          "auc_roc": 0.862962962962963,
+          "balanced_accuracy": 0.7415204678362574,
+          "benignos": 38,
+          "especificidad": 0.9385964912280702,
+          "f1_cruda": 0.6910936916759985,
+          "fn": 34,
+          "fp": 4,
+          "grupos": 118,
+          "ic95_balanced_accuracy": [
+            0.6910204886386432,
+            0.8098124337221633
+          ],
+          "ic95_sensibilidad": [
+            0.43010752688172044,
+            0.6353208556149732
+          ],
+          "malignos": 90,
+          "n": 128,
+          "ppv_estandarizado_a_prev_comun": 0.9425121122279267,
+          "precision_cruda": 0.956953944368445,
+          "prevalencia": 0.703125,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.5444444444444444,
+          "tn": 34,
+          "tp": 56
+        },
+        "V-VI": {
+          "accuracy_cruda": 0.861111111111111,
+          "auc_roc": 0.15151515151515152,
+          "balanced_accuracy": 0.4696969696969697,
+          "benignos": 11,
+          "especificidad": 0.9393939393939394,
+          "f1_cruda": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "grupos": 11,
+          "malignos": 1,
+          "motivo_no_reportable": "solo 1 malignos (umbral 10)",
+          "n": 12,
+          "ppv_estandarizado_a_prev_comun": 0.0,
+          "precision_cruda": 0.0,
+          "prevalencia": 0.08333333333333333,
+          "reportable_malignidad": false,
+          "sensibilidad": 0.0,
+          "tn": 11,
+          "tp": 0
+        }
+      },
+      "banda_paper_I-III_vs_IV-VI": {
+        "I-III": {
+          "accuracy_cruda": 0.6539682539682539,
+          "auc_roc": 0.8611626468769327,
+          "balanced_accuracy": 0.7375541125541126,
+          "benignos": 28,
+          "especificidad": 0.9166666666666666,
+          "f1_cruda": 0.7011260629847677,
+          "fn": 29,
+          "fp": 3,
+          "grupos": 96,
+          "ic95_balanced_accuracy": [
+            0.625,
+            0.7889500962355942
+          ],
+          "ic95_sensibilidad": [
+            0.4166666666666667,
+            0.6438855593607306
+          ],
+          "malignos": 77,
+          "n": 105,
+          "ppv_estandarizado_a_prev_comun": 0.9253234276930958,
+          "precision_cruda": 0.9488053861455397,
+          "prevalencia": 0.7333333333333333,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.5584415584415584,
+          "tn": 25,
+          "tp": 48
+        },
+        "IV-VI": {
+          "accuracy_cruda": 0.7028985507246377,
+          "auc_roc": 0.7752380952380952,
+          "balanced_accuracy": 0.6822222222222223,
+          "benignos": 25,
+          "especificidad": 0.9199999999999999,
+          "f1_cruda": 0.5752500373190028,
+          "fn": 10,
+          "fp": 3,
+          "grupos": 43,
+          "ic95_balanced_accuracy": [
+            0.6388257575757575,
+            0.8333333333333333
+          ],
+          "ic95_sensibilidad": [
+            0.27765151515151515,
+            0.6666666666666666
+          ],
+          "malignos": 21,
+          "n": 46,
+          "ppv_estandarizado_a_prev_comun": 0.9112888227636228,
+          "precision_cruda": 0.8452380952380952,
+          "prevalencia": 0.45652173913043476,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.4444444444444444,
+          "tn": 22,
+          "tp": 11
+        }
+      },
+      "prevalencia_comun_usada": 0.6490066225165563,
+      "secundario_7_clases": {
+        "advertencia": "macro-F1 de 7 clases sobre 151 imagenes con vasc n=3 y df n=9: el F1 de vasc se mueve en escalones de ~0,33. NO es endpoint primario",
+        "macro_f1_mean": 0.2871408817845903,
+        "macro_f1_sd_encoders": 0.058165851503558325,
+        "soporte_por_clase": {
+          "akiec": 17,
+          "bcc": 62,
+          "bkl": 21,
+          "df": 9,
+          "mel": 19,
+          "nv": 20,
+          "vasc": 3
+        }
+      }
+    },
+    "V10_T0": {
+      "C_elegida_por_semilla": {
+        "42": 1.0,
+        "43": 1.0,
+        "44": 0.1
+      },
+      "banda_fina": {
+        "I-II": {
+          "accuracy_cruda": 0.5454545454545454,
+          "auc_roc": 0.6071428571428571,
+          "balanced_accuracy": 0.5892857142857143,
+          "benignos": 4,
+          "especificidad": 0.75,
+          "f1_cruda": 0.5370370370370371,
+          "fn": 4,
+          "fp": 2,
+          "grupos": 10,
+          "malignos": 7,
+          "motivo_no_reportable": "solo 7 malignos (umbral 10)",
+          "n": 11,
+          "ppv_estandarizado_a_prev_comun": 0.7601809954751131,
+          "precision_cruda": 0.8000000000000002,
+          "prevalencia": 0.6363636363636364,
+          "reportable_malignidad": false,
+          "sensibilidad": 0.42857142857142855,
+          "tn": 2,
+          "tp": 3
+        },
+        "III-IV": {
+          "accuracy_cruda": 0.6041666666666666,
+          "auc_roc": 0.8227095516569202,
+          "balanced_accuracy": 0.69317738791423,
+          "benignos": 38,
+          "especificidad": 0.912280701754386,
+          "f1_cruda": 0.6192693039657177,
+          "fn": 40,
+          "fp": 7,
+          "grupos": 118,
+          "ic95_balanced_accuracy": [
+            0.6587256493506494,
+            0.78391901964597
+          ],
+          "ic95_sensibilidad": [
+            0.40211956521739134,
+            0.6047034230467728
+          ],
+          "malignos": 90,
+          "n": 128,
+          "ppv_estandarizado_a_prev_comun": 0.9090340445332704,
+          "precision_cruda": 0.939833558254611,
+          "prevalencia": 0.703125,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.47407407407407404,
+          "tn": 31,
+          "tp": 50
+        },
+        "V-VI": {
+          "accuracy_cruda": 0.861111111111111,
+          "auc_roc": 0.12121212121212122,
+          "balanced_accuracy": 0.4696969696969697,
+          "benignos": 11,
+          "especificidad": 0.9393939393939394,
+          "f1_cruda": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "grupos": 11,
+          "malignos": 1,
+          "motivo_no_reportable": "solo 1 malignos (umbral 10)",
+          "n": 12,
+          "ppv_estandarizado_a_prev_comun": 0.0,
+          "precision_cruda": 0.0,
+          "prevalencia": 0.08333333333333333,
+          "reportable_malignidad": false,
+          "sensibilidad": 0.0,
+          "tn": 11,
+          "tp": 0
+        }
+      },
+      "banda_paper_I-III_vs_IV-VI": {
+        "I-III": {
+          "accuracy_cruda": 0.5968253968253968,
+          "auc_roc": 0.8393630179344465,
+          "balanced_accuracy": 0.6948051948051948,
+          "benignos": 28,
+          "especificidad": 0.9047619047619048,
+          "f1_cruda": 0.6277491749174918,
+          "fn": 34,
+          "fp": 5,
+          "grupos": 96,
+          "ic95_balanced_accuracy": [
+            0.6351331951181348,
+            0.7820525085034014
+          ],
+          "ic95_sensibilidad": [
+            0.38271604938271603,
+            0.6028611062944337
+          ],
+          "malignos": 77,
+          "n": 105,
+          "ppv_estandarizado_a_prev_comun": 0.9039696919782573,
+          "precision_cruda": 0.9444444444444445,
+          "prevalencia": 0.7333333333333333,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.48484848484848486,
+          "tn": 23,
+          "tp": 43
+        },
+        "IV-VI": {
+          "accuracy_cruda": 0.6739130434782608,
+          "auc_roc": 0.7117460317460318,
+          "balanced_accuracy": 0.6517460317460316,
+          "benignos": 25,
+          "especificidad": 0.9066666666666666,
+          "f1_cruda": 0.5238095238095238,
+          "fn": 11,
+          "fp": 4,
+          "grupos": 43,
+          "ic95_balanced_accuracy": [
+            0.6054357271968853,
+            0.8224026704289862
+          ],
+          "ic95_sensibilidad": [
+            0.285515873015873,
+            0.6666666666666666
+          ],
+          "malignos": 21,
+          "n": 46,
+          "ppv_estandarizado_a_prev_comun": 0.8871540099361248,
+          "precision_cruda": 0.8138528138528139,
+          "prevalencia": 0.45652173913043476,
+          "reportable_malignidad": true,
+          "sensibilidad": 0.3968253968253968,
+          "tn": 21,
+          "tp": 10
+        }
+      },
+      "prevalencia_comun_usada": 0.6490066225165563,
+      "secundario_7_clases": {
+        "advertencia": "macro-F1 de 7 clases sobre 151 imagenes con vasc n=3 y df n=9: el F1 de vasc se mueve en escalones de ~0,33. NO es endpoint primario",
+        "macro_f1_mean": 0.21176580315181037,
+        "macro_f1_sd_encoders": 0.02541346825629888,
+        "soporte_por_clase": {
+          "akiec": 17,
+          "bcc": 62,
+          "bkl": 21,
+          "df": 9,
+          "mel": 19,
+          "nv": 20,
+          "vasc": 3
+        }
+      }
+    }
+  },
+  "T3_ddi_cls": {
+    "V10_C1": {
+      "nota_agrupamiento": "DDI no tiene clave de sujeto recuperable; los IC son a nivel imagen y resultan anticonservadores si algun paciente aporto varias lesiones",
+      "tono_12": {
+        "accuracy_cruda": 0.7868589743589743,
+        "auc_roc": 0.783981517135156,
+        "balanced_accuracy": 0.7641081589868652,
+        "benignos": 159,
+        "especificidad": 0.8071278825995808,
+        "f1_cruda": 0.6144226132547762,
+        "fn": 13,
+        "fp": 31,
+        "granularidad_sensibilidad": 0.02040816326530612,
+        "ic95_auc_roc": [
+          0.7130964208384887,
+          0.8777709132732318
+        ],
+        "ic95_balanced_accuracy": [
+          0.6789367316805434,
+          0.8272558079835708
+        ],
+        "malignos": 49,
+        "n": 208,
+        "precision_cruda": 0.5352816337890965,
+        "prevalencia": 0.23557692307692304,
+        "sensibilidad": 0.7210884353741497,
+        "tn": 128,
+        "tp": 36
+      },
+      "tono_34": {
+        "accuracy_cruda": 0.7704011065006915,
+        "auc_roc": 0.7913901925877974,
+        "balanced_accuracy": 0.7252117386847926,
+        "benignos": 167,
+        "especificidad": 0.8423153692614771,
+        "f1_cruda": 0.6190563165905631,
+        "fn": 27,
+        "fp": 25,
+        "granularidad_sensibilidad": 0.013513513513513514,
+        "ic95_auc_roc": [
+          0.7471055763345801,
+          0.8682307742787926
+        ],
+        "ic95_balanced_accuracy": [
+          0.6617541847921472,
+          0.786940328852557
+        ],
+        "malignos": 74,
+        "n": 241,
+        "precision_cruda": 0.6314681906787171,
+        "prevalencia": 0.3070539419087137,
+        "sensibilidad": 0.608108108108108,
+        "tn": 142,
+        "tp": 47
+      },
+      "tono_56": {
+        "accuracy_cruda": 0.7359098228663447,
+        "auc_roc": 0.7386006289308176,
+        "balanced_accuracy": 0.6705319706498951,
+        "benignos": 159,
+        "especificidad": 0.7924528301886792,
+        "f1_cruda": 0.49071189569631946,
+        "fn": 22,
+        "fp": 34,
+        "granularidad_sensibilidad": 0.020833333333333332,
+        "ic95_auc_roc": [
+          0.6741076118581426,
+          0.8330428059624627
+        ],
+        "ic95_balanced_accuracy": [
+          0.5961025605528418,
+          0.7490937822497419
+        ],
+        "malignos": 48,
+        "n": 207,
+        "precision_cruda": 0.443879472693032,
+        "prevalencia": 0.2318840579710145,
+        "sensibilidad": 0.548611111111111,
+        "tn": 125,
+        "tp": 26
+      }
+    },
+    "V10_C1M": {
+      "nota_agrupamiento": "DDI no tiene clave de sujeto recuperable; los IC son a nivel imagen y resultan anticonservadores si algun paciente aporto varias lesiones",
+      "tono_12": {
+        "accuracy_cruda": 0.7788461538461539,
+        "auc_roc": 0.7844521456381295,
+        "balanced_accuracy": 0.756513926325247,
+        "benignos": 159,
+        "especificidad": 0.7987421383647799,
+        "f1_cruda": 0.6033898305084746,
+        "fn": 13,
+        "fp": 33,
+        "granularidad_sensibilidad": 0.02040816326530612,
+        "ic95_auc_roc": [
+          0.7127666611630427,
+          0.8779521587829514
+        ],
+        "ic95_balanced_accuracy": [
+          0.6789367316805434,
+          0.8272558079835708
+        ],
+        "malignos": 49,
+        "n": 208,
+        "precision_cruda": 0.5223978919631094,
+        "prevalencia": 0.23557692307692304,
+        "sensibilidad": 0.7142857142857143,
+        "tn": 126,
+        "tp": 36
+      },
+      "tono_34": {
+        "accuracy_cruda": 0.7731673582295988,
+        "auc_roc": 0.7939256621891352,
+        "balanced_accuracy": 0.7284619949290608,
+        "benignos": 167,
+        "especificidad": 0.844311377245509,
+        "f1_cruda": 0.6234842601702988,
+        "fn": 27,
+        "fp": 25,
+        "granularidad_sensibilidad": 0.013513513513513514,
+        "ic95_auc_roc": [
+          0.7493178340700443,
+          0.8696135646813101
+        ],
+        "ic95_balanced_accuracy": [
+          0.6600145490845758,
+          0.7846552301504762
+        ],
+        "malignos": 74,
+        "n": 241,
+        "precision_cruda": 0.6354367053620785,
+        "prevalencia": 0.3070539419087137,
+        "sensibilidad": 0.6126126126126126,
+        "tn": 142,
+        "tp": 47
+      },
+      "tono_56": {
+        "accuracy_cruda": 0.7359098228663447,
+        "auc_roc": 0.7458071278825996,
+        "balanced_accuracy": 0.6681079664570232,
+        "benignos": 159,
+        "especificidad": 0.7945492662473795,
+        "f1_cruda": 0.4868038042492871,
+        "fn": 23,
+        "fp": 34,
+        "granularidad_sensibilidad": 0.020833333333333332,
+        "ic95_auc_roc": [
+          0.6813417241195019,
+          0.8427195456839033
+        ],
+        "ic95_balanced_accuracy": [
+          0.6281857051531639,
+          0.7806610389547901
+        ],
+        "malignos": 48,
+        "n": 207,
+        "precision_cruda": 0.4421201308355635,
+        "prevalencia": 0.2318840579710145,
+        "sensibilidad": 0.5416666666666666,
+        "tn": 125,
+        "tp": 25
+      }
+    },
+    "V10_C1M_asym": {
+      "nota_agrupamiento": "DDI no tiene clave de sujeto recuperable; los IC son a nivel imagen y resultan anticonservadores si algun paciente aporto varias lesiones",
+      "tono_12": {
+        "accuracy_cruda": 0.782051282051282,
+        "auc_roc": 0.7929234586916527,
+        "balanced_accuracy": 0.7586103623839474,
+        "benignos": 159,
+        "especificidad": 0.8029350104821803,
+        "f1_cruda": 0.6070780399274047,
+        "fn": 14,
+        "fp": 32,
+        "granularidad_sensibilidad": 0.02040816326530612,
+        "ic95_auc_roc": [
+          0.7152055839141074,
+          0.8811264537142359
+        ],
+        "ic95_balanced_accuracy": [
+          0.6901148922725697,
+          0.8354186958874459
+        ],
+        "malignos": 49,
+        "n": 208,
+        "precision_cruda": 0.5278989667049369,
+        "prevalencia": 0.23557692307692304,
+        "sensibilidad": 0.7142857142857143,
+        "tn": 127,
+        "tp": 35
+      },
+      "tono_34": {
+        "accuracy_cruda": 0.7759336099585061,
+        "auc_roc": 0.7916868964773157,
+        "balanced_accuracy": 0.7292037546528564,
+        "benignos": 167,
+        "especificidad": 0.8502994011976047,
+        "f1_cruda": 0.624853228962818,
+        "fn": 26,
+        "fp": 24,
+        "granularidad_sensibilidad": 0.013513513513513514,
+        "ic95_auc_roc": [
+          0.7444023083081303,
+          0.8670488882690851
+        ],
+        "ic95_balanced_accuracy": [
+          0.664240715424926,
+          0.7855202687015836
+        ],
+        "malignos": 74,
+        "n": 241,
+        "precision_cruda": 0.6430976430976431,
+        "prevalencia": 0.3070539419087137,
+        "sensibilidad": 0.6081081081081082,
+        "tn": 143,
+        "tp": 48
+      },
+      "tono_56": {
+        "accuracy_cruda": 0.7423510466988729,
+        "auc_roc": 0.7508298392732354,
+        "balanced_accuracy": 0.6723008385744235,
+        "benignos": 159,
+        "especificidad": 0.8029350104821803,
+        "f1_cruda": 0.4926819265519491,
+        "fn": 23,
+        "fp": 35,
+        "granularidad_sensibilidad": 0.020833333333333332,
+        "ic95_auc_roc": [
+          0.6947739361702128,
+          0.8470194771924289
+        ],
+        "ic95_balanced_accuracy": [
+          0.6078486887215099,
+          0.763606491088609
+        ],
+        "malignos": 48,
+        "n": 207,
+        "precision_cruda": 0.45239491170095586,
+        "prevalencia": 0.2318840579710145,
+        "sensibilidad": 0.5416666666666666,
+        "tn": 124,
+        "tp": 25
+      }
+    },
+    "V10_T0": {
+      "nota_agrupamiento": "DDI no tiene clave de sujeto recuperable; los IC son a nivel imagen y resultan anticonservadores si algun paciente aporto varias lesiones",
+      "tono_12": {
+        "accuracy_cruda": 0.7756410256410255,
+        "auc_roc": 0.7960467205750225,
+        "balanced_accuracy": 0.7567706327814144,
+        "benignos": 159,
+        "especificidad": 0.7924528301886792,
+        "f1_cruda": 0.6021917538945403,
+        "fn": 12,
+        "fp": 33,
+        "granularidad_sensibilidad": 0.02040816326530612,
+        "ic95_auc_roc": [
+          0.7210913159730296,
+          0.8824372443547436
+        ],
+        "ic95_balanced_accuracy": [
+          0.660412579113924,
+          0.8137009750219106
+        ],
+        "malignos": 49,
+        "n": 208,
+        "precision_cruda": 0.5172161172161173,
+        "prevalencia": 0.23557692307692304,
+        "sensibilidad": 0.7210884353741497,
+        "tn": 126,
+        "tp": 37
+      },
+      "tono_34": {
+        "accuracy_cruda": 0.7828492392807745,
+        "auc_roc": 0.8083292873712035,
+        "balanced_accuracy": 0.7404650159141178,
+        "benignos": 167,
+        "especificidad": 0.8502994011976047,
+        "f1_cruda": 0.6407706927031157,
+        "fn": 26,
+        "fp": 23,
+        "granularidad_sensibilidad": 0.013513513513513514,
+        "ic95_auc_roc": [
+          0.7566251607634211,
+          0.8741763562331337
+        ],
+        "ic95_balanced_accuracy": [
+          0.6814447720328217,
+          0.8027062535787033
+        ],
+        "malignos": 74,
+        "n": 241,
+        "precision_cruda": 0.6516323059127713,
+        "prevalencia": 0.3070539419087137,
+        "sensibilidad": 0.6306306306306306,
+        "tn": 144,
+        "tp": 48
+      },
+      "tono_56": {
+        "accuracy_cruda": 0.7504025764895331,
+        "auc_roc": 0.7772099930118799,
+        "balanced_accuracy": 0.6872379454926625,
+        "benignos": 159,
+        "especificidad": 0.8050314465408807,
+        "f1_cruda": 0.5141950273320401,
+        "fn": 22,
+        "fp": 33,
+        "granularidad_sensibilidad": 0.020833333333333332,
+        "ic95_auc_roc": [
+          0.717584950264332,
+          0.8659602655789128
+        ],
+        "ic95_balanced_accuracy": [
+          0.6323016729849256,
+          0.7850971889952153
+        ],
+        "malignos": 48,
+        "n": 207,
+        "precision_cruda": 0.4687317358270017,
+        "prevalencia": 0.2318840579710145,
+        "sensibilidad": 0.5694444444444444,
+        "tn": 126,
+        "tp": 26
+      }
+    }
+  },
+  "analisis": "escalera-externa-v10",
+  "brazos_disponibles": [
+    "V10_T0",
+    "V10_C1",
+    "V10_C1M",
+    "V10_C1M_asym"
+  ],
+  "contrastes_pareados": {
+    "T1_macroF1_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.65759746590382,
+      "delta": 0.01354236902189443,
+      "ic95": [
+        0.0018681091971154086,
+        0.02415656896788219
+      ],
+      "referencia": 0.6440550968819255,
+      "resamples": 1000,
+      "veredicto": "POSITIVO"
+    },
+    "T1_macroF1_V10_C1M_vs_V10_T0": {
+      "candidato": 0.6587806507918431,
+      "delta": 0.014725553909917588,
+      "ic95": [
+        0.0012192531244562183,
+        0.02621380834963505
+      ],
+      "referencia": 0.6440550968819255,
+      "resamples": 1000,
+      "veredicto": "POSITIVO"
+    },
+    "T1_macroF1_V10_C1_vs_V10_T0": {
+      "candidato": 0.660824758682307,
+      "delta": 0.01676966180038142,
+      "ic95": [
+        0.0021309208454745768,
+        0.028780809548543326
+      ],
+      "referencia": 0.6440550968819255,
+      "resamples": 1000,
+      "veredicto": "POSITIVO"
+    },
+    "T2_err_FSTI-II_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.35714285714285715,
+      "delta": 0.021879021879021854,
+      "ic95": [
+        0.004601558572146812,
+        0.03971799859491212
+      ],
+      "referencia": 0.3352638352638353,
+      "resamples": 1000,
+      "veredicto": "POSITIVO"
+    },
+    "T2_err_FSTI-II_V10_C1M_vs_V10_T0": {
+      "candidato": 0.3597168597168597,
+      "delta": 0.024453024453024386,
+      "ic95": [
+        0.006305303030303044,
+        0.04291091889039654
+      ],
+      "referencia": 0.3352638352638353,
+      "resamples": 1000,
+      "veredicto": "POSITIVO"
+    },
+    "T2_err_FSTI-II_V10_C1_vs_V10_T0": {
+      "candidato": 0.359073359073359,
+      "delta": 0.023809523809523725,
+      "ic95": [
+        0.00533280212483402,
+        0.04233014610748198
+      ],
+      "referencia": 0.3352638352638353,
+      "resamples": 1000,
+      "veredicto": "POSITIVO"
+    },
+    "T2_err_FSTIII-IV_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.3609958506224067,
+      "delta": -0.006915629322268302,
+      "ic95": [
+        -0.030423280423280408,
+        0.016461296531005004
+      ],
+      "referencia": 0.367911479944675,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2_err_FSTIII-IV_V10_C1M_vs_V10_T0": {
+      "candidato": 0.3471645919778699,
+      "delta": -0.020746887966805072,
+      "ic95": [
+        -0.0449753324753325,
+        0.0052147370218579
+      ],
+      "referencia": 0.367911479944675,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2_err_FSTIII-IV_V10_C1_vs_V10_T0": {
+      "candidato": 0.351313969571231,
+      "delta": -0.01659751037344398,
+      "ic95": [
+        -0.04167133781763823,
+        0.009894283434683269
+      ],
+      "referencia": 0.367911479944675,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_aucroc_I-III_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.8611626468769327,
+      "delta": 0.021799628942486216,
+      "ic95": [
+        -0.014273223372487986,
+        0.057935122085632805
+      ],
+      "referencia": 0.8393630179344465,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_aucroc_I-III_V10_C1M_vs_V10_T0": {
+      "candidato": 0.8365800865800866,
+      "delta": -0.0027829313543598078,
+      "ic95": [
+        -0.03140492003958959,
+        0.02494255124689918
+      ],
+      "referencia": 0.8393630179344465,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_aucroc_I-III_V10_C1_vs_V10_T0": {
+      "candidato": 0.8291589363017934,
+      "delta": -0.010204081632653073,
+      "ic95": [
+        -0.0368029249317282,
+        0.01734684633473233
+      ],
+      "referencia": 0.8393630179344465,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_aucroc_IV-VI_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.7752380952380952,
+      "delta": 0.06349206349206338,
+      "ic95": [
+        0.002228422619047668,
+        0.12445000000000002
+      ],
+      "referencia": 0.7117460317460318,
+      "resamples": 1000,
+      "veredicto": "POSITIVO"
+    },
+    "T2b_aucroc_IV-VI_V10_C1M_vs_V10_T0": {
+      "candidato": 0.7346031746031746,
+      "delta": 0.022857142857142798,
+      "ic95": [
+        -0.02700396825396827,
+        0.08001048951048957
+      ],
+      "referencia": 0.7117460317460318,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_aucroc_IV-VI_V10_C1_vs_V10_T0": {
+      "candidato": 0.7187301587301588,
+      "delta": 0.0069841269841269815,
+      "ic95": [
+        -0.04487889983579634,
+        0.06096466973886319
+      ],
+      "referencia": 0.7117460317460318,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_balacc_I-III_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.7375541125541126,
+      "delta": 0.04274891774891787,
+      "ic95": [
+        0.005149453011554342,
+        0.07746851691150637
+      ],
+      "referencia": 0.6948051948051948,
+      "resamples": 1000,
+      "veredicto": "POSITIVO"
+    },
+    "T2b_balacc_I-III_V10_C1M_vs_V10_T0": {
+      "candidato": 0.6883116883116882,
+      "delta": -0.006493506493506551,
+      "ic95": [
+        -0.038289862443088185,
+        0.026331577800843147
+      ],
+      "referencia": 0.6948051948051948,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_balacc_I-III_V10_C1_vs_V10_T0": {
+      "candidato": 0.670995670995671,
+      "delta": -0.023809523809523725,
+      "ic95": [
+        -0.059998057334381974,
+        0.011337846797225602
+      ],
+      "referencia": 0.6948051948051948,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_balacc_IV-VI_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.6822222222222223,
+      "delta": 0.030476190476190657,
+      "ic95": [
+        -0.014509222661396641,
+        0.07638888888888863
+      ],
+      "referencia": 0.6517460317460316,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_balacc_IV-VI_V10_C1M_vs_V10_T0": {
+      "candidato": 0.633015873015873,
+      "delta": -0.018730158730158597,
+      "ic95": [
+        -0.06952754353489643,
+        0.0247150997150998
+      ],
+      "referencia": 0.6517460317460316,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T2b_balacc_IV-VI_V10_C1_vs_V10_T0": {
+      "candidato": 0.6038095238095238,
+      "delta": -0.04793650793650783,
+      "ic95": [
+        -0.09748253105590063,
+        1.1102230246251565e-16
+      ],
+      "referencia": 0.6517460317460316,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_aucroc_tono12_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.7929234586916527,
+      "delta": -0.0031232618833697545,
+      "ic95": [
+        -0.018341175187868965,
+        0.010180646986803541
+      ],
+      "referencia": 0.7960467205750225,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_aucroc_tono12_V10_C1M_vs_V10_T0": {
+      "candidato": 0.7844521456381295,
+      "delta": -0.011594574936892976,
+      "ic95": [
+        -0.02869378089199922,
+        0.00269283932788543
+      ],
+      "referencia": 0.7960467205750225,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_aucroc_tono12_V10_C1_vs_V10_T0": {
+      "candidato": 0.783981517135156,
+      "delta": -0.012065203439866501,
+      "ic95": [
+        -0.03050968448421514,
+        0.00411288381655407
+      ],
+      "referencia": 0.7960467205750225,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_aucroc_tono34_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.7916868964773157,
+      "delta": -0.01664239089388775,
+      "ic95": [
+        -0.03208930219038017,
+        -0.003229783037475192
+      ],
+      "referencia": 0.8083292873712035,
+      "resamples": 1000,
+      "veredicto": "NEGATIVO"
+    },
+    "T3_aucroc_tono34_V10_C1M_vs_V10_T0": {
+      "candidato": 0.7939256621891352,
+      "delta": -0.01440362518206828,
+      "ic95": [
+        -0.02840660625203923,
+        -0.0017635305117870038
+      ],
+      "referencia": 0.8083292873712035,
+      "resamples": 1000,
+      "veredicto": "NEGATIVO"
+    },
+    "T3_aucroc_tono34_V10_C1_vs_V10_T0": {
+      "candidato": 0.7913901925877974,
+      "delta": -0.01693909478340605,
+      "ic95": [
+        -0.03159017104012389,
+        -0.004325111733926185
+      ],
+      "referencia": 0.8083292873712035,
+      "resamples": 1000,
+      "veredicto": "NEGATIVO"
+    },
+    "T3_aucroc_tono56_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.7508298392732354,
+      "delta": -0.02638015373864444,
+      "ic95": [
+        -0.04793020554790271,
+        -0.005023224089610482
+      ],
+      "referencia": 0.7772099930118799,
+      "resamples": 1000,
+      "veredicto": "NEGATIVO"
+    },
+    "T3_aucroc_tono56_V10_C1M_vs_V10_T0": {
+      "candidato": 0.7458071278825996,
+      "delta": -0.031402865129280255,
+      "ic95": [
+        -0.051134219441338544,
+        -0.012709212804678056
+      ],
+      "referencia": 0.7772099930118799,
+      "resamples": 1000,
+      "veredicto": "NEGATIVO"
+    },
+    "T3_aucroc_tono56_V10_C1_vs_V10_T0": {
+      "candidato": 0.7386006289308176,
+      "delta": -0.0386093640810623,
+      "ic95": [
+        -0.05905478229153717,
+        -0.017820414724951418
+      ],
+      "referencia": 0.7772099930118799,
+      "resamples": 1000,
+      "veredicto": "NEGATIVO"
+    },
+    "T3_balacc_tono12_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.7586103623839474,
+      "delta": 0.0018397296025329801,
+      "ic95": [
+        -0.015830216470276704,
+        0.019275207940495698
+      ],
+      "referencia": 0.7567706327814144,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_balacc_tono12_V10_C1M_vs_V10_T0": {
+      "candidato": 0.756513926325247,
+      "delta": -0.0002567064561673771,
+      "ic95": [
+        -0.022224554426277725,
+        0.0194941930846744
+      ],
+      "referencia": 0.7567706327814144,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_balacc_tono12_V10_C1_vs_V10_T0": {
+      "candidato": 0.7641081589868652,
+      "delta": 0.007337526205450806,
+      "ic95": [
+        -0.01315975639031619,
+        0.027156485814141207
+      ],
+      "referencia": 0.7567706327814144,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_balacc_tono34_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.7292037546528564,
+      "delta": -0.01126126126126148,
+      "ic95": [
+        -0.02987461419753095,
+        0.005291130137755962
+      ],
+      "referencia": 0.7404650159141178,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_balacc_tono34_V10_C1M_vs_V10_T0": {
+      "candidato": 0.7284619949290608,
+      "delta": -0.012003020985057011,
+      "ic95": [
+        -0.036417655809103215,
+        0.007433499679516427
+      ],
+      "referencia": 0.7404650159141178,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_balacc_tono34_V10_C1_vs_V10_T0": {
+      "candidato": 0.7252117386847926,
+      "delta": -0.015253277229325235,
+      "ic95": [
+        -0.03965399184149175,
+        0.004367948752062053
+      ],
+      "referencia": 0.7404650159141178,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_balacc_tono56_V10_C1M_asym_vs_V10_T0": {
+      "candidato": 0.6723008385744235,
+      "delta": -0.014937106918239018,
+      "ic95": [
+        -0.046093843600489494,
+        0.01216744395823744
+      ],
+      "referencia": 0.6872379454926625,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_balacc_tono56_V10_C1M_vs_V10_T0": {
+      "candidato": 0.6681079664570232,
+      "delta": -0.01912997903563929,
+      "ic95": [
+        -0.0482260398315038,
+        0.0069742824005723965
+      ],
+      "referencia": 0.6872379454926625,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    },
+    "T3_balacc_tono56_V10_C1_vs_V10_T0": {
+      "candidato": 0.6705319706498951,
+      "delta": -0.016705974842767368,
+      "ic95": [
+        -0.049023238641814806,
+        0.015995316358474794
+      ],
+      "referencia": 0.6872379454926625,
+      "resamples": 1000,
+      "veredicto": "NEUTRO (IC cruza cero)"
+    }
+  },
+  "endpoints_primarios_preespecificados": {
+    "T1": "macro-F1 cls4, holdout PAD completo, C1 vs T0",
+    "T2": "tasa de error cls4, estrato FST III-IV, C1 vs T0",
+    "T2b": "balanced accuracy binaria cls4, I-III vs IV-VI, C1 vs T0 y brecha",
+    "T3": "balanced accuracy binaria cls4, tono 56, C1 vs T0"
+  },
+  "generated_utc": "2026-11-09T15:02:08Z",
+  "modo": "cls",
+  "nota_contrastes": "los IC de T3 son a nivel imagen porque DDI no publica clave de sujeto; resultan anticonservadores si algun paciente aporto varias lesiones",
+  "segundos": 71.7,
+  "sellos": {
+    "bosque": {
+      "congelado": true,
+      "filas": 151,
+      "manifiesto": "/home/jovyan/work/bosque-20261108/bosque_colombia_holdout.jsonl",
+      "manifiesto_sha256": "3e80f10ddd8d70d1cb2a57f688781c0d903153a1666cb490c5ce198607abf44c",
+      "regla": "no se regenera ni se filtra despues de ver resultados"
+    },
+    "ddi": {
+      "filas": 656,
+      "manifiesto": "/home/jovyan/work/ddi-20261105/ddi_holdout.jsonl",
+      "manifiesto_sha256": "10b65981aa796b38a2c94c2e415f6c7c0993e11a74bdbac7089c821b256299ea"
+    },
+    "pad_holdout": {
+      "congelado": true,
+      "manifiesto_biopsiado": "/home/jovyan/work/moco-tono-20261107/v10_tono_20261108/holdout_pad_externo/pad_holdout_externo_biopsiado.jsonl",
+      "manifiesto_biopsiado_filas": 679,
+      "manifiesto_biopsiado_sha256": "1623fbe7e6352ad325954b58fdd9e23eb860eb4f9841ad616502ae974ef33860",
+      "manifiesto_holdout": "/home/jovyan/work/moco-tono-20261107/v10_tono_20261108/holdout_pad_externo/pad_holdout_externo.jsonl",
+      "manifiesto_holdout_filas": 1155,
+      "manifiesto_holdout_sha256": "50988fe406257d71dc7b22a9c18ae86cd00c1d60bc1c28299ac0451d9cdd3858",
+      "regla": "este manifiesto no se regenera ni se filtra despues de mirar resultados"
+    }
+  }
+}
