@@ -152,3 +152,12 @@ def test_unsupported_image_type_fails_loudly(tmp_path):
         cf.run_capture(FakeClient(), [image], tmp_path / "out", clock=lambda: datetime(2026, 1, 1, tzinfo=timezone.utc),
                        git={"commit": "abc", "dirty": False},
                        pins={"classifier_manifest_sha256": "a" * 64, "segmenter_manifest_sha256": "b" * 64})
+
+
+def test_git_state_from_explicit_commit_records_archive_provenance_without_fabricating_dirty():
+    assert cf.git_state_from_argument("0d13e8a") == {"commit": "0d13e8a", "dirty": None, "source": "archive"}
+
+
+def test_git_state_rejects_malformed_commit():
+    with pytest.raises(cf.CaptureError, match="commit"):
+        cf.git_state_from_argument("not a sha")

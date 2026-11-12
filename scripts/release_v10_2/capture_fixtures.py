@@ -160,6 +160,13 @@ def run_capture(client: Any, images: Iterable[Path], out_dir: Path, *, clock: Ca
     return path
 
 
+def git_state_from_argument(commit: str) -> dict[str, Any]:
+    """Provenance for a source archive (no .git): the commit is explicit; dirtiness is unknown, not assumed."""
+    if not re.fullmatch(r"[0-9a-f]{7,40}", commit or ""):
+        raise CaptureError("--git-commit must be a hexadecimal commit id")
+    return {"commit": commit, "dirty": None, "source": "archive"}
+
+
 def _git_state() -> dict[str, Any]:
     commit = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True, check=False)
     if commit.returncode != 0:
@@ -189,6 +196,8 @@ def _parse(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--segmenter-manifest-sha256", required=True)
     parser.add_argument("--image", type=Path, action="append", required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--git-commit", default=None,
+                        help="commit id for a source archive without .git; omitted = read the repository")
     return parser.parse_args(argv)
 
 
@@ -206,7 +215,7 @@ def main(argv: list[str] | None = None, *, clock: Callable[[], datetime] | None 
         args.image,
         args.out,
         clock=clock or (lambda: datetime.now(timezone.utc)),
-        git=(git_reader or _git_state)(),
+        git=(git_reader or (lambda: git_state_from_argument(args.git_commit) if args.git_commit else _git_state()))(),
         pins=pins,
     )
     print(f"wrote {path}")
