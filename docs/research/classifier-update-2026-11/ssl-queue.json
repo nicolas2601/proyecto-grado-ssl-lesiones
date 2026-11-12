@@ -10,7 +10,7 @@
       "docs/ssl-derm.json",
       "docs/imbalance-research.json",
       "literature.json",
-      "AGENCY_BRIEF.md"
+      "research brief (internal, not versioned)"
     ],
     "skills_invoked": {
       "scientific-critical-thinking": "HECHO vs INFERENCIA vs SUPOSICION per claim; premise-to-claim chain checks; mechanism graded by evidence level.",

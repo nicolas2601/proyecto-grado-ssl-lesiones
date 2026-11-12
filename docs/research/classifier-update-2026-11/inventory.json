@@ -2,11 +2,11 @@
   "meta": {
     "title": "Inventario de experimentos clf1 (Fase B)",
     "generated": "2026-11-10",
-    "author": "archivista (agencia phase-b)",
+    "author": "research archive (phase B)",
     "scope": "solo lectura: results/ en cluster unabia, Engram VPS, research/ local. No se abrieron manifests ham_holdout ni pad_test. No se lanzaron jobs.",
     "sources": [
       "ssh unabia: results/ (241 entradas, 187 JSON readout, 180 con matriz de confusion)",
-      "research/moco-v10-improvement- 20261108/AGENCY_BRIEF.md, emails/03-cierre-ssl-20261110.txt, docs/phase-b-research-ssl.json, docs/phase-b-research-derm.json",
+      "research brief (internal, not versioned), emails/03-cierre-ssl-20261110.txt, docs/phase-b-research-ssl.json, docs/phase-b-research-derm.json",
       "Engram VPS proyecto-grado-ssl-lesiones: #2266, #2344, #2349, #2353, #2363, #2366"
     ]
   },

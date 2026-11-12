@@ -71,7 +71,7 @@
     "max_memory_gib": "smoke measured 3.48 GiB; full run expected similar"
   },
   "plan": "sdclr/plan.json (status SMOKE_DONE_FULL_RUN_NOT_LAUNCHED; exact commands A-G, no variables; placeholder only in E2 for the backbone sha known after training)",
-  "answers_for_agency_critic": {
+  "answers_for_review_critique": {
     "final_step_predeclared": 6000,
     "final_checkpoint": "train-s42/simsiam_dinov2_backbone_final.pt (config sdclr-s42.json, max_steps 6000)",
     "intermediate_checkpoints": "CONFIGURED by main: checkpoint_steps [2000, 4000] in sdclr-s42.json -> train-s42/checkpoints/backbone_step2000.pt and backbone_step4000.pt; final at 6000. validate_config accepts it; write path checked by code reading only. Readouts at 2000/4000 are NOT in plan yet (need features_from_weights + F-readouts per checkpoint).",
