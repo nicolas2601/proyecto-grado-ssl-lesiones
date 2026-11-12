@@ -34,13 +34,13 @@ from .segmenter_preprocess import (
     probability_to_mask,
     require_opencv,
 )
+from .runtime_threads import intra_op_threads
 from .tone_sim import MAX_AREA_FRACTION, MIN_AREA_FRACTION
 
 SCHEMA = "dermssl.segmenter.v1"
 MANIFEST_NAME = "segmenter_manifest.json"
 MODEL_NAME = "segmenter.onnx"
 THRESHOLD = 0.5
-THREADS = 2
 MAX_MASK_SIDE = 512
 SHA256_PATTERN = r"[a-f0-9]{64}"
 PROBABILITY_DECIMALS = 4
@@ -75,7 +75,7 @@ def _create_session(model_path: Path) -> Any:
     except ImportError as exc:
         raise SegmenterError("segmenter_error", "onnxruntime is required for the segmenter") from exc
     options = onnxruntime.SessionOptions()
-    options.intra_op_num_threads = THREADS
+    options.intra_op_num_threads = intra_op_threads()
     options.inter_op_num_threads = 1
     try:
         return onnxruntime.InferenceSession(str(model_path), sess_options=options, providers=["CPUExecutionProvider"])

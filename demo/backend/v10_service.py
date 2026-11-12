@@ -8,10 +8,10 @@ import numpy as np
 from PIL import Image
 
 from .model_service import ModelServiceError
+from .runtime_threads import intra_op_threads
 from .v10_artifacts import (
     OUTPUT_NAMES,
     TASK_CLASSES,
-    THREADS,
     V10ArtifactError as MoCoArtifactError,
     load_preprocessor,
     read_manifest,
@@ -35,7 +35,7 @@ def _create_onnx_session(model_path: Path) -> Any:
     except ImportError as exc:
         raise MoCoServiceError("onnxruntime is required for V10 inference") from exc
     options = onnxruntime.SessionOptions()
-    options.intra_op_num_threads = THREADS
+    options.intra_op_num_threads = intra_op_threads()
     options.inter_op_num_threads = 1
     try:
         return onnxruntime.InferenceSession(
@@ -216,7 +216,7 @@ class MoCoModelService:
                 "release": manifest["release"],
                 "release_arm": None,
                 "device": "cpu",
-                "threads": THREADS,
+                "threads": intra_op_threads(),
                 "model_key": "MOCO_HAM7",
                 "identity": self._identity,
             }
