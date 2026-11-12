@@ -4,7 +4,7 @@ Experiment C1 asks whether segmentation, given to every backbone equally,
 closes the gap between public DINOv2 and the proposed encoder. The mask is
 always the SSL pseudo-mask predicted by ``student_r3`` -- never the reference
 mask. Using the reference mask here would make the classifier label-dependent
-and the whole arm would stop being self-supervised, so it is not offered as an
+and the whole arm would stop being SSL, so it is not offered as an
 option at all rather than left as a flag someone could flip.
 
 The four conditions:

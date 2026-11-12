@@ -71,7 +71,7 @@ LR_RULES = {
     "dino_scratch": (5e-4, 256),  # Regla del artículo DINO desde cero.
 }
 
-# Cualquier campo que parezca supervisión activa la puerta.
+# Cualquier campo que dependa de etiquetas activa la puerta.
 FORBIDDEN_FIELD_TOKENS = ("label", "target", "class", "dx")
 FORBIDDEN_VALUE_SUFFIXES = (".csv", ".tsv", ".parquet")
 

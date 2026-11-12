@@ -7,8 +7,8 @@ arithmetic and which are policy.
 
 Two hazards live here. The first is the vgg19 class of bug -- a probe scoring
 features it was not fitted on returns a plausible number with no error. The
-second is subtler: C1 is only self-supervised if its masks are, so a mask has
-to arrive with the manifest of the step-0 artifact and a supervised producer
+second is subtler: C1 is only SSL if its masks are, so a mask has
+to arrive with the manifest of the step-0 artifact and a label-trained producer
 cannot be constructed at all.
 """
 
