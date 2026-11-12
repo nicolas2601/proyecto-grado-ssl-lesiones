@@ -1,9 +1,9 @@
 """Skin-luminance simulation for /api/simulate-tone (research simulation only).
 
 CIE L* of the surrounding skin is shifted on non-lesion pixels only; a* and b* are untouched.
-The shift is feathered: a protected margin around the lesion is dilated by max(3 px, 5% of the lesion's
-equivalent diameter), and the weight of the shift is a Gaussian blur (sigma 2 px) of "outside the margin",
-so the lesion boundary does not read as a cut. Lesion pixels are restored bit-exact from the source.
+The shift ramps smoothly away from the lesion: its weight is a smoothstep of the distance (px) to the lesion
+boundary over a width W = max(12 px, 15% of the lesion's equivalent diameter), reaching the full shift at W
+and zero inside the lesion. Lesion pixels are restored bit-exact from the source.
 The realised shift is measured after the sRGB round-trip, so both L* and gamut clipping count.
 Reuses ``dermssl.fitzpatrick.srgb_to_lab``, ``dermssl.circle.lab_to_srgb``, and the e3 geometry dilation.
 """
@@ -17,6 +17,8 @@ from dataclasses import dataclass
 import numpy as np
 from PIL import Image, UnidentifiedImageError
 
+import cv2
+
 from dermssl import e3_geometry as geo
 from dermssl import fitzpatrick as fz
 from dermssl.circle import lab_to_srgb
@@ -29,10 +31,8 @@ MASK_THRESHOLD = 128
 LAB_L_MIN = 0.0
 LAB_L_MAX = 100.0
 GAMUT_TOLERANCE_L = 0.5
-PROTECTION_MIN_PX = 3
-PROTECTION_DIAMETER_FRACTION = 0.05
-FEATHER_SIGMA_PX = 2.0
-_GAUSSIAN_SIGMAS = 3.0
+RAMP_MIN_PX = 12.0
+RAMP_DIAMETER_FRACTION = 0.15
 _UINT8_SCALE = 255.0
 
 
@@ -82,29 +82,18 @@ def check_mask_area(mask: np.ndarray) -> None:
         raise ToneSimulationError("INVALID_MASK", "mask area is outside the plausible 1%-90% range")
 
 
-def _gaussian_kernel(sigma: float) -> np.ndarray:
-    radius = math.ceil(_GAUSSIAN_SIGMAS * sigma)
-    offsets = np.arange(-radius, radius + 1, dtype=np.float64)
-    kernel = np.exp(-(offsets**2) / (2.0 * sigma * sigma))
-    return kernel / kernel.sum()
-
-
-def _gaussian_blur(field: np.ndarray, sigma: float) -> np.ndarray:
-    """Separable Gaussian blur with edge replication (no scipy in the image)."""
-    kernel = _gaussian_kernel(sigma)
-    radius = len(kernel) // 2
-    height, width = field.shape
-    padded = np.pad(field, radius, mode="edge")
-    rows = sum(kernel[i] * padded[:, i : i + width] for i in range(len(kernel)))
-    return sum(kernel[i] * rows[i : i + height, :] for i in range(len(kernel)))
+def _smoothstep(t: np.ndarray) -> np.ndarray:
+    return t * t * (3.0 - 2.0 * t)
 
 
 def skin_weight(mask: np.ndarray) -> np.ndarray:
-    """Per-pixel weight of the luminance shift: 0 inside the lesion, ramping up to 1 beyond the protected margin."""
-    diameter = geo.equivalent_diameter(mask)
-    margin = max(PROTECTION_MIN_PX, round(PROTECTION_DIAMETER_FRACTION * diameter))
-    protected = geo.dilate(mask, margin)
-    weight = np.clip(_gaussian_blur((~protected).astype(np.float64), FEATHER_SIGMA_PX), 0.0, 1.0)
+    """Per-pixel weight of the luminance shift: 0 inside the lesion, smoothly 1 at distance W from it.
+
+    W = max(RAMP_MIN_PX, RAMP_DIAMETER_FRACTION x equivalent diameter); d is the Euclidean distance to the lesion.
+    """
+    width = max(RAMP_MIN_PX, RAMP_DIAMETER_FRACTION * geo.equivalent_diameter(mask))
+    distance = cv2.distanceTransform((~mask).astype(np.uint8), cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
+    weight = _smoothstep(np.clip(distance / width, 0.0, 1.0))
     weight[mask] = 0.0
     return weight
 

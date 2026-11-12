@@ -7,7 +7,11 @@ import numpy as np
 import pytest
 from PIL import Image
 
+import cv2
+
+from dermssl import e3_geometry as geo
 from dermssl import fitzpatrick as fz
+from demo.backend import tone_sim
 from demo.backend.tone_sim import (
     ToneSimulationError,
     check_mask_area,
@@ -173,39 +177,40 @@ def test_neutral_skin_is_not_reported_as_clipped():
     assert result.clipped_fraction < 0.01
 
 
+
 def _shift_field(image, result):
     before = _lab(image)[..., 0]
     after = _lab(result.rgb)[..., 0]
     return after - before
 
 
-def test_luminance_shift_has_no_step_at_the_lesion_boundary():
-    image, mask = _scene(size=120, radius=20)
+def test_luminance_shift_has_no_visible_step_anywhere():
+    # A 200 px equivalent-diameter lesion: the ramp width is 30 px and the requested slope is 0.49 L*/px.
+    image, mask = _scene(size=400, radius=100)
 
-    result = simulate_tone(image, mask, 8.0)
-
-    shift = _shift_field(image, result)
-    dx = np.abs(np.diff(shift, axis=1))
-    dy = np.abs(np.diff(shift, axis=0))
-    assert max(dx.max(), dy.max()) < 2.5, "hard edge: a step of the full delta at the mask boundary"
-
-
-def test_far_skin_still_receives_the_full_delta():
-    image, mask = _scene(size=160, radius=20)
-
-    result = simulate_tone(image, mask, 8.0)
+    result = simulate_tone(image, mask, 9.73)
 
     shift = _shift_field(image, result)
-    far = np.zeros_like(mask)
-    far[:5, :] = True
-    far[-5:, :] = True
-    assert np.median(shift[far]) == pytest.approx(8.0, abs=1.0)
+    steps = np.maximum(np.abs(np.diff(shift, axis=1)).max(), np.abs(np.diff(shift, axis=0)).max())
+    assert steps <= 1.0, f"neighbouring pixels differ by {steps:.2f} L*"
 
 
-def test_protected_margin_is_untouched_by_the_full_step_and_lesion_stays_exact():
-    image, mask = _scene(size=120, radius=20)
+def test_pixels_beyond_the_ramp_width_receive_the_full_delta():
+    image, mask = _scene(size=400, radius=100)
+    width = max(tone_sim.RAMP_MIN_PX, tone_sim.RAMP_DIAMETER_FRACTION * geo.equivalent_diameter(mask))
+    distance = cv2.distanceTransform((~mask).astype(np.uint8), cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
 
-    result = simulate_tone(image, mask, -8.0)
+    result = simulate_tone(image, mask, 9.73)
+
+    shift = _shift_field(image, result)
+    far = distance >= width + 1
+    assert np.median(shift[far]) == pytest.approx(9.73, abs=1.0)
+
+
+def test_lesion_stays_bit_exact_under_the_ramp():
+    image, mask = _scene(size=400, radius=100)
+
+    result = simulate_tone(image, mask, -9.73)
 
     assert np.array_equal(result.rgb[mask], image[mask])
     assert result.lesion_preserved is True
