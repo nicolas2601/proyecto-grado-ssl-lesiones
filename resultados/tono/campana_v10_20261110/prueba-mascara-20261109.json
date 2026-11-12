@@ -1,0 +1,154 @@
+{
+  "analisis": "prueba-mascara-se-usa",
+  "ita_delta_grados": 25.0,
+  "atenuar_por_margen": false,
+  "criterios": [
+    "T1",
+    "T2",
+    "T3",
+    "T4",
+    "T5",
+    "T6"
+  ],
+  "por_rol": {
+    "source_fit": {
+      "m_acople": 0.8609,
+      "T1_max_dif_mascara_real_vs_desplazada": {
+        "n": 60,
+        "mediana": 0.017497235131031186,
+        "media": 0.020656238984164733,
+        "p5": 0.016467362813354296,
+        "p95": 0.02782
+      },
+      "T1b_fraccion_aplicada_con_mascara_vacia": 0.0,
+      "T2_desplazamiento_en_lesion_con_m0": {
+        "n": 60,
+        "mediana": 0.0,
+        "media": 0.0,
+        "p5": 0.0,
+        "p95": 0.0
+      },
+      "T3_razon_lesion_sobre_piel_con_m1": {
+        "n": 60,
+        "mediana": 1.0394112525285748,
+        "media": 1.0473990161607973,
+        "p5": 0.9492255467723907,
+        "p95": 1.1384446742840955
+      },
+      "T4_razon_lesion_sobre_piel_con_m_medido": {
+        "n": 60,
+        "mediana": 0.8954247837218707,
+        "media": 0.9029511056671045,
+        "p5": 0.8186301478562968,
+        "p95": 0.9805933979678827
+      },
+      "T4_valor_esperado": 0.8609,
+      "T5_dL_sobre_db": {
+        "n": 60,
+        "mediana": -0.24,
+        "media": -0.24000000000000005,
+        "p5": -0.24,
+        "p95": -0.24
+      },
+      "T5_da": {
+        "n": 60,
+        "mediana": 0.0,
+        "media": -4.529709940470638e-15,
+        "p5": -5.337952302397753e-14,
+        "p95": 0.0
+      },
+      "T5_db": {
+        "n": 60,
+        "mediana": 12.5,
+        "media": 12.5,
+        "p5": 12.5,
+        "p95": 12.5
+      },
+      "T5_db_pedido": 12.5,
+      "T6_fraccion_px_con_w_intermedio": {
+        "n": 60,
+        "mediana": 0.06676498724489796,
+        "media": 0.06673974277210884,
+        "p5": 0.03498584980867347,
+        "p95": 0.10610550860969387
+      },
+      "T1_holds": true,
+      "T1b_holds": true,
+      "T2_holds": true,
+      "T3_holds": true,
+      "T4_holds": true,
+      "T5_holds": true,
+      "T6_holds": true
+    },
+    "pad_adapt": {
+      "m_acople": 0.8352,
+      "T1_max_dif_mascara_real_vs_desplazada": {
+        "n": 60,
+        "mediana": 0.02063376400019279,
+        "media": 0.021046326527044756,
+        "p5": 0.0193663591822168,
+        "p95": 0.026110778584994138
+      },
+      "T1b_fraccion_aplicada_con_mascara_vacia": 0.0,
+      "T2_desplazamiento_en_lesion_con_m0": {
+        "n": 60,
+        "mediana": 0.0,
+        "media": 0.0,
+        "p5": 0.0,
+        "p95": 0.0
+      },
+      "T3_razon_lesion_sobre_piel_con_m1": {
+        "n": 60,
+        "mediana": 0.9849951635654,
+        "media": 0.9813558346543835,
+        "p5": 0.9359469800463089,
+        "p95": 1.0255010191424314
+      },
+      "T4_razon_lesion_sobre_piel_con_m_medido": {
+        "n": 60,
+        "mediana": 0.8236614185545261,
+        "media": 0.8211011085889575,
+        "p5": 0.7832976654487963,
+        "p95": 0.8578095867747867
+      },
+      "T4_valor_esperado": 0.8352,
+      "T5_dL_sobre_db": {
+        "n": 60,
+        "mediana": -0.24,
+        "media": -0.24000000000000005,
+        "p5": -0.24000000000000007,
+        "p95": -0.24
+      },
+      "T5_da": {
+        "n": 60,
+        "mediana": 0.0,
+        "media": -2.79036053522456e-15,
+        "p5": -2.7533531010703784e-15,
+        "p95": 0.0
+      },
+      "T5_db": {
+        "n": 60,
+        "mediana": 12.5,
+        "media": 12.5,
+        "p5": 12.499999999999996,
+        "p95": 12.5
+      },
+      "T5_db_pedido": 12.5,
+      "T6_fraccion_px_con_w_intermedio": {
+        "n": 60,
+        "mediana": 0.06891741071428571,
+        "media": 0.07569721247874149,
+        "p5": 0.034599210778061225,
+        "p95": 0.12848373724489795
+      },
+      "T1_holds": true,
+      "T1b_holds": true,
+      "T2_holds": true,
+      "T3_holds": true,
+      "T4_holds": true,
+      "T5_holds": true,
+      "T6_holds": true
+    }
+  },
+  "TODOS_LOS_CRITERIOS_PASAN": true
+}

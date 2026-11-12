@@ -1,0 +1,334 @@
+{
+  "analisis": "composicion-vs-fototipo",
+  "banco": "ddi",
+  "brazo": "V10_T0",
+  "lector": "cls4",
+  "composicion": {
+    "n_dx_distintos": {
+      "12": 35,
+      "34": 50,
+      "56": 53
+    },
+    "jaccard": {
+      "12_vs_56": 0.4666666666666667,
+      "12_vs_34": 0.4166666666666667,
+      "34_vs_56": 0.37333333333333335
+    },
+    "exclusivos_de_56": [
+      "abrasions-ulcerations-and-physical-injuries",
+      "acne-cystic",
+      "angioleiomyoma",
+      "atypical-spindle-cell-nevus-of-reed",
+      "benign-keratosis",
+      "eczema-spongiotic-dermatitis",
+      "epidermal-nevus",
+      "focal-acral-hyperkeratosis",
+      "folliculitis",
+      "hematoma",
+      "keloid",
+      "lymphocytic-infiltrations",
+      "morphea",
+      "neuroma",
+      "scar",
+      "subcutaneous-t-cell-lymphoma",
+      "verruciform-xanthoma",
+      "wart"
+    ],
+    "exclusivos_de_12": [
+      "basal-cell-carcinoma-nodular",
+      "nodular-melanoma-(nm)",
+      "pigmented-spindle-cell-nevus-of-reed"
+    ],
+    "top5_por_banda": {
+      "12": [
+        [
+          "melanocytic-nevi",
+          47
+        ],
+        [
+          "verruca-vulgaris",
+          26
+        ],
+        [
+          "seborrheic-keratosis",
+          21
+        ],
+        [
+          "epidermal-cyst",
+          16
+        ],
+        [
+          "squamous-cell-carcinoma-in-situ",
+          15
+        ]
+      ],
+      "34": [
+        [
+          "melanocytic-nevi",
+          49
+        ],
+        [
+          "basal-cell-carcinoma",
+          34
+        ],
+        [
+          "seborrheic-keratosis",
+          18
+        ],
+        [
+          "dysplastic-nevus",
+          14
+        ],
+        [
+          "dermatofibroma",
+          10
+        ]
+      ],
+      "56": [
+        [
+          "mycosis-fungoides",
+          26
+        ],
+        [
+          "melanocytic-nevi",
+          23
+        ],
+        [
+          "seborrheic-keratosis",
+          19
+        ],
+        [
+          "verruca-vulgaris",
+          17
+        ],
+        [
+          "epidermal-cyst",
+          14
+        ]
+      ]
+    },
+    "nucleo_comun": [
+      "dermatofibroma",
+      "epidermal-cyst",
+      "melanocytic-nevi",
+      "seborrheic-keratosis",
+      "verruca-vulgaris"
+    ],
+    "n_en_nucleo_por_banda": {
+      "12": 116,
+      "34": 89,
+      "56": 79
+    }
+  },
+  "balacc_sin_restringir": {
+    "12": {
+      "balacc": 0.7149274804261327,
+      "n": 208,
+      "ic95": [
+        0.6417747184238745,
+        0.7910006592455169
+      ]
+    },
+    "34": {
+      "balacc": 0.7119274963586341,
+      "n": 241,
+      "ic95": [
+        0.6454089483424612,
+        0.7714035181727762
+      ]
+    },
+    "56": {
+      "balacc": 0.7433176100628931,
+      "n": 207,
+      "ic95": [
+        0.6754350402531584,
+        0.8094904458598726
+      ]
+    }
+  },
+  "balacc_en_nucleo_comun": {
+    "12": null,
+    "34": null,
+    "56": null
+  },
+  "rango_entre_bandas_sin_restringir": 0.03139011370425904,
+  "rango_entre_bandas_en_nucleo": NaN,
+  "dificultad_por_diagnostico": {
+    "acrochordon": {
+      "n": 19,
+      "maligno": false,
+      "score_medio": 0.08675840467504813,
+      "bandas": {
+        "12": 1,
+        "34": 7,
+        "56": 11
+      }
+    },
+    "angioma": {
+      "n": 11,
+      "maligno": false,
+      "score_medio": 0.20136009723070164,
+      "bandas": {
+        "12": 1,
+        "34": 9,
+        "56": 1
+      }
+    },
+    "basal-cell-carcinoma": {
+      "n": 41,
+      "maligno": true,
+      "score_medio": 0.5544013070291367,
+      "bandas": {
+        "12": 7,
+        "34": 34,
+        "56": 0
+      }
+    },
+    "dermatofibroma": {
+      "n": 22,
+      "maligno": false,
+      "score_medio": 0.21501025978303787,
+      "bandas": {
+        "12": 6,
+        "34": 10,
+        "56": 6
+      }
+    },
+    "dysplastic-nevus": {
+      "n": 16,
+      "maligno": false,
+      "score_medio": 0.18900666081066814,
+      "bandas": {
+        "12": 2,
+        "34": 14,
+        "56": 0
+      }
+    },
+    "eccrine-poroma": {
+      "n": 10,
+      "maligno": false,
+      "score_medio": 0.192695416675997,
+      "bandas": {
+        "12": 3,
+        "34": 1,
+        "56": 6
+      }
+    },
+    "epidermal-cyst": {
+      "n": 35,
+      "maligno": false,
+      "score_medio": 0.27090308847108907,
+      "bandas": {
+        "12": 16,
+        "34": 5,
+        "56": 14
+      }
+    },
+    "melanocytic-nevi": {
+      "n": 119,
+      "maligno": false,
+      "score_medio": 0.1542508460140642,
+      "bandas": {
+        "12": 47,
+        "34": 49,
+        "56": 23
+      }
+    },
+    "mycosis-fungoides": {
+      "n": 32,
+      "maligno": true,
+      "score_medio": 0.6991468843921211,
+      "bandas": {
+        "12": 3,
+        "34": 3,
+        "56": 26
+      }
+    },
+    "neurofibroma": {
+      "n": 12,
+      "maligno": false,
+      "score_medio": 0.09774719299425967,
+      "bandas": {
+        "12": 6,
+        "34": 0,
+        "56": 6
+      }
+    },
+    "pyogenic-granuloma": {
+      "n": 14,
+      "maligno": false,
+      "score_medio": 0.2260570531142429,
+      "bandas": {
+        "12": 3,
+        "34": 6,
+        "56": 5
+      }
+    },
+    "seborrheic-keratosis": {
+      "n": 58,
+      "maligno": false,
+      "score_medio": 0.26030110427213793,
+      "bandas": {
+        "12": 21,
+        "34": 18,
+        "56": 19
+      }
+    },
+    "seborrheic-keratosis-irritated": {
+      "n": 14,
+      "maligno": false,
+      "score_medio": 0.2847452696931449,
+      "bandas": {
+        "12": 9,
+        "34": 1,
+        "56": 4
+      }
+    },
+    "squamous-cell-carcinoma": {
+      "n": 17,
+      "maligno": true,
+      "score_medio": 0.7565709553595048,
+      "bandas": {
+        "12": 3,
+        "34": 9,
+        "56": 5
+      }
+    },
+    "squamous-cell-carcinoma-in-situ": {
+      "n": 28,
+      "maligno": true,
+      "score_medio": 0.5832370650583515,
+      "bandas": {
+        "12": 15,
+        "34": 10,
+        "56": 3
+      }
+    },
+    "squamous-cell-carcinoma-keratoacanthoma": {
+      "n": 8,
+      "maligno": true,
+      "score_medio": 0.6833822849633483,
+      "bandas": {
+        "12": 3,
+        "34": 4,
+        "56": 1
+      }
+    },
+    "verruca-vulgaris": {
+      "n": 50,
+      "maligno": false,
+      "score_medio": 0.2512182190068599,
+      "bandas": {
+        "12": 26,
+        "34": 7,
+        "56": 17
+      }
+    }
+  },
+  "sd_score_entre_diagnosticos": 0.2165168538202794,
+  "sd_score_entre_bandas_fototipo": 0.00974588898910146,
+  "C1_jaccard_12_56_menor_050": true,
+  "C2_mycosis_exclusivo_de_56": false,
+  "C3_el_nucleo_achica_la_diferencia": false,
+  "C4_dx_pesa_mas_que_fototipo": true
+}

@@ -1,0 +1,12 @@
+{
+  "fuente": "campana-v10-tono-20261108/salidas-externas/ddi_holdout.jsonl",
+  "sha256_manifiesto": "10b65981aa796b38a2c94c2e415f6c7c0993e11a74bdbac7089c821b256299ea",
+  "unidad": "imagen",
+  "n_imagenes": 656,
+  "n_componentes_identidad": 656,
+  "por_banda": {
+    "12": {"malignas": 49, "benignas": 159},
+    "34": {"malignas": 74, "benignas": 167},
+    "56": {"malignas": 48, "benignas": 159}
+  }
+}

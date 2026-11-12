@@ -1,0 +1,68 @@
+{
+  "analisis": "qa-brazos-transformacion",
+  "n_items": 150,
+  "semilla_runtime": 42,
+  "paso": 1234,
+  "dosis_por_brazo": {
+    "V10_T0": {
+      "n": 150,
+      "mediana": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "V10_C1": {
+      "n": 150,
+      "mediana": -2.121390979066816,
+      "min": -24.87352351887932,
+      "max": 24.520853103492605
+    },
+    "V10_C1M": {
+      "n": 150,
+      "mediana": -2.121390979066816,
+      "min": -24.87352351887932,
+      "max": 24.520853103492605
+    },
+    "V10_C1M_asym": {
+      "n": 150,
+      "mediana": 13.149070533260021,
+      "min": 0.8308746795707533,
+      "max": 24.87352351887932
+    }
+  },
+  "Q1_max_dif_dosis_C1_vs_C1M": 0.0,
+  "Q2_max_dif_asym_vs_abs_C1M": 0.0,
+  "Q3_fraccion_asym_negativa": 0.0,
+  "Q3_fraccion_C1_negativa": 0.5266666666666666,
+  "Q4_dif_media_T0_en_8bits": {
+    "n": 150,
+    "mediana": 2.5981664073915453e-14,
+    "min": 0.0,
+    "max": 4.3220826245671084e-14
+  },
+  "Q5_razon_lesion_sobre_piel": {
+    "V10_C1": {
+      "n": 148,
+      "mediana": 0.8756315324440467,
+      "min": 0.7240426711528327,
+      "max": 1.165869944565973
+    },
+    "V10_C1M": {
+      "n": 138,
+      "mediana": 0.8739978505838084,
+      "min": 0.7240426711528327,
+      "max": 1.0889270105841686
+    },
+    "V10_C1M_asym": {
+      "n": 136,
+      "mediana": 0.8798610868860064,
+      "min": 0.7240426711528327,
+      "max": 1.0148930517590091
+    }
+  },
+  "Q1_holds": true,
+  "Q2_holds": true,
+  "Q3_holds": true,
+  "Q4_holds": true,
+  "Q5_holds": true,
+  "TODOS_PASAN": true
+}

@@ -1,0 +1,15 @@
+{
+  "mascara": {
+    "fuente": "ProyectoDeGrado/docs/estado/resumen-tecnico-revision-externa-20261105.md, §2.1, comparación MoCo de tres semillas",
+    "PAD": {"n": 1134, "imagen_completa": 0.6438, "fondo_suprimido": 0.5631, "recorte": 0.6330, "delta_fondo": -0.0806},
+    "HAM": {"n": 1528, "imagen_completa": 0.6020, "fondo_suprimido": 0.5552, "recorte": 0.6088, "delta_fondo": -0.0468}
+  },
+  "termino_tonal": {
+    "fuente": "ProyectoDeGrado/docs/estado/evidencia-auditoria-20261105/delta_tono.source.json, PAD, PRIMARY_full_set",
+    "n": 1134,
+    "grupos": 682,
+    "remuestreos": 2000,
+    "delta": -0.012928194435804286,
+    "ic95": [-0.024882626962272315, -0.0014723992173186796]
+  }
+}

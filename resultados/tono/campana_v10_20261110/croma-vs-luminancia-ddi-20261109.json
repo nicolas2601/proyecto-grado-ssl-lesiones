@@ -1,0 +1,59 @@
+{
+  "criterios": {
+    "Q0_sanidad": false,
+    "Q1_croma_pesa_mas_en_piel_oscura": false,
+    "Q2_menos_contraste_de_luminosidad_en_piel_oscura": false
+  },
+  "fuente": "/home/jovyan/work/ddi-20261105/ddi_holdout.jsonl",
+  "por_banda": {
+    "12": {
+      "auc_ambos": 0.5276601206520344,
+      "auc_croma": 0.5895263765883711,
+      "auc_luminancia": 0.4408163265306122,
+      "contraste_L_centro_marco": {
+        "ic": [
+          4.0500523952915914,
+          5.164943283806487
+        ],
+        "media": 4.608743203262665,
+        "n": 208
+      },
+      "n": 208,
+      "n_malignas": 49,
+      "razon_croma_sobre_luminancia": 1.337351502445842
+    },
+    "34": {
+      "auc_ambos": 0.5509791228354103,
+      "auc_croma": 0.5198252144359928,
+      "auc_luminancia": 0.5586178993364622,
+      "contraste_L_centro_marco": {
+        "ic": [
+          4.338982348868,
+          5.725096039093581
+        ],
+        "media": 4.978832866834793,
+        "n": 241
+      },
+      "n": 241,
+      "n_malignas": 74,
+      "razon_croma_sobre_luminancia": 0.9305559579337717
+    },
+    "56": {
+      "auc_ambos": 0.615251572327044,
+      "auc_croma": 0.6278563941299791,
+      "auc_luminancia": 0.5436844863731658,
+      "contraste_L_centro_marco": {
+        "ic": [
+          5.390623388194597,
+          7.178516018520197
+        ],
+        "media": 6.273921986417737,
+        "n": 207
+      },
+      "n": 207,
+      "n_malignas": 48,
+      "razon_croma_sobre_luminancia": 1.1548175639851541
+    }
+  },
+  "proxy": "centro 60 % = lesion, marco = piel; DDI no tiene mascaras 026"
+}

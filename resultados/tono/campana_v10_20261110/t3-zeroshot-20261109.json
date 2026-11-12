@@ -1,0 +1,230 @@
+{
+  "analisis": "T3-zero-shot",
+  "protocolo": "sonda binaria entrenada en pad_adapt, aplicada a DDI sin ver sus etiquetas",
+  "clases_malignas_pad": [
+    "ACK",
+    "BCC",
+    "MEL",
+    "SCC"
+  ],
+  "criterios": [
+    "Z1",
+    "Z2",
+    "Z3",
+    "Z4"
+  ],
+  "prediccion_registrada": "Z1 y Z2 si; Z3 si (brecha positiva); Z4 NEUTRO",
+  "referencia_externa_daneshjou": {
+    "ModelDerm": {
+      "I-II": 0.64,
+      "V-VI": 0.55
+    },
+    "DeepDerm": {
+      "I-II": 0.61,
+      "V-VI": 0.5
+    },
+    "HAM10000": {
+      "I-II": 0.72,
+      "V-VI": 0.57
+    },
+    "tras_fine_tuning_en_ddi": {
+      "I-II": 0.72,
+      "V-VI": 0.74
+    }
+  },
+  "por_brazo": {
+    "V10_T0": {
+      "umbral_youden_pad": 0.3319999989277373,
+      "global": {
+        "n": 656,
+        "auc_roc": 0.7168445167902574,
+        "balanced_accuracy": 0.6476698619400736
+      },
+      "por_banda": {
+        "12": {
+          "n": 208,
+          "auc_roc": 0.6891284815813118,
+          "balanced_accuracy": 0.6156462585034014,
+          "sensibilidad": 0.8979591836734694,
+          "especificidad": 0.3333333333333333
+        },
+        "34": {
+          "n": 241,
+          "auc_roc": 0.7827722932513351,
+          "balanced_accuracy": 0.698899498300696,
+          "sensibilidad": 0.8648648648648649,
+          "especificidad": 0.5329341317365269
+        },
+        "56": {
+          "n": 207,
+          "auc_roc": 0.6584119496855346,
+          "balanced_accuracy": 0.6122248427672956,
+          "sensibilidad": 0.6458333333333334,
+          "especificidad": 0.5786163522012578
+        }
+      }
+    },
+    "V10_C1": {
+      "umbral_youden_pad": 0.0023333334053556123,
+      "global": {
+        "n": 656,
+        "auc_roc": 0.7149394103816241,
+        "balanced_accuracy": 0.6487007897751251
+      },
+      "por_banda": {
+        "12": {
+          "n": 208,
+          "auc_roc": 0.7027339237581826,
+          "balanced_accuracy": 0.6156462585034014,
+          "sensibilidad": 0.8979591836734694,
+          "especificidad": 0.3333333333333333
+        },
+        "34": {
+          "n": 241,
+          "auc_roc": 0.7765415115714517,
+          "balanced_accuracy": 0.7116442790095485,
+          "sensibilidad": 0.8783783783783784,
+          "especificidad": 0.5449101796407185
+        },
+        "56": {
+          "n": 207,
+          "auc_roc": 0.6428197064989518,
+          "balanced_accuracy": 0.5986635220125787,
+          "sensibilidad": 0.625,
+          "especificidad": 0.5723270440251572
+        }
+      }
+    },
+    "V10_C1M": {
+      "umbral_youden_pad": 0.0023333334053556123,
+      "global": {
+        "n": 656,
+        "auc_roc": 0.7167962862482667,
+        "balanced_accuracy": 0.6456080062699705
+      },
+      "por_banda": {
+        "12": {
+          "n": 208,
+          "auc_roc": 0.7060711076883583,
+          "balanced_accuracy": 0.6062122962392504,
+          "sensibilidad": 0.8979591836734694,
+          "especificidad": 0.31446540880503143
+        },
+        "34": {
+          "n": 241,
+          "auc_roc": 0.7788881696067325,
+          "balanced_accuracy": 0.7078815342288396,
+          "sensibilidad": 0.8648648648648649,
+          "especificidad": 0.5508982035928144
+        },
+        "56": {
+          "n": 207,
+          "auc_roc": 0.6476022012578616,
+          "balanced_accuracy": 0.605935534591195,
+          "sensibilidad": 0.6458333333333334,
+          "especificidad": 0.5660377358490566
+        }
+      }
+    },
+    "V10_C1M_asym": {
+      "umbral_youden_pad": 0.3323333237009744,
+      "global": {
+        "n": 656,
+        "auc_roc": 0.7152046783625731,
+        "balanced_accuracy": 0.6414842949297643
+      },
+      "por_banda": {
+        "12": {
+          "n": 208,
+          "auc_roc": 0.6990116801437556,
+          "balanced_accuracy": 0.6030676421512001,
+          "sensibilidad": 0.8979591836734694,
+          "especificidad": 0.3081761006289308
+        },
+        "34": {
+          "n": 241,
+          "auc_roc": 0.7773102443761126,
+          "balanced_accuracy": 0.7056562550574527,
+          "sensibilidad": 0.8783783783783784,
+          "especificidad": 0.5329341317365269
+        },
+        "56": {
+          "n": 207,
+          "auc_roc": 0.6474711740041929,
+          "balanced_accuracy": 0.5955188679245282,
+          "sensibilidad": 0.625,
+          "especificidad": 0.5660377358490566
+        }
+      }
+    }
+  },
+  "brecha_auc_I_II_menos_V_VI": {
+    "V10_T0": {
+      "punto": 0.030716531895777166,
+      "ic95": [
+        -0.09576038821975637,
+        0.15434439958434756
+      ],
+      "veredicto": "SIN BRECHA (IC cruza cero)"
+    },
+    "V10_C1": {
+      "punto": 0.05991421725923074,
+      "ic95": [
+        -0.0653675252344592,
+        0.18590697469541478
+      ],
+      "veredicto": "SIN BRECHA (IC cruza cero)"
+    },
+    "V10_C1M": {
+      "punto": 0.058468906430496737,
+      "ic95": [
+        -0.07068283471602538,
+        0.18715467139061964
+      ],
+      "veredicto": "SIN BRECHA (IC cruza cero)"
+    },
+    "V10_C1M_asym": {
+      "punto": 0.051540506139562736,
+      "ic95": [
+        -0.07546455887747233,
+        0.17785476184879623
+      ],
+      "veredicto": "SIN BRECHA (IC cruza cero)"
+    }
+  },
+  "Z4_contraste_de_brecha": {
+    "V10_C1_vs_V10_T0": {
+      "brecha_T0": 0.030716531895777166,
+      "brecha_candidato": 0.05991421725923074,
+      "delta": 0.029197685363453574,
+      "ic95": [
+        0.0037490405498611435,
+        0.05802797829497869
+      ],
+      "veredicto": "AMPLIA LA BRECHA"
+    },
+    "V10_C1M_vs_V10_T0": {
+      "brecha_T0": 0.030716531895777166,
+      "brecha_candidato": 0.058468906430496737,
+      "delta": 0.02775237453471957,
+      "ic95": [
+        0.004135536060988035,
+        0.05254854818399185
+      ],
+      "veredicto": "AMPLIA LA BRECHA"
+    },
+    "V10_C1M_asym_vs_V10_T0": {
+      "brecha_T0": 0.030716531895777166,
+      "brecha_candidato": 0.051540506139562736,
+      "delta": 0.02082397424378557,
+      "ic95": [
+        -0.0017877811581581886,
+        0.04454333184422227
+      ],
+      "veredicto": "NEUTRO (IC cruza cero)"
+    }
+  },
+  "Z1_holds": true,
+  "Z2_holds": true,
+  "Z3_holds": false
+}

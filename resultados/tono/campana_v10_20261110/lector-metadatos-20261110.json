@@ -1,0 +1,111 @@
+{
+  "analisis": "lector-metadatos-secundario",
+  "conjunto_de_metadatos": "CORE (extended=False): age + region, itch, grew, hurt, changed, bleed, elevation",
+  "criterios": {
+    "M1_deltas": [
+      0.08684405015477248,
+      0.08335689522636247,
+      0.08423839662379251,
+      0.08681720695669726,
+      0.09410287256174266
+    ],
+    "M1_el_aporte_se_replica_en_los_5": true,
+    "M2_el_ranking_no_cambia": true,
+    "M2_rango_fusion": 0.007665392556112316,
+    "M2_rango_imagen": 0.004751909544694399
+  },
+  "declaracion_equidad": "No se usa para medir la brecha por fototipo. Los metadatos tabulares contaminan esa medicion; en PAD el FST anotado falta en un patron correlacionado con el diagnostico y V-VI tiene n=5. La brecha se mide en DDI con la sonda de solo-imagen.",
+  "estatus": "EXPLORATORIO, fuera de la jerarquia confirmatoria",
+  "fitspatrick_incluido": false,
+  "lector_reusado": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-variants-20261109/scripts/metadata_readout.py",
+  "meta_weight": 0.1,
+  "piso_solo_metadatos": 0.5920909018364321,
+  "por_brazo": {
+    "V10_C1": {
+      "delta": 0.08335689522636247,
+      "macro_f1_fusion": 0.7599256109637906,
+      "macro_f1_imagen": 0.6765687157374282,
+      "n_semillas": 3,
+      "por_semilla_fusion": [
+        0.764114081523329,
+        0.7565327745617002,
+        0.7591299768063426
+      ],
+      "por_semilla_imagen": [
+        0.6809462266280947,
+        0.6773458846532492,
+        0.6714140359309407
+      ]
+    },
+    "V10_C1M": {
+      "delta": 0.08423839662379251,
+      "macro_f1_fusion": 0.7606113193609175,
+      "macro_f1_imagen": 0.676372922737125,
+      "n_semillas": 3,
+      "por_semilla_fusion": [
+        0.7607414188236351,
+        0.7615305456819037,
+        0.7595619935772134
+      ],
+      "por_semilla_imagen": [
+        0.6796833993754232,
+        0.676731104937164,
+        0.6727042638987878
+      ]
+    },
+    "V10_C1M_LUM": {
+      "delta": 0.09410287256174266,
+      "macro_f1_fusion": 0.767591003519903,
+      "macro_f1_imagen": 0.6734881309581603,
+      "n_semillas": 3,
+      "por_semilla_fusion": [
+        0.7667580902237151,
+        0.7662247654983546,
+        0.7697901548376392
+      ],
+      "por_semilla_imagen": [
+        0.6745092239806479,
+        0.6747618313352151,
+        0.6711933375586182
+      ]
+    },
+    "V10_C1M_asym": {
+      "delta": 0.08681720695669726,
+      "macro_f1_fusion": 0.765057247459552,
+      "macro_f1_imagen": 0.6782400405028547,
+      "n_semillas": 3,
+      "por_semilla_fusion": [
+        0.7678929373562831,
+        0.764404771796709,
+        0.7628740332256637
+      ],
+      "por_semilla_imagen": [
+        0.6783303195848216,
+        0.6837728049712869,
+        0.6726169969524557
+      ]
+    },
+    "V10_T0": {
+      "delta": 0.08684405015477248,
+      "macro_f1_fusion": 0.7630833061957061,
+      "macro_f1_imagen": 0.6762392560409336,
+      "n_semillas": 3,
+      "por_semilla_fusion": [
+        0.7637470206514881,
+        0.7615080698541826,
+        0.7639948280814477
+      ],
+      "por_semilla_imagen": [
+        0.6762155601483717,
+        0.6730857518128311,
+        0.6794164561615981
+      ]
+    }
+  },
+  "referencia_nicolas": {
+    "delta": 0.0873,
+    "fused": 0.763,
+    "image": 0.6757,
+    "meta_solo": 0.5921
+  }
+}

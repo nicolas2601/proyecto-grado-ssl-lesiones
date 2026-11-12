@@ -1,0 +1,185 @@
+{
+  "analisis": "contrafactual-tonal",
+  "criterios_declarados": {
+    "B0": "a dosis 0 la prediccion coincide con la de los rasgos almacenados en >= 98 %",
+    "B1": "PRIMARIO: tasa de volteo de C1M < T0 a |delta_b|=6,25, IC excluye cero",
+    "B2": "lo mismo sobre |delta score maligno| en bosque",
+    "B3": "la tasa de volteo crece con |dosis|"
+  },
+  "ddi_excluido": "su sonda es interna por CV; un contrafactual exigiria reentrenar por dosis",
+  "dosis_primaria": 6.25,
+  "estimulo": "desplazamiento Lab de campo completo, lab_objetivo(w=1, delta_b), tras resize a 224",
+  "generated_utc": "2026-11-09T04:43:58Z",
+  "no_es": "la transformacion de produccion (mascara de lesion y acople m)",
+  "por_banco": {
+    "bosque": {
+      "B3_monotonia": true,
+      "contrastes": {
+        "B1_volteo_V10_C1M_vs_V10_T0": {
+          "candidato": 0.07947019867549669,
+          "delta": -0.011037527593818972,
+          "ic95": [
+            -0.03653635177607779,
+            0.012501426940639252
+          ],
+          "lectura": "SIN DIFERENCIA (IC cruza cero)",
+          "referencia": 0.09050772626931566,
+          "resamples": 1000,
+          "veredicto": "NEUTRO (IC cruza cero)"
+        },
+        "B1_volteo_V10_C1_vs_V10_T0": {
+          "candidato": 0.0706401766004415,
+          "delta": -0.019867549668874163,
+          "ic95": [
+            -0.044959071223656624,
+            0.005669904948280683
+          ],
+          "lectura": "SIN DIFERENCIA (IC cruza cero)",
+          "referencia": 0.09050772626931566,
+          "resamples": 1000,
+          "veredicto": "NEUTRO (IC cruza cero)"
+        },
+        "B2_score_V10_C1M_vs_V10_T0": {
+          "candidato": 0.039195429533720016,
+          "delta": -0.008803196251392365,
+          "ic95": [
+            -0.015078638400882482,
+            -0.003387013264000421
+          ],
+          "lectura": "SCORE MAS ESTABLE",
+          "referencia": 0.04799862578511238,
+          "resamples": 1000,
+          "veredicto": "NEGATIVO"
+        },
+        "B2_score_V10_C1_vs_V10_T0": {
+          "candidato": 0.04262036457657814,
+          "delta": -0.005378261208534241,
+          "ic95": [
+            -0.011715639941394329,
+            0.001052358094602823
+          ],
+          "lectura": "SIN DIFERENCIA (IC cruza cero)",
+          "referencia": 0.04799862578511238,
+          "resamples": 1000,
+          "veredicto": "NEUTRO (IC cruza cero)"
+        }
+      },
+      "grupos": 139,
+      "n": 151,
+      "por_brazo": {
+        "V10_C1": {
+          "B0_coincidencia_con_rasgos_almacenados": 1.0,
+          "B0_holds": true,
+          "delta_score_maligno": {
+            "+12.50": 0.0557902492582798,
+            "+6.25": 0.03622223809361458,
+            "-12.50": 0.09240694344043732,
+            "-6.25": 0.0490184985101223
+          },
+          "tasa_volteo": {
+            "+12.50": 0.09933774834437085,
+            "+6.25": 0.05518763796909491,
+            "-12.50": 0.16114790286975716,
+            "-6.25": 0.08609271523178808
+          }
+        },
+        "V10_C1M": {
+          "B0_coincidencia_con_rasgos_almacenados": 1.0,
+          "B0_holds": true,
+          "delta_score_maligno": {
+            "+12.50": 0.05365372821688652,
+            "+6.25": 0.03472179174423218,
+            "-12.50": 0.08686237782239914,
+            "-6.25": 0.04366907477378845
+          },
+          "tasa_volteo": {
+            "+12.50": 0.09933774834437085,
+            "+6.25": 0.057395143487858714,
+            "-12.50": 0.17660044150110374,
+            "-6.25": 0.10154525386313465
+          }
+        },
+        "V10_T0": {
+          "B0_coincidencia_con_rasgos_almacenados": 1.0,
+          "B0_holds": true,
+          "delta_score_maligno": {
+            "+12.50": 0.0713619813323021,
+            "+6.25": 0.04236648231744766,
+            "-12.50": 0.10275162756443024,
+            "-6.25": 0.0536307767033577
+          },
+          "tasa_volteo": {
+            "+12.50": 0.13024282560706402,
+            "+6.25": 0.07726269315673287,
+            "-12.50": 0.17660044150110374,
+            "-6.25": 0.10375275938189844
+          }
+        }
+      }
+    },
+    "pad_holdout": {
+      "B3_monotonia": true,
+      "contrastes": {
+        "B1_volteo_V10_C1M_vs_V10_T0": {
+          "candidato": 0.04372294372294372,
+          "delta": -0.0018759018759018711,
+          "ic95": [
+            -0.0070867913832199465,
+            0.003405281580442393
+          ],
+          "lectura": "SIN DIFERENCIA (IC cruza cero)",
+          "referencia": 0.04559884559884559,
+          "resamples": 1000,
+          "veredicto": "NEUTRO (IC cruza cero)"
+        },
+        "B1_volteo_V10_C1_vs_V10_T0": {
+          "candidato": 0.04588744588744589,
+          "delta": 0.0002886002886002964,
+          "ic95": [
+            -0.0048433462532299805,
+            0.00558920755864839
+          ],
+          "lectura": "SIN DIFERENCIA (IC cruza cero)",
+          "referencia": 0.04559884559884559,
+          "resamples": 1000,
+          "veredicto": "NEUTRO (IC cruza cero)"
+        }
+      },
+      "grupos": 691,
+      "n": 1155,
+      "por_brazo": {
+        "V10_C1": {
+          "B0_coincidencia_con_rasgos_almacenados": 1.0,
+          "B0_holds": true,
+          "tasa_volteo": {
+            "+12.50": 0.06868686868686869,
+            "+6.25": 0.04415584415584416,
+            "-12.50": 0.07532467532467532,
+            "-6.25": 0.047619047619047616
+          }
+        },
+        "V10_C1M": {
+          "B0_coincidencia_con_rasgos_almacenados": 1.0,
+          "B0_holds": true,
+          "tasa_volteo": {
+            "+12.50": 0.07041847041847041,
+            "+6.25": 0.04531024531024531,
+            "-12.50": 0.07215007215007213,
+            "-6.25": 0.04213564213564213
+          }
+        },
+        "V10_T0": {
+          "B0_coincidencia_con_rasgos_almacenados": 1.0,
+          "B0_holds": true,
+          "tasa_volteo": {
+            "+12.50": 0.0761904761904762,
+            "+6.25": 0.04733044733044732,
+            "-12.50": 0.08860028860028858,
+            "-6.25": 0.04386724386724386
+          }
+        }
+      }
+    }
+  },
+  "prediccion_registrada": "B1 positivo pero proporcionalmente menor que A; si B1 sale NEUTRO con A positivo, la invariancia existe en la representacion y el lector la desperdicia"
+}

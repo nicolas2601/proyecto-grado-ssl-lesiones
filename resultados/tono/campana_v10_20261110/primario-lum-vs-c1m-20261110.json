@@ -1,0 +1,58 @@
+{
+  "H1_primario": {
+    "brecha_candidato": -0.002877251529542657,
+    "brecha_referencia": 0.058468906430496737,
+    "contraste": "brecha(V10_C1M_LUM) - brecha(V10_C1M)",
+    "delta_punto": -0.061346157960039394,
+    "fraccion_remuestreos_adversos": 0.0055,
+    "ic95": [
+      -0.11073124523427927,
+      -0.013560739109185668
+    ],
+    "margen_no_inferioridad": 0.0139,
+    "no_inferioridad": true,
+    "resamples_validos": 10000,
+    "superioridad": true,
+    "veredicto": "SUPERIOR: el eje corregido reduce la brecha frente al publicado"
+  },
+  "H2_secundario_con_compuerta": {
+    "auc_candidato": 0.6881551362683438,
+    "auc_referencia": 0.6476022012578616,
+    "compuerta_H1_superior": true,
+    "contraste": "AUC FST V-VI: V10_C1M_LUM - V10_C1M",
+    "delta_punto": 0.04055293501048218,
+    "ic95": [
+      0.004305402200139075,
+      0.07709979295815231
+    ],
+    "interpretable": true,
+    "veredicto": "MEJORA la piel oscura"
+  },
+  "R0_reproduccion": {
+    "V10_C1M": {
+      "max_abs_dif_vs_t3": 0.0,
+      "reproduce": true
+    },
+    "V10_C1M_LUM": {
+      "max_abs_dif_vs_t3": 0.0,
+      "reproduce": true
+    },
+    "V10_T0": {
+      "max_abs_dif_vs_t3": 0.0,
+      "reproduce": true
+    }
+  },
+  "analisis": "primario-confirmatorio-eje-corregido",
+  "declaracion_de_pre_especificacion": "La hipotesis y su mecanismo se declararon antes de medir (causa-fisica-ddi-20261109.json, criterios P0-P5) y antes de entrenar (lanzar_lum_v10.py, criterios W0-W7). ESTE estadistico se escribio DESPUES de conocer T3 contra el control. No es un preregistro en sentido estricto y el informe debe decirlo asi.",
+  "exploratorio_no_inferencial": [
+    "BOSQUE balacc I-III y IV-VI (los 3 umbrales)",
+    "diff-in-diff en holdout PAD, FST I-IV",
+    "escalera interna HAM y PAD",
+    "contrastes contra V10_T0",
+    "lector secundario cls",
+    "invariancia al estimulo b* del modulo viejo"
+  ],
+  "factor_unico": "dosis identica item por item (max|dif|=0,0 sobre 400 filas), elegibilidad identica (applied 626/626, 628/628, 623/623), misma mascara, mismo acople, misma receta y semillas; solo cambia la direccion en CIELAB",
+  "marco": "jerarquico: H1 confirmatorio, H2 con compuerta, resto exploratorio",
+  "procedencia_del_margen": "delta = 0.0139 es la mitad del dano medido de V10_C1M contra el control (+0,0278, IC[+0,0041,+0,0525]). Sale de estos datos, no de un estandar externo: no hay uno publicado para brechas de AUC por fototipo."
+}

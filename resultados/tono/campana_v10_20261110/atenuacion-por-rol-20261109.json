@@ -1,0 +1,82 @@
+{
+  "analisis": "atenuacion-por-margen-por-rol",
+  "muestra": "muestra-fija.json submuestreada, semilla 20261107",
+  "dosis_pedidas_grados": [
+    6.25,
+    12.5,
+    25.0
+  ],
+  "predicciones": [
+    "H1",
+    "H2",
+    "H3"
+  ],
+  "por_rol": {
+    "source_fit": {
+      "n_evaluadas": 120,
+      "m_acople": 0.8609,
+      "por_dosis": {
+        "6.25": {
+          "n": 119,
+          "retencion_mediana": 1.0,
+          "retencion_media": 0.8652100840336135,
+          "fraccion_atenuadas": 0.14285714285714285,
+          "fraccion_dosis_cero": 0.09243697478991597,
+          "aplicada_mediana_grados": 6.25
+        },
+        "12.50": {
+          "n": 119,
+          "retencion_mediana": 1.0,
+          "retencion_media": 0.8611764705882352,
+          "fraccion_atenuadas": 0.14285714285714285,
+          "fraccion_dosis_cero": 0.09243697478991597,
+          "aplicada_mediana_grados": 12.5
+        },
+        "25.00": {
+          "n": 119,
+          "retencion_mediana": 1.0,
+          "retencion_media": 0.8480672268907562,
+          "fraccion_atenuadas": 0.19327731092436976,
+          "fraccion_dosis_cero": 0.09243697478991597,
+          "aplicada_mediana_grados": 25.0
+        }
+      }
+    },
+    "pad_adapt": {
+      "n_evaluadas": 120,
+      "m_acople": 0.8352,
+      "por_dosis": {
+        "6.25": {
+          "n": 120,
+          "retencion_mediana": 1.0,
+          "retencion_media": 0.9916666666666667,
+          "fraccion_atenuadas": 0.008333333333333333,
+          "fraccion_dosis_cero": 0.008333333333333333,
+          "aplicada_mediana_grados": 6.25
+        },
+        "12.50": {
+          "n": 120,
+          "retencion_mediana": 1.0,
+          "retencion_media": 0.9916666666666667,
+          "fraccion_atenuadas": 0.008333333333333333,
+          "fraccion_dosis_cero": 0.008333333333333333,
+          "aplicada_mediana_grados": 12.5
+        },
+        "25.00": {
+          "n": 120,
+          "retencion_mediana": 1.0,
+          "retencion_media": 0.9903333333333334,
+          "fraccion_atenuadas": 0.016666666666666666,
+          "fraccion_dosis_cero": 0.008333333333333333,
+          "aplicada_mediana_grados": 25.0
+        }
+      }
+    }
+  },
+  "H1_source_retiene_menos_que_pad": false,
+  "H2_source_retencion_menor_0_50": false,
+  "H3_retencion_cae_con_la_dosis": {
+    "source_fit": true,
+    "pad_adapt": true
+  }
+}

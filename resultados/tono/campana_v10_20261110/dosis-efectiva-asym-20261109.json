@@ -1,0 +1,46 @@
+{
+  "analisis": "dosis-efectiva-asym",
+  "n": 200,
+  "D1_max_dif_pedida_asym_vs_abs_C1M": 0.0,
+  "pedida_abs_mediana": {
+    "C1M": 13.302855179249974,
+    "asym": 13.302855179249974
+  },
+  "aplicada_abs_mediana": {
+    "C1M": 11.985894598063524,
+    "asym": 11.475154713605331
+  },
+  "aplicada_abs_media": {
+    "C1M": 11.683438207833897,
+    "asym": 11.316562739181464
+  },
+  "retencion_mediana": {
+    "C1M": 1.0,
+    "asym": 1.0
+  },
+  "fraccion_atenuada": {
+    "C1M": 0.145,
+    "asym": 0.16
+  },
+  "fraccion_dosis_cero": {
+    "C1M": 0.07,
+    "asym": 0.08
+  },
+  "por_signo_original": {
+    "items_que_asym_voltea_de_aclarar_a_oscurecer": {
+      "n": 106,
+      "aplicada_abs_mediana_C1M": 12.209937468220001,
+      "aplicada_abs_mediana_asym": 12.068481967334748,
+      "fraccion_atenuada_C1M": 0.12264150943396226,
+      "fraccion_atenuada_asym": 0.1509433962264151
+    },
+    "items_que_ya_oscurecian_y_no_cambian": {
+      "n": 94,
+      "max_dif_aplicada": 0.0
+    }
+  },
+  "D1_holds": true,
+  "D2_holds": true,
+  "D3_holds": true,
+  "D4_holds": true
+}

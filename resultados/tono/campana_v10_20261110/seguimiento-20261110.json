@@ -1,0 +1,39 @@
+{
+  "corte": "2026-11-10T15:50:00Z",
+  "fuente": "Proyecto de grado 2/research/tono-literatura-20261105/checkpoints/checkpoint-2026-11-10T15-48-28Z-semantico.md, entrada más reciente",
+  "estado": "Transcripción del registro técnico de seguimiento. El JSON primario no está en la copia local consultada.",
+  "artefacto_primario": "primario-lum-vs-c1m-20261110.json",
+  "sha256_script_verificado_localmente": "17ceee80268b18e18fbc3be86baf25f8aa7c70614bb315b3acbff6f68f948166",
+  "ddi_luminosidad": {
+    "n": 656,
+    "remuestreos_pareados": 10000,
+    "brecha_auc_i_ii_menos_v_vi": {
+      "transformacion_con_mascara": 0.0585,
+      "luminosidad": -0.0029,
+      "delta_frente_a_transformacion_con_mascara": -0.0613,
+      "ic95": [-0.1107, -0.0136],
+      "delta_frente_a_control_sin_transformacion": -0.0336,
+      "ic95_frente_a_control": [-0.0755, 0.0055],
+      "margen_de_no_inferioridad_derivado_de_ddi": 0.0139
+    },
+    "auc_v_vi": {
+      "transformacion_con_mascara": 0.6476,
+      "luminosidad": 0.6882,
+      "delta": 0.0406,
+      "ic95": [0.0043, 0.0771]
+    },
+    "reduccion_de_desplazamiento_relativa": {
+      "eje_modulo": 0.007,
+      "eje_empirico": 0.014,
+      "luminosidad": 0.017
+    }
+  },
+  "fusion_de_imagen_y_cuestionario": {
+    "metrica": "F1 macro de desarrollo fuera de pliegue",
+    "semillas": 3,
+    "pad": {"imagen": 0.6757, "fusion": 0.7630, "delta": 0.0873},
+    "ham": {"delta": -0.0300},
+    "incluye_fototipo": false,
+    "ajuste": "Validación cruzada agrupada con selección anidada de C"
+  }
+}
