@@ -1,0 +1,241 @@
+{
+  "meta": {
+    "date": "2026-11-09",
+    "question": "Label-free SSL changes to the continued MoCo pipeline on DINOv2 that could improve melanoma-vs-nevus and SCC-vs-BCC separation in the frozen CLS4 + balanced-LR readout. Track A only.",
+    "scope": "Bounded scoping synthesis of ssl-foundations (2 passes), ssl-recent (base + expansion), ssl-derm, plus own spot-checks. Not a systematic review. No experiments run by this reviewer.",
+    "inputs": [
+      "docs/ssl-foundations.json",
+      "docs/ssl-recent.json",
+      "docs/ssl-recent-expansion.json",
+      "docs/ssl-derm.json",
+      "docs/imbalance-research.json",
+      "literature.json",
+      "research brief (internal, not versioned)"
+    ],
+    "skills_invoked": {
+      "scientific-critical-thinking": "HECHO vs INFERENCIA vs SUPOSICION per claim; premise-to-claim chain checks; mechanism graded by evidence level.",
+      "scholar-evaluation": "Per-source rubric: claim-to-citation support, data and analysis scope, limitations. Source quality is not used as proof of benefit."
+    },
+    "constraints_applied": [
+      "Backbone stays DINOv2. DINOv3 fork (ssl-recent X4) removed from the queue and kept as no action (project owner, this phase).",
+      "DINOv2 size may vary as an SSL arm: ViT-S/14, ViT-B/14 (current), ViT-L/14 (candidate). Same relative block fraction as the current setup (last 4 of 12 trainable = last one third of blocks).",
+      "Every queue experiment carries an overfitting control (section overfit_control). Team-coordinator's statistical reviewer spec was not received in this session; the control below is a proposal to reconcile.",
+      "Evaluation cohorts ham_dev and pad_adapt are used for readouts only; holdout and target_test are not used."
+    ],
+    "tools": "paper-search read_arxiv_paper (Vo 2024; Haggerty 2024; Azizi 2021 text; pathology 2503.18709), get_citing_papers (Azizi), local code read (moco_v4_20261107_runtime.py), jq/rg/python on mixed-fit.jsonl, read-only scp of PAD and ISIC metadata from unabia (no writes). Sci-Hub and Semantic Scholar not used. Zotero read-only (ssl-recent check)."
+  },
+  "pool_facts": {
+    "ssl_pool": "34,754 images: 33,620 source_fit (ISIC 2019 train, image_id ISIC_*) + 1,134 pad_adapt (PAD-UFES-20, image_id PAT_*). HAM is NOT in the SSL pool.",
+    "ham_in_pool": "No. HAM dev is evaluation-only, so HAM readouts are not transductive for SSL.",
+    "isic_group_structure": "ISIC 2019 train-metadata.csv has lesion_id as a dummy value (dummy_0, dummy_1, ...). Source images cannot be grouped by lesion from this metadata.",
+    "pad_lesion_groups": "Counted on the SSL pool itself (1,134 pad_adapt rows; key = (patient_id, lesion_id), per src/dermssl/pad_ufes.py:24-25): 930 lesion groups, 173 with two or more images (377 images); 682 patient groups, 265 with two or more images; max 6 images per lesion.",
+    "implication": "Same-lesion positives (Q4) can reach only 377 of 34,754 pool images (about 1.1%). Effect is expected to sit below noise."
+  },
+  "verified_premises": [
+    {
+      "claim": "MoCo runtime uses in-batch negatives only; no memory queue.",
+      "verified_by": "scripts/arms/moco_v4_20261107_runtime.py:139",
+      "status": "HECHO"
+    },
+    {
+      "claim": "Hierarchical k-means sampler (Vo 2024) with 4 levels is the best tested configuration; 4 levels beat 2 levels; hierarchical beats flat; k-means++ beats random init.",
+      "verified_by": "arXiv 2405.15613 full text (saved extraction), Table 3, ViT-L, curated-once dataset up to 743M images. Levels: 1r 76.6 kNN, 2r 78.7, 3r 78.7, 4r 79.6 (Oxford-H 16.3, 24.7, 29.7, 32.1). Flat 4r-flat 78.9 kNN vs 4r 79.6. Random init 4r-- 74.0 vs 79.6.",
+      "status": "HECHO for ViT-L and a 743M-image curated dataset. Transfer to per-step sampling on 34,754 images is INFERENCIA.",
+      "calibration_note": "Vo's cluster counts (k = 10M, 500k, 50k, 10k for four levels at 743M images) do not transfer to 34,754 images. The 4-level structure is verified; the K per level must be recalibrated (target: leaf sizes that keep sampling meaningful, validated by ARI between two seeds and NMI against acquisition metadata)."
+    },
+    {
+      "claim": "Stratified batches beat random batches in curated continued pretraining (pathology).",
+      "verified_by": "arXiv 2503.18709 full text (saved extraction, partial read by rg). Sensitivity analysis: 'our stratified batch sampling consistently outperforms the random one'. Table 1 RoI: T1-BS overall bACC 83.3 vs T1-BR 81.5 (about +1.8 pp). Vs supervised curation S-BS: breast RoI 87.2 (T1-BS) vs 84.7 (S-BS), the paper's main text; the ~0.2 pp figure in ssl-recent expansion is not what the table shows for the overall comparison and is treated as a misquote.",
+      "status": "HECHO for pathology foundation-model pretraining (generalist, not MoCo, not dermoscopy). INFERENCIA for MoCo.",
+      "consequence": "Use X1b (stratified batches) as the primary arm and X1a (random batches) as the batch-effect control."
+    },
+    {
+      "claim": "Azizi MICLe improves dermatology SimCLR by 0.6 to 1.2 pp.",
+      "verified_by": "Azizi arXiv 2101.05224 Table 2: +0.62 (Derm RN50 4x), +1.18 (ImageNet->Derm RN50 4x), +0.73 (Derm RN152 2x), +0.13 (ImageNet->Derm RN152 2x). Std 0.3-0.6.",
+      "status": "HECHO, with correction: range includes +0.13; the derm JSON's 'mean +1.18 +/- 0.09' is wrong (mean of four deltas is +0.67 pp).",
+      "consequence": "Fine-tuning endpoint, one configuration near noise. Weak prior for Q4."
+    },
+    {
+      "claim": "Azizi dropped Gaussian blur for dermatology augmentation.",
+      "verified_by": "Azizi appendix: dermatology SimCLR uses colour distortion (strength 1.0), crops, Gaussian blur, flips. Blur is dropped only for CheXpert. Table B.2: crop-only augmentation with MICLe 'often outperform[s] the full augmentation, however, the difference is not significant'.",
+      "status": "HECHO. The foundations E1 premise was wrong (blur dropped for CXR, kept for dermatology). Augmentation effect not significant in the one available ablation.",
+      "consequence": "Q2 prior is weaker than foundations stated. Colour-shortcut rationale (below) is the stronger reason."
+    },
+    {
+      "claim": "Continued SSL raises frozen linear probe in dermatology.",
+      "verified_by": "Haggerty arXiv 2401.00692 Table 6 vs Table 7 (ImageNet SSL linear probe baseline 0.6628). Visible continued rows: 0.6759, 0.6836, 0.6865, 0.6940 (gains +1.3 to +3.1 pp). Setting: ISIC2019, Barlow Twins, ResNet-50, 35 runs.",
+      "status": "PARTIAL. ssl-derm lower bound +2.1 not reproduced from visible rows. Not MoCo, not ViT.",
+      "precedent": "ssl-recent expansion E12 (arXiv 2412.00702, DINO ResNet-50, continued SSL on unlabelled skin-lesion data, then labelled readout; partial full text; reported gains in 9 of 10 domains per text). Supports the pipeline premise; ResNet-50, not ViT."
+    },
+    {
+      "claim": "Patient-only grouping for same-group positives hurts; same-lesion/study grouping helps.",
+      "verified_by": "ssl-foundations second pass: MedAug arXiv 2102.10663 (full text by researcher, CheXpert, frozen linear AUC; Table 3: patient-only 0.792 vs 0.848 same patient+study). Not re-verified here.",
+      "status": "PARTIAL (researcher-reported, not re-verified by synthesizer). Used only as the reason for the lesion-level gate."
+    },
+    {
+      "claim": "SimCLR colour distortion is critical; crop-only views can be solved via colour-histogram shortcuts.",
+      "verified_by": "ssl-foundations second pass (SimCLR full text, researcher-reported). Our baseline is RandomResizedCrop + hflip with no colour distortion (brief).",
+      "status": "PARTIAL (researcher-reported). If true, the baseline is exposed to the acquisition/device shortcut that the brief's NMI check targets."
+    }
+  ],
+  "removed_or_excluded": [
+    {
+      "id": "X4 (DINOv3 fork)",
+      "reason": "Removed by project owner: backbone stays DINOv2."
+    },
+    {
+      "id": "ssl-derm E1 (continued SSL on ham_dev + pad_adapt)",
+      "reason": "Makes HAM readout transductive. Team-coordinator rule: only as a declared transductive arm evaluated separately. Not in queue."
+    },
+    {
+      "id": "X3 (LoRA on frozen blocks 0-7)",
+      "reason": "Redundant with freeze and L2-SP negatives. Run only if X1 and X2 are flat."
+    },
+    {
+      "id": "X5 (static-teacher masked latent prediction)",
+      "reason": "Abstract-only evidence, medium-high cost, new predictor code. Not prioritized."
+    },
+    {
+      "id": "ssl-derm E4 (hair-artefact synthesis)",
+      "reason": "Weak evidence; no primary source for hair augmentation in SSL. Colour-off control is folded into Q2."
+    },
+    {
+      "id": "Temperature schedule",
+      "reason": "Temperature is in the brief's negative list."
+    },
+    {
+      "id": "DnC as hard negatives",
+      "reason": "Abstract only; clustering covered by X1."
+    },
+    {
+      "id": "Pruned dynamic (2504.06962)",
+      "reason": "Small pool; overlaps SDCLR (in progress)."
+    },
+    {
+      "id": "LeJEPA (2511.08544)",
+      "reason": "Abstract only; low priority, changes the loss family."
+    }
+  ],
+  "queue": [
+    {
+      "rank": 1,
+      "id": "Q1a",
+      "name": "Hierarchical clusters (4 levels, Vo structure) with STRATIFIED batches (X1b)",
+      "control": "Q1b: same clusters with RANDOM batches (X1a). Both replace PhA alpha arm B; neither stacks on PhA.",
+      "exact_change_to_moco_runtime": "Cluster the SSL pool on PCA-128 L2-normalised CLS4 features into a 4-level tree (K per level recalibrated to the pool size; not Vo's 10M/500k/50k/10k). Refresh every 5 epochs. Batch construction: each batch of 16 draws one or more images from distinct top-level clusters (leaf-level stratification when top-level has fewer than 16 clusters with enough items). Keep MoCo queue (none), key encoder, loss, T=0.2, momentum 0.99 unchanged. Log same-component collision rate per batch (brief baseline 0.49%).",
+      "mechanism": "Stratified batches diversify the in-batch negatives and rebalance rare visual modes. Random batches with the same clusters are the weak configuration in the pathology evidence.",
+      "evidence_strength": "MEDIUM for mechanism (Vo Table 3 verified, pathology 2503.18709 stratified > random by about 1.8 pp overall, partial read). LOW for transfer to dermoscopy at 34,754 images.",
+      "gpu_cost_vs_6k_run": "~1.0x training. Feature pass every 5 epochs (forward only). Clustering is CPU (34,754 x 128).",
+      "risk": "Top-level clusters may encode acquisition (ISIC vs PAD device, rulers, vignetting): NMI gate. Partition instability: ARI >= 0.5 between two seeds. Stratified batches change the negatives distribution (fewer same-cluster negatives).",
+      "gate_before_training": "Discard if NMI between level-1 clusters and acquisition metadata is high (proposed threshold NMI > 0.3, to fix before running). Discard if ARI < 0.5.",
+      "stop_rule": "After 3 seeds: stop if Q1a is not better than Q1b in at least 2 of 3 seeds on the melanoma endpoint, or if macro-F1 drops by more than 0.5 pp vs baseline.",
+      "overfit_control": "see overfit_control.standard"
+    },
+    {
+      "rank": 2,
+      "id": "Q2",
+      "name": "Colour-distortion augmentation (no blur) with D4 and colour-off control",
+      "exact_change_to_moco_runtime": "Keep RandomResizedCrop(0.4-1) and hflip. Add ColorJitter(0.4, 0.4, 0.4, 0.1) with p=0.8 and rot90 + vflip (D4) per view. No Gaussian blur, no solarize. Control sub-arm: D4 only (no colour jitter).",
+      "mechanism": "Crop-only views invite colour-histogram shortcuts (researcher-reported from SimCLR). Colour distortion removes the device/colour shortcut that a frozen readout can exploit. D4 matches the TTA invariance that already reduced HAM mel->NV from 24.4% to 19.7%.",
+      "evidence_strength": "LOW-MEDIUM. SimCLR colour distortion critical (researcher-reported, abstract level for the ablation). Azizi dermatology ablation not significant (Table B.2). D4 link is our own TTA result.",
+      "gpu_cost_vs_6k_run": "~1.0x (augmentation CPU-side).",
+      "risk": "Colour jitter can blur melanoma colour cues (pigment variegation, blue-white veil). The colour-off control isolates this.",
+      "stop_rule": "After 3 seeds: stop if no seed-consistent gain of at least 1 pp in HAM mel recall or PAD SCC recall, or if macro-F1 drops by more than 0.5 pp.",
+      "overfit_control": "see overfit_control.standard"
+    },
+    {
+      "rank": 3,
+      "id": "Q3",
+      "name": "MoCo key queue (K=4096) to add negatives beyond batch 16",
+      "exact_change_to_moco_runtime": "FIFO queue of 4096 L2-normalised EMA-teacher keys. Logits = 1 positive + 4096 queue negatives + in-batch negatives. Momentum 0.99, T=0.2 unchanged. Log queue age and query-queue similarity.",
+      "mechanism": "Batch 16 gives 15 in-batch negatives. Runtime has no queue (HECHO). Negative count matters in contrastive learning (abstract-level evidence: SimCLR, MI view, pathology SSL batch-size study).",
+      "evidence_strength": "LOW-MEDIUM. Abstract-level support only. No dermatology evidence with frozen readout.",
+      "gpu_cost_vs_6k_run": "~1.0x. Queue memory negligible.",
+      "risk": "Stale keys: queue covers ~256 steps at batch 16. Earlier encoder states may reduce separability.",
+      "stop_rule": "Stop if queue-key age exceeds 512 steps (stale-key check), or if 3 seeds show no seed-consistent gain in macro-F1 with mel recall non-decreasing.",
+      "overfit_control": "see overfit_control.standard"
+    },
+    {
+      "rank": 4,
+      "id": "Q4",
+      "name": "Same-lesion positives (MICLe-style), PAD only, CONDITIONAL",
+      "exact_change_to_moco_runtime": "With probability 0.3 per anchor, view B from a different image of the SAME lesion (key = (patient_id, lesion_id)). Applies to the 173 PAD lesion groups with two or more images (377 images). ISIC source images have no lesion grouping and are excluded. Loss unchanged. Diagnosis used only for an audit log.",
+      "mechanism": "Same-lesion positives change the positive set, not the augmentation. Patient-only positives may pull together melanoma and nevus from one patient (ssl-foundations second pass, MedAug).",
+      "evidence_strength": "LOW. Azizi +0.13 to +1.18 pp (fine-tuning, one config near noise). MedAug same-study positives (researcher-reported). No frozen-readout dermatology evidence.",
+      "gpu_cost_vs_6k_run": "~1.0x. Extra image loads only.",
+      "gate_before_running": "Pair coverage: 377 images (1.1% of the pool). Run only if the arm can be expected above noise; otherwise skip. No HAM pairs exist in the SSL pool.",
+      "stop_rule": "Skip if the gate is not met. Otherwise stop after 3 seeds if no seed-consistent gain.",
+      "overfit_control": "see overfit_control.standard"
+    },
+    {
+      "rank": 5,
+      "id": "Q5",
+      "name": "Lesion-centred crops with label-free foreground mask, crop-scale sweep, ViT-S/14 capacity control",
+      "exact_change_to_moco_runtime": "Label-free foreground mask per image (colour and saturation threshold with morphological cleanup; no diagnosis, no segmenter training; a colleague's segmenter not modified). Global crops centred on the mask bounding box with p=0.5, else RandomResizedCrop. Sweep minimum crop scale (0.4 vs 0.2). Capacity control: run the same recipe on ViT-S/14 to see whether gains track capacity.",
+      "mechanism": "Nevus-vs-melanoma failures involve border and morphology cues at lesion scale (DERM12345 full text: dysplastic-vs-banal nevus confusion is the main hard failure).",
+      "evidence_strength": "LOW. No dermatology SSL primary evidence for lesion-centred crops. Mask quality on hair, vignetting, rulers untested.",
+      "gpu_cost_vs_6k_run": "~1.0x training (ViT-B). Mask computation CPU once per image.",
+      "risk": "Masks may crop out peripheral satellite pigment. Mask failures on hair or rulers. Crop-scale is a new variable.",
+      "stop_rule": "Discard if mask-quality check on 50 random images shows unacceptable failures (threshold to fix before running). After 3 seeds: stop if no seed-consistent gain in mel or SCC recall.",
+      "overfit_control": "see overfit_control.standard"
+    }
+  ],
+  "dinov2_size_arms": [
+    {
+      "id": "V-S",
+      "name": "ViT-S/14 (DINOv2 small) with the same recipe as the best queue arm",
+      "gpu_cost": "INFERENCIA: roughly 0.3-0.4x of ViT-B per step (about 22M vs 86M parameters)."
+    },
+    {
+      "id": "V-L",
+      "name": "ViT-L/14 (DINOv2 large) as candidate",
+      "exact_change": "Same recipe. Trainable blocks: last one third of blocks (16-23 of 24, mirroring 8-11 of 12). Batch 16, 6000 steps, 224 px.",
+      "gpu_cost": "INFERENCIA: about 3.4x ViT-B compute (about 304M vs 86M parameters). 24 GB GPU shared with the cluster (a colleague); requires nvidia-smi check and memory test on GPU0 before scheduling. Likely needs gradient checkpointing; to verify with a timed 50-step run.",
+      "risk": "Memory headroom; different feature dimension (1024) changes the readout geometry; baseline must be re-run at ViT-L."
+    }
+  ],
+  "overfit_control": {
+    "standard": {
+      "proposal": "Applies to every queue arm. Spec agreed by coordinator with engineers and statistical reviewer: checkpoints 2000/4000/6000 (6000 predeclared as the endpoint); same readout at each checkpoint.",
+      "components": [
+        "Checkpoints at steps 2000, 4000 and 6000 (6000 predeclared as the endpoint), each read out with the same readout and grouped CV. Report whether the endpoint improves, plateaus, or declines across checkpoints.",
+        "Gap train vs OOF for the readout, per arm and per checkpoint, so an arm that only lowers training loss is visible.",
+        "Gap inner vs outer CV, to detect selection optimism from tuning C and any other hyperparameter.",
+        "Frozen DINOv2 reference without SSL on the same cohorts and folds (coordinator: agreed), so each arm's gain is measured against the starting point, not only against the baseline run.",
+        "Seed-wise deltas over seeds 42, 43, 44; count of post-hoc arms reported alongside any winner; no p-value from uncentered bootstrap (brief)."
+      ],
+      "stop_rule": "Stop an arm early if the endpoint at step 2000 is already worse than baseline by more than 0.5 pp macro-F1 and does not recover at step 6000."
+    }
+  },
+  "fork_for_nico": {
+    "status": "CLOSED (project owner, this phase): DINOv2 kept. DINOv3 fork removed from the queue.",
+    "open_option": "DINOv2 size sweep (V-S, V-L) is allowed and is in the queue as a control and a candidate."
+  },
+  "reserve": [
+    {
+      "id": "X2",
+      "name": "Gram-anchoring patch regularizer",
+      "why_reserve": "Same mechanism family as negative L2-SP. Run only if Q1-Q5 are flat. Cost ~+25-35% per step (estimate, not timed)."
+    },
+    {
+      "id": "Foundations E4",
+      "name": "Multi-crop local views (2 x 98 px)",
+      "why_reserve": "DINOv2 already uses multi-crop; check overlap with the 224-px patch-pooling negative."
+    },
+    {
+      "id": "X3",
+      "name": "LoRA frozen blocks 0-7",
+      "why_reserve": "Only if X1-type arms and X2 are flat."
+    }
+  ],
+  "caveats": [
+    "All SSL evidence is from natural, chest, pathology or dermatology continued pretraining; no primary MoCo dermoscopy study measures melanoma or SCC recall under label-free continuation.",
+    "Pathology evidence (2503.18709) is foundation-model pretraining with a different objective; it supports the batch-stratification direction, not the magnitude.",
+    "Espis 2025 (Sci Rep, abstract only, per ssl-recent) reports supervised learning beating SSL on small imbalanced medical datasets. Keep Track B supervised comparison.",
+    "Q4 uses group IDs from metadata. Label-free regarding diagnosis, but metadata-based: flag in Track A reporting.",
+    "Pool facts: 34,754 SSL pool images; HAM is not in the pool; ISIC source has no lesion grouping; PAD has 377 same-lesion-pair images.",
+    "Negative evidence (ssl-derm extension, arXiv 2106.09229, Chaves et al. 2021, researcher-reported, not re-verified by synthesizer): on ISIC-2019 validation, MoCo-v2 was the weakest of five SSL candidates and below the supervised baseline (93.9 vs 94.8 AUC). Direct risk for the MoCo family; it supports keeping the Track B supervised comparison and the overfit control.",
+    "Supporting evidence (ssl-derm extension, researcher-reported): Sirotkin et al. 2021 (arXiv 2112.12086), MoCo-v2 on unlabelled ISIC-2019 reaches 72.7% single-source, and a curriculum ending in MoCo-v2 reaches ~75.4%; seed spread not visible. Matsoukas-style ViT paper (arXiv 2303.07034) reports large k-NN gains with in-domain DINO, but its std reporting looks suspicious; not used for magnitude."
+  ],
+  "status": "PARTIAL. Synthesis of ssl-foundations (2 passes), ssl-recent + expansion, ssl-derm. Spot-checks: Vo 2024 Table 3 (HECHO), Azizi Table 2 and B.2 (HECHO, correction applied), Haggerty Tables 6-7 (PARTIAL), pathology 2503.18709 (PARTIAL read; stratified > random HECHO, magnitude corrected), MoCo runtime code (HECHO), PAD lesion counts on the pool (HECHO). Q4 counts use the pool, not ham_dev. No experiments run."
+}

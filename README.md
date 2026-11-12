@@ -108,3 +108,7 @@ python scripts/build_final_eval_table.py resultados/clasificacion/v7/final_eval.
 ```
 
 Tests y lint: `pytest -q` y `ruff check .`
+
+## Repositorios relacionados
+
+- PERMA (aplicación): https://github.com/nicolas2601/perma

@@ -1,0 +1,18 @@
+{
+  "timestamp_utc_note": "written after v2 (0de81b36...); v2 file left unchanged",
+  "exploratory_already_read_seed42_or_cv_only": [
+    "per-block binary AUC V10 s42 (layers-auc-seed0.json): mel vs NV, SCC vs BCC, MEL vs NEV, CLS and mean-patch, blocks 0-11",
+    "kNN purity and subgroup errors V10 s42 (knn-subgroups-v10-s42.json)",
+    "CLS last block only 224 V10 s42 (cls-last-v10-r224): HAM 0.605, PAD 0.663",
+    "multilayer 224 V10 s42, configs a/b/c (ml224-*): concatenated per-block L2 CLS",
+    "domain separability HAM vs PAD (AUC 1.0, saturated; uninformative)",
+    "domain mixing ratio and kNN fractions V10 vs public ViT-B 448 D4 (domain-mix)"
+  ],
+  "preprocessing_and_geometry_seed42_exploratory": [
+    "SoG p=6 V10 and queue4096 (negative)",
+    "DullRazor both datasets V10 and queue4096 (T1 hypothesis family; PAD worse by ~0.03)",
+    "geom crop both V10 and queue4096 (T2 hypothesis family)",
+    "geom pad both V10 and queue4096 (neutral; declared negative)"
+  ],
+  "public_encoder_sizes": "not repeated; partial vits14/vitb14/vitl14 readouts were stopped and not used"
+}

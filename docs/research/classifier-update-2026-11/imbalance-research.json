@@ -1,0 +1,420 @@
+{
+  "meta": {
+    "question": "Which LABEL-FREE methods improve rare-class representation in contrastive/MoCo-style SSL or its frozen readout under long-tailed data, and which reader-side imbalance methods help minority recall without collapsing macro-F1?",
+    "date_of_search": "2026-11-09",
+    "scope": "Bounded scoping review (not systematic). No reproducible protocol. Not a systematic review.",
+    "tools": "paper-search MCP: openalex (main source), arxiv (search backend returned 0 results for all 4 queries; full text obtained via read_arxiv_paper). crossref/pubmed not used. Semantic Scholar not used. Sci-Hub never used (use_scihub=false, no download_scihub).",
+    "searches_used": 13,
+    "searches_budget": 14,
+    "full_text_reads": 2,
+    "experiments_run": 0,
+    "skills_invoked": [
+      "literature-review",
+      "scientific-critical-thinking"
+    ],
+    "reads_caveat": "read_arxiv_paper returned 55-77k-character outputs saved to tool-results files; numbers were extracted with targeted rg/sed on those files, NOT by a complete sequential read. Coverage is therefore partial (tables and key passages only). Treat numbers as verified-by-extraction, not full-read."
+  },
+  "search_log": [
+    {
+      "id": "S1",
+      "source": "arxiv",
+      "query": "self-damaging contrastive learning long-tailed recognition",
+      "n_results": 0,
+      "notes": "Empty. arXiv search backend returned nothing for any of S1-S4; absence is a tool issue, not literature absence."
+    },
+    {
+      "id": "S2",
+      "source": "arxiv",
+      "query": "balanced contrastive learning long-tailed recognition",
+      "n_results": 0,
+      "notes": "Empty."
+    },
+    {
+      "id": "S3",
+      "source": "arxiv",
+      "query": "Long-tail logit adjustment Menon",
+      "n_results": 0,
+      "notes": "Empty."
+    },
+    {
+      "id": "S4",
+      "source": "arxiv",
+      "query": "self-supervised pretraining imbalanced dataset cluster-balanced sampling k-means",
+      "n_results": 0,
+      "notes": "Empty."
+    },
+    {
+      "id": "S5",
+      "source": "openalex",
+      "query": "self-damaging contrastive learning long-tailed",
+      "filter": "publication_year:2021-2026",
+      "n_results": 8,
+      "notes": "Hit SDCLR (W3167594489, arXiv 2106.02990) and temperature-schedule paper (W4361019573)."
+    },
+    {
+      "id": "S6",
+      "source": "openalex",
+      "query": "balanced contrastive learning long-tailed visual recognition",
+      "filter": "publication_year:2021-2026",
+      "n_results": 8,
+      "notes": "BCL (supervised), ResCom, ProCo, Reb-SupCon (supervised). Excluded from Track A."
+    },
+    {
+      "id": "S7",
+      "source": "openalex",
+      "query": "long-tailed contrastive self-supervised representation learning rare classes",
+      "filter": "publication_year:2021-2026",
+      "n_results": 8,
+      "notes": "COLT (OOD data), Liu et al. 2110.05025 (SSL robust to imbalance), FASSL, TSC (supervised)."
+    },
+    {
+      "id": "S8",
+      "source": "openalex",
+      "query": "Long-tail learning with logit adjustment",
+      "filter": "none",
+      "n_results": 8,
+      "notes": "Menon et al. 2020 logit adjustment (W3042496707); post-hoc and loss-based variants; surveys."
+    },
+    {
+      "id": "S9",
+      "source": "openalex",
+      "query": "cluster-balanced sampling self-supervised long-tailed unlabeled data k-means",
+      "filter": "publication_year:2020-2026",
+      "n_results": 8,
+      "notes": "Divide and Contrast (2105.08054) clustering-based hard negatives; no paper found that is exactly cluster-balanced sampling for SSL pools."
+    },
+    {
+      "id": "S10",
+      "source": "openalex",
+      "query": "Balanced softmax for long-tailed visual recognition",
+      "filter": "publication_year:2020-2026",
+      "n_results": 6,
+      "notes": "Balanced Softmax (2007.10740), LADE (2012.00321). Training-time losses."
+    },
+    {
+      "id": "S11",
+      "source": "openalex",
+      "query": "imbalanced skin lesion classification ISIC melanoma logit adjustment class-balanced loss",
+      "filter": "publication_year:2020-2026",
+      "n_results": 8,
+      "notes": "Derm imbalance papers are mostly supervised (CTokSelect, DWB loss, ViT-from-scratch failure, GAN augmentation). No derm logit-adjustment result found in abstracts."
+    },
+    {
+      "id": "S12",
+      "source": "openalex",
+      "query": "self-supervised long-tailed representation learning hard negatives prototypes unlabeled",
+      "filter": "publication_year:2020-2026",
+      "n_results": 8,
+      "notes": "TASE (uses pseudo-labels), MoPro, SlotCon, SEED, SSL survey. No new label-free cluster-sampler paper."
+    },
+    {
+      "id": "S13",
+      "source": "openalex",
+      "query": "self-supervised pretraining skin lesion dermoscopy class imbalance contrastive",
+      "filter": "publication_year:2021-2026",
+      "n_results": 8,
+      "notes": "Derm SSL papers (SSD-KD, curricular SSL 2112.12086, multimodal SSL with cluster pseudo-labels 2025). None measure minority-class recall under imbalance."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "identifier": "arXiv:2106.02990 (DOI 10.48550/arxiv.2106.02990)",
+      "title": "Self-Damaging Contrastive Learning (SDCLR)",
+      "label_free": true,
+      "design": "Dynamic self-competitor: a pruned copy of the target model is contrasted with it; samples the pruned model forgets (tail-like) are implicitly up-weighted in the contrastive loss. Framework: SimCLR (not MoCo). Extra cost: one additional forward pass of the pruned model.",
+      "dataset": "CIFAR10-LT, CIFAR100-LT, ImageNet-100-LT; balanced CIFAR10/100 as control.",
+      "baseline": "SimCLR, same backbone and linear-probe protocol.",
+      "result": "Linear probe (Table 4, full-line extraction): CIFAR10-LT SimCLR 75.55 +/- 0.66 -> SDCLR 82.00 +/- 0.68 (+6.45 pp). Few-shot-class group 71.37 -> 76.23. CIFAR100-LT +8.37 pp (text). ImageNet-100-LT +1.02 pp (text). Balanced CIFAR10 accuracy 91.16 -> 91.55 (Table 6). Few-shot linear (Table 5, CIFAR10) All 67.08 -> 70.47.",
+      "which_class": "Groups many/medium/few reported; no per-class dermatology result.",
+      "fulltext_or_abstract": "Full text, PARTIAL extraction (tables 4-6 and section 4.4-4.6 passages). Not a complete sequential read.",
+      "limitation": "SimCLR on CIFAR/ImageNet subsets, not MoCo; not dermatology; number of seeds shown as +/- std from repeated runs (seed count not verified in extraction); the 'few' gain is a group mean, not a per-class recall; the pruned-model mechanism adds a hyperparameter (dropout/pruning ratio 0.9 mentioned in text).",
+      "relevance_to_us": "Strongest label-free rare-class SSL evidence found with numbers. Transferable idea: a second, pruned/momentum-lagged key encoder as a hardness signal inside MoCo. Cost roughly +1 forward per step on GPU0. Ranked R3 for SSL, not first, because it changes the loss and not only the sampler."
+    },
+    {
+      "id": "E2",
+      "identifier": "arXiv:2110.05025",
+      "title": "Self-supervised Learning is More Robust to Dataset Imbalance (Liu, HaoChen, Gaidon, Ma)",
+      "label_free": true,
+      "design": "Analysis that off-the-shelf SSL is already more robust to imbalance than supervised learning; proposes re-weighted regularization (rwSAM) where per-sample weight = inverse kernel density of the representation (no labels), applied through a reweighted sharpness-aware step.",
+      "dataset": "CIFAR-10-LT (step and exponential imbalance); ImageNet-LT pre-training with fine-tuning on downstream sets.",
+      "baseline": "SimSiam and MoCo v2; SSL balanced with same number of examples.",
+      "result": "Text: rwSAM improves SimSiam by over 1% linear-probe on CIFAR-10-LT and surpasses SimSiam on balanced CIFAR-10 with the same number of examples; rare-example generalization gap 0.081 -> 0.066. Table 1b: improves MoCo v2 and SimSiam fine-tuning on ImageNet-LT downstream (table numbers not extracted).",
+      "which_class": "Rare-example gap reported; no per-class dermatology result.",
+      "fulltext_or_abstract": "Full text, PARTIAL extraction (Section 4 results, Table 1 caption and text). Table 1 numeric cells not extracted.",
+      "limitation": "Gains reported as ~1 pp on CIFAR-10-LT; rwSAM doubles the gradient cost (two passes); KDE bandwidth h and alpha chosen by cross-validation on the same benchmarks; the MoCo result is fine-tuning, not linear readout.",
+      "relevance_to_us": "Best-documented label-free way to get a density-based reweighting of the SSL pool, including MoCo v2 results. Compute ~2x per step. Used as PhB."
+    },
+    {
+      "id": "E3",
+      "identifier": "arXiv:2105.08054 (ICCV 2021)",
+      "title": "Divide and Contrast: Self-supervised Learning from Uncurated Data (DnC)",
+      "label_free": true,
+      "design": "Alternates contrastive learning with clustering-based hard-negative mining; hypothesis that heavy-tailed uncurated data yields less relevant negatives.",
+      "dataset": "YFCC and other uncurated sets vs ImageNet.",
+      "baseline": "Contrastive learning on uncurated data without DnC.",
+      "result": "Abstract only: DnC greatly improves SSL on less-curated data, competitive on curated data.",
+      "which_class": "Not applicable.",
+      "fulltext_or_abstract": "Abstract only (OpenAlex). Not read.",
+      "limitation": "Numbers not verified; clustering is a periodic offline step.",
+      "relevance_to_us": "Supports cluster structure as a label-free signal for pool curation. Cited as context for PhA (clusters from the SSL pool)."
+    },
+    {
+      "id": "E4",
+      "identifier": "arXiv:2303.13664 (Kukleva et al.)",
+      "title": "Temperature Schedules for Self-Supervised Contrastive Methods on Long-Tail Data",
+      "label_free": true,
+      "design": "Cosine schedule for the contrastive temperature tau (large tau = group-wise discrimination, small tau = instance discrimination).",
+      "dataset": "Long-tail data (abstract).",
+      "baseline": "Constant tau.",
+      "result": "Abstract only: consistent gains in class separation at no cost.",
+      "which_class": "Not per-class in abstract.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Temperature arms are ALREADY in the brief's negative list (SSL hyperparameter arms: temperature). Low priority unless the earlier temperature arm used a schedule.",
+      "relevance_to_us": "Likely redundant with the already-measured negative temperature arm; check which temperature variant was tested before re-running."
+    },
+    {
+      "id": "E5",
+      "identifier": "arXiv:2306.04934",
+      "title": "On the Effectiveness of Out-of-Distribution Data in Self-Supervised Long-Tail Learning (COLT)",
+      "label_free": true,
+      "design": "Online OOD sampling with tailness scores from feature neighborhoods, plus a distribution-level supervised contrastive term to separate ID vs OOD.",
+      "dataset": "Long-tail benchmarks; several SSL frameworks.",
+      "baseline": "SSL on long-tail ID data; prior work with external ID data.",
+      "result": "Abstract only: large SSL gains on long-tailed sets, outperforms prior work using external ID data.",
+      "which_class": "Not per-class in abstract.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Needs an external OOD pool; the 'distribution-level supervised contrastive loss' name suggests labels or pseudo-labels for ID/OOD split; not confirmed label-free in full.",
+      "relevance_to_us": "Not recommended now: requires a second data pool we do not have for dermatology (ISIC/PAD pools are the only ones in scope). Noted as an alternative if an external dermoscopy pool were allowed."
+    },
+    {
+      "id": "E6",
+      "identifier": "arXiv:2309.04723 (FASSL)",
+      "title": "Frequency-Aware Self-Supervised Long-Tailed Learning",
+      "label_free": true,
+      "design": "Learns frequency-aware prototypes without labels or class frequencies; self-supervised scheme focused on rare-class samples.",
+      "dataset": "Long-tailed image datasets.",
+      "baseline": "Not in abstract.",
+      "result": "Abstract only: qualitative and quantitative improvement claimed.",
+      "which_class": "Rare-class emphasis claimed.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Numbers unknown; venue is a workshop (ICCVW 2023).",
+      "relevance_to_us": "Prototype-based label-free alternative to PhA. Lower priority: needs a new loss term and unverified numbers."
+    },
+    {
+      "id": "E7",
+      "identifier": "arXiv:2410.22883 (TASE)",
+      "title": "Dataset Awareness is not Enough: Sample-level Tail Encouragement in Long-tailed SSL",
+      "label_free": false,
+      "design": "Uses pseudo-labels to drive per-sample temperature and re-weighting.",
+      "dataset": "Six benchmarks, three datasets (abstract).",
+      "baseline": "Not in abstract.",
+      "result": "Abstract only.",
+      "which_class": "Not per-class in abstract.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Pseudo-labels from a classifier: not label-free in the strict Track A sense.",
+      "relevance_to_us": "Excluded from Track A recommendations."
+    },
+    {
+      "id": "E8",
+      "identifier": "arXiv:2007.07314 (DOI 10.48550/arxiv.2007.07314)",
+      "title": "Long-tail learning via logit adjustment (Menon et al.)",
+      "label_free": "reader-side (uses labels for the training prior; readout labels are required by necessity)",
+      "design": "Post-hoc logit adjustment: at test time subtract tau * log(pi_y) from logits (pi_y = class prior); or the same adjustment enforced in the training loss. Single scalar tau in the post-hoc form.",
+      "dataset": "Long-tailed image benchmarks (abstract).",
+      "baseline": "Standard softmax cross-entropy.",
+      "result": "Abstract only: two simple modifications that unify and improve prior methods; cited 677 times in OpenAlex.",
+      "which_class": "Relative margin between rare and dominant labels (abstract).",
+      "fulltext_or_abstract": "Abstract only. Not read.",
+      "limitation": "Our readout is balanced LR (already a prior correction, roughly tau=1 in the logit form); the post-hoc gain is therefore a recall-precision trade along tau, not new information. The brief reports per-class inner-tuned offsets as negative; a single tau has far fewer degrees of freedom.",
+      "relevance_to_us": "Basis of reader recipe R4 (single-tau adjustment on the readout, tuned in inner grouped CV)."
+    },
+    {
+      "id": "E9",
+      "identifier": "arXiv:2007.10740",
+      "title": "Balanced Meta-Softmax for Long-Tailed Visual Recognition",
+      "label_free": "reader/training-side (uses labels)",
+      "design": "Balanced Softmax: training-time softmax with the class prior in the denominator (unbiased under label-distribution shift).",
+      "dataset": "Long-tailed recognition and instance segmentation (abstract).",
+      "baseline": "Softmax.",
+      "result": "Abstract only.",
+      "which_class": "Not per-class in abstract.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Requires retraining a head with the prior in the loss; on a frozen-feature LR readout it reduces to a logit offset equivalent to R4 with tau fixed to 1.",
+      "relevance_to_us": "Equivalent to R4 with tau=1 on frozen features; no separate recipe needed."
+    },
+    {
+      "id": "E10",
+      "identifier": "openalex W4312244159, W4312866014, W4312702685, W4392122189, W4413226202",
+      "title": "BCL, TSC, NCL, ProCo, Reb-SupCon (long-tailed contrastive)",
+      "label_free": false,
+      "design": "Supervised contrastive losses using class labels.",
+      "dataset": "CIFAR-LT, ImageNet-LT, iNaturalist (abstracts).",
+      "baseline": "Supervised baselines.",
+      "result": "Abstract only (not used for numbers).",
+      "which_class": "Not per-class.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Supervised; outside Track A. Listed to make the exclusion explicit.",
+      "relevance_to_us": "Track B at most. Not used as evidence for SSL recommendations."
+    },
+    {
+      "id": "E11",
+      "identifier": "arXiv:2112.12086 / 2025 multimodal SSL (DOI 10.1016/j.cmpb.2025.108729)",
+      "title": "Curricular SSL for skin lesions; self-supervised multi-modality multi-label skin lesion classification with cluster pseudo-labels",
+      "label_free": true,
+      "design": "Dermatology SSL pretraining; the 2025 paper uses k-means-style clustering to make surrogate pseudo-multi-labels.",
+      "dataset": "ISIC-2019 (2112.12086); seven-point checklist (2025 CMPB).",
+      "baseline": "ImageNet pretraining (2112.12086); SSL counterparts (2025).",
+      "result": "Abstract only: curriculum of pretext tasks beats ImageNet pretraining on ISIC-2019.",
+      "which_class": "Not per-class for minority-recall endpoints.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "No minority-class recall under imbalance is reported; not a balancing method.",
+      "relevance_to_us": "Context only: dermatology SSL exists, none measures melanoma-vs-nevus recall under imbalance."
+    },
+    {
+      "id": "E12",
+      "identifier": "DOI 10.1109/tnnls.2020.3047335",
+      "title": "Dynamically Weighted Balanced Loss (DWB) for imbalanced learning, incl. ISIC2019",
+      "label_free": false,
+      "design": "Class-balanced, dynamically weighted supervised loss.",
+      "dataset": "CICIDS2017 and ISIC2019.",
+      "baseline": "Standard CE.",
+      "result": "Abstract only: superior empirical performance on ISIC2019.",
+      "which_class": "Not per-class in abstract.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Supervised training loss; not applicable to a frozen readout without retraining.",
+      "relevance_to_us": "Derm context only for a loss-side alternative (not recommended now)."
+    },
+    {
+      "id": "E13",
+      "identifier": "DOI 10.3390/dermato6020022",
+      "title": "Systematic Failure of Vision Transformers in Imbalanced Skin Lesion Classification",
+      "label_free": false,
+      "design": "ViT-Base trained from scratch on ISIC 2019 with class-balanced CE.",
+      "dataset": "ISIC 2019.",
+      "baseline": "N/A.",
+      "result": "Abstract only: test accuracy 8.0-37.8%, minority F1 < 0.05 despite class-balanced loss.",
+      "which_class": "Minority F1 < 0.05 (abstract).",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "From-scratch training with no SSL; not comparable to our frozen DINOv2-based MoCo.",
+      "relevance_to_us": "Caution: class-balanced loss alone is not sufficient without representation-level balance when data are scarce."
+    },
+    {
+      "id": "E14",
+      "identifier": "openalex W7155044164 (ICASSP 2026, DOI 10.1109/icassp55912.2026.11461322)",
+      "title": "Improving Representation Learning for Long-Tailed Visual Recognition (IRLS)",
+      "label_free": false,
+      "design": "Contrastive long-tail loss with class-wise mean-vector-norm guidance and an outlier-aware module; uses class labels.",
+      "dataset": "Long-tailed recognition benchmarks (abstract).",
+      "baseline": "Not in abstract.",
+      "result": "Abstract only; no numbers.",
+      "which_class": "Not per-class.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Supervised; no dermatology evidence; 0 citations at retrieval.",
+      "relevance_to_us": "Track B at most; not used."
+    }
+  ],
+  "recipes_ranked": [
+    {
+      "rank": 1,
+      "id": "PhA",
+      "name": "Cluster-balanced sampler on the SSL pool (inverse cluster-size sampling, sqrt-balanced)",
+      "target": " cluster-ssl",
+      "label_free": true,
+      "algorithm": [
+        "Every R epochs (R=5 default) and at epoch 0: encode the SSL pool with the current MoCo query encoder (no augmentation; CLS4 pre-projection, L2-normalised), giving F in R^{N x d}.",
+        "Reduce X = PCA(F, 128), then L2-normalise rows (spherical geometry).",
+        "c = KMeans(K, n_init=3, random_state=seed) on X; K=64 default. If any cluster size < 10, reduce K by merging the smallest into their nearest centroid (or use K=32).",
+        "n_k = |{i: c_i = k}|; per-sample weight w_i = n_{c_i}^(-alpha); alpha=0.5 default (arms: alpha in {0, 0.5, 1.0}); p_i = w_i / sum_j w_j.",
+        "Sampler: WeightedRandomSampler(weights=p, num_samples=N, replacement=True, generator=seeded). Replaces the uniform shuffle only; MoCo queue, key encoder and loss are UNCHANGED.",
+        "Log per refresh: K, min/max cluster size, normalised entropy of cluster-sampling distribution, fraction of pool in the largest cluster (warn if > 0.5)."
+      ],
+      "clustering_stability_gate": "Run KMeans with 2 seeds; ARI between the two partitions must be >= 0.5 at the refresh epoch, else keep the previous partition and log it.",
+      "confound_diagnostic": "OFFLINE ONLY (never used in training): NMI between clusters and acquisition metadata (device/phase/site) on ham_dev and pad_adapt. If clusters mostly encode acquisition (high NMI, to be set by the SSL engineer), PhA can only re-balance acquisition, not disease classes. Discard the arm in that case.",
+      "expected_effect": "Modest. Mechanism: rare visual modes get more gradient steps. Probability (subjective, ~30%) of a seed-consistent gain on melanoma recall (HAM mel recall, PAD MEL recall) with macro-F1 non-decreasing; ~60% chance the effect is within the seed noise of the brief's readout (no change). Low chance of large gains (>3 pp) on SCC.",
+      "compute": "Feature pass over the pool every 5 epochs (forward only) + KMeans on N x 128 (CPU seconds for N in the low thousands; check the pool size before estimating GPU time). No extra training FLOPs. Use GPU0 for the pass; CPU readouts <=3 BLAS threads.",
+      "arms": "A: uniform (baseline, already measured) | B: alpha=0.5 | C: alpha=1.0. Seeds 42/43/44 at 224 px, 1 view; compare with baseline refit in the same environment. Endpoints as in the internal research brief.",
+      "self_checks": [
+        "Sampler weights sum to 1; sampled cluster histogram matches predicted p within 3% over 10k draws.",
+        "Same seed reproduces identical sampled indices.",
+        "Collision audit (brief: same-component collisions 0.49%) re-run for cluster-balanced batches; report if it rises above 2%."
+      ],
+      "risks": "Clusters may encode imaging artefacts (rulers, vignetting, background), which the CAMEO abstract flags as a candidate HAM mel error source. Oversampling small clusters amplifies noise in those clusters.",
+      "evidence": [
+        "E3 (abstract: cluster-based curation helps SSL on uncurated data)",
+        "E2 (full text partial: density-based weights without labels help SSL on imbalance)"
+      ],
+      "evidence_strength": "Moderate-low. The sampler itself has no direct primary evidence in a MoCo setup; it is a combination of E2/E3 mechanisms."
+    },
+    {
+      "rank": 2,
+      "id": "PhB",
+      "name": "Density-reweighted SSL objective (rwSAM-style) on the MoCo pool",
+      "target": " cluster-ssl (only if PhA is flat or if a loss-side change is allowed)",
+      "label_free": true,
+      "algorithm": [
+        "Per-sample weight w_i = (mean_j K_h(f_i - f_j))^(-alpha) with Gaussian kernel K_h on L2-normalised features, computed from the current batch or a memory bank (E2).",
+        "Reweighted sharpness-aware step: eps = rho * grad(sum_i w_i * loss_i) / ||grad||; update with the unweighted loss at theta + eps.",
+        "Hyperparameters from E2: rho and alpha selected by CV; use the paper's ranges as a starting point, not as a verified recipe for DINOv2 ViT-B/14."
+      ],
+      "expected_effect": "Small. E2 reports about +1 pp linear probe on CIFAR-10-LT with SimSiam, not a dermatology number. Probability of a macro-F1 gain > 0.5 pp in our setting: ~25% (subjective).",
+      "compute": "About 2x forward/backward per step (SAM double pass) plus a kernel density over the batch. Roughly doubles SSL wall time. Only worth it if PhA gives a signal.",
+      "evidence_strength": "Moderate for the mechanism in SimSiam/MoCo v2 (E2, full text partial); low for our task."
+    },
+    {
+      "rank": 3,
+      "id": "R3",
+      "name": "SDCLR-style pruned self-competitor as a hardness signal (MoCo key-encoder variant)",
+      "target": " cluster-ssl (heavier; only after PhA/PhB)",
+      "label_free": true,
+      "algorithm": [
+        "Keep a pruned copy of the key encoder (magnitude pruning at a fixed ratio, e.g. 0.9 as in E1 text, or dropout-as-pruning).",
+        "Contrast the target with the pruned self-competitor; samples whose loss changes most after pruning receive more weight in the contrastive loss (E1)."
+      ],
+      "expected_effect": "Largest reported gain in the set (+6.45 pp linear CIFAR10-LT, SimCLR, E1), but in SimCLR on CIFAR and with no dermatology evidence. Expected effect for DINOv2 MoCo: uncertain; ~20% chance of a clear macro-F1 gain at a cost of one extra forward pass.",
+      "compute": "About +1 forward per step; plus an extra hyperparameter sweep (pruning ratio).",
+      "evidence_strength": "Moderate for the mechanism (E1 full text, partial extraction); low for transfer."
+    },
+    {
+      "rank": 4,
+      "id": "R4",
+      "name": "Reader-side single-tau logit adjustment on the balanced LR readout, decision by inner-CV macro-F1",
+      "target": " reader-imbalance",
+      "label_free": "reader-side: uses labels by necessity (readout)",
+      "algorithm": [
+        "Fit the existing balanced LR (row-L2, grouped folds unchanged) on frozen features.",
+        "For each candidate tau in a fixed grid (e.g. -0.5, -0.25, 0, 0.25, 0.5, 1.0), compute adjusted logits z_c' = z_c + tau * log(pi_c) (Menon post-hoc form; pi_c = training-fold class prior). tau=0 is the current readout.",
+        "Choose tau and C jointly by inner grouped CV macro-F1 (never on the outer fold or on HAM holdout / PAD target_test), then report the full curve of mel recall vs nv precision and SCC recall vs BCC/ACK, not only the chosen point.",
+        "Report seed-wise deltas; decision rule must be stated before running."
+      ],
+      "expected_effect": "Recall-precision trade along tau: melanoma/SCC recall up, nevus/BCC precision down. Macro-F1 gain is bounded because balanced LR already corrects the prior. Probability of a macro-F1 gain > 0.5 pp: ~25%; probability of minority recall gain without macro-F1 loss > 1 pp: ~35% (subjective).",
+      "compute": "CPU only, seconds per fold; within the <=3 BLAS-thread limit.",
+      "evidence_strength": "Low for dermatology (no derm logit-adjustment result found, S10/S11). Moderate for the general mechanism (E8, abstract only; full text not read).",
+      "executed_result": "NEGATIVE ( reader-imbalance, docs/reader-gap-r4.json, pre-registered rule). Verified in that JSON: joint (tau,C) macro-F1 deltas per encoder seed within about -0.006 to +0.007; no block meets the rule. HAM 224 seed-mean delta -0.0157. Monotone trade-off confirmed: HAM 448 mel->NV ~0.19 at tau 0 falls to ~0.07 at tau 1, mel recall +0.02, macro-F1 ~0.61 -> ~0.50 (mean of 3 seeds). PAD 224 deltas reach +0.005 to +0.007, but minority recall falls. Do not repeat this arm."
+    },
+    {
+      "rank": 5,
+      "id": "R5",
+      "name": "Balanced Softmax / class-balanced loss on the readout",
+      "target": " reader-imbalance",
+      "label_free": "reader-side",
+      "algorithm": "Equivalent to R4 with tau fixed to 1 on a frozen-feature LR; a separate class-balanced loss would only re-weight the same prior. Not recommended as a separate arm.",
+      "expected_effect": "Overlaps R4; expect no new information.",
+      "compute": "CPU seconds.",
+      "evidence_strength": "Abstract only (E9)."
+    }
+  ],
+  "decision_metric_notes": [
+    "C selection and tau selection should use inner grouped CV macro-F1 (or macro balanced accuracy) on dev cohorts only. Accuracy is not acceptable: it rewards majority classes.",
+    "Report HAM mel recall and mel->nv, PAD MEL recall, SCC recall and SCC->BCC as separate endpoints with per-class precision; the brief's earlier per-class offset result was negative, so a single-tau variant is the only reader arm proposed.",
+    "Per-class offsets already tested in this project are not repeated; R4 has one degree of freedom instead of seven."
+  ],
+  "gaps": [
+    "No dermatology paper with melanoma-vs-nevus or SCC-vs-BCC recall under label-free SSL reweighting was found.",
+    "arXiv search returned zero results for all four queries; the arXiv route was used only for full-text reads of IDs already known from OpenAlex. Coverage of arXiv-only work is therefore unknown.",
+    "No paper found that evaluates cluster-balanced sampling specifically in a MoCo pipeline; PhA is a derived recipe, not a replicated method.",
+    "Menon 2021 and Liu 2022 numeric tables were not extracted in full; numbers for those items are abstract or partial-text only.",
+    "The SDCLR and Liu full texts were read partially by targeted extraction; a complete sequential read is still owed before quoting tables in the thesis."
+  ],
+  "status": "PARTIAL. 13 searches (4 arXiv returned 0; 9 OpenAlex), 2 partial full-text reads (E1, E2), 0 experiments. Label-free recipes PhA-R3; reader recipes R4-R5. Track B items excluded from Track A."
+}

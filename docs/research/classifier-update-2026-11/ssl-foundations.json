@@ -1,0 +1,523 @@
+{
+  "meta": {
+    "question": "Which classic SSL methods and ablations (2018-2022) and evidence on continued/domain-adaptive SSL suggest LABEL-FREE changes to our continued MoCo-v3-style pipeline on DINOv2 ViT-B/14 (blocks 8-11 trainable, 6000 steps, batch 16, 2 views RRC(0.4-1)+hflip) that could improve melanoma-vs-nevus and SCC-vs-BCC separation in the frozen CLS4 + balanced-LR readout?",
+    "date_of_search": "2026-11-09",
+    "scope": "Bounded scoping review (not systematic). No reproducible protocol. Not a systematic review. No experiments run.",
+    "tools": "paper-search MCP: search_openalex (main source, 13 searches), search_pubmed (1 search, 0 results). search_arxiv not used (empty for all queries in the prior study run). crossref not used. Semantic Scholar not used. Sci-Hub never used (use_scihub=false; download_scihub not called).",
+    "searches_used": 16,
+    "searches_budget": "14 original; raised to ~20 by coordinator for the second pass (MCP expansion). Used 16 search_papers/OpenAlex/PubMed queries; 2 citation-expansion lookups and 2 Zotero queries are logged separately below",
+    "full_text_reads": 4,
+    "experiments_run": 0,
+    "skills_invoked": [
+      "literature-review (scoping frame, screening by title/abstract, extraction table, confidence labels)",
+      "academic-researcher (paper analysis framework: question, method, findings, limitations)"
+    ],
+    "reads_caveat": "read_arxiv_paper returned 81-87k-character outputs saved to tool-results files. Text was extracted to /tmp/ssl-foundations-papers/{azizi,reed}.txt with jq and read with targeted rg/sed on the sections that carry the numbers (Azizi: data, augmentation, Tables 1-3; Reed: HPT convergence, augmentation robustness, data robustness). Coverage is partial, not a complete sequential read. Figure-only numbers (Reed Fig. 4-6) were not extracted."
+  },
+  "context_from_brief": {
+    "already_tested_do_not_repeat": [
+      "EMA-teacher CLS4",
+      "temperature",
+      "momentum",
+      "L2-SP",
+      "LR",
+      "freeze",
+      "duration (Reed 2022 also reports ~5k-step optimum for short target-domain HPT; our 6k-step duration is already covered by the brief's negative list)",
+      "cosine prototypes",
+      "224 patch pooling",
+      "sampler collisions (0.49%)"
+    ],
+    "open_arms_not_in_brief": [
+      "augmentation policy (color jitter, blur, rotation/D4, solarize)",
+      "queue or memory bank size (negatives count; we use in-batch negatives with batch 16)",
+      "multi-crop local views",
+      "positive-pair construction (same-lesion / same-patient positives, MICLe-style)",
+      "stronger-augmentation branch"
+    ]
+  },
+  "search_log": [
+    {
+      "id": "S1",
+      "source": "openalex",
+      "query": "Self-supervised pretraining improves self-supervised pretraining",
+      "n_results": 5,
+      "notes": "Hit Reed et al. WACV 2022 (W3136987292, arXiv 2103.12718)."
+    },
+    {
+      "id": "S2",
+      "source": "openalex",
+      "query": "Big self-supervised models advance medical image classification",
+      "n_results": 5,
+      "notes": "Hit Azizi et al. 2021 (W3204950554, arXiv 2101.05224; ICCV version W3120430728). Full text read."
+    },
+    {
+      "id": "S3",
+      "source": "openalex",
+      "query": "Emerging properties in self-supervised vision transformers DINO",
+      "n_results": 5,
+      "notes": "Hit DINO (W3159481202, arXiv 2104.14294). Abstract only."
+    },
+    {
+      "id": "S4",
+      "source": "openalex",
+      "query": "An empirical study of training self-supervised vision transformers MoCo v3",
+      "n_results": 5,
+      "notes": "Hit Chen, Xie, He 2021 (W3145450063, arXiv 2104.02057). Abstract only."
+    },
+    {
+      "id": "S5",
+      "source": "openalex",
+      "query": "Robust and efficient medical imaging with self-supervision REMEDIS",
+      "n_results": 5,
+      "notes": "Hit REMEDIS (W4281254305, arXiv 2205.09723). Abstract only."
+    },
+    {
+      "id": "S6",
+      "source": "openalex",
+      "query": "A simple framework for contrastive learning of visual representations augmentation ablation",
+      "n_results": 5,
+      "notes": "Hit SimCLR (W3005680577, arXiv 2002.05709). Abstract only."
+    },
+    {
+      "id": "S7",
+      "source": "openalex",
+      "query": "Unsupervised learning of visual features by contrasting cluster assignments SwAV multi-crop",
+      "n_results": 4,
+      "notes": "Hit SwAV (W3036224891, arXiv 2006.09882). Abstract only."
+    },
+    {
+      "id": "S8",
+      "source": "openalex",
+      "query": "iBOT image BERT pre-training with online tokenizer masked patch prediction self-distillation",
+      "n_results": 4,
+      "notes": "Hit iBOT (W3213836217, arXiv 2111.07832). Abstract only. Also surfaced a 2026 locality trade-off paper (W7223950445): out of window, not used."
+    },
+    {
+      "id": "S9",
+      "source": "openalex",
+      "query": "Improved baselines with momentum contrastive learning MoCo v2",
+      "n_results": 4,
+      "notes": "Hit Chen et al. 2020 (W3009561768, arXiv 2003.04297). Abstract only."
+    },
+    {
+      "id": "S10",
+      "source": "openalex",
+      "query": "Bootstrap your own latent self-supervised learning without negative pairs",
+      "n_results": 4,
+      "notes": "Hit BYOL (W3035060554, arXiv 2006.07733). Abstract only. Also DirectPred (W3131573008) for non-contrastive dynamics."
+    },
+    {
+      "id": "S11",
+      "source": "pubmed",
+      "query": "self-supervised contrastive pretraining dermoscopy skin lesion augmentation color jitter",
+      "n_results": 0,
+      "notes": "Empty. Not a literature-absence signal; OpenAlex S12 used instead."
+    },
+    {
+      "id": "S12",
+      "source": "openalex",
+      "query": "dermoscopy skin lesion self-supervised contrastive learning augmentation strategy",
+      "n_results": 5,
+      "notes": "Derm SSL papers with no augmentation ablation for minority recall: SSL for skin lesion classification (W3099805903), G2LL (W4386350571, MIM for segmentation), SuperCon (W4213395961, supervised), 2025 multi-modal SSL (W4409120711, already in  imbalance E11). No derm augmentation ablation found."
+    },
+    {
+      "id": "S13",
+      "source": "openalex",
+      "query": "Dense contrastive learning for self-supervised visual pre-training DenseCL",
+      "n_results": 4,
+      "notes": "Hit DenseCL (W3168822201, arXiv 2011.09157). Abstract only."
+    },
+    {
+      "id": "S14",
+      "source": "openalex",
+      "query": "domain-adaptive continued self-supervised pretraining on unlabeled in-domain data",
+      "n_results": 4,
+      "notes": "Hit Gururangan et al. 2020 DAPT/TAPT (W3017961061, NLP; abstract only) and DINOCell 2026 (W7154311745, out of window; abstract only)."
+    },
+    {
+      "id": "S15",
+      "source": "search_papers (unified: arxiv,openalex,crossref,pubmed,openreview,dblp)",
+      "query": "self-supervised contrastive learning dermoscopy skin lesion melanoma",
+      "n_results": 15,
+      "notes": "Per-source errors none. Mostly old or supervised derm papers. Relevant: self-supervised skin lesion classification (Electronics 2020, DOI 10.3390/electronics9111930, abstract only), G2LL (ISBI 2023, abstract only), Balanced SupCon (supervised). Nothing with frozen-readout minority recall."
+    },
+    {
+      "id": "S16",
+      "source": "zotero (local library, search_all_libraries=false)",
+      "query": "self-supervised (qmode everything)",
+      "n_results": 0,
+      "notes": "Zotero returned 'No items found'. Library has no matching items."
+    },
+    {
+      "id": "S17",
+      "source": "search_papers unified (arxiv,openalex,crossref,pubmed,openreview,dblp)",
+      "query": "negative queue size batch size contrastive self-supervised medical imaging",
+      "n_results": 10,
+      "notes": "Hits: Ghesu et al. 2022 JMI 100M medical images (abstract only, reports robustness to intensity and rotation augmentation), Wang et al. 2023 review of contrastive SSL in medicine (abstract only), pathology SSL memory-efficient batch size (OpenReview WOsTj2hvQr, abstract only: larger batch gives higher accuracy). PubMed source returned 'not well-formed' parse error (not a zero result). Speech batch-size papers (wav2vec 2.0) are off-domain and not used."
+    },
+    {
+      "id": "S18",
+      "source": "zotero (search_all_libraries=true)",
+      "query": "contrastive (qmode everything)",
+      "n_results": 0,
+      "notes": "Zero matches across all accessible libraries."
+    },
+    {
+      "id": "X1 (expansion, not a search)",
+      "source": "get_citing_papers",
+      "query": "identifier 10.48550/arxiv.2101.05224 (Azizi 2021), max 10 of 70 (truncated)",
+      "n_results": 10,
+      "notes": "Citing papers include MedAug (arXiv 2102.10663, full text read, see F18), 'Is it time to replace CNNs...' (2108.09038), 'Evaluating general purpose vision foundation models for medical image analysis: DINOv2 on radiology benchmarks' (arXiv 2312.02366, surfaced, not read), 'How transferable are self-supervised features in medical image classification' (2108.10048, already known), and a 2023 CheSS paper (chest X-ray SSL, abstract only)."
+    },
+    {
+      "id": "X2 (expansion, not a search)",
+      "source": "get_citing_papers",
+      "query": "identifier 10.48550/arxiv.2104.14294 (DINO), filter publication_year:2022-2026, max 10 of 6765 (truncated)",
+      "n_results": 10,
+      "notes": "Returned mostly generic DINOv2/MAE/segmentation citers; DINOv2 (arXiv 2304.07193) is our base. No dermatology-specific citers in the top 10. Expansion limited by the 10-result cap."
+    },
+    {
+      "id": "R3 (full text)",
+      "source": "read_arxiv_paper",
+      "query": "2102.10663 (MedAug)",
+      "n_results": 1,
+      "notes": "Full text read via saved extraction (Tables 3, 4, 5, 6, 7; Discussion; Limitations). Partial extraction of tables; numbers verified in extracted text."
+    },
+    {
+      "id": "R4 (full text)",
+      "source": "read_arxiv_paper",
+      "query": "2002.05709 (SimCLR)",
+      "n_results": 1,
+      "notes": "Full text read via saved extraction (Section 3 augmentation grid, colour-histogram shortcut passage, Figure 5 numbers in text). Partial."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "F1",
+      "identifier": "arXiv:2101.05224 (Azizi et al., ICCV 2021, DOI 10.1109/iccv48922.2021.00346)",
+      "title": "Big Self-Supervised Models Advance Medical Image Classification",
+      "method": "SimCLR-style pretraining on ImageNet, then continued SSL on unlabeled in-domain dermatology images (ImageNet->Derm); plus MICLe: positives built from two crops of two DIFFERENT images of the same patient case (same pathology), no labels used.",
+      "dataset": "Derm: DUnlabeledDerm (unlabeled dermatology camera images; MICLe on 15,340 DTrainDerm cases, multi-image cases). Downstream: dermatology skin-condition classification (top-1 accuracy). CheXpert chest X-ray for the second task.",
+      "result": "Dermatology top-1 (fine-tuning endpoint, Table 1/2/3): ImageNet->Derm ResNet-50 (4x) 63.44 (ResNet-50 1x) / 67.63 (4x) SimCLR vs 68.81 with MICLe (+1.18 pp, 4x). MICLe increments in Table 2: Derm-only RN50 4x +0.62 (66.93->67.55); ImageNet->Derm RN50 4x +1.18; Derm-only RN152 2x +0.73 (66.43->67.16); ImageNet->Derm RN152 2x +0.13 (68.30->68.43). Headline +6.7 pp top-1 is vs a SUPERVISED ImageNet baseline (63.36 -> 70.02, RN152 2x with MICLe, 1000 epochs, larger batch), not vs SimCLR. CheXpert mean AUC +1.1 pp (headline, vs supervised baseline).",
+      "mechanism": "Domain-specific unlabeled data continues SSL after ImageNet init. MICLe gives more informative positives than augmentations alone when multiple images of the same case exist.",
+      "augmentation_details": "Derm SimCLR: random crop with resize, color distortion strength 1.0, Gaussian blur, random flips. CheXpert best on validation: random crop, color jitter 0.5, rotation up to 45 degrees, horizontal flip; Gaussian blur DROPPED, because blur may erase texture cues tied to disease interpretation (authors' argument, not tested). Authors state comprehensive augmentation search is left to future work.",
+      "fulltext_or_abstract": "Full text read via saved extraction (partial: sections 3.2, 4, 5.2, Tables 1-3). Numbers verified in extracted text for Tables 1-2 and the headline text. Not a complete sequential read.",
+      "limitation": "Endpoint is full fine-tuning, not a frozen linear readout. MICLe positives assume that multiple images of one patient case share one pathology. The paper does not test MICLe with a frozen-feature readout. Headline gains are vs supervised baselines, not vs strong SSL. Only 2-6 images per case used.",
+      "relevance_to_us": "Directly relevant: our pool has group IDs (HAM lesion_id; PAD patient). Two transferable ideas: (a) same-group positives (E2), with a critical caveat on PAD: patient != lesion, and a patient can carry both melanoma and nevus, so same-patient positives could pull together the exact pair we need to separate. Use lesion-level groups only. (b) dermoscopy augmentation policy (E1): Azizi dropped blur for CXR, a choice that is not validated for dermoscopy."
+    },
+    {
+      "id": "F2",
+      "identifier": "arXiv:2103.12718 (Reed et al., WACV 2022, DOI 10.1109/wacv51458.2022.00112)",
+      "title": "Self-Supervised Pretraining Improves Self-Supervised Pretraining (Hierarchical PreTraining, HPT)",
+      "method": "Initialize MoCo-v2 target-domain pretraining from an existing ImageNet MoCo-v2 model (HPT), then continue SSL on target data; variant HPT-BN re-estimates BN statistics.",
+      "dataset": "16 vision datasets incl. CheXpert (chest X-ray), Chest-X-ray-kids, BDD, RESISC, UC-Merced, Flowers, DomainNet variants, xView, VIPER, Pascal, COCO, etc.",
+      "result": "HPT converged within ~5k pretraining steps for 15/16 datasets; equal or better than Base transfer or Target pretraining at 400k steps (80x longer). CheXpert and Chest-X-ray-kids: HPT matched Target pretraining in 5k steps vs 200k and 100k steps respectively (text). Overfitting after 5k steps was more pronounced on small datasets, so the authors recommend a short schedule (~5k) regardless of size. Augmentation robustness (Fig. 5): HPT stays above Target pretraining when removing ColorJitter, Grayscale, GaussianBlur, RandomHorizontalFlip one by one, but CheXpert linear performance decreases as the policy changes. Data robustness (Fig. 6): HPT gains grow as target pool shrinks (1%, 10%, 25%, 100%). HPT-BN beats Target pretraining with only 1% of images.",
+      "mechanism": "Starting from a model already trained on generic data reduces the domain-gap cost; a short in-domain schedule avoids overfitting the small target pool.",
+      "fulltext_or_abstract": "Full text read via saved extraction (partial: Section 4.2-4.4 passages; Figs 4-6 numbers only from captions/text). Figure values not extracted.",
+      "limitation": "Base model is ImageNet MoCo-v2, not DINOv2. Linear-probe numbers for CheXpert are in Fig. 4-5 only, not extracted. Our 6k-step duration and init are already in the brief's negative list (duration arm), so this evidence supports the duration result rather than proposing a new arm.",
+      "relevance_to_us": "Context for E-arms: supports a short in-domain schedule (already negative in our tests). Its augmentation-robustness experiment is the only foundation-era evidence on augmentation sensitivity in a medical/continued setting, supporting the augmentation arm (E1) as a sensitivity check. Confidence: medium on direction, low on magnitude for our base."
+    },
+    {
+      "id": "F3",
+      "identifier": "arXiv:2205.09723 (Azizi et al., REMEDIS, 2022)",
+      "title": "Robust and Efficient Medical Imaging with Self-Supervision",
+      "method": "Combines large-scale supervised transfer with SSL on in-domain medical images; then fine-tunes.",
+      "dataset": "Diverse medical imaging tasks; retrospective out-of-distribution scenarios.",
+      "result": "Abstract: up to 11.5% relative improvement in in-distribution diagnostic accuracy over a strong supervised baseline; matches supervised baselines using 1-33% of retraining data across tasks.",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Supervised transfer is part of the recipe; not label-free as a whole. Numbers are abstract-level.",
+      "relevance_to_us": "Context only. Supports SSL-on-domain staging, which we already do. Track B-style supervision in the recipe, so not used as Track A evidence."
+    },
+    {
+      "id": "F4",
+      "identifier": "arXiv:2104.14294 (Caron et al., ICCV 2021, DINO)",
+      "title": "Emerging Properties in Self-Supervised Vision Transformers",
+      "method": "Self-distillation with momentum teacher, multi-crop training, ViT small patches.",
+      "result": "Abstract: momentum encoder, multi-crop and small patches matter; DINO ViT-B 80.1% linear ImageNet top-1. No ablation numbers taken from the abstract.",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Our base DINOv2 already uses multi-crop and iBOT-style objectives during its own pretraining; multi-crop as a continued-training arm may be partly redundant.",
+      "relevance_to_us": "Basis for E4 (multi-crop) with the redundancy caveat."
+    },
+    {
+      "id": "F5",
+      "identifier": "arXiv:2104.02057 (Chen, Xie, He, ICCV 2021, MoCo v3 empirical study)",
+      "title": "An Empirical Study of Training Self-Supervised Vision Transformers",
+      "method": "Ablations of ViT SSL training components in MoCo v3; stability analysis.",
+      "result": "Abstract: training instability is a major issue that can be hidden by apparently good results; results are partial failure and improve when training is more stable.",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Abstract does not give per-component numbers.",
+      "relevance_to_us": "Supports monitoring for silent instability (e.g. loss collapse, gradient norm) in our 6k-step runs before reading readout deltas. Not a new arm; check run logs of the existing baselines."
+    },
+    {
+      "id": "F6",
+      "identifier": "arXiv:2002.05709 (Chen et al., ICML 2020, SimCLR)",
+      "title": "A Simple Framework for Contrastive Learning of Visual Representations",
+      "method": "Ablations of augmentation composition, projection head, batch size, training length.",
+      "result": "Abstract: composition of augmentations is critical; contrastive learning benefits from larger batches and more steps. Per-augmentation numbers not taken from the abstract.",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Abstract only; augmentation table not extracted. SimCLR's colour-and-blur-heavy policy was tuned for ImageNet, not dermoscopy.",
+      "relevance_to_us": "Supports augmentation composition as an open arm (E1), and batch-size/negatives sensitivity (E3) with batch 16."
+    },
+    {
+      "id": "F7",
+      "identifier": "arXiv:2003.04297 (Chen et al., 2020, MoCo v2 improved baselines)",
+      "title": "Improved Baselines with Momentum Contrastive Learning",
+      "method": "Adds MLP projection head and stronger augmentation (blur) to MoCo.",
+      "result": "Abstract: outperforms SimCLR without large batches.",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Gains are ImageNet-scale numbers not extracted.",
+      "relevance_to_us": "Supports the queue and augmentation arms as part of the MoCo family; no numbers used."
+    },
+    {
+      "id": "F8",
+      "identifier": "arXiv:2006.09882 (Caron et al., NeurIPS 2020, SwAV)",
+      "title": "Unsupervised Learning of Visual Features by Contrasting Cluster Assignments",
+      "method": "Online clustering with swapped prediction; multi-crop: several low-resolution extra views.",
+      "result": "Abstract: multi-crop gives strong gains at similar memory and compute; 75.3% ImageNet top-1 with ResNet-50.",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Clustering-based; overlaps the  cluster-ssl track (PhA). Multi-crop numbers not extracted.",
+      "relevance_to_us": "Source for E4 (multi-crop). Cost estimate in E4 is our own arithmetic, not the paper's."
+    },
+    {
+      "id": "F9",
+      "identifier": "arXiv:2111.07832 (Zhou et al., ICLR 2022, iBOT)",
+      "title": "iBOT: Image BERT Pre-Training with Online Tokenizer",
+      "method": "Masked patch prediction with online tokenizer (teacher) plus class-token self-distillation.",
+      "result": "Abstract: 82.3% linear and 87.8% fine-tuning on ImageNet-1K; robustness to corruptions and dense-task gains.",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Masked-image objective, not in our pipeline; changing the objective is outside the brief's label-free arms and would require a new loss.",
+      "relevance_to_us": "Context only. DINOv2 already uses iBOT-style patch loss."
+    },
+    {
+      "id": "F10",
+      "identifier": "arXiv:2011.09157 (Wang et al., CVPR 2021, DenseCL)",
+      "title": "Dense Contrastive Learning for Self-Supervised Visual Pre-Training",
+      "method": "Pixel-level contrastive loss between dense features of two views, added to MoCo-v2.",
+      "result": "Abstract: +2.0 AP PASCAL VOC detection, +1.1 AP COCO detection, +3.0 mIoU PASCAL segmentation over MoCo-v2 (dense tasks, not classification).",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Dense-task gains; no classification or minority-class evidence.",
+      "relevance_to_us": "Low priority. Could matter only if lesion-border features are needed; not in the top set."
+    },
+    {
+      "id": "F11",
+      "identifier": "arXiv:2005.13149 (Wu et al., 2020, mutual information view of contrastive learning)",
+      "title": "On Mutual Information in Contrastive Learning for Visual Representations",
+      "method": "Shows that contrastive losses lower-bound MI between views; proposes sampling harder negatives from a restricted region.",
+      "result": "Abstract: choice of negatives and views is critical; harder negative sampling gives stronger representations on transfer tasks (no numbers extracted).",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Hard-negative sampling needs a larger candidate pool; with batch 16 the in-batch pool is only 15 negatives.",
+      "relevance_to_us": "Supports the negatives-count arm (E3), not the sampler (already measured as 0.49% collisions)."
+    },
+    {
+      "id": "F12",
+      "identifier": "arXiv:1911.05722 (He et al., CVPR 2020, MoCo v1)",
+      "title": "Momentum Contrast for Unsupervised Visual Representation Learning",
+      "method": "Queue of keys plus momentum encoder decouples negative count from batch size.",
+      "result": "Abstract only: queue and momentum encoder give a large, consistent dictionary; competitive linear ImageNet results and transfer. No queue-size numbers taken from the abstract.",
+      "fulltext_or_abstract": "Abstract only (search result W3035524453). Not read.",
+      "limitation": "Our pipeline has in-batch negatives only (brief); the queue arm is not in the brief's negative list.",
+      "relevance_to_us": "Basis for E3 (queue)."
+    },
+    {
+      "id": "F13",
+      "identifier": "arXiv:2006.07733 (Grill et al., NeurIPS 2020, BYOL)",
+      "title": "Bootstrap Your Own Latent",
+      "method": "Negative-free SSL with online/target networks and predictor.",
+      "result": "Abstract: 74.3% linear ResNet-50 ImageNet top-1; no negatives needed.",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Our pipeline already has EMA teacher and predictor; removing negatives (BYOL-style) is a loss change, not a label-free arm we can test cheaply, and it is not supported by evidence for our data.",
+      "relevance_to_us": "Context only. DirectPred (arXiv:2102.06810) explains the predictor/stop-gradient role; not used as a recipe."
+    },
+    {
+      "id": "F14",
+      "identifier": "arXiv:2104.07713 (Wang & Qi, TPAMI 2022, CLSA)",
+      "title": "Contrastive Learning with Stronger Augmentations",
+      "method": "Second branch with strongly augmented views; distribution divergence between weak and strong views over a representation bank supervises retrieval of strong queries.",
+      "result": "Abstract: CLSA 76.2% ImageNet top-1 (ResNet-50, single-layer linear classifier fine-tuned, as stated); direct contrast with strong augmentation alone does not learn well; the auxiliary divergence term is required.",
+      "fulltext_or_abstract": "Abstract only (search result). Not read.",
+      "limitation": "Requires a bank and an extra branch; the abstract reports that naive strong augmentation fails, so the arm is risky.",
+      "relevance_to_us": "Basis for E5 (stronger-augmentation branch), lowest priority."
+    },
+    {
+      "id": "F15",
+      "identifier": "arXiv:2105.10497 / 2105.04553 / 2109.07756 / 2203.06965 (not in ranking; outside focus)",
+      "title": "Other hits (Intriguing properties of ViT; MoBY; DSC dense semantic contrast; UniVIP)",
+      "method": "Various.",
+      "result": "Not used for numbers.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Not targeted at our question or are ViT-architecture studies.",
+      "relevance_to_us": "None for the ranking."
+    },
+    {
+      "id": "F16",
+      "identifier": "openalex W3017961061 (Gururangan et al., ACL 2020, Don't Stop Pretraining)",
+      "title": "Don't Stop Pretraining: Adapt Language Models to Domains and Tasks",
+      "method": "Domain-adaptive pretraining (DAPT) and task-adaptive pretraining (TAPT) in NLP.",
+      "result": "Abstract: consistent gains from in-domain second-phase pretraining and from task-unlabeled adaptation (no numbers extracted).",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "NLP, not vision; not a dermatology result.",
+      "relevance_to_us": "Context only. Supports the logic of task-adaptive unlabeled data (our pool is the dev cohorts). Not used as evidence."
+    },
+    {
+      "id": "F18",
+      "identifier": "arXiv:2102.10663 (MedAug, 2021; author list not extracted, do not cite authors from memory)",
+      "title": "MedAug: Contrastive learning leveraging patient metadata improves representations for chest X-ray interpretation",
+      "method": "MoCo-v2/SimCLR-style contrastive pretraining on CheXpert where positive pairs are two different images selected by patient metadata (same patient, same study, same laterality, etc.). Negatives default. Evaluation: frozen features + linear classifier ('linear fine-tuning AUC', Table 7; the same readout family as ours).",
+      "dataset": "CheXpert (224,316 images, 65,240 patients); pleural effusion (main) and four other CheXpert tasks (Table 7).",
+      "result": "Abstract: best criterion (same patient, same study, all lateralities) = +14.4% mean AUC vs ImageNet baseline. Table 3 (distinct-images forcing): same patient, all studies AUC 0.848 vs same patient, distinct studies 0.792. Table 6 / text: same patient + same study best, +3.4% linear AUC vs an instance-discrimination baseline (Sowrirajan 2020). Table 7 (linear AUC, Atelectasis / Cardiomegaly / Consolidation / Edema): MoCo v2 baseline 0.671 / 0.735 / 0.699 / 0.847; same patient same study 0.762 / 0.785 / 0.721 / 0.889 (i.e. +0.091 / +0.050 / +0.022 / +0.042). Using patient metadata to pick HARD NEGATIVES gave no gain over the default.",
+      "mechanism": "Positives built from images with the same underlying pathology carry the disease signal. Choosing by patient alone (across studies) can hurt, because a patient's images may differ in pathology over time. Number of distinct images per query matters.",
+      "fulltext_or_abstract": "Full text read via saved extraction (Abstract, Sections 3-4, Tables 3-7, Discussion, Limitations, Appendix A). Partial: tables read by targeted extraction; not a complete sequential read.",
+      "limitation": "CXR, not dermatology. The paper itself notes that in CheXpert any two images from the same patient AND study share the same label set; that property is what makes the positive label-consistent. Our PAD pool has patient-level IDs only, and a patient may carry melanoma and nevus. The paper's own result shows patient-only positives can hurt. Metadata-based positives also are not label-free in the strict sense of using diagnosis, but they use no diagnosis label.",
+      "relevance_to_us": "Strongest evidence for E2. The readout is linear, like ours. Requires the lesion/study analogue: HAM lesion_id is the closest match to 'same patient, same study'. PAD needs a lesion or session ID, or E2 is blocked for PAD. Patient-only grouping is the paper's own failure case (Table 3)."
+    },
+    {
+      "id": "F19",
+      "identifier": "arXiv:2002.05709 (SimCLR), full-text augmentation section",
+      "title": "A Simple Framework for Contrastive Learning of Visual Representations (full-text passage, replaces F6 abstract-only for augmentation claims)",
+      "method": "Pairwise augmentation grid on ImageNet (crop, cutout, colour distortion, Sobel, noise, blur, rotate) with linear evaluation.",
+      "result": "Single transforms alone do not learn good representations. Random crop + colour distortion stands out: the paper argues cropping alone lets the net exploit colour-histogram shortcuts (Figure 6: colour histograms alone separate patches of the same image). Composing crop with colour distortion is critical. Figure 5 grid values are not reliably mapped from text extraction, so no numeric claim is made from it; the qualitative finding is the claim.",
+      "fulltext_or_abstract": "Full text read via saved extraction (Section 3 augmentation passages, Figures 4-6 captions and text). Figure 5 grid numbers taken from extracted text only; not verified against the figure image.",
+      "limitation": "ImageNet; colour is a natural-image cue. In dermoscopy colour carries diagnosis (blue-white veil, regression) AND acquisition signal (dermoscope vs smartphone, PAD vs HAM). Colour jitter can help against device shortcuts but can also erase diagnostic colour. Both effects must be checked.",
+      "relevance_to_us": "IMPORTANT FINDING for E1: our baseline augmentation is RandomResizedCrop(0.4-1) + hflip, with NO colour distortion (see brief). SimCLR's shortcut argument predicts that our pipeline can solve the contrastive task from colour statistics, which is exactly the acquisition confound the brief's NMI diagnostic tries to detect. Colour jitter is therefore the strongest reason for E1, stronger than the D4 argument alone."
+    },
+    {
+      "id": "F20",
+      "identifier": "doi:10.1117/1.jmi.9.6.064503 (Ghesu et al., JMI 2022)",
+      "title": "Contrastive self-supervised learning from 100 million medical images with optional supervision",
+      "method": "Contrastive learning with online feature clustering on >100M medical images across modalities.",
+      "result": "Abstract only: AUC +3% to +7% for chest radiograph abnormality detection; convergence up to 85% faster; increased robustness to intensity variation, rotation and scaling.",
+      "fulltext_or_abstract": "Abstract only (search result S17). Not read.",
+      "limitation": "Large-scale pretraining; not comparable to our 16-image batches; abstract-level numbers.",
+      "relevance_to_us": "Supports E1's rotation/intensity invariance claim at abstract level. Not used as numeric evidence."
+    },
+    {
+      "id": "F21",
+      "identifier": "openreview WOsTj2hvQr (Liu et al., SPIE Medical Imaging 2022)",
+      "title": "Integrate memory efficiency methods for self-supervised learning on pathological image analysis",
+      "method": "Activation compression, in-place activation and mixed precision to allow larger contrastive batches on one GPU in pathology SSL.",
+      "result": "Abstract only: contrastive models with larger batch size reach higher accuracy; one GPU tripled batch size.",
+      "fulltext_or_abstract": "Abstract only (search result S17). Not read.",
+      "limitation": "Batch-size effect is confounded with memory-efficiency methods in the abstract. No numbers.",
+      "relevance_to_us": "Supports E3's premise (more negatives or larger batches help) at abstract level. Also points to memory tricks if E3 needs more batch."
+    },
+    {
+      "id": "F22",
+      "identifier": "arXiv:2312.02366 (DINOv2 on radiology benchmarks), surfaced via X1 citation expansion",
+      "title": "Evaluating General Purpose Vision Foundation Models for Medical Image Analysis (DINOv2)",
+      "method": "Frozen DINOv2 features evaluated on radiology benchmarks.",
+      "result": "Not read. Title only.",
+      "fulltext_or_abstract": "Not read.",
+      "limitation": "Not read; do not cite for numbers until read.",
+      "relevance_to_us": "Worth reading in a later pass: it is a direct baseline for the frozen DINOv2 base we use."
+    },
+    {
+      "id": "F17",
+      "identifier": "arXiv:2609.01041 (ViTAMINS, 2026) and arXiv:2610.33223 (2026)",
+      "title": "2026 papers surfaced by search: synthetic hard negatives for ViT SSL; locality trade-off in iBOT/DINOv2",
+      "method": "Various.",
+      "result": "Abstract only; not used.",
+      "fulltext_or_abstract": "Abstract only.",
+      "limitation": "Outside the foundational 2018-2022 window requested.",
+      "relevance_to_us": "Noted for the synthesizer as a possible follow-up; not in the ranking."
+    }
+  ],
+  "experiments_ranked": [
+    {
+      "rank": 1,
+      "id": "E1",
+      "name": "Dermoscopy-specific augmentation policy: add D4 (rot90 + flips) and mild colour jitter; no blur",
+      "exact_change": "In the SSL data transform, keep RandomResizedCrop(0.4-1) and hflip. Add random rot90 (4 orientations) with flips (D4 group, applied per view), and ColorJitter(0.4, 0.4, 0.4, 0.1) with p=0.8, grayscale p=0.1 is optional. Do NOT add Gaussian blur or solarize in this arm. Keep 2 views, batch 16, 6000 steps, EMA 0.99, T=0.2, same seeds 42/43/44 at 224 px.",
+      "why": "NEW (full text, F19): our baseline has NO colour distortion (RRC + hflip only). SimCLR shows crop-only views can be solved via colour-histogram shortcuts, and colour distortion is critical to remove them. Our PAD vs HAM acquisition difference is a colour/device shortcut risk, so colour jitter is the main reason for this arm. Dermoscopy also has no canonical orientation, and the brief shows D4 test-time augmentation already reduced HAM mel->NV from 24.4% to 19.7%. Training with the same invariance could make it a representation property rather than a readout trick. Azizi used colour jitter 0.5 and rotation for CXR, and dropped blur because it can erase disease texture (Azizi, F1). Reed reports HPT robustness to removing augmentations but a measurable CheXpert decrease, so augmentation choice is a real sensitivity (F2).",
+      "expected_effect": "Subjective: ~35% chance of a seed-consistent gain (>=1 pp) on HAM mel recall or PAD SCC recall with macro-F1 non-decreasing. Largest chance of effect is on mel->NV because it matches the TTA mechanism. Risk of no change ~50%.",
+      "gpu_cost_vs_6k_run": "~1.0x. Same number of forward/backward passes; augmentation is CPU-side. Three seeds x one run each = same as a baseline arm.",
+      "risk": "Colour jitter may change lesion colour cues (blue-white veil, regression) that matter for melanoma. Mitigation: a colour-off sub-arm (rotation-only) run as a control. Also D4 may pull together flipped-but-different lesion structures if orientation carries signal (low probability).",
+      "excluded_because": "Augmentation policy is not in the brief's negative list.",
+      "evidence": [
+        "F1 (Azizi: colour 0.5, rotation, no blur for CXR; full text partial)",
+        "F2 (Reed: augmentation robustness, full text partial)",
+        "F6 (SimCLR: augmentation composition critical, abstract only)"
+      ]
+    },
+    {
+      "rank": 2,
+      "id": "E2",
+      "name": "Same-lesion positives (MICLe-style) as an additional positive-pair source",
+      "exact_change": "With probability p=0.3 per anchor, draw view B from a different image of the SAME lesion group (HAM lesion_id; PAD lesion-level ID if available) instead of a second crop of the same image; keep the MoCo loss and in-batch negatives unchanged. Skip PAD anchors whose group is patient-level only. Log the fraction of group-positive pairs per batch and whether any pair crosses a lesion-diagnosis boundary (diagnosis is used ONLY for this audit, never in the loss).",
+      "why": "Second pass: MedAug (F18, full text) is the closest evidence. Same-patient-AND-same-study positives improved frozen linear AUC over MoCo v2 on CheXpert (+0.022 to +0.091 across four findings), with a linear readout like ours. Azizi's MICLe (F1) gave +0.62 to +1.18 pp for dermatology fine-tuning. Both show the same principle: positives must share the pathology. HAM lesion_id is the closest analogue to 'same study'. PAD patient-only grouping is the failure case MedAug reports (Table 3: same patient, distinct studies 0.792 vs 0.848).",
+      "expected_effect": "Subjective, revised after MedAug: ~30% chance of a seed-consistent gain in HAM mel recall with macro-F1 non-decreasing (HAM lesion_id only). ~10% chance of a useful effect on PAD with patient-only grouping (MedAug suggests it may hurt). Frozen-readout gains on CXR were larger than dermatology fine-tuning gains, but CXR labels are constant within patient+study by construction; in HAM, lesion-level diagnosis is also constant within lesion_id, which is the analogous property to check.",
+      "gpu_cost_vs_6k_run": "~1.0x compute; extra image loads from the same group. Memory unchanged.",
+      "risk": "HIGH on PAD if IDs are patient-level: one patient can carry melanoma and nevus, so same-patient positives may pull the exact pair (MEL vs NEV) together. The arm is only valid where group = one lesion. Requires an offline check of group purity before running. Also SSL on group IDs is label-free but uses metadata, so state this in Track A reporting.",
+      "excluded_because": "Positive-pair construction is not in the brief's negative list; the brief's sampler audit (0.49%) concerns negatives, not positives.",
+      "evidence": [
+        "F1 (Azizi: MICLe, Table 2, full text partial)"
+      ]
+    },
+    {
+      "rank": 3,
+      "id": "E3",
+      "name": "MoCo-v2 style key queue (K=4096) to decouple negatives from batch 16",
+      "exact_change": "Add a FIFO queue of 4096 L2-normalised key projections from the EMA teacher (momentum 0.99 unchanged). Logits per anchor = 1 positive + 4096 queue negatives + in-batch negatives optional. Temperature T=0.2 unchanged. Queue refreshed each step with the current batch keys. Keep 2 views, batch 16, 6000 steps.",
+      "why": "Batch 16 gives only 15 in-batch negatives. SimCLR and the MI analysis report that negative count and hardness matter (F6, F11). MoCo's queue is the standard way to add negatives without batch size (F12). This is the only negatives-count arm in the list; the brief does not test queue size.",
+      "expected_effect": "Subjective: ~30% chance of a clearer representation (linear readout, seed-consistent) with macro-F1 non-decreasing. Risk that stale keys hurt: ~25%.",
+      "gpu_cost_vs_6k_run": "~1.0x compute (keys already computed by the EMA teacher). Memory: 4096 x D floats, negligible. Confound: with a queue, the effective temperature/momentum interaction may shift, so run the baseline in the same environment.",
+      "risk": "Stale queue with momentum 0.99 at 6000 steps (queue covers ~256 steps at batch 16). Could reduce separability if queue keys come from an earlier, different encoder state. Also changes what 'in-batch' means in the logs.",
+      "excluded_because": "Queue size is not in the brief's negative list; momentum and temperature are, but the queue is a different mechanism.",
+      "evidence": [
+        "F12 (MoCo v1 abstract)",
+        "F6 (SimCLR: batch and negative sensitivity, abstract only)",
+        "F11 (MI view: negative choice critical, abstract only)"
+      ]
+    },
+    {
+      "rank": 4,
+      "id": "E4",
+      "name": "Multi-crop local views (2 global at 224 + 2-4 local at 98 px, scale 0.05-0.4)",
+      "exact_change": "Add 2 local crops at 98 px (scale 0.05-0.4) per image to the 2 global views. Loss: each local view predicts the EMA teacher's global-view distribution (SwAV/DINO-style cross-view), with the InfoNCE pipeline unchanged in form. Batch 16, 6000 steps.",
+      "why": "Multi-crop is a classic gain for local-global correspondence (F4, F8). It may help lesion-border and texture cues that separate SCC vs BCC or MEL vs NEV at local scale.",
+      "expected_effect": "Subjective: ~20% chance of a seed-consistent gain on SCC recall or PAD MEL recall; ~40% chance of no change. DINOv2 already uses multi-crop in its own pretraining, so a further gain is uncertain.",
+      "gpu_cost_vs_6k_run": "~1.15-1.25x (INFERENCIA, our arithmetic): 2 local crops at 98 px = 2 x 49 tokens vs 2 global views at 224 px = 2 x 256 tokens, so about +19% tokens; attention cost is lower for the locals. Verify with a timed 50-step run before scheduling.",
+      "risk": "Redundancy with DINOv2's pretraining. Local crops at 98 px may be too small for dermoscopy structure at the chosen resolution. The loss change is not a pure sampler change, so it needs a new code path and a unit test for the loss.",
+      "excluded_because": "Multi-crop is not in the brief's negative list, but the brief's 448 px and patch-pooling arms touch resolution and local features, so check for overlap with the 224 patch-pooling negative result before running.",
+      "evidence": [
+        "F4 (DINO abstract: multi-crop matters)",
+        "F8 (SwAV abstract: multi-crop at similar cost)",
+        "F10 (DenseCL: local-level gains, dense tasks only)"
+      ]
+    },
+    {
+      "rank": 5,
+      "id": "E5",
+      "name": "Stronger-augmentation auxiliary branch (CLSA-lite)",
+      "exact_change": "Add a third view with strong augmentation (colour jitter 0.8, Gaussian blur, solarize p=0.2, rotation D4) and align its embedding to the weak-view teacher's distribution over a representation bank (CLSA's divergence term), leaving the MoCo loss on the two weak views unchanged.",
+      "why": "CLSA reports gains from strong augmentations only when a distribution-divergence term supervises them (F14). Strong views may force invariance to acquisition colour (phase, device) that confounds the readout.",
+      "expected_effect": "Subjective: ~15% chance of a clear macro-F1 gain; largest risk of harm. Lowest priority.",
+      "gpu_cost_vs_6k_run": "~1.4-1.5x (INFERENCIA): one extra full-resolution view plus a bank. Estimated from forward passes, not timed.",
+      "risk": "High: CLSA's abstract says naive strong augmentation alone does not learn well, and our pool is small (12 + 4 images per step). Bank size and divergence temperature add hyperparameters, which the brief has already flagged as costly. Blur conflicts with E1's no-blur choice, so run E5 only if E1 shows an augmentation effect.",
+      "excluded_because": "Not in the brief's negative list; but it depends on E1 and is the most expensive.",
+      "evidence": [
+        "F14 (CLSA abstract only)"
+      ]
+    }
+  ],
+  "recommended_order": [
+    "E1 first: cheapest (~1.0x), not in brief's negative list, grounded in full-text derm/medical evidence and in our own D4 TTA result.",
+    "E3 second: cheap (~1.0x), tests the negatives count that the brief never varied. Run with baseline refit in the same environment.",
+    "E2 only after an offline group-purity audit (lesion-level IDs on both HAM and PAD). Without that audit, skip the PAD part.",
+    "E4 only after a timed 50-step benchmark and an overlap check with the 224 patch-pooling result.",
+    "E5 only if E1 shows an augmentation effect; highest cost and risk."
+  ],
+  "common_caveats": [
+    "All numbers from F1 and F2 were extracted from full-text pages by targeted search, not a sequential full read. Figure values (Reed Figs 4-6) were not extracted.",
+    "Abstract-only items (F3-F17) are not quoted for numbers beyond their abstract statements.",
+    "Expected-effect percentages are subjective priors (INFERENCIA), not measured values. Compute ratios for E4 and E5 are estimates.",
+    "No experiment was run; no file other than this JSON was written. Temporary extraction files are in /tmp/ssl-foundations-papers/ (not in the repo).",
+    "Track A reporting: E2 uses group metadata (patient or lesion IDs) as positives. This is label-free regarding diagnosis, but it is metadata-based, so flag it explicitly."
+  ],
+  "gaps": [
+    "No dermatology paper with a frozen-readout evaluation of augmentation or MICLe-style positives on melanoma vs nevus or SCC vs BCC was found in the 14 searches.",
+    "arXiv search returned nothing in the prior run; the arXiv route was used only for full-text reads of IDs found through OpenAlex.",
+    "Queue-size, batch-size and multi-crop effects for medical or dermoscopy SSL were not found with numbers in the abstracts retrieved.",
+    "Lesion-level vs patient-level group IDs for PAD were not verified in this reviewer's scope; this is a data check that must happen before E2."
+  ],
+  "status": "PARTIAL. Second pass (coordinator request): 16 search queries (OpenAlex, unified search_papers across arxiv/openalex/crossref/pubmed/openreview/dblp; PubMed parse error once), 2 citation-expansion lookups (Azizi 2021, DINO; 10 of many results each), 2 Zotero queries (empty), 4 full-text reads (Azizi 2021, Reed 2022, MedAug 2021, SimCLR 2020; partial extraction). 22 evidence items (4 full-text partial, 18 abstract or title only). 5 ranked experiments, 0 runs. Skills invoked: literature-review, academic-researcher. Ranking change: E2 now has direct full-text evidence (MedAug), but only with lesion/study-level groups; patient-only grouping is the paper's failure case. E1 now has a stronger reason (our baseline lacks colour distortion; SimCLR shortcut argument)."
+}

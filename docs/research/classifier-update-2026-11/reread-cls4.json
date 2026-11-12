@@ -1,0 +1,207 @@
+{
+  "status": "PARTIAL_SEED42_ONLY",
+  "scope": "Re-lectura de encoders SSL viejos con el protocolo actual (CLS4 224; CLS4+D4 448). Solo seed 42 de los 6 metodos. Seeds 43/44 NO ejecutadas por decision del coordinator (regla aplicada).",
+  "cluster_root": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-phase-b-reread-20261110",
+  "protocol": {
+    "readout": "scripts/evaluate_overlay_readout.py (balanced LR, outer5/inner3, CV seeds 20261025/26/27, C grid .3..100)",
+    "extractor": "results/moco-v10-variants-20261109/scripts/variant_features.py (sin cambios), wrapper scripts/reread_extract.py",
+    "manifests": "solo ham_dev y pad_adapt; no se abrieron ham_holdout ni pad_test",
+    "gpu": "CUDA_VISIBLE_DEVICES 0 y 1 (compartido con phase-b-ssl-arms y phase-b-diagnostics)",
+    "cpu": "readouts con 3 BLAS threads, max 4 concurrentes"
+  },
+  "validation": {
+    "parity_v10_s42_224_cls4": "max_abs_diff 0.0 en ham_dev y pad_adapt vs features guardadas",
+    "parity_simsiam_s42_last_block_224": "max_abs_diff 0.0 vs ham_dev/pad_adapt 768-d guardados (el pipeline viejo = CLS del ultimo bloque a 224)",
+    "control_768_readout_reproduction": {
+      "simsiam_s42_HAM": {
+        "new": 0.514,
+        "historical": 0.514
+      },
+      "vicreg_s42_HAM": {
+        "new": 0.554,
+        "historical": 0.554
+      }
+    },
+    "interpretation": "El readout actual reproduce exactamente los readouts historicos con los mismos 768-d; la diferencia entre lecturas es solo pooling/resolucion"
+  },
+  "checkpoints_seed42": {
+    "simsiam": {
+      "run": "runs/ssl_overlay_A_s42_6000_v1",
+      "eval": "baseline-s42-pipeline-evaluation-v1",
+      "weights_sha256_prefix": "09c15345"
+    },
+    "vicreg": {
+      "run": "runs/vicreg-seed42-run-v1",
+      "eval": "vicreg-evaluation-v1",
+      "weights_sha256_prefix": "ca811853"
+    },
+    "barlow": {
+      "run": "runs/barlow-seed42-run-v1",
+      "eval": "barlow-evaluation-v1",
+      "weights_sha256_prefix": "016a7269"
+    },
+    "barlow_vicreg": {
+      "run": "runs/barlow-vicreg-seed42-run-v1",
+      "eval": "barlow-vicreg-evaluation-v1",
+      "weights_sha256_prefix": "92bf3ae6"
+    },
+    "dino_ibot": {
+      "run": "runs/dino-ibot-ema-seed42-run-v1/student_backbone_final.pt",
+      "eval": "dino-ibot-evaluation-v1",
+      "weights_sha256_prefix": "6937d466",
+      "note": "corrida nombrada ema; es la que tiene el hash de la evaluacion vieja"
+    },
+    "moco_v3_noanchor": {
+      "run": "runs/moco-v3-s42-full-20261029",
+      "eval": "moco-v3-s42-evaluation-v1",
+      "weights_sha256_prefix": "5dffe8da",
+      "note": "ancla apagada; no es V10"
+    }
+  },
+  "table_seed42": {
+    "V10_448_cls4_d4": {
+      "HAM": 0.614,
+      "PAD": 0.676,
+      "mel_to_nv": 19.1,
+      "scc_to_bcc": 46.0,
+      "scc_recall": 31.9
+    },
+    "V10_224_cls4": {
+      "HAM": 0.633,
+      "PAD": 0.673,
+      "mel_to_nv": 23.5,
+      "scc_to_bcc": 49.5,
+      "scc_recall": 29.8
+    },
+    "moco_v3_noanchor_448": {
+      "HAM": 0.621,
+      "PAD": 0.671,
+      "mel_to_nv": 22.3,
+      "scc_to_bcc": 44.9,
+      "scc_recall": 32.3,
+      "dHAM": 0.007,
+      "dPAD": -0.005
+    },
+    "vicreg_448": {
+      "HAM": 0.577,
+      "PAD": 0.653,
+      "mel_to_nv": 22.3,
+      "scc_to_bcc": 42.1,
+      "scc_recall": 34.7,
+      "dHAM": -0.037,
+      "dPAD": -0.023
+    },
+    "barlow_vicreg_448": {
+      "HAM": 0.566,
+      "PAD": 0.657,
+      "mel_to_nv": 20.3,
+      "scc_to_bcc": 38.2,
+      "scc_recall": 37.5,
+      "dHAM": -0.047,
+      "dPAD": -0.019
+    },
+    "barlow_448": {
+      "HAM": 0.567,
+      "PAD": 0.652,
+      "mel_to_nv": 20.1,
+      "scc_to_bcc": 37.9,
+      "scc_recall": 39.3,
+      "dHAM": -0.046,
+      "dPAD": -0.024
+    },
+    "dino_ibot_448": {
+      "HAM": 0.573,
+      "PAD": 0.642,
+      "mel_to_nv": 22.3,
+      "scc_to_bcc": 44.6,
+      "scc_recall": 36.1,
+      "dHAM": -0.041,
+      "dPAD": -0.034
+    },
+    "simsiam_448": {
+      "HAM": 0.569,
+      "PAD": 0.635,
+      "mel_to_nv": 22.9,
+      "scc_to_bcc": 43.9,
+      "scc_recall": 34.7,
+      "dHAM": -0.044,
+      "dPAD": -0.041
+    },
+    "moco_v3_noanchor_224": {
+      "HAM": 0.618,
+      "PAD": 0.661,
+      "dHAM": -0.015,
+      "dPAD": -0.012
+    },
+    "vicreg_224": {
+      "HAM": 0.576,
+      "PAD": 0.655,
+      "dHAM": -0.057,
+      "dPAD": -0.018
+    },
+    "barlow_vicreg_224": {
+      "HAM": 0.559,
+      "PAD": 0.653,
+      "dHAM": -0.074,
+      "dPAD": -0.020
+    },
+    "barlow_224": {
+      "HAM": 0.556,
+      "PAD": 0.652,
+      "dHAM": -0.076,
+      "dPAD": -0.021
+    },
+    "dino_ibot_224": {
+      "HAM": 0.551,
+      "PAD": 0.617,
+      "dHAM": -0.082,
+      "dPAD": -0.057
+    },
+    "simsiam_224": {
+      "HAM": 0.545,
+      "PAD": 0.608,
+      "dHAM": -0.088,
+      "dPAD": -0.065
+    }
+  },
+  "rule_predeclared": {
+    "text": "Supera a V10 448+D4 si HAM macro-F1 mejora Y PAD >= -0.01 Y mel->NV no empeora",
+    "applied_by": "coordinator (decision 2026-11-10)",
+    "result": "Ningun metodo cumple. moco_v3_noanchor cumple solo HAM (+0.007), falla PAD (-0.005 ok) pero mel->NV empeora (22.3 vs 19.1). Nota: PAD -0.005 si cumple el umbral; el fallo es mel->NV"
+  },
+  "conclusion": [
+    "Con lectura justa (CLS4, y 448+D4 para V10), ningun encoder viejo supera a V10 448+D4 en seed 42.",
+    "La ventaja de V10 sobre VICReg/Barlow/Barlow+VICReg/DINO+iBOT/SimSiam se mantiene con la lectura justa en PAD y HAM (todas las deltas negativas).",
+    "Brecha moco_v3 - vicreg en HAM, seed 42 con CLS4: 0.044 (448), 0.042 (224). Brecha de 3 seeds con el lector antiguo (CLS 768): 0.056. No son comparables (1 seed vs 3 seeds, lector distinto). El cambio de brecha es indeterminado; no se afirma que aumente ni que disminuya.",
+    "El +0.007 de moco_v3 en HAM (448) es de una sola semilla. El SD por semilla CV es del orden de 0.008-0.010 (Fase A), asi que no se lee como mejora sin IC pareado. El IC pareado contra V10 448 requiere las etiquetas HAM (CSV de metadatos, sha 06aee5e6...), que no estan en los npz.",
+    "moco_v3_noanchor es el unico metodo en la vecindad de V10 en HAM, pero con ancla apagada y peor mel->NV; no sustituye a V10."
+  ],
+  "bootstrap_paired_seed42_HAM448": {
+    "comparison": "moco_v3_noanchor vs V10 448 cls4_d4, seed 42, HAM dev",
+    "method": "bootstrap pareado, 500 replicas por grupo, condicionado a OOF fijo; etiquetas de HAM10000_metadata.csv por image_id (reproducen macro-F1 almacenados 0.6209 y 0.6136)",
+    "delta_macro_f1": {
+      "point": 0.007,
+      "ci95": [
+        -0.013,
+        0.029
+      ],
+      "reading": "ruido; no es mejora"
+    },
+    "delta_mel_to_nv_pp": {
+      "point": 3.2,
+      "ci95": [
+        0.5,
+        6.1
+      ],
+      "reading": "empeoramiento consistente en esta semilla; sin correccion por multiplicidad"
+    },
+    "run_by": "statistical review"
+  },
+  "limits": [
+    "Solo seed 42; seeds 43/44 no ejecutadas (decision del coordinator).",
+    "La comparacion MoCo ancla-apagada vs V10 es confundida por la ancla, como indica la tabla de referencia.",
+    "No hay p-value; deltas por seed.",
+    "Congelacion verificada en resolved-params.json: vicreg, barlow, barlow_vicreg y simsiam baseline con freeze_blocks=8 (bloques 8-11 entrenables), igual que V10 (moco-v4-quota4-s42 con trainable_blocks [8,9,10,11]). Para dino_ibot s42 y moco_v3 s42 no encontre resolved-params.json; la congelacion queda sin verificar.",
+    "Las etiquetas HAM no estan en los npz; el IC pareado requiere el CSV de metadatos HAM (ruta: /home/jovyan/work/datos/ham10000/HAM10000_metadata.csv, sha256 06aee5e6...)."
+  ]
+}

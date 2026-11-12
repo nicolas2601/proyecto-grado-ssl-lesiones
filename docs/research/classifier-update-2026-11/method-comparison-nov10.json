@@ -1,0 +1,271 @@
+{
+  "meta": {
+    "date": "2026-11-10",
+    "status": "FINAL (statistical reviewer). All phase-2 arms closed or verified. No candidate confirmed on dev. Sealed evaluation not run.",
+    "scope": "Dev cohorts only: HAM ham_dev (1528 img, 1152 groups), PAD pad_adapt (1134 img, 682 groups). ham_holdout and pad_test never opened.",
+    "method": "Paired group bootstrap (500 resamples over groups) on fixed OOF, arm minus same-environment baseline, same encoder seed. Macro-F1 = mean over CV seeds 20261025/26/27 unless stated. Labels: HAM10000_metadata.csv dx by image_id (reproduces stored macro-F1 and mel n=169). No uncentered bootstrap p-values.",
+    "reader": "balancedLR, row-L2, nested grouped CV outer5/inner3 (scripts/evaluate_overlay_readout.py)"
+  },
+  "baselines_same_environment": {
+    "A_224_cls4": {
+      "HAM_macro_f1_3seed_mean": 0.6210,
+      "PAD_macro_f1_3seed_mean": 0.6745,
+      "HAM_mel_to_nv": 0.2439,
+      "PAD_SCC_to_BCC": 0.4784,
+      "fresh_s42_HAM": 0.6328,
+      "fresh_s42_PAD": 0.6732
+    },
+    "A_448_cls4_d4": {
+      "HAM_macro_f1_3seed_mean": 0.6139,
+      "PAD_macro_f1_3seed_mean": 0.6784,
+      "HAM_mel_to_nv": 0.1966,
+      "PAD_SCC_to_BCC": 0.4480,
+      "note": "phase-1 candidate A, post-hoc on dev"
+    },
+    "per_seed_448_cls4_d4_HAM_macro_f1": {
+      "s42": 0.6136,
+      "s43": 0.6063,
+      "s44": 0.6219
+    },
+    "queue4096_448_cls4_d4_HAM_macro_f1_per_seed": {
+      "s42": 0.6307,
+      "s43": 0.6263,
+      "s44": 0.6355
+    }
+  },
+  "Phase A_reference": {
+    "r1_queue4096_448_d4": {
+      "HAM_macro_f1_3seed_mean": 0.631,
+      "PAD_macro_f1_3seed_mean": 0.677,
+      "verdict": "PASSED literal predeclared rule, NOT CONFIRMED: per-seed HAM CIs at 6000 include 0 in s44; endpoints flat; would not survive multiplicity."
+    }
+  },
+  "Phase B_ssl_arms_gate_s42": {
+    "rule": "predeclared gate (sha256 618fecbb..., last save before any phase-2 readout): dF1_HAM >= +0.005 AND dmel->NV(HAM) <= -1 pp AND dF1_PAD >= -0.01 vs queue4096 same seed, ck6000, 448 cls4_d4. Passing only licenses seeds 43/44.",
+    "recomputed_by": "statistical reviewer from cluster readouts; matches study/phase-b-ssl-arms-gate-s42.json",
+    "arms": {
+      "debiased": {
+        "dF1_HAM": -0.0499,
+        "dmel_nv_pp": 0.99,
+        "dF1_PAD": -0.0281,
+        "pass": false
+      },
+      "queue16384": {
+        "dF1_HAM": 0.0022,
+        "dmel_nv_pp": 0.59,
+        "dF1_PAD": 0.0042,
+        "pass": false
+      },
+      "fnc": {
+        "dF1_HAM": 0.0205,
+        "dmel_nv_pp": 0.00,
+        "dF1_PAD": -0.0066,
+        "pass": false,
+        "bootstrap_dF1_HAM_ci95": [
+          0.0067,
+          0.0348
+        ],
+        "note": "only HAM F1 gain whose CI excludes 0 among SSL arms; mel->NV does not move"
+      },
+      "fullres": {
+        "dF1_HAM": -0.0055,
+        "dmel_nv_pp": 1.97,
+        "dF1_PAD": 0.0017,
+        "pass": false,
+        "note": "data-source sensitivity (not an SSL arm)"
+      },
+      "mochi": {
+        "dF1_HAM": 0.0075,
+        "dmel_nv_pp": 0.99,
+        "dF1_PAD": 0.0124,
+        "pass": false,
+        "note": "fails mel->NV only"
+      },
+      "tau_schedule": {
+        "dF1_HAM": -0.0009,
+        "dmel_nv_pp": -0.99,
+        "dF1_PAD": -0.0031,
+        "pass": false,
+        "note": "fails HAM F1; misses mel->NV by 0.01 pp"
+      },
+      "dino_native": "stopped before any readout (superseded by dino-ibot-v1); excluded"
+    },
+    "seeds_43_44_launched": false,
+    "note": "Gate is seed 42 only; no per-seed bootstrap for any SSL arm."
+  },
+  "postproc_label_free_r2_reader_postproc": {
+    "rule": "predeclared in cluster scripts/summarize.py (mtime 14:24:01 UTC), before first s43 job output (14:34:54 UTC)",
+    "seed42_gate_pass": "v10-448-cls4_d4 + block: HAM +0.0080, PAD +0.0074 (exploratory)",
+    "seeds_43_44": {
+      "s43_HAM_dF1": -0.0010,
+      "s44_HAM_dF1": -0.0005,
+      "s44_HAM_dmel_nv_pp": 2.2
+    },
+    "verdict": "NOT CONFIRMED. Seed-42 gain does not replicate. s44 also fails PhB (mel->NV +2.2 pp).",
+    "multiplicity": "96 jobs = 43 arm-featureset cells summarized in s42 + 2 post-hoc C-extended arms (decided after seeing C=100 at grid border)."
+  },
+  "reread_old_encoders_seed42": {
+    "scope": "6 old SSL objectives re-read with CLS4 224 and CLS4+D4 448. Seed 42 only; seeds 43/44 not run (coordinator decision).",
+    "rule": "beats V10 448 if HAM F1 up AND PAD >= -0.01 AND mel->NV not worse",
+    "result": "No old objective beats V10 with CLS4 reading.",
+    "moco_v3_noanchor_448": {
+      "dF1_HAM": 0.0073,
+      "bootstrap_ci95": [
+        -0.0129,
+        0.0286
+      ],
+      "dmel_nv_pp": 3.16,
+      "mel_nv_ci95_pp": [
+        0.53,
+        6.07
+      ],
+      "reading": "HAM gain is noise; mel->NV worse at this seed (CI excludes 0). Anchor is off, so not a V10 substitute."
+    },
+    "gap_HAM_moco_v3_minus_vicreg": "seed 42 CLS4: 0.044 (448) / 0.042 (224). phase-1 3-seed CLS768 reader: 0.056. Not comparable; direction indeterminate.",
+    "freeze_plan": "verified (freeze 8, blocks 8-11 trainable) for vicreg, barlow, barlow_vicreg, simsiam; not verified for dino_ibot and moco_v3 (descriptor only, coordinator decision)",
+    "status": "PARTIAL_SEED42_ONLY"
+  },
+  "preproc_treatments_T1_T3_seeds_43_44": {
+    "preregistration": "v2, sha256 0de81b36a02808cdf538d89fa0b615d55e3b97d3ddec2215efb356e114bccb88, timestamp 15:27:17Z, mtime 15:27:30 UTC. Confirmatory seeds 43/44 only. seed 42 exploratory. T1-T3 are post-hoc from seed-42 readouts.",
+    "readout_mtimes": "16:14:53-16:24:22 UTC, all after v2 (verified)",
+    "identity_control_T0": "V10 s43, V10 s44, q4096 s43, q4096 s44: macro-F1 identical to baseline (0.606321, 0.621897, 0.626255, 0.635504), OOF probabilities identical (max diff 0.0). Pipeline introduces no difference; T1/T3 effects attributed to the treatment.",
+    "rule": "HAM dF1 > 0 on s43 AND s44; mean >= +0.010; mean dmel->NV <= +1.0 pp (non-informative, see CIs)",
+    "table_HAM": [
+      {
+        "treatment": "T1 DullRazor HAM-only",
+        "encoder": "V10",
+        "dF1_s43": 0.0573,
+        "dF1_s44": 0.0307,
+        "dF1_mean": 0.0440,
+        "boot_ci95": [
+          0.0067,
+          0.0847
+        ],
+        "P_le_0": 0.018,
+        "dmel_nv_mean_pp": -0.39,
+        "boot_mel_nv_ci95_pp": [
+          -6.15,
+          5.27
+        ],
+        "rule": "PASS",
+        "bonferroni_p_6": 0.108
+      },
+      {
+        "treatment": "T1 DullRazor HAM-only",
+        "encoder": "q4096",
+        "dF1_s43": 0.0239,
+        "dF1_s44": 0.0029,
+        "dF1_mean": 0.0134,
+        "boot_ci95": [
+          -0.0274,
+          0.0596
+        ],
+        "P_le_0": 0.308,
+        "dmel_nv_mean_pp": -1.78,
+        "rule": "PASS",
+        "bonferroni_p_6": 1.0
+      },
+      {
+        "treatment": "T2 crop both",
+        "encoder": "V10",
+        "dF1_s43": 0.0124,
+        "dF1_s44": 0.0112,
+        "dF1_mean": 0.0118,
+        "boot_ci95": [
+          -0.0054,
+          0.0272
+        ],
+        "P_le_0": 0.082,
+        "dmel_nv_mean_pp": -1.48,
+        "rule": "PASS",
+        "bonferroni_p_6": 0.49
+      },
+      {
+        "treatment": "T2 crop both",
+        "encoder": "q4096",
+        "dF1_s43": -0.0025,
+        "dF1_s44": 0.0030,
+        "dF1_mean": 0.0003,
+        "boot_ci95": [
+          -0.0124,
+          0.0134
+        ],
+        "P_le_0": 0.450,
+        "dmel_nv_mean_pp": -2.47,
+        "rule": "FAIL",
+        "bonferroni_p_6": 1.0
+      },
+      {
+        "treatment": "T3 DullRazor+crop HAM-only",
+        "encoder": "V10",
+        "dF1_s43": 0.0506,
+        "dF1_s44": 0.0286,
+        "dF1_mean": 0.0396,
+        "boot_ci95": [
+          -0.0049,
+          0.0884
+        ],
+        "P_le_0": 0.048,
+        "dmel_nv_mean_pp": -1.97,
+        "boot_mel_nv_ci95_pp": [
+          -7.08,
+          3.02
+        ],
+        "rule": "PASS",
+        "bonferroni_p_6": 0.29
+      },
+      {
+        "treatment": "T3 DullRazor+crop HAM-only",
+        "encoder": "q4096",
+        "dF1_s43": 0.0261,
+        "dF1_s44": 0.0120,
+        "dF1_mean": 0.0190,
+        "boot_ci95": [
+          -0.0258,
+          0.0640
+        ],
+        "P_le_0": 0.190,
+        "dmel_nv_mean_pp": -3.16,
+        "rule": "PASS",
+        "bonferroni_p_6": 1.0
+      }
+    ],
+    "PAD": "T1 and T3: identical to baseline (features copied). T2 PAD: changes <= 0.003 F1 (V10 s43 0.6756 vs 0.6745; s44 0.6820 vs 0.6845).",
+    "seed42_exploratory_HAM": "V10 DullRazor +0.040 (0.6531 vs 0.6136), consistent in direction with s43/s44",
+    "mel_nv_note": "CIs of +-3 to +-9 pp with 2 seeds: the criterion is non-informative."
+  },
+  "multiplicity_total": {
+    "Phase A": "~100 cells (coordinator estimate); no correction applied.",
+    "Phase B_ssl_gate": "6 arms x 2 features x 2 datasets at ck6000 (seed 42), plus 2000/4000 descriptive.",
+    "Phase B_postproc": "43 cells (s42) + 2 post-hoc C-extended arms.",
+    "Phase B_reread": "6 old objectives x 2 features x 2 datasets (seed 42).",
+    "Phase B_preproc": "6 confirmatory tests (T1-T3 x V10/q4096, seeds 43/44) + exploratory seed-42 reads (SoG x2, DullRazor HAM/PAD x2, crop x2, geom-pad x2) + ml224 a/b/c, cls-last, knn, layer AUC, domain separability (declared in addendum).",
+    "total_estimate": "order of 150-200 comparisons across rounds. No family-wise correction anywhere. Report this count with any claim."
+  },
+  "candidate_recommendation_for_sealed_evaluation": {
+    "decision_owner": "coordinator / project owner (this is a real fork)",
+    "option_A_T1": {
+      "config": "V10 448 cls4_d4 + DullRazor on HAM only; PAD unchanged",
+      "dev_evidence": "dF1 HAM +0.044, CI95 [+0.007, +0.085], P<=0 0.018 (Bonferroni 0.11)",
+      "risk": "post-hoc from s42; DullRazor parameters fixed on dev"
+    },
+    "option_B_T3": {
+      "config": "V10 448 cls4_d4 + DullRazor then crop on HAM only; PAD unchanged",
+      "dev_evidence": "dF1 HAM +0.040, CI95 [-0.005, +0.088], P<=0 0.048 (Bonferroni 0.29); mel->NV mean -1.97 pp but CI +-7 pp",
+      "risk": "adds a geometry change (crop) without its own demonstrated gain (T2 V10 alone +0.012, CI includes 0)"
+    },
+    "critic_recommendation": "Option A (T1). T3 = T1 + crop. The crop adds no demonstrated gain, its bootstrap is wider (lower CI bound -0.005 vs +0.007), and it changes more parameters, which raises fork risk. Its better mel->NV mean is not reliable at this CI width. Keep T3 as a documented alternative, not the default.",
+    "caveats": [
+      "All candidates were chosen from dev results (s42-s44 on the same dev set); dev numbers are optimistic.",
+      "Freeze the config before any sealed access; one sealed evaluation only.",
+      "Compare sealed results against V10 448 cls4_d4 baseline (no treatment) and against the phase-1 candidate A.",
+      "No candidate survives family-wise correction on dev."
+    ]
+  },
+  "critic_issues_closed": [
+    "Predeclaration v1 (15:25:40Z) rejected: seed 42 in rule, T1 post-hoc. Replaced by v2 (15:27:17Z, mtime 15:27:30 UTC), verified before any 43/44 readout.",
+    "phase-b-ssl-arms predeclaration hash 618fecbb... accepted as frozen; first-version timestamp not captured.",
+    "fullres reported as data-source sensitivity; a combination with a loss arm would be a new hypothesis needing its own rule.",
+    "GPU1 use for fnc and fullres accepted by coordinator."
+  ]
+}

@@ -1,0 +1,242 @@
+{
+  "phase": 2,
+  "date": "2026-11-10",
+  "scope": "Fallas silenciosas del proceso SSL->extraccion->readout->datos. Sin entrenamiento. Sin tocar manifests ham_holdout ni pad_test (no abiertos). Sin procesos ajenos.",
+  "skills_invoked": [],
+  "remote_artifacts": "results/moco-v10-phase-b-process-audit-20261110/ (scripts/cgrid_ceiling.py, scripts/domain_shortcut.py, cgrid-ceiling-s42-r448/cgrid_ceiling.json, domain-shortcut/domain_shortcut.json)",
+  "status": "DONE_WITH_CONCERNS",
+  "experiments": [
+    {
+      "id": "EXP-1",
+      "name": "C-grid ceiling (readout reproduction + grid [0.3..100] vs [0.3..3000])",
+      "design": "Mismo harness evaluate_overlay_readout.evaluate_encoder, un solo CV seed 20261025, cell s42-r448 cls4_d4, HAM y PAD. Grid original reproduce el JSON almacenado.",
+      "results": {
+        "HAM_orig_macroF1": 0.6157,
+        "HAM_orig_stored_seed0": 0.6157,
+        "HAM_wide_macroF1": 0.6165,
+        "HAM_selected_C_wide": [
+          100,
+          300,
+          100,
+          30,
+          30
+        ],
+        "PAD_orig_macroF1": 0.6715,
+        "PAD_orig_stored_seed0": 0.6715,
+        "PAD_wide_macroF1": 0.6772,
+        "PAD_selected_C_wide": [
+          30,
+          100,
+          300,
+          300,
+          30
+        ]
+      },
+      "reading": "Reproduccion exacta (harness valido). El techo en C=100 cuesta poco en macro-F1 para este encoder (+0.001 HAM, +0.006 PAD, una sola semilla CV, no independiente). Sí cambia la seleccion de C en 1-2 folds por dataset."
+    },
+    {
+      "id": "EXP-2",
+      "name": "Separabilidad de dominio con estadisticas de pixel triviales",
+      "design": "7 estadisticas por imagen (media y std RGB, diferencia de alta frecuencia, log del lado menor) + LogisticRegression balanceada, 5-fold CV. Sin encoder.",
+      "results": {
+        "ISIC_pool_vs_PAD_pool_balanced_acc": 0.9757,
+        "HAM_dev_vs_PAD_pool_balanced_acc": 0.9503,
+        "n": {
+          "ISIC_pool": 1000,
+          "PAD_pool": 1134,
+          "HAM_dev": 600
+        }
+      },
+      "reading": "Dominio (escaner/telefono/resolucion) separable casi perfecto con estadisticas triviales. Un objetivo de instancia con aumentos sin color ni blur puede resolverse con esas senales."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F01",
+      "priority": "P1-alta",
+      "area": "datos + SSL",
+      "title": "La pool de fuente esta a 224-256 px nativos, aunque existe la version full-res de ISIC 2019 en disco",
+      "where": [
+        "config/ssl-overlay-v1/mixed-fit.jsonl (33620 source_fit: 19548 ISIC2020 a 256x256, 13896 ISIC2019 a 224x224, 176 ISIC2019 'downsampled')",
+        "scripts/arms/moco_v3_20261029_helpers.py:14 IMAGE_SIZE=224 y :80-85 RandomResizedCrop(224, scale=(0.4,1.0))",
+        "/home/jovyan/work/datos/isic2019_fullres/ISIC_2019_Training_Input/ISIC_2019_Training_Input (25333 entradas, muestra 1022x767)"
+      ],
+      "evidence": "Medida sobre 600 muestras y sobre el total de source_fit: 100% de fuente <=256 px (max lado 256). PAD pad_adapt: lados 370 (p10) a 1722 (p90), mediana 772. HAM dev: 1528/1528 no cuadradas, lado menor 400-499.",
+      "impact": "Gran parte del dominio se aprende de textura/nitidez del reescalado, no de la lesion. El eval a 448 sobreescala la fuente 1.75x. Impacto estimado alto para mel->nv y SCC->BCC, no cuantificado aun.",
+      "test_cheap": "Reconstruir solo la fuente ISIC2019 desde el full-res (1022x767) en un arm nuevo con los mismos pesos/semillas y comparar readouts contra V10 224 y V10+448D4 en semillas 42/43/44. Antes, un readout de control: extraer features de 500 fuentes full-res vs 256 para verificar que el encoder actual cambia de manera medible.",
+      "fix_proposed": "Usar full-res para ISIC2019 (y ISIC2020 si hay original) o, como minimo, documentar el techo de resolucion. Ajustar el crop de entrenamiento a escala de lesion comparable entre dominios.",
+      "status": "VERIFICADO (medido) / impacto en F1 = INFERENCIA"
+    },
+    {
+      "id": "F02",
+      "priority": "P1-alta",
+      "area": "SSL augmentations",
+      "title": "Los dos views solo difieren en recorte y flip: sin color, blur ni grayscale. El dominio es un atajo facil",
+      "where": [
+        "scripts/arms/moco_v3_20261029_helpers.py:80-85 (RandomResizedCrop, RandomHorizontalFlip, ToTensor, Normalize; sin ColorJitter)",
+        "scripts/arms/moco_v4_20261107_runtime.py:36-39 AUGMENTATIONS {color_constancy: False, hue_jitter: False}",
+        "runs/moco-v4-quota4-s42-full-20261107/resolved-params.json augmentations (mismo contenido)"
+      ],
+      "evidence": "EXP-2: ISIC_pool vs PAD_pool 97.6% y HAM_dev vs PAD_pool 95.0% de balanced accuracy con 7 estadisticas triviales. Batch de 16 con 4 PAD (lineas 129 de moco_v4 helpers): el contraste de instancia puede resolverse por color y nitidez.",
+      "impact": "Hipotesis fuerte: la representacion aprende firma de adquisicion (dominio) mas que lesion. Consistente con que mel/SCC no mejoren con aumentos de arquitectura. No medido directamente sobre el encoder aun.",
+      "test_cheap": "Medir en el encoder actual la separabilidad lineal HAM vs PAD sobre features s42-r448-cls4_d4 (ya existen en disco) y compararla con el DINOv2 publico (bank-dinov2-vitb14-frozen-evaluation-v1). Si el SSL sube la separabilidad de dominio, F02 queda confirmado.",
+      "fix_proposed": "Arm nuevo, un solo factor: ColorJitter(0.4,0.4,0.2,0.05) + GaussianBlur + RandomGrayscale(p~0.2) en train, sin tocar el readout. (Los arms d4_color y d4_only ya existen en moco_v11_arms_helpers_20261109.py:42-44; color ya se probo y se cerro como negativo, por eso el test de F02 debe mirar el mecanismo, no solo F1.)",
+      "status": "VERIFICADO (estadisticas) / atajo en el encoder = HIPOTESIS"
+    },
+    {
+      "id": "F03",
+      "priority": "P1-alta",
+      "area": "evaluacion (transductiva)",
+      "title": "El set PAD del readout son exactamente las 1134 imagenes que el SSL vio en entrenamiento (label-free)",
+      "where": [
+        "config/ssl-overlay-v1/mixed-fit.jsonl (role=pad_adapt, 1134 filas)",
+        "results/content-exclusion-overlay-v1/pad_adapt.jsonl (1134 filas)",
+        "scripts/arms/moco_v4_20261107_helpers.py:119-129 make_batch_sampler incluye pad_adapt en cada batch"
+      ],
+      "evidence": "Interseccion de image_path: 1134/1134 y de image_id: 1134/1134. Para HAM: interseccion pool vs ham_dev = 0 de 1528.",
+      "impact": "Los numeros PAD (0.675-0.688) son transductivos: el encoder aprendio sobre esas mismas imagenes sin etiquetas, y el CV de readout las evalua. No es fuga de etiquetas, pero no es generalizacion a pacientes nuevos. Debe declararse en Track A. Los deltas PAD entre arms pueden estar inflados por memorizacion de esas imagenes (21 pasadas por imagen, ver F04).",
+      "test_cheap": "Reportar la misma metrica PAD en un subconjunto de pacientes NO usados en pad_adapt (si existe fuera de pad_test, sin abrirlo) o un CV de readout donde el encoder nunca vio el paciente. Mientras tanto, anotar 'transductivo' en cada tabla PAD.",
+      "fix_proposed": "Declarar transduccion en los reportes. Si el objetivo es generalizacion, sacar pad_adapt del pool de entrenamiento SSL (solo fuente) y reentrenar el arm. Esto es decision de project owner (tradeoff: menos dominio PAD vs honestidad del numero).",
+      "status": "VERIFICADO"
+    },
+    {
+      "id": "F04",
+      "priority": "P2-media",
+      "area": "muestreo SSL",
+      "title": "PAD esta sobremuestreado 7.5x por imagen: 25% del batch con 3.3% del pool",
+      "where": [
+        "scripts/arms/moco_v4_20261107_helpers.py:119-129 (random.sample(source, 12) + random.sample(clinical, 4))",
+        "runs/.../resolved-params.json: batch_size 16, max_steps 6000, clinical_quota 4"
+      ],
+      "evidence": "Calculo: PAD 6000*4/1134 = 21.2 pasadas por imagen; fuente 6000*12/33620 = 2.1. Histograma real del arm cluster-padu: draws_total 24000, max_draws_one_image 36-37 (results/moco-v10-cluster-balanced-20261109/train-*/pad-draw-histogram.json).",
+      "impact": "Memorizacion de 1134 imagenes PAD (y de sus pacientes, 682 grupos) con 21-37 pasadas. Refuerza F03 y F02 (la firma PAD se aprende de forma repetida). Riesgo de degradar la fuente ISIC.",
+      "test_cheap": "Arm con quota 1 o 2 (ya hay quota4 vs otros); comparar el readout PAD por seed. Costo: un entrenamiento, pero el coordinator decide si es fuera de alcance (no entrenar en esta ronda).",
+      "fix_proposed": "Bajar el quota o pesar PAD por inverso de frecuencia con tope de pasadas; registrar pasadas por imagen en receipt.",
+      "status": "VERIFICADO (conteos) / impacto = INFERENCIA"
+    },
+    {
+      "id": "F05",
+      "priority": "P2-media",
+      "area": "muestreo SSL v10",
+      "title": "El muestreo por cluster uniforme sobrepondera clusters pequenos",
+      "where": [
+        "scripts/arms/moco_v10_cluster_sampler_20261109.py:42 (rng.choice(rng.choice(pools))) y :64-65",
+        "scripts/arms/moco_v10_cluster_padu_sampler_20261109.py:26-27 (PAD uniforme, fuente por cluster)"
+      ],
+      "evidence": "Receipt results/moco-v10-cluster-balanced-20261109/train-s42/cluster-sampler-receipt.json: 64 clusters de fuente con tamanos 191 a 1295 (ejemplos listados). Con 12 slots/paso x 6000 pasos = 72000 draws / 64 = 1125 por cluster. Una imagen en un cluster de 191 recibe ~5.9 pasadas; una en uno de 1295 recibe ~0.87 (7x).",
+      "impact": "Las imagenes raras (posiblemente artefactos o lesiones atipicas) se repiten mas. Puede estar detras de la falta de mejora en SCC-BCC. No medido sobre F1.",
+      "test_cheap": "Calcular en CPU el histograma de pasadas por imagen fuente del receipt y la correlacion pasadas-tamano. Sin entrenamiento.",
+      "fix_proposed": "Muestreo mixto: elegir cluster con probabilidad proporcional a sqrt(tamano) o cap de pasadas por imagen.",
+      "status": "VERIFICADO (aritmetica sobre receipt) / impacto = INFERENCIA"
+    },
+    {
+      "id": "F06",
+      "priority": "P2-media",
+      "area": "readout",
+      "title": "La seleccion de C esta pegada al borde superior (100) en la mayoria de folds",
+      "where": [
+        "scripts/evaluate_overlay_readout.py:84 (selected = max(C_GRID, ...))",
+        "scripts/probe_preprocessing_readout.py:31 C_GRID=(0.3,1,3,10,30,100)",
+        "scripts/evaluate_overlay_readout.py:65 features L2-normalizadas antes del LR"
+      ],
+      "evidence": "Conteo sobre JSON existentes: 458 archivos con folds, 6870 folds. C=100 en 2811 (40.9%), C=30 en 2175 (31.7%). Solo V10 variants: 237/450 folds = 52.7% en C=100. Teacher cls4 20261108: 96/210 = 45.7%. Ver EXP-1: la ampliacion de grid mueve +0.001 HAM y +0.006 PAD en una semilla.",
+      "impact": "Techo en la lectura. Para arms con optimo mas lejos del borde, la comparacion queda sesgada. El efecto en macro-F1 observado es pequeno en este encoder, pero el PAD (+0.006) es del orden de los deltas entre arms reportados.",
+      "test_cheap": "Ya ejecutado (EXP-1). Repetir con 3 semillas CV para confirmar el delta PAD.",
+      "fix_proposed": "Ampliar la grilla a (0.3..3000) en TODAS las comparaciones y re-correr las baselines en el mismo entorno. Reportar fraccion de folds en el borde como control.",
+      "status": "VERIFICADO (conteo y EXP-1)"
+    },
+    {
+      "id": "F07",
+      "priority": "P2-media",
+      "area": "features (concatenacion)",
+      "title": "El L2 sobre cls4 concatenado deja que la capa 8 domine la norma",
+      "where": [
+        "results/moco-v10-variants-20261109/variant_features.py:37 (torch.cat de CLS de capas 8-11) y :62 (cls4_d4)",
+        "scripts/evaluate_overlay_readout.py:65 (L2 global)"
+      ],
+      "evidence": "Norma L2 media por bloque (s42-r448, ham_dev): L8 55.2, L9 43.4, L10 33.3, L11 33.4. Fraccion de norma^2: 0.425 / 0.263 / 0.155 / 0.157. Mismo patron en pad_adapt y s42-r224.",
+      "impact": "Peso implicito del 42% a la capa 8 en el readout, decidido por geometria y no por el LR. Puede ocultar informacion de capas altas.",
+      "test_cheap": "Readout CPU con normalizacion por bloque (L2 por capa, luego concat) o standardizacion por dimension. Mismo harness, una semilla.",
+      "fix_proposed": "L2 por bloque antes de concatenar, o StandardScaler dentro del pipeline (dentro de la particion de train para evitar fuga).",
+      "status": "VERIFICADO (medido) / efecto en F1 = HIPOTESIS"
+    },
+    {
+      "id": "F08",
+      "priority": "P2-media",
+      "area": "extraccion",
+      "title": "Extraccion con resize cuadrado (squash) y encuadre completo; entrenamiento con recortes RRC",
+      "where": [
+        "results/moco-v10-variants-20261109/variant_features.py:43 T.Resize((size,size), BICUBIC)",
+        "scripts/arms/moco_v3_20261029_helpers.py:81 RandomResizedCrop(scale=(0.4,1.0))"
+      ],
+      "evidence": "HAM dev: 1528/1528 no cuadradas (4:3 aprox); squash a 1:1 distorsiona 1.33x. PAD: 214/1134 no cuadradas. Entrenamiento: crops con 40-100% del area (zoom medio mayor que el eval de encuadre completo).",
+      "impact": "Desajuste de geometria y de escala entre entrenamiento y evaluacion. Puede explicar parte del sesgo a mel->nv (forma y borde).",
+      "test_cheap": "Re-extraer 1 semilla con (a) pad a cuadrado sin distorsion y (b) crop central de 0.7 de area. Solo inferencia en GPU (~minutos). No es entrenamiento.",
+      "fix_proposed": "Letterbox o center-crop sin distorsion en extraccion; opcional TTA de escala.",
+      "status": "VERIFICADO (geometria) / impacto = HIPOTESIS"
+    },
+    {
+      "id": "F09",
+      "priority": "P3-baja",
+      "area": "extraccion",
+      "title": "Interpolacion distinta entre entrenamiento y evaluacion",
+      "where": [
+        "scripts/arms/moco_v3_20261029_helpers.py:81 RandomResizedCrop(antialias=True), interpolacion bilineal por defecto",
+        "results/moco-v10-variants-20261109/variant_features.py:43 Resize BICUBIC"
+      ],
+      "evidence": "Codigo leido; no medido.",
+      "impact": "Bajo. Solo afecta la nitidez relativa entre train y eval, que ya esta en F01/F08.",
+      "test_cheap": "Eval con BILINEAR en una semilla.",
+      "fix_proposed": "Unificar el kernel de interpolacion en train y eval.",
+      "status": "VERIFICADO (codigo) / impacto = INFERENCIA"
+    },
+    {
+      "id": "F10",
+      "priority": "P3-baja",
+      "area": "EXIF",
+      "title": "La extraccion aplica exif_transpose; el entrenamiento no",
+      "where": [
+        "results/moco-v10-variants-20261109/variant_features.py:51 ImageOps.exif_transpose",
+        "scripts/arms/moco_v3_20261029_runtime.py:122-124 _open_rgb sin transpose"
+      ],
+      "evidence": "PAD dev: EXIF orientation 1 (normal) en 30 de 1134, None en 1104. HAM dev: None en 1528. Muestra de pool de 400: None en 400.",
+      "impact": "Cero hoy. Riesgo latente si entra una fuente con orientacion distinta.",
+      "test_cheap": "Ninguno necesario; anotar.",
+      "fix_proposed": "Aplicar exif_transpose tambien en _open_rgb para simetria.",
+      "status": "VERIFICADO (sin impacto actual)"
+    },
+    {
+      "id": "F11",
+      "priority": "P3-baja",
+      "area": "batch negatives",
+      "title": "Negativos solo in-batch (16 imagenes); la cola de 4096 ya se probo",
+      "where": [
+        "scripts/arms/moco_v4_20261107_helpers.py (via moco_v3 helpers:30-34 moco_symmetric_loss)",
+        "scripts/arms/moco_v11_arms_helpers_20261109.py:116-148 cola FIFO (revisada: correcta, enqueue de k1,k2, oldest_age)"
+      ],
+      "evidence": "batch_size 16 (resolved-params.json). La cola esta revisada y es coherente; el arm queue4096 ya se cerro como cerca de nulo.",
+      "impact": "Limita la senal contrastiva. Ya explorado.",
+      "test_cheap": "No requerido.",
+      "fix_proposed": "Ninguno nuevo en esta ronda.",
+      "status": "VERIFICADO (codigo)"
+    }
+  ],
+  "checked_and_clean": [
+    "Exportacion del estudiante correcta: runtime moco_v4 guarda student.state_dict() (lineas 183 y 207); extraccion verifica el SHA del checkpoint (variant_features.py:83).",
+    "Grupos sin fuga entre folds: probe_preprocessing_readout.py:81-82 lanza ValueError si un identity_component cruza train/test; OOF exacto 1 por imagen (evaluate_overlay_readout.py:90-91).",
+    "max_iter=2000 no binda: 0 advertencias ConvergenceWarning en logs de readout (readout-*.log). Las advertencias del MLP (mlp-*.log, 300 iter) son de otro readout.",
+    "bf16 no cuantiza los features guardados: ningun valor tiene los 16 bits bajos en cero (medido en s42-r448 y s42-r224). Descartado.",
+    "Pool y dev HAM disjuntos: pool ∩ ham_dev = 0 de 1528. NO verifique ham_holdout (no abierto); ver recomendacion R-HOLDOUT.",
+    "Temperatura 0.2, EMA 0.99, freeze 8 (bloques 8-11 + norm), AdamW 1e-5/1e-4, wd 0.05: coinciden con resolved-params.json."
+  ],
+  "recommendations_for_lead": [
+    "R-HOLDOUT: confirmar por hash (alguien autorizado, no el auditor) que ninguna imagen de ham_holdout esta en mixed-fit.jsonl. ISIC2019 train contiene imagenes HAM10000; el overlay se llama content-exclusion, pero no lo verifique.",
+    "R-PRIORIDAD: F01 (resolucion) y F02 (aumentos de color) son los dos factores nuevos de mayor potencial y se pueden probar como un arm de un factor cada uno. F03 debe declararse ya en el reporte.",
+    "R-GRID: ampliar la grilla C en todas las comparaciones de readout y repetir la baseline en el mismo entorno."
+  ],
+  "limits": [
+    "EXP-1 y EXP-2 usan una sola semilla de CV (EXP-1) o muestras de pixel (EXP-2). No son replicas independientes.",
+    "No se entreno nada. Los impactos de F01, F02, F04, F05, F07, F08 son inferencias hasta correr el test barato de cada uno.",
+    "Ninguna skill se invoco con la herramienta Skill; el protocolo de causa raiz y de verificacion se siguio manualmente."
+  ]
+}

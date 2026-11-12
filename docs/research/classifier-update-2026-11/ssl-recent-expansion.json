@@ -1,0 +1,218 @@
+{
+  "meta": {
+    "parent_report": "docs/ssl-recent.json",
+    "scope": "Expansion phase requested by coordinator: multi-source search_papers, citation expansion from seeds, full text where possible, Zotero read-only check. Supersedes parts of ssl-recent.json where noted.",
+    "date": "2026-11-09",
+    "sources": "paper-search MCP (search_papers with sources=arxiv,openalex,crossref,openreview,dblp; get_citing_papers; read_arxiv_paper; read_openreview_paper). Zotero MCP read-only (zotero_search_items). use_scihub=false, download_scihub never called. Semantic Scholar not used.",
+    "search_budget": "Team-coordinator cap ~20 searches. Cumulative searches now 13 (9 previous + 4 search_papers this phase). Citation expansions and Zotero calls counted separately.",
+    "extraction_caveat": "Full text by targeted rg/jq extraction of saved tool outputs, not sequential reads. Abstract-only items marked."
+  },
+  "call_log": [
+    {
+      "id": "C-S10",
+      "tool": "search_papers",
+      "query": "self-supervised continued pretraining dermoscopy skin lesion DINO MoCo",
+      "sources": "arxiv,openalex,crossref,openreview,dblp",
+      "result": "saved output (32 KB), titles read via jq. Source counts: openalex 6, crossref 5, openreview 6, arxiv 0. New candidates: Enhancing Skin Lesion Classification Generalization with Active Domain Adaptation (arXiv 2412.00702, 2025); Self-Supervised Pretraining for Enhancing Supervised Learning in Low-Data Regimes (TechRxiv 2025); A Systematic Review of Contrastive Learning in Medical AI (MDPI Bioengineering 2026, not read); G2LL (ISBI 2023, skin segmentation)."
+    },
+    {
+      "id": "C-S11",
+      "tool": "search_papers",
+      "query": "automatic data curation self-supervised learning clustering balanced sampling",
+      "sources": "arxiv,openalex,crossref,openreview,dblp",
+      "result": "saved output (42 KB), titles read via jq. New candidates: A Graph Matching Approach to Balanced Data Sub-Sampling for SSL (OpenReview, title only, no abstract retrieved); SCIZOR (OpenReview 2025, imitation learning, not used); Revisiting Automatic Data Curation for VFMs in Digital Pathology (arXiv 2503.18709 / OpenReview; see E11)."
+    },
+    {
+      "id": "C-S12",
+      "tool": "search_papers",
+      "query": "Revisiting Automatic Data Curation for Vision Foundation Models in Digital Pathology",
+      "sources": "arxiv,openalex,crossref,openreview,dblp",
+      "result": "ok, returned arXiv 2503.18709v2 with abstract; OpenReview QL9bKc9p3U (MICCAI 2025) and SrKGUdmmYb (CoRR 2025) same work."
+    },
+    {
+      "id": "C-S13",
+      "tool": "search_papers",
+      "query": "stratified batch sampling cluster-balanced batches contrastive self-supervised pretraining imbalance",
+      "sources": "arxiv,openalex,crossref,openreview,dblp",
+      "result": "ok. Relevant: The Bad Batches (IJCNN 2024, DOI 10.1109/ijcnn60899.2024.10650183, batch curation for SSL, abstract not retrieved); Mini-Batch Optimization of Contrastive Loss (OpenReview Nux7OVXpJ9, TMLR, high-loss mini-batch selection via spectral clustering, abstract only); Gradient Cluster Imbalance (OpenReview 2cSPVfQ6tI, ICLR 2027 submission, anonymous, theory on rare gradient clusters, abstract only); IConE (2026, batch-independent collapse prevention, not used)."
+    },
+    {
+      "id": "C-CIT1",
+      "tool": "get_citing_papers",
+      "identifier": "10.48550/arxiv.2405.15613 (Vo 2024)",
+      "result": "ok on retry (8 results). Dominated by general-purpose papers; relevant: LeJEPA (2511.08544), V-JEPA 2.1 (2603.14482), RudolfV (pathology SSL, 2401.04079). Second attempt with max 15 hit output-size limit."
+    },
+    {
+      "id": "C-CIT2",
+      "tool": "get_citing_papers",
+      "identifier": "10.48550/arxiv.2406.10973 (ExPLoRA)",
+      "result": "ok (8 results of 9). Relevant: AgriField-40K / AgriMAE (2608.07984, continual pretraining with adapters, 9x fewer trainable params, abstract only); Efficient Transformers for X-ray NDT (ECNDT 2026, domain SSL + PEFT, abstract only); VESSA (2510.20994, self-distillation adaptation with PEFT, abstract only); GLARE (2509.17816, earlier)."
+    },
+    {
+      "id": "C-CIT3",
+      "tool": "get_citing_papers",
+      "identifier": "10.48550/arxiv.2304.07193 (DINOv2)",
+      "result": "saved output, titles read via jq. Top-cited, not topical: OpenVLA, Towards a general-purpose foundation model for computational pathology (UNI, Nat Med 2024), Depth Anything, Virchow (clinical-grade pathology FM, Nat Med 2024), A whole-slide foundation model (Nat 2024), V-JEPA 2. Pathology FMs built on DINOv2-style SSL are the medical precedents of interest."
+    },
+    {
+      "id": "C-CIT4",
+      "tool": "get_citing_papers",
+      "identifier": "10.48550/arxiv.2508.10104 (DINOv3)",
+      "result": "ok (8 results). Top-cited, not topical (LeJEPA, LLM robotics survey, V-JEPA 2.1, RF-DETR, Native structured latents 3D, DriveVLA-W0). Only LeJEPA is relevant (SSL objective)."
+    },
+    {
+      "id": "C-CIT5",
+      "tool": "get_citing_papers",
+      "identifier": "10.48550/arxiv.2301.08243 (I-JEPA)",
+      "result": "error (output size limit), not read. Not repeated (budget)."
+    },
+    {
+      "id": "Z1",
+      "tool": "zotero_search_items",
+      "query": "self-supervised (qmode everything, all libraries)",
+      "result": "ok. Library 'Proyecto de grado project owner a colleague' holds Krishnan, Rajpurkar, Topol 2022 'Self-supervised learning in medicine and healthcare' (56BLN57G), Tschandl 2018 HAM10000 (QVMLIYTI), Sauter 2023 deep learning computational dermatopathology review (5DDNTWU6). Read-only: no writes."
+    },
+    {
+      "id": "Z2",
+      "tool": "zotero_search_items",
+      "query": "data curation (all libraries)",
+      "result": "ok but fallback to author match; no relevant hit. Zotero library has no Vo 2024 or ExPLoRA entries found by these queries."
+    },
+    {
+      "id": "R5",
+      "tool": "read_arxiv_paper",
+      "identifier": "2412.00702 (Active Domain Adaptation skin lesions)",
+      "result": "full text saved; opening and method passages extracted."
+    },
+    {
+      "id": "R6",
+      "tool": "read_arxiv_paper",
+      "identifier": "2503.18709 (Revisiting Automatic Data Curation, digital pathology)",
+      "result": "full text saved; passages extracted via rg."
+    },
+    {
+      "id": "R7",
+      "tool": "read_openreview_paper",
+      "identifier": "QL9bKc9p3U and TsMdJULS9o",
+      "result": "denied: 'OpenReview denied anonymous access; private/authenticated content is not supported'. No OpenReview full text obtained. Not retried; download_with_fallback not attempted for OpenReview IDs (source not in its list for OpenReview)."
+    }
+  ],
+  "evidence_new": [
+    {
+      "id": "E11",
+      "identifier": "arXiv:2503.18709 (v2, 2025-07); OpenReview QL9bKc9p3U (MICCAI 2025); CoRR 2025 version SrKGUdmmYb",
+      "title": "Revisiting Automatic Data Curation for Vision Foundation Models in Digital Pathology (Chen, Vincent-Cuaz, et al.)",
+      "label_free": true,
+      "design": "Tile-level automatic curation of a 350M-tile pool: hierarchical k-means tree on UNI tile embeddings (Vo-style, k-means++ and resampling), then top-down balanced sampling from the tree. Compares curated subsets with random batches (BR) vs stratified batches (BS) across tree configurations, subset sizes (10%, etc.), and against full data with random batches (F-BR), supervised WSI-class curation (S-BR, S-BS).",
+      "dataset": "Digital pathology tiles; RoI-level linear probing on BACH, BreakHis, CRC-type sets, BRACS, PCAM; WSI-level 9 clinical tasks from two centers.",
+      "baseline": "F-BR (full data, random batches); supervised curation S-BR, S-BS.",
+      "result": "Partial extraction. Curated data with RANDOM batches (T1-BR, S-BR) gives the LOWEST average performance. Curation + STRATIFIED batches (T-BS) gives the top average, followed by S-BS and F-BR. With 10% subsets from different trees, stratified batch sampling consistently outperforms random, e.g. T-BS 82.2% average bACC (tree T1, level 3) vs 82.0% for other trees. Authors describe a size-balance trade-off in curated subsets and recommend allocating samples inversely to bottom-cluster volume (uniform sampling from T1 at level 4). Differences between top configurations are small (~0.2 pp in the passage read).",
+      "which_class": "Not per-class; bACC averaged over tasks.",
+      "fulltext_or_abstract": "Full text, PARTIAL extraction (method section 2, results passages, conclusion). Table values not fully read.",
+      "limitation": "Digital pathology, 350M tiles, UNI embeddings, linear probing on frozen features. Not a continued-training study. Effects are small. Authors list bottom-level informative sampling and batch construction as open.",
+      "relevance_to_us": "This is a medical-domain validation of the Vo-style hierarchical curation (E1 extended). It changes our experiment design: a dataset-level sampler with random batches (our WeightedRandomSampler and the X1 plan as written) reproduces their worst configuration (curation + random batches). Batch-level stratification by cluster is the piece to test. Corrects the earlier claim in ssl-recent.json that no medical application of Vo curation was found."
+    },
+    {
+      "id": "E12",
+      "identifier": "arXiv:2412.00702 (Jun Ye, CMU; EMBC 2025)",
+      "title": "Enhancing Skin Lesion Classification Generalization with Active Domain Adaptation",
+      "label_free": "partial: continued SSL is label-free; the pipeline then fine-tunes with labels and applies active DA, which uses labels on target-domain queries",
+      "design": "DINO (ResNet-50, from natural images) retrained with SSL on all available skin lesion datasets (label-free), then supervised fine-tuning on source labels, then active domain adaptation on target data. Five random seeds.",
+      "dataset": "Ten skin lesion datasets (dermoscopy), source/target domain shift.",
+      "baseline": "ImageNet-SL init; prior UDA baseline BSP reported in [10]; SL vs SSL-pretrained comparison.",
+      "result": "Partial extraction. Authors state SSL retraining on in-domain skin data is an effective UDA method, outperforming the cited baseline on 9 of 10 target domains (worse on BLH). Mean and std over 5 seeds reported in tables not extracted.",
+      "which_class": "Not per-class in passages read.",
+      "fulltext_or_abstract": "Full text, PARTIAL extraction (abstract, introduction, method, training section).",
+      "limitation": "DINO ResNet-50, not ViT. Uses labels downstream and active DA queries. Domain-shift framing rather than minority-class recall. Single SSL seed per the passages read (not verified).",
+      "relevance_to_us": "The closest dermatology precedent for our exact step: continued DINO-style SSL on pooled skin-lesion data with no labels, then a label-using readout. Supports the premise of our pipeline. Does not test our imbalance endpoints."
+    },
+    {
+      "id": "E13",
+      "identifier": "DOI 10.1109/ijcnn60899.2024.10650183 (IJCNN 2024)",
+      "title": "The Bad Batches: Enhancing Self-Supervised Learning in Image Classification Through Representative Batch Curation",
+      "label_free": true,
+      "design": "Batch curation for SSL: selecting representative batches rather than uniform random batches during image SSL.",
+      "dataset": "Image classification benchmarks (not verified).",
+      "baseline": "Uniform batch sampling.",
+      "result": "Abstract not retrieved (crossref metadata only). Not used for numbers.",
+      "which_class": "Unknown.",
+      "fulltext_or_abstract": "Metadata only.",
+      "limitation": "No abstract or full text in hand.",
+      "relevance_to_us": "Directly on batch construction, the component E11 says matters. Obtain the paper through the user's institutional access or a Zotero copy before relying on it."
+    },
+    {
+      "id": "E14",
+      "identifier": "OpenReview Nux7OVXpJ9 (TMLR 2024)",
+      "title": "Mini-Batch Optimization of Contrastive Loss",
+      "label_free": true,
+      "design": "Theory: mini-batch InfoNCE optimization equals full-batch only when all mini-batches are used; proposes selecting high-loss mini-batches via spectral clustering to speed SGD convergence.",
+      "dataset": "Not verified from abstract.",
+      "baseline": "Vanilla SGD with random mini-batches.",
+      "result": "Abstract only: proposed selection outperforms vanilla SGD in their experiments.",
+      "which_class": "Not applicable.",
+      "fulltext_or_abstract": "Abstract only (OpenReview full text denied).",
+      "limitation": "Batch selection by loss needs per-sample losses each step, costly in MoCo. Not tested on medical or imbalanced data.",
+      "relevance_to_us": "Alternative batch-construction principle. Lower priority than cluster-stratified batches; noted for the synthesizer."
+    },
+    {
+      "id": "E15",
+      "identifier": "OpenReview 2cSPVfQ6tI (ICLR 2027 submission, anonymous)",
+      "title": "Gradient Cluster Imbalance: Why Large Batches Favor Normalized Optimizers",
+      "label_free": true,
+      "design": "Theory: per-sample gradients form nearly orthogonal clusters with imbalanced sizes; plain GD progresses slowly on rare clusters; normalized optimizers (SignGD, Muon) mitigate this.",
+      "dataset": "Language and vision models (measured per layer).",
+      "baseline": "GD, SGD.",
+      "result": "Abstract only. Structural assumptions; partial measurement support.",
+      "which_class": "Not applicable.",
+      "fulltext_or_abstract": "Abstract only; unreviewed submission.",
+      "limitation": "Unpublished, anonymous submission. Optimizer-level, not sampler-level. Supports the mechanism behind cluster-size reweighting but does not test it.",
+      "relevance_to_us": "Theory support for cluster-balanced sampling (rare clusters get slow progress). Do not cite as established. Mechanism motivation only."
+    },
+    {
+      "id": "E16",
+      "identifier": "arXiv:2511.08544 (LeJEPA; Balestriero, LeCun)",
+      "title": "LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics",
+      "label_free": true,
+      "design": "JEPA predictive loss plus SIGReg (sketched isotropic Gaussian regularization). Claims no stop-gradient, no teacher-student, no schedulers; single trade-off hyperparameter.",
+      "dataset": "ImageNet-1k pretraining; 10+ datasets, 60+ architectures (abstract).",
+      "baseline": "Other SSL methods (abstract).",
+      "result": "Abstract only: ViT-H/14 linear eval 79% on ImageNet-1k.",
+      "which_class": "Not applicable.",
+      "fulltext_or_abstract": "Abstract only (not read in full).",
+      "limitation": "General-domain claims; not tested on dermatology or minority recall. Replacing our MoCo objective is a large change and breaks comparability with every historical arm.",
+      "relevance_to_us": "Candidate objective swap, low priority for this phase. Note the claimed stability across hyperparameters as a possible answer to our SSL-hyperparameter fatigue, but it is an abstract-level claim."
+    },
+    {
+      "id": "E17",
+      "identifier": "OpenReview TsMdJULS9o",
+      "title": "A Graph Matching Approach to Balanced Data Sub-Sampling for Self-Supervised Learning",
+      "label_free": true,
+      "design": "Title only in our results; abstract not retrieved.",
+      "dataset": "Unknown.",
+      "baseline": "Unknown.",
+      "result": "Not obtained (OpenReview denied).",
+      "which_class": "Unknown.",
+      "fulltext_or_abstract": "Title only.",
+      "limitation": "Cannot assess.",
+      "relevance_to_us": "Potential balanced-subsampling alternative to the cluster sampler. Needs a non-anonymous route to the text."
+    }
+  ],
+  "experiment_changes": [
+    {
+      "id": "X1",
+      "change": "SPLIT into two arms. X1a: hierarchical balanced sampler with random batches (current plan as written). X1b: same hierarchical clusters, but with STRATIFIED batch construction (each batch of 16 draws across clusters, e.g. one or more samples from distinct top clusters, leaf-level stratification if top level has fewer than 16 clusters with enough items).",
+      "why": "E11 (pathology, MICCAI 2025): curation with random batches was the worst configuration; curation with stratified batches was best. X1a alone risks reproducing the weak arm.",
+      "priority": "X1b is the arm to run first. X1a is the control for the batch effect. Both replace PhA alpha arm B.",
+      "risk": "Stratified batches in MoCo change the in-batch negatives distribution (more diverse negatives, fewer same-cluster negatives). Log the same-component collision rate per batch (brief audit baseline 0.49%).",
+      "expected_effect": "Still small. The E11 differences are about 0.2 pp bACC between top configurations. Subjective probability of a seed-consistent melanoma recall gain: about 30-35%."
+    }
+  ],
+  "updated_ranking_note": "X1b (hierarchical clusters + stratified batches) replaces X1 as rank 1. X4 (DINOv3 backbone fork) stays a decision for project owner. X2 (Gram anchoring), X3 (LoRA frozen blocks), X5 (static teacher) unchanged in ssl-recent.json, with E12 added as the derm continued-SSL precedent for the pipeline premise.",
+  "gaps_new": [
+    "OpenReview full text is denied for anonymous access: E14, E15 and E17 are abstract or title only (E13 is metadata only, IJCNN).",
+    "Vo-curation medical validation (E11) reports small effects; no derm or small-pool replication found.",
+    "I-JEPA citing expansion errored and was not retried.",
+    "The Bad Batches (E13) needs an abstract and full text from an authenticated route."
+  ],
+  "status": "Expansion done: 13 searches cumulative (9 earlier + 4 this phase); 4 citation expansions completed (Vo, ExPLoRA, DINOv2, DINOv3); I-JEPA expansion errored; 2 full-text arXiv reads (2412.00702, 2503.18709); 2 OpenReview reads denied; Zotero read-only checked (2 queries, no writes). 0 experiments run. Key change: E11 shows batch stratification matters for cluster curation, so X1 is split into X1a/X1b."
+}

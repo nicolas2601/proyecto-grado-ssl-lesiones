@@ -1,0 +1,86 @@
+{
+  "status": "CONFIRMATORY_DONE",
+  "preregistration": {
+    "file": "phase-b-diagnostics.json",
+    "key": "preregistration_v2",
+    "sha256": "0de81b36a02808cdf538d89fa0b615d55e3b97d3ddec2215efb356e114bccb88",
+    "mtime_utc": "2026-11-10T15:27:30Z"
+  },
+  "readouts_mtime_range_utc": [
+    "16:14:53",
+    "16:24:22"
+  ],
+  "raw_comparison": "phase-b-diagnostics-treat-vs-baseline-v2.json (cluster: results/moco-v10-phase-b-diagnostics-20261110/treat-vs-baseline-v2.json, sha256 36878c7a...)",
+  "rule_v2": "HAM delta macro-F1 > 0 on s43 AND s44; mean >= +0.010; mel->NV mean delta <= +1.0 pp",
+  "results_HAM_448D4_CLS4_delta_vs_same_seed_baseline": {
+    "T1_dullrazor_HAM": {
+      "V10": {
+        "s43": 0.0573,
+        "s44": 0.0307,
+        "mean": 0.044,
+        "mel_to_NV_mean_pp": -0.39,
+        "verdict": "PASS"
+      },
+      "queue4096": {
+        "s43": 0.024,
+        "s44": 0.0029,
+        "mean": 0.0134,
+        "mel_to_NV_mean_pp": -1.78,
+        "verdict": "PASS"
+      }
+    },
+    "T2_crop_both": {
+      "V10": {
+        "s43": 0.0124,
+        "s44": 0.0112,
+        "mean": 0.0118,
+        "mel_to_NV_mean_pp": -1.48,
+        "verdict": "PASS"
+      },
+      "queue4096": {
+        "s43": -0.0025,
+        "s44": 0.003,
+        "mean": 0.0003,
+        "mel_to_NV_mean_pp": -2.47,
+        "verdict": "FAIL (s43 negative; mean below +0.010)"
+      }
+    },
+    "T3_dullrazor_crop_HAM": {
+      "V10": {
+        "s43": 0.0507,
+        "s44": 0.0286,
+        "mean": 0.0396,
+        "mel_to_NV_mean_pp": -1.97,
+        "verdict": "PASS"
+      },
+      "queue4096": {
+        "s43": 0.0261,
+        "s44": 0.012,
+        "mean": 0.019,
+        "mel_to_NV_mean_pp": -3.16,
+        "verdict": "PASS"
+      }
+    }
+  },
+  "results_PAD_delta": {
+    "T1_and_T3": "0.0 by construction (baseline features copied)",
+    "T2_crop_both": {
+      "V10": {
+        "macro_f1_mean": -0.0007,
+        "SCC_to_BCC_mean_pp": 0.18
+      },
+      "queue4096": {
+        "macro_f1_mean": -0.0011,
+        "SCC_to_BCC_mean_pp": 0.18
+      }
+    }
+  },
+  "multiplicity": "6 confirmatory tests (3 treatments x 2 encoders) on s43/s44; 5 of 6 pass the rule. Post-hoc hypotheses from s42; SoG and geom-pad declared negatives; exploratory list in phase-b-diagnostics-multiplicity-addendum.json",
+  "caveats": [
+    "T1 and T3 apply DullRazor to HAM only; PAD unchanged by construction. On seed 42, DullRazor lowered PAD macro-F1 by about 0.03 (both encoders); a pipeline applying it to PAD would not be supported.",
+    "mel n=169 in HAM dev: one image is about 0.59 pp; the mel->NV tolerance of 1.0 pp is about 1.7 images. Paired CI reported separately by statistical review.",
+    "Two encoder seeds per arm; seed 42 excluded from the rule.",
+    "Effects are HAM dermoscopy-only; no clinical-photo validation."
+  ],
+  "exploratory_seed42_summary": "SoG negative both encoders (HAM -0.014/-0.017); geom-pad neutral; DullRazor and crop positive on HAM, PAD negative for DullRazor"
+}

@@ -1,0 +1,467 @@
+{
+  "meta": {
+    "date": "2026-11-09",
+    "scope": "Bounded scoping search, not a systematic review. No protocol-based reproducibility.",
+    "tools": "paper-search MCP: search_europepmc, search_pubmed, search_arxiv, search_openalex, search_crossref; read_arxiv_paper for full text. Semantic Scholar not used. use_scihub=false; no Sci-Hub; no downloads beyond arXiv full-text reads.",
+    "skills_invoked": [
+      "literature-review (scoping workflow, evidence tiers, search log)",
+      "scientific-critical-thinking (appraisal of design/analysis, abstract vs full-text labeling)"
+    ],
+    "budget": "Phase A: 14 searches (cap 14). Extension requested by coordinator (paper-search multi-source, citation expansion, Zotero read-only): 18 more lookups (cap ~20), of which 4 were Zotero and 3 were citation-graph calls. Full-text reads (not counted): arXiv 2401.00692, 2101.05224, 2312.02366, 2303.07034, 2102.10663, 2108.10048, 2106.09229, 2112.12086. Failed read/download: MDPI Kwasigroch 2020 (no OA route), get_referenced_papers PanDerm (unparsed output).",
+    "prior_work_not_repeated": "literature.json (DINO-MVR arXiv 2605.07221, DERM12345 arXiv 2601.12382, PAD-UFES metadata fusion E5-E9, MONET, UniDerm, DermFM-Zero as listed there) not re-reported as new evidence. PanDerm (Nat Med 2025) and DermFM-Zero are new here only as SSL-foundation context."
+  },
+  "search_log": [
+    {
+      "id": "D1",
+      "source": "europepmc",
+      "query": "self-supervised learning dermoscopy skin lesion classification",
+      "results": 10,
+      "notes": "Surfaced Nasir 2026 (PMID 41681756, abstract only). Rest off-topic (reviews, segmentation, melanoma prevention SR)."
+    },
+    {
+      "id": "D2",
+      "source": "arxiv",
+      "query": "self-supervised contrastive pretraining skin lesion dermoscopy",
+      "results": 0,
+      "notes": "Empty."
+    },
+    {
+      "id": "D3",
+      "source": "pubmed",
+      "query": "self-supervised learning skin lesion classification dermatology",
+      "results": 10,
+      "notes": "Surfaced Krammer 2022 (PMID 35876737, abstract only), Wang 2025 CMPB (PMID 40184849, abstract only), Nasir 2026 (abstract only), SSD-KD (PMID 36462373, knowledge distillation, not SSL: excluded)."
+    },
+    {
+      "id": "D4",
+      "source": "openalex",
+      "query": "self-supervised pretraining dermoscopy melanoma classification (2020-2026)",
+      "results": "not parsed",
+      "notes": "Output exceeded token limit and was saved to a tool-results file; not read. Counted as a search but yielded no evidence used in this report."
+    },
+    {
+      "id": "D5",
+      "source": "crossref",
+      "query": "self-supervised learning dermatology skin images representation",
+      "results": 10,
+      "notes": "Mostly non-medical. Singh 2024 (10.29245/2767-5092/2024/2.1182, title only, no abstract): not evidence."
+    },
+    {
+      "id": "D6",
+      "source": "arxiv",
+      "query": "skin lesion self-supervised learning ISIC linear evaluation",
+      "results": 0,
+      "notes": "Empty."
+    },
+    {
+      "id": "D7",
+      "source": "arxiv",
+      "query": "PanDerm dermatology foundation model",
+      "results": 0,
+      "notes": "Empty on arXiv; PanDerm found via Europe PMC (D9)."
+    },
+    {
+      "id": "D8",
+      "source": "arxiv",
+      "query": "MoCo momentum contrast skin lesion classification",
+      "results": 0,
+      "notes": "Empty. No MoCo-based dermatology paper indexed on arXiv in this search."
+    },
+    {
+      "id": "D9",
+      "source": "europepmc",
+      "query": "dermatology foundation model self-supervised pretraining dermoscopic clinical images",
+      "results": 10,
+      "notes": "PanDerm (PMID 40481209, Nat Med 2025, abstract only); DermFM-Zero (PPR1156328, preprint abstract only); reviews."
+    },
+    {
+      "id": "D10",
+      "source": "openalex",
+      "query": "self-supervised learning skin lesion ISIC linear probe (2020-2026)",
+      "results": 6,
+      "notes": "Surfaced Haggerty & Chandra (W4390529286 = arXiv 2401.00692, full text read), SLIMP (W4416613195 = arXiv 2505.23709, abstract only), Wang 2025 duplicate, segmentation SSL (excluded)."
+    },
+    {
+      "id": "D11",
+      "source": "pubmed",
+      "query": "contrastive learning dermoscopy clinical images domain transfer skin cancer",
+      "results": 0,
+      "notes": "Empty. Chaves et al. not surfaced."
+    },
+    {
+      "id": "D12",
+      "source": "europepmc",
+      "query": "self-supervised skin lesion dermoscopy augmentation crop color hair removal contrastive",
+      "results": 10,
+      "notes": "No augmentation-specific SSL paper for dermatology surfaced. Results off-topic (object detection review, PAD-UFES metadata SR)."
+    },
+    {
+      "id": "D13",
+      "source": "arxiv",
+      "query": "Big self-supervised models advance medical image classification",
+      "results": 1,
+      "notes": "Azizi et al. 2021 (arXiv 2101.05224v2), full text read."
+    },
+    {
+      "id": "D14",
+      "source": "europepmc",
+      "query": "Chaves self-supervised learning skin lesion dermoscopy evaluation",
+      "results": 8,
+      "notes": "Author-name query failed; no Chaves et al. paper surfaced. Not found, not claimed."
+    },
+    {
+      "id": "X1",
+      "source": "search_papers (pubmed,europepmc,pmc,arxiv,openalex,crossref)",
+      "query": "self-supervised learning dermoscopy skin lesion",
+      "results": 26,
+      "notes": "Surfaced Kwasigroch 2020 (10.3390/electronics9111930, SSL + transfer on skin lesions, abstract only, not retrievable: MDPI, no OA via Unpaywall), Morita & Han 2023 MVA (10.23919/mva57639.2023.10215580, title only), Yang 2024 hybrid pretext (10.1002/ima.23058, DermaMNIST 82.6%, abstract only)."
+    },
+    {
+      "id": "X2",
+      "source": "get_citing_papers",
+      "query": "PanDerm DOI 10.1038/s41591-025-03747-y",
+      "results": 15,
+      "notes": "15 of 153 available. Dermatology AI reviews and Derm1M; no new SSL-derm method paper of interest in the returned page."
+    },
+    {
+      "id": "X3",
+      "source": "get_citing_papers",
+      "query": "Azizi 2021 arXiv DOI 10.48550/arXiv.2101.05224",
+      "results": 15,
+      "notes": "15 of 70 available. Surfaced Truong et al. 2021 (arXiv 2108.10048, full text read; cites Chaves 2021 as derm SSL reference), Matsoukas-style ViT medical transfer (arXiv 2303.07034, full text read), MedAug (arXiv 2102.10663, chest X-ray, metadata-based positives)."
+    },
+    {
+      "id": "X4",
+      "source": "get_citing_papers",
+      "query": "PAD-UFES-20 DOI 10.1016/j.dib.2020.106221",
+      "results": 15,
+      "notes": "15 of 419 available. Surfaced Bissoto-line skin colour bias segmentation (CMPB 2024, 10.1016/j.cmpb.2024.108044, title only) and Attention metadata fusion (JBHI 2021, 10.1109/jbhi.2021.3062002, title only)."
+    },
+    {
+      "id": "X5",
+      "source": "zotero_search_items (active library)",
+      "query": "skin (everything)",
+      "results": 1,
+      "notes": "Read-only. One item (Pathania 2022). Not SSL."
+    },
+    {
+      "id": "X6",
+      "source": "search_papers (multi-source)",
+      "query": "Morita Han investigating self-supervised learning skin lesion",
+      "results": 9,
+      "notes": "Confirmed Morita & Han title; surfaced Sirotkin-line SSL curricula only indirectly."
+    },
+    {
+      "id": "X7",
+      "source": "zotero_search_items (all libraries)",
+      "query": "melanoma / lesion / derm (everything)",
+      "results": "3 queries",
+      "notes": "Read-only. 'melanoma' and 'lesion' in active library: 0 hits. 'derm' across all accessible libraries: 16 hits in group library 'Proyecto de grado project owner a colleague' (groupID 6461914), incl. HAM10000 (Tschandl 2018, QVMLIYTI), Sauter 2023 review, Krohling 2025 fluorescence skin lesions. No SSL-derm paper in the group library."
+    },
+    {
+      "id": "X8",
+      "source": "zotero_search_items (all libraries)",
+      "query": "self-supervised / contrastive",
+      "results": 2,
+      "notes": "Read-only. 'self-supervised' -> Krishnan, Rajpurkar, Topol 2022 'Self-supervised learning in medicine and healthcare' (56BLN57G, general review). 'contrastive' -> 0 hits."
+    },
+    {
+      "id": "X9",
+      "source": "get_referenced_papers",
+      "query": "PanDerm DOI",
+      "results": "not parsed",
+      "notes": "Output exceeded token limit; saved to a tool-results file, not read. Counted as a search, not used."
+    },
+    {
+      "id": "X10",
+      "source": "search_papers (multi-source)",
+      "query": "DINOv2 frozen features dermoscopy skin lesion linear probe",
+      "results": 12,
+      "notes": "Surfaced DINO-MVR (already in literature.json), Medical slice transformer (DINOv2, 3D, not derm), AME-Derm (Array 2026, 10.1016/j.array.2026.101409, abstract only: PanDerm comparison, see E-X3), synthetic-image selection (arXiv 2611.02437, abstract only)."
+    },
+    {
+      "id": "X11",
+      "source": "search_pmc",
+      "query": "self-supervised pretraining dermatology skin lesion images",
+      "results": 0,
+      "notes": "Empty."
+    },
+    {
+      "id": "X12",
+      "source": "search_papers (multi-source)",
+      "query": "domain-adaptive continued self-supervised pretraining dermoscopy skin lesion",
+      "results": 12,
+      "notes": "Surfaced Sirotkin et al. 2021 (arXiv 2112.12086, full text read: MoCo v2 single-source on ISIC-2019 72.7% acc; curriculum ODC->RL->MoCo v2 75.4%)."
+    },
+    {
+      "id": "X13",
+      "source": "search_papers (multi-source)",
+      "query": "hair removal colour augmentation dermoscopy deep learning robustness",
+      "results": 12,
+      "notes": "Surfaced Jutte et al. 2024 synthetic hair benchmark + CNN hair removal (10.1117/1.jbo.29.11.116003, abstract only); Divya 2026 SCIP pipeline (hair removal + Gray World colour normalisation, 10.17485/ijst/v19i20.314, abstract only, claims 6.8% error reduction, unverified); Delibasis 2023 automated hair removal (title only)."
+    },
+    {
+      "id": "X14",
+      "source": "get_citing_papers",
+      "query": "Haggerty & Chandra arXiv DOI 10.48550/arXiv.2401.00692",
+      "results": 11,
+      "notes": "11 of 11 available. Surfaced Patil 2024 augmentation review for skin lesions (10.1007/s11042-024-20145-7, title only), Packiamary 2024 SimCLR melanoma (10.1109/icetcs61022.2024.10543421, abstract only, low-quality claims: 0.92 acc, no split protocol), Wang 2025 CMPB (already noted)."
+    },
+    {
+      "id": "X15",
+      "source": "search_papers (multi-source)",
+      "query": "Chaves Bissoto Valle Avila self-supervision skin lesion",
+      "results": 7,
+      "notes": "Resolved Chaves et al. = 'An Evaluation of Self-Supervised Pre-Training for Skin-Lesion Analysis', arXiv 2106.09229 / DOI 10.1007/978-3-031-25069-9_11. Full text read. Also Sirotkin 2021 and Bissoto debias papers (title only, CVPRW 2019/2020)."
+    }
+  ],
+  "full_text_reads": [
+    {
+      "id": "FT1",
+      "source": "arxiv:2401.00692",
+      "paper": "Haggerty & Chandra, Self-supervised learning for skin cancer diagnosis with limited training data",
+      "coverage": "Tables 1-7 and Appendix A.1 read; Table 13 (significance) referenced but not separately verified; oral-cancer section not used.",
+      "status": "Full text read for numbers listed below."
+    },
+    {
+      "id": "FT2",
+      "source": "arxiv:2101.05224v2",
+      "paper": "Azizi et al., Big Self-Supervised Models Advance Medical Image Classification (arXiv v2, 2021)",
+      "coverage": "Tables 1-2, dataset section, augmentation section read. The abstract's 6.7% claim was NOT reconciled against a supervised-baseline row (not located in the extracted text); treat as unverified.",
+      "status": "Full text read for numbers listed below."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E-D1",
+      "identifier": "arXiv:2401.00692 (Haggerty & Chandra, 2024)",
+      "evidence_level": "FULL TEXT",
+      "ssl_objective": "Barlow Twins (not MoCo); ResNet-50; projector discarded for downstream.",
+      "data": "Fine-tune: ISIC2019* subset, 2,554 train / 19,423 test, 8 classes (AK 306, BCC 500, BKL 467, DF 55, MEL 500, NV 500, SCC 171, VASC 55 train). Further SSL pool: I=2,554; IU=6,132 (+ISIC val + UFES20); IUD=31,823 (+DermNet). No labels used in further pretraining.",
+      "augmentation": "Pretraining: crop, blur (Barlow Twins views). Fine-tuning: random crop (scale 0.7-1.0, ratio 0.75-1.33), rotation up to 45 deg, flip; 256x256 input; batch 64.",
+      "crop_scale": "Fine-tune scale (0.7, 1.0); SSL crop scale not stated in extracted text.",
+      "resolution": "256x256",
+      "result_pretrained_once": "Fine-tune acc: SL-ImageNet 0.657 +/- 0.021; SSL-ImageNet 0.691 +/- 0.011 (35 runs). Linear probe acc: SL 0.593 +/- 0.011; SSL 0.663 +/- 0.007 (Table 6/7).",
+      "result_further_pretraining_linear_probe": "Frozen-feature linear probe after further SSL on task-domain data (Table 6): SSL base 0.663; SSL->IU (partial encoder) 0.686 (+2.4 pp); SSL->I (partial) 0.694 (+3.1 pp); SSL->IUD (partial) 0.684 (+2.1 pp). Fine-tune deltas for SSL-init are small (Table 4: base 0.691 vs IUD 0.699, I-partial 0.696; within ~1 SD).",
+      "result_fine_tune_further_from_SL": "SL-init + further SSL reaches ~0.697-0.701 fine-tune acc (Table 4), i.e., closes the gap to SSL-init.",
+      "per_class": "NOT REPORTED. Only overall accuracy and weighted F1. No melanoma recall, no SCC recall. Gap for our SCC/MEL endpoints.",
+      "random_init_control": "Random init 0.358 acc (Table 5, 5 runs): pretraining effect is large; the question is about increments.",
+      "limitations": "Single 8-class ISIC2019 subset; patient-level split not stated in extracted text; 4 seeds not used (35 runs of linear layer only, backbone fixed per condition); Barlow Twins not MoCo; ResNet-50 not ViT; authors report ViT could behave differently; no per-class result; no hair/colour ablation.",
+      "relevance_to_us": "Only full-text evidence in this search that further label-free SSL on dermatology-domain images improves FROZEN features (linear probe +2-3 pp on a single dataset). Direct transfer to MoCo on DINOv2 ViT-B/14 is an inference, not shown."
+    },
+    {
+      "id": "E-D2",
+      "identifier": "arXiv:2101.05224v2 (Azizi et al., 2021)",
+      "evidence_level": "FULL TEXT (tables)",
+      "ssl_objective": "SimCLR (ImageNet pretrain, then self-supervised on unlabeled derm), plus MICLe (multi-instance contrastive: positives = two crops from two different images of the same patient case / same pathology).",
+      "data": "Derm: clinical camera photographs (not dermoscopy). 27-class label space (top-26 conditions + Other), 419 unique labels before grouping. Train 15,340 cases; val 1,190; test 4,146; patient-disjoint split. Unlabeled SimCLR pool 454,295 images. MICLe uses only the 15,340 train cases (1-6 images per case). Also external skin-cancer set DExternalDerm (biopsy labels).",
+      "augmentation": "SimCLR: random crop+resize, colour distortion (strength 1.0), Gaussian blur, flips. Fine-tune: colour aug, crops with resize, blur, rotation; text says this augmentation set is 'critical' for results (full text).",
+      "crop_scale": "Not extracted.",
+      "resolution": "224x224 (fine-tune stage).",
+      "result_table1": "ResNet-50 (1x): ImageNet 62.58 +/- 0.84; Derm-only SimCLR 63.66 +/- 0.24 (+1.1 pp); ImageNet->Derm 63.44 +/- 0.13. ResNet-50 (4x): ImageNet 64.62 +/- 0.76; Derm 66.93 +/- 0.92; ImageNet->Derm 67.63 +/- 0.32 (+3.0 pp vs ImageNet). ResNet-152 (2x): ImageNet 66.38 +/- 0.03; Derm 66.43 +/- 0.62; ImageNet->Derm 68.30 +/- 0.19 (+1.9 pp).",
+      "result_table2_MICLe": "Adding MICLe: 4x Derm 66.93->67.55 (+0.6); 4x ImageNet->Derm 67.63->68.81 (+1.2); 2x Derm 66.43->67.16 (+0.7); 2x ImageNet->Derm 68.30->68.43 (+0.1, within noise). Text reports mean +1.18 +/- 0.09 pp over SimCLR, but this averages a non-uniform set; the 2x ImageNet->Derm case is not distinguishable from zero.",
+      "per_class": "NOT REPORTED (top-1 accuracy and AUC only).",
+      "abstract_claim_check": "Abstract: +6.7% top-1 on dermatology vs supervised baselines. Supervised baseline row not located in extracted text; NOT VERIFIED.",
+      "limitations": "Clinical photographs, not dermoscopy; 27 classes; fine-tuned backbone, not frozen readout; MICLe needs multi-image cases, which our cohorts have only sparsely (see experiment E2); larger architectures (2x/4x ResNets) used; compute: text reports ~12 h on 64 TPU cores for ResNet-50 (1x), 100 epochs, batch 512.",
+      "relevance_to_us": "Strongest full-text evidence for (a) domain-adaptive SSL after ImageNet pretraining (+1-3 pp), (b) same-lesion/patient positives as a label-free positive source (MICLe), with gains that are inconsistent across backbones. Both are fine-tune results, not frozen-feature results."
+    },
+    {
+      "id": "E-D3",
+      "identifier": "PMID 40481209 (PanDerm; Yan et al., Nat Med 2025; DOI 10.1038/s41591-025-03747-y)",
+      "evidence_level": "ABSTRACT ONLY",
+      "ssl_objective": "Self-supervised pretraining (objective not extracted from abstract).",
+      "data": "Over 2 million real-world skin disease images, 11 institutions, 4 imaging modalities.",
+      "result": "State-of-the-art on 28 benchmarks; often outperforms existing models with 10% of labels. Reader studies: +10.2% clinician early melanoma detection (longitudinal); +11% dermoscopy skin cancer diagnostic accuracy; +16.5% non-dermatologist DDx across 128 conditions.",
+      "per_class": "Not in abstract.",
+      "limitations": "Scale (2M images) is far beyond our cohorts; cannot attribute gains to SSL objective vs data scale; no ablation visible in abstract.",
+      "relevance_to_us": "Context: dermatology SSL pretraining at scale helps label efficiency. Not an experiment we can replicate; supports the direction of experiment E1 only qualitatively."
+    },
+    {
+      "id": "E-D4",
+      "identifier": "PMID 35876737 (Krammer et al., J Eur Acad Dermatol Venereol 2022; DOI 10.1111/jdv.18460)",
+      "evidence_level": "ABSTRACT ONLY",
+      "ssl_objective": "Self-supervised pretraining on unlabelled images, then supervised fine-tuning (technique not specified in abstract).",
+      "result": "Fully labelled: acc 95.7, precision 91.7, sensitivity 90.7. 10% labelled: acc 87.7, precision 81.7, sensitivity 68.6.",
+      "per_class": "No per-class; sensitivity pooled.",
+      "limitations": "Abstract only; split protocol, patient grouping, class count and backbone unknown; no ImageNet-only comparison arm visible in abstract.",
+      "relevance_to_us": "Few-label regime supports SSL pretraining; sensitivity drop at 10% labels is a warning for minority-class recall."
+    },
+    {
+      "id": "E-D5",
+      "identifier": "PMID 40184849 (Wang et al., Comput Methods Programs Biomed 2025; DOI 10.1016/j.cmpb.2025.108729)",
+      "evidence_level": "ABSTRACT ONLY",
+      "ssl_objective": "Multi-modality SSL: positive pairs = paired dermoscopic and clinical images of the same lesion (different views); pseudo-multi-labels from clustering for 7 attributes; label-relation module.",
+      "data": "Seven-point checklist dataset (dermoscopic + clinical).",
+      "result": "Outperforms single-modality SSL counterparts on AUC, precision, sensitivity, specificity across attributes and melanoma diagnosis. Numbers not in abstract.",
+      "per_class": "Melanoma diagnosis mentioned; no numbers in abstract.",
+      "limitations": "Requires paired dermoscopic + clinical images; uses pseudo-labels from clustering (label-free, but not our MoCo pipeline); no SCC/BCC.",
+      "relevance_to_us": "Supports same-lesion positives (E2). Requires paired modalities we do not have in PAD (clinical only) or HAM (dermoscopic only)."
+    },
+    {
+      "id": "E-D6",
+      "identifier": "PMID 41681756 (Nasir et al., Diagnostics 2026; DOI 10.3390/diagnostics16030440)",
+      "evidence_level": "ABSTRACT ONLY",
+      "ssl_objective": "Dermatology-specific SSL pretraining on unlabeled dermoscopy + hierarchical ViT backbone.",
+      "data": "ISIC 2018, HAM10000, PH2 (public dermoscopy). Cross-dataset tests.",
+      "result": "In-dataset acc 94.87 / 97.32 / 98.17; cross-dataset +3.5-5.8% over supervised; 10% labels comparable to fully supervised.",
+      "per_class": "Not in abstract.",
+      "limitations": "Random splits unknown (lesion-level leakage risk on HAM10000 is high if not patient-grouped); accuracies implausibly high versus other HAM results; not verified; backbone not ViT-MoCo.",
+      "relevance_to_us": "Low confidence. Do not cite numbers. Only the claim 'SSL + cross-dataset generalization' is a hypothesis to test."
+    },
+    {
+      "id": "E-D7",
+      "identifier": "arXiv:2505.23709 (SLIMP, Christopoulos et al., 2025)",
+      "evidence_level": "ABSTRACT ONLY (openalex)",
+      "ssl_objective": "Nested multimodal contrastive learning: lesion image + lesion metadata + patient-level metadata.",
+      "result": "Improves over other pretraining on downstream lesion classification; numbers not in abstract.",
+      "limitations": "Requires patient metadata that is not diagnosis; not a label-free image-only change; no per-class.",
+      "relevance_to_us": "Context for patient-level positives. Track B (metadata) rather than Track A."
+    },
+    {
+      "id": "E-X1",
+      "identifier": "arXiv:2106.09229 (Chaves, Bissoto, Valle, Avila, 2021; DOI 10.1007/978-3-031-25069-9_11)",
+      "evidence_level": "FULL TEXT",
+      "ssl_objective": "Five SSL candidates compared on ISIC-2019 validation: SimCLR, SwAV, BYOL, InfoMin, MoCo-V2. Then SimCLR systematically: SSL->FT, SSL->SCL->FT (supervised contrastive), SSL->UCL->FT (unsupervised clustering).",
+      "data": "Melanoma vs benign binary (main task). Training: ISIC-2019 splits (Table 1; column semantics not decoded in extracted text, so sizes not reported here). OOD test: ISIC-2020, derm7pt-derm, derm7pt-clinic (clinical), PAD-UFES-20 (melanoma vs AK / Bowen's-type classes). Low-data regimes: 10% (1,480 samples) and 1% (148 samples) of the training set, as stated in text.",
+      "augmentation": "SimCLR heavy augmentation: colour jitter, horizontal/vertical flips, random resized crop, grayscale; Gaussian blur omitted. Input 224x224.",
+      "per_class": "NOT REPORTED. Binary task; AUC only.",
+      "result_table3_Phase A": "AUC on ISIC-19 validation: supervised baseline 94.8 +/- 0.6; SimCLR 95.6 +/- 0.3; SwAV 95.3 +/- 0.6; BYOL 94.6 +/- 0.5; InfoMin 94.4 +/- 0.5; MoCo-V2 93.9 +/- 0.7. MoCo-V2 is the WORST SSL candidate and below the supervised baseline on this split (validation, not held-out test).",
+      "result_Phase B": "Held-out test over 25 measurements (5 hyperparameter configs x 5 replicates). SSL pipelines have higher means/medians and lower variance; no consistent mean advantage among SSL pipelines; double pretraining (SSL->SCL/UCL->FT) reduces variance. Low-data: advantage of SSL grows; double-pretrained best at 1% (148 samples). Exact OOD numbers are in Fig. 2 only, not in the text; not extracted.",
+      "limitations": "Authors state optimisation in Phase A was on the validation split (selection leakage risk). Binary melanoma task, not SCC/BCC. Per-class absent. Fig.-only OOD numbers. Only SimCLR run in Phase B. Score-CAM qualitative only.",
+      "relevance_to_us": "Directly on dermoscopy SSL with an OOD set that includes PAD-UFES-20. The Phase A result is a negative for MoCo-V2 specifically (our objective family). Supports the claim that SSL helps variance most in low-data regimes, which matches our frozen-readout endpoint instability. Also validates heavy colour jitter as a SimCLR default, which E4 would ablate."
+    },
+    {
+      "id": "E-X2",
+      "identifier": "arXiv:2112.12086 (Sirotkin et al., 2021; Self-Supervised Curricular Deep Learning for skin lesion recognition)",
+      "evidence_level": "FULL TEXT (main tables read via extracted text; not every appendix row checked)",
+      "ssl_objective": "Pretext tasks on unlabeled ISIC-2019 only: Relative Location (RL), ODC (online deep clustering), MoCo v2. Single-source and multi-source curricula (ODC -> RL -> MoCo v2 'full curriculum'; reverse order 'anti-curriculum').",
+      "data": "ISIC-2019 8-class multi-class problem (melanoma, nevus, BCC, AK, BKL, DF, VASC, SCC). Metric: accuracy / average per-class accuracy.",
+      "result": "Single-source accuracy: ODC 63.5, RL 69.5, MoCo v2 72.7 (text). Best multi-source curriculum ODC -> MoCo v2 reported 75.44 (row marked '(C)' in the table extract) vs ISIC-2019 challenge winner 72.5 +/- 1.7. Claim: curriculum outperforms individual pretext tasks and ImageNet pretraining.",
+      "per_class": "NOT REPORTED in the parts read. Overall accuracy and per-class average only.",
+      "limitations": "Single run per row (no seed spread visible in extracted text); unclear whether the curriculum gain is larger than seed noise; ImageNet baseline row not confirmed in extracted text; MoCo v2 (not v3); no SCC/BCC breakdown; ISIC-2019 single split.",
+      "relevance_to_us": "The only full-text paper in this search where MoCo-family SSL on DERMATOLOGY images beats the single-task baseline in multi-class accuracy (MoCo v2 72.7 single-source). Supports E1 (second-stage SSL on unlabeled dermatology data) as a mechanism, with an unknown seed variance. Note tension with Chaves (E-X1), where MoCo-V2 was the weakest candidate."
+    },
+    {
+      "id": "E-X3",
+      "identifier": "DOI 10.1016/j.array.2026.101409 (AME-Derm, Array 2026)",
+      "evidence_level": "ABSTRACT ONLY",
+      "result": "HAM10000 lesion-grouped 5-fold CV (matched seeds). AME-Derm exceeds PanDerm by 4.5 points macro-F1 (stated as 6% relative); general-purpose foundation backbone alone gains 2.9 points. Remaining errors concentrated in rare classes (DF, VASC named in abstract). Selective VLM verification raises F1 up to 12 points on the targeted rare class.",
+      "limitations": "Abstract only; PanDerm reference configuration (frozen vs fine-tuned) not visible. Lesion-grouped CV is good practice. Numbers not verified.",
+      "relevance_to_us": "Evidence that PanDerm is not automatically the strongest derm backbone under a grouped protocol, and that rare-class errors dominate. Relevant to Track A rare-class endpoints. Low-confidence numbers."
+    },
+    {
+      "id": "E-X4",
+      "identifier": "arXiv:2108.10048 (Truong, Mohammadi, Lenga, Bayer; ML4H 2021; How Transferable are Self-supervised Features in Medical Image Classification Tasks?)",
+      "evidence_level": "FULL TEXT (partial: linear-eval tables and summary read; dermatology inclusion not verified)",
+      "result": "Frozen linear evaluation across several medical tasks: DINO initialisation consistently outperforms SimCLR, SwAV and ImageNet supervised (about 5-6 pp AUC over SimCLR/SwAV on NIH Chest X-ray S/M subtasks; 7 pp Kappa over SimCLR on APTOS). SwAV beats DINO on one APTOS subtask (3.3 pp AUC).",
+      "limitations": "Chest X-ray, APTOS (retina), PatchCamelyon (histopathology), pneumonia; dermatology datasets not confirmed in the parts read. ViT-S/B DINO used; not MoCo.",
+      "relevance_to_us": "Medical-domain frozen-feature evidence that DINO (self-distillation) beats MoCo-family/SimCLR on linear probes. Our backbone is DINOv2 ViT-B/14 pretrained by MoCo; this supports that the objective, not only the data, matters for frozen readouts. Cross-domain, not derm."
+    },
+    {
+      "id": "E-X5",
+      "identifier": "arXiv:2303.07034 (Pretrained ViTs Yield Versatile Representations For Medical Images)",
+      "evidence_level": "FULL TEXT (Figure 1, Table 3 appendix and text read)",
+      "result": "k-NN (k=200) on frozen features, ISIC2019 recall: ResNet50 random 0.125; ImageNet-supervised ResNet50 0.248, DeiT-S 0.242; ImageNet + in-domain DINO on the target dataset: ResNet50 0.338, DeiT-S 0.637. The text states in-domain DINO ViTs match or beat full supervision.",
+      "limitations": "Median over 5 repetitions per the text, but several rows show std 0.000 (suggests a single or deterministic run); the ISIC2019 metric is recall, not AUC or macro-F1; k-NN readout, not linear; DINO not MoCo; DeiT-S not DINOv2 ViT-B/14. The gap is large enough to be informative even allowing for noise, but it cannot be cited as a precise effect size.",
+      "relevance_to_us": "Strongest frozen-feature signal for in-domain SSL on dermoscopy in this search: in-domain self-supervision roughly doubles-to-triples kNN recall on ISIC2019 for a ViT. Supports E1. Caveat: k-NN, not linear readout, and our baseline (DINOv2 pretrained on natural images, MoCo-adapted) is already stronger than ImageNet-supervised DeiT-S."
+    },
+    {
+      "id": "E-X6",
+      "identifier": "arXiv:2312.02366 (Baharoon et al., Evaluating General Purpose Vision Foundation Models for Medical Image Analysis: DINOv2 on radiology)",
+      "evidence_level": "FULL TEXT (conclusions and tables 3-4 read)",
+      "result": "Frozen-feature linear probes (Table 3, AUC): NIH Chest X-ray supervised ViT-L/16 0.751 vs DINOv2 ViT-B/14 0.755, ViT-L/14 0.763, ViT-g/14 0.759. CheXpert supervised ViT-L/16 0.829 vs DINOv2 ViT-B/14 0.812, ViT-L/14 0.821, ViT-g/14 0.818, i.e. DINOv2 is slightly BELOW supervised ViT-L on CheXpert. Conclusion (authors): DINOv2 is a strong feature extractor across disease classification and organ segmentation.",
+      "limitations": "Radiology only (X-ray, CT, MRI). No dermatology. No MoCo. Authors caution against medical use. Linear results are from a single run in the extracted text, so differences below about 0.01 AUC are not interpretable.",
+      "relevance_to_us": "Context for our backbone (DINOv2 features are useful for medical frozen readouts). Does not address MoCo or derm."
+    },
+    {
+      "id": "E-X7",
+      "identifier": "arXiv:2102.10663 (MedAug: contrastive learning leveraging patient metadata for chest X-ray)",
+      "evidence_level": "FULL TEXT file saved; not fully inspected (keyword search returned no skin/derm content, and numbers not extracted)",
+      "relevance_to_us": "Mechanism reference for E2 (positives drawn across images of the same patient). Chest X-ray only, so not evidence for derm. Not cited for numbers."
+    },
+    {
+      "id": "E-X8",
+      "identifier": "Abstracts only: Kwasigroch et al. 2020 (10.3390/electronics9111930, 35 citations); Yang et al. 2024 (10.1002/ima.23058); Packiamary 2024 (10.1109/icetcs61022.2024.10543421); Jutte et al. 2024 (10.1117/1.jbo.29.11.116003); Divya 2026 (10.17485/ijst/v19i20.314)",
+      "evidence_level": "ABSTRACT ONLY (Kwasigroch's full text not retrievable: MDPI, no OA route without Unpaywall email)",
+      "result": "Kwasigroch 2020: SSL pretraining on unlabelled dermoscopy + transfer outperforms scratch and transfer-only; numbers not in abstract. Yang 2024: hybrid pretext (relational reasoning + mutual information) on DermaMNIST 82.6% accuracy. Packiamary 2024: SimCLR+ResNet-50 on melanoma, 0.92 accuracy (no split protocol; low confidence). Jutte 2024: synthetic-hair benchmark and CNN hair removal preserving lesion detail (no classification metric in abstract). Divya 2026: Canny-based DullRazor + Gray World colour normalisation, 6.8% error reduction on ISIC (unverified).",
+      "relevance_to_us": "Hair removal and colour normalisation have some derm evidence for classification (Divya, abstract only). Synthetic hair (Jutte) gives us a label-free augmentation source for E4, but there is no SSL-specific ablation."
+    },
+    {
+      "id": "E-X9",
+      "identifier": "Bissoto et al. 2019 (CVPRW, DOI 10.1109/cvprw.2019.00335) and 2020 (CVPRW, DOI 10.1109/cvprw50498.2020.00378); Bissoto & Avila 2020 (SIBGRAPI ext, DOI 10.5753/sibgrapi.est.2020.12986)",
+      "evidence_level": "TITLE/METADATA ONLY (crossref; no abstract retrieved)",
+      "relevance_to_us": "Titles indicate that spurious artifacts (rulers, hair, skin-tone patches) inflate dermoscopy performance and that debiasing is hard. Supports E4's diagnostic framing; no numbers used here."
+    },
+    {
+      "id": "E-D8",
+      "identifier": "Haggerty and Chandra vs Azizi cross-check (E-D1 vs E-D2)",
+      "evidence_level": "FULL TEXT (both)",
+      "finding": "Both find SSL-based domain pretraining helps versus ImageNet supervised or ImageNet-only in the 1-3 pp range on fine-tune/linear accuracy. Both lack per-class endpoints. Gains are not uniform (E-D2 2x MICLe ~0; E-D1 further-SSL fine-tune small).",
+      "contradiction_or_null": "Haggerty Table 4: further SSL on SSL-init gives +0.7 pp fine-tune (within SD), while Table 6 linear probe gives +2-3 pp. Gains concentrate on frozen-feature readouts, which is our setting. Single-dataset evidence."
+    },
+    {
+      "id": "E-D9",
+      "identifier": "PubMed/Crossref/OpenAlex items with no usable skin-SSL content",
+      "evidence_level": "EXCLUDED",
+      "items": [
+        "PMID 36462373 SSD-KD (knowledge distillation, not SSL encoder)",
+        "arXiv 2601.12382 / 2609.36400 / 2605.07221 already in literature.json (not re-counted)",
+        "Crossref 10.29245/2767-5092/2024/2.1182 (title only)",
+        "PMID 42661793 FD-YOLO-Skin (detection, contrastive module, abstract only)",
+        "Zhang/Lopes/Sonune/Kallipolitis reviews (state need for self-supervised approaches, no results)"
+      ]
+    }
+  ],
+  "gaps_and_negatives": [
+    "No dermatology SSL paper with per-class SCC vs BCC/AK or melanoma-vs-nevus recall was found at full-text level. Haggerty and Azizi report only overall accuracy.",
+    "Negative/null: Azizi MICLe on 2x ImageNet->Derm gives +0.1 pp (68.30->68.43), within noise.",
+    "Negative/null: Haggerty further SSL on SSL-init fine-tune gains are within 1 SD.",
+    "No primary evidence found for MoCo specifically in dermatology (our exact objective). All SSL-derm evidence is SimCLR or Barlow Twins.",
+    "No primary evidence found for lesion-preserving crops, segmentation-guided views, hair-artifact augmentation, or colour-constancy augmentation in SSL for skin. Azizi's augmentation section is the only related text (colour jitter stated as important, not ablated).",
+    "No primary evidence found for cross-domain dermoscopy->clinical transfer via SSL in our PAD/HAM setting. Azizi uses clinical photos, Haggerty uses dermoscopy-leaning ISIC/UFES mix.",
+    "Chaves et al. 2021 was found in extension search X15 (arXiv 2106.09229) and read in full (E-X1). Its Phase A result puts MoCo-V2 last among five SSL candidates on ISIC-19 validation (93.9 vs 94.8 supervised AUC): a direct negative for our objective family. Chaves 2023 (follow-up) was not found; only the 2021 arXiv / Springer 2023 chapter record exists.",
+    "Chaves et al. OOD numbers (ISIC-2020, derm7pt, PAD-UFES-20) are only in Fig. 2 and were not extracted. Do not cite PAD-UFES numbers from Chaves.",
+    "Kwasigroch 2020 (MDPI, SSL on skin lesions) full text was not retrievable. Only the abstract is used.",
+    "OpenAlex D4 result was not parsed; a relevant hit may exist there. Flagged, not used.",
+    "PanDerm, MONET, Derm Foundation, DermFM-Zero: abstract-only or context; no class-wise numbers used."
+  ],
+  "experiments_ranked": [
+    {
+      "rank": 1,
+      "name": "E1 Continued label-free MoCo pretraining on the dev dermoscopy pool, then frozen readout (domain-adaptive second stage)",
+      "exact_change": "Start from the current DINOv2 ViT-B/14 MoCo checkpoint. Run a second MoCo stage on unlabeled images from ham_dev + pad_adapt ONLY (no HAM holdout, no PAD target_test), short schedule with lower LR. Readout unchanged (balanced LR, grouped CV, seeds 42/43/44).",
+      "evidence_strength": "Moderate-low overall, with the most convergent full-text support of the set. (a) FULL TEXT Haggerty & Chandra: further SSL on task-domain images raised frozen linear probe +2.1 to +3.1 pp (single dataset, Barlow Twins, ResNet-50, 35 runs). (b) FULL TEXT Azizi: ImageNet->Derm beats ImageNet by +1.9 to +3.0 pp (fine-tune, clinical photos). (c) FULL TEXT Sirotkin 2021: MoCo v2 on unlabeled ISIC-2019 gives 72.7% single-source accuracy, and a curriculum with MoCo v2 last reaches ~75.4% (row extracted; seed spread not visible). (d) FULL TEXT ViT k-NN (E-X5): in-domain DINO on ISIC2019 lifts DeiT-S recall 0.242 -> 0.637 (k-NN, std reporting suspicious). Counter-evidence: (e) Chaves 2021 (E-X1) found MoCo-V2 weakest among SSL candidates before the domain-specific step, i.e. the objective choice matters. No per-class data in any of these.",
+      "cost": "Medium-high: one new encoder stage x 3 seeds x 2 resolutions; GPU0 only, after nvidia-smi check.",
+      "risk": "Transductive use of pad_adapt images (dev cohort, label-free) must be declared; must not touch target_test. Could collapse features toward dev-set acquisition artifacts (device/background shortcut, cf. CAMEO abstract). Risk of re-learning mel->nv confusion if tuned on dev.",
+      "not_repeated": "Not the SSL duration/LR arms already tested; this is a second pretraining stage on a different image pool, not a longer run."
+    },
+    {
+      "rank": 2,
+      "name": "E2 Same-lesion positive pairs (MICLe-style) in the MoCo positive/queue construction",
+      "exact_change": "For images sharing a lesion ID or patient ID in the dev cohorts, sample the positive view from a different image of the same lesion instead of only a second augmentation of the same image (keep augmentations). Metadata used only for grouping, never for diagnosis.",
+      "evidence_strength": "Moderate-low for direction, weak for magnitude. FULL TEXT Azizi (Table 2): MICLe +0.6, +1.2, +0.7, +0.1 pp across four configs (mean +1.18 +/- 0.09 per text). ABSTRACT Wang 2025 (paired views of same lesion): outperforms single-view SSL; numbers not verified.",
+      "cost": "Low-medium: no new backbone family; needs grouping table from metadata; 3 seeds.",
+      "risk": "Our data is small: ham_dev 1528 images / 1152 groups (376 extra images); pad_adapt 1134 images / 682 groups (452 extra). Few positive pairs: expected gain likely below noise. Same-lesion positives may suppress lesion-internal variation (e.g., evolution cues) that matters for melanoma.",
+      "not_repeated": "Not the sampler audit (same-component collisions, 0.49%). Different mechanism: positive source, not sampling balance."
+    },
+    {
+      "rank": 3,
+      "name": "E3 Lesion-centred crop sampling with label-free foreground mask and crop-scale sweep in MoCo",
+      "exact_change": "Compute a label-free foreground mask per image (Otsu/saliency on the image, no segmentation labels). Sample the global crops with probability p from lesion-containing boxes; sweep the min crop scale (e.g., 0.08 default vs 0.25 vs 0.4). Readout unchanged.",
+      "evidence_strength": "Weak. No dermatology SSL primary evidence for lesion-centred crops found. Both full-text papers use generic random crops. Mechanism is plausible: E2 (DERM12345 full text, literature.json) shows dysplastic-vs-banal nevus confusion is the main hard failure, which is a morphology/border cue at lesion scale.",
+      "cost": "Low: mask computation plus 1-2 encoder runs.",
+      "risk": "Unsupervised masks can fail on hair, vignetting, rulers, and bright skin; masks can crop out peripheral pigment/satellite cues that matter for melanoma. Crop-scale is not in the tested arms list in the brief, so it is new evidence, not a repeat.",
+      "not_repeated": "Brief lists SSL hyperparameter arms (momentum, temperature, L2-SP, LR, freeze, duration) and EMA/prototypes; crop scale and lesion-centring are not listed."
+    },
+    {
+      "rank": 4,
+      "name": "E4 Dermoscopy-appropriate colour/illumination augmentation ablation plus synthetic hair-artifact augmentation",
+      "exact_change": "Ablate MoCo colour jitter strength (e.g., hue jitter off, saturation/brightness reduced) and add a label-free hair overlay augmentation (synthetic dark hair strokes, applied with probability p) to global views only. Readout unchanged.",
+      "evidence_strength": "Weak. FULL TEXT Azizi: strong colour augmentation used and described as important for fine-tuning on clinical photos, but not ablated. No primary evidence for hair augmentation in SSL found. ABSTRACT CAMEO (literature.json): background/device shortcut is a candidate cause of melanoma misses (abstract only).",
+      "cost": "Low-medium: 2 to 3 encoder runs.",
+      "risk": "Colour is diagnostically informative for melanoma (pigment variegation); reducing colour jitter could increase device/colour shortcut learning. Hair augmentation may be learned as a feature and not a nuisance.",
+      "not_repeated": "Not in the tested arms list."
+    }
+  ],
+  "note_on_ranking": "Rank by evidence strength x cost. E1 is the only item with full-text evidence on frozen features, but it is the most expensive and has leakage risk to manage. E2 is cheap but likely below noise at our group sizes. E3 and E4 are untested in dermatology SSL and rest on mechanism, not evidence."
+}

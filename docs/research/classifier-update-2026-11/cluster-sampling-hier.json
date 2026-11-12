@@ -1,0 +1,143 @@
+{
+  "arm": "hierarchical (Vo et al.-style K1=50, K2=5, 250 leaves), source-only hierarchical balance, PAD uniform",
+  "seeds_run": [
+    42
+  ],
+  "status": "LINE_CLOSED",
+  "decision": "Not a consistent improvement overall: HAM mel->NV improves in 3/3 CV seeds at the final checkpoint, but HAM macro-F1 is lower in 3/3, PAD MEL recall is lower in 3/3 and PAD macro-F1 is lower in 3/3. The HAM mel->NV effect is absent at 2000 and 4000. Seeds 43/44 NOT run; awaiting coordinator decision.",
+  "run": {
+    "output": "results/moco-v10-cluster-balanced-20261109/train-hier-padu-s42",
+    "pid": 2200732,
+    "status": "COMPLETE",
+    "steps": 6000,
+    "wall": "about 35 min",
+    "backbone_sha256": "ba685a9b7a90579ffda05f8a2e2438b592d9a49affb7e13c5d018b97929fa505",
+    "checkpoint_steps_verified": [
+      2000,
+      4000
+    ],
+    "threads": "OMP/MKL=4",
+    "gpu": 0,
+    "assignments": "clusters/assignments-hier-k50x5-s42.json"
+  },
+  "files": "scripts/arms/moco_v10_hier_{sampler,selfcheck,padu_runtime}_20261109.py; config-hier-padu-s42.json",
+  "selfcheck": "PASS: coarse shares 0.333/0.335/0.332; sub share 0.501; pad uniform share 0.299 (rows 0.30)",
+  "pad_draw_histogram": {
+    "draws_total": 24000,
+    "distinct_images": 1134,
+    "max_draws_one_image": 36
+  },
+  "endpoints_224_cls4_mean_and_per_cv_seed_delta_vs_fresh_s42_base": {
+    "HAM": {
+      "macro_f1": {
+        "base": 0.6328,
+        "2000": 0.6016,
+        "4000": 0.6256,
+        "6000": 0.6129,
+        "delta_6000_per_cv": [
+          -0.03,
+          -0.015,
+          -0.015
+        ]
+      },
+      "mel_recall": {
+        "base": 0.5365,
+        "2000": 0.5345,
+        "4000": 0.5444,
+        "6000": 0.57,
+        "delta_6000_per_cv": [
+          0.0,
+          0.053,
+          0.047
+        ]
+      },
+      "mel_to_nv": {
+        "base": 0.2347,
+        "2000": 0.2367,
+        "4000": 0.2406,
+        "6000": 0.2051,
+        "delta_6000_per_cv": [
+          -0.03,
+          -0.036,
+          -0.024
+        ],
+        "delta_2000_per_cv": [
+          -0.006,
+          -0.012,
+          0.024
+        ],
+        "delta_4000_per_cv": [
+          0.006,
+          -0.006,
+          0.018
+        ]
+      }
+    },
+    "PAD": {
+      "macro_f1": {
+        "base": 0.6732,
+        "2000": 0.6678,
+        "4000": 0.6687,
+        "6000": 0.6646,
+        "delta_6000_per_cv": [
+          -0.005,
+          -0.008,
+          -0.013
+        ]
+      },
+      "MEL_recall": {
+        "base": 0.7407,
+        "2000": 0.7037,
+        "4000": 0.7037,
+        "6000": 0.6667,
+        "delta_6000_per_cv": [
+          -0.111,
+          -0.037,
+          -0.074
+        ]
+      },
+      "SCC_recall": {
+        "base": 0.2982,
+        "2000": 0.3228,
+        "4000": 0.3018,
+        "6000": 0.3088,
+        "delta_6000_per_cv": [
+          0.011,
+          0.042,
+          -0.021
+        ]
+      },
+      "SCC_to_BCC": {
+        "base": 0.4947,
+        "2000": 0.4877,
+        "4000": 0.4947,
+        "6000": 0.4702,
+        "delta_6000_per_cv": [
+          -0.032,
+          -0.021,
+          -0.021
+        ]
+      }
+    }
+  },
+  "caveats": [
+    "Single training seed (42); CV seeds are not independent training replicates.",
+    "Effect appears only at 6000 steps, not at 2000 or 4000; could be readout or training noise.",
+    "Hierarchical clustering uses only public DINOv2 features; NMI with role was 0.050 (coarse) and 0.038 (leaf); device/site not checked."
+  ],
+  "readouts": "docs/cluster-ssl-src/readouts-hier/ (endpoints-hier.json)",
+  "loss": {
+    "points": 300,
+    "mean_loss_steps_1_500": 0.5231,
+    "mean_loss_steps_5001_6000": 0.1481,
+    "last": [
+      6000,
+      0.151153564453125
+    ]
+  },
+  "closure": {
+    "closed_by": "coordinator (predeclared rule)",
+    "date": "2026-11-09",
+    "decision": "Cluster-balanced line closed: no PhA, no seeds 43/44. HAM macro-F1 below base at 2000/4000/6000 (0.602/0.626/0.613 vs 0.633). HAM mel->NV improves only at 6000, not at 2000/4000. PAD MEL recall worse in 3/3 CV seeds."
+  }
+}

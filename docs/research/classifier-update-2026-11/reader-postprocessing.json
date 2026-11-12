@@ -1,0 +1,94 @@
+{
+  "date": "2026-11-10",
+  "status": "IN PROGRESS: seed 42 exploratory running; success rule predeclared below BEFORE seeds 43/44",
+  "cluster_dir": "/home/jovyan/work/clf1_clinical_reference_20261024/results/moco-v10-phase-b-postproc-20261110",
+  "script": "scripts/postproc_readout.py (self-check PASS); runner scripts/run_jobs.sh; summary scripts/summarize.py",
+  "scope": "Track A, dev cohorts only (HAM ham_dev, PAD pad_adapt). No holdout/target_test opened. CPU only. No labels in any transform.",
+  "label_free_rule": "Every transform (center, power, block/group L2, PCA-whitening with fixed shrinkage) is fitted on the outer-train rows of each fold. Labels touch only the balanced LR and the C selection, as in the protocol. Inner-validation rows enter the unsupervised fit (their features, not labels); no test rows enter any fit.",
+  "protocol": {
+    "readout": "evaluate_overlay_readout protocol: row-L2 -> transform -> row-L2, balanced LR (class_weight=balanced, max_iter=2000), C by inner macro-F1 (argmax predictions), nested grouped folds outer 5 / inner 3, CV seeds 20261025/26/27",
+    "C_grid": [
+      0.3,
+      1.0,
+      3.0,
+      10.0,
+      30.0,
+      100.0
+    ],
+    "shrink_gamma": 0.1,
+    "threads": 3,
+    "concurrency": 4
+  },
+  "featuresets": {
+    "v10-448-cls4_d4": "variants s{seed}-r448 cls4_d4 (3072 dims, D4 TTA)",
+    "v10-224-cls4": "variants s{seed}-r224 cls4 (3072 dims)",
+    "q4096-448-cls4_d4": "queue4096-s{seed} ck6000-r448 cls4_d4",
+    "q4096-224-cls4": "queue4096-s{seed} ck6000-r224 cls4",
+    "v10-448-cls4patch": "variants s{seed}-r448 cls4patch (6144 dims = CLS4 + per-layer patch MEAN). GeM NOT stored, not run (needs GPU re-extraction of patch tokens)"
+  },
+  "arms": {
+    "raw": "baseline: row-L2 only (must reproduce stored readouts)",
+    "center": "subtract outer-train mean, row-L2",
+    "power": "signed sqrt, row-L2",
+    "center_power": "center, signed sqrt, row-L2",
+    "block": "L2 per 768-dim layer block before concatenation (4 blocks for 3072-dim, 8 for cls4patch), then row-L2",
+    "groupl2": "cls4patch only: L2 on the CLS4 half and on the patch-mean half separately, then row-L2",
+    "pcaw128/256/512": "PCA whitening on outer-train rows, top k components, eigenvalues shrunk lambda' = 0.9 lambda + 0.1 mean(lambda), then row-L2",
+    "pcaw_full": "PCA whitening over the full outer-train span (rank = n_train). Not ZCA: the complement of the train span is dropped",
+    "power_pcaw256": "signed sqrt, then PCA whitening k=256 (shrink 0.1), then row-L2"
+  },
+  "predeclared_success_rule": {
+    "written_before": "seeds 43 and 44 are run",
+    "R1_macro_f1": "mean over the 3 CV seeds of delta macro-F1 vs raw (same encoder seed, same featureset) >= +0.005 in BOTH cohorts",
+    "R2_clinical_no_regression": {
+      "HAM": "mel_recall delta >= -0.02 AND mel_to_nv delta <= +0.02",
+      "PAD": "MEL_recall delta >= -0.02 AND SCC_recall delta >= -0.02 AND SCC_to_BCC delta <= +0.02"
+    },
+    "seed42_gate": "PhA and PhB on both cohorts (exploratory). Only gate-passing arms are sent to seeds 43/44",
+    "CONFIRMED": "gate passes on every encoder seed (42, 43, 44) in both cohorts for the same arm and featureset",
+    "NOT_CONFIRMED": "any other outcome, including a seed-42 pass that fails on 43 or 44",
+    "multiplicity": "about 60 arm-featureset cells in seed 42 alone; any seed-42 pass is a candidate, not a finding; the 43/44 confirmation is the guard"
+  },
+  "seed42_exploratory": {
+    "grid": "96 jobs = 5 featuresets x 2 cohorts x arms (10 for 3072-d, 8 for 6144-d cls4patch); all completed",
+    "summary": "cluster results/moco-v10-phase-b-postproc-20261110/summary_s42.json",
+    "gate_pass": [
+      {
+        "featureset": "v10-448-cls4_d4",
+        "arm": "block",
+        "HAM": {
+          "macro_f1_mean": 0.6215,
+          "delta_macro_f1_mean_3cv": 0.0080,
+          "delta_by_cv_seed": [
+            0.0074,
+            0.0147,
+            0.0017
+          ],
+          "mel_to_nv_delta": 0.010,
+          "mel_recall_delta": -0.002
+        },
+        "PAD": {
+          "macro_f1_mean": 0.6836,
+          "delta_macro_f1_mean_3cv": 0.0074,
+          "delta_by_cv_seed": [
+            0.0182,
+            0.0093,
+            -0.0054
+          ],
+          "MEL_recall_delta": 0.0,
+          "SCC_recall_delta": 0.007,
+          "SCC_to_BCC_delta": -0.004
+        },
+        "caveat": "Gain is inside seed-to-seed spread: HAM CV-seed range 0.0017 to 0.0147; PAD gain comes from 2 of 3 CV seeds (third is -0.0054)."
+      }
+    ],
+    "gate_pass_count": 1,
+    "notable_non_passing": "HAM: center_power +0.0175 F1 but mel->NV +0.053 (fails PhB); power +0.0126 with mel->NV +0.032 (fails PhB); q4096-448 power +0.0175/pcaw512 +0.0175 HAM but PAD dF1 <+0.005 or SCC->BCC worse. PAD: center_power/power SCC recall -0.02 to -0.03 (fails PhB); PCA-whitening raises SCC recall (+0.02..+0.10) but SCC->BCC rises or macro-F1 falls (fails PhA and PhB on SCC->BCC for most).",
+    "multiplicity_note": "1 gate pass out of 43 summarized cells (cls4patch extra arms included); under the 43/44 confirmation rule, a seed-42 pass is only a candidate."
+  },
+  "post_hoc_additions": [
+    "C-grid extension to 3000 (raw_cext, block_cext) added AFTER seeing C=100 at the grid border in s42. Exploratory, not part of the predeclared rule; reported separately.",
+    "Seeds 43/44 raw and block run for the single seed-42 gate pass (v10-448-cls4_d4)."
+  ],
+  "results": "seeds 43/44 and cext runs in progress (cluster); see updates below"
+}
