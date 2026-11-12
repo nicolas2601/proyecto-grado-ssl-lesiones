@@ -186,6 +186,7 @@ def _shift_field(image, result):
 
 def test_luminance_shift_has_no_visible_step_anywhere():
     # A 200 px equivalent-diameter lesion: the ramp width is 30 px and the requested slope is 0.49 L*/px.
+    # The bound is 1.0 L*/px, below the ~2 L* just-noticeable difference; 8-bit rounding adds ~0.3 on flat skin.
     image, mask = _scene(size=400, radius=100)
 
     result = simulate_tone(image, mask, 9.73)
