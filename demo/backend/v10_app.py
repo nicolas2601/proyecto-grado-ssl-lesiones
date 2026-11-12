@@ -91,7 +91,7 @@ def create_app(
     app = FastAPI(
         title="DermSSL research API",
         version="10.2.0",
-        description="Research-only MoCo V10 classifier, lesion segmentation and tone simulation endpoints.",
+        description="Research-only MoCo V10 classifier, lesion segmentation and surrounding-skin luminance simulation endpoints.",
         docs_url=None,
     )
     app.state.model_services = services
