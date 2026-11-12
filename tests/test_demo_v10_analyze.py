@@ -16,6 +16,7 @@ from demo.backend.v10_service import MoCoServiceError
 
 SKIN = (200, 150, 120)
 CLASSIFICATION = {"pred": "nv", "confidence": 0.5, "classes": ["nv"], "probs": {"nv": 1.0}, "model_key": "MOCO_HAM7"}
+UNCONFIGURED_SCREENING = {"status": "unavailable", "reason": "policy_not_configured"}
 
 
 class FakeMoCo:
@@ -90,7 +91,7 @@ def test_analyze_returns_classification_segmentation_and_photometry():
     assert response.status_code == 200
     assert body["schema"] == "dermssl.analyze.v1"
     assert body["scope"] == "research"
-    assert body["classification"] == CLASSIFICATION
+    assert body["classification"] == {**CLASSIFICATION, "screening": UNCONFIGURED_SCREENING}
     assert body["segmentation"]["status"] == "ok"
     assert body["segmentation"]["reason"] is None
     assert body["segmentation"]["image_width"] == 200
@@ -106,7 +107,7 @@ def test_segmenter_missing_never_fails_the_request():
 
     body = response.json()
     assert response.status_code == 200
-    assert body["classification"] == CLASSIFICATION
+    assert body["classification"] == {**CLASSIFICATION, "screening": UNCONFIGURED_SCREENING}
     assert body["segmentation"]["status"] == "unavailable"
     assert body["segmentation"]["reason"] == "segmenter_error"
     assert body["photometry"]["status"] == "unavailable"

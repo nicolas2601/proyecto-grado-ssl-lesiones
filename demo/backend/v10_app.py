@@ -13,6 +13,7 @@ from PIL import Image
 
 from .analyze_routes import register_analyze_routes
 from .request_limits import InferenceLimits
+from .screening import ScreeningPolicy
 from .segmenter_service import SegmenterService
 from .v10_http import error_response, read_image
 from .v10_report import V10ReportError, build_v10_report
@@ -30,6 +31,7 @@ MODEL_PATTERN = "^(" + "|".join(MODEL_KEYS) + ")$"
 DEFAULT_MODEL = "MOCO_HAM7"
 FRONTEND_ORIGIN = "https://dermssl-phone.vercel.app"
 DEFAULT_SEGMENTER_DIR = "/models/segmenter"
+DEFAULT_SCREENING_DIR = "/models/screening"
 
 
 class _UnconfiguredMoCoService:
@@ -66,6 +68,13 @@ def _default_segmenter() -> SegmenterService:
     )
 
 
+def _default_screening() -> ScreeningPolicy:
+    return ScreeningPolicy(
+        policy_dir=os.getenv("SCREENING_DIR", DEFAULT_SCREENING_DIR),
+        expected_sha256=os.getenv("SCREENING_POLICY_SHA256"),
+    )
+
+
 def _loaded_release(service: Any) -> str | None:
     """The release of the bundle the service actually loaded; None when it is not ready (never a default)."""
     status = service.status()
@@ -86,17 +95,19 @@ def create_app(
     moco_service: Any | None = None,
     report_path: Path | None = None,
     segmenter_service: Any | None = None,
+    screening_service: Any | None = None,
 ) -> FastAPI:
     del repo_root
     release_root = Path(os.getenv("MOCO_RELEASE_ROOT", "/models/v10"))
     report_file = report_path or release_root / "report.json"
     moco = moco_service if moco_service is not None else _default_moco_service(release_root)
     segmenter = segmenter_service if segmenter_service is not None else _default_segmenter()
+    screening = screening_service if screening_service is not None else _default_screening()
     services = {key: moco for key in MODEL_KEYS}
     inference_lock = threading.Lock()
     app = FastAPI(
         title="DermSSL research API",
-        version="10.2.0",
+        version="10.3.0",
         description="Research-only MoCo V10 classifier, lesion segmentation and surrounding-skin luminance simulation endpoints.",
         docs_url=None,
     )
@@ -139,7 +150,8 @@ def create_app(
             service = services.get(model_key)
             if service is None:
                 raise MoCoServiceError("selected model is unavailable")
-            return service.predict(image, model_key=model_key, mode=mode)
+            prediction = service.predict(image, model_key=model_key, mode=mode)
+            return {**prediction, "screening": screening.annotate(prediction)}
 
     def run_exclusive(function: Any, *args: Any) -> Any:
         with inference_lock:
@@ -153,7 +165,11 @@ def create_app(
         model: str = Query(default=DEFAULT_MODEL, pattern=MODEL_PATTERN),
     ) -> dict[str, Any]:
         status = await asyncio.to_thread(get_status, model)
-        return {**status, "segmenter": await asyncio.to_thread(_segmenter_summary, segmenter)}
+        return {
+            **status,
+            "segmenter": await asyncio.to_thread(_segmenter_summary, segmenter),
+            "screening": await asyncio.to_thread(screening.status),
+        }
 
     @app.get("/api/models")
     async def api_models() -> dict[str, Any]:
