@@ -1,7 +1,7 @@
-"""Skin-tone simulation for /api/simulate-tone (research simulation only).
+"""Skin-luminance simulation for /api/simulate-tone (research simulation only).
 
-CIE L* is shifted on skin (non-lesion) pixels only; a* and b* are untouched; L* is clipped
-to [0, 100] and the shortfall is reported. Lesion pixels are restored bit-exact from the source.
+CIE L* of the surrounding skin is shifted on non-lesion pixels only; a* and b* are untouched.
+The realised shift is measured after the sRGB round-trip, so both L* and gamut clipping count. Lesion pixels are restored bit-exact from the source.
 Reuses ``dermssl.fitzpatrick.srgb_to_lab`` (forward) and ``dermssl.circle.lab_to_srgb`` (inverse).
 """
 
@@ -24,6 +24,7 @@ MAX_AREA_FRACTION = 0.90
 MASK_THRESHOLD = 128
 LAB_L_MIN = 0.0
 LAB_L_MAX = 100.0
+GAMUT_TOLERANCE_L = 0.5
 _UINT8_SCALE = 255.0
 
 
@@ -80,11 +81,12 @@ def simulate_tone(rgb: np.ndarray, mask: np.ndarray, delta: float) -> ToneResult
     lab = fz.srgb_to_lab(rgb.astype(np.float64) / _UINT8_SCALE)
     skin = ~mask
     shifted = lab[..., 0] + delta
-    clipped = skin & ((shifted < LAB_L_MIN) | (shifted > LAB_L_MAX))
     out_lab = lab.copy()
     out_lab[..., 0] = np.where(skin, np.clip(shifted, LAB_L_MIN, LAB_L_MAX), lab[..., 0])
     out = np.rint(lab_to_srgb(out_lab) * _UINT8_SCALE).astype(np.uint8)
     out[mask] = rgb[mask]
+    realised = fz.srgb_to_lab(out.astype(np.float64) / _UINT8_SCALE)[..., 0] - lab[..., 0]
+    clipped = skin & (np.abs(realised - delta) > GAMUT_TOLERANCE_L)
     skin_count = int(skin.sum())
     return ToneResult(
         rgb=out,

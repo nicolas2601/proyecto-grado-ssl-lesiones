@@ -151,3 +151,23 @@ def test_webp_output_is_lossless():
     assert payload[:4] == b"RIFF"
     assert np.array_equal(decoded, image)
     assert base64.b64encode(payload).decode("ascii").startswith("UklGR")
+
+
+def test_clipped_fraction_counts_gamut_clipped_realised_shift():
+    saturated = (0, 0, 255)
+    image = np.full((32, 32, 3), saturated, dtype=np.uint8)
+    mask = np.zeros((32, 32), dtype=bool)
+    mask[0:4, 0:4] = True
+    image[mask] = LESION
+
+    result = simulate_tone(image, mask, 16.0)
+
+    assert result.clipped_fraction > 0.9
+
+
+def test_neutral_skin_is_not_reported_as_clipped():
+    image, mask = _scene()
+
+    result = simulate_tone(image, mask, 8.0)
+
+    assert result.clipped_fraction < 0.01
