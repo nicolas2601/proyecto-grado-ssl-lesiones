@@ -158,7 +158,7 @@ def test_segment_returns_mask_and_largest_component_contour(tmp_path):
     identity = result.payload["identity"]
     assert identity["model_sha256"] and identity["model_id"] == "dermlip-resnet34-unet-student"
     assert identity["release"] is None
-    assert "supervision" not in identity
+    assert set(identity) == {"model_id", "run", "release", "model_sha256", "input_size"}
     mask_png = base64.b64decode(result.payload["mask_png_base64"])
     assert set(np.unique(np.asarray(Image.open(io.BytesIO(mask_png))))) <= {0, 255}
 
