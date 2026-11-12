@@ -171,3 +171,41 @@ def test_neutral_skin_is_not_reported_as_clipped():
     result = simulate_tone(image, mask, 8.0)
 
     assert result.clipped_fraction < 0.01
+
+
+def _shift_field(image, result):
+    before = _lab(image)[..., 0]
+    after = _lab(result.rgb)[..., 0]
+    return after - before
+
+
+def test_luminance_shift_has_no_step_at_the_lesion_boundary():
+    image, mask = _scene(size=120, radius=20)
+
+    result = simulate_tone(image, mask, 8.0)
+
+    shift = _shift_field(image, result)
+    dx = np.abs(np.diff(shift, axis=1))
+    dy = np.abs(np.diff(shift, axis=0))
+    assert max(dx.max(), dy.max()) < 2.5, "hard edge: a step of the full delta at the mask boundary"
+
+
+def test_far_skin_still_receives_the_full_delta():
+    image, mask = _scene(size=160, radius=20)
+
+    result = simulate_tone(image, mask, 8.0)
+
+    shift = _shift_field(image, result)
+    far = np.zeros_like(mask)
+    far[:5, :] = True
+    far[-5:, :] = True
+    assert np.median(shift[far]) == pytest.approx(8.0, abs=1.0)
+
+
+def test_protected_margin_is_untouched_by_the_full_step_and_lesion_stays_exact():
+    image, mask = _scene(size=120, radius=20)
+
+    result = simulate_tone(image, mask, -8.0)
+
+    assert np.array_equal(result.rgb[mask], image[mask])
+    assert result.lesion_preserved is True
