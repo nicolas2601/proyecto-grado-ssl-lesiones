@@ -235,7 +235,7 @@ def build_eval_input(
 
     ``lesion`` must be a :class:`~dermssl.mask_conditions.TrackedMask`, not a
     bare array: that is what keeps a reference mask from being passed in and
-    quietly turning C1 into a supervised experiment.
+    quietly turning C1 into a label-trained experiment.
     """
     if not isinstance(lesion, TrackedMask):
         raise TypeError(

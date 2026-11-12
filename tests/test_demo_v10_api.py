@@ -175,7 +175,7 @@ def test_api_does_not_serve_report_that_differs_from_pinned_bundle(tmp_path) -> 
     report_path = tmp_path / "report.json"
     report_path.write_text('{"release":"v10.0.0"}', encoding="utf-8")
     client = TestClient(create_app(
-        moco_service=service, legacy_services={}, report_path=report_path
+        moco_service=service, report_path=report_path
     ))
 
     response = client.get("/api/report")

@@ -215,3 +215,73 @@ el backbone, los pesos iniciales, la semilla, el presupuesto consumido en
 horas-GPU, el numero de imagenes y el hash de la particion. Sin ese archivo
 un `.pt` no es citable: no se sabe con que datos ni con que presupuesto
 salio.
+
+## 6. V9: clasificador completo en tres formatos
+
+El contrato de V9 distingue los backbones históricos de un clasificador completo.
+El checkpoint `*_clean_classifier.pt` incluye backbone, cabeza ajustada, orden de
+clases y receta. No se carga con `try_model.py`: requiere el cargador distribuido
+en `V9_RUNTIME.zip`, que usa `weights_only=True` y carga estricta.
+
+Las recetas son las registradas, sin volver a seleccionar hiperparámetros:
+
+| Brazo | Pesos clean | Características | Corrección | Agregación |
+|---|---|---|---|---|
+| A71 | Promedio de pesos s42/s43 | CLS + atención | Ajuste de logits 0,5 | Media de probabilidades D4, ocho vistas |
+| B71 | s42 | CLS de los últimos cuatro bloques | Cabeza balanceada | Media de probabilidades D4, ocho vistas |
+
+Los tres formatos deben conservar esta receta. El grafo ONNX calcula una vista
+normalizada; `runner.py` aplica las ocho vistas y promedia sus probabilidades.
+Cargar solamente el grafo y omitir ese paso no reproduce el paquete completo.
+La imagen Docker contiene el runtime ONNX completo; no descarga pesos al arrancar.
+
+### Prueba de PyTorch
+
+En un directorio nuevo, descomprimir `V9_RUNTIME.zip` y descargar el checkpoint
+del brazo elegido como `A71/classifier.pt`. Instalar PyTorch y las dependencias
+indicadas en el runtime del release; las versiones verificadas quedan registradas
+en sus manifiestos.
+
+```bash
+gh release download v9.0.0 --repo nicolas2601/proyecto-grado-ssl-lesiones \
+  --pattern A71_clean_classifier.pt --output A71/classifier.pt
+python A71/runner.py --bundle A71 --backend torch --image /ruta/lesion.jpg
+```
+
+### Prueba de ONNX
+
+Descomprimir `A71_clean_onnx_bundle.tar.gz` en otro directorio nuevo. Ese paquete
+incluye grafo, preprocesamiento, receta, manifiesto y runner; no requiere PyTorch.
+
+```bash
+mkdir A71-onnx
+tar -xzf A71_clean_onnx_bundle.tar.gz -C A71-onnx
+python A71-onnx/runner.py --bundle A71-onnx --backend onnx --image /ruta/lesion.jpg
+```
+
+### Prueba de Docker
+
+```bash
+gzip -dc A71_clean_docker_image.tar.gz | docker load
+docker run --rm --network none --read-only --tmpfs /tmp \
+  --mount type=bind,src=/ruta/imagenes,dst=/input,readonly \
+  dermssl-classifier:v9-a71-clean --image /input/lesion.jpg
+```
+
+Para B71, usar los assets y el tag `v9-b71-clean` correspondientes. Cada formato
+devuelve las siete puntuaciones y la clase de mayor puntuación: no un diagnóstico
+ni una probabilidad clínica calibrada. El preprocesamiento mantiene el recorte
+central de 224 píxeles; no introduce corrección EXIF nueva ni segmentación.
+
+### Condiciones de publicación
+
+V9 solo se considera completa cuando sus archivos reales superan las pruebas de
+procedencia, paridad PyTorch/ONNX y ejecución offline de Docker. `SHA256SUMS`, los
+manifiestos y reportes del release son la evidencia; un Dockerfile por sí solo no
+es una imagen probada. Las imágenes clínicas y goldens internos no se distribuyen.
+
+Se reportan por separado la reproducción canónica CUDA AMP y la inferencia FP32
+portable. No se atribuyen automáticamente a FP32 las métricas AMP, ni se usan
+las cifras del A71 original para describir A71 clean. Empaquetar no valida el
+rendimiento en fotos clínicas, piel oscura o pacientes de Santander. La app
+desplegada no se reemplaza como parte de esta entrega.

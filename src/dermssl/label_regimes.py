@@ -2,7 +2,7 @@
 
 Why this module exists
 ----------------------
-The whole point of self-supervised learning is that it should need *fewer*
+The whole point of SSL pretraining is that it should need *fewer*
 labels. To measure that you evaluate the same frozen backbone while giving the
 classifier 1 %, 5 %, 10 %, ... of the training labels. v4 started at 10 %, which
 skips the regimes where SSL usually wins by the widest margin.

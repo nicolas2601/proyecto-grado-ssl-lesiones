@@ -11,7 +11,7 @@ __getitem__ signatures return tensors, not (tensor, target) pairs.
 Normalization uses the ImageNet pixel statistics. This is required for the
 DINOv2 arm (the released weights expect that normalization) and harmless for
 the SimSiam arm. Pixel means/stds carry no label information - the audit
-concern in docs/15 was about label supervision, not about constants.
+concern in docs/15 was about label use, not about constants.
 """
 
 from __future__ import annotations

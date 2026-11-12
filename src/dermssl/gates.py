@@ -3,8 +3,8 @@
 Why this module exists
 ----------------------
 This logic used to live inside the notebook, and that is exactly why it shipped
-with a bug: the self-supervised quality gate averaged the SSL backbone together
-with the supervised baseline it is supposed to beat, so a run where DINOv2 scored
+with a bug: the SSL quality gate averaged the SSL backbone together
+with the label-trained baseline it is supposed to beat, so a run where DINOv2 scored
 0.8005 was reported as 0.794 and failed a 0.80 threshold it had actually cleared.
 Untested code in a notebook cell is still untested code. Moving the gates here
 puts them under ``tests/``.
@@ -76,10 +76,10 @@ def ssl_knn_auc(
     probe: str = "knn",
     ssl_prefix: str = SSL_PREFIX,
 ) -> float:
-    """Mean k-NN AUC of the **self-supervised backbones only**.
+    """Mean k-NN AUC of the **SSL backbones only**.
 
     The bug this function replaces averaged every backbone together. Mixing the
-    supervised baseline into the self-supervised score makes the metric answer a
+    label-trained baseline into the SSL score makes the metric answer a
     question nobody asked, and drags it toward the baseline.
 
     ``fraction=None`` means "the largest label fraction present". Rows with a NaN
@@ -102,11 +102,11 @@ def ssl_knn_auc(
 
 
 def has_architecture_control(backbones: Iterable[str], ssl_prefix: str = SSL_PREFIX) -> bool:
-    """True when a supervised backbone shares the family of an SSL one.
+    """True when a label-trained backbone shares the family of an SSL one.
 
     Without it, a win by DINOv2 (a ViT) over ResNet-50 (a CNN) cannot be
-    attributed to self-supervision rather than to the architecture. The check is
-    name based: an SSL ViT needs a supervised ViT alongside it.
+    attributed to SSL pretraining rather than to the architecture. The check is
+    name based: an SSL ViT needs a label-trained ViT alongside it.
     """
     names = list(backbones)
     ssl_vits = [n for n in names if n.startswith(ssl_prefix) and "vit" in n.lower()]

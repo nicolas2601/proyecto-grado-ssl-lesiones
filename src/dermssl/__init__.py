@@ -1,4 +1,4 @@
-"""dermssl - reusable core of the Objective 2 self-supervised pipeline.
+"""dermssl - reusable core of the Objective 2 SSL pipeline.
 
 Every module here is dependency-light (numpy + standard library) so the logic can
 be unit tested on any machine, with no GPU, no Kaggle session and no network.

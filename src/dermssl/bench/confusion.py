@@ -1,4 +1,4 @@
-"""Confusion matrices of the self-supervised models (docs/33, E4): data, manifest, README, PNG.
+"""Confusion matrices of the SSL models (docs/33, E4): data, manifest, README, PNG.
 
 Only DINOv2 S and B and SimSiam (frozen and fine-tuned) plus A71/B71. Counts come from the
 ``matriz_confusion`` of the committed baseline JSON; v7.1 stores none, so A71/B71 are the

@@ -5,7 +5,7 @@ right mask artifact", the other half answers "is this the right pairing of
 features to a probe". Both are admissibility policy, but they fail for
 different reasons and are consumed by different callers.
 
-C1 is only self-supervised if its masks are, and only comparable to the
+C1 is only SSL if its masks are, and only comparable to the
 published segmentation if the masks come from the published run. Neither fact
 survives as a comment, so both are contracts here.
 
@@ -184,9 +184,9 @@ def check_inference(declared: object) -> dict[str, Any]:
 class MaskSource:
     """Where a mask came from, checked rather than declared.
 
-    C1 is only self-supervised if the masks are. Rather than trusting a caller
+    C1 is only SSL if the masks are. Rather than trusting a caller
     to pass the right array, a mask has to arrive with the manifest of the
-    step-0 artifact, and a manifest from a supervised producer cannot be
+    step-0 artifact, and a manifest from a label-trained producer cannot be
     constructed at all. The SSL rule stops being a paragraph in a plan and
     becomes something the code refuses to run without.
     """

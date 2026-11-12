@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -13,8 +14,16 @@ ENCODER_SHA256 = "fe64610560880e2df1185bf17fbe49e2da46a31e0644ddad76bfa7e8651aab
 CLASSES = {"HAM": ("akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"),
            "PAD": ("ACK", "BCC", "MEL", "NEV", "SCC", "SEK")}
 ROLES = {"HAM": "ham_dev", "PAD": "pad_adapt"}
-META = {"PAD": ("/home/jovyan/work/pad_ufes_20/metadata.csv", "14d145235cedb022548257acb0d84dcd949e2c916f65d2baa7c38ed5339e9527"),
-        "HAM": ("/home/jovyan/work/datos/ham10000/HAM10000_metadata.csv", "06aee5e603d313ba69de38263053c792a1dff030eb9c44a96ceb477ceefb99a5")}
+# Metadata paths are relative to DERMSSL_DATA_ROOT (set it before loading labels).
+META = {"PAD": ("pad_ufes_20/metadata.csv", "14d145235cedb022548257acb0d84dcd949e2c916f65d2baa7c38ed5339e9527"),
+        "HAM": ("ham10000/HAM10000_metadata.csv", "06aee5e603d313ba69de38263053c792a1dff030eb9c44a96ceb477ceefb99a5")}
+
+
+def data_root():
+    root = os.environ.get("DERMSSL_DATA_ROOT")
+    if not root:
+        raise RuntimeError("set DERMSSL_DATA_ROOT to the directory holding the metadata CSVs")
+    return Path(root)
 
 
 def sha256_file(path):
@@ -39,7 +48,8 @@ def load_feature_matrix(path, rows, dimension=3072):
 
 
 def _load_labels(task, rows):
-    path, expected = META[task]
+    rel, expected = META[task]
+    path = data_root() / rel
     if sha256_file(path) != expected:
         raise ValueError("Diagnostic metadata digest mismatch")
     wanted = {r["image_id"] for r in rows}
@@ -100,3 +110,36 @@ def load_development(root, task):
                   "images": len(rows), "components": len(set(groups)),
                   "feature_precision": "CUDA BF16 extraction stored as float32"}
     return features, labels, groups, rows, provenance
+
+
+EXTERNAL_RECIPE = {"mode": "cls4", "size": 224}
+EXTERNAL_LABEL_FIELD = {"HAM": "class_ham", "PAD": "class_pad"}
+
+
+def load_external_rows(manifest, features_dir, status_path, task):
+    """Labelled external rows (e.g. ISIC 2019 non-HAM) usable only with the exact V10 CLS4@224 recipe."""
+    if task not in EXTERNAL_LABEL_FIELD:
+        raise ValueError("Only approved HAM/PAD external tasks are allowed")
+    manifest, features_dir, status_path = Path(manifest), Path(features_dir), Path(status_path)
+    status = json.loads(status_path.read_text())
+    if (status.get("mode") != EXTERNAL_RECIPE["mode"] or status.get("size") != EXTERNAL_RECIPE["size"]
+            or status.get("weights_sha256") != ENCODER_SHA256 or status.get("state") != "COMPLETE"
+            or status.get("manifest_sha256") != sha256_file(manifest)):
+        raise ValueError("External feature recipe mismatch: need CLS4 at 224 px, no TTA, same encoder")
+    rows = [json.loads(line) for line in manifest.read_text().splitlines()]
+    if status.get("rows") != len(rows):
+        raise ValueError("External feature row count differs from manifest")
+    chunks = [np.load(features_dir / f"s{status['seed']}-{status['mode']}-{n:03d}.npy", allow_pickle=False)
+              for n in range(status["chunks"])]
+    x = np.concatenate(chunks).astype(np.float32)
+    if x.shape != (len(rows), 3072) or not np.isfinite(x).all():
+        raise ValueError("External feature matrix differs from CLS4 manifest rows")
+    field = EXTERNAL_LABEL_FIELD[task]
+    kept = [i for i, row in enumerate(rows) if row.get(field) in CLASSES[task]]
+    labels = np.asarray([rows[i][field] for i in kept])
+    groups = np.asarray([rows[i]["lesion_id"] or rows[i]["image_id"] for i in kept])
+    provenance = {"source": "external", "task": task, "classes": list(CLASSES[task]),
+                  "manifest_sha256": sha256_file(manifest), "status_sha256": sha256_file(status_path),
+                  "encoder_sha256": ENCODER_SHA256, "rows_total": len(rows), "rows_used": len(kept),
+                  "dropped_unmapped": len(rows) - len(kept), "components": len(set(groups))}
+    return x[kept], labels, groups, provenance
