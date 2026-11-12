@@ -333,7 +333,7 @@
       "confound_diagnostic": "OFFLINE ONLY (never used in training): NMI between clusters and acquisition metadata (device/phase/site) on ham_dev and pad_adapt. If clusters mostly encode acquisition (high NMI, to be set by the SSL engineer), PhA can only re-balance acquisition, not disease classes. Discard the arm in that case.",
       "expected_effect": "Modest. Mechanism: rare visual modes get more gradient steps. Probability (subjective, ~30%) of a seed-consistent gain on melanoma recall (HAM mel recall, PAD MEL recall) with macro-F1 non-decreasing; ~60% chance the effect is within the seed noise of the brief's readout (no change). Low chance of large gains (>3 pp) on SCC.",
       "compute": "Feature pass over the pool every 5 epochs (forward only) + KMeans on N x 128 (CPU seconds for N in the low thousands; check the pool size before estimating GPU time). No extra training FLOPs. Use GPU0 for the pass; CPU readouts <=3 BLAS threads.",
-      "arms": "A: uniform (baseline, already measured) | B: alpha=0.5 | C: alpha=1.0. Seeds 42/43/44 at 224 px, 1 view; compare with baseline refit in the same environment. Endpoints as in AGENCY_BRIEF.md.",
+      "arms": "A: uniform (baseline, already measured) | B: alpha=0.5 | C: alpha=1.0. Seeds 42/43/44 at 224 px, 1 view; compare with baseline refit in the same environment. Endpoints as in the internal research brief.",
       "self_checks": [
         "Sampler weights sum to 1; sampled cluster histogram matches predicted p within 3% over 10k draws.",
         "Same seed reproduces identical sampled indices.",
