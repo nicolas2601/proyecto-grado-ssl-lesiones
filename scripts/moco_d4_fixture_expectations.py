@@ -6,18 +6,16 @@ Run where the encoder and hub code exist. Writes parity-fixtures.json next to th
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
 
-import numpy as np
 import torch
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from dermssl.release import moco_d4, torch_convert  # noqa: E402
+from dermssl.release import moco_d4  # noqa: E402
 from dermssl.release.moco_head_fit import reader_probabilities  # noqa: E402
 from dermssl.release.moco_inputs import ENCODER_SHA256, sha256_file  # noqa: E402
 from dermssl.release.moco_preprocess import preprocess_image  # noqa: E402

@@ -9,7 +9,6 @@ sealed          one-shot: score ham_holdout/pad_test with reference A (224 CLS4,
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
