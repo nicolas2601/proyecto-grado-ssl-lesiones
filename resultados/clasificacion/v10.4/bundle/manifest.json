@@ -1,0 +1,111 @@
+{
+  "backbone_sha256": "fe64610560880e2df1185bf17fbe49e2da46a31e0644ddad76bfa7e8651aab1e",
+  "feature_dim": 3072,
+  "files": {
+    "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "LICENSE-WEIGHTS": "7fd43d02027f4d33e2e472087da7a4031cabcfe951810f1c5e825ddc4dd5d063",
+    "classifier.pt": "6bcc8a0a847f314f448c2121d790d86dcf4de77388664ff7c9ac1846ef196a6d",
+    "code/dermssl/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "code/dermssl/release/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "code/dermssl/release/moco_bundle.py": "0b64f75da665cc7ae1f51396a606b025aa856308297b3ecfaa12945806f9bc17",
+    "code/dermssl/release/moco_d4.py": "f1f88deff82c07eec67b933ded1940b99dba82c38b4a3c48e99e19d909ffbc00",
+    "code/dermssl/release/moco_preprocess.py": "b55f6275489ac87a78a78c6e54cfb654408dc9283af53d942c63a3359a4b4545",
+    "code/dermssl/release/plain_dinov2.py": "a4f1f09e1a65de5bfb8744050436bf214d049f3a2dd5f0b934327c6458ff1e9b",
+    "fixtures/synthetic-0.png": "16a46d7dd9ad553583f272d16926c7705aa8b4c5b5f05951095b127c5c35f97b",
+    "fixtures/synthetic-1.png": "7526d7289b79477fc642d5fdb31809cec45b2283f1d77a6d2f97524c750b12b8",
+    "fixtures/synthetic-2.png": "e7bbadb2e4793aeb108d7423afc02c5969161a739622d50d3e474e96296308ee",
+    "fixtures/synthetic-3.png": "c4d9d7759dacd67b018d2e3a50d96e406c1f421df88582512ced4e8818a02edd",
+    "fixtures/synthetic-4.png": "ca55f50807efb4c5a66f16e2c9e0cce41cbc40e84560aa4f1fddd404f1c894f2",
+    "fixtures/synthetic-5.png": "a0e529d63ae438c0a80b9f314ae183241c04865527e67b2465f36ed881607512",
+    "heads/HAM-reader.json": "6765f3076367bd1dc571e9a2971d064d8686cd8baeb18e97918ea9716da5cb88",
+    "heads/PAD-reader.json": "e1fa6399a38958c0f8b573f8ffb8b32f838fe1f3962c5afccaf9ad3b6fe93948",
+    "model.onnx": "7b3b7338695b19bd931e89703d3780ecc4bd1554ecf6d13928353a341d168ec7",
+    "parity-fixtures.json": "d73ffb743bd3719349423b9562dff2de1acfa97f5bbcfe94dca1acab0c81cf00",
+    "preprocess.py": "b55f6275489ac87a78a78c6e54cfb654408dc9283af53d942c63a3359a4b4545",
+    "provenance.json": "479e0789506758bae3e3daa28fa73548cdc6d8f2bf4151750340905ed07aa399",
+    "requirements-torch.txt": "8b77a4215125f34b76805d0b2f0ad75da95526d60b8e6919cbccaf070f196505",
+    "runner.py": "77f4bd21319a2072e65aa8a1e9b83bc92eeb674053f530c7d0d02e8855659fa5",
+    "validation.json": "2c2e857f84a525559b7dea1a884504164f12b587d1be673c913ea067f5965ed2"
+  },
+  "input": {
+    "dtype": "float32",
+    "name": "pixel_values",
+    "shape": [
+      "batch",
+      3,
+      448,
+      448
+    ]
+  },
+  "preprocessing": {
+    "color_mode": "RGB",
+    "crop": null,
+    "exif_transpose": true,
+    "interpolation": "PIL.BICUBIC",
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "resize": [
+      448,
+      448
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "recipe": {
+    "features": "cls4",
+    "layer_norm": true,
+    "layers": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "normalization": "row_l2",
+    "prior": false,
+    "resolution": 448,
+    "softmax_temperature": 1.0,
+    "standard_scaler": false,
+    "tau": 0.0,
+    "tta": "d4-mean",
+    "views": 8
+  },
+  "release": "v10.4.0",
+  "schema": "dermssl.moco-bundle.v2",
+  "scope": "v10.4.0: same frozen MoCo V10 s42 encoder and D4 recipe as v10.1.0; the HAM7 head is a multi-domain linear reader (dermoscopic HAM/ISIC 2019 + clinical PAD-UFES-20/MILK10k rows). PAD6 head unchanged. Research prototype, not a medical device.",
+  "seed": 42,
+  "source_commit": "1342e2ff4d5d96d1c1c132281dcbfc0052d24c88",
+  "tasks": {
+    "HAM": {
+      "classes": [
+        "akiec",
+        "bcc",
+        "bkl",
+        "df",
+        "mel",
+        "nv",
+        "vasc"
+      ],
+      "model_key": "MOCO_HAM7",
+      "output_name": "ham7_probabilities"
+    },
+    "PAD": {
+      "classes": [
+        "ACK",
+        "BCC",
+        "MEL",
+        "NEV",
+        "SCC",
+        "SEK"
+      ],
+      "model_key": "MOCO_PAD6",
+      "output_name": "pad6_probabilities"
+    }
+  },
+  "views": 8
+}
