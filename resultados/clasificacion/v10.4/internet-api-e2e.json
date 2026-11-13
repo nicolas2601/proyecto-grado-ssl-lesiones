@@ -1,0 +1,51 @@
+{
+ "candidate_v10.4": {
+  "confusion": {
+   "akiec->akiec": 7,
+   "akiec->bcc": 4,
+   "akiec->bkl": 4,
+   "akiec->mel": 1,
+   "bcc->akiec": 2,
+   "bcc->bcc": 13,
+   "bcc->bkl": 1,
+   "bcc->mel": 4,
+   "bcc->nv": 1,
+   "bkl->akiec": 2,
+   "bkl->bkl": 2,
+   "bkl->nv": 1,
+   "mel->akiec": 2,
+   "mel->bcc": 1,
+   "mel->bkl": 1,
+   "mel->mel": 12,
+   "mel->nv": 2,
+   "mel->vasc": 1,
+   "nv->akiec": 1,
+   "nv->bkl": 2,
+   "nv->df": 1,
+   "nv->mel": 2,
+   "nv->nv": 9
+  },
+  "n": 76,
+  "release": "v10.4.0"
+ },
+ "production_v10.3_head_v10.1": {
+  "confusion": {
+   "akiec->mel": 2,
+   "akiec->nv": 14,
+   "bcc->bcc": 8,
+   "bcc->bkl": 2,
+   "bcc->mel": 2,
+   "bcc->nv": 9,
+   "bkl->bkl": 2,
+   "bkl->nv": 3,
+   "mel->bcc": 1,
+   "mel->mel": 2,
+   "mel->nv": 16,
+   "nv->bkl": 1,
+   "nv->mel": 1,
+   "nv->nv": 13
+  },
+  "n": 76,
+  "release": "v10.1.0"
+ }
+}

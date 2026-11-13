@@ -1,0 +1,62 @@
+{
+  "schema": "dermssl.screening-policy.v1",
+  "rule_id": "melanoma-priority-v1",
+  "release": "v10.4.0",
+  "model_sha256": "7b3b7338695b19bd931e89703d3780ecc4bd1554ecf6d13928353a341d168ec7",
+  "manifest_sha256": "6ed9dc5b776394de9c6d8b0dd364e3df57b20f0faa0bdfdb7edb43a14d4732c0",
+  "scope": "HAM7: offset selected on the MILK10k dev split (never used to fit the v10.4.0 reader). PAD6: unchanged v10.1.0 head and offset. Scores are not clinical probabilities.",
+  "heads": {
+    "MOCO_HAM7": {
+      "task": "HAM",
+      "target": "mel",
+      "log_offset": 0.25,
+      "head_sha256": "6765f3076367bd1dc571e9a2971d064d8686cd8baeb18e97918ea9716da5cb88",
+      "development": {
+        "at_zero": {
+          "target_recall": 0.6325,
+          "target_to_nevus": 0.1145,
+          "nevus_recall": 0.5753,
+          "target_precision": 0.5147,
+          "target_alert_rate": 0.1033,
+          "macro_f1": 0.578
+        },
+        "nested": {
+          "target_recall": 0.6566,
+          "target_to_nevus": 0.1084,
+          "nevus_recall": 0.5418,
+          "target_precision": 0.4698,
+          "target_alert_rate": 0.1175,
+          "macro_f1": 0.5679
+        }
+      }
+    },
+    "MOCO_PAD6": {
+      "task": "PAD",
+      "target": "MEL",
+      "log_offset": 0.5,
+      "head_sha256": "e1fa6399a38958c0f8b573f8ffb8b32f838fe1f3962c5afccaf9ad3b6fe93948",
+      "development": {
+        "at_zero": {
+          "target_recall": 0.7407,
+          "target_to_nevus": 0.0494,
+          "nevus_recall": 0.7874,
+          "target_precision": 0.6743,
+          "target_alert_rate": 0.0262,
+          "macro_f1": 0.6785
+        },
+        "nested": {
+          "target_recall": 0.7407,
+          "target_to_nevus": 0.0494,
+          "nevus_recall": 0.7845,
+          "target_precision": 0.6004,
+          "target_alert_rate": 0.0294,
+          "macro_f1": 0.6689
+        }
+      }
+    }
+  },
+  "evidence": {
+    "report_sha256": "152dc43072dd1b12b1a8278d4ea0d92a4b340f114260005f978e53757ce19510",
+    "rule_sha256": "e4061f9d3715e3ede0ca85118f9b9398f67c4f956f9769ebb0f8a9ebbb48a1c9"
+  }
+}
