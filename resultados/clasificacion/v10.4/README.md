@@ -33,6 +33,28 @@ most 0.018 in probability on the checked images, with the same argmax.
   (`SSL-ARMS.md`).
 - Per-modality feature centering, even with the true modality: no gain (`scripts/research/nevus_fix/center_test.py`).
 
+## Follow-up arms (2026-11-13, after release)
+
+Tables in `followup/FOLLOWUP.md` (generated from the JSON files next to it). Decisions:
+
+- Reader capacity is not the bottleneck. Per-class logit offsets lose under a nested estimate; the
+  MLP reader's milk_dev score is inflated by picking its epoch on milk_dev and it drops on most
+  external sets. Not adopted.
+- Extra ISIC Archive clinical photos (501 rows left after removing MILK10k, PAD-UFES-20 and test
+  lesions; `followup/isic-clinical-report.md`) raise the milk_dev score within noise and push DDI
+  nevi to melanoma (DDI nevus recall falls). Not adopted.
+- Training rows from DDI or BOSQUE (5-fold grouped cross-validation) raise their balanced accuracy
+  but drop DDI melanoma recall to near zero. The DDI Research Use Agreement also bars derivative
+  works and publication, so DDI stays a test set only.
+- View study: the shipped preprocessing squashes the whole photo to 448 × 448, so lesions in wide
+  web photos are small. A second, zoomed view (centre square, 70% of the short side) combined by
+  minimum entropy has the best milk_dev score of every arm and raises the reviewed web set; it does
+  not move DDI or nevus recall. It doubles classifier compute, which on the 2-vCPU production host
+  means about 17 s → 34 s per photo, so it is documented, not deployed.
+- Nevus recall versus nevus prior: recovering the old nevus recall on the web set needs a nevus
+  offset that turns most melanomas into nevi again (`nv-priority-curve.json`). The shipped operating
+  point is kept.
+
 ## Limits
 
 - DDI stays weak (bacc 0.35): many DDI diagnoses fall outside the seven classes and skin tones V-VI

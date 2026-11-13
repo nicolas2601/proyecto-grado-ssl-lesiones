@@ -104,6 +104,13 @@ def internet(path=W / "nevus-fix-20261113/internet/labels.csv"):
     return out
 
 
+def isic_clin(path=W / "nevus-fix-20261113/isic-clinical/rows.csv"):
+    """ISIC Archive clinical photos outside MILK10k and PAD-UFES-20 (training only)."""
+    with Path(path).open(newline="") as stream:
+        return {r["isic_id"]: (r["label"], "clin", r["lesion_id"] or r["isic_id"])
+                for r in csv.DictReader(stream) if r["label"] in U8}
+
+
 SOURCES = {"ham_fit": ham, "ham_dev": ham, "ham_holdout": ham, "isic2019_noham": isic2019,
            "pad_adapt": pad, "pad_test": pad, "milk": milk, "ddi": ddi, "bosque": bosque, "fitz": fitz,
-           "internet": internet}
+           "internet": internet, "isic_clin": isic_clin}
