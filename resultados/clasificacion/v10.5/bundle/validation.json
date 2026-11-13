@@ -1,0 +1,47 @@
+{
+ "passed": true,
+ "resolution": 448,
+ "views": 1,
+ "samples": 6,
+ "checks": [
+  {
+   "form": "pytorch",
+   "task": "HAM",
+   "passed": true,
+   "normalized": true,
+   "max_abs_diff": 3.5762786865234375e-07,
+   "argmax_equal": true,
+   "tolerance": 0.0001
+  },
+  {
+   "form": "pytorch",
+   "task": "PAD",
+   "passed": true,
+   "normalized": true,
+   "max_abs_diff": 0.0,
+   "argmax_equal": true,
+   "tolerance": 0.0001
+  },
+  {
+   "form": "onnx",
+   "task": "HAM",
+   "passed": true,
+   "normalized": true,
+   "max_abs_diff": 1.2814998626708984e-06,
+   "argmax_equal": true,
+   "tolerance": 0.0001
+  },
+  {
+   "form": "onnx",
+   "task": "PAD",
+   "passed": true,
+   "normalized": true,
+   "max_abs_diff": 1.296401023864746e-06,
+   "argmax_equal": true,
+   "tolerance": 0.0001
+  }
+ ],
+ "onnx_sha256": "76791dbaef88d0e670581efefcf600fb554d6a2a7ee3dc94753a7dfc8339fd61",
+ "checkpoint_sha256": "0971e9646246f3b5e021661472f106d8dafd608a65bd2f89e345b60db1c1b996",
+ "real_image_drift_scope": "served FP32 ONNX vs offline bf16 single-view features: agreement 0.96-0.99, max |dprob| 0.042 (internet, BOSQUE, DDI)"
+}

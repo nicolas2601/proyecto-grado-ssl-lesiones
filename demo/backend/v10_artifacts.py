@@ -20,8 +20,11 @@ BACKBONE_SHA256 = "fe64610560880e2df1185bf17fbe49e2da46a31e0644ddad76bfa7e8651aa
 # v10.4.0: multi-domain HAM7 reader (dermoscopic + clinical rows) on the same frozen SSL encoder.
 V1_RELEASES = {"v10.0.0": BACKBONE_SHA256}
 V2_RELEASES = {"v10.1.0": BACKBONE_SHA256, "v10.4.0": BACKBONE_SHA256}
+# v10.5.0: same encoder and multi-domain reader recipe with one 448 px view (no D4), 8x less compute.
+V3_RELEASES = {"v10.5.0": BACKBONE_SHA256}
 SCHEMA_V1 = "dermssl.moco-bundle.v1"
 SCHEMA_V2 = "dermssl.moco-bundle.v2"
+SCHEMA_V3 = "dermssl.moco-bundle.v3"
 EXPECTED_RECIPE = {
     "feature": "cls4",
     "layers": [8, 9, 10, 11],
@@ -46,6 +49,7 @@ V2_RECIPE = {
     "tta": "d4-mean",
     "views": 8,
 }
+V3_RECIPE = {**V2_RECIPE, "tta": "none", "views": 1}
 REQUIRED_FILES = {
     "model.onnx",
     "report.json",
@@ -109,6 +113,19 @@ BUNDLE_SPECS = {
         required_files=V2_REQUIRED_FILES,
         report_file=None,
         recipe_error="V10 manifest recipe does not match the v2 D4 contract",
+        optional_files=frozenset({"classifier.pt"}),
+    ),
+    SCHEMA_V3: BundleSpec(
+        schema=SCHEMA_V3,
+        releases=V3_RELEASES,
+        recipe=V3_RECIPE,
+        input_size=448,
+        inference_mode="single_view_448",
+        views=1,
+        head_ext="json",
+        required_files=V2_REQUIRED_FILES,
+        report_file=None,
+        recipe_error="V10 manifest recipe does not match the v3 single-view contract",
         optional_files=frozenset({"classifier.pt"}),
     ),
 }

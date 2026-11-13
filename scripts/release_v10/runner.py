@@ -17,7 +17,7 @@ TASKS = {"HAM": {"classes": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
                  "output_name": "pad6_probabilities", "model_key": "MOCO_PAD6"}}
 
 
-SCHEMAS = ("dermssl.moco-bundle.v1", "dermssl.moco-bundle.v2")
+SCHEMAS = ("dermssl.moco-bundle.v1", "dermssl.moco-bundle.v2", "dermssl.moco-bundle.v3")
 DEFAULT_SIZE = 224
 
 
@@ -59,7 +59,9 @@ def input_size(manifest):
 
 
 def load_torch_model(root, schema):
-    if schema == "dermssl.moco-bundle.v2":
+    if schema == "dermssl.moco-bundle.v3":
+        from dermssl.release.moco_single import load_checkpoint
+    elif schema == "dermssl.moco-bundle.v2":
         from dermssl.release.moco_d4 import load_checkpoint
     else:
         from dermssl.release.moco_bundle import load_checkpoint

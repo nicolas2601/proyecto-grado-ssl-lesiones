@@ -52,3 +52,14 @@ def test_input_size_comes_from_the_manifest_and_defaults_to_224():
     assert runner.input_size({}) == 224
     with pytest.raises(ValueError, match="input shape"):
         runner.input_size({"input": {"shape": ["batch", 3, 448, 224]}})
+
+
+def test_single_view_bundle_schema_is_accepted_and_loads_the_v3_checkpoint(tmp_path, monkeypatch):
+    document = {"schema": "dermssl.moco-bundle.v3", "release": "v10.5.0", "tasks": runner.TASKS, "files": {}}
+    (tmp_path / "manifest.json").write_text(json.dumps(document))
+    assert runner.verify_bundle(tmp_path)["schema"] == "dermssl.moco-bundle.v3"
+    from dermssl.release import moco_single
+    calls = []
+    monkeypatch.setattr(moco_single, "load_checkpoint", lambda path: calls.append(path) or ("model", {}))
+    assert runner.load_torch_model(tmp_path, "dermssl.moco-bundle.v3") == "model"
+    assert calls == [tmp_path / "classifier.pt"]

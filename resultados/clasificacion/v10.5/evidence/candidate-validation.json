@@ -1,0 +1,441 @@
+{
+  "passed": true,
+  "candidate_base": "http://127.0.0.1:3204",
+  "checks": [
+    {
+      "name": "health 200 ready MOCO_HAM7",
+      "passed": true,
+      "detail": {
+        "status": 200,
+        "body": {
+          "status": "ready",
+          "model_key": "MOCO_HAM7",
+          "release": "v10.5.0"
+        }
+      }
+    },
+    {
+      "name": "status identity v10.5.0 + pinned sha256s",
+      "passed": true,
+      "detail": {
+        "release": "v10.5.0"
+      }
+    },
+    {
+      "name": "status recipe 448 single view",
+      "passed": true,
+      "detail": {
+        "features": "cls4",
+        "layer_norm": true,
+        "layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "normalization": "row_l2",
+        "prior": false,
+        "resolution": 448,
+        "softmax_temperature": 1.0,
+        "standard_scaler": false,
+        "tau": 0.0,
+        "tta": "none",
+        "views": 1
+      }
+    },
+    {
+      "name": "status screening ready with pinned v10.5 policy",
+      "passed": true,
+      "detail": {
+        "ready": true,
+        "reason": "ready",
+        "rule_id": "melanoma-priority-v1",
+        "sha256": "f1eb5561a154b2e7b8831239e038c96c75a78b412a392f95fbcfde5650965ce7"
+      }
+    },
+    {
+      "name": "status segmenter ready v10.2.0 pinned",
+      "passed": true,
+      "detail": {
+        "model_id": "dermlip-resnet34-unet-student",
+        "run": "abl029-resnet34-ima6-s43",
+        "release": "v10.2.0",
+        "model_sha256": "fd3ebedfc7647f4e4d1684bf6593b457d54559c320196868f4dd1490f0292c84",
+        "input_size": 224
+      }
+    },
+    {
+      "name": "models lists only MOCO_HAM7, MOCO_PAD6",
+      "passed": true,
+      "detail": [
+        "MOCO_HAM7",
+        "MOCO_PAD6"
+      ]
+    },
+    {
+      "name": "predict 200 for public image",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "parity 6 fixtures x 2 tasks max|dprob|<=1e-4",
+      "passed": true,
+      "detail": {
+        "calls": 12,
+        "failed": 0,
+        "max_abs_diff": 1.1346321105998314e-06
+      }
+    },
+    {
+      "name": "analyze 200 schema dermssl.analyze.v1",
+      "passed": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "analyze classification == predict (same image, MOCO_HAM7)",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "segmentation status ok, contour within mask bounds",
+      "passed": true,
+      "detail": {
+        "status": "ok",
+        "points": 66,
+        "mask": [
+          512,
+          378
+        ]
+      }
+    },
+    {
+      "name": "segmentation mask_png decodes to declared dims",
+      "passed": true,
+      "detail": {
+        "decoded": [
+          512,
+          378
+        ],
+        "declared": [
+          512,
+          378
+        ]
+      }
+    },
+    {
+      "name": "segmentation identity v10.2.0 pinned",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "photometry ok or indeterminate with reason",
+      "passed": true,
+      "detail": {
+        "status": "ok",
+        "reason": null
+      }
+    },
+    {
+      "name": "timing_ms present",
+      "passed": true,
+      "detail": {
+        "classification": 2006,
+        "segmentation": 200,
+        "photometry": 63
+      }
+    },
+    {
+      "name": "analyze p50 wall <= 8 s (3 sequential)",
+      "passed": true,
+      "detail": 2.35
+    },
+    {
+      "name": "2 concurrent analyze: queued or 429 INFERENCE_BUSY, no 5xx",
+      "passed": true,
+      "detail": [
+        {
+          "status": 200,
+          "wall_s": 4.32,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wall_s": 4.6,
+          "error": null
+        }
+      ]
+    },
+    {
+      "name": "tone delta 0 pixels identical to original",
+      "passed": true,
+      "detail": {
+        "status": 200,
+        "shape": [
+          443,
+          600,
+          3
+        ]
+      }
+    },
+    {
+      "name": "tone delta 4.86 200 lesion_pixels_preserved",
+      "passed": true,
+      "detail": {
+        "status": 200,
+        "clipped_fraction": 0.0,
+        "wh": [
+          600,
+          443
+        ]
+      }
+    },
+    {
+      "name": "tone delta -4.86 200 lesion_pixels_preserved",
+      "passed": true,
+      "detail": {
+        "status": 200,
+        "clipped_fraction": 0.0,
+        "wh": [
+          600,
+          443
+        ]
+      }
+    },
+    {
+      "name": "tone delta 9.73 200 lesion_pixels_preserved",
+      "passed": true,
+      "detail": {
+        "status": 200,
+        "clipped_fraction": 0.007,
+        "wh": [
+          600,
+          443
+        ]
+      }
+    },
+    {
+      "name": "tone delta -9.73 200 lesion_pixels_preserved",
+      "passed": true,
+      "detail": {
+        "status": 200,
+        "clipped_fraction": 0.0,
+        "wh": [
+          600,
+          443
+        ]
+      }
+    },
+    {
+      "name": "tone delta 17 -> 422 INVALID_DELTA",
+      "passed": true,
+      "detail": {
+        "status": 422,
+        "code": "INVALID_DELTA"
+      }
+    },
+    {
+      "name": "tone garbage mask -> 422 INVALID_MASK",
+      "passed": true,
+      "detail": {
+        "status": 422,
+        "code": "INVALID_MASK"
+      }
+    },
+    {
+      "name": "empty file -> 400",
+      "passed": true,
+      "detail": {
+        "status": 400,
+        "code": "INVALID_IMAGE"
+      }
+    },
+    {
+      "name": "text/plain -> 415",
+      "passed": true,
+      "detail": {
+        "status": 415,
+        "code": "UNSUPPORTED_MEDIA_TYPE"
+      }
+    },
+    {
+      "name": "missing file -> 422",
+      "passed": true,
+      "detail": {
+        "status": 422
+      }
+    },
+    {
+      "name": "file > 10 MiB -> 413",
+      "passed": true,
+      "detail": {
+        "status": 413,
+        "bytes": 11010048,
+        "code": "IMAGE_TOO_LARGE"
+      }
+    },
+    {
+      "name": "retired model A71 on /api/analyze -> 422",
+      "passed": true,
+      "detail": {
+        "status": 422
+      }
+    },
+    {
+      "name": "retired model A71 on /api/predict -> 422",
+      "passed": true,
+      "detail": {
+        "status": 422
+      }
+    },
+    {
+      "name": "security/CORS headers equal to prod :3200",
+      "passed": true,
+      "detail": {
+        "health": {},
+        "cors-preflight": {}
+      }
+    }
+  ],
+  "parity": [
+    {
+      "fixture": "fixtures/synthetic-0.png",
+      "task": "HAM",
+      "seconds": 1.96,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 4.489243924615631e-07,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-0.png",
+      "task": "PAD",
+      "seconds": 2.14,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 3.9288711550788946e-07,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-1.png",
+      "task": "HAM",
+      "seconds": 1.99,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 4.5630657300355267e-07,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-1.png",
+      "task": "PAD",
+      "seconds": 2.01,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 1.0539770126383186e-06,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-2.png",
+      "task": "HAM",
+      "seconds": 2.41,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 9.173660278083418e-07,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-2.png",
+      "task": "PAD",
+      "seconds": 1.93,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 3.6344909670749104e-07,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-3.png",
+      "task": "HAM",
+      "seconds": 1.95,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 4.253086447712773e-07,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-3.png",
+      "task": "PAD",
+      "seconds": 2.29,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 3.799877166810184e-07,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-4.png",
+      "task": "HAM",
+      "seconds": 2.26,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 8.544502257956665e-07,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-4.png",
+      "task": "PAD",
+      "seconds": 2.2,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 1.1346321105998314e-06,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-5.png",
+      "task": "HAM",
+      "seconds": 1.95,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 9.757766723517136e-07,
+      "argmax_equal": true
+    },
+    {
+      "fixture": "fixtures/synthetic-5.png",
+      "task": "PAD",
+      "seconds": 2.04,
+      "identity_ok": true,
+      "passed": true,
+      "max_abs_diff": 5.680770873706109e-07,
+      "argmax_equal": true
+    }
+  ],
+  "timings": {
+    "analyze_first_wall_s": 2.28,
+    "analyze_sequential_wall_s": [
+      2.2,
+      2.35,
+      2.53
+    ],
+    "analyze_p50_wall_s": 2.35,
+    "analyze_server_classification_ms": [
+      1951,
+      2055,
+      2204
+    ],
+    "concurrent_2": {
+      "total_s": 4.61,
+      "results": [
+        {
+          "status": 200,
+          "wall_s": 4.32,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wall_s": 4.6,
+          "error": null
+        }
+      ]
+    }
+  },
+  "parity_fixtures_run": 6
+}
