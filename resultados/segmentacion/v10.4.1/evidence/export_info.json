@@ -1,0 +1,21 @@
+{
+  "source_checkpoint": "withheld from publication (see provenance_private.json)",
+  "source_checkpoint_component": "teacher",
+  "source_checkpoint_sha256": "f4fcee05cd4e4f884d31bb6a9bc08fc7225817d2529c8fa22eb1b2ab261462f4",
+  "onnx_sha256": "8077055de03956c077f52970221a1e96dfd330f8eb2b956c05be9a95368203b1",
+  "opset": 17,
+  "torch_version": "2.11.0+cu128",
+  "onnx_version": "1.23.2",
+  "torch_dummy_logits_shape": [
+    1,
+    1,
+    224,
+    224
+  ],
+  "onnx_input": [
+    "pixel_values"
+  ],
+  "onnx_output": [
+    "logits"
+  ]
+}

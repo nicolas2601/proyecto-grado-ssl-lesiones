@@ -1,0 +1,131 @@
+{
+  "n_images": 24,
+  "max_abs_logit_diff_max": 6.103515625e-05,
+  "max_abs_logit_diff_mean": 2.8288612763086956e-05,
+  "mask_iou_min": 0.9999965386665559,
+  "mask_iou_mean": 0.9999998482948245,
+  "mask_iou_all_exactly_1": false,
+  "batch4_vs_batch1_max_abs_diff": 0.0,
+  "rows": [
+    {
+      "image_id": "ISIC_0013833",
+      "max_abs_logit_diff": 2.193450927734375e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0011223",
+      "max_abs_logit_diff": 4.54634428024292e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0012803",
+      "max_abs_logit_diff": 2.5391578674316406e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0009564",
+      "max_abs_logit_diff": 3.039836883544922e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0013997",
+      "max_abs_logit_diff": 2.6226043701171875e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0012379",
+      "max_abs_logit_diff": 1.920759677886963e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0015224",
+      "max_abs_logit_diff": 3.4928321838378906e-05,
+      "mask_iou": 0.9999998204092335
+    },
+    {
+      "image_id": "ISIC_0000549",
+      "max_abs_logit_diff": 2.3186206817626953e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0010002",
+      "max_abs_logit_diff": 3.0517578125e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0000351",
+      "max_abs_logit_diff": 3.421306610107422e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0000196",
+      "max_abs_logit_diff": 5.316734313964844e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0014195",
+      "max_abs_logit_diff": 1.1414289474487305e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0014255",
+      "max_abs_logit_diff": 1.4841556549072266e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0011095",
+      "max_abs_logit_diff": 3.647804260253906e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0006795",
+      "max_abs_logit_diff": 2.6524066925048828e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0012109",
+      "max_abs_logit_diff": 1.33514404296875e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0013024",
+      "max_abs_logit_diff": 2.7179718017578125e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0001184",
+      "max_abs_logit_diff": 6.103515625e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0015972",
+      "max_abs_logit_diff": 1.8596649169921875e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0011305",
+      "max_abs_logit_diff": 3.147125244140625e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0014974",
+      "max_abs_logit_diff": 2.5272369384765625e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0010089",
+      "max_abs_logit_diff": 3.6716461181640625e-05,
+      "mask_iou": 1.0
+    },
+    {
+      "image_id": "ISIC_0000359",
+      "max_abs_logit_diff": 1.0967254638671875e-05,
+      "mask_iou": 0.9999965386665559
+    },
+    {
+      "image_id": "ISIC_0010175",
+      "max_abs_logit_diff": 2.0444393157958984e-05,
+      "mask_iou": 1.0
+    }
+  ]
+}
