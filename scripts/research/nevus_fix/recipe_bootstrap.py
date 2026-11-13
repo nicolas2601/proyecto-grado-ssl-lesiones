@@ -45,10 +45,11 @@ def main():
     parser.add_argument("--base", required=True)
     parser.add_argument("--cand", required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--sets", default=",".join(SETS))
     args = parser.parse_args()
     rng = np.random.default_rng(0)
     report = {"base": args.base, "cand": args.cand, "sets": {}}
-    for name in SETS:
+    for name in args.sets.split(","):
         d, pa = predict(args.base, args.feats, name)
         _, pb = predict(args.cand, args.feats, name)
         y = np.asarray([L.HAM7.index(L.U8_TO_HAM7[u]) for u in d["y"]])
