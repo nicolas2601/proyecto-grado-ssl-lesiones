@@ -14,6 +14,7 @@ from demo.backend.v10_artifacts import (
     SCHEMA_V2,
     TASK_CLASSES,
     V2_RECIPE,
+    V2_RELEASES,
     V2_REQUIRED_FILES,
     V10ArtifactError,
 )
@@ -55,7 +56,8 @@ def _payloads(drop=()):
     return payloads
 
 
-def _bundle(tmp_path, *, schema=SCHEMA_V2, input_size=448, recipe=None, drop=()):
+def _bundle(tmp_path, *, schema=SCHEMA_V2, input_size=448, recipe=None, drop=(), release="v10.1.0",
+            backbone=BACKBONE_SHA256):
     files = {}
     for name, payload in _payloads(drop).items():
         path = tmp_path / name
@@ -66,9 +68,9 @@ def _bundle(tmp_path, *, schema=SCHEMA_V2, input_size=448, recipe=None, drop=())
     files["classifier.pt"] = hashlib.sha256(b"torch checkpoint").hexdigest()
     manifest = {
         "schema": schema,
-        "release": "v10.1.0",
+        "release": release,
         "seed": 42,
-        "backbone_sha256": BACKBONE_SHA256,
+        "backbone_sha256": backbone,
         "tasks": {
             "HAM": {"classes": TASK_CLASSES["MOCO_HAM7"], "output_name": "ham7_probabilities", "model_key": "MOCO_HAM7"},
             "PAD": {"classes": TASK_CLASSES["MOCO_PAD6"], "output_name": "pad6_probabilities", "model_key": "MOCO_PAD6"},
@@ -173,3 +175,26 @@ def test_v2_status_identity_reports_model_backbone_and_recipe(tmp_path):
     assert identity["model_sha256"] == files["model.onnx"]
     assert identity["backbone_sha256"] == BACKBONE_SHA256
     assert identity["recipe"] == V2_RECIPE
+
+
+def test_v2_accepts_the_registered_multidomain_release(tmp_path):
+    service, _ = _service(tmp_path, V2Session(), release="v10.4.0", backbone=V2_RELEASES["v10.4.0"])
+
+    status = service.status()
+
+    assert status["classification_ready"] is True
+    assert status["release"] == "v10.4.0"
+
+
+def test_v2_rejects_an_unregistered_release(tmp_path):
+    service, _ = _service(tmp_path, V2Session(), release="v10.9.9")
+
+    with pytest.raises(V10ArtifactError):
+        service.predict(Image.new("RGB", (8, 8)), model_key="MOCO_HAM7")
+
+
+def test_v2_rejects_a_backbone_not_paired_with_the_release(tmp_path):
+    service, _ = _service(tmp_path, V2Session(), release="v10.1.0", backbone="0" * 64)
+
+    with pytest.raises(V10ArtifactError):
+        service.predict(Image.new("RGB", (8, 8)), model_key="MOCO_HAM7")

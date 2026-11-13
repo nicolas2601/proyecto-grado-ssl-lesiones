@@ -17,6 +17,9 @@ OUTPUT_NAMES = ("ham7_probabilities", "pad6_probabilities")
 THREADS = 2
 SEED = 42
 BACKBONE_SHA256 = "fe64610560880e2df1185bf17fbe49e2da46a31e0644ddad76bfa7e8651aab1e"
+# v10.4.0: multi-domain HAM7 reader (dermoscopic + clinical rows) on the same frozen SSL encoder.
+V1_RELEASES = {"v10.0.0": BACKBONE_SHA256}
+V2_RELEASES = {"v10.1.0": BACKBONE_SHA256, "v10.4.0": BACKBONE_SHA256}
 SCHEMA_V1 = "dermssl.moco-bundle.v1"
 SCHEMA_V2 = "dermssl.moco-bundle.v2"
 EXPECTED_RECIPE = {
@@ -69,7 +72,7 @@ class BundleSpec:
     """Per-schema runtime contract: recipe, input size, head format and required files."""
 
     schema: str
-    release: str
+    releases: dict[str, str]
     recipe: dict[str, Any]
     input_size: int
     inference_mode: str
@@ -85,7 +88,7 @@ class BundleSpec:
 BUNDLE_SPECS = {
     SCHEMA_V1: BundleSpec(
         schema=SCHEMA_V1,
-        release="v10.0.0",
+        releases=V1_RELEASES,
         recipe=EXPECTED_RECIPE,
         input_size=224,
         inference_mode="single_view",
@@ -97,7 +100,7 @@ BUNDLE_SPECS = {
     ),
     SCHEMA_V2: BundleSpec(
         schema=SCHEMA_V2,
-        release="v10.1.0",
+        releases=V2_RELEASES,
         recipe=V2_RECIPE,
         input_size=448,
         inference_mode="d4_tta_8view",
@@ -155,8 +158,9 @@ def read_manifest(bundle_dir: Path, expected_sha256: str | None) -> dict[str, An
 
 
 def _validate_contract(manifest: dict[str, Any], spec: BundleSpec) -> None:
-    if (manifest.get("release") != spec.release or manifest.get("seed") != SEED
-            or manifest.get("backbone_sha256") != BACKBONE_SHA256):
+    release = manifest.get("release")
+    if (release not in spec.releases or manifest.get("seed") != SEED
+            or manifest.get("backbone_sha256") != spec.releases[release]):
         raise V10ArtifactError("V10 manifest provenance mismatch")
     tasks = {
         "HAM": {"classes": TASK_CLASSES["MOCO_HAM7"], "output_name": OUTPUT_NAMES[0], "model_key": "MOCO_HAM7"},
