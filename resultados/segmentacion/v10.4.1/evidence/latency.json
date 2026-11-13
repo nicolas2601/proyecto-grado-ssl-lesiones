@@ -1,0 +1,20 @@
+{
+  "runtime": "onnxruntime 1.31.1 CPUExecutionProvider",
+  "intra_op_num_threads": 2,
+  "inter_op_num_threads": 1,
+  "affinity": "taskset -c 0,1",
+  "batch": 1,
+  "warmup_runs": 10,
+  "timed_runs": 50,
+  "inference_only_ms": {
+    "p50": 53.935243748128414,
+    "p90": 68.658147752285,
+    "mean": 56.47393025457859
+  },
+  "end_to_end_ms": {
+    "p50": 63.36979614570737,
+    "p90": 65.75672645121813,
+    "mean": 63.500657845288515
+  },
+  "peak_rss_mb": 341.0859375
+}

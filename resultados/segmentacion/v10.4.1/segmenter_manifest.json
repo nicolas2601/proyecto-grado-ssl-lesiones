@@ -1,0 +1,144 @@
+{
+  "schema": "dermssl.segmenter.v1",
+  "release": "v10.4.1",
+  "model_id": "dermlip-resnet34-unet-teacher",
+  "run": "abl026-resnet34-ima0-s42",
+  "seed": 42,
+  "arm": "ima0 (arm tag taken from the run name; arm semantics not re-verified)",
+  "selection": {
+    "criterion": "teacher checkpoint at epoch 277 of run abl026 (PH2 validation Dice from summary.json best_teacher_ph2_validation_dice). This checkpoint is the model reported in the thesis (abl026 teacher), evaluated on ISIC2018 (2594 images) with Dice, IoU and HD95. Patient independence was not verified (thesis report: holdout_status independence_not_verified).",
+    "candidates": {
+      "abl026-resnet34-ima0-s42": {
+        "teacher": 0.9374727360544551,
+        "student": 0.9394755624380451
+      }
+    },
+    "candidates_note": "Only this run is listed; other runs were not compared in this release.",
+    "picked": "abl026-resnet34-ima0-s42 teacher, epoch 277"
+  },
+  "source_checkpoint": {
+    "path": "withheld from publication (see provenance_private.json)",
+    "sha256": "f4fcee05cd4e4f884d31bb6a9bc08fc7225817d2529c8fa22eb1b2ab261462f4",
+    "component": "teacher_state_dict",
+    "epoch": 277
+  },
+  "onnx": {
+    "file": "segmenter.onnx",
+    "sha256": "8077055de03956c077f52970221a1e96dfd330f8eb2b956c05be9a95368203b1",
+    "opset": 17,
+    "torch": "2.11.0+cu128",
+    "onnxruntime": "1.31.1"
+  },
+  "input": {
+    "name": "pixel_values",
+    "shape": [
+      "N",
+      3,
+      224,
+      224
+    ],
+    "dtype": "float32",
+    "layout": "NCHW",
+    "range": "[0,1] RGB, after hair removal and /255; ImageNet normalisation is inside the graph",
+    "resize": "bilinear",
+    "resize_library": "PIL Image.Resampling.BILINEAR 224x224 (source image, any size)",
+    "preprocessing_required": [
+      "resize 224 bilinear",
+      "hair removal: cv2 black-hat (kernel 9 ellipse, threshold 10) + Telea inpaint radius 3, shaped=False",
+      "float32 /255"
+    ]
+  },
+  "output": {
+    "name": "logits",
+    "shape": [
+      "N",
+      1,
+      224,
+      224
+    ],
+    "dtype": "float32",
+    "activation": "apply sigmoid outside the graph"
+  },
+  "threshold": 0.5,
+  "postprocess": "raw: sigmoid -> uint8 -> bilinear resize to the original H,W -> /255 -> >= 0.5. No morphology, no largest component, no hole filling. Thesis report for this checkpoint: hair_removal true, hair_shaped false, vignette_mask false, largest_component false, fill_holes false, center_prior false, slic_contrast_refinement_enabled false.",
+  "licenses": {
+    "resnet34_encoder_init": "torchvision ImageNet weights, BSD-3-Clause (initialisation only)",
+    "dermlip": "CC-BY-NC-ND-4.0, used only during training-time calibration, not at inference",
+    "use": "research / non-commercial"
+  },
+  "metrics": {
+    "isic2018_2594": {
+      "evaluated_model": "teacher (abl026), torch checkpoint, thesis evaluation; the ONNX file was not re-evaluated on the full set in this release",
+      "dice": 0.8319646583753691,
+      "iou": 0.7483427795174158,
+      "hd95": 291.09830504393886,
+      "n": 2594,
+      "n_hd95": 2592,
+      "bootstrap_ci_95": {
+        "dice": [
+          0.8248,
+          0.8394
+        ],
+        "iou": [
+          0.7401,
+          0.7571
+        ],
+        "hd95": [
+          273.8648,
+          310.1054
+        ],
+        "n_bootstraps": 1000
+      },
+      "caveat": "Numbers from the thesis report isic_report.json (torch checkpoint, frozen evaluator, raw path). ONNX parity was measured on 24 images only."
+    },
+    "ph2_val": {
+      "model": "teacher",
+      "dice": 0.9374727360544551,
+      "iou": 0.8882639536394558,
+      "cases": 39
+    },
+    "onnx_subset_dice": null
+  },
+  "parity": {
+    "n_images": 24,
+    "max_abs_logit_diff": 7.200241088867188e-05,
+    "mask_iou_min": 0.9999965386665559,
+    "mask_iou_mean": 0.9999998482948245,
+    "batch4_vs_batch1_max_abs_diff": 0.0,
+    "reference": "standalone segmenter_model.py torch vs ONNX, shipped runners (verify_package.py)",
+    "frozen_training_model_vs_onnx_max_abs_logit_diff": 6.103515625e-05,
+    "frozen_training_model_vs_onnx_mask_iou_min": 0.9999965386665559
+  },
+  "latency_cpu": {
+    "runtime": "onnxruntime 1.31.1 CPUExecutionProvider",
+    "threads": {
+      "intra": 2,
+      "inter": 1
+    },
+    "affinity": "taskset -c 0,1",
+    "batch": 1,
+    "runs": 50,
+    "inference_ms": {
+      "p50": 53.935243748128414,
+      "p90": 68.658147752285,
+      "mean": 56.47393025457859
+    },
+    "end_to_end_ms": {
+      "p50": 63.36979614570737,
+      "p90": 65.75672645121813,
+      "mean": 63.500657845288515
+    },
+    "peak_rss_mb": 341.0859375,
+    "note": "shared host, load average ~3.3 during the run"
+  },
+  "scripts": [
+    "scripts/eval_isic2018_shipped.py",
+    "scripts/export_onnx.py",
+    "scripts/export_pt.py",
+    "scripts/latency.py",
+    "scripts/make_samples.py",
+    "scripts/segmenter_common.py",
+    "scripts/verify_onnx.py",
+    "scripts/verify_package.py"
+  ]
+}
