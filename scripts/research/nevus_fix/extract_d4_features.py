@@ -40,11 +40,20 @@ def read_rows(path: Path) -> list[dict]:
         return list(csv.DictReader(stream))
 
 
-def preprocess(path: str) -> np.ndarray | None:
-    """Same contract as the shipped preprocess.py: EXIF, RGB, bicubic squash, ImageNet norm."""
+def center_square(rgb: Image.Image, fraction: float) -> Image.Image:
+    """Square crop centred on the image, side = fraction of the shorter side (aspect preserved)."""
+    side = max(1, round(min(rgb.size) * fraction))
+    left, top = (rgb.width - side) // 2, (rgb.height - side) // 2
+    return rgb.crop((left, top, left + side, top + side))
+
+
+def preprocess(path: str, crop: float = 0.0) -> np.ndarray | None:
+    """Shipped contract (EXIF, RGB, bicubic squash, ImageNet norm); crop > 0 squares the image first."""
     try:
         with Image.open(path) as image:
             rgb = ImageOps.exif_transpose(image).convert("RGB")
+            if crop > 0:
+                rgb = center_square(rgb, crop)
             resized = rgb.resize((SIZE, SIZE), Image.Resampling.BICUBIC)
     except Exception:  # noqa: BLE001 - unreadable files are reported, not fatal
         return None
@@ -62,6 +71,7 @@ def arguments() -> argparse.Namespace:
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument("--crop", type=float, default=0.0, help="0 = shipped squash; else centre-square fraction")
     return parser.parse_args()
 
 
@@ -83,7 +93,7 @@ def main() -> None:
     with ThreadPoolExecutor(args.workers) as pool, torch.inference_mode():
         for start in range(0, len(rows), args.batch):
             chunk = rows[start : start + args.batch]
-            arrays = list(pool.map(preprocess, [r["image_path"] for r in chunk]))
+            arrays = list(pool.map(lambda p: preprocess(p, args.crop), [r["image_path"] for r in chunk]))
             kept = [(r, a) for r, a in zip(chunk, arrays) if a is not None]
             failed += [r["image_id"] for r, a in zip(chunk, arrays) if a is None]
             if not kept:
