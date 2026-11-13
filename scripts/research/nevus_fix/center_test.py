@@ -1,7 +1,6 @@
 """Modality-centering probe: x' = x - mean_mod(train) + mean(train), modality from metadata (oracle)."""
 import json, sys
 from pathlib import Path
-import numpy as np
 sys.path.insert(0, "/home/jovyan/work/nevus-fix-20261113/scripts")
 import nevus_study as S
 from metrics import evaluate
