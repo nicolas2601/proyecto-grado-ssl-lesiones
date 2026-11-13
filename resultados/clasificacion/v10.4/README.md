@@ -37,7 +37,9 @@ most 0.018 in probability on the checked images, with the same argmax.
 
 - DDI stays weak (bacc 0.35): many DDI diagnoses fall outside the seven classes and skin tones V-VI
   are rare in the training rows.
-- The screening (melanoma-priority) policy was selected for the v10.1.0 head and is reported as
-  unavailable for v10.4.0 until it is re-selected.
+- The screening (melanoma-priority) offset was re-selected for the v10.4.0 head on `milk_dev` under
+  a rule declared before any value was computed (`screening/RULE.md`); the selected offset and the
+  report-only test results are in `screening/screening-report.json`. It trades a small macro-F1
+  drop for melanoma recall and is reported next to the default prediction, which it does not change.
 - HAM holdout and PAD test were already opened for v10.1.0; they are reported, not used for
   selection. Research prototype, not a medical device.
