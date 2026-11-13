@@ -1,0 +1,62 @@
+{
+ "schema": "dermssl.screening-policy.v1",
+ "rule_id": "melanoma-priority-v1",
+ "release": "v10.5.0",
+ "model_sha256": "76791dbaef88d0e670581efefcf600fb554d6a2a7ee3dc94753a7dfc8339fd61",
+ "manifest_sha256": "28e9f03cc0a70db071e0102fc7b096d7979fa967e57c74829fedaf452d6248c6",
+ "scope": "HAM7: offset selected on the MILK10k dev split (never used to fit the v10.5.0 reader) with single-view FP32 features, as served. PAD6: unchanged v10.1.0 head and offset (its development metrics come from the v10.1.0 D4 features). Scores are not clinical probabilities.",
+ "heads": {
+  "MOCO_HAM7": {
+   "task": "HAM",
+   "target": "mel",
+   "log_offset": 0.25,
+   "head_sha256": "308a1c03d3e31ec0bba4ee0a352bf598f6f6ccf82ff945cf888555ffb59dd7bf",
+   "development": {
+    "at_zero": {
+     "target_recall": 0.6325,
+     "target_to_nevus": 0.1084,
+     "nevus_recall": 0.5719,
+     "target_precision": 0.5,
+     "target_alert_rate": 0.1063,
+     "macro_f1": 0.5779
+    },
+    "nested": {
+     "target_recall": 0.6867,
+     "target_to_nevus": 0.0904,
+     "nevus_recall": 0.5418,
+     "target_precision": 0.4831,
+     "target_alert_rate": 0.1195,
+     "macro_f1": 0.5763
+    }
+   }
+  },
+  "MOCO_PAD6": {
+   "task": "PAD",
+   "target": "MEL",
+   "log_offset": 0.5,
+   "head_sha256": "e1fa6399a38958c0f8b573f8ffb8b32f838fe1f3962c5afccaf9ad3b6fe93948",
+   "development": {
+    "at_zero": {
+     "target_recall": 0.7407,
+     "target_to_nevus": 0.0494,
+     "nevus_recall": 0.7874,
+     "target_precision": 0.6743,
+     "target_alert_rate": 0.0262,
+     "macro_f1": 0.6785
+    },
+    "nested": {
+     "target_recall": 0.7407,
+     "target_to_nevus": 0.0494,
+     "nevus_recall": 0.7845,
+     "target_precision": 0.6004,
+     "target_alert_rate": 0.0294,
+     "macro_f1": 0.6689
+    }
+   }
+  }
+ },
+ "evidence": {
+  "report_sha256": "9384a8e1bbc3b7e562fed0e0b213d32e13bc8e57c307fc72fb3a40aae93788c3",
+  "rule_sha256": "656b5f9022b8d03ca2b64047ca52d35862a061d62e409717f013b840cbbac885"
+ }
+}

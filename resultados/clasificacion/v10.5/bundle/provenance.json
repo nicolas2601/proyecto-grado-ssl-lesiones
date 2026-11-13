@@ -1,0 +1,19 @@
+{
+ "candidate": "448 CLS4 single view, multi-domain HAM7 reader",
+ "resolution": 448,
+ "encoder_sha256": "fe64610560880e2df1185bf17fbe49e2da46a31e0644ddad76bfa7e8651aab1e",
+ "heads": {
+  "HAM": {
+   "spec": "cell:2:3 multi-domain reader, single-view features",
+   "C": 3.0,
+   "sha256": "308a1c03d3e31ec0bba4ee0a352bf598f6f6ccf82ff945cf888555ffb59dd7bf",
+   "replaces": "6765f3076367bd1dc571e9a2971d064d8686cd8baeb18e97918ea9716da5cb88"
+  },
+  "PAD": {
+   "C": 100.0,
+   "n_images": 1134,
+   "sha256": "e1fa6399a38958c0f8b573f8ffb8b32f838fe1f3962c5afccaf9ad3b6fe93948"
+  }
+ },
+ "release": "v10.5.0"
+}
