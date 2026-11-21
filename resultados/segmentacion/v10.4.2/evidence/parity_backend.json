@@ -1,0 +1,1081 @@
+{
+  "identity": {
+    "model_id": "dinov2-base-dpt-unified",
+    "run": "vera_unified_dpt_50_50_protocol_a_v1-s42",
+    "release": "v10.4.2",
+    "model_sha256": "047cd05a98ace3f474fffd13fcc1901ceb153f1f3675a040c8bedec4dc2086d0",
+    "input_size": 448
+  },
+  "n": 101,
+  "identical": 94,
+  "backend_reasons": [
+    {
+      "image": "Melanoma_Growth_over_14_Months_jpg.jpg",
+      "size": [
+        960,
+        455
+      ],
+      "reference_area": 0.0012,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "NodularMelanomaEvolution_jpg.jpg",
+      "size": [
+        960,
+        455
+      ],
+      "reference_area": 0.0011,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "Pieprzyk_01_JPG.jpg",
+      "size": [
+        960,
+        640
+      ],
+      "reference_area": 0.0047,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "hair-mole.jpg",
+      "size": [
+        1280,
+        960
+      ],
+      "reference_area": 0.0055,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "Squamous_Cell_Carcinoma_png.png",
+      "size": [
+        960,
+        691
+      ],
+      "reference_area": 0.0039,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "seboreya-keratozu.jpg",
+      "size": [
+        1280,
+        960
+      ],
+      "reference_area": 0.0036,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "cherry-angioma-cropped.jpg",
+      "size": [
+        1280,
+        1387
+      ],
+      "reference_area": 0.0059,
+      "backend": "degenerate_mask"
+    }
+  ],
+  "rows": [
+    {
+      "image": "ISIC_0000000.jpg",
+      "size": [
+        1022,
+        767
+      ],
+      "reference_area": 0.4586,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000047.jpg",
+      "size": [
+        1504,
+        1129
+      ],
+      "reference_area": 0.2129,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000095.jpg",
+      "size": [
+        2048,
+        1536
+      ],
+      "reference_area": 0.0744,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000142.jpg",
+      "size": [
+        2048,
+        1536
+      ],
+      "reference_area": 0.3024,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000191.jpg",
+      "size": [
+        1502,
+        1051
+      ],
+      "reference_area": 0.1083,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000236.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.4575,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000295.jpg",
+      "size": [
+        767,
+        576
+      ],
+      "reference_area": 0.6508,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000350.jpg",
+      "size": [
+        767,
+        576
+      ],
+      "reference_area": 0.1683,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000409.jpg",
+      "size": [
+        2601,
+        1909
+      ],
+      "reference_area": 0.086,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000479.jpg",
+      "size": [
+        919,
+        802
+      ],
+      "reference_area": 0.482,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0000527.jpg",
+      "size": [
+        1011,
+        713
+      ],
+      "reference_area": 0.2095,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0001140.jpg",
+      "size": [
+        1936,
+        1936
+      ],
+      "reference_area": 0.2808,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0002251.jpg",
+      "size": [
+        3024,
+        2016
+      ],
+      "reference_area": 0.0834,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0004715.jpg",
+      "size": [
+        3024,
+        2016
+      ],
+      "reference_area": 0.0462,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0008145.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.0206,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0009800.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.0554,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0009933.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.1619,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0009981.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.067,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0010046.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.1014,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0010177.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.0399,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0010244.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.033,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0010357.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.0649,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0010477.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.652,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0010597.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.297,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0011104.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.298,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0011168.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.0641,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0011322.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.2786,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0011393.jpg",
+      "size": [
+        1024,
+        768
+      ],
+      "reference_area": 0.0623,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0012201.jpg",
+      "size": [
+        3008,
+        2000
+      ],
+      "reference_area": 0.0599,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0012284.jpg",
+      "size": [
+        3008,
+        2000
+      ],
+      "reference_area": 0.1401,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0012391.jpg",
+      "size": [
+        3008,
+        2000
+      ],
+      "reference_area": 0.0607,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0012526.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.0546,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0012697.jpg",
+      "size": [
+        3008,
+        2000
+      ],
+      "reference_area": 0.0321,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0012814.jpg",
+      "size": [
+        3008,
+        2000
+      ],
+      "reference_area": 0.0525,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0012950.jpg",
+      "size": [
+        3872,
+        2592
+      ],
+      "reference_area": 0.0598,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0013070.jpg",
+      "size": [
+        3872,
+        2592
+      ],
+      "reference_area": 0.053,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0013172.jpg",
+      "size": [
+        3008,
+        2000
+      ],
+      "reference_area": 0.0269,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0013249.jpg",
+      "size": [
+        3872,
+        2592
+      ],
+      "reference_area": 0.2282,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0013383.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.0415,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0013489.jpg",
+      "size": [
+        2304,
+        1536
+      ],
+      "reference_area": 0.0532,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0013595.jpg",
+      "size": [
+        3008,
+        2000
+      ],
+      "reference_area": 0.012,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0013695.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.0544,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0013805.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.1077,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0013925.jpg",
+      "size": [
+        3008,
+        2000
+      ],
+      "reference_area": 0.1112,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014066.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.0604,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014181.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.2417,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014336.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.1759,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014486.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.0527,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014599.jpg",
+      "size": [
+        2592,
+        1936
+      ],
+      "reference_area": 0.2985,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014696.jpg",
+      "size": [
+        6648,
+        4459
+      ],
+      "reference_area": 0.4935,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014775.jpg",
+      "size": [
+        6642,
+        4401
+      ],
+      "reference_area": 0.3787,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014835.jpg",
+      "size": [
+        6681,
+        4461
+      ],
+      "reference_area": 0.3281,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014922.jpg",
+      "size": [
+        6668,
+        4439
+      ],
+      "reference_area": 0.3615,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0014985.jpg",
+      "size": [
+        6662,
+        4440
+      ],
+      "reference_area": 0.6363,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0015082.jpg",
+      "size": [
+        6708,
+        4439
+      ],
+      "reference_area": 0.6068,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0015184.jpg",
+      "size": [
+        6607,
+        4399
+      ],
+      "reference_area": 0.1403,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0015279.jpg",
+      "size": [
+        6688,
+        4439
+      ],
+      "reference_area": 0.1756,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0015481.jpg",
+      "size": [
+        6648,
+        4479
+      ],
+      "reference_area": 0.0962,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0015955.jpg",
+      "size": [
+        3008,
+        2000
+      ],
+      "reference_area": 0.18,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0016006.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.0687,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "ISIC_0016058.jpg",
+      "size": [
+        4288,
+        2848
+      ],
+      "reference_area": 0.2138,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "AktinischeKeratose_JPG.jpg",
+      "size": [
+        960,
+        640
+      ],
+      "reference_area": 0.0211,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "actinic-keratosis-left-upper-paraspinal-back.jpg",
+      "size": [
+        244,
+        226
+      ],
+      "reference_area": 0.3581,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "aktinischekeratose.jpg",
+      "size": [
+        1280,
+        853
+      ],
+      "reference_area": 0.0216,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Basal_cell_Carcinoma_jpg.jpg",
+      "size": [
+        960,
+        766
+      ],
+      "reference_area": 0.0408,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Basal_cell_carcinoma_BCC_png.png",
+      "size": [
+        960,
+        1054
+      ],
+      "reference_area": 0.1468,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Basaliom_am_Nasenr_cken_2_JPG.jpg",
+      "size": [
+        960,
+        640
+      ],
+      "reference_area": 0.2069,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Basalioma_02_jpg.jpg",
+      "size": [
+        960,
+        720
+      ],
+      "reference_area": 0.0506,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Dermatoskopie_eines_superfiziellen_Basalzellkarzinoms_WIKIPEDIA_jpg.jpg",
+      "size": [
+        960,
+        720
+      ],
+      "reference_area": 0.1828,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Pr_operative_Schnittf_hrung_beim_nodul_ren_Basalzellkarzinom_am_Kinn_WIKIDERM_jp.jpg",
+      "size": [
+        960,
+        617
+      ],
+      "reference_area": 0.0129,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "basal-cell-carcinoma3.jpg",
+      "size": [
+        1280,
+        1060
+      ],
+      "reference_area": 0.0669,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "basalioma.jpg",
+      "size": [
+        1280,
+        958
+      ],
+      "reference_area": 0.1496,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "dermatofibroma-4344426358.jpg",
+      "size": [
+        1280,
+        967
+      ],
+      "reference_area": 0.6006,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Atlas_of_clinical_surgery_with_special_reference_to_diagnosis_and_treatment_for_.jpg",
+      "size": [
+        960,
+        1614
+      ],
+      "reference_area": 0.0226,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Device_for_skin_wound_closure_jpg.jpg",
+      "size": [
+        960,
+        1280
+      ],
+      "reference_area": 0.124,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Malignant_Melanoma_in_situ_Left_Upper_Inner_Arm_jpg.jpg",
+      "size": [
+        290,
+        238
+      ],
+      "reference_area": 0.1263,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Melanoma_2_jpg.jpg",
+      "size": [
+        960,
+        960
+      ],
+      "reference_area": 0.2907,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Melanoma_Growth_over_14_Months_jpg.jpg",
+      "size": [
+        960,
+        455
+      ],
+      "reference_area": 0.0012,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "NodularMelanomaEvolution_jpg.jpg",
+      "size": [
+        960,
+        455
+      ],
+      "reference_area": 0.0011,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "asymmetrical-melanoma.jpg",
+      "size": [
+        1280,
+        853
+      ],
+      "reference_area": 0.1202,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "malignant-melanoma-in-situ-left-upper-inner-arm.jpg",
+      "size": [
+        290,
+        238
+      ],
+      "reference_area": 0.1263,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "malignant-melanoma-on-chest.jpg",
+      "size": [
+        700,
+        587
+      ],
+      "reference_area": 0.3481,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "melanoma-in-adult-woman.jpg",
+      "size": [
+        1280,
+        1804
+      ],
+      "reference_area": 0.0184,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "wb032021.jpg",
+      "size": [
+        1280,
+        851
+      ],
+      "reference_area": 0.0128,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Dysplastic_nevi_2_jpg.jpg",
+      "size": [
+        960,
+        1080
+      ],
+      "reference_area": 0.045,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Normal_mole_jpg.jpg",
+      "size": [
+        960,
+        798
+      ],
+      "reference_area": 0.0414,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Pieprzyk_01_JPG.jpg",
+      "size": [
+        960,
+        640
+      ],
+      "reference_area": 0.0047,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "Skin_black_mole_on_the_face_JPG.jpg",
+      "size": [
+        960,
+        720
+      ],
+      "reference_area": 0.0218,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "hair-mole.jpg",
+      "size": [
+        1280,
+        960
+      ],
+      "reference_area": 0.0055,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "normal-mole-with-no-asymmetry.jpg",
+      "size": [
+        1280,
+        853
+      ],
+      "reference_area": 0.0335,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "skin-black-mole-on-the-face.jpg",
+      "size": [
+        1280,
+        960
+      ],
+      "reference_area": 0.0218,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Keratoacanthoma_2_jpg.jpg",
+      "size": [
+        580,
+        495
+      ],
+      "reference_area": 0.1036,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Squamous_Cell_Carcinoma_png.png",
+      "size": [
+        960,
+        691
+      ],
+      "reference_area": 0.0039,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "The_breast_its_anomalies_its_diseases_and_their_treatment_1917_14776919873_jpg.jpg",
+      "size": [
+        960,
+        553
+      ],
+      "reference_area": 0.0436,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "spinaliom3.jpg",
+      "size": [
+        1280,
+        1270
+      ],
+      "reference_area": 0.0182,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Black_pigmented_verrucous_1_jpg.jpg",
+      "size": [
+        960,
+        1280
+      ],
+      "reference_area": 0.0715,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "Seborrheic_keratosis_on_human_back_jpg.jpg",
+      "size": [
+        960,
+        1223
+      ],
+      "reference_area": 0.5001,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "seboreya-keratozu.jpg",
+      "size": [
+        1280,
+        960
+      ],
+      "reference_area": 0.0036,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "angioma-cereza-en-hombro.jpg",
+      "size": [
+        1280,
+        1263
+      ],
+      "reference_area": 0.0124,
+      "identical": true,
+      "differing_px": 0
+    },
+    {
+      "image": "cherry-angioma-cropped.jpg",
+      "size": [
+        1280,
+        1387
+      ],
+      "reference_area": 0.0059,
+      "backend": "degenerate_mask"
+    },
+    {
+      "image": "pyogenic-granuloma-thumb-1.jpg",
+      "size": [
+        1280,
+        850
+      ],
+      "reference_area": 0.0124,
+      "identical": true,
+      "differing_px": 0
+    }
+  ]
+}

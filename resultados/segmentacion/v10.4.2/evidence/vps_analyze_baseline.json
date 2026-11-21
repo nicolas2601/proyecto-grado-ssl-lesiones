@@ -1,0 +1,8 @@
+{
+  "what": "Production /api/analyze before this release (classifier v10.4.0 D4, segmenter v10.4.1), measured on the VPS on 2026-11-21",
+  "host": "VPS 2 vCPU, container limits cpus=1.5 memory=2.44 GiB, ONNX Runtime 2 intra-op threads",
+  "image": "v10.4.1-20261113/verify/reference-tschandl-600.webp (600 px reference image)",
+  "wall_seconds_three_calls": [31.06, 20.67, 18.90],
+  "timing_ms_last_call": {"classification": 17272, "segmentation": 199, "photometry": 1412},
+  "container_memory_in_use_gib": 1.799
+}

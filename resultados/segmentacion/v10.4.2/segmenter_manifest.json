@@ -1,0 +1,176 @@
+{
+  "schema": "dermssl.segmenter.v2",
+  "release": "v10.4.2",
+  "model_id": "dinov2-base-dpt-unified",
+  "run": "vera_unified_dpt_50_50_protocol_a_v1-s42",
+  "seed": 42,
+  "architecture": "DINOv2-Base (ViT-B/14, frozen) + DPT decoder (2 classes)",
+  "selection": {
+    "criterion": "highest joint validation Dice (0.8625 vs 0.8620/0.8603) on PH2-val + PAD-UFES-20-val (zero test leakage)"
+  },
+  "onnx": {
+    "file": "segmenter.onnx",
+    "sha256": "047cd05a98ace3f474fffd13fcc1901ceb153f1f3675a040c8bedec4dc2086d0",
+    "opset": 18,
+    "parameters": 97230458,
+    "source_file": "vera_unified_dpt_s42_fp32.onnx",
+    "source_sha256": "047cd05a98ace3f474fffd13fcc1901ceb153f1f3675a040c8bedec4dc2086d0"
+  },
+  "input": {
+    "name": "pixel_values",
+    "shape": [
+      1,
+      3,
+      448,
+      448
+    ],
+    "dtype": "float32",
+    "layout": "NCHW",
+    "resize": "bilinear",
+    "preprocessing_required": [
+      "letterbox 448 bilinear, pad right-bottom",
+      "float32 /255",
+      "normalize imagenet"
+    ],
+    "range": "ImageNet-normalised RGB inside the valid region, 0.0 in the padding"
+  },
+  "output": {
+    "name": "logits",
+    "shape": [
+      1,
+      2,
+      448,
+      448
+    ],
+    "dtype": "float32",
+    "activation": "softmax over 2 channels, foreground channel 1, valid region only"
+  },
+  "threshold": 0.5,
+  "postprocess": "crop the valid region, channel-1 softmax, bilinear (align_corners=False) to the original H,W, >= 0.5. No hair removal, no morphology, no largest component.",
+  "licenses": {
+    "dinov2_backbone": "Meta DINOv2 ViT-B/14 weights, Apache-2.0",
+    "use": "research / non-commercial"
+  },
+  "metrics": {
+    "isic2018_2594": {
+      "evaluated_model": "this ONNX file, backend preprocessing contract, frozen thesis evaluator",
+      "n": 2594,
+      "dice": 0.8476929526026398,
+      "iou": 0.7614596749039564,
+      "hd95": 253.71085686886576,
+      "bootstrap_ci_95": {
+        "dice": [
+          0.8415578433071147,
+          0.8542034256368675
+        ],
+        "iou": [
+          0.754055480172231,
+          0.7692250032860866
+        ],
+        "hd95": [
+          238.61755560200626,
+          269.03452428284584
+        ]
+      },
+      "n_hd95": 2594,
+      "fail_dice_lt_0_2_pct": 1.002313030069391,
+      "previous_segmenter_same_run": {
+        "release": "v10.4.1",
+        "dice": 0.8319674041580306,
+        "iou": 0.7483474981547666,
+        "hd95": 291.0427469306623
+      },
+      "paired_dice_difference": {
+        "mean": 0.015725548444608974,
+        "ci95": [
+          0.010749475878847505,
+          0.020564954715840897
+        ],
+        "dpt_better_pct": 48.99768696993061
+      }
+    },
+    "clinical_313_package_report": {
+      "n": 313,
+      "dice": 0.7429658426334803,
+      "dice_ci95": [
+        0.7178044622241571,
+        0.7676333464547208
+      ],
+      "iou": 0.6342448947238281,
+      "iou_ci95": [
+        0.6071962832632798,
+        0.6610562767243547
+      ],
+      "source": "package manifest (seed 42); not re-run for this release"
+    }
+  },
+  "parity": {
+    "pytorch_vs_onnx_verified": true,
+    "pytorch_vs_onnx_checks": [
+      {
+        "case": "square_1_1",
+        "valid_hw": [
+          448,
+          448
+        ],
+        "tensor_shape": [
+          1,
+          3,
+          448,
+          448
+        ],
+        "max_abs_diff": 2.3365020751953125e-05
+      },
+      {
+        "case": "landscape_4_3",
+        "valid_hw": [
+          336,
+          448
+        ],
+        "tensor_shape": [
+          1,
+          3,
+          448,
+          448
+        ],
+        "max_abs_diff": 3.075599670410156e-05
+      },
+      {
+        "case": "portrait_3_4",
+        "valid_hw": [
+          448,
+          336
+        ],
+        "tensor_shape": [
+          1,
+          3,
+          448,
+          448
+        ],
+        "max_abs_diff": 4.8995018005371094e-05
+      }
+    ],
+    "split_vs_single_file_max_abs_diff": 0.0
+  },
+  "latency_cpu": {
+    "runtime": "onnxruntime 1.30.0 CPUExecutionProvider",
+    "model": "vera_unified_dpt_s42_fp32.onnx",
+    "container_limits": {
+      "cpus": 1.5,
+      "memory_mb": 2500
+    },
+    "threads": {
+      "intra": 2,
+      "inter": 1
+    },
+    "load_s": 2.1,
+    "rss_after_load_mb": 580,
+    "peak_rss_mb": 1398,
+    "first_ms": 3042,
+    "p50_ms": 3212,
+    "p90_ms": 5953,
+    "max_ms": 7561,
+    "n_timed": 20,
+    "scope": "segmenter only: letterbox preprocess + ONNX + softmax/upsample, VPS 2 vCPU host"
+  }
+}

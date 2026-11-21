@@ -31,7 +31,7 @@ most 0.018 in probability on the checked images, with the same argmax.
 - Continued SSL with a larger clinical bucket (PAD + MILK10k clinical train/dev, quota 4 or 8,
   6,000 steps, same recipe as the shipped encoder): no consistent gain over the shipped encoder
   (`SSL-ARMS.md`).
-- Per-modality feature centering, even with the true modality: no gain (`scripts/research/nevus_fix/center_test.py`).
+- Per-modality feature centering, even with the true modality: no gain (`scripts/research/nevus_fix/center_check.py`).
 
 ## Follow-up arms (2026-11-13, after release)
 

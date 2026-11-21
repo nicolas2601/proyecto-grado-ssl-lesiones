@@ -26,6 +26,7 @@ from .segmenter_geometry import (
     outer_contour,
     simplify_contour,
 )
+from .segmenter_letterbox import LETTERBOX, letterbox_mask, parse_letterbox, preprocess_letterbox
 from .segmenter_preprocess import (
     Preprocessing,
     PreprocessError,
@@ -37,7 +38,9 @@ from .segmenter_preprocess import (
 from .runtime_threads import intra_op_threads
 from .tone_sim import MAX_AREA_FRACTION, MIN_AREA_FRACTION
 
-SCHEMA = "dermssl.segmenter.v1"
+SCHEMA_SQUARE = "dermssl.segmenter.v1"
+SCHEMA_LETTERBOX = "dermssl.segmenter.v2"
+SCHEMAS = (SCHEMA_SQUARE, SCHEMA_LETTERBOX)
 MANIFEST_NAME = "segmenter_manifest.json"
 MODEL_NAME = "segmenter.onnx"
 THRESHOLD = 0.5
@@ -100,7 +103,7 @@ def _read_manifest(directory: Path, expected_sha256: str | None) -> dict[str, An
         manifest = json.loads(content.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise SegmenterError("segmenter_error", "segmenter manifest is invalid JSON") from exc
-    if not isinstance(manifest, dict) or manifest.get("schema") != SCHEMA:
+    if not isinstance(manifest, dict) or manifest.get("schema") not in SCHEMAS:
         raise SegmenterError("segmenter_error", "unsupported segmenter manifest schema")
     return manifest
 
@@ -125,6 +128,8 @@ def _input_config(manifest: dict[str, Any]) -> Preprocessing:
     if shape[2] != shape[3] or not isinstance(size, int) or size <= 0:
         raise SegmenterError("segmenter_error", "segmenter input shape must be (N, 3, S, S)")
     try:
+        if manifest.get("schema") == SCHEMA_LETTERBOX:
+            return parse_letterbox(block, manifest.get("output"), size)
         config = parse_preprocessing(block, size)
         require_opencv(config)
     except PreprocessError as exc:
@@ -210,9 +215,11 @@ class SegmenterService:
 
     def segment(self, rgb: np.ndarray) -> Segmentation:
         loaded = self._ensure_loaded()
-        logits = self._run(loaded, rgb)
         height, width = rgb.shape[:2]
-        full_mask = probability_to_mask(logits, width, height, THRESHOLD)
+        if loaded.config.kind == LETTERBOX:
+            full_mask = self._letterbox_mask(loaded, rgb)
+        else:
+            full_mask = probability_to_mask(self._run(loaded, rgb), width, height, THRESHOLD)
         if not full_mask.any():
             raise SegmenterError("empty_mask")
         self._check_area(full_mask)
@@ -229,6 +236,19 @@ class SegmenterService:
         if logits.shape != (1, 1, size, size) or not np.isfinite(logits).all():
             raise SegmenterError("segmenter_error", "segmenter returned invalid logits")
         return logits[0, 0]
+
+    @staticmethod
+    def _letterbox_mask(loaded: Loaded, rgb: np.ndarray) -> np.ndarray:
+        size = loaded.config.size
+        try:
+            batch, valid_wh = preprocess_letterbox(rgb, size)
+            logits = np.asarray(loaded.session.run(["logits"], {loaded.input_name: batch})[0], dtype=np.float32)
+        except Exception as exc:  # noqa: BLE001 - preprocessing and ONNX inference boundary
+            raise SegmenterError("segmenter_error", "segmenter inference failed") from exc
+        if logits.shape != (1, 2, size, size) or not np.isfinite(logits).all():
+            raise SegmenterError("segmenter_error", "segmenter returned invalid logits")
+        height, width = rgb.shape[:2]
+        return letterbox_mask(logits, valid_wh, width, height, THRESHOLD)
 
     @staticmethod
     def _check_area(mask: np.ndarray) -> None:
