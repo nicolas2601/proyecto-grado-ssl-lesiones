@@ -1,0 +1,270 @@
+{
+  "hardware": {
+    "cpu": "Intel(R) Xeon(R) w7-2495X",
+    "logical_cpus": 48,
+    "gpu": null,
+    "onnxruntime": "1.32.0",
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider"
+    ]
+  },
+  "results": [
+    {
+      "model": "classifier_v10_4_0_d4",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 2,
+      "runs": 10,
+      "load_s": 1.93,
+      "p50_ms": 5266.3,
+      "p90_ms": 5300.8,
+      "mean_ms": 5275.2,
+      "peak_rss_mb": 999,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 347.1
+    },
+    {
+      "model": "classifier_v10_4_0_d4",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 4,
+      "runs": 10,
+      "load_s": 1.67,
+      "p50_ms": 2826.6,
+      "p90_ms": 2864.8,
+      "mean_ms": 2838.0,
+      "peak_rss_mb": 1001,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 347.1
+    },
+    {
+      "model": "classifier_v10_4_0_d4",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 8,
+      "runs": 10,
+      "load_s": 1.71,
+      "p50_ms": 1807.9,
+      "p90_ms": 1895.7,
+      "mean_ms": 1836.9,
+      "peak_rss_mb": 1000,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 347.1
+    },
+    {
+      "model": "classifier_v10_4_0_d4",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 16,
+      "runs": 10,
+      "load_s": 1.74,
+      "p50_ms": 1290.2,
+      "p90_ms": 1295.1,
+      "mean_ms": 1289.1,
+      "peak_rss_mb": 999,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 347.1
+    },
+    {
+      "model": "classifier_v10_5_0_single",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 2,
+      "runs": 10,
+      "load_s": 0.48,
+      "p50_ms": 656.6,
+      "p90_ms": 668.7,
+      "mean_ms": 660.2,
+      "peak_rss_mb": 791,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 345.6
+    },
+    {
+      "model": "classifier_v10_5_0_single",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 4,
+      "runs": 10,
+      "load_s": 0.48,
+      "p50_ms": 350.7,
+      "p90_ms": 355.1,
+      "mean_ms": 351.7,
+      "peak_rss_mb": 790,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 345.6
+    },
+    {
+      "model": "classifier_v10_5_0_single",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 8,
+      "runs": 10,
+      "load_s": 0.5,
+      "p50_ms": 223.0,
+      "p90_ms": 250.0,
+      "mean_ms": 231.5,
+      "peak_rss_mb": 790,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 345.6
+    },
+    {
+      "model": "classifier_v10_5_0_single",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 16,
+      "runs": 10,
+      "load_s": 0.53,
+      "p50_ms": 161.3,
+      "p90_ms": 163.6,
+      "mean_ms": 161.5,
+      "peak_rss_mb": 791,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 345.6
+    },
+    {
+      "model": "segmenter_v10_4_1_resnet34",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 2,
+      "runs": 10,
+      "load_s": 0.16,
+      "p50_ms": 49.2,
+      "p90_ms": 53.0,
+      "mean_ms": 50.1,
+      "peak_rss_mb": 329,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 98.2
+    },
+    {
+      "model": "segmenter_v10_4_1_resnet34",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 4,
+      "runs": 10,
+      "load_s": 0.16,
+      "p50_ms": 26.0,
+      "p90_ms": 27.2,
+      "mean_ms": 26.4,
+      "peak_rss_mb": 329,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 98.2
+    },
+    {
+      "model": "segmenter_v10_4_1_resnet34",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 8,
+      "runs": 10,
+      "load_s": 0.17,
+      "p50_ms": 19.0,
+      "p90_ms": 19.2,
+      "mean_ms": 19.0,
+      "peak_rss_mb": 329,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 98.2
+    },
+    {
+      "model": "segmenter_v10_4_1_resnet34",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 16,
+      "runs": 10,
+      "load_s": 0.18,
+      "p50_ms": 13.2,
+      "p90_ms": 14.6,
+      "mean_ms": 13.6,
+      "peak_rss_mb": 327,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 98.2
+    },
+    {
+      "model": "segmenter_v10_4_2_dpt",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 2,
+      "runs": 10,
+      "load_s": 0.61,
+      "p50_ms": 846.8,
+      "p90_ms": 850.9,
+      "mean_ms": 847.0,
+      "peak_rss_mb": 991,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 389.8
+    },
+    {
+      "model": "segmenter_v10_4_2_dpt",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 4,
+      "runs": 10,
+      "load_s": 0.63,
+      "p50_ms": 457.5,
+      "p90_ms": 461.0,
+      "mean_ms": 457.7,
+      "peak_rss_mb": 990,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 389.8
+    },
+    {
+      "model": "segmenter_v10_4_2_dpt",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 8,
+      "runs": 10,
+      "load_s": 0.66,
+      "p50_ms": 290.8,
+      "p90_ms": 327.8,
+      "mean_ms": 300.6,
+      "peak_rss_mb": 989,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 389.8
+    },
+    {
+      "model": "segmenter_v10_4_2_dpt",
+      "provider": "cpu",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "threads": 16,
+      "runs": 10,
+      "load_s": 0.69,
+      "p50_ms": 208.6,
+      "p90_ms": 211.4,
+      "mean_ms": 208.2,
+      "peak_rss_mb": 990,
+      "gpu_mem_delta_mb": null,
+      "model_mb": 389.8
+    }
+  ]
+}
