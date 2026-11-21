@@ -36,10 +36,14 @@ class HairParams:
     radius: int
 
 
+SQUARE = "square"
+
+
 @dataclass(frozen=True)
 class Preprocessing:
     size: int
     hair: HairParams | None
+    kind: str = SQUARE
 
 
 def parse_preprocessing(input_block: dict[str, Any], size: int) -> Preprocessing:

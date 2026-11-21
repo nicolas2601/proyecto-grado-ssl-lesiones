@@ -11,11 +11,16 @@ from typing import Any
 import numpy as np
 
 from .photometry import CATEGORY_SCHEME, REGION, measure_photometry
+from .segmenter_letterbox import LETTERBOX
+from .segmenter_preprocess import HairParams, Preprocessing
 from .segmenter_service import THRESHOLD, SegmenterError
 
 PHOTOMETRY_ERROR = "photometry_error"
 SEGMENTER_ERROR = "segmenter_error"
 _MS_PER_SECOND = 1000
+# Hair exclusion for photometry when the segmenter itself runs without hair removal (letterbox
+# contract): the black-hat parameters and 224 px scale of the v10.4.1 segmenter manifest.
+PHOTOMETRY_HAIR = Preprocessing(size=224, hair=HairParams(kernel=9, threshold=10, radius=3))
 
 
 def _ms(seconds: float) -> int:
@@ -65,9 +70,16 @@ def _unavailable_photometry(reason: str) -> dict[str, Any]:
 
 
 def preprocessing_of(segmenter: Any) -> Any:
-    """The segmenter's preprocessing config when it is loaded; None otherwise (no hair exclusion then)."""
+    """Hair-exclusion config for photometry and tone simulation.
+
+    The segmenter's own config when it is loaded; the fixed v10.4.1 hair parameters when it uses the
+    letterbox contract (which has no hair step); None when it is not loaded (no hair exclusion then).
+    """
     getter = getattr(segmenter, "preprocessing", None)
-    return getter() if callable(getter) else None
+    config = getter() if callable(getter) else None
+    if config is not None and config.kind == LETTERBOX:
+        return PHOTOMETRY_HAIR
+    return config
 
 
 def _photometry(rgb: np.ndarray, mask: np.ndarray | None, hair: Any = None) -> dict[str, Any]:
