@@ -107,7 +107,7 @@ def create_app(
     inference_lock = threading.Lock()
     app = FastAPI(
         title="DermSSL research API",
-        version="10.3.0",
+        version="10.4.2",
         description="Research-only MoCo V10 classifier, lesion segmentation and surrounding-skin luminance simulation endpoints.",
         docs_url=None,
     )
